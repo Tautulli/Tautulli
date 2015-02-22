@@ -1,0 +1,8 @@
+MP3 = "MP3"
+FLAC = "FLAC"
+AAC = "AAC"
+AC3 = "AC3"
+DTS = "DTS"
+OGG_VORBIS = "Ogg Vorbis"
+
+ALL_FORMATS = [MP3, FLAC, AAC, AC3, DTS, OGG_VORBIS]

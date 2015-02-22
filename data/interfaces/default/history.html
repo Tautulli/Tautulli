@@ -1,0 +1,167 @@
+<%inherit file="base.html"/>
+<%!
+	from plexpy import helpers
+%>
+
+<%def name="body()">
+    <div class="clear"></div>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class='wellheader'>
+                        <div class="dashboard-wellheader-no-chevron">
+                            <h2><i class="icon-large icon-calendar icon-white"></i> History</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class='container-fluid'>
+            <div class='row-fluid'>
+                <div class='span12'>
+                    <div class='wellbg'>
+                        <table class="display" id="history_table">
+                            <thead>
+                                <tr>
+                                    <th align='left' id="time"><i class='icon-sort icon-white'></i> Time</th>
+                                    <th align='left' id="user"><i class='icon-sort icon-white'></i> User</th>
+                                    <th align='left' id="platform"><i class='icon-sort icon-white'></i> Platform</th>
+                                    <th align='left' id="ip_address"><i class='icon-sort icon-white'></i> IP Address</th>
+                                    <th align='left' id="title"><i class='icon-sort icon-white'></i> Title</th>
+                                    <th align='left' id="started"><i class='icon-sort icon-white'></i> Started</th>
+                                    <th align='left' id="paused"><i class='icon-sort icon-white'></i> Paused</th>
+                                    <th align='left' id="stopped"><i class='icon-sort icon-white'></i> Stopped</th>
+                                    <th align='left' id="duration">Duration</th>
+                                    <th align='left' id="percent_complete">Completed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</%def>
+
+<%def name="headIncludes()">
+	<link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+</%def>
+
+<%def name="javascriptIncludes()">
+<script src="interfaces/default/js/jquery.dataTables.js"></script>
+<script src="interfaces/default/js/jquery.dataTables.plugin.bootstrap_pagination.js"></script>
+<script src="interfaces/default/js/moment-with-locale.js"></script>
+<script>
+    	function initThisPage() {
+    		$('#history_table').dataTable({
+    			"bDestroy": true,
+    			"oLanguage": {
+    				"sSearch": "",
+                    "sLengthMenu":"Show _MENU_ entries per page",
+    				"sInfo":"Showing _START_ to _END_ of _TOTAL_ entries",
+    				"sInfoEmpty":"Showing 0 to 0 of 0 entries",
+    				"sInfoFiltered":"(filtered from _MAX_ total entries)",
+    				"sEmptyTable": " ",
+                },
+    			"bStateSave": true,
+    			"iDisplayLength": 25,
+    			"sPaginationType": "bootstrap",
+                "bProcessing": true,
+                "bServerSide": true,
+                "sAjaxSource": 'getHistory.json',
+                "aoColumnDefs": [
+                    {
+                        "aTargets": [0],
+                        "mDataProp":"date",
+                        "mRender": function ( data, type, full ) {
+                            return moment(data, "X").format("${date_format}");
+                        }
+                    },
+                    {
+                        "aTargets": [1],
+                        "mDataProp":"user"
+                    },
+                    {
+                        "aTargets": [2],
+                        "mDataProp":"platform"
+                    },
+                    {
+                        "aTargets": [3],
+                        "mDataProp":"ip_address"
+                    },
+                    {
+                        "aTargets": [4],
+                        "mDataProp":"title"
+                    },
+                    {
+                        "aTargets": [5],
+                        "mDataProp":"started",
+                        "mRender": function ( data, type, full ) {
+                            return moment(data, "X").format("${time_format}");
+                        }
+                    },
+                    {
+                        "aTargets": [6],
+                        "mDataProp":"paused",
+                        "mRender": function ( data, type, full ) {
+                            return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
+                        }
+                    },
+                    {
+                        "aTargets": [7],
+                        "mDataProp":"stopped",
+                        "mRender": function ( data, type, full ) {
+                            return moment(data, "X").format("${time_format}");
+                        }
+                    },
+                    {
+                        "aTargets": [8],
+                        "mDataProp":"duration",
+                        "bSortable": false,
+                        "mRender": function ( data, type, full ) {
+                            return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
+                        }
+                    },
+                    {
+                        "aTargets": [9],
+                        "mDataProp":"percent_complete",
+                        "bSortable": false,
+                        "mRender": function ( data, type, full ) {
+                            if (data < 95) {
+                                return '<span class="badge badge-warning">'+Math.round(data)+'%</span>';
+                            } else {
+                                return '<span class="badge badge-warning">100%</span>';
+                            }
+                        }
+                    }
+                ],
+                "fnServerData": function ( sSource, aoData, fnCallback ) {
+                    /* Add some extra data to the sender */
+                    $.getJSON( sSource, aoData, function (json) {    fnCallback(json)                }  )
+                    },
+                "fnInitComplete": function(oSettings, json)
+                {
+                },
+                "fnDrawCallback": function (o) {
+                    // Jump to top of page
+                    $('html,body').scrollTop(0);
+                }
+            });
+            $('#artist_table').on("draw.dt", function () {
+                $("img").unveil();
+            });
+
+    		resetFilters("user or title");
+    	}
+
+    	$(document).ready(function() {
+    		initThisPage();
+    	});
+    	$(window).load(function(){
+    		initFancybox();
+    		refreshLoadArtist();
+    	});
+	</script>
+</%def>

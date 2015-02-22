@@ -1,0 +1,1186 @@
+// Config
+@import "config.less";
+
+html,body,div,span,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,abbr,address,cite,code,del,dfn,em,img,ins,kbd,q,samp,small,strong,sub,sup,var,b,i,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,figcaption,figure,footer,header,hgroup,menu,nav,section,summary,time,mark,audio,video {
+    border: 0;
+    font: inherit;
+    font-size: 100%;
+    margin: 0;
+    padding: 0;
+    vertical-align: baseline;
+}
+
+article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section {display: block;}
+
+html {
+    color: @text-color;
+    font-size: @base-font-size;
+    line-height: 1.5;
+}
+body {
+    background: #fff;
+    color: @text-color;
+    font-family: @base-font-face;
+    margin: 0;
+    overflow-y: scroll;
+    padding: 0;
+}
+
+// Links
+a {
+	color: @link-color;
+	text-decoration: none;
+	outline: none;
+	&:hover {
+		    color: #8B8B8B;
+	}
+	&.blue {
+	    color: blue;
+	}
+	.ui-icon {
+		display:inline-block;
+		position: relative;
+		top: 2px;
+
+	}
+}
+.links {
+    a {
+        color: @swatch-grey;
+       	clear: both;
+		display: inline-block;
+        float: left;
+        &:hover { color: @link-color;}
+        .ui-icon {
+            float: left;
+            margin-right: 5px;
+            margin-top: 3px;
+        }
+    }
+}
+
+// Markup
+h1 { font-size: 24px;}
+h2 { font-size: 20px;}
+h3 { font-size: 16px;}
+p {
+    &.center {
+        text-align: center;
+    }
+}
+hr {
+    border: 0;
+    border-top: 1px solid @border-color;
+    display: block;
+    height: 1px;
+    margin: 1em 0;
+    padding: 0;
+}
+small {
+    font-size: 85%;
+}
+img {
+    &.albumArt {
+        float: left;
+        min-height: 100%;
+        min-width: 100%;
+        max-width: 250px;
+        max-height: 300px;
+        position: relative;
+    }
+}
+.title {
+	margin-bottom:20px;
+	margin-top:10px;
+	h1 {
+		img {
+			float: left;
+			margin-right: 5px;
+		}
+	}
+}
+// Tables
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    th {
+    	.gradient(#FAFAFA, #EAEAEA);
+    	border-left: 1px solid #E0E0E0;
+    	.shadow(1px 0 0 #FAFAFA);
+    	text-shadow:1px 1px 0 #FFFFFF ;
+    	input[type="checkbox"]{ vertical-align: middle;}
+    	&:first-child { border-left:0;.shadow(none)}
+    	&.sorting_desc,&.sorting_asc  {
+    		.gradient(#FAFBFD, #DCE6EF);
+    		color: @link-color;
+    	}
+    }
+    td {
+    	vertical-align: top;
+        a { color: @swatch-grey;}
+    }
+}
+
+
+// Forms
+select, input, textarea, button { font: 99%;}
+textarea {overflow: auto;}
+input { .rounded(3px);}
+input:invalid, textarea:invalid {
+   .shadow(0 0 5px #ff0000);
+  .rounded(1px);
+}
+.no-boxshadow input:invalid,.no-boxshadow textarea:invalid { background-color: #f0dddd;}
+input[type="checkbox"] { vertical-align: bottom; }
+label, input[type="button"],input[type="submit"],input[type="image"], button { cursor: pointer;}
+button,input, select, textarea { margin: 0;}
+button {
+    overflow: visible;
+    width: auto;
+}
+input,select,form .checkbox input,.configtable td#middle, #artist_table td#have,#album_table td#have { vertical-align: middle; }
+
+input[type="radio"]{ vertical-align: text-bottom; }
+::-moz-selection, ::selection {
+    background: grey;
+    color: #fff;
+    text-shadow: none;
+}
+input[type=submit], input[type=button] {
+    .rounded(5px);
+    background: #222222 url("../images/button.png") repeat-x;
+    border: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    margin-right: 3px;
+    padding: 4px 10px;
+    position: relative;
+    text-decoration: none;
+    text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.25);
+}
+
+form {
+	legend, h2 {
+	    font-size: 16px;
+	    font-weight: bold;
+	    margin-bottom: 10px;
+	}
+    table { width: 100%; }
+    fieldset {
+        margin-bottom: 20px;
+        small {
+            &.heading {
+                color: #666;
+                display: block;
+                font-style: italic;
+                margin-bottom: 10px;
+                margin-top: -15px;
+            }
+        }
+    }
+    .row {
+        font-family: Helvetica, Arial;
+        margin-bottom: 10px;
+        label {
+            display: block;
+            float: left;
+            font-size: 12px;
+            line-height: normal;
+            padding-top: 7px;
+            width: 175px;
+
+            &.inline {
+                margin-right: 5px;
+                width: auto;
+            }
+        }
+        input { margin-right: 5px; }
+        input[type=text], input[type=password] {
+        	border: 1px solid #DDD;
+        	border-top: 1px solid #CDCDCD;
+        	.shadow(0 1px 0 #f1f1f1);
+        	.shadow(inset 0 1px 1px #e0e0e0);
+        	color: @text-color;
+        	font-size: 14px;
+        	height: auto;
+        	line-height: normal;
+        	max-width: 230px;
+        	margin-right: 5px;
+        	padding: 3px 5px;
+        }
+        small {
+            color: #999;
+            display: block;
+            font-size: 9px;
+            line-height: 12px;
+            margin-left: 175px;
+            margin-top: 3px;
+        }
+    }
+    .left {
+    	label {
+    		float: none;
+    		line-height: normal;
+    		margin-bottom: 10px;
+    		padding-top: 1px;
+    		width: auto;
+    	}
+    	input {
+    		float: left;
+    		margin-bottom: 10px;
+    	}
+    }
+    .radio {
+    	label {
+    		float: none;
+    		line-height: normal;
+    		margin-bottom: 10px;
+    		padding-top: 1px;
+    		width: auto;
+    	}
+    	input {
+    		float: left;
+    		margin-bottom: 10px;
+    	}
+    	small {
+    		display: inline !important;
+    		line-height: normal !important;
+    		margin: 0 !important;
+    		width: auto;
+    	}
+    }
+    .checkbox {
+    	small {
+    		display: inline !important;
+    		line-height: normal !important;
+    		margin: 0 !important;
+    		width: auto;
+    	}
+    }
+}
+
+// Lists
+ul, ol { margin-left: 2em;}
+ol { list-style-type: decimal;}
+
+// Navigation
+nav ul, nav li {
+    list-style: none;
+    list-style-image: none;
+    margin: 0;
+}
+ul#nav {
+    float: right;
+    margin: 0;
+    padding: 0 0 0 10px;
+    border-left: 1px solid #FAFAFA;
+    .shadow(-1px 0 0 #e0e0e0);
+    height: 58px;
+    li {
+        display: block;
+        float: left;
+        font-size: 18px;
+        font-weight: bold;
+        margin: 8px 0 0 0;
+        text-align: center;
+        a {
+            color: @text-color;
+            display: block;
+            padding: 7px 15px;
+            text-shadow: 1px 1px 0px #FFF;
+            text-transform: capitalize;
+            border: 1px solid transparent;
+            font-family: @alt-font-face;
+            &:hover {
+            	 .gradient(#F1F1F1, #E0E0E0);
+            	 border: 1px solid #DDDDDD;
+            	 .rounded(3px);
+            	 .shadow(0 1px 0 #FAFAFA);
+            	 .shadow(0 1px 0 #FAFAFA inset);
+            	-webkit-transition:color .2s ease-in;
+            	-moz-transition:color .2s ease-in;
+            	-o-transition:color .2s ease-in;
+            	transition:color .2s ease-in;
+            }
+            &.config {
+                height: 28px;
+                width: 10px;
+                i {
+                	position: relative;
+                	top:  0px;
+                	left: -6px;
+                }
+            }
+            &.log {
+                font-size: 13px;
+                padding: 10px 15px 11px;
+            }
+        }
+    }
+}
+// Layout
+header {
+    .gradient(#fafafa, #eaeaea);
+    border-bottom: 1px solid #CACACA;
+    .shadow(0 0 10px rgba(0, 0, 0, 0.1));
+    height: 58px;
+    position: fixed;
+    width: 100%;
+    z-index: 999;
+    .wrapper {
+        margin: 0 auto;
+        overflow: hidden;
+        position: relative;
+        width: 960px;
+    }
+    #logo {
+        float: left;
+        margin-right: 20px;
+        position: relative;
+        top: -3px;
+        margin-left: 10px;
+    }
+}
+footer {
+    display: table;
+    margin: 60px auto 50px auto;
+    width: 960px;
+    padding-top: 10px;
+    border-top: 1px solid #EEE;
+}
+#main {
+    line-height: 24px;
+    margin: 0 auto;
+    padding: 75px 0 0;
+    width: 960px;
+}
+
+// Messages
+.message {
+    .rounded(10px);
+    .gradient(#FCF5C2,@msg-bg);
+    display: inline-block;
+    padding: 5px 10px;
+    margin-top: 10px;
+    .ui-icon {
+        float: left;
+        margin-right: 5px;
+        position: relative;
+        top: 4px;
+    }
+}
+#ajaxMsg {
+    border: 1px solid @border-color;
+    .gradient(#FFFFFF, #EEEEEE);
+    .rounded(7px);
+    display: none;
+    font-size: 14px;
+    right: 10px;
+    .shadow(0px 0px 2px #aaa);
+    padding: 7px 10px;
+    position: fixed;
+    text-align: center;
+    bottom: 10px;
+    min-height: 22px;
+    width: 250px;
+    z-index: 9999;
+    .opacity(80);
+    .msg {
+        font-family: @alt-font-face;
+        line-height: normal;
+        padding-left: 20px;
+    }
+    .loader {
+    	position: relative;
+    	top: 2px;
+    }
+    &.success {
+        .gradient(@msg-bg-success,#C2EDC6);
+        padding: 15px 10px;
+        text-align: left;
+    }
+    &.error {
+         .gradient(@msg-bg-error,#EDC4C4);
+        padding:15px 10px;
+        text-align: left;
+    }
+    .ui-icon {
+        display: inline-block;
+        margin-left: -20px;
+        top: 2px;
+        position: relative;
+        margin-right: 3px;
+    }
+}
+
+#updatebar {
+    #ajaxMsg;
+    display: block;
+    .gradient(#FCF5C2,@msg-bg);
+}
+
+// Subheader
+#subhead {
+    .back {
+        float: left;
+        margin-top: -25px;
+    }
+    #subhead_container {
+        float: right;
+        height: 30px;
+        list-style-type: none;
+        width: 100%;
+        z-index: 998;
+        #subhead_menu {
+            float: right;
+            margin-top: 5px;
+            position: relative;
+            z-index: 99;
+           a {
+              	.gradient(#F4F4F4, #e7e7e7);
+              	font-family: @base-font-face;
+              	font-size: 12px;
+              	font-weight: normal;
+              	&:hover {
+              		.gradient(#599BDC, #3072B3);
+              		color: #FFF;
+              		border-color: #518CC6 #518CC6 #2A65A0;
+              	}
+            }
+        }
+    }
+}
+
+// Search
+div#searchbar {
+    border-left: 1px solid #FAFAFA;
+    .shadow(-1px 0 0 #e0e0e0);
+    padding: 15px 0 15px 20px;
+    position: absolute;
+    left: 90px;
+    top: 2px;
+    input[type=text] {
+    	border: 1px solid #DDD;
+       	border-top: 1px solid #CDCDCD;
+        .shadow(0 1px 0 #f1f1f1);
+        .shadow(inset 0 1px 1px #e0e0e0);
+        color: #999;
+        float: left;
+        font-size: 14px;
+        height: auto;
+        line-height: normal;
+        margin-right: 5px;
+        padding: 4px 5px 4px 25px;
+        width: 150px;
+    }
+    .mini-icon {
+    	color: #999;
+    	position: absolute;
+    	display: block;
+    	margin-left: 9px;
+    	margin-top: 7px;
+    }
+}
+
+// Config Page
+.configtable {
+	legend {
+		font-size: 16px;
+		font-weight: bold;
+		margin-bottom: 10px;
+		text-shadow: 1px 1px 0 #FFFFFF;
+	}
+    tr {
+        td {
+            &:last-child {
+                border-left: 1px dotted #ddd;
+                padding-left: 20px;
+            }
+        }
+    }
+    td {
+        padding-right: 15px;
+        width: 50%;
+    }
+}
+
+// TABLES
+
+// wrappers
+.table_wrapper {
+    _height: 302px;
+    background-color: #FFF;
+    clear: both;
+    margin: 30px auto 0;
+    min-height: 100px;
+    position: relative;
+    width: 100%;
+    zoom: 1px;
+}
+.manage_wrapper {
+    _height: 302px;
+    clear: both;
+    margin: 20px auto 0;
+    min-height: 150px;
+    padding: 25px;
+    width: 88%;
+    zoom: 1px;
+}
+// headers
+#paddingheader {
+    position: relative;
+    top: -25px;
+    h1 {
+        line-height: 33px;
+        width: 450px;
+        img {
+        	float:left;
+        	margin-right: 5px;
+        }
+    }
+}
+div#nopaddingheader {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+}
+
+// Artist
+div#artistheader {
+    margin-top: 50px;
+    min-height: 200px;
+    #artistImg {
+        background: #ffffff url("../images/loader_black.gif") center no-repeat;
+        border: 5px solid #FFF;
+        .shadow(1px 1px 2px 0 #555);
+        float: left;
+        height: 200px;
+        margin-bottom: 30px;
+        margin-right: 25px;
+        overflow: hidden;
+        text-indent: -3000px;
+        width: 200px;
+        position: relative;
+
+        &.on-tour:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -2px;
+            width: 100px;
+            height: 100px;
+            z-index: 2;
+            background-image: url('../images/songkick_ribon.png');
+            background-repeat: no-repeat;
+        }
+    }
+    #artistBio {
+        font-size: 16px;
+        line-height: 24px;
+        margin-top: 10px;
+    }
+
+    h1 {
+        a {
+            font-size: 32px;
+            margin-bottom: 5px;
+            font-family: @alt-font-face;
+        }
+    }
+    h2 {
+        a {
+            font-style: italic;
+            font-weight: bold;
+            font-family: @alt-font-face;
+        }
+    }
+}
+
+#artistCalendar {
+    list-style-type: none;
+    margin: 0px;
+    display: block;
+    background: #FEF2EB;
+    padding: 10px;
+    font-size: 16px;
+
+    .sk-location {
+        display: inline-block;
+        padding-left: 6px;
+    }
+
+    .sk-logo {
+        width: 100px;
+        padding-top: 16px;
+    }
+}
+
+#artist_table {
+    background-color: #FFF;
+    padding: 20px;
+    width: 100%;
+    th#select {
+        text-align: left;
+        input { vertical-align: middle;}
+    }
+    #artistImg {
+    	background: url("../images/loader_black.gif") no-repeat scroll center center #FFFFFF;
+	    border: 3px solid #FFFFFF;
+	    box-shadow: 1px 1px 2px 0 #555555;
+	    float: left;
+	    height: 50px;
+	    overflow: hidden;
+	    text-indent: -3000px;
+	    width: 50px;
+    }
+    th#name {
+        min-width: 200px;
+        text-align: left;
+    }
+    th#album {
+        min-width: 300px;
+        text-align: left;
+    }
+    th#status, th#albumart {
+        min-width: 50px;
+        text-align: left;
+    }
+    th#have {
+        text-align: center;
+    }
+    td#name {
+    	min-width: 200px;
+    	text-align: left;
+    	vertical-align: middle;
+    }
+    td#status {
+        min-width: 50px;
+        text-align: left;
+        vertical-align: middle;
+    }
+    td#album {
+    	min-width: 300px;
+        text-align: left;
+        vertical-align: middle;
+    }
+}
+
+#markalbum {
+    position: relative;
+    top: 25px;
+    display: inline-block;
+}
+
+// Album
+#albumheader {
+    margin-top: 50px;
+    min-height: 200px;
+    #albumImg {
+        background: #ffffff url("../images/loader_black.gif") center no-repeat;
+        border: 5px solid #FFF;
+        .shadow(1px 1px 2px 0 #555);
+        float: left;
+        height: 200px;
+        margin-bottom: 30px;
+        margin-right: 25px;
+        overflow: hidden;
+        text-indent: -3000px;
+        width: 200px;
+    }
+    p {
+        font-size: 16px;
+        line-height: 24px;
+        margin-bottom: 10px;
+    }
+    h1 {
+        a {
+            display: inline-block;
+            font-size: 32px;
+            line-height: 35px;
+            margin-bottom: 3px;
+            font-family: @alt-font-face;
+        }
+    }
+    h2 {
+        a {
+            display: inline-block;
+            font-style: italic;
+            font-weight: 400;
+            margin-bottom: 5px;
+            font-family: @alt-font-face;
+        }
+    }
+    .albuminfo {
+        margin-left: 210px;
+        li {
+            border-right: 1px dotted #ccc;
+            float: left;
+            font-size: 16px;
+            font-weight: bold;
+            list-style: none;
+            margin-right: 10px;
+            padding-right: 10px;
+            &:last-child { border: none; }
+        }
+    }
+}
+
+#album_table {
+	background-color: #FFF;
+    th#select {
+        min-width: 10px;
+        text-align: left;
+        vertical-align: middle;
+         input { vertical-align: middle;}
+    }
+    th#reldate {
+        min-width: 70px;
+        text-align: center;
+        width: 175px;
+    }
+    th#status, th#albumart {
+        min-width: 50px;
+        text-align: left;
+    }
+    th#status {
+        min-width: 80px;
+        text-align: center;
+        width: 175px;
+    }
+    th#wantlossless {
+        min-width: 80px;
+        text-align: center;
+        width: 80px;
+    }
+    td#albumart {
+        img {
+            background: #FFF;
+            border: 1px solid #ccc;
+            padding: 3px;
+        }
+    }
+    td#status {
+        a#wantlossless {
+            white-space: nowrap;
+        }
+    }
+}
+
+// Manage
+#manageheader {
+    margin-top: 45px;
+    margin-bottom: 0;
+}
+
+// Tracks
+#track_wrapper {
+    font-size: 16px;
+    padding-top: 20px;
+    width: 100%;
+}
+
+#track_table {
+    th#number {
+        min-width: 10px;
+        text-align: right;
+    }
+    th#name {
+        min-width: 350px;
+        text-align: center;
+    }
+    th#location {
+        text-align: center;
+        width: 250px;
+    }
+    td { border-bottom: 1px solid #FFFFFF;}
+    td#number {
+        text-align: right;
+        vertical-align: middle;
+    }
+    td#name {
+        font-size: 15px;
+        text-align: left;
+        vertical-align: middle;
+    }
+    td#location {
+        font-size: 11px;
+        line-height: normal;
+        text-align: center;
+        vertical-align: middle;
+    }
+}
+
+// History
+#history_table {
+    background-color: #FFF;
+    font-size: 13px;
+    width: 100%;
+    td#dateadded {
+        font-size: 14px;
+        min-width: 150px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    td#filename {
+        font-size: 15px;
+        min-width: 100px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    td#size {
+        font-size: 14px;
+        min-width: 75px;
+        text-align: center;
+        vertical-align: middle;
+    }
+}
+
+// Logs
+#log_table {
+	background-color: #FFF;
+    th#timestamp {
+        min-width: 150px;
+        text-align: left;
+    }
+    th#level {
+        min-width: 60px;
+        text-align: left;
+    }
+    th#message {
+        min-width: 500px;
+        text-align: left;
+    }
+    td {
+        font-size: 12px;
+        padding: 2px 10px;
+    }
+}
+// Searchresults
+#searchresults_table {
+    th#albumname {
+        min-width: 225px;
+        text-align: left;
+    }
+    th#artistname {
+        min-width: 325px;
+        text-align: left;
+    }
+    #artistImg {
+    	background: url("../images/loader_black.gif") no-repeat scroll center center #FFFFFF;
+        border: 3px solid #FFFFFF;
+        box-shadow: 1px 1px 2px 0 #555555;
+        float: left;
+        height: 50px;
+        overflow: hidden;
+        text-indent: -3000px;
+        width: 50px;
+    }
+    td#albumname {
+        min-width: 200px;
+        text-align: left;
+        vertical-align: middle;
+    }
+    td#artistname {
+        min-width: 300px;
+        text-align: left;
+        vertical-align: middle;
+    }
+    td#add {vertical-align: middle;}
+    td#score {
+    	.bar {
+    		width: 100px;
+    		margin: 0 auto;
+    		border: 1px solid @border-color;
+    		padding: 1px;
+    		background-color: #FFF;
+    		.score {
+    			height: 14px;
+    			color: @text-color;
+    			color: #FFF;
+    			font-size: 11px;
+    			vertical-align: middle;
+    			line-height: normal;
+    			.gradient(#A3E532,#90CC2A);
+    		}
+    	}
+    }
+}
+.progress-container {
+    background: #FFF;
+    border: 1px solid #ccc;
+    float: left;
+    height: 14px;
+    margin: 2px 5px 2px 0;
+    padding: 1px;
+    width: 100px;
+    & > div {
+       .gradient(#A3E532,#90CC2A);
+        height: 14px;
+    }
+}
+.havetracks {
+    font-size: 11px;
+    line-height: normal;
+    margin-left: 36px;
+    padding-bottom: 3px;
+    vertical-align: middle;
+}
+
+// Globar elements
+#version {
+    color: #999;
+    font-size: 10px;
+    position: relative;
+    z-index: 999;
+    margin: 0px auto;
+    text-align: center;
+    width: 400px;
+}
+#donate {
+    float: left;
+    text-align: left;
+}
+#info {
+    float: left;
+    text-align: left;
+    margin-left: 10px;
+    margin-top: -5px;
+    color: @border-color;
+}
+#actions {
+	float: right;
+	text-align: right;
+	margin-right: 10px;
+	margin-top: -5px;
+	color: @border-color;
+	.ui-icon {
+		position: relative;
+		top: 4px;
+		background-image: url("../images/ui-icons_70b2e1_256x240.png");
+	}
+}
+#toTop {
+    background: #f7f7f7;
+    border-radius: 5px 0 0 0;
+    bottom: 0;
+    display: none;
+    padding: 10px 10px 10px 10px;
+    position: fixed;
+    right: 0;
+}
+#shutdown {
+    text-align: center;
+    vertical-align: middle;
+    h1 {
+        img {
+            position: relative;
+            top: 7px;
+        }
+    }
+}
+.cloudtag {
+    font-size: 16px;
+    #cloud {
+        line-height: 1.5em;
+        margin: 0;
+        padding: 2px;
+        text-align: center;
+        a {
+            padding: 0;
+            &.tag1 {
+                font-size: 0.7em;
+                font-weight: 100;
+            }
+            &.tag2 {
+                font-size: 0.8em;
+                font-weight: 200;
+            }
+            &.tag3 {
+                font-size: 0.9em;
+                font-weight: 300;
+            }
+            &.tag4 {
+                font-size: 1em;
+                font-weight: 400;
+            }
+            &.tag5 {
+                font-size: 1.2em;
+                font-weight: 500;
+            }
+            &.tag6 {
+                font-size: 1.4em;
+                font-weight: 600;
+            }
+            &.tag7 {
+                font-size: 1.6em;
+                font-weight: bold;
+            }
+            &.tag8 {
+                font-size: 1.8em;
+                font-weight: 800;
+            }
+            &.tag9 {
+                font-size: 2.2em;
+                font-weight: 900;
+            }
+            &.tag10 {
+                font-size: 2.5em;
+                font-weight: 900;
+            }
+        }
+        li {
+        	display: inline-block;
+        	margin: 5px 10px;
+         }
+    }
+}
+
+// Other elements
+.floatright { float: right; }
+.floatleft { float: left; }
+.ir {
+    background-repeat: no-repeat;
+    direction: ltr;
+    display: block;
+    overflow: hidden;
+    text-align: left;
+    text-indent: -999em;
+}
+.hidden {
+    display: none;
+    visibility: hidden;
+}
+.visuallyhidden {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+.visuallyhidden.focusable:active, .visuallyhidden.focusable:focus {
+    clip: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    position: static;
+    width: auto;
+}
+.invisible { visibility: hidden; }
+
+.clearfix:before, .clearfix:after {
+    content: "\0020";
+    display: block;
+    height: 0;
+    overflow: hidden;
+}
+.clearfix {
+    zoom: 1px;
+    &:after { clear: both; }
+}
+
+// Table width
+#album_table th#albumname, #upcoming_table th#artistname, #wanted_table th#artistname {
+    min-width: 150px;
+    text-align: center;
+}
+#album_table th#type, #track_table th#duration {
+    min-width: 100px;
+    text-align: center;
+    width: 175px;
+}
+#album_table th#bitrate, #album_table th#albumformat {
+    min-width: 60px;
+    text-align: center;
+}
+#album_table td#select, #album_table td#albumart {
+    text-align: left;
+    vertical-align: middle;
+}
+#album_table td#albumname,#album_table td#reldate, #album_table td#type, #track_table td#duration, #upcoming_table td#select, #upcoming_table td#status, #wanted_table td#select, #wanted_table td#status {
+    text-align: center;
+    vertical-align: middle;
+}
+#album_table td#status, #album_table td#bitrate, #album_table td#albumformat, #album_table td#wantlossless {
+    font-size: 13px;
+    text-align: center;
+    vertical-align: middle;
+}
+div#albumheader .albuminfo li span, div#artistheader h3 span {
+    font-weight: 400;
+}
+#track_table th#bitrate, #track_table th#format, #upcoming_table th#type, #wanted_table th#type, #searchresults_table th#score {
+    min-width: 75px;
+    text-align: center;
+}
+#track_table td#bitrate, #track_table td#format {
+    font-size: 12px;
+    text-align: center;
+    vertical-align: middle;
+}
+#history_table td#status, #history_table td#action {
+    font-size: 14px;
+    text-align: center;
+    vertical-align: middle;
+}
+#upcoming_table, #wanted_table {
+	td#albumart {
+	    img {
+	        background: #FFF;
+	        border: 1px solid #ccc;
+	        padding: 3px;
+	    }
+	}
+}
+#upcoming_table th#albumart, #wanted_table th#albumart {
+    min-width: 50px;
+    text-align: center;
+}
+#upcoming_table th#albumname, #wanted_table th#albumname {
+    min-width: 200px;
+    text-align: center;
+}
+#upcoming_table th#reldate, #wanted_table th#reldate {
+    min-width: 100px;
+    text-align: center;
+}
+#upcoming_table td#albumart, #wanted_table td#albumart {
+    min-width: 50px;
+    text-align: center;
+    vertical-align: middle;
+}
+#upcoming_table td#albumname, #wanted_table td#albumname {
+    min-width: 200px;
+    text-align: center;
+    vertical-align: middle;
+}
+#upcoming_table td#artistname, #wanted_table td#artistname {
+    min-width: 150px;
+    text-align: center;
+    vertical-align: middle;
+}
+#upcoming_table td#reldate, #wanted_table td#reldate {
+    min-width: 100px;
+    text-align: center;
+    vertical-align: middle;
+}
+#upcoming_table td#type, #wanted_table td#type, #searchresults_table td#score {
+    min-width: 75px;
+    text-align: center;
+    vertical-align: middle;
+}
+table tr td#status a {
+	color: @link-color;
+}
+
+// IE
+.ie7 {
+    input[type="checkbox"] { vertical-align: baseline;}
+    img {-ms-interpolation-mode: bicubic;}
+    legend { margin-left: -7px;}
+}
