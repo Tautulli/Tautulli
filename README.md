@@ -1,4 +1,8 @@
-#!PlexPy
+#PlexPy
+
+NB: This project is still very early in development, it is basically just a skeleton at this time. Please feel free to fork or contribute here.
+
+This project is based on code from Headphones (https://github.com/rembo10/headphones) and PlexWatchWeb (https://github.com/ecleese/plexWatchWeb).
 
 A python based web front-end for plexWatch.
 
