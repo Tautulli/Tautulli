@@ -36,7 +36,7 @@
                                     <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
                                     <th align='left' id="paused"><i class='fa fa-sort'></i> Paused</th>
                                     <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
-                                    <th align='left' id="duration"> Duration</th>
+                                    <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
                                     <th align='left' id="percent_complete"> Completed</th>
                                 </tr>
                             </thead>
@@ -188,7 +188,6 @@
                     {
                         "targets": [9],
                         "data":"duration",
-                        "orderable": false,
                         "render": function ( data, type, full ) {
                             return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
                         }

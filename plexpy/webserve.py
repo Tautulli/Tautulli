@@ -1,4 +1,4 @@
-#  This file is part of PlexPy.
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -45,7 +45,6 @@ except ImportError:
 
 
 def serve_template(templatename, **kwargs):
-
     interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
     template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE)
 
@@ -59,7 +58,6 @@ def serve_template(templatename, **kwargs):
 
 
 class WebInterface(object):
-
     @cherrypy.expose
     def index(self):
         raise cherrypy.HTTPRedirect("home")
@@ -79,11 +77,13 @@ class WebInterface(object):
         else:
             time_format = 'HH:mm'
 
-        return serve_template(templatename="history.html", title="History", date_format=date_format, time_format=time_format)
+        return serve_template(templatename="history.html", title="History", date_format=date_format,
+                              time_format=time_format)
 
     @cherrypy.expose
     def checkGithub(self):
         from plexpy import versioncheck
+
         versioncheck.checkGithub()
         raise cherrypy.HTTPRedirect("home")
 
@@ -101,7 +101,7 @@ class WebInterface(object):
     def toggleVerbose(self):
         plexpy.VERBOSE = not plexpy.VERBOSE
         logger.initLogger(console=not plexpy.QUIET,
-            log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
+                          log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
         logger.info("Verbose toggled, set to %s", plexpy.VERBOSE)
         logger.debug("If you read this message, debug logging is available")
         raise cherrypy.HTTPRedirect("logs")
@@ -116,16 +116,16 @@ class WebInterface(object):
         order_dir = "desc"
 
         if 'order[0][dir]' in kwargs:
-            order_dir = kwargs.get('order[0][dir]',"desc")
+            order_dir = kwargs.get('order[0][dir]', "desc")
 
         if 'order[0][column]' in kwargs:
-            order_column = kwargs.get('order[0][column]',"0")
+            order_column = kwargs.get('order[0][column]', "0")
 
         if 'search[value]' in kwargs:
-            search_value = kwargs.get('search[value]',"")
+            search_value = kwargs.get('search[value]', "")
 
         if 'search[regex]' in kwargs:
-            search_regex = kwargs.get('search[regex]',"")
+            search_regex = kwargs.get('search[regex]', "")
 
         filtered = []
         if search_value == "":
@@ -158,7 +158,8 @@ class WebInterface(object):
     @cherrypy.expose
     def config(self):
         interface_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/')
-        interface_list = [name for name in os.listdir(interface_dir) if os.path.isdir(os.path.join(interface_dir, name))]
+        interface_list = [name for name in os.listdir(interface_dir) if
+                          os.path.isdir(os.path.join(interface_dir, name))]
 
         config = {
             "http_host": plexpy.CONFIG.HTTP_HOST,
@@ -290,16 +291,16 @@ class WebInterface(object):
         order_dir = "desc"
 
         if 'order[0][dir]' in kwargs:
-            order_dir = kwargs.get('order[0][dir]',"desc")
+            order_dir = kwargs.get('order[0][dir]', "desc")
 
         if 'order[0][column]' in kwargs:
-            order_column = kwargs.get('order[0][column]',"1")
+            order_column = kwargs.get('order[0][column]', "1")
 
         if 'search[value]' in kwargs:
-            search_value = kwargs.get('search[value]',"")
+            search_value = kwargs.get('search[value]', "")
 
         if 'search[regex]' in kwargs:
-            search_regex = kwargs.get('search[regex]',"")
+            search_regex = kwargs.get('search[regex]', "")
 
         myDB = db.DBConnection()
         db_table = db.DBConnection().get_history_table_name()
@@ -321,15 +322,23 @@ class WebInterface(object):
         elif order_column == '8':
             sortcolumn = 'stopped'
         elif order_column == '9':
-            sortbyhavepercent = True
+            sortcolumn = 'duration'
 
         if search_value == "":
-            query = 'SELECT * from %s order by %s COLLATE NOCASE %s' % (db_table, sortcolumn, order_dir)
+            query = 'SELECT id, time, user, platform, ip_address, title, time, paused_counter, stopped, xml, \
+                    round((julianday(datetime(stopped, "unixepoch", "localtime")) - \
+                    julianday(datetime(time, "unixepoch", "localtime"))) * 86400) - \
+                    (case when paused_counter is null then 0 else paused_counter end) as duration \
+                    from %s order by %s COLLATE NOCASE %s' % (db_table, sortcolumn, order_dir)
             filtered = myDB.select(query)
             totalcount = len(filtered)
         else:
-            query = 'SELECT * from ' + db_table + ' WHERE user LIKE "%' + search_value + \
-                    '%" OR title LIKE "%' + search_value + '%"' + 'ORDER BY %s COLLATE NOCASE %s' % (sortcolumn, order_dir)
+            query = 'SELECT id, time, user, platform, ip_address, title, time, paused_counter, stopped, xml, \
+                    round((julianday(datetime(stopped, "unixepoch", "localtime")) - \
+                    julianday(datetime(time, "unixepoch", "localtime"))) * 86400) - \
+                    (case when paused_counter is null then 0 else paused_counter end) as duration \
+                    from ' + db_table + ' WHERE user LIKE "%' + search_value + '%" OR title LIKE "%' + search_value \
+                    + '%"' + 'ORDER BY %s COLLATE NOCASE %s' % (sortcolumn, order_dir)
             filtered = myDB.select(query)
             totalcount = myDB.select('SELECT COUNT(*) from processed')[0][0]
 
@@ -337,16 +346,16 @@ class WebInterface(object):
         rows = []
         for item in history:
             row = {"id": item['id'],
-                    "date": item['time'],
-                    "user": item["user"],
-                    "platform": item["platform"],
-                    "ip_address": item["ip_address"],
-                    "title": item["title"],
-                    "started": item["time"],
-                    "paused": item["paused_counter"],
-                    "stopped": item["stopped"],
-                    "duration": "",
-                    "percent_complete": 0,
+                   "date": item['time'],
+                   "user": item["user"],
+                   "platform": item["platform"],
+                   "ip_address": item["ip_address"],
+                   "title": item["title"],
+                   "started": item["time"],
+                   "paused": item["paused_counter"],
+                   "stopped": item["stopped"],
+                   "duration": item["duration"],
+                   "percent_complete": 0,
             }
 
             if item['paused_counter'] > 0:
@@ -364,8 +373,6 @@ class WebInterface(object):
                 else:
                     paused_counter = 0
 
-                row['duration'] = stopped - item['time'] + paused_counter
-
             try:
                 xml_parse = minidom.parseString(helpers.latinToAscii(item['xml']))
             except IOError, e:
@@ -380,7 +387,7 @@ class WebInterface(object):
                     view_offset = helpers.cast_to_float(s.getAttribute('viewOffset'))
                     duration = helpers.cast_to_float(s.getAttribute('duration'))
                     if duration > 0:
-                        row['percent_complete'] = (view_offset / duration)*100
+                        row['percent_complete'] = (view_offset / duration) * 100
                     else:
                         row['percent_complete'] = 0
 
@@ -389,7 +396,7 @@ class WebInterface(object):
         dict = {'recordsFiltered': len(filtered),
                 'recordsTotal': totalcount,
                 'data': rows,
-                }
+        }
         s = json.dumps(dict)
         cherrypy.response.headers['Content-type'] = 'application/json'
         return s
@@ -469,6 +476,7 @@ class WebInterface(object):
     def osxnotifyregister(self, app):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
         from osxnotify import registerapp as osxnotify
+
         result, msg = osxnotify.registerapp(app)
         if result:
             osx_notify = notifiers.OSX_NOTIFY()
