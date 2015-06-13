@@ -107,30 +107,46 @@ class WebInterface(object):
         raise cherrypy.HTTPRedirect("logs")
 
     @cherrypy.expose
-    def getLog(self, iDisplayStart=0, iDisplayLength=100, iSortCol_0=0, sSortDir_0="desc", sSearch="", **kwargs):
-        iDisplayStart = int(iDisplayStart)
-        iDisplayLength = int(iDisplayLength)
+    def getLog(self, start=0, length=100, **kwargs):
+        start = int(start)
+        length = int(length)
+        search_value = ""
+        search_regex = ""
+        order_column = 0
+        order_dir = "desc"
+
+        if 'order[0][dir]' in kwargs:
+            order_dir = kwargs.get('order[0][dir]',"desc")
+
+        if 'order[0][column]' in kwargs:
+            order_column = kwargs.get('order[0][column]',"0")
+
+        if 'search[value]' in kwargs:
+            search_value = kwargs.get('search[value]',"")
+
+        if 'search[regex]' in kwargs:
+            search_regex = kwargs.get('search[regex]',"")
 
         filtered = []
-        if sSearch == "":
+        if search_value == "":
             filtered = plexpy.LOG_LIST[::]
         else:
-            filtered = [row for row in plexpy.LOG_LIST for column in row if sSearch.lower() in column.lower()]
+            filtered = [row for row in plexpy.LOG_LIST for column in row if search_value.lower() in column.lower()]
 
         sortcolumn = 0
-        if iSortCol_0 == '1':
+        if order_column == '1':
             sortcolumn = 2
-        elif iSortCol_0 == '2':
+        elif order_column == '2':
             sortcolumn = 1
-        filtered.sort(key=lambda x: x[sortcolumn], reverse=sSortDir_0 == "desc")
+        filtered.sort(key=lambda x: x[sortcolumn], reverse=order_dir == "desc")
 
-        rows = filtered[iDisplayStart:(iDisplayStart + iDisplayLength)]
+        rows = filtered[start:(start + length)]
         rows = [[row[0], row[2], row[1]] for row in rows]
 
         return json.dumps({
-            'iTotalDisplayRecords': len(filtered),
-            'iTotalRecords': len(plexpy.LOG_LIST),
-            'aaData': rows,
+            'recordsFiltered': len(filtered),
+            'recordsTotal': len(plexpy.LOG_LIST),
+            'data': rows,
         })
 
     @cherrypy.expose
@@ -263,57 +279,75 @@ class WebInterface(object):
                               message=message, timer=timer)
 
     @cherrypy.expose
-    def getHistory_json(self, iDisplayStart=0, iDisplayLength=100, sSearch="", iSortCol_0='0', sSortDir_0='asc', **kwargs):
-        iDisplayStart = int(iDisplayStart)
-        iDisplayLength = int(iDisplayLength)
+    def getHistory_json(self, start=0, length=100, **kwargs):
+        start = int(start)
+        length = int(length)
         filtered = []
         totalcount = 0
+        search_value = ""
+        search_regex = ""
+        order_column = 1
+        order_dir = "desc"
+
+        if 'order[0][dir]' in kwargs:
+            order_dir = kwargs.get('order[0][dir]',"desc")
+
+        if 'order[0][column]' in kwargs:
+            order_column = kwargs.get('order[0][column]',"1")
+
+        if 'search[value]' in kwargs:
+            search_value = kwargs.get('search[value]',"")
+
+        if 'search[regex]' in kwargs:
+            search_regex = kwargs.get('search[regex]',"")
+
         myDB = db.DBConnection()
         db_table = db.DBConnection().get_history_table_name()
 
         sortcolumn = 'time'
         sortbyhavepercent = False
-        if iSortCol_0 == '1':
+        if order_column == '2':
             sortcolumn = 'user'
-        if iSortCol_0 == '2':
+        if order_column == '3':
             sortcolumn = 'platform'
-        elif iSortCol_0 == '3':
+        elif order_column == '4':
             sortcolumn = 'ip_address'
-        elif iSortCol_0 == '4':
+        elif order_column == '5':
             sortcolumn = 'title'
-        elif iSortCol_0 == '5':
+        elif order_column == '6':
             sortcolumn = 'time'
-        elif iSortCol_0 == '6':
+        elif order_column == '7':
             sortcolumn = 'paused_counter'
-        elif iSortCol_0 == '7':
+        elif order_column == '8':
             sortcolumn = 'stopped'
-        elif iSortCol_0 == '8':
+        elif order_column == '9':
             sortbyhavepercent = True
 
-        if sSearch == "":
-            query = 'SELECT * from %s order by %s COLLATE NOCASE %s' % (db_table, sortcolumn, sSortDir_0)
+        if search_value == "":
+            query = 'SELECT * from %s order by %s COLLATE NOCASE %s' % (db_table, sortcolumn, order_dir)
             filtered = myDB.select(query)
             totalcount = len(filtered)
         else:
-            query = 'SELECT * from ' + db_table + ' WHERE user LIKE "%' + sSearch + \
-                    '%" OR title LIKE "%' + sSearch + '%"' + 'ORDER BY %s COLLATE NOCASE %s' % (sortcolumn, sSortDir_0)
+            query = 'SELECT * from ' + db_table + ' WHERE user LIKE "%' + search_value + \
+                    '%" OR title LIKE "%' + search_value + '%"' + 'ORDER BY %s COLLATE NOCASE %s' % (sortcolumn, order_dir)
             filtered = myDB.select(query)
             totalcount = myDB.select('SELECT COUNT(*) from processed')[0][0]
 
-        history = filtered[iDisplayStart:(iDisplayStart + iDisplayLength)]
+        history = filtered[start:(start + length)]
         rows = []
         for item in history:
-            row = {"date": item['time'],
-                      "user": item["user"],
-                      "platform": item["platform"],
-                      "ip_address": item["ip_address"],
-                      "title": item["title"],
-                      "started": item["time"],
-                      "paused": item["paused_counter"],
-                      "stopped": item["stopped"],
-                      "duration": "",
-                      "percent_complete": 0,
-                      }
+            row = {"id": item['id'],
+                    "date": item['time'],
+                    "user": item["user"],
+                    "platform": item["platform"],
+                    "ip_address": item["ip_address"],
+                    "title": item["title"],
+                    "started": item["time"],
+                    "paused": item["paused_counter"],
+                    "stopped": item["stopped"],
+                    "duration": "",
+                    "percent_complete": 0,
+            }
 
             if item['paused_counter'] > 0:
                 row['paused'] = item['paused_counter']
@@ -352,13 +386,36 @@ class WebInterface(object):
 
             rows.append(row)
 
-        dict = {'iTotalDisplayRecords': len(filtered),
-                'iTotalRecords': totalcount,
-                'aaData': rows,
+        dict = {'recordsFiltered': len(filtered),
+                'recordsTotal': totalcount,
+                'data': rows,
                 }
         s = json.dumps(dict)
         cherrypy.response.headers['Content-type'] = 'application/json'
         return s
+
+
+    @cherrypy.expose
+    def getStreamDetails(self, id=0, **kwargs):
+
+        myDB = db.DBConnection()
+        db_table = db.DBConnection().get_history_table_name()
+
+        query = 'SELECT xml from %s where id = %s' % (db_table, id)
+        xml = myDB.select_single(query)
+
+        try:
+            dict_data = helpers.convert_xml_to_dict(helpers.latinToAscii(xml))
+        except IOError, e:
+            logger.warn("Error parsing XML in PlexWatch db: %s" % e)
+
+        dict = {'id': id,
+                'data': dict_data}
+
+        s = json.dumps(dict)
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return s
+
 
     @cherrypy.expose
     def shutdown(self):

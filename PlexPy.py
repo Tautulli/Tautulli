@@ -64,7 +64,7 @@ def main():
 
     # Set up and gather command line arguments
     parser = argparse.ArgumentParser(
-        description='Music add-on for SABnzbd+, Transmission and more.')
+        description='Python frontend for PlexWatch.')
 
     parser.add_argument(
         '-v', '--verbose', action='store_true', help='Increase console logging verbosity')

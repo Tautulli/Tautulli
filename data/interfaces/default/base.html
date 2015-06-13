@@ -11,10 +11,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="">
         <meta name="author" content="">
-        <link href="interfaces/default/css/bootstrap.css" rel="stylesheet">
         <link href="interfaces/default/css/plexwatch.css" rel="stylesheet">
         <link href="interfaces/default/css/style.css" rel="stylesheet">
-        <link href="interfaces/default/css/font-awesome.min.css" rel="stylesheet" >
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+        <link href="interfaces/default/css/font-awesome.css" rel="stylesheet" >
         <style type="text/css">
           body {
             padding-top: 60px;
@@ -47,24 +47,24 @@
                 <a href="home"><div class="logo hidden-phone"></div></a>
                 <ul class="nav">
                     % if title=="Home":
-                        <li class="active"><a href="home"><i class="icon-2x icon-home icon-white" data-toggle="tooltip" data-placement="bottom" title="Home" id="home"></i></a></li>
+                        <li class="active"><a href="home"><i class="fa fa-home fa-2x" data-toggle="tooltip" data-placement="bottom" title="Home" id="home"></i></a></li>
                     % else:
-                        <li><a href="home"><i class="icon-2x icon-home icon-white" data-toggle="tooltip" data-placement="bottom" title="Home" id="home"></i></a></li>
+                        <li><a href="home"><i class="fa fa-home fa-2x" data-toggle="tooltip" data-placement="bottom" title="Home" id="home"></i></a></li>
                     % endif
                     % if title=="History":
-                        <li class="active"><a href="history"><i class="icon-2x icon-calendar icon-white" data-toggle="tooltip" data-placement="bottom" title="History" id="history"></i></a></li>
+                        <li class="active"><a href="history"><i class="fa fa-history fa-2x" data-toggle="tooltip" data-placement="bottom" title="History" id="history"></i></a></li>
                     % else:
-                        <li><a href="history"><i class="icon-2x icon-calendar icon-white" data-toggle="tooltip" data-placement="bottom" title="History" id="history"></i></a></li>
+                        <li><a href="history"><i class="fa fa-history fa-2x" data-toggle="tooltip" data-placement="bottom" title="History" id="history"></i></a></li>
                     % endif
                     % if title=="Log":
-                        <li class="active"><a href="logs"><i class="icon-2x icon-book icon-white" data-toggle="tooltip" data-placement="bottom" title="Logs" id="logs"></i></a></li>
+                        <li class="active"><a href="logs"><i class="fa fa-book fa-2x" data-toggle="tooltip" data-placement="bottom" title="Logs" id="logs"></i></a></li>
                     % else:
-                        <li><a href="logs"><i class="icon-2x icon-book icon-white" data-toggle="tooltip" data-placement="bottom" title="Logs" id="logs"></i></a></li>
+                        <li><a href="logs"><i class="fa fa-book fa-2x" data-toggle="tooltip" data-placement="bottom" title="Logs" id="logs"></i></a></li>
                     % endif
                     % if title=="Settings":
-                        <li class="active"><a href="config"><i class="icon-2x icon-wrench icon-white" data-toggle="tooltip" data-placement="bottom" title="Settings" id="settings"></i></a></li>
+                        <li class="active"><a href="config"><i class="fa fa-cog fa-2x" data-toggle="tooltip" data-placement="bottom" title="Settings" id="settings"></i></a></li>
                     % else:
-                        <li><a href="config"><i class="icon-2x icon-wrench icon-white" data-toggle="tooltip" data-placement="bottom" title="Settings" id="settings"></i></a></li>
+                        <li><a href="config"><i class="fa fa-cog fa-2x" data-toggle="tooltip" data-placement="bottom" title="Settings" id="settings"></i></a></li>
                     % endif
                 </ul>
             </div>
@@ -74,7 +74,7 @@
     ${next.headerIncludes()}
     ${next.body()}
 
-    <script src="interfaces/default/js/jquery-2.0.3.js"></script>
+    <script src="interfaces/default/js/jquery-2.1.4.min.js"></script>
     <script src="interfaces/default/js/bootstrap.js"></script>
     <script>
         $(document).ready(function() {

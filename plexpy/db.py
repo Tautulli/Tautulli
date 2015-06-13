@@ -91,6 +91,15 @@ class DBConnection:
 
         return sqlResults
 
+    def select_single(self, query, args=None):
+
+        sqlResult = self.action(query, args).fetchone()[0]
+
+        if sqlResult is None or sqlResult == "":
+            return ""
+
+        return sqlResult
+
     def get_history_table_name(self):
 
         if plexpy.CONFIG.GROUPING_GLOBAL_HISTORY:

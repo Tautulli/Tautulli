@@ -35,23 +35,22 @@
 	clear: both;
 	zoom: 1; /* Feeling sorry for IE */
 	margin-left: -20px;
-	margin-right: -20px;
+
 }
 
 .dataTables_processing {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 250px;
-	height: 30px;
-	margin-left: -125px;
-	margin-top: -15px;
-	padding: 14px 0 2px 0;
-	border: 1px solid #ddd;
-	text-align: center;
-	color: #999;
-	font-size: 14px;
-	
+	width: 50%;
+	float: left;
+	margin-top: -60px;
+	margin-left: 25%;
+	margin-bottom: 12px;
+	height: 40px;
+	padding: 8px 0px 0px 20px;
+	border: none;
+	color: #ccc;
+	font-size: 16px;
+	background-color: rgba(0,0,0,.5);
+	border-radius: 8px;
 }
 
 .dataTables_length {
@@ -62,7 +61,7 @@
 }
 
 .dataTables_filter {
-	
+
 	float: right;
 	text-align: right;
 	margin-right: 15px;
@@ -148,7 +147,7 @@ table.display {
 	font-size: 14px;
 	line-height: 30px;
 	/* Note Firefox 3.5 and before have a bug with border-collapse
-	 * ( https://bugzilla.mozilla.org/show%5Fbug.cgi?id=155955 ) 
+	 * ( https://bugzilla.mozilla.org/show%5Fbug.cgi?id=155955 )
 	 * border-spacing: 0; is one possible option. Conditional-css.com is
 	 * useful for this kind of thing
 	 *
@@ -156,20 +155,20 @@ table.display {
 	 * It subtracts one px relative to the other browsers from the first column, and
 	 * adds one to the end...
 	 *
-	 * If you want that effect I'd suggest setting a border-top/left on th/td's and 
+	 * If you want that effect I'd suggest setting a border-top/left on th/td's and
 	 * then filling in the gaps with other borders.
 	 */
 }
 
 table.display thead th {
 white-space:nowrap;
-padding: 0px 0px 5px 5px;
-border-bottom: 1px solid #343434;
-font-weight: bold;
+padding: 0px 0px 0px 19px;
+border-top: 1px solid #2d2d2d;
+border-bottom: 1px solid #0e0e0e;
 cursor: pointer;
 color: #999;
-font-size: 10px;
-
+background-color: #212121;
+font-size: 11px;
 }
 
 
@@ -188,7 +187,7 @@ table.display tr.heading2 td {
 }
 
 table.display td {
-	padding: 5px;
+	padding: 5px 0 5px 20px;
 	white-space:nowrap;
 }
 
@@ -203,20 +202,20 @@ table.display td.center {
 }
 
 table.display tr:hover {
-
+	background-color: rgba(255,255,255,0.075);
 }
 
 table.display tr:hover a {
-text-decoration:none;
+	text-decoration:none;
 
 }
 
 table.display td:hover a {
-color: #F9AA03; 
+	color: #F9AA03;
 }
 
 table.display thead tr:hover {
-background: transparent;
+	background-color: #212121;
 }
 
 
@@ -226,25 +225,25 @@ background: transparent;
  */
 
 .sorting_asc {
-	
+
 }
 
 .sorting_desc {
-	
+
 }
 
 .sorting {
-	
+
 }
 
 .sorting_asc_disabled {
-	
+
 }
 
 .sorting_desc_disabled {
-	
+
 }
- 
+
 table.display thead th:active,
 table.display thead td:active {
 	outline: none;
@@ -290,15 +289,15 @@ table.display tr.even.gradeU {
 
 
 tr.odd {
-	background-color: rgba(255,255,255,0.04);
-	border-top: 1px solid #343434;
-	border-bottom: 1px solid #343434;
+	border-top: 0px solid #343434;
+	border-bottom: 0px solid #343434;
+	background-color: rgba(255,255,255,0.010);
 }
 
 tr.even {
-	border-top: 1px solid #343434;
-	border-bottom: 1px solid #343434;
-	
+	border-top: 0px solid #343434;
+	border-bottom: 0px solid #343434;
+	background-color: rgba(255,255,255,0.035);
 }
 
 
@@ -412,19 +411,19 @@ table.display tr.odd.row_selected td {
  */
 /* For the standard odd/even */
 tr.odd td.sorting_1 {
-	
+
 }
 
 tr.odd td.sorting_2 {
-	
+
 }
 
 tr.odd td.sorting_3 {
-	
+
 }
 
 tr.even td.sorting_1 {
-	
+
 }
 
 tr.even td.sorting_2 {

@@ -16,21 +16,27 @@
 </%def>
 
 <%def name="body()">
-    <div class="clear"></div>
+
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="wellheader-bg">
+                    <div class="dashboard-wellheader-no-chevron">
+                        <h2><i class="fa fa-cog"></i> Settings</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <div class='row'>
             <div class='span12'>
-                <div class='wellheader'>
-                    <div class='dashboard-wellheader-no-chevron'>
-                        <h2><i class="icon-large icon-wrench icon-white"></i> Settings</h2>
-                    </div>
-                </div>
-
+            <div class="wellbg">
                 <form action="configUpdate" method="post" class="form" id="configUpdate">
                     <div role="tabpanel">
                         <!-- Nav tabs -->
-                        <ul class="nav nav-tabs" role="tablist">
+                        <ul class="nav nav-pills" role="tablist">
                             <li role="presentation" class="active"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Web Interface</a></li>
                             <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Plex & PlexWatch</a></li>
                             <!--<li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Notifications</a></li>-->
@@ -40,10 +46,10 @@
 
                             <div role="tabpanel" class="tab-pane active" id="tabs-1">
                                 <div class="alert">Web Interface changes require a restart to take effect.</div>
-                                <div class="wellbg">
+                                <div class="wellbg" style="padding: 0px 0px 0px 20px;">
                                     <div class="container-fluid">
-                                        <div class="row">
-                                            <div class="col-md-4">
+                                        <div class="row-fluid">
+                                            <div class="span4">
                                                 <fieldset>
                                                     <div class="wellheader">
                                                         <h3>Basic</h3>
@@ -78,7 +84,7 @@
                                                     </div>
                                                 </fieldset>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="span4">
                                                 <fieldset>
                                                     <div class="wellheader">
                                                         <h3>Authentication</h3>
@@ -95,7 +101,7 @@
                                                     </div>
                                                 </fieldset>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="span4">
                                                 <fieldset>
                                                     <div class="wellheader">
                                                         <h3>API</h3>
@@ -108,7 +114,7 @@
                                                         <label for="api_key">API key</label>
                                                         <input type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20">
                                                         <input type="button" class="btn btn-link" value="Generate" id="generate_api">
-                                                        <p class="help-block">Current API key: <strong>${config['api_key']}</strong></p>
+                                                        <p class="help-block">Current API key: <strong><br/>${config['api_key']}</strong></p>
                                                     </div>
                                                 </fieldset>
                                             </div>
@@ -119,10 +125,10 @@
                             </div>
 
                             <div role="tabpanel" class="tab-pane" id="tabs-2">
-                                <div class="wellbg">
+                                <div class="wellbg" style="padding: 0px 0px 0px 20px;">
                                     <div class="container-fluid">
-                                        <div class="row">
-                                            <div class="col-md-4">
+                                        <div class="row-fluid">
+                                            <div class="span4">
                                                 <fieldset>
                                                     <div class="wellheader">
                                                         <h3>General</h3>
@@ -139,7 +145,7 @@
                                                     </div>
                                                 </fieldset>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="span4">
                                                 <fieldset>
                                                     <div class="wellheader">
                                                         <h3>PMS Settings</h3>
@@ -166,7 +172,7 @@
                                                     </div>
                                                 </fieldset>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="span4">
                                                 <div class="wellheader">
                                                     <h3>PlexWatch Settings</h3>
                                                 </div>

@@ -3,41 +3,95 @@
 	from plexpy import helpers
 %>
 
+<%def name="headIncludes()">
+    <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+</%def>
+
 <%def name="body()">
-    <div class="clear"></div>
+
         <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div class='wellheader'>
-                        <div class="dashboard-wellheader-no-chevron">
-                            <h2><i class="icon-large icon-calendar icon-white"></i> History</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="wellheader-bg">
+						<div class="dashboard-wellheader-no-chevron">
+							<h2><i class="fa fa-history"></i> History</h2>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
         <div class='container-fluid'>
             <div class='row-fluid'>
                 <div class='span12'>
                     <div class='wellbg'>
-                        <table class="display" id="history_table">
+                        <table class="display" id="history_table" width="100%">
                             <thead>
                                 <tr>
-                                    <th align='left' id="time"><i class='icon-sort icon-white'></i> Time</th>
-                                    <th align='left' id="user"><i class='icon-sort icon-white'></i> User</th>
-                                    <th align='left' id="platform"><i class='icon-sort icon-white'></i> Platform</th>
-                                    <th align='left' id="ip_address"><i class='icon-sort icon-white'></i> IP Address</th>
-                                    <th align='left' id="title"><i class='icon-sort icon-white'></i> Title</th>
-                                    <th align='left' id="started"><i class='icon-sort icon-white'></i> Started</th>
-                                    <th align='left' id="paused"><i class='icon-sort icon-white'></i> Paused</th>
-                                    <th align='left' id="stopped"><i class='icon-sort icon-white'></i> Stopped</th>
-                                    <th align='left' id="duration">Duration</th>
-                                    <th align='left' id="percent_complete">Completed</th>
+                                    <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
+                                    <th align='left' id="time"><i class='fa fa-sort'></i> Time</th>
+                                    <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
+                                    <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
+                                    <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
+                                    <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
+                                    <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
+                                    <th align='left' id="paused"><i class='fa fa-sort'></i> Paused</th>
+                                    <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
+                                    <th align='left' id="duration"> Duration</th>
+                                    <th align='left' id="percent_complete"> Completed</th>
                                 </tr>
                             </thead>
                             <tbody>
                             </tbody>
                         </table>
+                        <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal" aria-hidden="true">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+								<h3 id="myModalLabel">Stream Info: <strong><span id="modal-stream-info"></span></strong></h3>
+							</div>
+							<div class="modal-body" id="modal-text">
+                                <div class="span4">
+                                    <h4>Stream Details</h4>
+                                        <ul>
+                                            <h5>Video</h5>
+                                            <li>Stream Type: <strong><span id="transcode_video_dec"></span></strong></li>
+                                            <li>Video Resolution: <strong><span id="transcode_video_resolution"></span>p</strong></li>
+                                            <li>Video Codec: <strong><span id="transcode_video_codec"></span></strong></li>
+                                            <li>Video Width: <strong><span id="transcode_video_width"></span></strong></li>
+                                            <li>Video Height: <strong><span id="transcode_video_height"></span></strong></li>
+                                        </ul>
+                                        <ul>
+                                            <h5>Audio</h5>
+                                            <li>Stream Type: <strong><span id="transcode_audio_dec"></span></strong></li>
+                                            <li>Audio Codec: <strong><span id="transcode_audio_codec"></span></strong></li>
+                                            <li>Audio Channels: <strong><span id="transcode_audio_channels"></span></strong></li>
+                                        </ul>
+                                </div>
+                                <div class="span4">
+                                    <h4>Media Source Details</h4>
+                                    <li>Container: <strong><span id="media_container"></span></strong></li>
+                                    <li>Resolution: <strong><span id="media_resolution"></span>p</strong></li>
+                                    <li>Bitrate: <strong><span id="media_bitrate"></span> kbps</strong></li>
+                                </div>
+                                <div class="span4">
+                                    <h4>Video Source Details</h4>
+                                    <ul>
+                                        <li>Width: <strong><span id="video_width"></span></strong></li>
+                                        <li>Height: <strong><span id="video_height"></span></strong></li>
+                                        <li>Aspect Ratio: <strong><span id="video_aspect"></span></strong></li>
+                                        <li>Video Frame Rate: <strong><span id="video_framerate"></span></strong></li>
+                                        <li>Video Codec: <strong><span id="video_codec"></span></strong></li>
+                                    </ul>
+                                    <ul></ul>
+                                    <h4>Audio Source Details</h4>
+                                    <ul>
+                                        <li>Audio Codec: <strong><span id="audio_codec"></span></strong></li>
+                                        <li>Audio Channels: <strong><span id="audio_channels"></span></strong></li>
+                                    </ul>
+                                </div>
+							</div>
+							<div class="modal-footer">
+							</div>
+						</div>
                     </div>
                 </div>
             </div>
@@ -45,123 +99,178 @@
     </div>
 </%def>
 
-<%def name="headIncludes()">
-	<link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
-</%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/jquery.dataTables.js"></script>
-<script src="interfaces/default/js/jquery.dataTables.plugin.bootstrap_pagination.js"></script>
+
+<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script>
-    	function initThisPage() {
-    		$('#history_table').dataTable({
-    			"bDestroy": true,
-    			"oLanguage": {
-    				"sSearch": "",
-                    "sLengthMenu":"Show _MENU_ entries per page",
-    				"sInfo":"Showing _START_ to _END_ of _TOTAL_ entries",
-    				"sInfoEmpty":"Showing 0 to 0 of 0 entries",
-    				"sInfoFiltered":"(filtered from _MAX_ total entries)",
-    				"sEmptyTable": " ",
+    	$(document).ready(function() {
+
+    	    var history_table;
+
+            history_table = $('#history_table').DataTable({
+    			"destroy": true,
+    			"language": {
+    				"search": "Search: ",
+                    "lengthMenu":"Show _MENU_ entries per page",
+    				"info":"Showing _START_ to _END_ of _TOTAL_ entries",
+    				"infoEmpty":"Showing 0 to 0 of 0 entries",
+    				"infoFiltered":"(filtered from _MAX_ total entries)",
+    				"emptyTable": "No data in table",
                 },
-    			"bStateSave": true,
-    			"iDisplayLength": 25,
+    			"stateSave": true,
     			"sPaginationType": "bootstrap",
-                "bProcessing": true,
-                "bServerSide": true,
-                "sAjaxSource": 'getHistory.json',
-                "aoColumnDefs": [
+                "processing": false,
+                "serverSide": true,
+                "pageLength": 25,
+                "order": [ 1, 'desc'],
+                "ajax": {
+                    "url": "getHistory.json"
+                },
+                "columnDefs": [
                     {
-                        "aTargets": [0],
-                        "mDataProp":"date",
-                        "mRender": function ( data, type, full ) {
+                        "targets": [0],
+                        "data":"id",
+                        "visible": false
+                    },
+                    {
+                        "targets": [1],
+                        "data":"date",
+                        "render": function ( data, type, full ) {
                             return moment(data, "X").format("${date_format}");
                         }
                     },
                     {
-                        "aTargets": [1],
-                        "mDataProp":"user"
+                        "targets": [2],
+                        "data":"user"
                     },
                     {
-                        "aTargets": [2],
-                        "mDataProp":"platform"
+                        "targets": [3],
+                        "data":"platform",
+                        "createdCell": function (td, cellData, rowData, row, col) {
+                            if (cellData !== '') {
+                                $(td).html('<a href="#info-modal" data-toggle="modal"><span data-toggle="tooltip" data-placement="left" title="Stream Info" id="stream-info" class="badge badge-inverse"><i class="fa fa-info"></i></span></a>&nbsp'+cellData);
+                            }
+                        },
+                        "className": "modal-control"
                     },
                     {
-                        "aTargets": [3],
-                        "mDataProp":"ip_address"
+                        "targets": [4],
+                        "data":"ip_address"
                     },
                     {
-                        "aTargets": [4],
-                        "mDataProp":"title"
+                        "targets": [5],
+                        "data":"title"
                     },
                     {
-                        "aTargets": [5],
-                        "mDataProp":"started",
-                        "mRender": function ( data, type, full ) {
+                        "targets": [6],
+                        "data":"started",
+                        "render": function ( data, type, full ) {
                             return moment(data, "X").format("${time_format}");
                         }
                     },
                     {
-                        "aTargets": [6],
-                        "mDataProp":"paused",
-                        "mRender": function ( data, type, full ) {
+                        "targets": [7],
+                        "data":"paused",
+                        "render": function ( data, type, full ) {
                             return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
                         }
                     },
                     {
-                        "aTargets": [7],
-                        "mDataProp":"stopped",
-                        "mRender": function ( data, type, full ) {
+                        "targets": [8],
+                        "data":"stopped",
+                        "render": function ( data, type, full ) {
                             return moment(data, "X").format("${time_format}");
                         }
                     },
                     {
-                        "aTargets": [8],
-                        "mDataProp":"duration",
-                        "bSortable": false,
-                        "mRender": function ( data, type, full ) {
+                        "targets": [9],
+                        "data":"duration",
+                        "orderable": false,
+                        "render": function ( data, type, full ) {
                             return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
                         }
                     },
                     {
-                        "aTargets": [9],
-                        "mDataProp":"percent_complete",
-                        "bSortable": false,
-                        "mRender": function ( data, type, full ) {
+                        "targets": [10],
+                        "data":"percent_complete",
+                        "orderable": false,
+                        "render": function ( data, type, full ) {
                             if (data < 95) {
-                                return '<span class="badge badge-warning">'+Math.round(data)+'%</span>';
+                                return '<span class="badge">'+Math.round(data)+'%</span>';
                             } else {
-                                return '<span class="badge badge-warning">100%</span>';
+                                return '<span class="badge">100%</span>';
                             }
                         }
                     }
                 ],
-                "fnServerData": function ( sSource, aoData, fnCallback ) {
-                    /* Add some extra data to the sender */
-                    $.getJSON( sSource, aoData, function (json) {    fnCallback(json)                }  )
-                    },
-                "fnInitComplete": function(oSettings, json)
-                {
-                },
-                "fnDrawCallback": function (o) {
+                "drawCallback": function (settings) {
                     // Jump to top of page
                     $('html,body').scrollTop(0);
+                    $('#ajaxMsg').addClass('success').fadeOut();
+                },
+                "preDrawCallback": function(settings) {
+                    $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>Fetching rows...</div>");
+                    $('#ajaxMsg').addClass('success').fadeIn();
                 }
             });
-            $('#artist_table').on("draw.dt", function () {
-                $("img").unveil();
+
+            $('#history_table').on('mouseenter', 'td.modal-control span', function () {
+                $(this).tooltip();
+            } );
+
+            $('#history_table').on('click', 'td.modal-control', function () {
+                var tr = $(this).parents('tr');
+                var row = history_table.row( tr );
+                var rowData = row.data();
+
+				$.ajax({
+					url: 'getStreamDetails',
+					type: 'GET',
+					data: {id: rowData['id']},
+					success: function(data) {
+					    $('#modal-stream-info').html(rowData['title']+' ('+rowData['user']+')');
+
+                        $('#media_container').html(data.data.opt.Media['@container']);
+                        $('#media_resolution').html(data.data.opt.Media['@videoResolution']);
+                        $('#media_bitrate').html(data.data.opt.Media['@bitrate']);
+
+                        if (data.data.opt.TranscodeSession) {
+                            $('#transcode_video_dec').html(data.data.opt.TranscodeSession['@videoDecision']);
+                            $('#transcode_video_resolution').html(data.data.opt.TranscodeSession['@height']);
+                            $('#transcode_video_codec').html(data.data.opt.TranscodeSession['@videoCodec']);
+                            $('#transcode_video_width').html(data.data.opt.TranscodeSession['@width']);
+                            $('#transcode_video_height').html(data.data.opt.TranscodeSession['@height']);
+
+                            $('#transcode_audio_dec').html(data.data.opt.TranscodeSession['@audioDecision']);
+                            $('#transcode_audio_codec').html(data.data.opt.TranscodeSession['@audioCodec']);
+                            $('#transcode_audio_channels').html(data.data.opt.TranscodeSession['@audioChannels']);
+                        } else {
+                            $('#transcode_video_dec').html('Direct Play');
+                            $('#transcode_video_resolution').html(data.data.opt.Media['@videoResolution']);
+                            $('#transcode_video_codec').html(data.data.opt.Media.Part.Stream[0]['@codec']);
+                            $('#transcode_video_width').html(data.data.opt.Media['@width']);
+                            $('#transcode_video_height').html(data.data.opt.Media['@height']);
+
+                            $('#transcode_audio_dec').html('Direct Play');
+                            $('#transcode_audio_codec').html(data.data.opt.Media['@audioCodec']);
+                            $('#transcode_audio_channels').html(data.data.opt.Media['@audioChannels']);
+                        }
+
+                        $('#video_width').html(data.data.opt.Media['@width']);
+                        $('#video_height').html(data.data.opt.Media['@height']);
+                        $('#video_aspect').html(data.data.opt.Media['@aspectRatio']);
+                        $('#video_framerate').html(data.data.opt.Media['@videoFrameRate']);
+                        $('#video_codec').html(data.data.opt.Media['@videoCodec']);
+
+                        $('#audio_codec').html(data.data.opt.Media['@audioCodec']);
+                        $('#audio_channels').html(data.data.opt.Media['@audioChannels']);
+					}
+				});
             });
-
-    		resetFilters("user or title");
-    	}
-
-    	$(document).ready(function() {
-    		initThisPage();
-    	});
-    	$(window).load(function(){
-    		initFancybox();
-    		refreshLoadArtist();
     	});
 	</script>
+
 </%def>

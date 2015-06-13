@@ -3,6 +3,13 @@
 	from plexpy import helpers
 %>
 
+<%def name="headIncludes()">
+    <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+    <style>
+        td {word-wrap: break-word}
+    </style>
+</%def>
+
 <%def name="headerIncludes()">
     <!--<div id="subhead_container">
         <div id="subhead_menu">
@@ -12,28 +19,27 @@
 </%def>
 
 <%def name="body()">
-    <div class="clear"></div>
         <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div class='wellheader'>
-                        <div class="dashboard-wellheader-no-chevron">
-                            <h2><i class="icon-large icon-book icon-white"></i> Logs</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="wellheader-bg">
+						<div class="dashboard-wellheader-no-chevron">
+							<h2><i class="fa fa-book"></i> Logs</h2>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
         <div class='container-fluid'>
             <div class='row-fluid'>
                 <div class='span12'>
                     <div class='wellbg'>
-                        <table class="display" id="log_table">
+                        <table class="display" id="log_table" width="100%">
                             <thead>
                                 <tr>
-                                    <th align='left' id="timestamp"><i class='icon-sort icon-white'></i> Timestamp</th>
-                                    <th align='left' id="level"><i class='icon-sort icon-white'></i> Level</th>
-                                    <th align='left' id="message"><i class='icon-sort icon-white'></i> Message</th>
+                                    <th align='left' id="timestamp"><i class='fa fa-sort'></i> Timestamp</th>
+                                    <th align='left' id="level"><i class='fa fa-sort'></i> Level</th>
+                                    <th align='left' id="message"><i class='fa fa-sort'></i> Message</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -59,57 +65,47 @@
     </div>
 </%def>
 
-<%def name="headIncludes()">
-    <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
-    <style>
-        td {word-wrap: break-word}
-    </style>
-</%def>
-
 <%def name="javascriptIncludes()">
-    <script src="interfaces/default/js/jquery.dataTables.js"></script>
-    <script src="interfaces/default/js/jquery.dataTables.plugin.bootstrap_pagination.js"></script>
+    <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+    <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
 
 	<script>
         $(document).ready(function() {
             initActions();
 
         	$('#log_table').dataTable( {
-        		"bProcessing": true,
-                "bServerSide": true,
-        		"sAjaxSource": 'getLog',
-                "sPaginationType": "bootstrap",
-                "aaSorting": [[0, 'desc']],
-                "iDisplayLength": 25,
-                "bStateSave": true,
-                "oLanguage": {
-                            "sSearch":"Filter:",
-        					"sLengthMenu":"Show _MENU_ lines per page",
-        					"sEmptyTable": "No log information available",
-        					"sInfo":"Showing _START_ to _END_ of _TOTAL_ lines",
-        					"sInfoEmpty":"Showing 0 to 0 of 0 lines",
-        					"sInfoFiltered":"(filtered from _MAX_ total lines)"},
-                "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    //if (aData[1] === "ERROR") {
-                    //    $('td', nRow).closest('tr').addClass("gradeX");
-                    //} else if (aData[1] === "WARNING") {
-                    //    $('td', nRow).closest('tr').addClass("gradeW");
-                    //} else {
-                    //    $('td', nRow).closest('tr').addClass("gradeZ");
-                    //}
-
-                    return nRow;
+        		"processing": false,
+                "serverSide": true,
+                "ajax": {
+                    "url": "getLog"
                 },
-                "fnDrawCallback": function (o) {
+                "sPaginationType": "bootstrap",
+                "order": [ 0, 'desc'],
+                "pageLength": 25,
+                "stateSave": true,
+                "autoWidth": true,
+                "language": {
+                            "search":"Search: ",
+        					"lengthMenu":"Show _MENU_ lines per page",
+        					"emptyTable": "No log information available",
+        					"info":"Showing _START_ to _END_ of _TOTAL_ lines",
+        					"infoEmpty":"Showing 0 to 0 of 0 lines",
+        					"infoFiltered":"(filtered from _MAX_ total lines)"},
+                "columnDefs": [
+                    {
+                        "targets": [2],
+                        "width": "70%"
+                    }
+                ],
+                "drawCallback": function (settings) {
                     // Jump to top of page
                     $('html,body').scrollTop(0);
+                    $('#ajaxMsg').addClass('success').fadeOut();
                 },
-                "fnServerData": function ( sSource, aoData, fnCallback ) {
-        			/* Add some extra data to the sender */
-        			$.getJSON(sSource, aoData, function (json) {
-        				fnCallback(json)
-        			});
-        		}
+                "preDrawCallback": function(settings) {
+                    $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>Fetching rows...</div>");
+                    $('#ajaxMsg').addClass('success').fadeIn();
+                }
         	});
         });
 	</script>

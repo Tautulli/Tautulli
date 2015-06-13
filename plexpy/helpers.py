@@ -24,6 +24,8 @@ import time
 import sys
 import re
 import os
+import json
+import xmltodict
 
 
 def multikeysort(items, columns):
@@ -325,3 +327,13 @@ def cast_to_float(s):
         return float(s)
     except ValueError:
         return -1
+
+
+def convert_xml_to_json(xml):
+    o = xmltodict.parse(xml)
+    return json.dumps(o)
+
+
+def convert_xml_to_dict(xml):
+    o = xmltodict.parse(xml)
+    return o

@@ -69,6 +69,38 @@
   margin-right: 3px;
 }
 
+.dataTables_processing {
+  border: 1px solid #cccccc;
+  background-image: -moz-linear-gradient(#ffffff, #eeeeee) !important;
+  background-image: linear-gradient(#ffffff, #eeeeee) !important;
+  background-image: -webkit-linear-gradient(#ffffff, #eeeeee) !important;
+  background-image: -o-linear-gradient(#ffffff, #eeeeee) !important;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#ffffff, endColorstr=#eeeeee) !important;
+  -ms-filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#ffffff, endColorstr=#eeeeee) !important;
+  -moz-border-radius: 7px;
+  -webkit-border-radius: 7px;
+  border-radius: 7px;
+  display: none;
+  font-size: 14px;
+  right: 10px;
+  -moz-box-shadow: 0px 0px 2px #aaaaaa;
+  -webkit-box-shadow: 0px 0px 2px #aaaaaa;
+  -o-box-shadow: 0px 0px 2px #aaaaaa;
+  box-shadow: 0px 0px 2px #aaaaaa;
+  padding: 7px 10px;
+  position: fixed;
+  text-align: center;
+  bottom: 10px;
+  min-height: 22px;
+  width: 250px;
+  z-index: 9999;
+  filter: alpha(opacity=85);
+  -moz-opacity: 0.8 !important;
+  -khtml-opacity: 0.8 !important;
+  -o-opacity: 0.8 !important;
+  opacity: 0.8 !important;
+}
+
 #updatebar {
   border: 1px solid #cccccc;
   background-image: -moz-linear-gradient(#ffffff, #eeeeee) !important;
