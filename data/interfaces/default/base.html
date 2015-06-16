@@ -56,6 +56,11 @@
                     % else:
                         <li><a href="history"><i class="fa fa-history fa-2x" data-toggle="tooltip" data-placement="bottom" title="History" id="history"></i></a></li>
                     % endif
+                    % if title=="Users":
+                        <li class="active"><a href="users"><i class="fa fa-users fa-2x" data-toggle="tooltip" data-placement="bottom" title="Users" id="users"></i></a></li>
+                    % else:
+                        <li><a href="users"><i class="fa fa-users fa-2x" data-toggle="tooltip" data-placement="bottom" title="Users" id="users"></i></a></li>
+                    % endif
                     % if title=="Log":
                         <li class="active"><a href="logs"><i class="fa fa-book fa-2x" data-toggle="tooltip" data-placement="bottom" title="Logs" id="logs"></i></a></li>
                     % else:
@@ -82,6 +87,9 @@
         });
         $(document).ready(function() {
             $('#history').tooltip();
+        });
+        $(document).ready(function() {
+            $('#users').tooltip();
         });
         $(document).ready(function() {
             $('#logs').tooltip();
