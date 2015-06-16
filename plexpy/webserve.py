@@ -699,7 +699,7 @@ class WebInterface(object):
             try:
                 pms_connect = pmsconnect.PmsConnect()
                 result = pms_connect.get_image(img, width, height)
-                logger.info('Image proxy queried. Content type is %s' % result[0])
+                logger.debug(u'Image proxy queried. Content type is %s' % result[0])
                 cherrypy.response.headers['Content-type'] = result[0]
                 return result[1]
             except:

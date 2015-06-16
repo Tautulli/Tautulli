@@ -80,9 +80,8 @@
                 },
                 "sPaginationType": "bootstrap",
                 "order": [ 0, 'desc'],
-                "pageLength": 25,
+                "pageLength": 10,
                 "stateSave": true,
-                "autoWidth": true,
                 "language": {
                             "search":"Search: ",
         					"lengthMenu":"Show _MENU_ lines per page",
@@ -92,8 +91,16 @@
         					"infoFiltered":"(filtered from _MAX_ total lines)"},
                 "columnDefs": [
                     {
+                        "targets": [0],
+                        "width": "15%"
+                    },
+                    {
+                        "targets": [1],
+                        "width": "10%"
+                    },
+                    {
                         "targets": [2],
-                        "width": "70%"
+                        "width": "75%"
                     }
                 ],
                 "drawCallback": function (settings) {

@@ -65,17 +65,25 @@ class PmsConnect(object):
         url_command = '/status/sessions'
         http_handler = HTTPConnection(self.host, self.port, timeout=10)
 
-        http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
-        response = http_handler.getresponse()
-        request_status = response.status
-        request_content = response.read()
+        try:
+            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
+            response = http_handler.getresponse()
+            request_status = response.status
+            request_content = response.read()
+        except IOError, e:
+            logger.warn(u"Failed to access sessions. %s" % e)
+            return None
 
-        if output_format == 'dict':
-            output = helpers.convert_xml_to_dict(request_content)
-        elif output_format == 'json':
-            output = helpers.convert_xml_to_json(request_content)
+        if request_status == 200:
+            if output_format == 'dict':
+                output = helpers.convert_xml_to_dict(request_content)
+            elif output_format == 'json':
+                output = helpers.convert_xml_to_json(request_content)
+            else:
+                output = request_content
         else:
-            output = request_content
+            logger.warn(u"Failed to access sessions. Status code %r" % request_status)
+            return None
 
         return output
 
@@ -91,17 +99,25 @@ class PmsConnect(object):
         url_command = '/library/metadata/' + rating_key
         http_handler = HTTPConnection(self.host, self.port, timeout=10)
 
-        http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
-        response = http_handler.getresponse()
-        request_status = response.status
-        request_content = response.read()
+        try:
+            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
+            response = http_handler.getresponse()
+            request_status = response.status
+            request_content = response.read()
+        except IOError, e:
+            logger.warn(u"Failed to access metadata. %s" % e)
+            return None
 
-        if output_format == 'dict':
-            output = helpers.convert_xml_to_dict(request_content)
-        elif output_format == 'json':
-            output = helpers.convert_xml_to_json(request_content)
+        if request_status == 200:
+            if output_format == 'dict':
+                output = helpers.convert_xml_to_dict(request_content)
+            elif output_format == 'json':
+                output = helpers.convert_xml_to_json(request_content)
+            else:
+                output = request_content
         else:
-            output = request_content
+            logger.warn(u"Failed to access metadata. Status code %r" % request_status)
+            return None
 
         return output
 
@@ -117,17 +133,25 @@ class PmsConnect(object):
         url_command = '/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count
         http_handler = HTTPConnection(self.host, self.port, timeout=10)
 
-        http_handler.request("GET", url_command + '&X-Plex-Token=' + self.token)
-        response = http_handler.getresponse()
-        request_status = response.status
-        request_content = response.read()
+        try:
+            http_handler.request("GET", url_command + '&X-Plex-Token=' + self.token)
+            response = http_handler.getresponse()
+            request_status = response.status
+            request_content = response.read()
+        except IOError, e:
+            logger.warn(u"Failed to access recently added items. %s" % e)
+            return None
 
-        if output_format == 'dict':
-            output = helpers.convert_xml_to_dict(request_content)
-        elif output_format == 'json':
-            output = helpers.convert_xml_to_json(request_content)
+        if request_status == 200:
+            if output_format == 'dict':
+                output = helpers.convert_xml_to_dict(request_content)
+            elif output_format == 'json':
+                output = helpers.convert_xml_to_json(request_content)
+            else:
+                output = request_content
         else:
-            output = request_content
+            logger.warn(u"Failed to access recently added. Status code %r" % request_status)
+            return None
 
         return output
 
@@ -546,7 +570,6 @@ class PmsConnect(object):
                 request_status = response.status
                 request_content = response.read()
                 request_content_type = response.getheader('content-type')
-                logger.debug(u"Content type: %r" % request_content_type)
             except IOError, e:
                 logger.warn(u"Failed to retrieve image. %s" % e)
                 return None
