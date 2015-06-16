@@ -8,7 +8,7 @@
 </%def>
 
 <%def name="body()">
-   <div class="container-fluid">
+    <div class="container-fluid">
         <div class="row-fluid">
             <div class="span12">
                 <div class="wellheader-bg">
@@ -18,7 +18,7 @@
                 </div>
             </div>
         </div>
-   </div>
+    </div>
     <div class='container-fluid'>
         <div class='row-fluid'>
             <div class='span12'>
@@ -50,76 +50,76 @@
     <script src="interfaces/default/js/moment-with-locale.js"></script>
 
     <script>
-    $(document).ready(function() {
-        var oTable = $('#usersTable').dataTable({
-            "language": {
-                "search": "Search: ",
-                "lengthMenu":"Show _MENU_ entries per page",
-                "info":"Showing _START_ to _END_ of _TOTAL_ entries",
-                "infoEmpty":"Showing 0 to 0 of 0 entries",
-                "infoFiltered":"(filtered from _MAX_ total entries)",
-                "emptyTable": "No data in table",
-            },
-            "destroy": true,
-            "processing": false,
-            "serverSide": true,
-            "pageLength": 10,
-            "order": [ 0, 'asc'],
-            "ajax": {
-                "url": "get_user_list"
-            },
-            "bLengthChange": true,
-            "bInfo": true,
-            "bAutoWidth": true,
-            "aaSorting": [[ 0, "asc" ]],
-            "bStateSave": true,
-            "bSortClasses": true,
-            "sPaginationType": "bootstrap",
-            "columnDefs": [
-                {
-                    "targets": [0],
-                    "data": null,
-                    "createdCell": function (td, cellData, rowData, row, col) {
-                        if (rowData['user_thumb'] === '') {
-                            $(td).html('<img src="interfaces/default/images/gravatar-default-80x80.png" alt="User Logo"/>');
-                        } else {
-                            $(td).html('<img src="' + rowData['user_thumb'] + '" alt="User Logo"/>');
+        $(document).ready(function() {
+            var oTable = $('#usersTable').dataTable({
+                "language": {
+                    "search": "Search: ",
+                    "lengthMenu":"Show _MENU_ entries per page",
+                    "info":"Showing _START_ to _END_ of _TOTAL_ entries",
+                    "infoEmpty":"Showing 0 to 0 of 0 entries",
+                    "infoFiltered":"(filtered from _MAX_ total entries)",
+                    "emptyTable": "No data in table",
+                },
+                "destroy": true,
+                "processing": false,
+                "serverSide": true,
+                "pageLength": 10,
+                "order": [ 0, 'asc'],
+                "ajax": {
+                    "url": "get_user_list"
+                },
+                "bLengthChange": true,
+                "bInfo": true,
+                "bAutoWidth": true,
+                "aaSorting": [[ 0, "asc" ]],
+                "bStateSave": true,
+                "bSortClasses": true,
+                "sPaginationType": "bootstrap",
+                "columnDefs": [
+                    {
+                        "targets": [0],
+                        "data": null,
+                        "createdCell": function (td, cellData, rowData, row, col) {
+                            if (rowData['user_thumb'] === '') {
+                                $(td).html('<img src="interfaces/default/images/gravatar-default-80x80.png" alt="User Logo"/>');
+                            } else {
+                                $(td).html('<img src="' + rowData['user_thumb'] + '" alt="User Logo"/>');
+                            }
+                        },
+                        "orderable": false,
+                        "className": "users-poster-face",
+                        "width": "40px"
+                    },
+                    {
+                        "targets": [1],
+                        "data": "user"
+                    },
+                    {
+                        "targets": [2],
+                        "data": "time",
+                        "render": function ( data, type, full ) {
+                            return moment(data, "X").fromNow();
                         }
                     },
-                    "orderable": false,
-                    "className": "users-poster-face",
-                    "width": "40px"
-                },
-                {
-                    "targets": [1],
-                    "data": "user"
-                },
-                {
-                    "targets": [2],
-                    "data": "time",
-                    "render": function ( data, type, full ) {
-                        return moment(data, "X").fromNow();
+                    {
+                        "targets": [3],
+                        "data": "ip_address"
+                    },
+                    {
+                        "targets": [4],
+                        "data": "plays"
                     }
+                ],
+                "drawCallback": function (settings) {
+                    // Jump to top of page
+                    $('html,body').scrollTop(0);
+                    $('#ajaxMsg').addClass('success').fadeOut();
                 },
-                {
-                    "targets": [3],
-                    "data": "ip_address"
-                },
-                {
-                    "targets": [4],
-                    "data": "plays"
+                "preDrawCallback": function(settings) {
+                    $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>Fetching rows...</div>");
+                    $('#ajaxMsg').addClass('success').fadeIn();
                 }
-            ],
-            "drawCallback": function (settings) {
-                // Jump to top of page
-                $('html,body').scrollTop(0);
-                $('#ajaxMsg').addClass('success').fadeOut();
-            },
-            "preDrawCallback": function(settings) {
-                $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>Fetching rows...</div>");
-                $('#ajaxMsg').addClass('success').fadeIn();
-            }
+            });
         });
-    });
-    </script>
+        </script>
 </%def>
