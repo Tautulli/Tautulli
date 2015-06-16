@@ -193,14 +193,22 @@
                         "targets": [8],
                         "data":"stopped",
                         "render": function ( data, type, full ) {
-                            return moment(data, "X").format("${time_format}");
+                            if (data !== null) {
+                                return moment(data, "X").format("${time_format}");
+                            } else {
+                                return data;
+                            }
                         }
                     },
                     {
                         "targets": [9],
                         "data":"duration",
                         "render": function ( data, type, full ) {
-                            return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
+                            if (data !== null) {
+                                return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
+                            } else {
+                                return data;
+                            }
                         }
                     },
                     {
