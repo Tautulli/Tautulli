@@ -6650,7 +6650,7 @@ button.close {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
-	width: 82%;
+	width: 80%;
 	margin-right: 5px;
 	float: left;
 }
@@ -6665,7 +6665,7 @@ button.close {
 	overflow: hidden;
 	white-space: nowrap;
 	font-size: 14px;
-	width: 82%;
+	width: 80%;
 	margin-right: 5px;
 	color: #fff;
 	float: left;

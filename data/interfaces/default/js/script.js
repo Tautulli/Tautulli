@@ -1,142 +1,3 @@
-function getThumb(imgElem,id,type) {
-	
-	if ( type == 'artist' ) {
-		var thumbURL = "getThumb?ArtistID=" + id;
-		// var imgURL = "getArtwork?ArtistID=" + id;
-	} else {
-		var thumbURL = "getThumb?AlbumID=" + id;
-		// var imgURL = "getArtwork?AlbumID=" + id;
-	}
-	// Get Data from the cache by Artist ID 	
-	$.ajax({
-		url: thumbURL,
-		cache: true,
-		success: function(data){
-			if ( data == "" ) {
-				var imageUrl = "interfaces/default/images/no-cover-artist.png";
-			}
-			else {
-				var imageUrl = data;
-			}
-			$(imgElem).attr("src",imageUrl).hide().fadeIn();
-			// $(imgElem).wrap('<a href="'+ imgURL +'" rel="dialog" title="' + name + '"></a>');
-			}
-	});
-}
-
-function getArtwork(imgElem,id,name,type) {
-	
-	if ( type == 'artist' ) {
-		var artworkURL = "getArtwork?ArtistID=" + id;
-	} else {
-		var artworkURL = "getArtwork?AlbumID=" + id;
-	}
-	// Get Data from the cache by Artist ID 	
-	$.ajax({
-		url: artworkURL,
-		cache: true,
-		success: function(data){
-			if ( data == "" || data == undefined ) {
-				var imageUrl = "interfaces/default/images/no-cover-artist.png";
-			}
-			else {
-				var imageUrl = data;
-			}
-			$(imgElem).attr("src",imageUrl).hide().fadeIn();
-			$(imgElem).wrap('<a href="'+ imageUrl +'" rel="dialog" title="' + name + '"></a>');
-			}
-	});
-}
-
-function getInfo(elem,id,type) {
-	
-	if ( type == 'artist' ) {
-		var infoURL = "getInfo?ArtistID=" + id;
-	} else {
-		var infoURL = "getInfo?AlbumID=" + id;
-	}
-	// Get Data from the cache by ID 	
-	$.ajax({
-		url: infoURL,
-		cache: true,
-		dataType: "json",
-		success: function(data){
-			var summary = data.Summary;
-			$(elem).append(summary);
-		}
-	});
-}
-
-function getImageLinks(elem,id,type,unveil) {
-	if ( type == 'artist' ) {
-		var infoURL = "getImageLinks?ArtistID=" + id;
-	} else {
-		var infoURL = "getImageLinks?AlbumID=" + id;
-	}
-
-	// Get Data from the cache by ID
-	$.ajax({
-		url: infoURL,
-		cache: true,
-		dataType: "json",
-		success: function(data){
-			if (!data) {
-				// Invalid response
-				return;
-			}
-
-			if (!data.thumbnail) {
-				var thumbnail = "interfaces/default/images/no-cover-artist.png";
-			}
-			else {
-				var thumbnail = data.thumbnail;
-			}
-			if (!data.artwork) {
-				var artwork = "interfaces/default/images/no-cover-artist.png";
-			}
-			else {
-				var artwork = data.artwork;
-			}
-
-			if (unveil) {
-				$(elem).attr("data-src", thumbnail);
-				$(elem).unveil();
-			}
-			else {
-				$(elem).attr("src", thumbnail);
-			}
-		}
-	});
-}
-
-function initHeader() {
-	//settings
-	var header = $("#container header");
-	var fadeSpeed = 100, fadeTo = 0.5, topDistance = 20;
-	var topbarME = function() { $(header).fadeTo(fadeSpeed,1); }, topbarML = function() { $(header).fadeTo(fadeSpeed,fadeTo); };
-	var inside = false;
-	//do
-	$(window).scroll(function() {
-		position = $(window).scrollTop();
-		if(position > topDistance && !inside) {
-			//add events
-			topbarML();
-			$(header).bind('mouseenter',topbarME);
-			$(header).bind('mouseleave',topbarML);
-			$("#toTop").fadeIn();
-			inside = true;
-		}
-		else if (position < topDistance){
-			topbarME();
-			$(header).unbind('mouseenter',topbarME);
-			$(header).unbind('mouseleave',topbarML);
-			$("#toTop").fadeOut();
-			inside = false;
-		}
-	});
-	
-}
-
 function initConfigCheckbox(elem) {
 	var config = $(elem).parent().next();	
 	if ( $(elem).is(":checked") ) {
@@ -153,66 +14,6 @@ function initConfigCheckbox(elem) {
 		}
 	});
 }     
-function initActions() {
-	$("#subhead_menu #menu_link_refresh").button();
-	$("#subhead_menu #menu_link_edit").button();
-	$("#subhead_menu .menu_link_edit").button();
-    $("#subhead_menu #menu_link_delete" ).button();
-    $("#subhead_menu #menu_link_pauze").button();
-    $("#subhead_menu #menu_link_resume").button();
-    $("#subhead_menu #menu_link_getextra").button();
-    $("#subhead_menu #menu_link_removeextra").button();
-    $("#subhead_menu #menu_link_wanted" ).button();
-    $("#subhead_menu #menu_link_check").button();
-    $("#subhead_menu #menu_link_skipped").button();
-    $("#subhead_menu #menu_link_retry").button();
-    $("#subhead_menu #menu_link_new").button();
-    $("#subhead_menu #menu_link_shutdown").button();
-    $("#subhead_menu #menu_link_scan").button();
-}
-
-function refreshSubmenu() {
-	var url = $(location).attr('href');
-	$("#subhead_container").load(url + " #subhead_menu",function(){
-		initActions();
-	});
-}
-function refreshTable() {
-	var url =  $(location).attr('href');
-	$("table.display").load(url + " table.display tbody, table.display thead", function() {
-		initThisPage();
-	});
-}
-function refreshLoadArtist() {
-	if ( $(".gradeL").length > 0 ) {
-		var url =  $(location).attr('href');
-		var loadingRow = $("table.display tr.gradeL")
-		loadingRow.each(function(){
-			var row = $(this).index() + 1;
-			var rowLoad = $("table.display tbody tr:nth-child("+row+")");
-			$(rowLoad).load(url + " table.display tbody tr:nth-child("+ row +") td", function() {
-				if ( $(rowLoad).children("#status").text() == 'Active'  ) {
-					// Active
-					$(rowLoad).removeClass('gradeL').addClass('gradeZ');
-					initThisPage();
-				} else {
-					// Still loading
-					setTimeout(function(){
-						refreshLoadArtist();
-					},3000);
-				}
-			});	
-		});
-	}
-}
-
-function refreshTab() {
-	var url =  $(location).attr('href');
-	var tabId = $('.ui-tabs-panel:visible').attr("id");
-	$('.ui-tabs-panel:visible').load(url + " #"+ tabId, function() {
-		initThisPage();
-	});
-}
 
 function showMsg(msg,loader,timeout,ms) {
 	var feedback = $("#ajaxMsg");
@@ -238,21 +39,6 @@ function showMsg(msg,loader,timeout,ms) {
 			});
 		},ms);
 	} 
-}
-
-function showArtistMsg(msg) {
-	var feedback = $("#ajaxMsg2");
-	update = $("#updatebar");
-	if ( update.is(":visible") ) {
-		var height = update.height() + 35;
-		feedback.css("bottom",height + "px");
-	} else {
-		feedback.removeAttr("style");
-	}
-	feedback.fadeIn();
-	var message = $("<i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
-	feedback.css("padding","14px 10px")
-	$(feedback).prepend(message);
 }
 
 function doAjaxCall(url,elem,reload,form) {
@@ -312,6 +98,7 @@ function doAjaxCall(url,elem,reload,form) {
 	$.ajax({
 	  url: url,
 	  data: dataString,
+	  type: 'post',
 	  beforeSend: function(jqXHR, settings) {
 	  	// Start loader etc.
 	  	feedback.prepend(loader);
@@ -371,15 +158,53 @@ function resetFilters(text){
 	}
 }
 
-function initFancybox() {
-	if ( $("a[rel=dialog]").length > 0 ) {
-		$.getScript('interfaces/default/js/fancybox/jquery.fancybox-1.3.4.js', function() {
-			$("head").append("<link rel='stylesheet' href='interfaces/default/js/fancybox/jquery.fancybox-1.3.4.css'>");
-	 		$("a[rel=dialog]").fancybox();
-	 	});
-	 }
-}
+function getPlatformImagePath(platformName) {
 
-$(document).ready(function(){
-	initHeader();
-});
+    if (platformName.indexOf("Roku") > -1) {
+        return 'interfaces/default/images/platforms/roku.png';
+    } else if (platformName.indexOf("Apple TV") > -1) {
+        return 'interfaces/default/images/platforms/appletv.png';
+    } else if (platformName.indexOf("Firefox") > -1) {
+        return 'interfaces/default/images/platforms/firefox.png';
+    } else if (platformName.indexOf("Chromecast") > -1) {
+        return 'interfaces/default/images/platforms/chromecast.png';
+    } else if (platformName.indexOf("Chrome") > -1) {
+        return 'interfaces/default/images/platforms/chrome.png';
+    } else if (platformName.indexOf("Android") > -1) {
+        return 'interfaces/default/images/platforms/android.png';
+    } else if (platformName.indexOf("Nexus") > -1) {
+        return 'interfaces/default/images/platforms/android.png';
+    } else if (platformName.indexOf("iPad") > -1) {
+        return 'interfaces/default/images/platforms/ios.png';
+    } else if (platformName.indexOf("iPhone") > -1) {
+        return 'interfaces/default/images/platforms/ios.png';
+    } else if (platformName.indexOf("iOS") > -1) {
+        return 'interfaces/default/images/platforms/ios.png';
+    } else if (platformName.indexOf("Plex Home Theater") > -1) {
+        return 'interfaces/default/images/platforms/pht.png';
+    } else if (platformName.indexOf("Linux/RPi-XMBC") > -1) {
+        return 'interfaces/default/images/platforms/xbmc.png';
+    } else if (platformName.indexOf("Safari") > -1) {
+        return 'interfaces/default/images/platforms/safari.png';
+    } else if (platformName.indexOf("Internet Explorer") > -1) {
+        return 'interfaces/default/images/platforms/ie.png';
+    } else if (platformName.indexOf("Unknown Browser") > -1) {
+        return 'interfaces/default/images/platforms/dafault.png';
+    } else if (platformName.indexOf("Windows-XBMC") > -1) {
+        return 'interfaces/default/images/platforms/xbmc.png';
+    } else if (platformName.indexOf("Xbox") > -1) {
+        return 'interfaces/default/images/platforms/xbox.png';
+    } else if (platformName.indexOf("Samsung") > -1) {
+        return 'interfaces/default/images/platforms/samsung.png';
+    } else if (platformName.indexOf("Opera") > -1) {
+        return 'interfaces/default/images/platforms/opera.png';
+    } else if (platformName.indexOf("KODI") > -1) {
+        return 'interfaces/default/images/platforms/kodi.png';
+    } else if (platformName.indexOf("Mystery 3") > -1) {
+        return 'interfaces/default/images/platforms/playstation.png';
+    } else if (platformName.indexOf("Mystery 4") > -1) {
+        return 'interfaces/default/images/platforms/playstation.png';
+    } else {
+        return 'interfaces/default/images/platforms/default.png';
+    }
+}

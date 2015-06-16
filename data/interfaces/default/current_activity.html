@@ -1,0 +1,99 @@
+% if activity is not None:
+    % if activity['stream_count'] != '0':
+        % for a in activity['sessions']:
+            <div class="instance" id="instance-${a['sessionKey']}">
+                <div class="poster">
+                    % if a['type'] == 'track-to-do':
+                        <div class="art-music-face" style="background-image:url(pms_image_proxy?img=${a['thumb']}&width=300&height=300)"></div>
+                    % elif a['type'] == 'movie':
+                        <div class="dashboard-activity-poster-face">
+                            <img src="pms_image_proxy?img=${a['art']}&width=300&height=169"/> <!-- media artwork -->
+                        </div>
+                    % else:
+                        <div class="dashboard-activity-poster-face">
+                            <img src="pms_image_proxy?img=${a['thumb']}&width=300&height=169"/> <!-- media artwork -->
+                        </div>
+                    % endif
+                    <div class='dashboard-activity-metadata-wrapper'>
+                        <div class='dashboard-activity-instance-overlay'>
+                            <div class='dashboard-activity-metadata-progress-minutes'>
+                                <div class='progress progress-warning'>
+                                    <div class="bar" style="width: ${a['progressPercent']}%">${a['progressPercent']}%</div>
+                                </div>
+                            </div>
+                            <div class="dashboard-activity-metadata-platform" id="platform-${a['sessionKey']}">
+                                <!-- <img src="interfaces/default/images/platforms/roku.png">  platform image -->
+                            </div>
+                            <div class="dashboard-activity-metadata-user">
+                                ${a['user']} is ${a['state']}
+                            </div>
+                            <div class="dashboard-activity-metadata-title">
+                                % if a['type'] == 'episode':
+                                    <a href="info?rating_key=${a['ratingKey']}">${a['grandparentTitle']} - ${a['title']}</a>
+                                % elif a['type'] == 'movie':
+                                    <a href="info?rating_key=${a['ratingKey']}">${a['title']}</a>
+                                % elif a['type'] == 'track':
+                                    ${a['artist']} - ${a['track']}
+                                % else:
+                                    ${a['grandparentTitle']} - ${a['title']}
+                                % endif
+                            </div>
+                        </div>
+                        <div id="stream-${a['sessionKey']}" class="collapse out">
+                            <div class='dashboard-activity-info-details-overlay'>
+                                <div class='dashboard-activity-info-details-content'>
+                                    % if a['type'] == 'track':
+                                        Artist: <strong>${a['artist']}</strong>
+                                        <br>
+                                        Album: <strong>${a['album']}</strong>
+                                        <br>
+                                    % endif
+                                    % if a['state'] == 'playing':
+                                        State: <strong>Playing</strong>
+                                    % elif a['state'] == 'paused':
+                                        State: <strong>Paused</strong>
+                                    % elif a['state'] == 'buffering':
+                                        State: <strong>Buffering</strong>
+                                    % endif
+                                        <br>
+                                    % if a['type'] == 'track':
+                                        % if a['audioDecision'] == 'direct play':
+                                            Stream: <strong>Direct Play</strong>
+                                        % else:
+                                            Stream: <strong>Transcoding</strong>
+                                        % endif
+                                            <br/>
+                                            Audio: <strong>${a['audioCodec']} (${a['audioChannels']}ch)</strong>
+                                    % elif a['type'] == 'episode' or a['type'] == 'movie':
+                                        % if a['videoDecision'] == 'direct play':
+                                            Stream: <strong>Direct Play</strong>
+                                        % else:
+                                            Stream: <strong>Transcoding</strong>
+                                        % endif
+                                            <br/>
+                                            Video: <strong>${a['videoDecision']} (${a['videoCodec']}) (${a['width']}x${a['height']})</strong>
+                                            <br/>
+                                            Audio: <strong>${a['audioDecision']} (${a['audioCodec']}) (${a['audioChannels']}ch)</strong>
+                                    % endif
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-activity-button-info">
+                    <button type="button" class="btn btn-warning" data-toggle="collapse" data-target="#stream-${a['sessionKey']}">
+                        <i class='icon-info-sign icon-white'></i>
+                    </button>
+                </div>
+            </div>
+            <script>
+                $("#platform-${a['sessionKey']}").html("<img src='" + getPlatformImagePath('${a['player']}') + "'>");
+            </script>
+        % endfor
+    % else:
+        <div class="muted">Nothing is currently being watched.</div><br>
+    % endif
+% else:
+    <div class="muted">There was an error communicating with your Plex Server. Please check your settings.</div><br>
+% endif

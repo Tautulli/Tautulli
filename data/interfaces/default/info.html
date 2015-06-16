@@ -1,0 +1,162 @@
+<%inherit file="base.html"/>
+<%!
+	from plexpy import helpers
+%>
+
+<%def name="headIncludes()">
+
+</%def>
+
+<%def name="body()">
+    % if metadata:
+        <div class="clear"></div>
+        <div class="container-fluid">
+            <!-- Some span12 if parameter -->
+                <div class="row-fluid">
+                    <div class="span12">
+            <!-- end span12 if -->
+                    <!-- if art -->
+                        <div class="art-face" style="background-image:url(pms_image_proxy?img=${metadata['art']}&width=1920&height=1080)">
+                    <!-- if not art
+                        <div class="art-face">
+                    -->
+                        <div class="summary-wrapper">
+                            <div class="summary-overlay">
+                                <div class="row-fluid">
+
+                                        <div class="span9">
+
+                                        <div class="summary-content-poster hidden-phone hidden-tablet">
+                                            % if metadata['type'] == 'episode':
+                                                <img src="pms_image_proxy?img=${metadata['parentThumb']}&width=256&height=352">
+                                            % else:
+                                                <img src="pms_image_proxy?img=${metadata['thumb']}&width=256&height=352">
+                                            % endif
+                                        </div>
+                                        <div class="summary-content">
+                                            <div class="summary-content-title">
+                                                % if metadata['type'] == 'movie':
+                                                    <h1>${metadata['title']} (${metadata['year']})</h1>
+                                                % elif metadata['type'] == 'season':
+                                                    <h1>${metadata['parentTitle']} (${metadata['title']})</h1>
+                                                % elif metadata['type'] == 'episode':
+                                                    <h1>${metadata['grandparentTitle']} (Season ${metadata['parentIndex']}, Episode ${metadata['index']}) "${metadata['title']}"</h1>
+                                                % else:
+                                                    <h1>${metadata['title']}</h1>
+                                                % endif
+                                            </div>
+                                            % if metadata['type'] == 'movie':
+                                                <div id="stars" class="rateit hidden-phone hidden-tablet" data-rateit-value="" data-rateit-ispreset="true" data-rateit-readonly="true"></div>
+                                            % endif
+                                            <div class="summary-content-details-wrapper">
+                                                <div class="summary-content-director">
+                                                    % if metadata['type'] == 'episode' or metadata['type'] == 'movie':
+                                                        % if metadata['directors']:
+                                                            Directed by <strong> ${metadata['directors'][0]}
+                                                        % else:
+                                                            Directed by <strong> unknown
+                                                        % endif
+                                                    % elif metadata['type'] == 'show':
+                                                        Studio <strong> ${metadata['studio']}
+                                                    % endif
+                                                </div>
+                                                <div class="summary-content-duration">
+                                                    % if metadata['type'] == 'episode' or metadata['type'] == 'movie' or metadata['type'] == 'show':
+                                                        Runtime <strong> ${metadata['duration']} mins</strong>
+                                                    % endif
+                                                </div>
+                                                <div class="summary-content-content-rating">
+                                                    % if metadata['type'] == 'episode' or metadata['type'] == 'movie' or metadata['type'] == 'show':
+                                                        Rated <strong> ${metadata['contentRating']} </strong>
+                                                    % endif
+                                                </div>
+                                            </div>
+                                            <div class="summary-content-summary">
+                                                % if metadata['type'] == 'episode' or metadata['type'] == 'movie' or metadata['type'] == 'show':
+                                                    <p> ${metadata['summary']} </p>
+                                                % endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                    % if metadata['type'] == 'episode':
+                                        <div class="span3">
+                                            <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
+                                                <div class="summary-content-writers">
+                                                    <h6><strong>Written by</strong></h6>
+                                                    <ul>
+                                                        % for writer in metadata['writers']:
+                                                            % if loop.index < 5:
+                                                                <li>
+                                                                    ${writer}
+                                                                </li>
+                                                            % endif
+                                                        % endfor
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    % elif metadata['type'] == 'movie' or metadata['type'] == 'show':
+                                        <div class="span3">
+                                            <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
+                                                <div class="summary-content-actors">
+                                                    <h6><strong>Genres</strong></h6>
+                                                    <ul>
+                                                        % for genre in metadata['genres']:
+                                                            % if loop.index < 5:
+                                                                <li>
+                                                                    ${genre}
+                                                                </li>
+                                                            % endif
+                                                        % endfor
+                                                    </ul>
+                                                </div>
+                                                <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
+                                                    <div class="summary-content-actors">
+                                                        <h6><strong>Starring</strong></h6>
+                                                        <ul>
+                                                            % for actor in metadata['actors']:
+                                                                % if loop.index < 5:
+                                                                    <li>
+                                                                        ${actor}
+                                                                    </li>
+                                                                % endif
+                                                            % endfor
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    % elif metadata['type'] == 'season':
+                                        <div class="span3"></div>
+                                    % endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            <!-- span rule -->
+                    </div>
+                </div>
+            <!--}-->
+        </div>
+    % else:
+        <div class="clear"></div>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span10 offset1">
+                    <h3>Error retrieving item metadata. This media may not be available in the Plex Media Server database anymore.</h3>
+				</div>
+            </div>
+        </div>
+    % endif
+</%def>
+
+<%def name="javascriptIncludes()">
+    <script src="interfaces/default/js/jquery.rateit.min.js"></script>
+    % if metadata['type'] == 'movie':
+        <script>
+            // Convert rating to 5 star rating type
+            var starRating = Math.round(${metadata['rating']} / 2)
+            $('#stars').attr('data-rateit-value', starRating)
+        </script>
+    % endif
+</%def>

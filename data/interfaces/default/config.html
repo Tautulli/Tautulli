@@ -5,14 +5,7 @@
 %>
 
 <%def name="headerIncludes()">
-<!--
-    <div id="subhead_container">
-        <div id="subhead_menu">
-            <a id="menu_link_shutdown" href="shutdown"><i class="fa fa-power-off"></i> Shut Down</a>
-            <a id="menu_link_shutdown" href="restart"><i class="fa fa-power-off"></i> Restart</a>
-        </div>
-    </div>
--->
+
 </%def>
 
 <%def name="body()">
@@ -22,7 +15,15 @@
             <div class="span12">
                 <div class="wellheader-bg">
                     <div class="dashboard-wellheader-no-chevron">
-                        <h2><i class="fa fa-cog"></i> Settings</h2>
+                        <div class="row-fluid">
+                            <div class="span9"><h2><i class="fa fa-cog"></i> Settings</h2></div>
+                            <div class="span3">
+                                <div class="pull-right">
+                                    <h5><a id="menu_link_shutdown" href="shutdown"><i class="fa fa-power-off"></i> Shut Down</a>
+                                    &nbsp<a id="menu_link_restart" href="restart"><i class="fa fa-refresh"></i> Restart</a></h5>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -898,7 +899,6 @@
                         }
                 });
 
-                initActions();
                 initConfigCheckbox("#api_enabled");
                 initConfigCheckbox("#enable_https");
 

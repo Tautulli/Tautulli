@@ -25,6 +25,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_IP': (str, 'PMS', '127.0.0.1'),
     'PMS_PORT': (int, 'PMS', 32400),
     'PMS_PASSWORD': (str, 'PMS', ''),
+    'PMS_TOKEN': (str, 'PMS', ''),
     'PMS_USERNAME': (str, 'PMS', ''),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
     'API_ENABLED': (int, 'General', 0),

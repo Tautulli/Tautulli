@@ -3,16 +3,61 @@
 	from plexpy import helpers
 %>
 
-<%def name="body()">
-<div class="container">
-
-</div>
-</%def>
-
 <%def name="headIncludes()">
 
 </%def>
 
+<%def name="body()">
+<div class="container-fluid">
+
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="wellbg">
+                <div class="wellheader">
+                    <div class="dashboard-wellheader">
+                        <div id="currentActivityHeader">
+                            <h3>Activity</h3>
+                        </div>
+                    </div>
+                </div>
+                <div id="currentActivity">
+                    <div class="muted">Checking for activity...</div><br>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+</%def>
+
 <%def name="javascriptIncludes()">
+<script>
+    function currentActivity() {
+        $.ajax({
+            url: 'get_current_activity',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#currentActivity").html(xhr.responseText);
+            }
+        });
+    }
+    currentActivity();
+    setInterval(currentActivity, 15000);
+
+    function currentActivityHeader() {
+        $.ajax({
+            url: 'get_current_activity_header',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#currentActivityHeader").html(xhr.responseText);
+            }
+        });
+    }
+    currentActivityHeader();
+    setInterval(currentActivityHeader, 15000);
+
+</script>
 
 </%def>

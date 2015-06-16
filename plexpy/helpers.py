@@ -26,6 +26,7 @@ import re
 import os
 import json
 import xmltodict
+import math
 
 
 def multikeysort(items, columns):
@@ -111,6 +112,12 @@ def convert_milliseconds(ms):
 
     return minutes
 
+def convert_milliseconds_to_minutes(ms):
+
+    seconds = float(ms) / 1000
+    minutes = round(seconds / 60, 0)
+
+    return math.trunc(minutes)
 
 def convert_seconds(s):
 
@@ -337,3 +344,15 @@ def convert_xml_to_json(xml):
 def convert_xml_to_dict(xml):
     o = xmltodict.parse(xml)
     return o
+
+
+def get_percent(value1, value2):
+    value1 = cast_to_float(value1)
+    value2 = cast_to_float(value2)
+
+    if value1 != 0 and value2 != 0:
+        percent = (value1 / value2) * 100
+    else:
+        percent = 0
+
+    return math.trunc(percent)

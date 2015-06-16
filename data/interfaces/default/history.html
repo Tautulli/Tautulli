@@ -38,6 +38,7 @@
                                     <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
                                     <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
                                     <th align='left' id="percent_complete"> Completed</th>
+                                    <th align='left' id="rating_key"> RatingKey</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -158,11 +159,21 @@
                     },
                     {
                         "targets": [4],
-                        "data":"ip_address"
+                        "data":"ip_address",
+                        "createdCell": function (td, cellData, rowData, row, col) {
+                            if ((cellData == '') || (cellData == '0')) {
+                                $(td).html('n/a');
+                            }
+                        }
                     },
                     {
                         "targets": [5],
-                        "data":"title"
+                        "data":"title",
+                        "createdCell": function (td, cellData, rowData, row, col) {
+                            if (cellData !== '') {
+                                $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                            }
+                        }
                     },
                     {
                         "targets": [6],
@@ -203,6 +214,11 @@
                                 return '<span class="badge">100%</span>';
                             }
                         }
+                    },
+                    {
+                        "targets": [11],
+                        "data":"rating_key",
+                        "visible": false
                     }
                 ],
                 "drawCallback": function (settings) {

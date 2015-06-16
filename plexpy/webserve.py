@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, db, helpers, notifiers
+from plexpy import logger, db, helpers, notifiers, plextv, pmsconnect
 from plexpy.helpers import checked, radio, today, cleanName
 from xml.dom import minidom
 
@@ -161,11 +161,22 @@ class WebInterface(object):
         interface_list = [name for name in os.listdir(interface_dir) if
                           os.path.isdir(os.path.join(interface_dir, name))]
 
+        # Initialise blank passwords so we do not expose them in the html forms
+        # but users are still able to clear them
+        if plexpy.CONFIG.HTTP_PASSWORD != '':
+            http_password = '    '
+        else:
+            http_password = ''
+        if plexpy.CONFIG.PMS_PASSWORD != '':
+            pms_password = '    '
+        else:
+            pms_password = ''
+
         config = {
             "http_host": plexpy.CONFIG.HTTP_HOST,
             "http_username": plexpy.CONFIG.HTTP_USERNAME,
             "http_port": plexpy.CONFIG.HTTP_PORT,
-            "http_password": plexpy.CONFIG.HTTP_PASSWORD,
+            "http_password": http_password,
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
             "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),
             "https_cert": plexpy.CONFIG.HTTPS_CERT,
@@ -228,7 +239,7 @@ class WebInterface(object):
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_port": plexpy.CONFIG.PMS_PORT,
             "pms_username": plexpy.CONFIG.PMS_USERNAME,
-            "pms_password": plexpy.CONFIG.PMS_PASSWORD,
+            "pms_password": pms_password,
             "plexwatch_database": plexpy.CONFIG.PLEXWATCH_DATABASE,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
@@ -256,6 +267,30 @@ class WebInterface(object):
             if checked_config not in kwargs:
                 # checked items should be zero or one. if they were not sent then the item was not checked
                 kwargs[checked_config] = 0
+
+        # Write Plex token to the config
+        if (not plexpy.CONFIG.PMS_TOKEN or plexpy.CONFIG.PMS_TOKEN == '' \
+                or kwargs['pms_username'] != plexpy.CONFIG.PMS_USERNAME) \
+                and (kwargs['pms_username'] != '' or kwargs['pms_password'] != ''):
+
+            plex_tv = plextv.PlexTV(kwargs['pms_username'], kwargs['pms_password'])
+            token = plex_tv.get_token()
+
+            if token:
+                kwargs['pms_token'] = token
+                logger.info('Plex.tv token sucessfully written to config.')
+            else:
+                logger.warn('Unable to write Plex.tv token to config.')
+
+        # Clear Plex token if username or password set to blank
+        if kwargs['pms_username'] == '' or kwargs['pms_password'] == '':
+            kwargs['pms_token'] = ''
+
+        # If passwords exists in config, do not overwrite when blank value received
+        if kwargs['http_password'] == '    ' and plexpy.CONFIG.HTTP_PASSWORD != '':
+            kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
+        if kwargs['pms_password'] == '    ' and plexpy.CONFIG.PMS_PASSWORD != '':
+            kwargs['pms_password'] = plexpy.CONFIG.PMS_PASSWORD
 
         for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
             # the use prefix is fairly nice in the html, but does not match the actual config
@@ -325,7 +360,7 @@ class WebInterface(object):
             sortcolumn = 'duration'
 
         if search_value == "":
-            query = 'SELECT id, time, user, platform, ip_address, title, time, paused_counter, stopped, xml, \
+            query = 'SELECT id, time, user, platform, ip_address, title, time, paused_counter, stopped, ratingKey, xml, \
                     round((julianday(datetime(stopped, "unixepoch", "localtime")) - \
                     julianday(datetime(time, "unixepoch", "localtime"))) * 86400) - \
                     (case when paused_counter is null then 0 else paused_counter end) as duration \
@@ -333,7 +368,7 @@ class WebInterface(object):
             filtered = myDB.select(query)
             totalcount = len(filtered)
         else:
-            query = 'SELECT id, time, user, platform, ip_address, title, time, paused_counter, stopped, xml, \
+            query = 'SELECT id, time, user, platform, ip_address, title, time, paused_counter, stopped, ratingKey, xml, \
                     round((julianday(datetime(stopped, "unixepoch", "localtime")) - \
                     julianday(datetime(time, "unixepoch", "localtime"))) * 86400) - \
                     (case when paused_counter is null then 0 else paused_counter end) as duration \
@@ -354,6 +389,7 @@ class WebInterface(object):
                    "started": item["time"],
                    "paused": item["paused_counter"],
                    "stopped": item["stopped"],
+                   "rating_key": item["ratingKey"],
                    "duration": item["duration"],
                    "percent_complete": 0,
             }
@@ -486,3 +522,111 @@ class WebInterface(object):
             logger.warn(msg)
         return msg
 
+
+    @cherrypy.expose
+    def get_pms_token(self):
+
+        token = plextv.PlexTV()
+        result = token.get_token()
+
+        if result:
+            return result
+        else:
+            logger.warn('Unable to retrieve Plex.tv token.')
+            return False
+
+
+    @cherrypy.expose
+    def get_pms_sessions_json(self, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_sessions('json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+            return False
+
+    @cherrypy.expose
+    def get_current_activity(self, **kwargs):
+
+        try:
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_current_activity()
+        except:
+            return serve_template(templatename="current_activity.html", activity=None)
+
+        if result:
+            return serve_template(templatename="current_activity.html", activity=result)
+        else:
+            return serve_template(templatename="current_activity.html", activity=None)
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_current_activity_header(self, **kwargs):
+
+        try:
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_current_activity()
+        except IOError, e:
+            return serve_template(templatename="current_activity_header.html", activity=None)
+
+        if result:
+            return serve_template(templatename="current_activity_header.html", activity=result['stream_count'])
+        else:
+            return serve_template(templatename="current_activity_header.html", activity=None)
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def pms_image_proxy(self, img='', width='0', height='0', **kwargs):
+        if img != '':
+            try:
+                pms_connect = pmsconnect.PmsConnect()
+                result = pms_connect.get_image(img, width, height)
+                logger.info('Image proxy queried. Content type is %s' % result[0])
+                cherrypy.response.headers['Content-type'] = result[0]
+                return result[1]
+            except:
+                logger.warn('Image proxy queried but errors occured.')
+                return 'No image'
+        else:
+            logger.warn('Image proxy queried but no parameters received.')
+            return 'No image'
+
+    @cherrypy.expose
+    def info(self, rating_key='', **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_metadata_details(rating_key)
+
+        if result:
+            return serve_template(templatename="info.html", metadata=result['metadata'], title="Info")
+        else:
+            return serve_template(templatename="info.html", metadata='', title="Info")
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_metadata_json(self, rating_key='', **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_metadata(rating_key, 'json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_metadata_xml(self, rating_key='', **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_metadata(rating_key)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/xml'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
