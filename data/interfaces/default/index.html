@@ -26,11 +26,22 @@
             </div>
         </div>
     </div>
-    
+    <div class='row-fluid'>
+        <div class='wellbg'>
+            <div class='wellheader'>
+                <div class='dashboard-wellheader'>
+                    <h3>Recently Added</h3>
+                </div>
+            </div>
+            <div id='recentlyAdded'><div id='recently-added-spinner' class='spinner'></div></div>
+        </div>
+    </div>
+    <footer></footer>
 </div>
 </%def>
 
 <%def name="javascriptIncludes()">
+<script src="interfaces/default/js/moment-with-locale.js"></script>
 <script>
     function currentActivity() {
         $.ajax({
@@ -58,6 +69,32 @@
     currentActivityHeader();
     setInterval(currentActivityHeader, 15000);
 
+    function recentlyAdded() {
+        var widthVal = $('body').find(".container-fluid").width();
+        var tmp = widthVal / 182;
+
+        if (tmp > 0) {
+            containerSize = parseInt(tmp);
+        } else {
+            containerSize = 1;
+        }
+
+        $.ajax({
+            url: 'get_recently_added',
+            type: "GET",
+            async: true,
+            data: { count : containerSize },
+            complete: function(xhr, status) {
+                $("#recentlyAdded").html(xhr.responseText);
+            }
+        });
+    }
+    $(document).ready(function () {
+        recentlyAdded();
+        $(window).resize(function() {
+            recentlyAdded();
+        });
+    });
 </script>
 
 </%def>

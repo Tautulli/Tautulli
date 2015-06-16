@@ -679,6 +679,21 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
+    def get_recently_added(self, count='0', **kwargs):
+
+        try:
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_recently_added_details(count)
+        except IOError, e:
+            return serve_template(templatename="recently_added.html", recently_added=None)
+
+        if result:
+            return serve_template(templatename="recently_added.html", recently_added=result['recently_added'])
+        else:
+            return serve_template(templatename="recently_added.html", recently_added=None)
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
     def pms_image_proxy(self, img='', width='0', height='0', **kwargs):
         if img != '':
             try:
@@ -726,6 +741,18 @@ class WebInterface(object):
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/xml'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_recently_added_json(self, count='0', **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_recently_added(count, 'json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
             return result
         else:
             logger.warn('Unable to retrieve data.')

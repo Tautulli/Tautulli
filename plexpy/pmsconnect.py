@@ -106,6 +106,100 @@ class PmsConnect(object):
         return output
 
     """
+    Return list of recently added items.
+
+    Parameters required:    count { number of results to return }
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_recently_added(self, count='0', output_format=''):
+        url_command = '/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count
+        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+
+        http_handler.request("GET", url_command + '&X-Plex-Token=' + self.token)
+        response = http_handler.getresponse()
+        request_status = response.status
+        request_content = response.read()
+
+        if output_format == 'dict':
+            output = helpers.convert_xml_to_dict(request_content)
+        elif output_format == 'json':
+            output = helpers.convert_xml_to_json(request_content)
+        else:
+            output = request_content
+
+        return output
+
+    """
+    Return processed and validated list of recently added items.
+
+    Parameters required:    count { number of results to return }
+
+    Output: array
+    """
+    def get_recently_added_details(self, count='0'):
+        recent = self.get_recently_added(count)
+        recents_list = []
+
+        try:
+            xml_parse = minidom.parseString(recent)
+        except Exception, e:
+            logger.warn("Error parsing XML for Plex recently added: %s" % e)
+            return None
+        except:
+            logger.warn("Error parsing XML for Plex recently added.")
+            return None
+
+        xml_head = xml_parse.getElementsByTagName('MediaContainer')
+        if not xml_head:
+            logger.warn("Error parsing XML for Plex recently added.")
+            return None
+
+        for a in xml_head:
+            if a.getAttribute('size'):
+                if a.getAttribute('size') == '0':
+                    output = {'recently_added': None}
+                    return output
+
+            if a.getElementsByTagName('Directory'):
+                recents_main = a.getElementsByTagName('Directory')
+                for item in recents_main:
+                    recent_type = self.get_xml_attr(item, 'type')
+
+                    if recent_type == 'season':
+                        recent_items = {'type': recent_type,
+                                        'ratingKey': self.get_xml_attr(item, 'ratingKey'),
+                                        'title': self.get_xml_attr(item, 'title'),
+                                        'thumb': self.get_xml_attr(item, 'thumb'),
+                                        'addedAt': self.get_xml_attr(item, 'addedAt')
+                                        }
+                        recents_list.append(recent_items)
+                    else:
+                        recent_items = {}
+                        recents_list.append(recent_items)
+            if a.getElementsByTagName('Video'):
+                recents_main = a.getElementsByTagName('Video')
+                for item in recents_main:
+                    recent_type = self.get_xml_attr(item, 'type')
+
+                    if recent_type == 'movie':
+                        recent_items = {'type': recent_type,
+                                        'ratingKey': self.get_xml_attr(item, 'ratingKey'),
+                                        'title': self.get_xml_attr(item, 'title'),
+                                        'year': self.get_xml_attr(item, 'year'),
+                                        'thumb': self.get_xml_attr(item, 'thumb'),
+                                        'addedAt': self.get_xml_attr(item, 'addedAt')
+                                        }
+                        recents_list.append(recent_items)
+                    else:
+                        recent_items = {}
+                        recents_list.append(recent_items)
+
+        output = {'recently_added': recents_list}
+        return output
+
+    """
     Return processed and validated metadata list for requested item.
 
     Parameters required:    rating_key { Plex ratingKey }

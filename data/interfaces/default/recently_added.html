@@ -1,0 +1,36 @@
+% if recently_added != None:
+    <div class="dashboard-recent-media-row">
+        <ul class="dashboard-recent-media">
+            % for item in recently_added:
+                <div class="dashboard-recent-media-instance">
+                    <li>
+                        <div class="poster">
+                            <div class="poster-face">
+                                <a href="info?rating_key=${item['ratingKey']}">
+                                    % if item['thumb'] != '':
+                                        <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=225" class="poster-face">
+                                    % else:
+                                        <img src="interfaces/default/images/poster.png" class="poster-face">
+                                    % endif
+                                </a>
+                            </div>
+                        </div>
+                        <div class="dashboard-recent-media-metacontainer">
+                            % if item['type'] == 'season':
+                                <h3>${item['title']}</h3>
+                            % elif item['type'] == 'movie':
+                                <h3>${item['title']} (${item['year']})</h3>
+                            % endif
+                            <h4><span id="addedAt-${item['ratingKey']}">${item['addedAt']}</span></h4>
+                        </div>
+                    </li>
+                </div>
+                <script>
+                    $('#addedAt-${item['ratingKey']}').html('Added ' + moment(${item['addedAt']}, "X").fromNow())
+                </script>
+            % endfor
+        </ul>
+    </div>
+% else:
+    <h4>No recently added items.</h4>
+% endif
