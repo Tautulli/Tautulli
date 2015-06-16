@@ -139,8 +139,13 @@
                     {
                         "targets": [1],
                         "data":"date",
-                        "render": function ( data, type, full ) {
-                            return moment(data, "X").format("${date_format}");
+                        "createdCell": function (td, cellData, rowData, row, col) {
+                            if (rowData['stopped'] === null) {
+                                $(td).addClass('currentlyWatching');
+                                $(td).html('Currently watching...');
+                            } else {
+                                $(td).html(moment(cellData,"X").format("${date_format}"));
+                            }
                         }
                     },
                     {
