@@ -73,7 +73,7 @@
 
     function recentlyAdded() {
         var widthVal = $('body').find(".container-fluid").width();
-        var tmp = widthVal / 182;
+        var tmp = (widthVal-20) / 182;
 
         if (tmp > 0) {
             containerSize = parseInt(tmp);

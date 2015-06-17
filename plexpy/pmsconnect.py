@@ -220,7 +220,7 @@ class PmsConnect(object):
                         recent_items = {}
                         recents_list.append(recent_items)
 
-        output = {'recently_added': recents_list}
+        output = {'recently_added': sorted(recents_list, key=lambda k: k['addedAt'], reverse=True)}
         return output
 
     """
@@ -562,9 +562,9 @@ class PmsConnect(object):
             try:
                 http_handler = HTTPConnection(self.host, self.port, timeout=10)
                 if width != '0' and height != '0':
-                    image_path = '/photo/:/transcode?url=http://127.0.0.1:' + self.port + img + '&width=' + width + '&height=' + height
+                    image_path = '/photo/:/transcode?url=http://127.0.0.1:32400' + img + '&width=' + width + '&height=' + height
                 else:
-                    image_path = '/photo/:/transcode?url=http://127.0.0.1:' + self.port + img
+                    image_path = '/photo/:/transcode?url=http://127.0.0.1:32400' + img
                 http_handler.request("GET", image_path + '&X-Plex-Token=' + self.token)
                 response = http_handler.getresponse()
                 request_status = response.status
