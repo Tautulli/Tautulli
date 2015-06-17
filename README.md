@@ -1,6 +1,6 @@
 #PlexPy
 
-NB: This project is still very early in development, it is basically just a skeleton at this time. Please feel free to fork or contribute here.
+NB: This project is still very early in development.
 
 This project is based on code from Headphones (https://github.com/rembo10/headphones) and PlexWatchWeb (https://github.com/ecleese/plexWatchWeb).
 
@@ -23,8 +23,6 @@ A python based web front-end for plexWatch.
 
 * Easy configuration setup via html form
 
-* Plex Media Server section counts / Total user count
-
 * Current Plex Media Server viewing activity including:
 	* number of current users
 	* title
@@ -37,8 +35,6 @@ A python based web front-end for plexWatch.
 	* audio type & channel count.
 
 * Recently added media and how long ago it was added
-
-* Global watching history charts (hourly, max hourly, daily, monthly)
 
 * Global watching history with search/filtering & dynamic column sorting
 	* date
@@ -53,22 +49,23 @@ A python based web front-end for plexWatch.
 	* duration length
 	* percentage completed
 
-* full user list with general information and comparison stats
+* full user list with general information and comparison stats 
 
-* individual user information
+* individual user information **NOT YET IMPLEMENTED**
 	- username and gravatar (if available)
 	- daily, weekly, monthly, all time stats for play count and duration length
 	- individual platform stats for each user
 	- public ip address history with last seen date and geo tag location
 	- recently watched content
 	- watching history
-* charts
+
+* charts **NOT YET IMPLEMENTED**
 	- top 10 all time viewed content
 	- top 10 viewed movies
 	- top 10 viewed tv shows
 	- top 10 viewed tv episodes
 
-* content information pages
+* content information pages **PARTIALLY IMPLEMENTED**
 	- movies (includes watching history)
 	- tv shows (includes top 10 watched episodes)
 	- tv seasons
