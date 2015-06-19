@@ -28,6 +28,7 @@ class DataTables(object):
     def __init__(self):
         self.ssp_db = db.DBConnection()
 
+    # TODO: Pass all parameters via kwargs
     def ssp_query(self, table_name,
                   columns=[],
                   start=0,
@@ -53,16 +54,26 @@ class DataTables(object):
 
         # TODO: custom_where is ugly and causes issues with reported total results
         if custom_where != '':
-            where += 'AND (' + custom_where + ')'
+            custom_where = 'WHERE (' + custom_where + ')'
 
         if grouping:
-            query = 'SELECT * FROM (SELECT %s FROM %s GROUP BY %s) %s %s' \
-                    % (column_data['column_string'], table_name, group_by,
-                       where, order)
+            if custom_where == '':
+                query = 'SELECT * FROM (SELECT %s FROM %s GROUP BY %s) %s %s' \
+                        % (column_data['column_string'], table_name, group_by,
+                           where, order)
+            else:
+                query = 'SELECT * FROM (SELECT * FROM (SELECT %s FROM %s GROUP BY %s) %s %s) %s' \
+                        % (column_data['column_string'], table_name, group_by,
+                           where, order, custom_where)
         else:
-            query = 'SELECT %s FROM %s %s %s' \
-                    % (column_data['column_string'], table_name, where,
-                       order)
+            if custom_where == '':
+                query = 'SELECT %s FROM %s %s %s' \
+                        % (column_data['column_string'], table_name, where,
+                           order)
+            else:
+                query = 'SELECT * FROM (SELECT %s FROM %s %s %s) %s' \
+                        % (column_data['column_string'], table_name, where,
+                           order, custom_where)
 
         filtered = self.ssp_db.select(query)
         if search_value == '':
@@ -122,7 +133,9 @@ class DataTables(object):
 
             return where
         else:
-            return ''
+            where = ''
+
+            return where
 
     @staticmethod
     def extract_columns(columns=[]):

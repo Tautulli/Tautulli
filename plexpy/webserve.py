@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, db, helpers, notifiers, plextv, pmsconnect, plexwatch
+from plexpy import logger, helpers, notifiers, plextv, pmsconnect, plexwatch
 from plexpy.helpers import checked, radio, today, cleanName
 from xml.dom import minidom
 
@@ -67,7 +67,7 @@ class WebInterface(object):
         return serve_template(templatename="index.html", title="Home")
 
     @cherrypy.expose
-    def history(self):
+    def get_date_formats(self):
         if plexpy.CONFIG.DATE_FORMAT:
             date_format = plexpy.CONFIG.DATE_FORMAT
         else:
@@ -77,8 +77,15 @@ class WebInterface(object):
         else:
             time_format = 'HH:mm'
 
-        return serve_template(templatename="history.html", title="History", date_format=date_format,
-                              time_format=time_format)
+        formats = {'date_format': date_format,
+                   'time_format': time_format}
+
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps(formats)
+
+    @cherrypy.expose
+    def history(self):
+        return serve_template(templatename="history.html", title="History")
 
     @cherrypy.expose
     def users(self):
@@ -87,6 +94,14 @@ class WebInterface(object):
     @cherrypy.expose
     def user(self):
         return serve_template(templatename="user.html", title="User")
+
+    @cherrypy.expose
+    def get_stream_data(self, row_id=None, user='', **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        stream_data = plex_watch.get_stream_details(row_id)
+
+        return serve_template(templatename="stream_data.html", title="Stream Data", data=stream_data, user=user)
 
     @cherrypy.expose
     def get_user_list(self, start=0, length=100, **kwargs):
@@ -332,34 +347,29 @@ class WebInterface(object):
                               message=message, timer=timer)
 
     @cherrypy.expose
-    def getHistory_json(self, start=0, length=100, **kwargs):
+    def get_history(self, start=0, length=100, custom_where='', **kwargs):
+
+        if 'user' in kwargs:
+            user = kwargs.get('user', "")
+            custom_where = 'user = "%s"' % user
+        if 'rating_key' in kwargs:
+            rating_key = kwargs.get('rating_key', "")
+            custom_where = 'rating_key = %s' % rating_key
 
         plex_watch = plexwatch.PlexWatch()
-        history = plex_watch.get_history(start, length, kwargs)
+        history = plex_watch.get_history(start, length, kwargs, custom_where)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)
 
     @cherrypy.expose
-    def getStreamDetails(self, id=0, **kwargs):
+    def get_stream_details(self, rating_key=0, **kwargs):
 
-        myDB = db.DBConnection()
-        db_table = db.DBConnection().get_history_table_name()
+        plex_watch = plexwatch.PlexWatch()
+        stream_details = plex_watch.get_stream_details(rating_key)
 
-        query = 'SELECT xml from %s where id = %s' % (db_table, id)
-        xml = myDB.select_single(query)
-
-        try:
-            dict_data = helpers.convert_xml_to_dict(helpers.latinToAscii(xml))
-        except IOError, e:
-            logger.warn("Error parsing XML in PlexWatch db: %s" % e)
-
-        dict = {'id': id,
-                'data': dict_data}
-
-        s = json.dumps(dict)
         cherrypy.response.headers['Content-type'] = 'application/json'
-        return s
+        return json.dumps(stream_details)
 
 
     @cherrypy.expose
@@ -553,6 +563,18 @@ class WebInterface(object):
 
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_recently_added(count, 'json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_stream(self, row_id='', **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_stream_details('122')
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

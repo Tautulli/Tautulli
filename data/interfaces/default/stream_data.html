@@ -1,0 +1,52 @@
+% if data is not None:
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+        % if data['media_type'] == 'episode':
+            <h3 id="myModalLabel">Stream Info: <strong>${data['grandparent_title']} - ${data['title']} (${user})</strong></h3>
+        % else:
+            <h3 id="myModalLabel">Stream Info: <strong>${data['title']} (${user})</strong></h3>
+        % endif
+    </div>
+    <div class="modal-body" id="modal-text">
+        <div class="span4">
+            <h4>Stream Details</h4>
+                <ul>
+                    <h5>Video</h5>
+                    <li>Stream Type: <strong>${data['transcode_video_dec']}</strong></li>
+                    <li>Video Resolution: <strong>${data['transcode_height']}p</strong></li>
+                    <li>Video Codec: <strong>${data['transcode_video_codec']}</strong></li>
+                    <li>Video Width: <strong>${data['transcode_width']}</strong></li>
+                    <li>Video Height: <strong>${data['transcode_height']}</span></strong></li>
+                </ul>
+                <ul>
+                    <h5>Audio</h5>
+                    <li>Stream Type: <strong>${data['transcode_audio_dec']}</strong></li>
+                    <li>Audio Codec: <strong>${data['transcode_audio_codec']}</strong></li>
+                    <li>Audio Channels: <strong>${data['transcode_audio_channels']}</strong></li>
+                </ul>
+        </div>
+        <div class="span4">
+            <h4>Media Source Details</h4>
+            <li>Container: <strong>${data['container']}</strong></li>
+            <li>Resolution: <strong>${data['height']}p</strong></li>
+            <li>Bitrate: <strong>${data['bitrate']} kbps</strong></li>
+        </div>
+        <div class="span4">
+            <h4>Video Source Details</h4>
+            <ul>
+                <li>Width: <strong>${data['width']}</strong></li>
+                <li>Height: <strong>${data['height']}</strong></li>
+                <li>Aspect Ratio: <strong>${data['aspect_ratio']}</strong></li>
+                <li>Video Frame Rate: <strong>${data['video_framerate']}</span></strong></li>
+                <li>Video Codec: <strong>${data['video_codec']}</strong></li>
+            </ul>
+            <ul></ul>
+            <h4>Audio Source Details</h4>
+            <ul>
+                <li>Audio Codec: <strong>${data['audio_codec']}</strong></li>
+                <li>Audio Channels: <strong>${data['audio_channels']}</strong></li>
+            </ul>
+        </div>
+    </div>
+    <div class="modal-footer"></div>
+% endif

@@ -4,7 +4,7 @@
 %>
 
 <%def name="headIncludes()">
-
+    <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
 </%def>
 
 <%def name="body()">
@@ -52,12 +52,12 @@
                                                 <div class="summary-content-director">
                                                     % if metadata['type'] == 'episode' or metadata['type'] == 'movie':
                                                         % if metadata['directors']:
-                                                            Directed by <strong> ${metadata['directors'][0]}
+                                                            Directed by <strong> ${metadata['directors'][0]}</strong>
                                                         % else:
-                                                            Directed by <strong> unknown
+                                                            Directed by <strong> unknown</strong>
                                                         % endif
                                                     % elif metadata['type'] == 'show':
-                                                        Studio <strong> ${metadata['studio']}
+                                                        Studio <strong> ${metadata['studio']}</strong>
                                                     % endif
                                                 </div>
                                                 <div class="summary-content-duration">
@@ -138,6 +138,44 @@
                 </div>
             <!--}-->
         </div>
+        <div class='container-fluid'>
+            <div class='row-fluid'>
+                <div class='span12'>
+                    <div class='wellbg'>
+                        % if metadata['type'] == 'movie' or metadata['type'] == 'episode':
+                            <div class="wellheader">
+                                <div class="dashboard-wellheader">
+                                    <h3>Watch history for <strong>${metadata['title']}</strong></h3>
+                                </div>
+                            </div>
+                            <table class="display" id="history_table" width="100%">
+                                <thead>
+                                    <tr>
+                                        <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
+                                        <th align='left' id="date"><i class='fa fa-sort'></i> Time</th>
+                                        <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
+                                        <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
+                                        <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
+                                        <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
+                                        <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
+                                        <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
+                                        <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
+                                        <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
+                                        <th align='left' id="percent_complete"> Completed</th>
+                                        <th align='left' id="rating_key"> RatingKey</th>
+                                        <th align='left' id="xml"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                            <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal" aria-hidden="true">
+                            </div>
+                        % endif
+                    </div>
+                </div>
+            </div>
+        </div>
     % else:
         <div class="clear"></div>
         <div class="container-fluid">
@@ -152,6 +190,10 @@
 
 <%def name="javascriptIncludes()">
     <script src="interfaces/default/js/jquery.rateit.min.js"></script>
+    <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+    <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
+    <script src="interfaces/default/js/moment-with-locale.js"></script>
+
     % if metadata:
         % if metadata['type'] == 'movie':
             <script>
@@ -160,5 +202,23 @@
                 $('#stars').attr('data-rateit-value', starRating)
             </script>
         % endif
+        % if metadata['type'] == 'movie' or metadata['type'] == 'episode':
+            <script src="interfaces/default/js/tables/history_table.js"></script>
+            <script>
+                $(document).ready(function () {
+                    history_table_options.ajax = {
+                        "url": "get_history",
+                        "data": function(d) {
+                           d.rating_key = ${metadata['ratingKey']};
+                        }
+                    }
+
+                    history_table = $('#history_table').DataTable(history_table_options);
+
+                    // Hide the title column
+                    history_table.column(5).visible(false);
+                });
+            </script>
+        %endif
     % endif
 </%def>

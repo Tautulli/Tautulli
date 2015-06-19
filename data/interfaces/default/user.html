@@ -121,17 +121,76 @@
                                 </strong></h3>
                             </div>
                         </div>
-                        Table
-                        <div id="info-modal" class="modal hide fade" tabindex="-1"
-                            role="dialog" aria-labelledby="info-modal" aria-hidden="true">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal"
-                                    aria-hidden="true"><i class="fa fa-remove"></i></button>
-                                <h3 id="myModalLabel">Stream Info: <span id="modal-stream-info"></span></h3>
-                            </div>
-                            <div class="modal-body" id="modal-text"></div>
-                            <div class="modal-footer"></div>
-                        </div>
+                        <table class="display" id="history_table" width="100%">
+                            <thead>
+                                <tr>
+                                    <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
+                                    <th align='left' id="date"><i class='fa fa-sort'></i> Time</th>
+                                    <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
+                                    <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
+                                    <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
+                                    <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
+                                    <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
+                                    <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
+                                    <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
+                                    <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
+                                    <th align='left' id="percent_complete"> Completed</th>
+                                    <th align='left' id="rating_key"> RatingKey</th>
+                                    <th align='left' id="xml"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                        <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal" aria-hidden="true">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+								<h3 id="myModalLabel">Stream Info: <strong><span id="modal-stream-info"></span></strong></h3>
+							</div>
+							<div class="modal-body" id="modal-text">
+                                <div class="span4">
+                                    <h4>Stream Details</h4>
+                                        <ul>
+                                            <h5>Video</h5>
+                                            <li>Stream Type: <strong><span id="transcode_video_dec"></span></strong></li>
+                                            <li>Video Resolution: <strong><span id="transcode_video_resolution"></span>p</strong></li>
+                                            <li>Video Codec: <strong><span id="transcode_video_codec"></span></strong></li>
+                                            <li>Video Width: <strong><span id="transcode_video_width"></span></strong></li>
+                                            <li>Video Height: <strong><span id="transcode_video_height"></span></strong></li>
+                                        </ul>
+                                        <ul>
+                                            <h5>Audio</h5>
+                                            <li>Stream Type: <strong><span id="transcode_audio_dec"></span></strong></li>
+                                            <li>Audio Codec: <strong><span id="transcode_audio_codec"></span></strong></li>
+                                            <li>Audio Channels: <strong><span id="transcode_audio_channels"></span></strong></li>
+                                        </ul>
+                                </div>
+                                <div class="span4">
+                                    <h4>Media Source Details</h4>
+                                    <li>Container: <strong><span id="media_container"></span></strong></li>
+                                    <li>Resolution: <strong><span id="media_resolution"></span>p</strong></li>
+                                    <li>Bitrate: <strong><span id="media_bitrate"></span> kbps</strong></li>
+                                </div>
+                                <div class="span4">
+                                    <h4>Video Source Details</h4>
+                                    <ul>
+                                        <li>Width: <strong><span id="video_width"></span></strong></li>
+                                        <li>Height: <strong><span id="video_height"></span></strong></li>
+                                        <li>Aspect Ratio: <strong><span id="video_aspect"></span></strong></li>
+                                        <li>Video Frame Rate: <strong><span id="video_framerate"></span></strong></li>
+                                        <li>Video Codec: <strong><span id="video_codec"></span></strong></li>
+                                    </ul>
+                                    <ul></ul>
+                                    <h4>Audio Source Details</h4>
+                                    <ul>
+                                        <li>Audio Codec: <strong><span id="audio_codec"></span></strong></li>
+                                        <li>Audio Channels: <strong><span id="audio_channels"></span></strong></li>
+                                    </ul>
+                                </div>
+							</div>
+							<div class="modal-footer">
+							</div>
+						</div>
                     </div>
                 </div>
             </div>
@@ -146,7 +205,20 @@
     <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
     <script src="interfaces/default/js/moment-with-locale.js"></script>
 
+    <script src="interfaces/default/js/tables/history_table.js"></script>
     <script>
+        $(document).ready(function () {
+            history_table_options.ajax = {
+                "url": "get_history",
+                "data": function(d) {
+                   d.user = "drzoidberg33";
+                }
+            }
 
+            history_table = $('#history_table').DataTable(history_table_options);
+
+            // Hide the title column
+            // history_table.column(5).visible(false);
+        });
     </script>
 </%def>
