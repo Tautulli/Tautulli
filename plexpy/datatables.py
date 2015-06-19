@@ -85,13 +85,13 @@ class DataTables(object):
         if parameters:
             for parameter in parameters:
                 if parameter['data'] != '':
-                    if int(order_column) == parameters.index(parameter):
+                    if int(order_column) == parameter['index']:
                         if parameter['data'] in column_data['column_named'] and parameter['orderable'] == 'true':
                             order = 'ORDER BY %s COLLATE NOCASE %s' % (parameter['data'], order_dir)
-                        logger.debug(u"order string %s " % order)
-                else:
-                    order = 'ORDER BY %s COLLATE NOCASE %s' % (column_data['column_named'][order_column], order_dir)
-                    logger.debug(u"order string (NO param received) %s " % order)
+                            logger.debug(u"order string %s " % order)
+        else:
+            order = 'ORDER BY %s COLLATE NOCASE %s' % (column_data['column_named'][order_column], order_dir)
+            logger.debug(u"order string (NO param received) %s " % order)
         return order
 
     @staticmethod
