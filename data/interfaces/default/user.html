@@ -1,0 +1,152 @@
+<%inherit file="base.html"/>
+<%!
+	from plexpy import helpers
+%>
+
+<%def name="headIncludes()">
+    <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+</%def>
+
+<%def name="body()">
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="user-info-wrapper">
+                <div class="user-info-poster-face">
+                    <img src="interfaces/default/images/gravatar-default-80x80.png">
+                </div>
+                <div class="user-info-username">
+                    Username
+                </div>
+                <div class="user-info-nav">
+                    <ul class="user-info-nav">
+                        <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
+                        <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
+                        <li><a href="#userHistory" data-toggle="tab">History</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="tab-content">
+    <div class="tab-pane active" id="profile">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="wellbg">
+                        <div class="wellheader">
+                            <div class="dashboard-wellheader">
+                                <h3>Global Stats</h3>
+                            </div>
+                        </div>
+                        <div id="user-time-stats" class="user-overview-stats-wrapper">
+                            <div id="user-stats-spinner" class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="wellbg">
+                        <div class="wellheader">
+                            <div class="dashboard-wellheader">
+                                <h3>Platform Stats</h3>
+                            </div>
+                        </div>
+                        <div id="user-platform-stats" class="user-platforms">
+                            <div id="user-platform-spinner" class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="wellbg">
+                        <div class="wellheader">
+                            <div class="dashboard-wellheader">
+                                <h3>Recently watched</h3>
+                            </div>
+                        </div>
+                        <div id="user-recently-watched" class="dashboard-recent-media-row">
+                            <div id="user-watched-spinner" class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane" id="userAddresses">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="wellbg">
+                        <div class="wellheader">
+                            <div class="dashboard-wellheader">
+                                <h3>Public IP Addresses for <strong>
+                                    Username
+                                </strong></h3>
+                            </div>
+                        </div>
+                        <table id="tableUserIpAddresses" class="display" width="100%">
+                            <thead>
+                                <tr>
+                                    <th align="left"><i class="fa fa-sort"></i> Last seen</th>
+                                    <th align="left"><i class="fa fa-sort"></i> IP Address</th>
+                                    <th align="left"><i class="fa fa-sort"></i> Play Count</th>
+                                    <th align="left"><i class="fa fa-sort"></i> Platform (Last Seen)</th>
+                                    <th align="left"><i class="fa fa-sort"></i> Location</th>
+                                    <th align="left"><i class="fa fa-sort"></i> Location</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane" id="userHistory">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="wellbg">
+                        <div class="wellheader">
+                            <div class="dashboard-wellheader">
+                                <h3>Watching History for <strong>
+                                    Username
+                                </strong></h3>
+                            </div>
+                        </div>
+                        Table
+                        <div id="info-modal" class="modal hide fade" tabindex="-1"
+                            role="dialog" aria-labelledby="info-modal" aria-hidden="true">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal"
+                                    aria-hidden="true"><i class="fa fa-remove"></i></button>
+                                <h3 id="myModalLabel">Stream Info: <span id="modal-stream-info"></span></h3>
+                            </div>
+                            <div class="modal-body" id="modal-text"></div>
+                            <div class="modal-footer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<footer></footer>
+</%def>
+
+<%def name="javascriptIncludes()">
+    <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+    <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
+    <script src="interfaces/default/js/moment-with-locale.js"></script>
+
+    <script>
+
+    </script>
+</%def>

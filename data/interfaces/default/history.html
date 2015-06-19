@@ -34,11 +34,12 @@
                                     <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
                                     <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
                                     <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
-                                    <th align='left' id="paused"><i class='fa fa-sort'></i> Paused</th>
+                                    <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
                                     <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
                                     <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
                                     <th align='left' id="percent_complete"> Completed</th>
                                     <th align='left' id="rating_key"> RatingKey</th>
+                                    <th align='left' id="xml"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -134,7 +135,8 @@
                     {
                         "targets": [0],
                         "data":"id",
-                        "visible": false
+                        "visible": false,
+                        "searchable": false
                     },
                     {
                         "targets": [1],
@@ -146,7 +148,8 @@
                             } else {
                                 $(td).html(moment(cellData,"X").format("${date_format}"));
                             }
-                        }
+                        },
+                        "searchable": false
                     },
                     {
                         "targets": [2],
@@ -185,14 +188,16 @@
                         "data":"started",
                         "render": function ( data, type, full ) {
                             return moment(data, "X").format("${time_format}");
-                        }
+                        },
+                        "searchable": false
                     },
                     {
                         "targets": [7],
-                        "data":"paused",
+                        "data":"paused_counter",
                         "render": function ( data, type, full ) {
                             return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
-                        }
+                        },
+                        "searchable": false
                     },
                     {
                         "targets": [8],
@@ -203,7 +208,8 @@
                             } else {
                                 return data;
                             }
-                        }
+                        },
+                        "searchable": false
                     },
                     {
                         "targets": [9],
@@ -214,7 +220,8 @@
                             } else {
                                 return data;
                             }
-                        }
+                        },
+                        "searchable": false
                     },
                     {
                         "targets": [10],
@@ -226,12 +233,20 @@
                             } else {
                                 return '<span class="badge">100%</span>';
                             }
-                        }
+                        },
+                        "searchable": false
                     },
                     {
                         "targets": [11],
                         "data":"rating_key",
-                        "visible": false
+                        "visible": false,
+                        "searchable": false
+                    },
+                    {
+                        "targets": [12],
+                        "data":"xml",
+                        "searchable":false,
+                        "visible":false
                     }
                 ],
                 "drawCallback": function (settings) {

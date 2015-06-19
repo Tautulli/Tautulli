@@ -57,7 +57,7 @@
                     "lengthMenu":"Show _MENU_ entries per page",
                     "info":"Showing _START_ to _END_ of _TOTAL_ active users",
                     "infoEmpty":"Showing 0 to 0 of 0 entries",
-                    "infoFiltered":"(filtered from _MAX_ total entries)",
+                    "infoFiltered":"",
                     "emptyTable": "No data in table",
                 },
                 "destroy": true,
@@ -80,11 +80,11 @@
                         "targets": [0],
                         "data": null,
                         "createdCell": function (td, cellData, rowData, row, col) {
-                            if (rowData['user_thumb'] === '') {
+                            //if (rowData['user_thumb'] === '') {
                                 $(td).html('<img src="interfaces/default/images/gravatar-default-80x80.png" alt="User Logo"/>');
-                            } else {
-                                $(td).html('<img src="' + rowData['user_thumb'] + '" alt="User Logo"/>');
-                            }
+                            //} else {
+                            //    $(td).html('<img src="' + rowData['user_thumb'] + '" alt="User Logo"/>');
+                            //}
                         },
                         "orderable": false,
                         "className": "users-poster-face",
@@ -103,7 +103,8 @@
                     },
                     {
                         "targets": [3],
-                        "data": "ip_address"
+                        "data": "ip_address",
+                        "searchable": false
                     },
                     {
                         "targets": [4],

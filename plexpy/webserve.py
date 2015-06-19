@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, db, helpers, notifiers, plextv, pmsconnect
+from plexpy import logger, db, helpers, notifiers, plextv, pmsconnect, plexwatch
 from plexpy.helpers import checked, radio, today, cleanName
 from xml.dom import minidom
 
@@ -85,99 +85,17 @@ class WebInterface(object):
         return serve_template(templatename="users.html", title="Users")
 
     @cherrypy.expose
+    def user(self):
+        return serve_template(templatename="user.html", title="User")
+
+    @cherrypy.expose
     def get_user_list(self, start=0, length=100, **kwargs):
-        start = int(start)
-        length = int(length)
-        filtered = []
-        totalcount = 0
-        search_value = ""
-        search_regex = ""
-        order_column = 1
-        order_dir = "desc"
 
-        if 'order[0][dir]' in kwargs:
-            order_dir = kwargs.get('order[0][dir]', "desc")
-
-        if 'order[0][column]' in kwargs:
-            order_column = kwargs.get('order[0][column]', "1")
-
-        if 'search[value]' in kwargs:
-            search_value = kwargs.get('search[value]', "")
-
-        if 'search[regex]' in kwargs:
-            search_regex = kwargs.get('search[regex]', "")
-
-        sortcolumn = 'user'
-        if order_column == '2':
-            sortcolumn = 'time'
-        elif order_column == '3':
-            sortcolumn = 'ip_address'
-        elif order_column == '4':
-            sortcolumn = 'plays'
-
-        myDB = db.DBConnection()
-        db_table = db.DBConnection().get_history_table_name()
-
-        if search_value == "":
-            query = 'SELECT COUNT(title) as plays, user, time, \
-                    SUM(time) as timeTotal, SUM(stopped) as stoppedTotal, \
-                    SUM(paused_counter) as paused_counterTotal, platform, \
-                    ip_address, xml \
-                    from %s GROUP by user ORDER by %s COLLATE NOCASE %s' % (db_table, sortcolumn, order_dir)
-            filtered = myDB.select(query)
-            totalcount = len(filtered)
-        else:
-            query = 'SELECT COUNT(title) as plays, user, time, \
-                    SUM(time) as timeTotal, SUM(stopped) as stoppedTotal, \
-                    SUM(paused_counter) as paused_counterTotal, platform, \
-                    ip_address, xml \
-                    from ' + db_table + ' WHERE user LIKE "%' + search_value + '%" \
-                    GROUP by user' + ' ORDER by %s COLLATE NOCASE %s' % (sortcolumn, order_dir)
-            filtered = myDB.select(query)
-            totalcount = myDB.select('SELECT COUNT(*) from %s' % db_table)[0][0]
-
-        users = filtered[start:(start + length)]
-        rows = []
-        for item in users:
-            row = {"plays": item['plays'],
-                   "time": item['time'],
-                   "user": item["user"],
-                   "timeTotal": item["timeTotal"],
-                   "ip_address": item["ip_address"],
-                   "stoppedTotal": item["stoppedTotal"],
-                   "paused_counterTotal": item["paused_counterTotal"],
-                   "platform": item["platform"]
-                   }
-
-            try:
-                xml_parse = minidom.parseString(helpers.latinToAscii(item['xml']))
-            except IOError, e:
-                logger.warn("Error parsing XML in PlexWatch db: %s" % e)
-
-            xml_head = xml_parse.getElementsByTagName('User')
-            if not xml_head:
-                logger.warn("Error parsing XML in PlexWatch db: %s" % e)
-
-            for s in xml_head:
-                if s.getAttribute('thumb'):
-                    row['user_thumb'] = s.getAttribute('thumb')
-                else:
-                    row['user_thumb'] = ""
-                if s.getAttribute('id'):
-                    row['user_id'] = s.getAttribute('id')
-                else:
-                    row['user_id'] = ""
-
-            rows.append(row)
-
-        dict = {'recordsFiltered': len(filtered),
-                'recordsTotal': totalcount,
-                'data': rows,
-        }
-        s = json.dumps(dict)
+        plex_watch = plexwatch.PlexWatch()
+        users = plex_watch.get_user_list(start, length, kwargs)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
-        return s
+        return json.dumps(users)
 
     @cherrypy.expose
     def checkGithub(self):
@@ -415,127 +333,12 @@ class WebInterface(object):
 
     @cherrypy.expose
     def getHistory_json(self, start=0, length=100, **kwargs):
-        start = int(start)
-        length = int(length)
-        filtered = []
-        totalcount = 0
-        search_value = ""
-        search_regex = ""
-        order_column = 1
-        order_dir = "desc"
 
-        if 'order[0][dir]' in kwargs:
-            order_dir = kwargs.get('order[0][dir]', "desc")
+        plex_watch = plexwatch.PlexWatch()
+        history = plex_watch.get_history(start, length, kwargs)
 
-        if 'order[0][column]' in kwargs:
-            order_column = kwargs.get('order[0][column]', "1")
-
-        if 'search[value]' in kwargs:
-            search_value = kwargs.get('search[value]', "")
-
-        if 'search[regex]' in kwargs:
-            search_regex = kwargs.get('search[regex]', "")
-
-        myDB = db.DBConnection()
-        db_table = db.DBConnection().get_history_table_name()
-
-        sortcolumn = 'time'
-        sortbyhavepercent = False
-        if order_column == '2':
-            sortcolumn = 'user'
-        if order_column == '3':
-            sortcolumn = 'platform'
-        elif order_column == '4':
-            sortcolumn = 'ip_address'
-        elif order_column == '5':
-            sortcolumn = 'title'
-        elif order_column == '6':
-            sortcolumn = 'time'
-        elif order_column == '7':
-            sortcolumn = 'paused_counter'
-        elif order_column == '8':
-            sortcolumn = 'stopped'
-        elif order_column == '9':
-            sortcolumn = 'duration'
-
-        if search_value == "":
-            query = 'SELECT id, time, user, platform, ip_address, title, time, paused_counter, stopped, ratingKey, xml, \
-                    round((julianday(datetime(stopped, "unixepoch", "localtime")) - \
-                    julianday(datetime(time, "unixepoch", "localtime"))) * 86400) - \
-                    (case when paused_counter is null then 0 else paused_counter end) as duration \
-                    from %s order by %s COLLATE NOCASE %s' % (db_table, sortcolumn, order_dir)
-            filtered = myDB.select(query)
-            totalcount = len(filtered)
-        else:
-            query = 'SELECT id, time, user, platform, ip_address, title, time, paused_counter, stopped, ratingKey, xml, \
-                    round((julianday(datetime(stopped, "unixepoch", "localtime")) - \
-                    julianday(datetime(time, "unixepoch", "localtime"))) * 86400) - \
-                    (case when paused_counter is null then 0 else paused_counter end) as duration \
-                    from ' + db_table + ' WHERE user LIKE "%' + search_value + '%" OR title LIKE "%' + search_value \
-                    + '%"' + 'ORDER BY %s COLLATE NOCASE %s' % (sortcolumn, order_dir)
-            filtered = myDB.select(query)
-            totalcount = myDB.select('SELECT COUNT(*) from processed')[0][0]
-
-        history = filtered[start:(start + length)]
-        rows = []
-        for item in history:
-            row = {"id": item['id'],
-                   "date": item['time'],
-                   "user": item["user"],
-                   "platform": item["platform"],
-                   "ip_address": item["ip_address"],
-                   "title": item["title"],
-                   "started": item["time"],
-                   "paused": item["paused_counter"],
-                   "stopped": item["stopped"],
-                   "rating_key": item["ratingKey"],
-                   "duration": item["duration"],
-                   "percent_complete": 0,
-            }
-
-            if item['paused_counter'] > 0:
-                row['paused'] = item['paused_counter']
-            else:
-                row['paused'] = 0
-
-            if item['time']:
-                if item['stopped'] > 0:
-                    stopped = item['stopped']
-                else:
-                    stopped = 0
-                if item['paused_counter'] > 0:
-                    paused_counter = item['paused_counter']
-                else:
-                    paused_counter = 0
-
-            try:
-                xml_parse = minidom.parseString(helpers.latinToAscii(item['xml']))
-            except IOError, e:
-                logger.warn("Error parsing XML in PlexWatch db: %s" % e)
-
-            xml_head = xml_parse.getElementsByTagName('opt')
-            if not xml_head:
-                logger.warn("Error parsing XML in PlexWatch db: %s" % e)
-
-            for s in xml_head:
-                if s.getAttribute('duration') and s.getAttribute('viewOffset'):
-                    view_offset = helpers.cast_to_float(s.getAttribute('viewOffset'))
-                    duration = helpers.cast_to_float(s.getAttribute('duration'))
-                    if duration > 0:
-                        row['percent_complete'] = (view_offset / duration) * 100
-                    else:
-                        row['percent_complete'] = 0
-
-            rows.append(row)
-
-        dict = {'recordsFiltered': len(filtered),
-                'recordsTotal': totalcount,
-                'data': rows,
-        }
-        s = json.dumps(dict)
         cherrypy.response.headers['Content-type'] = 'application/json'
-        return s
-
+        return json.dumps(history)
 
     @cherrypy.expose
     def getStreamDetails(self, id=0, **kwargs):
