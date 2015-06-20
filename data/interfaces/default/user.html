@@ -7,218 +7,214 @@
     <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
 </%def>
 
-<%def name="body()">
-<div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span12">
-            <div class="user-info-wrapper">
-                <div class="user-info-poster-face">
-                    <img src="interfaces/default/images/gravatar-default-80x80.png">
-                </div>
-                <div class="user-info-username">
-                    Username
-                </div>
-                <div class="user-info-nav">
-                    <ul class="user-info-nav">
-                        <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
-                        <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
-                        <li><a href="#userHistory" data-toggle="tab">History</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="tab-content">
-    <div class="tab-pane active" id="profile">
-        <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div class="wellbg">
-                        <div class="wellheader">
-                            <div class="dashboard-wellheader">
-                                <h3>Global Stats</h3>
-                            </div>
-                        </div>
-                        <div id="user-time-stats" class="user-overview-stats-wrapper">
-                            <div id="user-stats-spinner" class="spinner"></div>
-                        </div>
+% if user != None:
+    <%def name="body()">
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="user-info-wrapper">
+                    <div class="user-info-poster-face">
+                        <img src="interfaces/default/images/gravatar-default-80x80.png">
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div class="wellbg">
-                        <div class="wellheader">
-                            <div class="dashboard-wellheader">
-                                <h3>Platform Stats</h3>
-                            </div>
-                        </div>
-                        <div id="user-platform-stats" class="user-platforms">
-                            <div id="user-platform-spinner" class="spinner"></div>
-                        </div>
+                    <div class="user-info-username">
+                        ${user}
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div class="wellbg">
-                        <div class="wellheader">
-                            <div class="dashboard-wellheader">
-                                <h3>Recently watched</h3>
-                            </div>
-                        </div>
-                        <div id="user-recently-watched" class="dashboard-recent-media-row">
-                            <div id="user-watched-spinner" class="spinner"></div>
-                        </div>
+                    <div class="user-info-nav">
+                        <ul class="user-info-nav">
+                            <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
+                            <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
+                            <li><a href="#userHistory" data-toggle="tab">History</a></li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="tab-pane" id="userAddresses">
-        <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div class="wellbg">
-                        <div class="wellheader">
-                            <div class="dashboard-wellheader">
-                                <h3>Public IP Addresses for <strong>
-                                    Username
-                                </strong></h3>
+    <div class="tab-content">
+        <div class="tab-pane active" id="profile">
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="wellbg">
+                            <div class="wellheader">
+                                <div class="dashboard-wellheader">
+                                    <h3>Global Stats</h3>
+                                </div>
+                            </div>
+                            <div id="user-time-stats" class="user-overview-stats-wrapper">
+                                <div id="user-stats-spinner" class="spinner"></div>
                             </div>
                         </div>
-                        <table id="tableUserIpAddresses" class="display" width="100%">
-                            <thead>
-                                <tr>
-                                    <th align="left"><i class="fa fa-sort"></i> Last seen</th>
-                                    <th align="left"><i class="fa fa-sort"></i> IP Address</th>
-                                    <th align="left"><i class="fa fa-sort"></i> Play Count</th>
-                                    <th align="left"><i class="fa fa-sort"></i> Platform (Last Seen)</th>
-                                    <th align="left"><i class="fa fa-sort"></i> Location</th>
-                                    <th align="left"><i class="fa fa-sort"></i> Location</th>
-                                </tr>
-                            </thead>
-                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="wellbg">
+                            <div class="wellheader">
+                                <div class="dashboard-wellheader">
+                                    <h3>Platform Stats</h3>
+                                </div>
+                            </div>
+                            <div id="user-platform-stats" class="user-platforms">
+                                <div id="user-platform-spinner" class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="wellbg">
+                            <div class="wellheader">
+                                <div class="dashboard-wellheader">
+                                    <h3>Recently watched</h3>
+                                </div>
+                            </div>
+                            <div id="user-recently-watched" class="dashboard-recent-media-row">
+                                <div id="user-watched-spinner" class="spinner"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="tab-pane" id="userHistory">
-        <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div class="wellbg">
-                        <div class="wellheader">
-                            <div class="dashboard-wellheader">
-                                <h3>Watching History for <strong>
-                                    Username
-                                </strong></h3>
+        <div class="tab-pane" id="userAddresses">
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="wellbg">
+                            <div class="wellheader">
+                                <div class="dashboard-wellheader">
+                                    <h3>Public IP Addresses for <strong>
+                                        ${user}
+                                    </strong></h3>
+                                </div>
                             </div>
-                        </div>
-                        <table class="display" id="history_table" width="100%">
-                            <thead>
-                                <tr>
-                                    <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
-                                    <th align='left' id="date"><i class='fa fa-sort'></i> Time</th>
-                                    <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
-                                    <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
-                                    <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
-                                    <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
-                                    <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
-                                    <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
-                                    <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
-                                    <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
-                                    <th align='left' id="percent_complete"> Completed</th>
-                                    <th align='left' id="rating_key"> RatingKey</th>
-                                    <th align='left' id="xml"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                        <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal" aria-hidden="true">
-							<div class="modal-header">
-								<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-								<h3 id="myModalLabel">Stream Info: <strong><span id="modal-stream-info"></span></strong></h3>
-							</div>
-							<div class="modal-body" id="modal-text">
-                                <div class="span4">
-                                    <h4>Stream Details</h4>
+                            <table id="user_ip_table" class="display" width="100%">
+                                <thead>
+                                    <tr>
+                                        <th align="left"><i class="fa fa-sort"></i> Last seen</th>
+                                        <th align="left"><i class="fa fa-sort"></i> IP Address</th>
+                                        <th align="left"><i class="fa fa-sort"></i> Play Count</th>
+                                        <th align="left"><i class="fa fa-sort"></i> Platform (Last Seen)</th>
+                                        <th align="left"> Last Watched</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                            <div id="ip-info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal" aria-hidden="true">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                                    <h3 id="myModalLabel">IP Address: <strong><span id="ip_address"></span></strong></h3>
+                                </div>
+                                <div class="modal-body" id="modal-text">
+                                    <div class="span6">
+                                        <h4>Location Details</h4>
                                         <ul>
-                                            <h5>Video</h5>
-                                            <li>Stream Type: <strong><span id="transcode_video_dec"></span></strong></li>
-                                            <li>Video Resolution: <strong><span id="transcode_video_resolution"></span>p</strong></li>
-                                            <li>Video Codec: <strong><span id="transcode_video_codec"></span></strong></li>
-                                            <li>Video Width: <strong><span id="transcode_video_width"></span></strong></li>
-                                            <li>Video Height: <strong><span id="transcode_video_height"></span></strong></li>
+                                            <li>Country: <strong><span id="country"></span></strong></li>
+                                            <li>City: <strong><span id="city"></span></strong></li>
+                                            <li>Region: <strong><span id="region"></span></strong></li>
+                                            <li>Timezone: <strong><span id="timezone"></span></strong></li>
+                                            <li>Latitude: <strong><span id="lat"></span></strong></li>
+                                            <li>Longitude: <strong><span id="lon"></span></strong></li>
                                         </ul>
+                                    </div>
+                                    <div class="span6">
+                                        <h4>Connection Details</h4>
                                         <ul>
-                                            <h5>Audio</h5>
-                                            <li>Stream Type: <strong><span id="transcode_audio_dec"></span></strong></li>
-                                            <li>Audio Codec: <strong><span id="transcode_audio_codec"></span></strong></li>
-                                            <li>Audio Channels: <strong><span id="transcode_audio_channels"></span></strong></li>
+                                            <li>ISP: <strong><span id="isp"></span></strong></li>
+                                            <li>Organization: <strong><span id="org"></span></strong></li>
+                                            <li>AS: <strong><span id="as"></span></strong></li>
                                         </ul>
+                                    </div>
                                 </div>
-                                <div class="span4">
-                                    <h4>Media Source Details</h4>
-                                    <li>Container: <strong><span id="media_container"></span></strong></li>
-                                    <li>Resolution: <strong><span id="media_resolution"></span>p</strong></li>
-                                    <li>Bitrate: <strong><span id="media_bitrate"></span> kbps</strong></li>
+                                <div class="modal-footer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane" id="userHistory">
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="wellbg">
+                            <div class="wellheader">
+                                <div class="dashboard-wellheader">
+                                    <h3>Watch History for <strong>
+                                        ${user}
+                                    </strong></h3>
                                 </div>
-                                <div class="span4">
-                                    <h4>Video Source Details</h4>
-                                    <ul>
-                                        <li>Width: <strong><span id="video_width"></span></strong></li>
-                                        <li>Height: <strong><span id="video_height"></span></strong></li>
-                                        <li>Aspect Ratio: <strong><span id="video_aspect"></span></strong></li>
-                                        <li>Video Frame Rate: <strong><span id="video_framerate"></span></strong></li>
-                                        <li>Video Codec: <strong><span id="video_codec"></span></strong></li>
-                                    </ul>
-                                    <ul></ul>
-                                    <h4>Audio Source Details</h4>
-                                    <ul>
-                                        <li>Audio Codec: <strong><span id="audio_codec"></span></strong></li>
-                                        <li>Audio Channels: <strong><span id="audio_channels"></span></strong></li>
-                                    </ul>
-                                </div>
-							</div>
-							<div class="modal-footer">
-							</div>
-						</div>
+                            </div>
+                            <table class="display" id="history_table" width="100%">
+                                <thead>
+                                    <tr>
+                                        <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
+                                        <th align='left' id="date"><i class='fa fa-sort'></i> Time</th>
+                                        <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
+                                        <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
+                                        <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
+                                        <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
+                                        <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
+                                        <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
+                                        <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
+                                        <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
+                                        <th align='left' id="percent_complete"> Completed</th>
+                                        <th align='left' id="rating_key"> RatingKey</th>
+                                        <th align='left' id="xml"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                            <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal" aria-hidden="true">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<footer></footer>
-</%def>
+    <footer></footer>
+    </%def>
 
-<%def name="javascriptIncludes()">
-    <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-    <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
-    <script src="interfaces/default/js/moment-with-locale.js"></script>
-
-    <script src="interfaces/default/js/tables/history_table.js"></script>
-    <script>
-        $(document).ready(function () {
-            history_table_options.ajax = {
-                "url": "get_history",
-                "data": function(d) {
-                   d.user = "drzoidberg33";
+    <%def name="javascriptIncludes()">
+        <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+        <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
+        <script src="interfaces/default/js/moment-with-locale.js"></script>
+        <script src="interfaces/default/js/tables/history_table.js"></script>
+        <script src="interfaces/default/js/tables/user_ips.js"></script>
+        <script>
+            $(document).ready(function () {
+                history_table_options.ajax = {
+                    "url": "get_history",
+                    "data": function(d) {
+                       d.user = "${user}";
+                    }
                 }
-            }
+                history_table = $('#history_table').DataTable(history_table_options);
+                history_table.column(2).visible(false); // Hide the title column
 
-            history_table = $('#history_table').DataTable(history_table_options);
-
-            // Hide the title column
-            // history_table.column(5).visible(false);
-        });
-    </script>
-</%def>
+                user_ip_table_options.ajax = {
+                    "url": "get_user_ips",
+                    "data": function(d) {
+                       d.user = "${user}";
+                    }
+                }
+                user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
+            });
+        </script>
+    </%def>
+% else:
+    <div class="clear"></div>
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <div class="span10 offset1">
+                <h3>Error retrieving user information. Please see the logs for more details.</h3>
+            </div>
+        </div>
+    </div>
+% endif

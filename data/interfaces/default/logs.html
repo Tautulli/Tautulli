@@ -24,7 +24,12 @@
 				<div class="span12">
 					<div class="wellheader-bg">
 						<div class="dashboard-wellheader-no-chevron">
-							<h2><i class="fa fa-book"></i> Logs</h2>
+                            <div class="span9"><h2><i class="fa fa-book"></i> Logs</h2></div>
+                            <div class="span3">
+                                <div class="pull-right">
+                                    <h5><a id="menu_link_edit" href="clearLogs"><i class="fa fa-trash-o"></i> Clear log</a>
+                                </div>
+                            </div>
 						</div>
 					</div>
 				</div>
@@ -68,69 +73,23 @@
 <%def name="javascriptIncludes()">
     <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
     <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
-
+    <script src="interfaces/default/js/tables/logs.js"></script>
 	<script>
-        $(document).ready(function() {
-
-        	$('#log_table').dataTable( {
-        		"processing": false,
-                "serverSide": true,
-                "ajax": {
-                    "url": "getLog"
-                },
-                "sPaginationType": "bootstrap",
-                "order": [ 0, 'desc'],
-                "pageLength": 10,
-                "stateSave": true,
-                "language": {
-                            "search":"Search: ",
-        					"lengthMenu":"Show _MENU_ lines per page",
-        					"emptyTable": "No log information available",
-        					"info":"Showing _START_ to _END_ of _TOTAL_ lines",
-        					"infoEmpty":"Showing 0 to 0 of 0 lines",
-        					"infoFiltered":"(filtered from _MAX_ total lines)"},
-                "columnDefs": [
-                    {
-                        "targets": [0],
-                        "width": "15%"
-                    },
-                    {
-                        "targets": [1],
-                        "width": "10%"
-                    },
-                    {
-                        "targets": [2],
-                        "width": "75%"
-                    }
-                ],
-                "drawCallback": function (settings) {
-                    // Jump to top of page
-                    $('html,body').scrollTop(0);
-                    $('#ajaxMsg').addClass('success').fadeOut();
-                },
-                "preDrawCallback": function(settings) {
-                    $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>Fetching rows...</div>");
-                    $('#ajaxMsg').addClass('success').fadeIn();
+        var timer;
+        function setRefresh()
+        {
+            refreshrate = document.getElementById('refreshrate');
+            if(refreshrate != null)
+            {
+                if(timer)
+                {
+                    clearInterval(timer);
                 }
-        	});
-        });
-	</script>
-	<script>
-		var timer;
-		function setRefresh()
-		{
-			refreshrate = document.getElementById('refreshrate');
-			if(refreshrate != null)
-			{
-				if(timer)
-				{
-					clearInterval(timer);
-				}
-				if(refreshrate.value != 0)
-				{
-					timer = setInterval("$('#log_table').dataTable().fnDraw()",1000*refreshrate.value);
-				}
-			}
-		}
+                if(refreshrate.value != 0)
+                {
+                    timer = setInterval("$('#log_table').dataTable().fnDraw()",1000*refreshrate.value);
+                }
+            }
+        }
 	</script>
 </%def>

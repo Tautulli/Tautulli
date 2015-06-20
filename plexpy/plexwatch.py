@@ -14,8 +14,8 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from plexpy import logger, helpers, request, datatables, config, db
-
 from xml.dom import minidom
+
 import plexpy
 import json
 
@@ -93,6 +93,70 @@ class PlexWatch(object):
                    "time": item['time'],
                    "user": item["user"],
                    "ip_address": item["ip_address"]
+                   }
+
+            rows.append(row)
+
+        dict = {'recordsFiltered': query['filteredCount'],
+                'recordsTotal': query['totalCount'],
+                'data': rows,
+        }
+
+        return dict
+
+    def get_user_unique_ips(self, start='', length='', kwargs=None, custom_where=''):
+        data_tables = datatables.DataTables()
+
+        start = int(start)
+        length = int(length)
+        filtered = []
+        totalcount = 0
+        search_value = ""
+        search_regex = ""
+        order_column = 0
+        order_dir = "desc"
+
+        if 'order[0][dir]' in kwargs:
+            order_dir = kwargs.get('order[0][dir]', "desc")
+
+        if 'order[0][column]' in kwargs:
+            order_column = kwargs.get('order[0][column]', 1)
+
+        if 'search[value]' in kwargs:
+            search_value = kwargs.get('search[value]', "")
+
+        if 'search[regex]' in kwargs:
+            search_regex = kwargs.get('search[regex]', "")
+
+        columns = ['time as last_seen',
+                   'ip_address',
+                   'COUNT(ip_address) as play_count',
+                   'platform',
+                   'user',
+                   'orig_title as last_watched'
+                   ]
+
+        query = data_tables.ssp_query(table_name=self.get_user_table_name(),
+                                      columns=columns,
+                                      start=start,
+                                      length=length,
+                                      order_column=int(order_column),
+                                      order_dir=order_dir,
+                                      search_value=search_value,
+                                      search_regex=search_regex,
+                                      custom_where=custom_where,
+                                      group_by='ip_address',
+                                      kwargs=kwargs)
+
+        results = query['result']
+
+        rows = []
+        for item in results:
+            row = {"last_seen": item['last_seen'],
+                   "ip_address": item['ip_address'],
+                   "play_count": item['play_count'],
+                   "platform": item['platform'],
+                   "last_watched": item['last_watched']
                    }
 
             rows.append(row)

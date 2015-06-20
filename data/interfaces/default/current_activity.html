@@ -25,7 +25,7 @@
                                 <!-- <img src="interfaces/default/images/platforms/roku.png">  platform image -->
                             </div>
                             <div class="dashboard-activity-metadata-user">
-                                ${a['user']} is ${a['state']}
+                                <a href="user?user=${a['user']}">${a['user']}</a> is ${a['state']}
                             </div>
                             <div class="dashboard-activity-metadata-title">
                                 % if a['type'] == 'episode':

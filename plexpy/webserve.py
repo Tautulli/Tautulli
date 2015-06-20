@@ -92,11 +92,11 @@ class WebInterface(object):
         return serve_template(templatename="users.html", title="Users")
 
     @cherrypy.expose
-    def user(self):
-        return serve_template(templatename="user.html", title="User")
+    def user(self, user=None):
+        return serve_template(templatename="user.html", title="User", user=user)
 
     @cherrypy.expose
-    def get_stream_data(self, row_id=None, user='', **kwargs):
+    def get_stream_data(self, row_id=None, user=None, **kwargs):
 
         plex_watch = plexwatch.PlexWatch()
         stream_data = plex_watch.get_stream_details(row_id)
@@ -581,3 +581,16 @@ class WebInterface(object):
             return result
         else:
             logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_user_ips(self, start=0, length=100, custom_where='', **kwargs):
+
+        if 'user' in kwargs:
+            user = kwargs.get('user', "")
+            custom_where = 'user = "%s"' % user
+
+        plex_watch = plexwatch.PlexWatch()
+        history = plex_watch.get_user_unique_ips(start, length, kwargs, custom_where)
+
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps(history)

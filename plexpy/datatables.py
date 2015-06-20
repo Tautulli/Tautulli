@@ -75,13 +75,13 @@ class DataTables(object):
                         % (column_data['column_string'], table_name, where,
                            order, custom_where)
 
+        # logger.debug(u"Query string: %s" % query)
+
         filtered = self.ssp_db.select(query)
         if search_value == '':
             totalcount = len(filtered)
         else:
             totalcount = self.ssp_db.select('SELECT COUNT(*) from %s' % table_name)[0][0]
-
-        # logger.debug(u"Query string: %s" % query)
 
         result = filtered[start:(start + length)]
         output = {'result': result,

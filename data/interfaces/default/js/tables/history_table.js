@@ -20,7 +20,7 @@ history_table_options = {
         "infoFiltered":"(filtered from _MAX_ total entries)",
         "emptyTable": "No data in table",
     },
-    "stateSave": true,
+    "stateSave": false,
     "sPaginationType": "bootstrap",
     "processing": false,
     "serverSide": true,
@@ -48,7 +48,14 @@ history_table_options = {
         },
         {
             "targets": [2],
-            "data":"user"
+            "data":"user",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html('<a href="user?user=' + cellData + '">' + cellData + '</a>');
+                } else {
+                    $(td).html(cellData);
+                }
+            },
         },
         {
             "targets": [3],
