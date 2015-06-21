@@ -51,7 +51,7 @@ A python based web front-end for plexWatch.
 
 * full user list with general information and comparison stats 
 
-* individual user information **PARTIALLY IMPLEMENTED**
+* individual user information
 	- username and gravatar (if available)
 	- daily, weekly, monthly, all time stats for play count and duration length
 	- individual platform stats for each user

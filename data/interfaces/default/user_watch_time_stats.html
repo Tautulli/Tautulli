@@ -9,7 +9,7 @@
                 % elif a['query_days'] == 1:
                     <h4>Last 24 hours</h4>
                 % else:
-                    <h4>Last ${a['query_days']} day(s)</h4>
+                    <h4>Last ${a['query_days']} days</h4>
                 % endif
                 <h3>${a['total_plays']}</h3><p>plays</p>
                 <span id="total-time-${a['query_days']}"></span>
@@ -21,4 +21,6 @@
     </script>
     % endfor
 </ul>
+% else:
+    <div class="muted">There was an error loading your PlexWatch data. Please check your <a href="config">settings</a>.</div><br>
 % endif

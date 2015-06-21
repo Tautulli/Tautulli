@@ -32,7 +32,11 @@ user_ip_table_options = {
             "className": "modal-control",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (isPrivateIP(cellData)) {
-                    $(td).html(cellData);
+                    if (cellData != '') {
+                        $(td).html(cellData);
+                    } else {
+                        $(td).html('n/a');
+                    }
                 } else {
                     $(td).html('<a href="#ip-info-modal" data-toggle="modal"><span data-toggle="ip-tooltip" data-placement="left" title="IP Address Info" id="ip-info"><i class="icon-map-marker icon-white"></i></span>&nbsp' + cellData +'</a>');
                 }

@@ -13,7 +13,7 @@
         <div class="row-fluid">
             <div class="span12">
                 <div class="user-info-wrapper">
-                    <div class="user-info-poster-face">
+                    <div class="user-info-poster-face" id="user-gravatar">
                         <img src="interfaces/default/images/gravatar-default-80x80.png">
                     </div>
                     <div class="user-info-username">
@@ -42,7 +42,7 @@
                                 </div>
                             </div>
                             <div id="user-time-stats" class="user-overview-stats-wrapper">
-                                <div id="user-stats-spinner" class="spinner"></div>
+                                <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div><br>
                             </div>
                         </div>
                     </div>
@@ -58,7 +58,7 @@
                                 </div>
                             </div>
                             <div id="user-platform-stats" class="user-platforms">
-                                <div id="user-platform-spinner" class="spinner"></div>
+                                <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div><br>
                             </div>
                         </div>
                     </div>
@@ -73,8 +73,8 @@
                                     <h3>Recently watched</h3>
                                 </div>
                             </div>
-                            <div id="user-recently-watched" class="dashboard-recent-media-row">
-                                <div id="user-watched-spinner" class="spinner"></div>
+                            <div id="user-recently-watched">
+                                <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div><br>
                             </div>
                         </div>
                     </div>
@@ -88,7 +88,7 @@
                         <div class="wellbg">
                             <div class="wellheader">
                                 <div class="dashboard-wellheader">
-                                    <h3>Public IP Addresses for <strong>
+                                    <h3>IP Addresses for <strong>
                                         ${user}
                                     </strong></h3>
                                 </div>
@@ -190,6 +190,7 @@
         <script>
             $(document).ready(function () {
 
+                // Populate watch time stats
                 $.ajax({
                     url: 'get_user_watch_time_stats',
                     async: true,
@@ -199,6 +200,17 @@
                     }
                 });
 
+                // Populate platform stats
+                $.ajax({
+                    url: 'get_user_platform_stats',
+                    async: true,
+                    data: { user: '${user}' },
+                    complete: function(xhr, status) {
+                        $("#user-platform-stats").html(xhr.responseText);
+                    }
+                });
+
+                // Populate recently watched
                 $.ajax({
                     url: 'get_user_recently_watched',
                     async: true,
@@ -208,6 +220,7 @@
                     }
                 });
 
+                // Build watch history table
                 history_table_options.ajax = {
                     "url": "get_history",
                     "data": function(d) {
@@ -217,6 +230,7 @@
                 history_table = $('#history_table').DataTable(history_table_options);
                 history_table.column(2).visible(false); // Hide the title column
 
+                // Build user IP table
                 user_ip_table_options.ajax = {
                     "url": "get_user_ips",
                     "data": function(d) {
@@ -225,6 +239,18 @@
                 }
                 user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
 
+                // Load user gravatar image
+                $.ajax({
+                    url: 'get_user_gravatar_image',
+                    async: true,
+                    data: { user: '${user}' },
+                    success: function(data) {
+                        if (data.user_thumb !== '') {
+                            thumb = data.user_thumb;
+                            $('#user-gravatar').html('<img src="' + thumb + '">');
+                        }
+                    }
+                });
             });
         </script>
     </%def>

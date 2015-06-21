@@ -1,0 +1,22 @@
+% if platform_stats != None:
+    % for a in platform_stats:
+        <ul>
+            <div class="user-platforms-instance">
+                <li>
+                    <span id="user-platform-image-${a['result_id']}"></span>
+                    <div class="user-platforms-instance-name">
+                        ${a['platform_name']}
+                    </div>
+                    <div class="user-platforms-instance-playcount">
+                        <h3>${a['total_plays']}</h3><p> plays</p>
+                    </div>
+                </li>
+            </div>
+        </ul>
+        <script>
+           $("#user-platform-image-${a['result_id']}").html("<img class='user-platforms-instance-poster' src='" + getPlatformImagePath('${a['platform_type']}') + "'>");
+        </script>
+    % endfor
+% else:
+    <div class="muted">There was an error loading your PlexWatch data. Please check your <a href="config">settings</a>.</div><br>
+% endif

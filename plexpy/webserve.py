@@ -434,7 +434,6 @@ class WebInterface(object):
             logger.warn(msg)
         return msg
 
-
     @cherrypy.expose
     def get_pms_token(self):
 
@@ -446,7 +445,6 @@ class WebInterface(object):
         else:
             logger.warn('Unable to retrieve Plex.tv token.')
             return False
-
 
     @cherrypy.expose
     def get_pms_sessions_json(self, **kwargs):
@@ -543,7 +541,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_recently_watched.html", recently_watched=result, title="Recently Watched")
         else:
-            return serve_template(templatename="user_recently_watched.html", recently_watched='', title="Recently Watched")
+            return serve_template(templatename="user_recently_watched.html", recently_watched=None, title="Recently Watched")
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
@@ -555,7 +553,19 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_watch_time_stats.html", watch_stats=result, title="Watch Stats")
         else:
-            return serve_template(templatename="user_watch_time_stats.html", watch_stats='', title="Watch Stats")
+            return serve_template(templatename="user_watch_time_stats.html", watch_stats=None, title="Watch Stats")
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_user_platform_stats(self, user=None, **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_user_platform_stats(user)
+
+        if result:
+            return serve_template(templatename="user_platform_stats.html", platform_stats=result, title="Platform Stats")
+        else:
+            return serve_template(templatename="user_platform_stats.html", platform_stats=None, title="Platform Stats")
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
@@ -636,6 +646,30 @@ class WebInterface(object):
 
         plex_watch = plexwatch.PlexWatch()
         result = plex_watch.get_user_watch_time_stats(user)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_platform_stats(self, user=None, **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_user_platform_stats(user)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_user_gravatar_image(self, user=None, **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_user_gravatar_image(user)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

@@ -210,13 +210,17 @@ function getPlatformImagePath(platformName) {
 }
 
 function isPrivateIP(ip_address) {
-    var parts = ip_address.split('.');
-    if (parts[0] === '10' ||
-        (parts[0] === '172' && (parseInt(parts[1], 10) >= 16 && parseInt(parts[1], 10) <= 31)) ||
-        (parts[0] === '192' && parts[1] === '168')) {
+    if (ip_address.indexOf(".") > -1) {
+        var parts = ip_address.split('.');
+        if (parts[0] === '10' ||
+            (parts[0] === '172' && (parseInt(parts[1], 10) >= 16 && parseInt(parts[1], 10) <= 31)) ||
+            (parts[0] === '192' && parts[1] === '168')) {
+            return true;
+        }
+        return false;
+    } else {
         return true;
     }
-    return false;
 }
 
 function humanTime(seconds) {

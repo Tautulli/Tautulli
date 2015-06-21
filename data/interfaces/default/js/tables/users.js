@@ -25,13 +25,13 @@ users_list_table_options = {
     "columnDefs": [
         {
             "targets": [0],
-            "data": null,
+            "data": "thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
-                //if (rowData['user_thumb'] === '') {
+                if (cellData === '') {
                     $(td).html('<img src="interfaces/default/images/gravatar-default-80x80.png" alt="User Logo"/>');
-                //} else {
-                //    $(td).html('<img src="' + rowData['user_thumb'] + '" alt="User Logo"/>');
-                //}
+                } else {
+                    $(td).html('<img src="' + cellData + '" alt="User Logo"/>');
+                }
             },
             "orderable": false,
             "className": "users-poster-face",

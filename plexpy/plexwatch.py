@@ -72,27 +72,35 @@ class PlexWatch(object):
                    'time',
                    'ip_address',
                    'COUNT(title) as plays']
-
-        query = data_tables.ssp_query(table_name=self.get_user_table_name(),
-                                      columns=columns,
-                                      start=start,
-                                      length=length,
-                                      order_column=int(order_column),
-                                      order_dir=order_dir,
-                                      search_value=search_value,
-                                      search_regex=search_regex,
-                                      custom_where='',
-                                      group_by='user',
-                                      kwargs=kwargs)
+        try:
+            query = data_tables.ssp_query(table_name=self.get_user_table_name(),
+                                          columns=columns,
+                                          start=start,
+                                          length=length,
+                                          order_column=int(order_column),
+                                          order_dir=order_dir,
+                                          search_value=search_value,
+                                          search_regex=search_regex,
+                                          custom_where='',
+                                          group_by='user',
+                                          kwargs=kwargs)
+        except:
+            logger.warn("Unable to open PlexWatch database.")
+            return {'recordsFiltered': 0,
+                    'recordsTotal': 0,
+                    'data': 'null'},
 
         users = query['result']
 
         rows = []
         for item in users:
+            thumb = self.get_user_gravatar_image(item['user'])
+
             row = {"plays": item['plays'],
                    "time": item['time'],
                    "user": item["user"],
-                   "ip_address": item["ip_address"]
+                   "ip_address": item["ip_address"],
+                   "thumb": thumb['user_thumb']
                    }
 
             rows.append(row)
@@ -136,17 +144,23 @@ class PlexWatch(object):
                    'orig_title as last_watched'
                    ]
 
-        query = data_tables.ssp_query(table_name=self.get_user_table_name(),
-                                      columns=columns,
-                                      start=start,
-                                      length=length,
-                                      order_column=int(order_column),
-                                      order_dir=order_dir,
-                                      search_value=search_value,
-                                      search_regex=search_regex,
-                                      custom_where=custom_where,
-                                      group_by='ip_address',
-                                      kwargs=kwargs)
+        try:
+            query = data_tables.ssp_query(table_name=self.get_user_table_name(),
+                                          columns=columns,
+                                          start=start,
+                                          length=length,
+                                          order_column=int(order_column),
+                                          order_dir=order_dir,
+                                          search_value=search_value,
+                                          search_regex=search_regex,
+                                          custom_where=custom_where,
+                                          group_by='ip_address',
+                                          kwargs=kwargs)
+        except:
+            logger.warn("Unable to open PlexWatch database.")
+            return {'recordsFiltered': 0,
+                    'recordsTotal': 0,
+                    'data': 'null'},
 
         results = query['result']
 
@@ -207,18 +221,23 @@ class PlexWatch(object):
                     julianday(datetime(time, "unixepoch", "localtime"))) * 86400) - \
                     (case when paused_counter is null then 0 else paused_counter end) as duration'
                    ]
-
-        query = data_tables.ssp_query(table_name=self.get_history_table_name(),
-                                      columns=columns,
-                                      start=start,
-                                      length=length,
-                                      order_column=int(order_column),
-                                      order_dir=order_dir,
-                                      search_value=search_value,
-                                      search_regex=search_regex,
-                                      custom_where=custom_where,
-                                      group_by='',
-                                      kwargs=kwargs)
+        try:
+            query = data_tables.ssp_query(table_name=self.get_history_table_name(),
+                                          columns=columns,
+                                          start=start,
+                                          length=length,
+                                          order_column=int(order_column),
+                                          order_dir=order_dir,
+                                          search_value=search_value,
+                                          search_regex=search_regex,
+                                          custom_where=custom_where,
+                                          group_by='',
+                                          kwargs=kwargs)
+        except:
+            logger.warn("Unable to open PlexWatch database.")
+            return {'recordsFiltered': 0,
+                    'recordsTotal': 0,
+                    'data': 'null'},
 
         history = query['result']
 
@@ -380,14 +399,18 @@ class PlexWatch(object):
         if not limit.isdigit():
             limit = '10'
 
-        if user:
-            query = 'SELECT time, user, xml FROM %s WHERE user = "%s" ORDER BY time DESC LIMIT %s' % \
-                    (self.get_user_table_name(), user, limit)
-            xml = myDB.select(query)
-        else:
-            query = 'SELECT time, user, xml FROM %s ORDER BY time DESC LIMIT %s' % \
-                    (self.get_user_table_name(), limit)
-            xml = myDB.select(query)
+        try:
+            if user:
+                query = 'SELECT time, user, xml FROM %s WHERE user = "%s" ORDER BY time DESC LIMIT %s' % \
+                        (self.get_user_table_name(), user, limit)
+                xml = myDB.select(query)
+            else:
+                query = 'SELECT time, user, xml FROM %s ORDER BY time DESC LIMIT %s' % \
+                        (self.get_user_table_name(), limit)
+                xml = myDB.select(query)
+        except:
+            logger.warn("Unable to open PlexWatch database.")
+            return None
 
         for row in xml:
             xml_data = helpers.latinToAscii(row[2])
@@ -435,10 +458,14 @@ class PlexWatch(object):
             else:
                 where = 'WHERE user = "%s"' % user
 
-            query = 'SELECT (SUM(stopped - time) - SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
-                    'COUNT(id) AS total_plays ' \
-                    'FROM %s %s' % (self.get_user_table_name(), where)
-            result = myDB.select(query)
+            try:
+                query = 'SELECT (SUM(stopped - time) - SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
+                        'COUNT(id) AS total_plays ' \
+                        'FROM %s %s' % (self.get_user_table_name(), where)
+                result = myDB.select(query)
+            except:
+                logger.warn("Unable to open PlexWatch database.")
+                return None
 
             for item in result:
                 if item[0]:
@@ -456,3 +483,83 @@ class PlexWatch(object):
                 user_watch_time_stats.append(row)
 
         return user_watch_time_stats
+
+    def get_user_platform_stats(self, user=None):
+        myDB = db.DBConnection()
+
+        platform_stats = []
+        result_id = 0
+
+        try:
+            query = 'SELECT platform, COUNT(platform) as platform_count, xml ' \
+                    'FROM %s ' \
+                    'WHERE user = "%s" ' \
+                    'GROUP BY platform ' \
+                    'ORDER BY platform_count DESC' % (self.get_user_table_name(), user)
+            result = myDB.select(query)
+        except:
+            logger.warn("Unable to open PlexWatch database.")
+            return None
+
+        for item in result:
+            xml_data = helpers.latinToAscii(item[2])
+
+            try:
+                xml_parse = minidom.parseString(xml_data)
+            except:
+                logger.warn("Error parsing XML for Plex stream data.")
+                return None
+
+            xml_head = xml_parse.getElementsByTagName('Player')
+            if not xml_head:
+                logger.warn("Error parsing XML for Plex stream data.")
+                return None
+
+            for a in xml_head:
+                platform_type = self.get_xml_attr(a, 'platform')
+
+            row = {'platform_name': item[0],
+                   'platform_type': platform_type,
+                   'total_plays': item[1],
+                   'result_id': result_id
+                   }
+            platform_stats.append(row)
+            result_id += 1
+
+        return platform_stats
+
+    def get_user_gravatar_image(self, user=None):
+        myDB = db.DBConnection()
+        user_info = None
+
+        try:
+            query = 'SELECT xml ' \
+                    'FROM %s ' \
+                    'WHERE user = "%s" ' \
+                    'ORDER BY id DESC LIMIT 1' % (self.get_user_table_name(), user)
+            result = myDB.select_single(query)
+        except:
+            logger.warn("Unable to open PlexWatch database.")
+            return None
+
+        xml_data = helpers.latinToAscii(result)
+
+        try:
+            xml_parse = minidom.parseString(xml_data)
+        except:
+            logger.warn("Error parsing XML for Plexwatch Database.")
+            return None
+
+        xml_head = xml_parse.getElementsByTagName('User')
+        if not xml_head:
+            logger.warn("Error parsing XML for Plexwatch Database.")
+            return None
+
+        for a in xml_head:
+            user_id = self.get_xml_attr(a, 'id')
+            user_thumb = self.get_xml_attr(a, 'thumb')
+
+            user_info = {'user_id': user_id,
+                         'user_thumb': user_thumb}
+
+        return user_info

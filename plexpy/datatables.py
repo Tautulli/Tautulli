@@ -76,8 +76,8 @@ class DataTables(object):
                            order, custom_where)
 
         # logger.debug(u"Query string: %s" % query)
-
         filtered = self.ssp_db.select(query)
+
         if search_value == '':
             totalcount = len(filtered)
         else:
