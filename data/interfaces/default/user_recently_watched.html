@@ -19,7 +19,7 @@
                             % if item['type'] == 'episode':
                                 <h3>Season ${item['parentIndex']}, Episode ${item['index']}</h3>
                             % elif item['type'] == 'movie':
-                                <h3>${item['title']} (${item['title']})</h3>
+                                <h3>${item['title']} (${item['year']})</h3>
                             % endif
                             <div class="muted" id="time-${item['time']}">${item['time']}</div>
                         </div>

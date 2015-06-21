@@ -218,3 +218,19 @@ function isPrivateIP(ip_address) {
     }
     return false;
 }
+
+function humanTime(seconds) {
+    if (seconds >= 86400) {
+        text = '<h1> / </h1><h3>' + Math.floor(moment.duration(seconds, 'seconds').asDays()) +
+                '</h3><p> days </p><h3>' +  Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) +
+                '</h3><p> hrs</p><h3>'  +  Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
+        return text;
+    } else if (seconds >= 3600) {
+        text = '<h1> / </h1><h3>' + Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) +
+                '</h3><p>hrs</p><h3>' +  Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
+        return text;
+    } else if (seconds >= 60) {
+        text = '<h1> / </h1><h3>' + Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
+        return text;
+    }
+}

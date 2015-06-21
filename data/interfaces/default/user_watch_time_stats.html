@@ -1,0 +1,24 @@
+% if watch_stats != None:
+<ul>
+    % for a in watch_stats:
+	<div class='user-overview-stats-instance'>
+		<li>
+			<div class='user-overview-stats-instance-text'>
+                % if a['query_days'] == 0:
+				    <h4>All Time</h4>
+                % elif a['query_days'] == 1:
+                    <h4>Last 24 hours</h4>
+                % else:
+                    <h4>Last ${a['query_days']} day(s)</h4>
+                % endif
+                <h3>${a['total_plays']}</h3><p>plays</p>
+                <span id="total-time-${a['query_days']}"></span>
+			</div>
+		</li>
+	</div>
+    <script>
+        $('#total-time-${a['query_days']}').html(humanTime(${a['total_time']}));
+    </script>
+    % endfor
+</ul>
+% endif

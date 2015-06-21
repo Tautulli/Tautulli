@@ -191,6 +191,15 @@
             $(document).ready(function () {
 
                 $.ajax({
+                    url: 'get_user_watch_time_stats',
+                    async: true,
+                    data: { user: '${user}' },
+                    complete: function(xhr, status) {
+                        $("#user-time-stats").html(xhr.responseText);
+                    }
+                });
+
+                $.ajax({
                     url: 'get_user_recently_watched',
                     async: true,
                     data: { user: '${user}' },

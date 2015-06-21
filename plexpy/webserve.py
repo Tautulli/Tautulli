@@ -543,7 +543,19 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_recently_watched.html", recently_watched=result, title="Recently Watched")
         else:
-            return serve_template(templatename="user_recently_watched.html", metadata='', title="Recently Watched")
+            return serve_template(templatename="user_recently_watched.html", recently_watched='', title="Recently Watched")
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_user_watch_time_stats(self, user=None, **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_user_watch_time_stats(user)
+
+        if result:
+            return serve_template(templatename="user_watch_time_stats.html", watch_stats=result, title="Watch Stats")
+        else:
+            return serve_template(templatename="user_watch_time_stats.html", watch_stats='', title="Watch Stats")
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
@@ -612,6 +624,18 @@ class WebInterface(object):
 
         plex_watch = plexwatch.PlexWatch()
         result = plex_watch.get_recently_watched(user, limit)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_time_stats(self, user=None, **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_user_watch_time_stats(user)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

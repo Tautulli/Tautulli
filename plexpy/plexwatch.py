@@ -414,9 +414,45 @@ class PlexWatch(object):
                                  'thumb': thumb,
                                  'index': self.get_xml_attr(a, 'index'),
                                  'parentIndex': self.get_xml_attr(a, 'parentIndex'),
+                                 'year': self.get_xml_attr(a, 'year'),
                                  'time': row[0],
                                  'user': row[1]
                                  }
                 recently_watched.append(recent_output)
 
         return recently_watched
+
+    def get_user_watch_time_stats(self, user=None):
+        myDB = db.DBConnection()
+
+        time_queries = [1, 7, 30, 0]
+        user_watch_time_stats = []
+
+        for days in time_queries:
+            if days > 0:
+                where = 'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                        'AND user = "%s"' % (days, user)
+            else:
+                where = 'WHERE user = "%s"' % user
+
+            query = 'SELECT (SUM(stopped - time) - SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
+                    'COUNT(id) AS total_plays ' \
+                    'FROM %s %s' % (self.get_user_table_name(), where)
+            result = myDB.select(query)
+
+            for item in result:
+                if item[0]:
+                    total_time = item[0]
+                    total_plays = item[1]
+                else:
+                    total_time = 0
+                    total_plays = 0
+
+                row = {'query_days': days,
+                       'total_time': total_time,
+                       'total_plays': total_plays
+                       }
+
+                user_watch_time_stats.append(row)
+
+        return user_watch_time_stats
