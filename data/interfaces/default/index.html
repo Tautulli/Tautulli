@@ -26,6 +26,24 @@
             </div>
         </div>
     </div>
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="wellbg">
+                <div class="wellheader">
+                    <div class="dashboard-wellheader">
+                        <h3>Statistics
+                            <span class="muted"> | <a href="javascript:void(0)" id="stats-7">7 days</a></span>
+                            <span class="muted"> | <a href="javascript:void(0)" id="stats-30">30 days</a></span>
+                            <span class="muted"> | <a href="javascript:void(0)" id="stats-90">90 days</a></span>
+                        </h3>
+                    </div>
+                </div>
+                <div id="home-stats">
+                    <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div><br>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class='row-fluid'>
         <div class='wellbg'>
             <div class='wellheader'>
@@ -45,6 +63,19 @@
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script>
+
+    function getHomeStats(days) {
+        $.ajax({
+            url: 'home_stats',
+            cache: false,
+            async: true,
+            data: {time_range: days},
+            complete: function(xhr, status) {
+                $("#home-stats").html(xhr.responseText);
+            }
+        });
+    }
+
     function currentActivity() {
         $.ajax({
             url: 'get_current_activity',
@@ -97,6 +128,24 @@
             recentlyAdded();
         });
     });
+
+    getHomeStats(7);
+
+    $('#stats-7').click(function() {
+        $('#home-stats').html('<div class="muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div><br>');
+        getHomeStats(7);
+    });
+
+    $('#stats-30').click(function() {
+        $('#home-stats').html('<div class="muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div><br>');
+        getHomeStats(30);
+    });
+
+    $('#stats-90').click(function() {
+        $('#home-stats').html('<div class="muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div><br>');
+        getHomeStats(90);
+    });
+
 </script>
 
 </%def>

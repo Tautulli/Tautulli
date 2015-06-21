@@ -84,6 +84,13 @@ class WebInterface(object):
         return json.dumps(formats)
 
     @cherrypy.expose
+    def home_stats(self, time_range='30', **kwargs):
+        plex_watch = plexwatch.PlexWatch()
+        stats_data = plex_watch.get_home_stats(time_range)
+
+        return serve_template(templatename="home_stats.html", title="Stats", stats=stats_data)
+
+    @cherrypy.expose
     def history(self):
         return serve_template(templatename="history.html", title="History")
 
@@ -670,6 +677,18 @@ class WebInterface(object):
 
         plex_watch = plexwatch.PlexWatch()
         result = plex_watch.get_user_gravatar_image(user)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_home_stats(self, time_range='30', **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_home_stats(time_range)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

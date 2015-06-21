@@ -1,0 +1,67 @@
+% if stats[0]['rows']:
+<div class="dashboard-recent-media-row">
+    <ul class="dashboard-recent-media">
+    % for a in stats:
+        <div class="dashboard-recent-media-instance">
+            % if a['stat_id'] == 'top_tv':
+            <li>
+                <div class="poster">
+                    <h5>Most watched TV</h5><br/>
+                    <div class="poster-face">
+                        <a href="info?rating_key=${a['rows'][0]['rating_key']}">
+                        % if a['rows'][0]['grandparent_thumb'] != '':
+                            <img src="pms_image_proxy?img=${a['rows'][0]['grandparent_thumb']}&width=153&height=225" class="poster-face">
+                        % else:
+                            <img src="interfaces/default/images/poster.png" class="poster-face">
+                        % endif
+                        </a>
+                    </div>
+                </div>
+                <div class="dashboard-recent-media-metacontainer">
+                    <h3>${a['rows'][0]['orig_title']}</h3>
+                    <div class="muted">Plays: ${a['rows'][0]['total_plays']}</div>
+                </div>
+            </li>
+            % elif a['stat_id'] == 'top_users':
+            <li>
+                <div class="poster">
+                    <h5>Most active user</h5><br/>
+                    <div class="poster-face">
+                        <a href="user?user=${a['rows'][0]['user']}">
+                        % if a['rows'][0]['thumb'] != '':
+                            <img src="${a['rows'][0]['thumb']}" class="poster-face">
+                        % else:
+                            <img src="interfaces/default/images/gravatar-default.png" class="poster-face">
+                        % endif
+                        </a>
+                    </div>
+                </div>
+                <div class="dashboard-recent-media-metacontainer">
+                    <h3>${a['rows'][0]['user']}</h3>
+                    <div class="muted">Plays: ${a['rows'][0]['total_plays']}</div>
+                </div>
+            </li>
+            % elif a['stat_id'] == 'top_platforms':
+            <li>
+                <div class="poster">
+                    <h5>Most used platform</h5><br/>
+                    <div class="poster-face" id="platform-face">
+                        <img src="interfaces/default/images/platforms/default.png" class="poster-face">
+                    </div>
+                </div>
+                <div class="dashboard-recent-media-metacontainer">
+                    <h3>${a['rows'][0]['platform_type']}</h3>
+                    <div class="muted">Plays: ${a['rows'][0]['total_plays']}</div>
+                </div>
+            </li>
+            <script>
+                $("#platform-face").html("<img class='user-platforms-instance-poster' src='" + getPlatformImagePath('${a['rows'][0]['platform_type']}') + "'>");
+            </script>
+            % endif
+        </div>
+    % endfor
+    </ul>
+</div>
+% else:
+    <div class="muted">No stats for selected period.</div><br>
+% endif

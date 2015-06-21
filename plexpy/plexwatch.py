@@ -15,6 +15,7 @@
 
 from plexpy import logger, helpers, request, datatables, config, db
 from xml.dom import minidom
+from collections import defaultdict, Counter
 
 import plexpy
 import json
@@ -563,3 +564,133 @@ class PlexWatch(object):
                          'user_thumb': user_thumb}
 
         return user_info
+
+    def get_home_stats(self, time_range='30'):
+        myDB = db.DBConnection()
+
+        if not time_range.isdigit():
+            time_range = '30'
+
+        stats_queries = ["top_tv", "top_users", "top_platforms"]
+        home_stats = []
+
+        for stat in stats_queries:
+            if 'top_tv' in stat:
+                top_tv = []
+                query = 'SELECT orig_title, COUNT(orig_title) as total_plays, grandparentRatingKey, MAX(time) as last_watch, xml ' \
+                        'FROM %s ' \
+                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                        'AND episode != "" ' \
+                        'GROUP BY orig_title ' \
+                        'ORDER BY total_plays DESC LIMIT 10' % (self.get_user_table_name(), time_range)
+                result = myDB.select(query)
+
+                for item in result:
+                    xml_data = helpers.latinToAscii(item[4])
+
+                    try:
+                        xml_parse = minidom.parseString(xml_data)
+                    except:
+                        logger.warn("Error parsing XML for Plexwatch database.")
+                        return None
+
+                    xml_head = xml_parse.getElementsByTagName('opt')
+                    if not xml_head:
+                        logger.warn("Error parsing XML for Plexwatch database.")
+                        return None
+
+                    for a in xml_head:
+                        grandparent_thumb = self.get_xml_attr(a, 'grandparentThumb')
+
+                        row = {'orig_title': item[0],
+                               'total_plays': item[1],
+                               'rating_key': item[2],
+                               'last_play': item[3],
+                               'grandparent_thumb': grandparent_thumb
+                               }
+                        top_tv.append(row)
+
+                home_stats.append({'stat_id': stat,
+                                   'rows': top_tv})
+
+            elif 'top_users' in stat:
+                top_users = []
+                query = 'SELECT user, COUNT(id) as total_plays, MAX(time) as last_watch ' \
+                        'FROM %s ' \
+                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                        'GROUP BY user ' \
+                        'ORDER BY total_plays DESC LIMIT 10' % (self.get_user_table_name(), time_range)
+                result = myDB.select(query)
+
+                for item in result:
+                    thumb = self.get_user_gravatar_image(item[0])
+                    row = {'user': item[0],
+                           'total_plays': item[1],
+                           'last_play': item[2],
+                           'thumb': thumb['user_thumb']
+                    }
+                    top_users.append(row)
+
+                home_stats.append({'stat_id': stat,
+                                   'rows': top_users})
+
+            elif 'top_platforms' in stat:
+                top_platform = []
+                query = 'SELECT platform, COUNT(id) as total_plays, MAX(time) as last_watch, xml ' \
+                        'FROM %s ' \
+                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                        'GROUP BY platform ' \
+                        'ORDER BY total_plays DESC' % (self.get_user_table_name(), time_range)
+                result = myDB.select(query)
+
+                for item in result:
+                    xml_data = helpers.latinToAscii(item[3])
+
+                    try:
+                        xml_parse = minidom.parseString(xml_data)
+                    except:
+                        logger.warn("Error parsing XML for Plexwatch database.")
+                        return None
+
+                    xml_head = xml_parse.getElementsByTagName('Player')
+                    if not xml_head:
+                        logger.warn("Error parsing XML for Plexwatch database.")
+                        return None
+
+                    for a in xml_head:
+                        platform_type = self.get_xml_attr(a, 'platform')
+
+                        row = {'platform': item[0],
+                               'total_plays': item[1],
+                               'last_play': item[2],
+                               'platform_type': platform_type
+                               }
+                        top_platform.append(row)
+
+                top_platform_aggr = self.group_and_sum_dataset(
+                    top_platform, 'platform_type', ['total_plays'], 'total_plays')
+
+                home_stats.append({'stat_id': stat,
+                                   'rows': top_platform_aggr})
+
+        return home_stats
+
+    # Taken from:
+    # https://stackoverflow.com/questions/18066269/group-by-and-aggregate-the-values-of-a-list-of-dictionaries-in-python
+    @staticmethod
+    def group_and_sum_dataset(dataset, group_by_key, sum_value_keys, sort_by_key):
+
+        container = defaultdict(Counter)
+
+        for item in dataset:
+            key = item[group_by_key]
+            values = {k: item[k] for k in sum_value_keys}
+            container[key].update(values)
+
+        new_dataset = [
+            dict([(group_by_key, item[0])] + item[1].items())
+            for item in container.items()
+        ]
+        new_dataset.sort(key=lambda item: item[sort_by_key], reverse=True)
+
+        return new_dataset
