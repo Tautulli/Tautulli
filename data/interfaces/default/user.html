@@ -189,6 +189,16 @@
         <script src="interfaces/default/js/tables/user_ips.js"></script>
         <script>
             $(document).ready(function () {
+
+                $.ajax({
+                    url: 'get_user_recently_watched',
+                    async: true,
+                    data: { user: '${user}' },
+                    complete: function(xhr, status) {
+                        $("#user-recently-watched").html(xhr.responseText);
+                    }
+                });
+
                 history_table_options.ajax = {
                     "url": "get_history",
                     "data": function(d) {
@@ -205,6 +215,7 @@
                     }
                 }
                 user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
+
             });
         </script>
     </%def>

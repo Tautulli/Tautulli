@@ -1,0 +1,36 @@
+% if recently_watched != None:
+    <div class="dashboard-recent-media-row">
+        <ul class="dashboard-recent-media">
+            % for item in recently_watched:
+                <div class="dashboard-recent-media-instance">
+                    <li>
+                        <div class="poster">
+                            <div class="poster-face">
+                                <a href="info?rating_key=${item['rating_key']}">
+                                    % if item['thumb'] != '':
+                                        <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=225" class="poster-face">
+                                    % else:
+                                        <img src="interfaces/default/images/poster.png" class="poster-face">
+                                    % endif
+                                </a>
+                            </div>
+                        </div>
+                        <div class="dashboard-recent-media-metacontainer">
+                            % if item['type'] == 'episode':
+                                <h3>Season ${item['parentIndex']}, Episode ${item['index']}</h3>
+                            % elif item['type'] == 'movie':
+                                <h3>${item['title']} (${item['title']})</h3>
+                            % endif
+                            <div class="muted" id="time-${item['time']}">${item['time']}</div>
+                        </div>
+                    </li>
+                </div>
+                <script>
+                    $('#time-${item['time']}').html('Watched ' + moment(${item['time']}, "X").fromNow())
+                </script>
+            % endfor
+        </ul>
+    </div>
+% else:
+    <div class="muted">There was an error retrieving some data. Please check your <a href="config">settings</a>.</div><br>
+% endif

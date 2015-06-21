@@ -535,6 +535,18 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
+    def get_user_recently_watched(self, user=None, limit='10', **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_recently_watched(user, limit)
+
+        if result:
+            return serve_template(templatename="user_recently_watched.html", recently_watched=result, title="Recently Watched")
+        else:
+            return serve_template(templatename="user_recently_watched.html", metadata='', title="Recently Watched")
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
     def get_metadata_json(self, rating_key='', **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
@@ -594,3 +606,15 @@ class WebInterface(object):
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)
+
+    @cherrypy.expose
+    def get_watched(self, user=None, limit='10', **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_recently_watched(user, limit)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')

@@ -281,23 +281,6 @@ class PlexWatch(object):
 
         return dict
 
-    def get_stream_details(self, id=0):
-
-        myDB = db.DBConnection()
-
-        query = 'SELECT xml from %s where id = %s' % (self.get_history_table_name(), id)
-        xml = myDB.select_single(query)
-
-        try:
-            dict_data = helpers.convert_xml_to_dict(helpers.latinToAscii(xml))
-        except IOError, e:
-            logger.warn("Error parsing XML in PlexWatch db: %s" % e)
-
-        dict = {'id': id,
-                'data': dict_data}
-
-        return dict
-
     """
     Validate xml keys to make sure they exist and return their attribute value, return blank value is none found
     """
@@ -389,3 +372,51 @@ class PlexWatch(object):
                                      }
 
         return stream_output
+
+    def get_recently_watched(self, user=None, limit='10'):
+        myDB = db.DBConnection()
+        recently_watched = []
+
+        if not limit.isdigit():
+            limit = '10'
+
+        if user:
+            query = 'SELECT time, user, xml FROM %s WHERE user = "%s" ORDER BY time DESC LIMIT %s' % \
+                    (self.get_user_table_name(), user, limit)
+            xml = myDB.select(query)
+        else:
+            query = 'SELECT time, user, xml FROM %s ORDER BY time DESC LIMIT %s' % \
+                    (self.get_user_table_name(), limit)
+            xml = myDB.select(query)
+
+        for row in xml:
+            xml_data = helpers.latinToAscii(row[2])
+            try:
+                xml_parse = minidom.parseString(xml_data)
+            except:
+                logger.warn("Error parsing XML for Plex stream data.")
+                return None
+
+            xml_head = xml_parse.getElementsByTagName('opt')
+            if not xml_head:
+                logger.warn("Error parsing XML for Plex stream data.")
+                return None
+
+            for a in xml_head:
+                if self.get_xml_attr(a, 'type') == 'episode':
+                    thumb = self.get_xml_attr(a, 'parentThumb')
+                else:
+                    thumb = self.get_xml_attr(a, 'thumb')
+
+                recent_output = {'type': self.get_xml_attr(a, 'type'),
+                                 'rating_key': self.get_xml_attr(a, 'ratingKey'),
+                                 'title': self.get_xml_attr(a, 'title'),
+                                 'thumb': thumb,
+                                 'index': self.get_xml_attr(a, 'index'),
+                                 'parentIndex': self.get_xml_attr(a, 'parentIndex'),
+                                 'time': row[0],
+                                 'user': row[1]
+                                 }
+                recently_watched.append(recent_output)
+
+        return recently_watched
