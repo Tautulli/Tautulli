@@ -581,13 +581,17 @@ class PlexWatch(object):
         for stat in stats_queries:
             if 'top_tv' in stat:
                 top_tv = []
-                query = 'SELECT orig_title, COUNT(orig_title) as total_plays, grandparentRatingKey, MAX(time) as last_watch, xml ' \
-                        'FROM %s ' \
-                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                        'AND episode != "" ' \
-                        'GROUP BY orig_title ' \
-                        'ORDER BY total_plays DESC LIMIT 10' % (self.get_user_table_name(), time_range)
-                result = myDB.select(query)
+                try:
+                    query = 'SELECT orig_title, COUNT(orig_title) as total_plays, grandparentRatingKey, MAX(time) as last_watch, xml ' \
+                            'FROM %s ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                            'AND episode != "" ' \
+                            'GROUP BY orig_title ' \
+                            'ORDER BY total_plays DESC LIMIT 10' % (self.get_user_table_name(), time_range)
+                    result = myDB.select(query)
+                except:
+                    logger.warn("Unable to open PlexWatch database.")
+                    return None
 
                 for item in result:
                     xml_data = helpers.latinToAscii(item[4])
@@ -619,12 +623,16 @@ class PlexWatch(object):
 
             elif 'top_users' in stat:
                 top_users = []
-                query = 'SELECT user, COUNT(id) as total_plays, MAX(time) as last_watch ' \
-                        'FROM %s ' \
-                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                        'GROUP BY user ' \
-                        'ORDER BY total_plays DESC LIMIT 10' % (self.get_user_table_name(), time_range)
-                result = myDB.select(query)
+                try:
+                    query = 'SELECT user, COUNT(id) as total_plays, MAX(time) as last_watch ' \
+                            'FROM %s ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                            'GROUP BY user ' \
+                            'ORDER BY total_plays DESC LIMIT 10' % (self.get_user_table_name(), time_range)
+                    result = myDB.select(query)
+                except:
+                    logger.warn("Unable to open PlexWatch database.")
+                    return None
 
                 for item in result:
                     thumb = self.get_user_gravatar_image(item[0])
@@ -640,12 +648,17 @@ class PlexWatch(object):
 
             elif 'top_platforms' in stat:
                 top_platform = []
-                query = 'SELECT platform, COUNT(id) as total_plays, MAX(time) as last_watch, xml ' \
-                        'FROM %s ' \
-                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                        'GROUP BY platform ' \
-                        'ORDER BY total_plays DESC' % (self.get_user_table_name(), time_range)
-                result = myDB.select(query)
+
+                try:
+                    query = 'SELECT platform, COUNT(id) as total_plays, MAX(time) as last_watch, xml ' \
+                            'FROM %s ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                            'GROUP BY platform ' \
+                            'ORDER BY total_plays DESC' % (self.get_user_table_name(), time_range)
+                    result = myDB.select(query)
+                except:
+                    logger.warn("Unable to open PlexWatch database.")
+                    return None
 
                 for item in result:
                     xml_data = helpers.latinToAscii(item[3])

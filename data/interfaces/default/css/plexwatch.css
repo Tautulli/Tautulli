@@ -8102,3 +8102,51 @@ ol.test >li {
 .charts-slider-title-views {
 	float: right;
 }
+
+
+.home-platforms-instance-poster {
+	float: left;
+    height: 120px;
+    padding: 5px 10px 5px 10px;
+}
+
+.home-platforms-instance-box {
+    float: left;
+	height: 80px;
+    width: 80px;
+    padding: 25px 10px 25px 10px;
+}
+
+.home-platforms-instance-oval {
+    float: left;
+	height: 80px;
+    width: 80px;
+    padding: 25px 10px 25px 10px;
+    -webkit-border-radius: 50%;
+	-moz-border-radius: 50%;
+	border-radius: 50%;
+}
+
+.home-platforms-instance-name {
+	float: left;
+	color: #fff;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	position: relative;
+	font-size: 13px;
+	line-height: 15px;
+	font-weight: bold;
+	width: 180px;
+	margin-left: 10px;
+    margin-top: 20px;
+}
+
+.home-platforms-instance {
+	float: left;
+	width: 300px;
+	height: 130px;
+    padding: 5px;
+    background-color: #282828;
+    margin-right: 20px;
+    margin-bottom: 20px;
+}

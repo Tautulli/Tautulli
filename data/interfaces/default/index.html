@@ -31,14 +31,10 @@
             <div class="wellbg">
                 <div class="wellheader">
                     <div class="dashboard-wellheader">
-                        <h3>Statistics
-                            <span class="muted"> | <a href="javascript:void(0)" id="stats-7">7 days</a></span>
-                            <span class="muted"> | <a href="javascript:void(0)" id="stats-30">30 days</a></span>
-                            <span class="muted"> | <a href="javascript:void(0)" id="stats-90">90 days</a></span>
-                        </h3>
+                        <h3>Statistics (Past 30 days)</h3>
                     </div>
                 </div>
-                <div id="home-stats">
+                <div id="home-stats" class="user-platforms">
                     <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div><br>
                 </div>
             </div>
@@ -129,22 +125,7 @@
         });
     });
 
-    getHomeStats(7);
-
-    $('#stats-7').click(function() {
-        $('#home-stats').html('<div class="muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div><br>');
-        getHomeStats(7);
-    });
-
-    $('#stats-30').click(function() {
-        $('#home-stats').html('<div class="muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div><br>');
-        getHomeStats(30);
-    });
-
-    $('#stats-90').click(function() {
-        $('#home-stats').html('<div class="muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div><br>');
-        getHomeStats(90);
-    });
+    getHomeStats(30);
 
 </script>
 
