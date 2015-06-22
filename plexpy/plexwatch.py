@@ -688,7 +688,7 @@ class PlexWatch(object):
 
         for item in dataset:
             key = item[group_by_key]
-            values = {k: item[k] for k in sum_value_keys}
+            values = dict((k, item[k]) for k in sum_value_keys)
             container[key].update(values)
 
         new_dataset = [
