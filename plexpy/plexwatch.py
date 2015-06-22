@@ -15,7 +15,11 @@
 
 from plexpy import logger, helpers, request, datatables, config, db
 from xml.dom import minidom
-# from collections import defaultdict, Counter
+import sys
+if sys.version_info < (2, 7):
+    from backport_collections import defaultdict, Counter
+else:
+    from collections import defaultdict, Counter
 
 import plexpy
 import json
@@ -633,7 +637,7 @@ class PlexWatch(object):
 
                 home_stats.append({'stat_id': stat,
                                    'rows': top_users})
-            '''
+
             elif 'top_platforms' in stat:
                 top_platform = []
                 query = 'SELECT platform, COUNT(id) as total_plays, MAX(time) as last_watch, xml ' \
@@ -672,12 +676,11 @@ class PlexWatch(object):
 
                 home_stats.append({'stat_id': stat,
                                    'rows': top_platform_aggr})
-            '''
+
         return home_stats
 
     # Taken from:
     # https://stackoverflow.com/questions/18066269/group-by-and-aggregate-the-values-of-a-list-of-dictionaries-in-python
-    '''
     @staticmethod
     def group_and_sum_dataset(dataset, group_by_key, sum_value_keys, sort_by_key):
 
@@ -695,4 +698,3 @@ class PlexWatch(object):
         new_dataset.sort(key=lambda item: item[sort_by_key], reverse=True)
 
         return new_dataset
-    '''
