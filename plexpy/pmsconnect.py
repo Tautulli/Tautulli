@@ -491,7 +491,7 @@ class PmsConnect(object):
                 audio_channels = self.get_xml_attr(transcode_session, 'audioChannels')
                 audio_codec = self.get_xml_attr(transcode_session, 'audioCodec')
                 duration = self.get_xml_attr(transcode_session, 'duration')
-                progress = self.get_xml_attr(transcode_session, 'viewOffset')
+                progress = self.get_xml_attr(session, 'viewOffset')
             else:
                 media_info = session.getElementsByTagName('Media')[0]
                 audio_decision = 'direct play'
