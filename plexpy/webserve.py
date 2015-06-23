@@ -362,6 +362,9 @@ class WebInterface(object):
         if 'rating_key' in kwargs:
             rating_key = kwargs.get('rating_key', "")
             custom_where = 'rating_key = %s' % rating_key
+        if 'grandparent_rating_key' in kwargs:
+            rating_key = kwargs.get('grandparent_rating_key', "")
+            custom_where = 'grandparent_rating_key = %s' % rating_key
 
         plex_watch = plexwatch.PlexWatch()
         history = plex_watch.get_history(start, length, kwargs, custom_where)

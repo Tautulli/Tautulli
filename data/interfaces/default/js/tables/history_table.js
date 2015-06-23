@@ -82,7 +82,7 @@ history_table_options = {
             "name":"title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                    $(td).html('<div class="history-table-title"><a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a></div>');
                 }
             }
         },

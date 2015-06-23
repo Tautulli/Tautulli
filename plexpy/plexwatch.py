@@ -224,7 +224,8 @@ class PlexWatch(object):
                    'xml',
                    'round((julianday(datetime(stopped, "unixepoch", "localtime")) - \
                     julianday(datetime(time, "unixepoch", "localtime"))) * 86400) - \
-                    (case when paused_counter is null then 0 else paused_counter end) as duration'
+                    (case when paused_counter is null then 0 else paused_counter end) as duration,'
+                   'grandparentRatingKey as grandparent_rating_key'
                    ]
         try:
             query = data_tables.ssp_query(table_name=self.get_history_table_name(),

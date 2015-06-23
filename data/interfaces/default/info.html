@@ -136,7 +136,7 @@
             <div class='row-fluid'>
                 <div class='span12'>
                     <div class='wellbg'>
-                        % if metadata['type'] == 'movie' or metadata['type'] == 'episode':
+                        % if metadata['type'] == 'movie' or metadata['type'] == 'episode' or metadata['type'] == 'show':
                             <div class="wellheader">
                                 <div class="dashboard-wellheader">
                                     <h3>Watch history for <strong>${metadata['title']}</strong></h3>
@@ -221,7 +221,21 @@
                     history_table.column(5).visible(false);
                 });
             </script>
-        %endif
+        % elif metadata['type'] == 'show':
+            <script src="interfaces/default/js/tables/history_table.js"></script>
+            <script>
+                $(document).ready(function () {
+                    history_table_options.ajax = {
+                        "url": "get_history",
+                        "data": function(d) {
+                           d.grandparent_rating_key = ${metadata['ratingKey']};
+                        }
+                    }
+
+                    history_table = $('#history_table').DataTable(history_table_options);
+                });
+            </script>
+        % endif
         % if metadata['type'] == 'season':
             <script>
                 $.ajax({

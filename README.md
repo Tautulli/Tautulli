@@ -65,9 +65,9 @@ A python based web front-end for plexWatch.
 	- top 10 viewed tv shows
 	- top 10 viewed tv episodes
 
-* content information pages **PARTIALLY IMPLEMENTED**
+* content information pages
 	- movies (includes watching history)
-	- tv shows (includes top 10 watched episodes)
+	- tv shows (includes watching history)
 	- tv seasons
 	- tv episodes (includes watching history)
 
