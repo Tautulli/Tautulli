@@ -1,79 +1,112 @@
 % if stats != None:
-    % if stats[0]['rows']:
-    <div class="user-platforms">
-        <ul>
+% if stats[0]['rows']:
+<div class="user-platforms">
+    <ul>
         % for a in stats:
-            % if a['stat_id'] == 'top_tv':
-                <div class="home-platforms-instance">
-                    <li>
-                        <span>
-                            <a href="info?rating_key=${a['rows'][0]['rating_key']}">
-                            % if a['rows'][0]['grandparent_thumb'] != '':
-                                <img class="home-platforms-instance-poster" src="pms_image_proxy?img=${a['rows'][0]['grandparent_thumb']}&width=153&height=225">
-                            % else:
-                                <img class="home-platforms-instance-poster" src="interfaces/default/images/poster.png">
-                            % endif
-                            </a>
-                        </span>
-                        <div class="home-platforms-instance-name">
-                            <h4>Most Watched TV</h4>
-                            <a href="info?rating_key=${a['rows'][0]['rating_key']}">
-                                <h5>${a['rows'][0]['orig_title']}</h5>
-                            </a>
-                        </div>
-                        <div class="user-platforms-instance-playcount">
-                            <h3>${a['rows'][0]['total_plays']}</h3><p> plays</p>
-                        </div>
-                    </li>
+        % if a['stat_id'] == 'top_tv':
+        <div class="home-platforms-instance">
+            <li>
+                <span>
+                    <a href="info?rating_key=${a['rows'][0]['rating_key']}">
+                        % if a['rows'][0]['grandparent_thumb'] != '':
+                        <img class="home-platforms-instance-poster"
+                             src="pms_image_proxy?img=${a['rows'][0]['grandparent_thumb']}&width=153&height=225">
+                        % else:
+                        <img class="home-platforms-instance-poster" src="interfaces/default/images/poster.png">
+                        % endif
+                    </a>
+                </span>
+                <div class="home-platforms-instance-name">
+                    <h4>Most Watched TV</h4>
+                    <a href="info?rating_key=${a['rows'][0]['rating_key']}">
+                        <h5>${a['rows'][0]['orig_title']}</h5>
+                    </a>
                 </div>
-                % elif a['stat_id'] == 'top_users':
-                <div class="home-platforms-instance">
-                    <li>
-                        <span>
-                            <a href="user?user=${a['rows'][0]['user']}">
-                            % if a['rows'][0]['thumb'] != '':
-                                <img class="home-platforms-instance-oval" src="${a['rows'][0]['thumb']}" class="poster-face">
-                            % else:
-                                <img class="home-platforms-instance-oval" src="interfaces/default/images/gravatar-default.png">
-                            % endif
-                            </a>
-                        </span>
-                        <div class="home-platforms-instance-name">
-                            <h4>Most Active User</h4>
-                            <a href="user?user=${a['rows'][0]['user']}">
-                                <h5>${a['rows'][0]['user']}</h5>
-                            </a>
-                        </div>
-                        <div class="user-platforms-instance-playcount">
-                            <h3>${a['rows'][0]['total_plays']}</h3><p> plays</p>
-                        </div>
-                    </li>
+                <div class="user-platforms-instance-playcount">
+                    <h3>${a['rows'][0]['total_plays']}</h3>
+                    <p> plays</p>
                 </div>
-                % elif a['stat_id'] == 'top_platforms':
-                <div class="home-platforms-instance">
-                    <li>
-                        <div id="platform-stat">
-                            <img class="home-platforms-instance-box" src="interfaces/default/images/platforms/default.png">
-                        </div>
-                        <div class="home-platforms-instance-name">
-                            <h4>Most Active Platform</h4>
-                            <h5>${a['rows'][0]['platform_type']}</h5>
-                        </div>
-                        <div class="user-platforms-instance-playcount">
-                            <h3>${a['rows'][0]['total_plays']}</h3><p> plays</p>
-                        </div>
-                    </li>
+            </li>
+        </div>
+        % elif a['stat_id'] == 'popular_tv':
+        <div class="home-platforms-instance">
+            <li>
+                <span>
+                    <a href="info?rating_key=${a['rows'][0]['rating_key']}">
+                        % if a['rows'][0]['grandparent_thumb'] != '':
+                        <img class="home-platforms-instance-poster"
+                             src="pms_image_proxy?img=${a['rows'][0]['grandparent_thumb']}&width=153&height=225">
+                        % else:
+                        <img class="home-platforms-instance-poster" src="interfaces/default/images/poster.png">
+                        % endif
+                    </a>
+                </span>
+                <div class="home-platforms-instance-name">
+                    <h4>Most Popular TV</h4>
+                    <a href="info?rating_key=${a['rows'][0]['rating_key']}">
+                        <h5>${a['rows'][0]['orig_title']}</h5>
+                    </a>
                 </div>
-                <script>
-                    $("#platform-stat").html("<img class='home-platforms-instance-box' src='" + getPlatformImagePath('${a['rows'][0]['platform_type']}') + "'>");
-                </script>
-            % endif
+                <div class="user-platforms-instance-playcount">
+                    <h3>${a['rows'][0]['users_watched']}</h3>
+                    <p> users</p>
+                </div>
+            </li>
+        </div>
+        % elif a['stat_id'] == 'top_users':
+        <div class="home-platforms-instance">
+            <li>
+                <span>
+                    <a href="user?user=${a['rows'][0]['user']}">
+                        % if a['rows'][0]['thumb'] != '':
+                        <img class="home-platforms-instance-oval" src="${a['rows'][0]['thumb']}"
+                             class="poster-face">
+                        % else:
+                        <img class="home-platforms-instance-oval"
+                             src="interfaces/default/images/gravatar-default.png">
+                        % endif
+                    </a>
+                </span>
+                <div class="home-platforms-instance-name">
+                    <h4>Most Active User</h4>
+                    <a href="user?user=${a['rows'][0]['user']}">
+                        <h5>${a['rows'][0]['user']}</h5>
+                    </a>
+                </div>
+                <div class="user-platforms-instance-playcount">
+                    <h3>${a['rows'][0]['total_plays']}</h3>
+
+                    <p> plays</p>
+                </div>
+            </li>
+        </div>
+        % elif a['stat_id'] == 'top_platforms':
+        <div class="home-platforms-instance">
+            <li>
+                <div id="platform-stat">
+                    <img class="home-platforms-instance-box" src="interfaces/default/images/platforms/default.png">
+                </div>
+                <div class="home-platforms-instance-name">
+                    <h4>Most Active Platform</h4>
+                    <h5>${a['rows'][0]['platform_type']}</h5>
+                </div>
+                <div class="user-platforms-instance-playcount">
+                    <h3>${a['rows'][0]['total_plays']}</h3>
+                    <p> plays</p>
+                </div>
+            </li>
+        </div>
+        <script>
+            $("#platform-stat").html("<img class='home-platforms-instance-box' src='" + getPlatformImagePath('${a['rows'][0]['platform_type']}') + "'>");
+        </script>
+        % endif
         % endfor
-        </ul>
-    </div>
-    % else:
-        <div class="muted">No stats for selected period.</div><br>
-    % endif
+    </ul>
+</div>
 % else:
-    <div class="muted">There was an error loading your PlexWatch data. Please check your <a href="config">settings</a>.</div><br>
+<div class="muted">No stats for selected period.</div><br>
+% endif
+% else:
+<div class="muted">There was an error loading your PlexWatch data. Please check your <a href="config">settings</a>.
+</div><br>
 % endif

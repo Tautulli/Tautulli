@@ -576,7 +576,7 @@ class PlexWatch(object):
         if not time_range.isdigit():
             time_range = '30'
 
-        stats_queries = ["top_tv", "top_users", "top_platforms"]
+        stats_queries = ["top_tv", "popular_tv", "top_users", "top_platforms"]
         home_stats = []
 
         for stat in stats_queries:
@@ -621,6 +621,50 @@ class PlexWatch(object):
 
                 home_stats.append({'stat_id': stat,
                                    'rows': top_tv})
+
+            elif 'popular_tv' in stat:
+                popular_tv = []
+                try:
+                    query = 'SELECT orig_title, COUNT(DISTINCT user) as users_watched, grandparentRatingKey, ' \
+                            'MAX(time) as last_watch, xml, COUNT(id) as total_plays ' \
+                            'FROM %s ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                            'AND episode != "" ' \
+                            'GROUP BY orig_title ' \
+                            'ORDER BY users_watched DESC, total_plays DESC LIMIT 10' % (self.get_user_table_name(), time_range)
+                    result = myDB.select(query)
+                except:
+                    logger.warn("Unable to open PlexWatch database.")
+                    return None
+
+                for item in result:
+                    xml_data = helpers.latinToAscii(item[4])
+
+                    try:
+                        xml_parse = minidom.parseString(xml_data)
+                    except:
+                        logger.warn("Error parsing XML for Plexwatch database.")
+                        return None
+
+                    xml_head = xml_parse.getElementsByTagName('opt')
+                    if not xml_head:
+                        logger.warn("Error parsing XML for Plexwatch database.")
+                        return None
+
+                    for a in xml_head:
+                        grandparent_thumb = self.get_xml_attr(a, 'grandparentThumb')
+
+                        row = {'orig_title': item[0],
+                               'users_watched': item[1],
+                               'rating_key': item[2],
+                               'last_play': item[3],
+                               'total_plays': item[5],
+                               'grandparent_thumb': grandparent_thumb
+                               }
+                        popular_tv.append(row)
+
+                home_stats.append({'stat_id': stat,
+                                   'rows': popular_tv})
 
             elif 'top_users' in stat:
                 top_users = []
