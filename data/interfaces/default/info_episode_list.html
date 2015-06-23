@@ -1,0 +1,33 @@
+% if episode_list != None:
+% if episode_list['episode_count'] > 0:
+<div class="season-episodes-wrapper">
+    <ul class="season-episodes-instance">
+        % for a in episode_list['episode_list']:
+        <li>
+            <div class="season-episodes-poster">
+                <div class="season-episodes-poster-face">
+                    <a href="info?rating_key=${a['ratingKey']}">
+                        <img src="pms_image_proxy?img=${a['thumb']}&width=205&height=115"
+                             class="season-episodes-poster-face">
+                    </a>
+                </div>
+                <div class="season-episodes-card-overlay">
+                    <div class="season-episodes-season">
+                        Episode ${a['index']}
+                    </div>
+                </div>
+            </div>
+            <div class="season-episodes-instance-text-wrapper">
+                <div class="season-episodes-title">
+                    <a href="info?rating_key=${a['ratingKey']}">
+                        "${a['title']}"
+                    </a>
+                </div>
+            </div>
+        </li>
+        % endfor
+    </ul>
+</div>
+% endif
+% endif
+

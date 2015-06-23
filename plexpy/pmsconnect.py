@@ -156,6 +156,40 @@ class PmsConnect(object):
         return output
 
     """
+    Return list of episodes in requested season.
+
+    Parameters required:    rating_key { ratingKey of parent }
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_episode_list(self, rating_key='', output_format=''):
+        url_command = '/library/metadata/' + rating_key + '/children'
+        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+
+        try:
+            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
+            response = http_handler.getresponse()
+            request_status = response.status
+            request_content = response.read()
+        except IOError, e:
+            logger.warn(u"Failed to access metadata. %s" % e)
+            return None
+
+        if request_status == 200:
+            if output_format == 'dict':
+                output = helpers.convert_xml_to_dict(request_content)
+            elif output_format == 'json':
+                output = helpers.convert_xml_to_json(request_content)
+            else:
+                output = request_content
+        else:
+            logger.warn(u"Failed to access metadata. Status code %r" % request_status)
+            return None
+
+        return output
+
+    """
     Return processed and validated list of recently added items.
 
     Parameters required:    count { number of results to return }
@@ -350,6 +384,9 @@ class PmsConnect(object):
                         }
             metadata_list = {'metadata': metadata}
         elif metadata_type == 'season':
+            parent_rating_key = self.get_xml_attr(metadata_main, 'parentRatingKey')
+            show_details = self.get_metadata_details(parent_rating_key)
+            logger.debug(u"show_details = %r" % show_details)
             metadata = {'type': metadata_type,
                         'ratingKey': self.get_xml_attr(metadata_main, 'ratingKey'),
                         'parentTitle': self.get_xml_attr(metadata_main, 'parentTitle'),
@@ -357,6 +394,10 @@ class PmsConnect(object):
                         'title': self.get_xml_attr(metadata_main, 'title'),
                         'thumb': self.get_xml_attr(metadata_main, 'thumb'),
                         'art': self.get_xml_attr(metadata_main, 'art'),
+                        'summary': show_details['metadata']['summary'],
+                        'studio': show_details['metadata']['studio'],
+                        'duration': show_details['metadata']['duration'],
+                        'contentRating': show_details['metadata']['contentRating']
                         }
             metadata_list = {'metadata': metadata}
         else:
@@ -367,7 +408,8 @@ class PmsConnect(object):
     """
     Validate xml keys to make sure they exist and return their attribute value, return blank value is none found
     """
-    def get_xml_attr(self, xml_key, attribute, return_bool=False, default_return=''):
+    @staticmethod
+    def get_xml_attr(xml_key, attribute, return_bool=False, default_return=''):
         if xml_key.getAttribute(attribute):
             if return_bool:
                 return True
@@ -547,6 +589,55 @@ class PmsConnect(object):
             logger.warn(u"No known stream types found in session list.")
 
         return session_output
+
+    """
+    Return processed and validated episode list.
+
+    Output: array
+    """
+    def get_season_children(self, rating_key=''):
+        episode_data = self.get_episode_list(rating_key)
+        episode_list = []
+
+        try:
+            xml_parse = minidom.parseString(episode_data)
+        except Exception, e:
+            logger.warn("Error parsing XML for Plex session data: %s" % e)
+            return None
+        except:
+            logger.warn("Error parsing XML for Plex session data.")
+            return None
+
+        xml_head = xml_parse.getElementsByTagName('MediaContainer')
+        if not xml_head:
+            logger.warn("Error parsing XML for Plex session data.")
+            return None
+
+        for a in xml_head:
+            if a.getAttribute('size'):
+                if a.getAttribute('size') == '0':
+                    logger.debug(u"No episode data.")
+                    episode_list = {'episode_count': '0',
+                                    'episode_list': []
+                                    }
+                    return episode_list
+
+            if a.getElementsByTagName('Video'):
+                result_data = a.getElementsByTagName('Video')
+                for result in result_data:
+                    episode_output = {'ratingKey': self.get_xml_attr(result, 'ratingKey'),
+                                      'index': self.get_xml_attr(result, 'index'),
+                                      'title': self.get_xml_attr(result, 'title'),
+                                      'thumb': self.get_xml_attr(result, 'thumb')
+                                      }
+                    episode_list.append(episode_output)
+
+        output = {'episode_count': self.get_xml_attr(xml_head[0], 'size'),
+                  'title': self.get_xml_attr(xml_head[0], 'title2'),
+                  'episode_list': episode_list
+                  }
+
+        return output
 
     """
     Return image data as array.

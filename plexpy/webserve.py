@@ -576,6 +576,18 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
+    def get_children(self, rating_key='', **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_season_children(rating_key)
+
+        if result:
+            return serve_template(templatename="info_episode_list.html", episode_list=result, title="Episode List")
+        else:
+            return serve_template(templatename="info_episode_list.html", episode_list=None, title="Episode List")
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
     def get_metadata_json(self, rating_key='', **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
@@ -604,6 +616,18 @@ class WebInterface(object):
 
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_recently_added(count, 'json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_episode_list_json(self, rating_key='', **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_episode_list(rating_key, 'json')
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

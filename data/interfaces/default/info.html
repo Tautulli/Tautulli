@@ -56,25 +56,19 @@
                                                         % else:
                                                             Directed by <strong> unknown</strong>
                                                         % endif
-                                                    % elif metadata['type'] == 'show':
+                                                    % elif metadata['type'] == 'show' or metadata['type'] == 'season':
                                                         Studio <strong> ${metadata['studio']}</strong>
                                                     % endif
                                                 </div>
                                                 <div class="summary-content-duration">
-                                                    % if metadata['type'] == 'episode' or metadata['type'] == 'movie' or metadata['type'] == 'show':
-                                                        Runtime <strong> ${metadata['duration']} mins</strong>
-                                                    % endif
+                                                    Runtime <strong> ${metadata['duration']} mins</strong>
                                                 </div>
                                                 <div class="summary-content-content-rating">
-                                                    % if metadata['type'] == 'episode' or metadata['type'] == 'movie' or metadata['type'] == 'show':
-                                                        Rated <strong> ${metadata['contentRating']} </strong>
-                                                    % endif
+                                                    Rated <strong> ${metadata['contentRating']} </strong>
                                                 </div>
                                             </div>
                                             <div class="summary-content-summary">
-                                                % if metadata['type'] == 'episode' or metadata['type'] == 'movie' or metadata['type'] == 'show':
-                                                    <p> ${metadata['summary']} </p>
-                                                % endif
+                                                <p> ${metadata['summary']} </p>
                                             </div>
                                         </div>
                                     </div>
@@ -171,6 +165,14 @@
                             </table>
                             <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal" aria-hidden="true">
                             </div>
+                        % elif metadata['type'] == 'season':
+                            <div class="wellheader">
+                                <div class="dashboard-wellheader">
+                                    <h3>Episode list for <strong>${metadata['title']}</strong></h3>
+                                </div>
+                            </div>
+                            <div id="episode-list">
+                            </div>
                         % endif
                     </div>
                 </div>
@@ -220,5 +222,18 @@
                 });
             </script>
         %endif
+        % if metadata['type'] == 'season':
+            <script>
+                $.ajax({
+                    url: 'get_children',
+                    type: "GET",
+                    async: true,
+                    data: { rating_key : ${metadata['ratingKey']} },
+                    complete: function(xhr, status) {
+                        $("#episode-list").html(xhr.responseText);
+                    }
+                });
+            </script>
+        % endif
     % endif
 </%def>
