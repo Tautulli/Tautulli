@@ -99,6 +99,10 @@ class WebInterface(object):
         return serve_template(templatename="users.html", title="Users")
 
     @cherrypy.expose
+    def graphs(self):
+        return serve_template(templatename="graphs.html", title="Graphs")
+
+    @cherrypy.expose
     def user(self, user=None):
         return serve_template(templatename="user.html", title="User", user=user)
 
@@ -716,6 +720,18 @@ class WebInterface(object):
 
         plex_watch = plexwatch.PlexWatch()
         result = plex_watch.get_home_stats(time_range)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_plays_by_date(self, time_range='30', **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_total_plays_per_day(time_range)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

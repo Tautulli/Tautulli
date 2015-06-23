@@ -8150,3 +8150,21 @@ ol.test >li {
 	overflow: hidden;
 	max-width: 350px;
 }
+
+.graphs-instance {
+	height: 350px;
+    padding: 20px;
+    background-color: #282828;
+    margin-right: 20px;
+    margin-bottom: 20px;
+}
+
+.watch-chart {
+	height: 360px;
+}
+
+.graphs-load {
+	color: #999999;
+	text-align: center;
+	line-height: 350px;
+}

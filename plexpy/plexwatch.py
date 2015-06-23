@@ -20,7 +20,7 @@ if sys.version_info < (2, 7):
     from backport_collections import defaultdict, Counter
 else:
     from collections import defaultdict, Counter
-
+import datetime
 import plexpy
 import json
 
@@ -736,6 +736,61 @@ class PlexWatch(object):
                                    'rows': top_platform_aggr})
 
         return home_stats
+
+    def get_total_plays_per_day(self, time_range='30'):
+        myDB = db.DBConnection()
+
+        if not time_range.isdigit():
+            time_range = '30'
+
+        try:
+            query = 'SELECT date(time, "unixepoch", "localtime") as date_played, ' \
+                    'SUM(case when episode = "" then 0 else 1 end) as tv_count, ' \
+                    'SUM(case when episode = "" then 1 else 0 end) as movie_count ' \
+                    'FROM %s ' \
+                    'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                    'GROUP BY date_played ' \
+                    'ORDER BY time ASC' % (self.get_user_table_name(), time_range)
+
+            result = myDB.select(query)
+        except:
+            logger.warn("Unable to open PlexWatch database.")
+            return None
+
+        # create our date range as some days may not have any data
+        # but we still want to display them
+        base = datetime.date.today()
+        date_list = [base - datetime.timedelta(days=x) for x in range(0, int(time_range))]
+
+        categories = []
+        series_1 = []
+        series_2 = []
+
+        for date_item in sorted(date_list):
+            date_string = date_item.strftime('%Y-%m-%d')
+            categories.append(date_string)
+            series_1_value = 0
+            series_2_value = 0
+            for item in result:
+                if date_string == item[0]:
+                    series_1_value = item[1]
+                    series_2_value = item[2]
+                    break
+                else:
+                    series_1_value = 0
+                    series_2_value = 0
+
+            series_1.append(series_1_value)
+            series_2.append(series_2_value)
+
+        series_1_output = {'name': 'TV',
+                           'data': series_1}
+        series_2_output = {'name': 'Movies',
+                           'data': series_2}
+
+        output = {'categories': categories,
+                  'series': [series_1_output, series_2_output]}
+        return output
 
     # Taken from:
     # https://stackoverflow.com/questions/18066269/group-by-and-aggregate-the-values-of-a-list-of-dictionaries-in-python
