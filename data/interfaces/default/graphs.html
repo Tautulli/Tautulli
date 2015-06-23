@@ -30,10 +30,39 @@ from plexpy import helpers
                         </div>
                     </div>
                 </div>
-                <div id="currentActivity">
+                <div>
                     <div class="graphs-instance">
                         <div class="watch-chart" id="chart_div_plays_by_day">
                             <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div><br>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container-fluid">
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <div class="wellheader">
+                                <div class="dashboard-wellheader">
+                                    <h3>Watches by day of week (Past 30 days)</h3>
+                                </div>
+                            </div>
+                            <div class="graphs-instance">
+                                <div class="watch-chart" id="chart_div_plays_by_dayofweek" style="float: left;">
+                                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div><br>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="span6">
+                            <div class="wellheader">
+                                <div class="dashboard-wellheader">
+                                    <h3>Watches by hour of day (Past 30 days)</h3>
+                                </div>
+                            </div>
+                            <div class="graphs-instance">
+                                <div class="watch-chart" id="chart_div_plays_by_hourofday">
+                                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div><br>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -47,7 +76,10 @@ from plexpy import helpers
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/highcharts/js/highcharts.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_day.js"></script>
+<script src="interfaces/default/js/graphs/plays_by_dayofweek.js"></script>
+<script src="interfaces/default/js/graphs/plays_by_hourofday.js"></script>
 <script>
+    $(document).ready(function () {
         $.ajax({
             url: "get_plays_by_date",
             type: 'get',
@@ -64,5 +96,30 @@ from plexpy import helpers
                 var hc_plays_by_day = new Highcharts.Chart(hc_plays_by_day_options);
             }
         });
+
+        $.ajax({
+            url: "get_plays_by_dayofweek",
+            type: 'get',
+            data: { time_range: '30' },
+            dataType: "json",
+            success: function(data) {
+                hc_plays_by_dayofweek_options.xAxis.categories = data.categories;
+                hc_plays_by_dayofweek_options.series = data.series;
+                var hc_plays_by_dayofweek = new Highcharts.Chart(hc_plays_by_dayofweek_options);
+            }
+        });
+
+        $.ajax({
+            url: "get_plays_by_hourofday",
+            type: 'get',
+            data: { time_range: '30' },
+            dataType: "json",
+            success: function(data) {
+                hc_plays_by_hourofday_options.xAxis.categories = data.categories;
+                hc_plays_by_hourofday_options.series = data.series;
+                var hc_plays_by_hourofday = new Highcharts.Chart(hc_plays_by_hourofday_options);
+            }
+        });
+    });
 </script>
 </%def>

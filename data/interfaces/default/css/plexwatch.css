@@ -8152,7 +8152,7 @@ ol.test >li {
 }
 
 .graphs-instance {
-	height: 350px;
+	height: 300px;
     padding: 20px;
     background-color: #282828;
     margin-right: 20px;
@@ -8160,7 +8160,9 @@ ol.test >li {
 }
 
 .watch-chart {
-	height: 360px;
+	margin-top: 10px;
+	height: 300px;
+	width: 100%;
 }
 
 .graphs-load {

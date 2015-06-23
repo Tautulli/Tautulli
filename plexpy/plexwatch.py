@@ -792,6 +792,87 @@ class PlexWatch(object):
                   'series': [series_1_output, series_2_output]}
         return output
 
+    def get_total_plays_per_dayofweek(self, time_range='30'):
+        myDB = db.DBConnection()
+
+        if not time_range.isdigit():
+            time_range = '30'
+
+        query = 'SELECT strftime("%w", datetime(time, "unixepoch", "localtime")) as daynumber, ' \
+                'case cast (strftime("%w", datetime(time, "unixepoch", "localtime")) as integer) ' \
+                'when 0 then "Sunday" ' \
+                'when 1 then "Monday" ' \
+                'when 2 then "Tuesday" ' \
+                'when 3 then "Wednesday" ' \
+                'when 4 then "Thursday" ' \
+                'when 5 then "Friday" ' \
+                'else "Saturday" end as dayofweek, ' \
+                'COUNT(id) as total_plays ' \
+                'from ' + self.get_user_table_name() + ' ' + \
+                'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
+                'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                'GROUP BY dayofweek ' \
+                'ORDER BY daynumber'
+
+        result = myDB.select(query)
+
+        categories = []
+        series_1 = []
+
+        for item in result:
+            categories.append(item[1])
+            series_1.append(item[2])
+
+        series_1_output = {'name': 'Total plays',
+                           'data': series_1}
+
+        output = {'categories': categories,
+                  'series': [series_1_output]}
+        return output
+
+    def get_total_plays_per_hourofday(self, time_range='30'):
+        myDB = db.DBConnection()
+
+        if not time_range.isdigit():
+            time_range = '30'
+
+        query = 'select strftime("%H", datetime(time, "unixepoch", "localtime")) as hourofday, ' \
+                'COUNT(id) ' \
+                'FROM ' + self.get_user_table_name() + ' ' + \
+                'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
+                'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                'GROUP BY hourofday ' \
+                'ORDER BY hourofday'
+
+        result = myDB.select(query)
+
+        hours_list = ['00','01','02','03','04','05',
+                      '06','07','08','09','10','11',
+                      '12','13','14','15','16','17',
+                      '18','19','20','21','22','23']
+
+        categories = []
+        series_1 = []
+
+        for hour_item in hours_list:
+            categories.append(hour_item)
+            series_1_value = 0
+            for item in result:
+                if hour_item == item[0]:
+                    series_1_value = item[1]
+                    break
+                else:
+                    series_1_value = 0
+
+            series_1.append(series_1_value)
+
+        series_1_output = {'name': 'Total plays',
+                           'data': series_1}
+
+        output = {'categories': categories,
+                  'series': [series_1_output]}
+        return output
+
     # Taken from:
     # https://stackoverflow.com/questions/18066269/group-by-and-aggregate-the-values-of-a-list-of-dictionaries-in-python
     @staticmethod

@@ -738,3 +738,27 @@ class WebInterface(object):
             return json.dumps(result)
         else:
             logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_plays_by_dayofweek(self, time_range='30', **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_total_plays_per_dayofweek(time_range)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_plays_by_hourofday(self, time_range='30', **kwargs):
+
+        plex_watch = plexwatch.PlexWatch()
+        result = plex_watch.get_total_plays_per_hourofday(time_range)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
