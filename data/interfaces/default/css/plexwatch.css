@@ -8101,6 +8101,7 @@ ol.test >li {
 .home-platforms-instance-poster {
 	float: left;
     height: 120px;
+    min-width: 81px;
     padding: 5px 10px 5px 10px;
 }
 
@@ -8168,5 +8169,5 @@ ol.test >li {
 .graphs-load {
 	color: #999999;
 	text-align: center;
-	line-height: 350px;
+	line-height: 300px;
 }
