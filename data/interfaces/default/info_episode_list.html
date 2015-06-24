@@ -1,8 +1,34 @@
-% if episode_list != None:
-% if episode_list['episode_count'] > 0:
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           info_episode_list.html
+Version:            0.1
+Variable names:     data [list]
+
+data :: Usable parameters
+
+== Global keys ==
+episode_count           Returns the number of episodes in the array.
+episode_list            Returns an array of episodes.
+
+data['episode_list'] :: Usable paramaters
+
+== Global keys ==
+ratingKey               Returns the unique identifier for the media item.
+thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
+title                   Returns the name of the episode.
+index                   Returns the episode number.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data != None:
+% if data['episode_count'] > 0:
 <div class="season-episodes-wrapper">
     <ul class="season-episodes-instance">
-        % for a in episode_list['episode_list']:
+        % for a in data['episode_list']:
         <li>
             <div class="season-episodes-poster">
                 <div class="season-episodes-poster-face">

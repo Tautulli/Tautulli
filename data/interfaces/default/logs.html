@@ -1,80 +1,75 @@
 <%inherit file="base.html"/>
 <%!
-	from plexpy import helpers
+from plexpy import helpers
 %>
 
 <%def name="headIncludes()">
-    <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
-    <style>
-        td {word-wrap: break-word}
-    </style>
+<link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<style>
+    td {word-wrap: break-word}
+</style>
 </%def>
 
 <%def name="headerIncludes()">
-    <!--<div id="subhead_container">
-        <div id="subhead_menu">
-            <a class="menu_link_edit" href="clearLogs"><i class="fa fa-trash-o"></i> Clear log</a>
-        </div>
-    </div>-->
 </%def>
 
 <%def name="body()">
-        <div class="container-fluid">
-			<div class="row-fluid">
-				<div class="span12">
-					<div class="wellheader-bg">
-						<div class="dashboard-wellheader-no-chevron">
-                            <div class="span9"><h2><i class="fa fa-book"></i> Logs</h2></div>
-                            <div class="span3">
-                                <div class="pull-right">
-                                    <h5><a id="menu_link_edit" href="clearLogs"><i class="fa fa-trash-o"></i> Clear log</a>
-                                </div>
-                            </div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-        <div class='container-fluid'>
-            <div class='row-fluid'>
-                <div class='span12'>
-                    <div class='wellbg'>
-                        <table class="display" id="log_table" width="100%">
-                            <thead>
-                                <tr>
-                                    <th align='left' id="timestamp"><i class='fa fa-sort'></i> Timestamp</th>
-                                    <th align='left' id="level"><i class='fa fa-sort'></i> Level</th>
-                                    <th align='left' id="message"><i class='fa fa-sort'></i> Message</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="wellheader-bg">
+                <div class="dashboard-wellheader-no-chevron">
+                    <div class="span9"><h2><i class="fa fa-book"></i> Logs</h2></div>
+                    <div class="span3">
+                        <div class="pull-right">
+                            <h5><a id="menu_link_edit" href="clearLogs"><i class="fa fa-trash-o"></i> Clear log</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <br>
-        <div align="center">Refresh rate:
-            <select id="refreshrate" onchange="setRefresh()">
-                <option value="0" selected="selected">No Refresh</option>
-                <option value="5">5 Seconds</option>
-                <option value="15">15 Seconds</option>
-                <option value="30">30 Seconds</option>
-                <option value="60">60 Seconds</option>
-                <option value="300">5 Minutes</option>
-                <option value="600">10 Minutes</option>
-            </select>
+    </div>
+</div>
+<div class='container-fluid'>
+    <div class='row-fluid'>
+        <div class='span12'>
+            <div class='wellbg'>
+                <table class="display" id="log_table" width="100%">
+                    <thead>
+                    <tr>
+                        <th align='left' id="timestamp"><i class='fa fa-sort'></i> Timestamp</th>
+                        <th align='left' id="level"><i class='fa fa-sort'></i> Level</th>
+                        <th align='left' id="message"><i class='fa fa-sort'></i> Message</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+</div>
+
+<br>
+<div align="center">Refresh rate:
+    <select id="refreshrate" onchange="setRefresh()">
+        <option value="0" selected="selected">No Refresh</option>
+        <option value="5">5 Seconds</option>
+        <option value="15">15 Seconds</option>
+        <option value="30">30 Seconds</option>
+        <option value="60">60 Seconds</option>
+        <option value="300">5 Minutes</option>
+        <option value="600">10 Minutes</option>
+    </select>
+</div>
+</div>
 </%def>
 
 <%def name="javascriptIncludes()">
-    <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-    <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
-    <script src="interfaces/default/js/tables/logs.js"></script>
-	<script>
+<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
+<script src="interfaces/default/js/tables/logs.js"></script>
+<script>
         var timer;
         function setRefresh()
         {
@@ -91,5 +86,6 @@
                 }
             }
         }
-	</script>
+
+</script>
 </%def>

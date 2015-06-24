@@ -1,36 +1,66 @@
-% if recently_watched != None:
-    <div class="dashboard-recent-media-row">
-        <ul class="dashboard-recent-media">
-            % for item in recently_watched:
-                <div class="dashboard-recent-media-instance">
-                    <li>
-                        <div class="poster">
-                            <div class="poster-face">
-                                <a href="info?rating_key=${item['rating_key']}">
-                                    % if item['thumb'] != '':
-                                        <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=225" class="poster-face">
-                                    % else:
-                                        <img src="interfaces/default/images/poster.png" class="poster-face">
-                                    % endif
-                                </a>
-                            </div>
-                        </div>
-                        <div class="dashboard-recent-media-metacontainer">
-                            % if item['type'] == 'episode':
-                                <h3>Season ${item['parentIndex']}, Episode ${item['index']}</h3>
-                            % elif item['type'] == 'movie':
-                                <h3>${item['title']} (${item['year']})</h3>
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           user_recently_watched.html
+Version:            0.1
+Variable names:     data [array]
+
+data[array_index] :: Usable parameters
+
+== Global keys ==
+rating_key              Returns the unique identifier for the media item.
+type                    Returns the type of media. Either 'movie' or 'episode'.
+thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
+time                    Returns the last watched time of the media.
+title                   Returns the name of the movie or episode.
+
+== Only if 'type' is 'episode ==
+parent_index            Returns the season number.
+index                   Returns the episode number.
+
+== Only if 'type' is 'movie' ==
+year                    Returns the movie release year.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data != None:
+<div class="dashboard-recent-media-row">
+    <ul class="dashboard-recent-media">
+        % for item in data:
+        <div class="dashboard-recent-media-instance">
+            <li>
+                <div class="poster">
+                    <div class="poster-face">
+                        <a href="info?rating_key=${item['rating_key']}">
+                            % if item['thumb'] != '':
+                            <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=225" class="poster-face">
+                            % else:
+                            <img src="interfaces/default/images/poster.png" class="poster-face">
                             % endif
-                            <div class="muted" id="time-${item['time']}">${item['time']}</div>
-                        </div>
-                    </li>
+                        </a>
+                    </div>
                 </div>
-                <script>
+                <div class="dashboard-recent-media-metacontainer">
+                    % if item['type'] == 'episode':
+                    <h3>Season ${item['parentIndex']}, Episode ${item['index']}</h3>
+                    % elif item['type'] == 'movie':
+                    <h3>${item['title']} (${item['year']})</h3>
+                    % endif
+                    <div class="muted" id="time-${item['time']}">${item['time']}</div>
+                </div>
+            </li>
+        </div>
+        <script>
                     $('#time-${item['time']}').html('Watched ' + moment(${item['time']}, "X").fromNow())
-                </script>
-            % endfor
-        </ul>
-    </div>
+
+        </script>
+        % endfor
+    </ul>
+</div>
 % else:
-    <div class="muted">There was an error loading your PlexWatch data. Please check your <a href="config">settings</a>.</div><br>
+<div class="muted">There was an error loading your PlexWatch data. Please check your <a href="config">settings</a>.
+</div><br>
 % endif

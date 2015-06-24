@@ -1,102 +1,154 @@
 <%
-	import plexpy
-	from plexpy import version
+import plexpy
+from plexpy import version
 %>
 <!doctype html>
 
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>PlexPy - ${title}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="">
-        <meta name="author" content="">
-        <link href="interfaces/default/css/plexwatch.css" rel="stylesheet">
-        <link href="interfaces/default/css/style.css" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
-        <link href="interfaces/default/css/font-awesome.css" rel="stylesheet" >
-        <style type="text/css">
-          body {
-            padding-top: 60px;
-            padding-bottom: 40px;
-          }
-          .sidebar-nav {
-            padding: 9px 0;
-          }
-          .spinner {
-            padding-bottom: 25px;
-            position: relative;
-          }
-        </style>
-        ${next.headIncludes()}
-        <link rel="icon" type="image/x-icon" href="interfaces/default/images/favicon.ico" />
+<head>
+    <meta charset="utf-8">
+    <title>PlexPy - ${title}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="interfaces/default/css/plexwatch.css" rel="stylesheet">
+    <link href="interfaces/default/css/style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <link href="interfaces/default/css/font-awesome.css" rel="stylesheet">
+    <style type="text/css">
+        body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+        }
+        .sidebar-nav {
+        padding: 9px 0;
+        }
+        .spinner {
+        padding-bottom: 25px;
+        position: relative;
+        }
+    </style>
+    ${next.headIncludes()}
+    <link rel="icon" type="image/x-icon" href="interfaces/default/images/favicon.ico"/>
 
-        <!-- touch icons -->
-        <link rel="shortcut icon" href="interfaces/default/images/favicon.ico">
-        <link rel="apple-touch-icon" href="interfaces/default/images/icon_iphone.png">
-        <link rel="apple-touch-icon" sizes="72x72" href="interfaces/default/images/icon_ipad.png">
-        <link rel="apple-touch-icon" sizes="114x114" href="interfaces/default/images/icon_iphone@2x.png">
-        <link rel="apple-touch-icon" sizes="144x144" href="interfaces/default/images/icon_ipad@2x.png">
-    </head>
+    <!-- touch icons -->
+    <link rel="shortcut icon" href="interfaces/default/images/favicon.ico">
+    <link rel="apple-touch-icon" href="interfaces/default/images/icon_iphone.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="interfaces/default/images/icon_ipad.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="interfaces/default/images/icon_iphone@2x.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="interfaces/default/images/icon_ipad@2x.png">
+</head>
 
 <body>
-    <div class="container">
-        <div id="ajaxMsg" class="ajaxMsg"></div>
-        % if plexpy.CONFIG.CHECK_GITHUB and not plexpy.CURRENT_VERSION:
-			<div id="updatebar">
-				You're running an unknown version of PlexPy. <a href="update">Update</a> or
-				<a href="#" onclick="$('#updatebar').slideUp('slow');">Close</a>
-			</div>
-		% elif plexpy.CONFIG.CHECK_GITHUB and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
-			<div id="updatebar">
-				A <a href="https://github.com/${plexpy.CONFIG.GIT_USER}/plexpy/compare/${plexpy.CURRENT_VERSION}...${plexpy.LATEST_VERSION}"> newer version</a> is available. You're ${plexpy.COMMITS_BEHIND} commits behind. <a href="update">Update</a> or <a href="#" onclick="$('#updatebar').slideUp('slow');">Close</a>
-			</div>
-		% endif
-        <div class="navbar navbar-fixed-top">
-            <div class="navbar-inner">
-                <a href="home"><div class="logo hidden-phone"></div></a>
-                <ul class="nav">
-                    % if title=="Home":
-                        <li class="active"><a href="home"><i class="fa fa-home fa-2x" data-toggle="tooltip" data-placement="bottom" title="Home" id="home"></i></a></li>
-                    % else:
-                        <li><a href="home"><i class="fa fa-home fa-2x" data-toggle="tooltip" data-placement="bottom" title="Home" id="home"></i></a></li>
-                    % endif
-                    % if title=="History":
-                        <li class="active"><a href="history"><i class="fa fa-history fa-2x" data-toggle="tooltip" data-placement="bottom" title="History" id="history"></i></a></li>
-                    % else:
-                        <li><a href="history"><i class="fa fa-history fa-2x" data-toggle="tooltip" data-placement="bottom" title="History" id="history"></i></a></li>
-                    % endif
-                    % if title=="Users":
-                        <li class="active"><a href="users"><i class="fa fa-users fa-2x" data-toggle="tooltip" data-placement="bottom" title="Users" id="users"></i></a></li>
-                    % else:
-                        <li><a href="users"><i class="fa fa-users fa-2x" data-toggle="tooltip" data-placement="bottom" title="Users" id="users"></i></a></li>
-                    % endif
-                    % if title=="Graphs":
-                        <li class="active"><a href="graphs"><i class="fa fa-bar-chart fa-2x" data-toggle="tooltip" data-placement="bottom" title="Graphs" id="graphs"></i></a></li>
-                    % else:
-                        <li><a href="graphs"><i class="fa fa-bar-chart fa-2x" data-toggle="tooltip" data-placement="bottom" title="Graphs" id="graphs"></i></a></li>
-                    % endif
-                    % if title=="Log":
-                        <li class="active"><a href="logs"><i class="fa fa-book fa-2x" data-toggle="tooltip" data-placement="bottom" title="Logs" id="logs"></i></a></li>
-                    % else:
-                        <li><a href="logs"><i class="fa fa-book fa-2x" data-toggle="tooltip" data-placement="bottom" title="Logs" id="logs"></i></a></li>
-                    % endif
-                    % if title=="Settings":
-                        <li class="active"><a href="config"><i class="fa fa-cog fa-2x" data-toggle="tooltip" data-placement="bottom" title="Settings" id="settings"></i></a></li>
-                    % else:
-                        <li><a href="config"><i class="fa fa-cog fa-2x" data-toggle="tooltip" data-placement="bottom" title="Settings" id="settings"></i></a></li>
-                    % endif
-                </ul>
-            </div>
+<div class="container">
+    <div id="ajaxMsg" class="ajaxMsg"></div>
+    % if plexpy.CONFIG.CHECK_GITHUB and not plexpy.CURRENT_VERSION:
+    <div id="updatebar">
+        You're running an unknown version of PlexPy. <a href="update">Update</a> or
+        <a href="#" onclick="$('#updatebar').slideUp('slow');">Close</a>
+    </div>
+    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
+    <div id="updatebar">
+        A <a
+            href="https://github.com/${plexpy.CONFIG.GIT_USER}/plexpy/compare/${plexpy.CURRENT_VERSION}...${plexpy.LATEST_VERSION}">
+        newer version</a> is available. You're ${plexpy.COMMITS_BEHIND} commits behind. <a href="update">Update</a> or
+        <a href="#" onclick="$('#updatebar').slideUp('slow');">Close</a>
+    </div>
+    % endif
+    <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <a href="home">
+                <div class="logo hidden-phone"></div>
+            </a>
+            <ul class="nav">
+                % if title=="Home":
+                <li class="active">
+                    <a href="home">
+                        <i class="fa fa-home fa-2x" data-toggle="tooltip" data-placement="bottom" title="Home" id="home"></i>
+                    </a>
+                </li>
+                % else:
+                <li>
+                    <a href="home">
+                        <i class="fa fa-home fa-2x" data-toggle="tooltip" data-placement="bottom" title="Home" id="home"></i>
+                    </a>
+                </li>
+                % endif
+                % if title=="History":
+                <li class="active">
+                    <a href="history">
+                        <i class="fa fa-history fa-2x" data-toggle="tooltip" data-placement="bottom" title="History" id="history"></i>
+                    </a>
+                </li>
+                % else:
+                <li>
+                    <a href="history">
+                        <i class="fa fa-history fa-2x" data-toggle="tooltip" data-placement="bottom" title="History" id="history"></i>
+                    </a>
+                </li>
+                % endif
+                % if title=="Users":
+                <li class="active">
+                    <a href="users">
+                        <i class="fa fa-users fa-2x" data-toggle="tooltip" data-placement="bottom" title="Users" id="users"></i>
+                    </a>
+                </li>
+                % else:
+                <li>
+                    <a href="users">
+                        <i class="fa fa-users fa-2x" data-toggle="tooltip" data-placement="bottom" title="Users" id="users"></i>
+                    </a>
+                </li>
+                % endif
+                % if title=="Graphs":
+                <li class="active">
+                    <a href="graphs">
+                        <i class="fa fa-bar-chart fa-2x" data-toggle="tooltip" data-placement="bottom" title="Graphs" id="graphs"></i>
+                    </a>
+                </li>
+                % else:
+                <li>
+                    <a href="graphs">
+                        <i class="fa fa-bar-chart fa-2x" data-toggle="tooltip" data-placement="bottom" title="Graphs" id="graphs"></i>
+                    </a>
+                </li>
+                % endif
+                % if title=="Log":
+                <li class="active">
+                    <a href="logs">
+                        <i class="fa fa-book fa-2x" data-toggle="tooltip" data-placement="bottom" title="Logs" id="logs"></i>
+                    </a>
+                </li>
+                % else:
+                <li>
+                    <a href="logs">
+                        <i class="fa fa-book fa-2x" data-toggle="tooltip" data-placement="bottom" title="Logs" id="logs"></i>
+                    </a>
+                </li>
+                % endif
+                % if title=="Settings":
+                <li class="active">
+                    <a href="config">
+                        <i class="fa fa-cog fa-2x" data-toggle="tooltip" data-placement="bottom" title="Settings" id="settings"></i>
+                    </a>
+                </li>
+                % else:
+                <li>
+                    <a href="config">
+                        <i class="fa fa-cog fa-2x" data-toggle="tooltip" data-placement="bottom"
+                                        title="Settings" id="settings"></i></a></li>
+                % endif
+            </ul>
         </div>
     </div>
+</div>
 
-    ${next.headerIncludes()}
-    ${next.body()}
+${next.headerIncludes()}
+${next.body()}
 
-    <script src="interfaces/default/js/jquery-2.1.4.min.js"></script>
-    <script src="interfaces/default/js/bootstrap.js"></script>
-    <script>
+<script src="interfaces/default/js/jquery-2.1.4.min.js"></script>
+<script src="interfaces/default/js/bootstrap.js"></script>
+<script>
         $(document).ready(function() {
             $('#home').tooltip();
         });
@@ -115,9 +167,10 @@
         $(document).ready(function() {
             $('#settings').tooltip();
         });
-    </script>
-	<script src="interfaces/default/js/script.js"></script>
-	${next.javascriptIncludes()}
+
+</script>
+<script src="interfaces/default/js/script.js"></script>
+${next.javascriptIncludes()}
 
 </body>
 </html>

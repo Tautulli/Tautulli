@@ -1,193 +1,216 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           user.html
+Version:            0.1
+Variable names:     user [string]
+
+user :: Usable parameters
+
+user                Returns the name of the user.
+
+DOCUMENTATION :: END
+
+</%doc>
+
 <%inherit file="base.html"/>
 <%!
-	from plexpy import helpers
+from plexpy import helpers
 %>
 
 <%def name="headIncludes()">
-    <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
 </%def>
 
 % if user != None:
-    <%def name="body()">
-    <div class="container-fluid">
-        <div class="row-fluid">
-            <div class="span12">
-                <div class="user-info-wrapper">
-                    <div class="user-info-poster-face" id="user-gravatar">
-                        <img src="interfaces/default/images/gravatar-default-80x80.png">
-                    </div>
-                    <div class="user-info-username">
-                        ${user}
-                    </div>
-                    <div class="user-info-nav">
-                        <ul class="user-info-nav">
-                            <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
-                            <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
-                            <li><a href="#userHistory" data-toggle="tab">History</a></li>
-                        </ul>
-                    </div>
+<%def name="body()">
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="user-info-wrapper">
+                <div class="user-info-poster-face" id="user-gravatar">
+                    <img src="interfaces/default/images/gravatar-default-80x80.png">
+                </div>
+                <div class="user-info-username">
+                    ${user}
+                </div>
+                <div class="user-info-nav">
+                    <ul class="user-info-nav">
+                        <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
+                        <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
+                        <li><a href="#userHistory" data-toggle="tab">History</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
-    <div class="tab-content">
-        <div class="tab-pane active" id="profile">
-            <div class="container-fluid">
-                <div class="row-fluid">
-                    <div class="span12">
-                        <div class="wellbg">
-                            <div class="wellheader">
-                                <div class="dashboard-wellheader">
-                                    <h3>Global Stats</h3>
-                                </div>
-                            </div>
-                            <div id="user-time-stats" class="user-overview-stats-wrapper">
-                                <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div><br>
+</div>
+<div class="tab-content">
+    <div class="tab-pane active" id="profile">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="wellbg">
+                        <div class="wellheader">
+                            <div class="dashboard-wellheader">
+                                <h3>Global Stats</h3>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="container-fluid">
-                <div class="row-fluid">
-                    <div class="span12">
-                        <div class="wellbg">
-                            <div class="wellheader">
-                                <div class="dashboard-wellheader">
-                                    <h3>Platform Stats</h3>
-                                </div>
-                            </div>
-                            <div id="user-platform-stats" class="user-platforms">
-                                <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div><br>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="container-fluid">
-                <div class="row-fluid">
-                    <div class="span12">
-                        <div class="wellbg">
-                            <div class="wellheader">
-                                <div class="dashboard-wellheader">
-                                    <h3>Recently watched</h3>
-                                </div>
-                            </div>
-                            <div id="user-recently-watched">
-                                <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div><br>
-                            </div>
+                        <div id="user-time-stats" class="user-overview-stats-wrapper">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="tab-pane" id="userAddresses">
-            <div class="container-fluid">
-                <div class="row-fluid">
-                    <div class="span12">
-                        <div class="wellbg">
-                            <div class="wellheader">
-                                <div class="dashboard-wellheader">
-                                    <h3>IP Addresses for <strong>
-                                        ${user}
-                                    </strong></h3>
-                                </div>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="wellbg">
+                        <div class="wellheader">
+                            <div class="dashboard-wellheader">
+                                <h3>Platform Stats</h3>
                             </div>
-                            <table id="user_ip_table" class="display" width="100%">
-                                <thead>
-                                    <tr>
-                                        <th align="left"><i class="fa fa-sort"></i> Last seen</th>
-                                        <th align="left"><i class="fa fa-sort"></i> IP Address</th>
-                                        <th align="left"><i class="fa fa-sort"></i> Play Count</th>
-                                        <th align="left"><i class="fa fa-sort"></i> Platform (Last Seen)</th>
-                                        <th align="left"> Last Watched</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                            <div id="ip-info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal" aria-hidden="true">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                                    <h3 id="myModalLabel">IP Address: <strong><span id="ip_address"></span></strong></h3>
-                                </div>
-                                <div class="modal-body" id="modal-text">
-                                    <div class="span6">
-                                        <h4>Location Details</h4>
-                                        <ul>
-                                            <li>Country: <strong><span id="country"></span></strong></li>
-                                            <li>City: <strong><span id="city"></span></strong></li>
-                                            <li>Region: <strong><span id="region"></span></strong></li>
-                                            <li>Timezone: <strong><span id="timezone"></span></strong></li>
-                                            <li>Latitude: <strong><span id="lat"></span></strong></li>
-                                            <li>Longitude: <strong><span id="lon"></span></strong></li>
-                                        </ul>
-                                    </div>
-                                    <div class="span6">
-                                        <h4>Connection Details</h4>
-                                        <ul>
-                                            <li>ISP: <strong><span id="isp"></span></strong></li>
-                                            <li>Organization: <strong><span id="org"></span></strong></li>
-                                            <li>AS: <strong><span id="as"></span></strong></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div class="modal-footer"></div>
-                            </div>
+                        </div>
+                        <div id="user-platform-stats" class="user-platforms">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="tab-pane" id="userHistory">
-            <div class="container-fluid">
-                <div class="row-fluid">
-                    <div class="span12">
-                        <div class="wellbg">
-                            <div class="wellheader">
-                                <div class="dashboard-wellheader">
-                                    <h3>Watch History for <strong>
-                                        ${user}
-                                    </strong></h3>
-                                </div>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="wellbg">
+                        <div class="wellheader">
+                            <div class="dashboard-wellheader">
+                                <h3>Recently watched</h3>
                             </div>
-                            <table class="display" id="history_table" width="100%">
-                                <thead>
-                                    <tr>
-                                        <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
-                                        <th align='left' id="date"><i class='fa fa-sort'></i> Time</th>
-                                        <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
-                                        <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
-                                        <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
-                                        <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
-                                        <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
-                                        <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
-                                        <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
-                                        <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
-                                        <th align='left' id="percent_complete"> Completed</th>
-                                        <th align='left' id="rating_key"> RatingKey</th>
-                                        <th align='left' id="xml"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                            <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal" aria-hidden="true">
-                            </div>
+                        </div>
+                        <div id="user-recently-watched">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <footer></footer>
-    </%def>
+    <div class="tab-pane" id="userAddresses">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="wellbg">
+                        <div class="wellheader">
+                            <div class="dashboard-wellheader">
+                                <h3>IP Addresses for <strong>
+                                    ${user}
+                                </strong></h3>
+                            </div>
+                        </div>
+                        <table id="user_ip_table" class="display" width="100%">
+                            <thead>
+                            <tr>
+                                <th align="left"><i class="fa fa-sort"></i> Last seen</th>
+                                <th align="left"><i class="fa fa-sort"></i> IP Address</th>
+                                <th align="left"><i class="fa fa-sort"></i> Play Count</th>
+                                <th align="left"><i class="fa fa-sort"></i> Platform (Last Seen)</th>
+                                <th align="left"> Last Watched</th>
+                            </tr>
+                            </thead>
+                        </table>
+                        <div id="ip-info-modal" class="modal hide fade" tabindex="-1" role="dialog"
+                             aria-labelledby="ip-info-modal" aria-hidden="true">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
+                                        class="fa fa-remove"></i></button>
+                                <h3 id="myModalLabel">IP Address: <strong><span id="ip_address"></span></strong></h3>
+                            </div>
+                            <div class="modal-body" id="modal-text">
+                                <div class="span6">
+                                    <h4>Location Details</h4>
+                                    <ul>
+                                        <li>Country: <strong><span id="country"></span></strong></li>
+                                        <li>City: <strong><span id="city"></span></strong></li>
+                                        <li>Region: <strong><span id="region"></span></strong></li>
+                                        <li>Timezone: <strong><span id="timezone"></span></strong></li>
+                                        <li>Latitude: <strong><span id="lat"></span></strong></li>
+                                        <li>Longitude: <strong><span id="lon"></span></strong></li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <h4>Connection Details</h4>
+                                    <ul>
+                                        <li>ISP: <strong><span id="isp"></span></strong></li>
+                                        <li>Organization: <strong><span id="org"></span></strong></li>
+                                        <li>AS: <strong><span id="as"></span></strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="modal-footer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane" id="userHistory">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="wellbg">
+                        <div class="wellheader">
+                            <div class="dashboard-wellheader">
+                                <h3>Watch History for <strong>
+                                    ${user}
+                                </strong></h3>
+                            </div>
+                        </div>
+                        <table class="display" id="history_table" width="100%">
+                            <thead>
+                            <tr>
+                                <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
+                                <th align='left' id="date"><i class='fa fa-sort'></i> Time</th>
+                                <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
+                                <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
+                                <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
+                                <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
+                                <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
+                                <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
+                                <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
+                                <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
+                                <th align='left' id="percent_complete"> Completed</th>
+                                <th align='left' id="rating_key"> RatingKey</th>
+                                <th align='left' id="xml"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                        <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog"
+                             aria-labelledby="info-modal" aria-hidden="true">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<footer></footer>
+</%def>
 
-    <%def name="javascriptIncludes()">
-        <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-        <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
-        <script src="interfaces/default/js/moment-with-locale.js"></script>
-        <script src="interfaces/default/js/tables/history_table.js"></script>
-        <script src="interfaces/default/js/tables/user_ips.js"></script>
-        <script>
+<%def name="javascriptIncludes()">
+<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
+<script src="interfaces/default/js/moment-with-locale.js"></script>
+<script src="interfaces/default/js/tables/history_table.js"></script>
+<script src="interfaces/default/js/tables/user_ips.js"></script>
+<script>
             $(document).ready(function () {
 
                 // Populate watch time stats
@@ -252,15 +275,17 @@
                     }
                 });
             });
-        </script>
-    </%def>
+
+
+</script>
+</%def>
 % else:
-    <div class="clear"></div>
-    <div class="container-fluid">
-        <div class="row-fluid">
-            <div class="span10 offset1">
-                <h3>Error retrieving user information. Please see the logs for more details.</h3>
-            </div>
+<div class="clear"></div>
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span10 offset1">
+            <h3>Error retrieving user information. Please see the logs for more details.</h3>
         </div>
     </div>
+</div>
 % endif

@@ -1,6 +1,6 @@
 <%inherit file="base.html"/>
 <%!
-	from plexpy import helpers
+from plexpy import helpers
 %>
 
 <%def name="headIncludes()">
@@ -21,7 +21,8 @@
                     </div>
                 </div>
                 <div id="currentActivity">
-                    <div class="muted"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div><br>
+                    <div class="muted"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
+                    <br>
                 </div>
             </div>
         </div>
@@ -35,7 +36,8 @@
                     </div>
                 </div>
                 <div id="home-stats" class="user-platforms">
-                    <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div><br>
+                    <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
+                    <br>
                 </div>
             </div>
         </div>
@@ -48,7 +50,8 @@
                 </div>
             </div>
             <div id='recentlyAdded'>
-                <div class='muted'><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div><br>
+                <div class='muted'><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
+                <br>
             </div>
         </div>
     </div>
@@ -126,6 +129,7 @@
     });
 
     getHomeStats(30);
+
 
 </script>
 

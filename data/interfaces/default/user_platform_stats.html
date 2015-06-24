@@ -1,22 +1,47 @@
-% if platform_stats != None:
-    % for a in platform_stats:
-        <ul>
-            <div class="user-platforms-instance">
-                <li>
-                    <span id="user-platform-image-${a['result_id']}"></span>
-                    <div class="user-platforms-instance-name">
-                        ${a['platform_name']}
-                    </div>
-                    <div class="user-platforms-instance-playcount">
-                        <h3>${a['total_plays']}</h3><p> plays</p>
-                    </div>
-                </li>
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           user_platform_stats.html
+Version:            0.1
+Variable names:     data [array]
+
+data[array_index] :: Usable parameters
+
+== Global keys ==
+result_id               Returns a unique identifier for the result.
+platform_name           Returns the name of the platform.
+total_plays             Returns the play count for the platform.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data != None:
+% for a in data:
+<ul>
+    <div class="user-platforms-instance">
+        <li>
+            <span id="user-platform-image-${a['result_id']}"></span>
+
+            <div class="user-platforms-instance-name">
+                ${a['platform_name']}
             </div>
-        </ul>
-        <script>
+            <div class="user-platforms-instance-playcount">
+                <h3>${a['total_plays']}</h3>
+
+                <p> plays</p>
+            </div>
+        </li>
+    </div>
+</ul>
+<script>
            $("#user-platform-image-${a['result_id']}").html("<img class='user-platforms-instance-poster' src='" + getPlatformImagePath('${a['platform_type']}') + "'>");
-        </script>
-    % endfor
+
+
+</script>
+% endfor
 % else:
-    <div class="muted">There was an error loading your PlexWatch data. Please check your <a href="config">settings</a>.</div><br>
+<div class="muted">There was an error loading your PlexWatch data. Please check your <a href="config">settings</a>.
+</div><br>
 % endif

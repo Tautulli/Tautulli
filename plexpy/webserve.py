@@ -80,7 +80,7 @@ class WebInterface(object):
         plex_watch = plexwatch.PlexWatch()
         stats_data = plex_watch.get_home_stats(time_range)
 
-        return serve_template(templatename="home_stats.html", title="Stats", stats=stats_data)
+        return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
 
     @cherrypy.expose
     def history(self):
@@ -305,7 +305,7 @@ class WebInterface(object):
 
         # Write Plex token to the config
         if (not plexpy.CONFIG.PMS_TOKEN or plexpy.CONFIG.PMS_TOKEN == '' \
-                or kwargs['pms_username'] != plexpy.CONFIG.PMS_USERNAME) \
+                    or kwargs['pms_username'] != plexpy.CONFIG.PMS_USERNAME) \
                 and (kwargs['pms_username'] != '' or kwargs['pms_password'] != ''):
 
             plex_tv = plextv.PlexTV(kwargs['pms_username'], kwargs['pms_password'])
@@ -376,7 +376,6 @@ class WebInterface(object):
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(stream_details)
-
 
     @cherrypy.expose
     def shutdown(self):
@@ -472,12 +471,12 @@ class WebInterface(object):
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_current_activity()
         except:
-            return serve_template(templatename="current_activity.html", activity=None)
+            return serve_template(templatename="current_activity.html", data=None)
 
         if result:
-            return serve_template(templatename="current_activity.html", activity=result)
+            return serve_template(templatename="current_activity.html", data=result)
         else:
-            return serve_template(templatename="current_activity.html", activity=None)
+            return serve_template(templatename="current_activity.html", data=None)
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
@@ -487,12 +486,12 @@ class WebInterface(object):
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_current_activity()
         except IOError, e:
-            return serve_template(templatename="current_activity_header.html", activity=None)
+            return serve_template(templatename="current_activity_header.html", data=None)
 
         if result:
-            return serve_template(templatename="current_activity_header.html", activity=result['stream_count'])
+            return serve_template(templatename="current_activity_header.html", data=result['stream_count'])
         else:
-            return serve_template(templatename="current_activity_header.html", activity=None)
+            return serve_template(templatename="current_activity_header.html", data=None)
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
@@ -502,12 +501,12 @@ class WebInterface(object):
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_recently_added_details(count)
         except IOError, e:
-            return serve_template(templatename="recently_added.html", recently_added=None)
+            return serve_template(templatename="recently_added.html", data=None)
 
         if result:
-            return serve_template(templatename="recently_added.html", recently_added=result['recently_added'])
+            return serve_template(templatename="recently_added.html", data=result['recently_added'])
         else:
-            return serve_template(templatename="recently_added.html", recently_added=None)
+            return serve_template(templatename="recently_added.html", data=None)
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
@@ -532,9 +531,9 @@ class WebInterface(object):
         result = pms_connect.get_metadata_details(rating_key)
 
         if result:
-            return serve_template(templatename="info.html", metadata=result['metadata'], title="Info")
+            return serve_template(templatename="info.html", data=result['metadata'], title="Info")
         else:
-            return serve_template(templatename="info.html", metadata='', title="Info")
+            return serve_template(templatename="info.html", data=None, title="Info")
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
@@ -544,9 +543,11 @@ class WebInterface(object):
         result = plex_watch.get_recently_watched(user, limit)
 
         if result:
-            return serve_template(templatename="user_recently_watched.html", recently_watched=result, title="Recently Watched")
+            return serve_template(templatename="user_recently_watched.html", data=result,
+                                  title="Recently Watched")
         else:
-            return serve_template(templatename="user_recently_watched.html", recently_watched=None, title="Recently Watched")
+            return serve_template(templatename="user_recently_watched.html", data=None,
+                                  title="Recently Watched")
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
@@ -556,9 +557,9 @@ class WebInterface(object):
         result = plex_watch.get_user_watch_time_stats(user)
 
         if result:
-            return serve_template(templatename="user_watch_time_stats.html", watch_stats=result, title="Watch Stats")
+            return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
         else:
-            return serve_template(templatename="user_watch_time_stats.html", watch_stats=None, title="Watch Stats")
+            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
@@ -568,9 +569,10 @@ class WebInterface(object):
         result = plex_watch.get_user_platform_stats(user)
 
         if result:
-            return serve_template(templatename="user_platform_stats.html", platform_stats=result, title="Platform Stats")
+            return serve_template(templatename="user_platform_stats.html", data=result,
+                                  title="Platform Stats")
         else:
-            return serve_template(templatename="user_platform_stats.html", platform_stats=None, title="Platform Stats")
+            return serve_template(templatename="user_platform_stats.html", data=None, title="Platform Stats")
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
@@ -580,9 +582,9 @@ class WebInterface(object):
         result = pms_connect.get_season_children(rating_key)
 
         if result:
-            return serve_template(templatename="info_episode_list.html", episode_list=result, title="Episode List")
+            return serve_template(templatename="info_episode_list.html", data=result, title="Episode List")
         else:
-            return serve_template(templatename="info_episode_list.html", episode_list=None, title="Episode List")
+            return serve_template(templatename="info_episode_list.html", data=None, title="Episode List")
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose

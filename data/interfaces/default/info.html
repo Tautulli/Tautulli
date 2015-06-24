@@ -1,253 +1,304 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           info.html
+Version:            0.1
+Variable names:     data [list]
+
+data :: Usable parameters
+
+== Global keys ==
+ratingKey               Returns the unique identifier for the media item.
+type                    Returns the type of media. Either 'movie', 'episode' or 'show' or 'season'.
+art                     Returns the location of the item's artwork
+title                   Returns the name of the episode, show, season or movie.
+duration                Returns the standard runtime of the media.
+contentRating           Returns the age rating for the media.
+summary                 Returns a brief description of the media plot.
+
+== Only if 'type' is 'episode' ==
+grandparentTitle        Returns the name of the TV show.
+parentIndex             Returns the season number of the TV show.
+index                   Returns the episode number.
+parentThumb             Returns the location of the item's thumbnail. Use with pms_image_proxy.
+writers                 Returns an array of writers.
+
+== Only if 'type' is 'movie' or 'season' or 'show' ==
+thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
+
+== Only if 'type' is 'season' ==
+parentTitle             Returns the name of the TV show.
+
+== Only if 'type' is 'movie' ==
+rating                  Returns the 5 star rating value for the movie. Between 1 and 5.
+year                    Returns the release year of the movie.
+
+== Only if 'type' is 'movie' or 'show' ==
+genres                  Returns an array of genres.
+actors                  Returns an array of actors.
+
+== Only if 'type' is 'episode' or 'movie' ==
+directors               Returns an array of directors.
+
+== Only if 'type' is 'show' or 'season' ==
+studio                  Returns the name of the studio.
+
+DOCUMENTATION :: END
+</%doc>
+
 <%inherit file="base.html"/>
 <%!
-	from plexpy import helpers
+from plexpy import helpers
 %>
 
 <%def name="headIncludes()">
-    <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
 </%def>
 
 <%def name="body()">
-    % if metadata:
-        <div class="clear"></div>
-        <div class="container-fluid">
-            <!-- Some span12 if parameter -->
-                <div class="row-fluid">
-                    <div class="span12">
-            <!-- end span12 if -->
-                    <!-- if art -->
-                        <div class="art-face" style="background-image:url(pms_image_proxy?img=${metadata['art']}&width=1920&height=1080)">
-                    <!-- if not art
-                        <div class="art-face">
-                    -->
-                        <div class="summary-wrapper">
-                            <div class="summary-overlay">
-                                <div class="row-fluid">
-
-                                        <div class="span9">
-
-                                        <div class="summary-content-poster hidden-phone hidden-tablet">
-                                            % if metadata['type'] == 'episode':
-                                                <img src="pms_image_proxy?img=${metadata['parentThumb']}&width=256&height=352">
-                                            % else:
-                                                <img src="pms_image_proxy?img=${metadata['thumb']}&width=256&height=352">
-                                            % endif
-                                        </div>
-                                        <div class="summary-content">
-                                            <div class="summary-content-title">
-                                                % if metadata['type'] == 'movie':
-                                                    <h1>${metadata['title']} (${metadata['year']})</h1>
-                                                % elif metadata['type'] == 'season':
-                                                    <h1>${metadata['parentTitle']} (${metadata['title']})</h1>
-                                                % elif metadata['type'] == 'episode':
-                                                    <h1>${metadata['grandparentTitle']} (Season ${metadata['parentIndex']}, Episode ${metadata['index']}) "${metadata['title']}"</h1>
-                                                % else:
-                                                    <h1>${metadata['title']}</h1>
-                                                % endif
-                                            </div>
-                                            % if metadata['type'] == 'movie':
-                                                <div id="stars" class="rateit hidden-phone hidden-tablet" data-rateit-value="" data-rateit-ispreset="true" data-rateit-readonly="true"></div>
-                                            % endif
-                                            <div class="summary-content-details-wrapper">
-                                                <div class="summary-content-director">
-                                                    % if metadata['type'] == 'episode' or metadata['type'] == 'movie':
-                                                        % if metadata['directors']:
-                                                            Directed by <strong> ${metadata['directors'][0]}</strong>
-                                                        % else:
-                                                            Directed by <strong> unknown</strong>
-                                                        % endif
-                                                    % elif metadata['type'] == 'show' or metadata['type'] == 'season':
-                                                        Studio <strong> ${metadata['studio']}</strong>
-                                                    % endif
-                                                </div>
-                                                <div class="summary-content-duration">
-                                                    Runtime <strong> ${metadata['duration']} mins</strong>
-                                                </div>
-                                                <div class="summary-content-content-rating">
-                                                    Rated <strong> ${metadata['contentRating']} </strong>
-                                                </div>
-                                            </div>
-                                            <div class="summary-content-summary">
-                                                <p> ${metadata['summary']} </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    % if metadata['type'] == 'episode':
-                                        <div class="span3">
-                                            <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
-                                                <div class="summary-content-writers">
-                                                    <h6><strong>Written by</strong></h6>
-                                                    <ul>
-                                                        % for writer in metadata['writers']:
-                                                            % if loop.index < 5:
-                                                                <li>
-                                                                    ${writer}
-                                                                </li>
-                                                            % endif
-                                                        % endfor
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    % elif metadata['type'] == 'movie' or metadata['type'] == 'show':
-                                        <div class="span3">
-                                            <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
-                                                <div class="summary-content-actors">
-                                                    <h6><strong>Genres</strong></h6>
-                                                    <ul>
-                                                        % for genre in metadata['genres']:
-                                                            % if loop.index < 5:
-                                                                <li>
-                                                                    ${genre}
-                                                                </li>
-                                                            % endif
-                                                        % endfor
-                                                    </ul>
-                                                </div>
-                                                <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
-                                                    <div class="summary-content-actors">
-                                                        <h6><strong>Starring</strong></h6>
-                                                        <ul>
-                                                            % for actor in metadata['actors']:
-                                                                % if loop.index < 5:
-                                                                    <li>
-                                                                        ${actor}
-                                                                    </li>
-                                                                % endif
-                                                            % endfor
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    % elif metadata['type'] == 'season':
-                                        <div class="span3"></div>
+% if data:
+<div class="clear"></div>
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="art-face"
+                 style="background-image:url(pms_image_proxy?img=${data['art']}&width=1920&height=1080)">
+                <div class="summary-wrapper">
+                    <div class="summary-overlay">
+                        <div class="row-fluid">
+                            <div class="span9">
+                                <div class="summary-content-poster hidden-phone hidden-tablet">
+                                    % if data['type'] == 'episode':
+                                    <img src="pms_image_proxy?img=${data['parentThumb']}&width=256&height=352">
+                                    % else:
+                                    <img src="pms_image_proxy?img=${data['thumb']}&width=256&height=352">
                                     % endif
                                 </div>
+                                <div class="summary-content">
+                                    <div class="summary-content-title">
+                                        % if data['type'] == 'movie':
+                                        <h1>${data['title']} (${data['year']})</h1>
+                                        % elif data['type'] == 'season':
+                                        <h1>${data['parentTitle']} (${data['title']})</h1>
+                                        % elif data['type'] == 'episode':
+                                        <h1>${data['grandparentTitle']} (Season ${data['parentIndex']}, Episode
+                                            ${data['index']}) "${data['title']}"</h1>
+                                        % else:
+                                        <h1>${data['title']}</h1>
+                                        % endif
+                                    </div>
+                                    % if data['type'] == 'movie':
+                                    <div id="stars" class="rateit hidden-phone hidden-tablet" data-rateit-value=""
+                                         data-rateit-ispreset="true" data-rateit-readonly="true"></div>
+                                    % endif
+                                    <div class="summary-content-details-wrapper">
+                                        <div class="summary-content-director">
+                                            % if data['type'] == 'episode' or data['type'] == 'movie':
+                                            % if data['directors']:
+                                            Directed by <strong> ${data['directors'][0]}</strong>
+                                            % else:
+                                            Directed by <strong> unknown</strong>
+                                            % endif
+                                            % elif data['type'] == 'show' or data['type'] == 'season':
+                                            Studio <strong> ${data['studio']}</strong>
+                                            % endif
+                                        </div>
+                                        <div class="summary-content-duration">
+                                            Runtime <strong> ${data['duration']} mins</strong>
+                                        </div>
+                                        <div class="summary-content-content-rating">
+                                            Rated <strong> ${data['contentRating']} </strong>
+                                        </div>
+                                    </div>
+                                    <div class="summary-content-summary">
+                                        <p> ${data['summary']} </p>
+                                    </div>
+                                </div>
                             </div>
+                            % if data['type'] == 'episode':
+                            <div class="span3">
+                                <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
+                                    <div class="summary-content-writers">
+                                        <h6><strong>Written by</strong></h6>
+                                        <ul>
+                                            % for writer in data['writers']:
+                                            % if loop.index < 5:
+                                            <li>
+                                                ${writer}
+                                            </li>
+                                            % endif
+                                            % endfor
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            % elif data['type'] == 'movie' or data['type'] == 'show':
+                            <div class="span3">
+                                <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
+                                    <div class="summary-content-actors">
+                                        <h6><strong>Genres</strong></h6>
+                                        <ul>
+                                            % for genre in data['genres']:
+                                            % if loop.index < 5:
+                                            <li>
+                                                ${genre}
+                                            </li>
+                                            % endif
+                                            % endfor
+                                        </ul>
+                                    </div>
+                                    <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
+                                        <div class="summary-content-actors">
+                                            <h6><strong>Starring</strong></h6>
+                                            <ul>
+                                                % for actor in data['actors']:
+                                                % if loop.index < 5:
+                                                <li>
+                                                    ${actor}
+                                                </li>
+                                                % endif
+                                                % endfor
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            % elif data['type'] == 'season':
+                            <div class="span3"></div>
+                            % endif
                         </div>
                     </div>
-            <!-- span rule -->
-                    </div>
-                </div>
-            <!--}-->
-        </div>
-        <div class='container-fluid'>
-            <div class='row-fluid'>
-                <div class='span12'>
-                    <div class='wellbg'>
-                        % if metadata['type'] == 'movie' or metadata['type'] == 'episode' or metadata['type'] == 'show':
-                            <div class="wellheader">
-                                <div class="dashboard-wellheader">
-                                    <h3>Watch history for <strong>${metadata['title']}</strong></h3>
-                                </div>
-                            </div>
-                            <table class="display" id="history_table" width="100%">
-                                <thead>
-                                    <tr>
-                                        <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
-                                        <th align='left' id="date"><i class='fa fa-sort'></i> Time</th>
-                                        <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
-                                        <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
-                                        <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
-                                        <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
-                                        <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
-                                        <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
-                                        <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
-                                        <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
-                                        <th align='left' id="percent_complete"> Completed</th>
-                                        <th align='left' id="rating_key"> RatingKey</th>
-                                        <th align='left' id="xml"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                            <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal" aria-hidden="true">
-                            </div>
-                        % elif metadata['type'] == 'season':
-                            <div class="wellheader">
-                                <div class="dashboard-wellheader">
-                                    <h3>Episode list for <strong>${metadata['title']}</strong></h3>
-                                </div>
-                            </div>
-                            <div id="episode-list">
-                            </div>
-                        % endif
-                    </div>
                 </div>
             </div>
         </div>
-    % else:
-        <div class="clear"></div>
-        <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span10 offset1">
-                    <h3>Error retrieving item metadata. This media may not be available in the Plex Media Server database anymore.</h3>
-				</div>
+    </div>
+</div>
+<div class='container-fluid'>
+    <div class='row-fluid'>
+        <div class='span12'>
+            <div class='wellbg'>
+                % if data['type'] == 'movie' or data['type'] == 'episode' or data['type'] == 'show':
+                <div class="wellheader">
+                    <div class="dashboard-wellheader">
+                        <h3>Watch history for <strong>${data['title']}</strong></h3>
+                    </div>
+                </div>
+                <table class="display" id="history_table" width="100%">
+                    <thead>
+                    <tr>
+                        <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
+                        <th align='left' id="date"><i class='fa fa-sort'></i> Time</th>
+                        <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
+                        <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
+                        <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
+                        <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
+                        <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
+                        <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
+                        <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
+                        <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
+                        <th align='left' id="percent_complete"> Completed</th>
+                        <th align='left' id="rating_key"> RatingKey</th>
+                        <th align='left' id="xml"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal"
+                     aria-hidden="true">
+                </div>
+                % elif data['type'] == 'season':
+                <div class="wellheader">
+                    <div class="dashboard-wellheader">
+                        <h3>Episode list for <strong>${data['title']}</strong></h3>
+                    </div>
+                </div>
+                <div id="episode-list">
+                </div>
+                % endif
             </div>
         </div>
-    % endif
+    </div>
+</div>
+% else:
+<div class="clear"></div>
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span10 offset1">
+            <h3>Error retrieving item data. This media may not be available in the Plex Media Server database
+                anymore.</h3>
+        </div>
+    </div>
+</div>
+% endif
 </%def>
 
 <%def name="javascriptIncludes()">
-    <script src="interfaces/default/js/jquery.rateit.min.js"></script>
-    <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-    <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
-    <script src="interfaces/default/js/moment-with-locale.js"></script>
+<script src="interfaces/default/js/jquery.rateit.min.js"></script>
+<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
+<script src="interfaces/default/js/moment-with-locale.js"></script>
 
-    % if metadata:
-        % if metadata['type'] == 'movie':
-            <script>
-                // Convert rating to 5 star rating type
-                var starRating = Math.round(${metadata['rating']} / 2)
-                $('#stars').attr('data-rateit-value', starRating)
-            </script>
-        % endif
-        % if metadata['type'] == 'movie' or metadata['type'] == 'episode':
-            <script src="interfaces/default/js/tables/history_table.js"></script>
-            <script>
-                $(document).ready(function () {
-                    history_table_options.ajax = {
-                        "url": "get_history",
-                        "data": function(d) {
-                           d.rating_key = ${metadata['ratingKey']};
-                        }
-                    }
+% if data:
+% if data['type'] == 'movie':
+<script>
+    // Convert rating to 5 star rating type
+    var starRating = Math.round(${data['rating']} / 2)
+    $('#stars').attr('data-rateit-value', starRating)
 
-                    history_table = $('#history_table').DataTable(history_table_options);
+</script>
+% endif
+% if data['type'] == 'movie' or data['type'] == 'episode':
+<script src="interfaces/default/js/tables/history_table.js"></script>
+<script>
+    $(document).ready(function () {
+        history_table_options.ajax = {
+            "url": "get_history",
+            "data": function(d) {
+               d.rating_key = ${data['ratingKey']};
+            }
+        }
 
-                    // Hide the title column
-                    history_table.column(5).visible(false);
-                });
-            </script>
-        % elif metadata['type'] == 'show':
-            <script src="interfaces/default/js/tables/history_table.js"></script>
-            <script>
-                $(document).ready(function () {
-                    history_table_options.ajax = {
-                        "url": "get_history",
-                        "data": function(d) {
-                           d.grandparent_rating_key = ${metadata['ratingKey']};
-                        }
-                    }
+        history_table = $('#history_table').DataTable(history_table_options);
 
-                    history_table = $('#history_table').DataTable(history_table_options);
-                });
-            </script>
-        % endif
-        % if metadata['type'] == 'season':
-            <script>
-                $.ajax({
-                    url: 'get_children',
-                    type: "GET",
-                    async: true,
-                    data: { rating_key : ${metadata['ratingKey']} },
-                    complete: function(xhr, status) {
-                        $("#episode-list").html(xhr.responseText);
-                    }
-                });
-            </script>
-        % endif
-    % endif
+        // Hide the title column
+        history_table.column(5).visible(false);
+    });
+
+</script>
+% elif data['type'] == 'show':
+<script src="interfaces/default/js/tables/history_table.js"></script>
+<script>
+    $(document).ready(function () {
+        history_table_options.ajax = {
+            "url": "get_history",
+            "data": function(d) {
+               d.grandparent_rating_key = ${data['ratingKey']};
+            }
+        }
+
+        history_table = $('#history_table').DataTable(history_table_options);
+    });
+
+
+</script>
+% endif
+% if data['type'] == 'season':
+<script>
+    $.ajax({
+        url: 'get_children',
+        type: "GET",
+        async: true,
+        data: { rating_key : ${data['ratingKey']} },
+        complete: function(xhr, status) {
+            $("#episode-list").html(xhr.responseText);
+        }
+    });
+
+
+</script>
+% endif
+% endif
 </%def>

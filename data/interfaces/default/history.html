@@ -1,57 +1,58 @@
 <%inherit file="base.html"/>
 <%!
-	from plexpy import helpers
+from plexpy import helpers
 %>
 
 <%def name="headIncludes()">
-    <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
 </%def>
 
 <%def name="body()">
 
-        <div class="container-fluid">
-			<div class="row-fluid">
-				<div class="span12">
-					<div class="wellheader-bg">
-						<div class="dashboard-wellheader-no-chevron">
-							<h2><i class="fa fa-history"></i> History</h2>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-        <div class='container-fluid'>
-            <div class='row-fluid'>
-                <div class='span12'>
-                    <div class='wellbg'>
-                        <table class="display" id="history_table" width="100%">
-                            <thead>
-                                <tr>
-                                    <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
-                                    <th align='left' id="time"><i class='fa fa-sort'></i> Time</th>
-                                    <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
-                                    <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
-                                    <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
-                                    <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
-                                    <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
-                                    <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
-                                    <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
-                                    <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
-                                    <th align='left' id="percent_complete"> Completed</th>
-                                    <th align='left' id="rating_key"> RatingKey</th>
-                                    <th align='left' id="xml"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                        <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal" aria-hidden="true">
-						</div>
-                    </div>
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="wellheader-bg">
+                <div class="dashboard-wellheader-no-chevron">
+                    <h2><i class="fa fa-history"></i> History</h2>
                 </div>
             </div>
         </div>
     </div>
+</div>
+<div class='container-fluid'>
+    <div class='row-fluid'>
+        <div class='span12'>
+            <div class='wellbg'>
+                <table class="display" id="history_table" width="100%">
+                    <thead>
+                    <tr>
+                        <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
+                        <th align='left' id="time"><i class='fa fa-sort'></i> Time</th>
+                        <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
+                        <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
+                        <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
+                        <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
+                        <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
+                        <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
+                        <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
+                        <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
+                        <th align='left' id="percent_complete"> Completed</th>
+                        <th align='left' id="rating_key"> RatingKey</th>
+                        <th align='left' id="xml"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal"
+                     aria-hidden="true">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
 </%def>
 
 
@@ -69,6 +70,7 @@
 
         history_table = $('#history_table').DataTable(history_table_options);
     });
+
 </script>
 
 </%def>

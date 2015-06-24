@@ -1,8 +1,45 @@
-% if stats != None:
-% if stats[0]['rows']:
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           home_stats.html
+Version:            0.1
+Variable names:     data [array]
+
+data[array_index] :: Usable parameters
+
+data['stat_id']     Returns the name of the stat. Either 'top_tv', 'popular_tv', 'top_user' or 'top_platform'
+data['rows']        Returns an array containing stat data
+
+data[array_index]['rows'] :: Usable parameters
+
+== Only if 'stat_id' is 'top_tv' or 'popular_tv' ==
+grandparent_thumb       Returns location of the item's thumbnail. Use with pms_image_proxy.
+rating_key              Returns the unique identifier for the media item.
+orig_title              Returns the title for the associated stat.
+
+== Only if 'stat_id' is 'top_tv' or 'top_user' or 'top_platform' ==
+total_plays             Returns the count for the associated stat.
+
+== Only of 'stat_id' is 'popular_tv' ==
+users_watched           Returns the count for the associated stat.
+
+== Only if 'stat_id' is 'top_user' ==
+thumb                   Returns url of the user's gravatar. Returns '' if none exists.
+user                    Returns the username for the associated stat.
+
+== Only if 'stat_id' is 'top_platform' ==
+platform_type           Returns the platform name for the associated stat.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data != None:
+% if data[0]['rows']:
 <div class="user-platforms">
     <ul>
-        % for a in stats:
+        % for a in data:
         % if a['stat_id'] == 'top_tv':
         <div class="home-platforms-instance">
             <li>
@@ -16,6 +53,7 @@
                         % endif
                     </a>
                 </span>
+
                 <div class="home-platforms-instance-name">
                     <h4>Most Watched TV</h4>
                     <a href="info?rating_key=${a['rows'][0]['rating_key']}">
@@ -24,6 +62,7 @@
                 </div>
                 <div class="user-platforms-instance-playcount">
                     <h3>${a['rows'][0]['total_plays']}</h3>
+
                     <p> plays</p>
                 </div>
             </li>
@@ -41,6 +80,7 @@
                         % endif
                     </a>
                 </span>
+
                 <div class="home-platforms-instance-name">
                     <h4>Most Popular TV</h4>
                     <a href="info?rating_key=${a['rows'][0]['rating_key']}">
@@ -49,6 +89,7 @@
                 </div>
                 <div class="user-platforms-instance-playcount">
                     <h3>${a['rows'][0]['users_watched']}</h3>
+
                     <p> users</p>
                 </div>
             </li>
@@ -67,6 +108,7 @@
                         % endif
                     </a>
                 </span>
+
                 <div class="home-platforms-instance-name">
                     <h4>Most Active User</h4>
                     <a href="user?user=${a['rows'][0]['user']}">
@@ -75,6 +117,7 @@
                 </div>
                 <div class="user-platforms-instance-playcount">
                     <h3>${a['rows'][0]['total_plays']}</h3>
+
                     <p> plays</p>
                 </div>
             </li>
@@ -91,12 +134,14 @@
                 </div>
                 <div class="user-platforms-instance-playcount">
                     <h3>${a['rows'][0]['total_plays']}</h3>
+
                     <p> plays</p>
                 </div>
             </li>
         </div>
         <script>
             $("#platform-stat").html("<img class='home-platforms-instance-box' src='" + getPlatformImagePath('${a['rows'][0]['platform_type']}') + "'>");
+
         </script>
         % endif
         % endfor

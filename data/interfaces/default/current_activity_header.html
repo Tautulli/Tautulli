@@ -1,9 +1,25 @@
-% if activity != None:
-    % if activity == '0':
-        <h3>Activity</h3>
-    % else:
-        <h3>Activity <strong>${activity}</strong> stream(s)</h3>
-    % endif
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           current_activity_header.html
+Version:            0.1
+Variable names:     data [string]
+
+data :: Usable parameters
+
+data                Returns the current number of active streams
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data != None:
+% if data == '0':
+<h3>Activity</h3>
 % else:
-    <h3>Activity</h3>
+<h3>Activity <strong>${data}</strong> stream(s)</h3>
+% endif
+% else:
+<h3>Activity</h3>
 % endif

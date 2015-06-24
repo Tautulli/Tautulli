@@ -1,26 +1,49 @@
-% if watch_stats != None:
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           user_watch_time_stats.html
+Version:            0.1
+Variable names:     data [array]
+
+data[array_index] :: Usable parameters
+
+== Global keys ==
+query_days              Returns the duration for the watch stats period.
+total_plays             Returns the play count for the watch stat period..
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data != None:
 <ul>
-    % for a in watch_stats:
-	<div class='user-overview-stats-instance'>
-		<li>
-			<div class='user-overview-stats-instance-text'>
+    % for a in data:
+    <div class='user-overview-stats-instance'>
+        <li>
+            <div class='user-overview-stats-instance-text'>
                 % if a['query_days'] == 0:
-				    <h4>All Time</h4>
+                <h4>All Time</h4>
                 % elif a['query_days'] == 1:
-                    <h4>Last 24 hours</h4>
+                <h4>Last 24 hours</h4>
                 % else:
-                    <h4>Last ${a['query_days']} days</h4>
+                <h4>Last ${a['query_days']} days</h4>
                 % endif
-                <h3>${a['total_plays']}</h3><p>plays</p>
+                <h3>${a['total_plays']}</h3>
+
+                <p>plays</p>
                 <span id="total-time-${a['query_days']}"></span>
-			</div>
-		</li>
-	</div>
+            </div>
+        </li>
+    </div>
     <script>
         $('#total-time-${a['query_days']}').html(humanTime(${a['total_time']}));
+
+
     </script>
     % endfor
 </ul>
 % else:
-    <div class="muted">There was an error loading your PlexWatch data. Please check your <a href="config">settings</a>.</div><br>
+<div class="muted">There was an error loading your PlexWatch data. Please check your <a href="config">settings</a>.
+</div><br>
 % endif
