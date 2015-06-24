@@ -13,23 +13,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, common, request
+from plexpy import logger, helpers
 
 from xml.dom import minidom
 from httplib import HTTPSConnection
 from httplib import HTTPConnection
-from urlparse import parse_qsl
-from urllib import urlencode
-from pynma import pynma
 
-import base64
-import cherrypy
-import urllib
-import urllib2
 import plexpy
-import os.path
-import subprocess
-import json
 
 
 class PmsConnect(object):
@@ -291,11 +281,9 @@ class PmsConnect(object):
             if a.getElementsByTagName('Directory'):
                 metadata_main = a.getElementsByTagName('Directory')[0]
                 metadata_type = self.get_xml_attr(metadata_main, 'type')
-                logger.debug(u"Metadata type: %s" % metadata_type)
             elif a.getElementsByTagName('Video'):
                 metadata_main = a.getElementsByTagName('Video')[0]
                 metadata_type = self.get_xml_attr(metadata_main, 'type')
-                logger.debug(u"Metadata type: %s" % metadata_type)
             else:
                 logger.debug(u"Metadata failed")
 
@@ -307,22 +295,18 @@ class PmsConnect(object):
         if metadata_main.getElementsByTagName('Genre'):
             for genre in metadata_main.getElementsByTagName('Genre'):
                 genres.append(self.get_xml_attr(genre, 'tag'))
-                logger.debug(u"Metadata genre: %s" % self.get_xml_attr(genre, 'tag'))
 
         if metadata_main.getElementsByTagName('Role'):
             for actor in metadata_main.getElementsByTagName('Role'):
                 actors.append(self.get_xml_attr(actor, 'tag'))
-                logger.debug(u"Metadata actor: %s" % self.get_xml_attr(actor, 'tag'))
 
         if metadata_main.getElementsByTagName('Writer'):
             for writer in metadata_main.getElementsByTagName('Writer'):
                 writers.append(self.get_xml_attr(writer, 'tag'))
-                logger.debug(u"Metadata genre: %s" % self.get_xml_attr(writer, 'tag'))
 
         if metadata_main.getElementsByTagName('Director'):
             for director in metadata_main.getElementsByTagName('Director'):
                 directors.append(self.get_xml_attr(director, 'tag'))
-                logger.debug(u"Metadata actor: %s" % self.get_xml_attr(director, 'tag'))
 
         if metadata_type == 'show':
             metadata = {'type': metadata_type,
@@ -386,7 +370,6 @@ class PmsConnect(object):
         elif metadata_type == 'season':
             parent_rating_key = self.get_xml_attr(metadata_main, 'parentRatingKey')
             show_details = self.get_metadata_details(parent_rating_key)
-            logger.debug(u"show_details = %r" % show_details)
             metadata = {'type': metadata_type,
                         'ratingKey': self.get_xml_attr(metadata_main, 'ratingKey'),
                         'parentTitle': self.get_xml_attr(metadata_main, 'parentTitle'),
@@ -447,7 +430,6 @@ class PmsConnect(object):
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    logger.debug(u"No active sessions.")
                     session_list = {'stream_count': '0',
                                     'sessions': []
                                     }
@@ -456,14 +438,12 @@ class PmsConnect(object):
             if a.getElementsByTagName('Track'):
                 session_data = a.getElementsByTagName('Track')
                 session_type = 'track'
-                logger.debug(u"Track session active.")
                 for session in session_data:
                     session_output = self.get_session_each(session_type, session)
                     session_list.append(session_output)
             if a.getElementsByTagName('Video'):
                 session_data = a.getElementsByTagName('Video')
                 session_type = 'video'
-                logger.debug(u"Video session active.")
                 for session in session_data:
                     session_output = self.get_session_each(session_type, session)
                     session_list.append(session_output)

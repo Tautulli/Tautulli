@@ -99,10 +99,9 @@ class DataTables(object):
                     if int(order_column) == parameter['index']:
                         if parameter['data'] in column_data['column_named'] and parameter['orderable'] == 'true':
                             order = 'ORDER BY %s COLLATE NOCASE %s' % (parameter['data'], order_dir)
-                            logger.debug(u"order string %s " % order)
         else:
             order = 'ORDER BY %s COLLATE NOCASE %s' % (column_data['column_named'][order_column], order_dir)
-            logger.debug(u"order string (NO param received) %s " % order)
+
         return order
 
     @staticmethod
@@ -115,11 +114,9 @@ class DataTables(object):
                     for parameter in parameters:
                         if column in parameter['data']:
                             if parameter['searchable'] == 'true':
-                                logger.debug(u"Column %s is searchable." % column)
                                 where += column + ' LIKE "%' + search_value + '%" OR '
                                 search_skip = True
                             else:
-                                logger.debug(u"Column %s is NOT searchable." % column)
                                 search_skip = True
 
                     if not search_skip:

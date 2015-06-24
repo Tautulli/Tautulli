@@ -85,6 +85,7 @@ from plexpy import helpers
             type: 'get',
             data: { time_range: '30' },
             dataType: "json",
+            cache: false,
             success: function(data) {
                 var dateArray = [];
                 for (var i = 0; i < data.categories.length; i++) {
@@ -102,6 +103,7 @@ from plexpy import helpers
             type: 'get',
             data: { time_range: '30' },
             dataType: "json",
+            cache: false,
             success: function(data) {
                 hc_plays_by_dayofweek_options.xAxis.categories = data.categories;
                 hc_plays_by_dayofweek_options.series = data.series;
@@ -114,6 +116,7 @@ from plexpy import helpers
             type: 'get',
             data: { time_range: '30' },
             dataType: "json",
+            cache: false,
             success: function(data) {
                 hc_plays_by_hourofday_options.xAxis.categories = data.categories;
                 hc_plays_by_hourofday_options.series = data.series;

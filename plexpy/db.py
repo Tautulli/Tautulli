@@ -100,20 +100,6 @@ class DBConnection:
 
         return sqlResult
 
-    def get_history_table_name(self):
-
-        if plexpy.CONFIG.GROUPING_GLOBAL_HISTORY:
-            return "grouped"
-        else:
-            return "processed"
-
-    def get_user_table_name(self):
-
-        if plexpy.CONFIG.GROUPING_USER_HISTORY:
-            return "grouped"
-        else:
-            return "processed"
-
     def upsert(self, tableName, valueDict, keyDict):
 
         changesBefore = self.connection.total_changes

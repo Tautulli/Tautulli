@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, request, datatables, config, db
+from plexpy import logger, helpers, datatables, db
 from xml.dom import minidom
 import sys
 if sys.version_info < (2, 7):
@@ -22,7 +22,6 @@ else:
     from collections import defaultdict, Counter
 import datetime
 import plexpy
-import json
 
 
 class PlexWatch(object):
@@ -37,14 +36,6 @@ class PlexWatch(object):
     def get_history_table_name():
 
         if plexpy.CONFIG.GROUPING_GLOBAL_HISTORY:
-            return "grouped"
-        else:
-            return "processed"
-
-    @staticmethod
-    def get_user_table_name():
-
-        if plexpy.CONFIG.GROUPING_USER_HISTORY:
             return "grouped"
         else:
             return "processed"
@@ -78,7 +69,7 @@ class PlexWatch(object):
                    'ip_address',
                    'COUNT(title) as plays']
         try:
-            query = data_tables.ssp_query(table_name=self.get_user_table_name(),
+            query = data_tables.ssp_query(table_name=self.get_history_table_name(),
                                           columns=columns,
                                           start=start,
                                           length=length,
@@ -150,7 +141,7 @@ class PlexWatch(object):
                    ]
 
         try:
-            query = data_tables.ssp_query(table_name=self.get_user_table_name(),
+            query = data_tables.ssp_query(table_name=self.get_history_table_name(),
                                           columns=columns,
                                           start=start,
                                           length=length,
@@ -408,11 +399,11 @@ class PlexWatch(object):
         try:
             if user:
                 query = 'SELECT time, user, xml FROM %s WHERE user = "%s" ORDER BY time DESC LIMIT %s' % \
-                        (self.get_user_table_name(), user, limit)
+                        (self.get_history_table_name(), user, limit)
                 xml = myDB.select(query)
             else:
                 query = 'SELECT time, user, xml FROM %s ORDER BY time DESC LIMIT %s' % \
-                        (self.get_user_table_name(), limit)
+                        (self.get_history_table_name(), limit)
                 xml = myDB.select(query)
         except:
             logger.warn("Unable to open PlexWatch database.")
@@ -467,7 +458,7 @@ class PlexWatch(object):
             try:
                 query = 'SELECT (SUM(stopped - time) - SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
                         'COUNT(id) AS total_plays ' \
-                        'FROM %s %s' % (self.get_user_table_name(), where)
+                        'FROM %s %s' % (self.get_history_table_name(), where)
                 result = myDB.select(query)
             except:
                 logger.warn("Unable to open PlexWatch database.")
@@ -501,7 +492,7 @@ class PlexWatch(object):
                     'FROM %s ' \
                     'WHERE user = "%s" ' \
                     'GROUP BY platform ' \
-                    'ORDER BY platform_count DESC' % (self.get_user_table_name(), user)
+                    'ORDER BY platform_count DESC' % (self.get_history_table_name(), user)
             result = myDB.select(query)
         except:
             logger.warn("Unable to open PlexWatch database.")
@@ -542,7 +533,7 @@ class PlexWatch(object):
             query = 'SELECT xml ' \
                     'FROM %s ' \
                     'WHERE user = "%s" ' \
-                    'ORDER BY id DESC LIMIT 1' % (self.get_user_table_name(), user)
+                    'ORDER BY id DESC LIMIT 1' % (self.get_history_table_name(), user)
             result = myDB.select_single(query)
         except:
             logger.warn("Unable to open PlexWatch database.")
@@ -588,7 +579,7 @@ class PlexWatch(object):
                             'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
                             'AND episode != "" ' \
                             'GROUP BY orig_title ' \
-                            'ORDER BY total_plays DESC LIMIT 10' % (self.get_user_table_name(), time_range)
+                            'ORDER BY total_plays DESC LIMIT 10' % (self.get_history_table_name(), time_range)
                     result = myDB.select(query)
                 except:
                     logger.warn("Unable to open PlexWatch database.")
@@ -631,7 +622,7 @@ class PlexWatch(object):
                             'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
                             'AND episode != "" ' \
                             'GROUP BY orig_title ' \
-                            'ORDER BY users_watched DESC, total_plays DESC LIMIT 10' % (self.get_user_table_name(), time_range)
+                            'ORDER BY users_watched DESC, total_plays DESC LIMIT 10' % (self.get_history_table_name(), time_range)
                     result = myDB.select(query)
                 except:
                     logger.warn("Unable to open PlexWatch database.")
@@ -673,7 +664,7 @@ class PlexWatch(object):
                             'FROM %s ' \
                             'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
                             'GROUP BY user ' \
-                            'ORDER BY total_plays DESC LIMIT 10' % (self.get_user_table_name(), time_range)
+                            'ORDER BY total_plays DESC LIMIT 10' % (self.get_history_table_name(), time_range)
                     result = myDB.select(query)
                 except:
                     logger.warn("Unable to open PlexWatch database.")
@@ -699,7 +690,7 @@ class PlexWatch(object):
                             'FROM %s ' \
                             'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
                             'GROUP BY platform ' \
-                            'ORDER BY total_plays DESC' % (self.get_user_table_name(), time_range)
+                            'ORDER BY total_plays DESC' % (self.get_history_table_name(), time_range)
                     result = myDB.select(query)
                 except:
                     logger.warn("Unable to open PlexWatch database.")
@@ -750,7 +741,7 @@ class PlexWatch(object):
                     'FROM %s ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
                     'GROUP BY date_played ' \
-                    'ORDER BY time ASC' % (self.get_user_table_name(), time_range)
+                    'ORDER BY time ASC' % (self.get_history_table_name(), time_range)
 
             result = myDB.select(query)
         except:
@@ -808,7 +799,7 @@ class PlexWatch(object):
                 'when 5 then "Friday" ' \
                 'else "Saturday" end as dayofweek, ' \
                 'COUNT(id) as total_plays ' \
-                'from ' + self.get_user_table_name() + ' ' + \
+                'from ' + self.get_history_table_name() + ' ' + \
                 'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
                 'datetime("now", "-' + time_range + ' days", "localtime") ' \
                 'GROUP BY dayofweek ' \
@@ -849,7 +840,7 @@ class PlexWatch(object):
 
         query = 'select strftime("%H", datetime(time, "unixepoch", "localtime")) as hourofday, ' \
                 'COUNT(id) ' \
-                'FROM ' + self.get_user_table_name() + ' ' + \
+                'FROM ' + self.get_history_table_name() + ' ' + \
                 'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
                 'datetime("now", "-' + time_range + ' days", "localtime") ' \
                 'GROUP BY hourofday ' \

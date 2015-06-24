@@ -13,25 +13,17 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, notifiers, plextv, pmsconnect, plexwatch
-from plexpy.helpers import checked, radio, today, cleanName
-from xml.dom import minidom
+from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch
+from plexpy.helpers import checked, radio
 
 from mako.lookup import TemplateLookup
 from mako import exceptions
 
-from operator import itemgetter
-
 import plexpy
-import threading
 import cherrypy
-import urllib2
 import hashlib
 import random
-import urllib
 import json
-import time
-import sys
 import os
 
 try:
@@ -524,7 +516,6 @@ class WebInterface(object):
             try:
                 pms_connect = pmsconnect.PmsConnect()
                 result = pms_connect.get_image(img, width, height)
-                logger.debug(u'Image proxy queried. Content type is %s' % result[0])
                 cherrypy.response.headers['Content-type'] = result[0]
                 return result[1]
             except:

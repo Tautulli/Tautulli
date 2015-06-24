@@ -40,7 +40,7 @@ var hc_plays_by_day_options = {
     },
     tooltip: {
         formatter: function() {
-            var monthStr = moment(this.x).format("MMM D");
+            var monthStr = moment(this.x).format("ddd MMM D");
             var s = '<b>'+ monthStr +'</b>';
 
             $.each(this.points, function(i, point) {

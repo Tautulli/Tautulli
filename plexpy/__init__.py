@@ -298,7 +298,7 @@ def sig_handler(signum=None, frame=None):
 
 
 def dbcheck():
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(plexpy.CONFIG.PLEXWATCH_DATABASE)
     c = conn.cursor()
     conn.commit()
     c.close()
