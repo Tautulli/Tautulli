@@ -816,12 +816,23 @@ class PlexWatch(object):
 
         result = myDB.select(query)
 
+        days_list = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
+                     'Thursday', 'Friday', 'Saturday']
+
         categories = []
         series_1 = []
 
-        for item in result:
-            categories.append(item[1])
-            series_1.append(item[2])
+        for day_item in days_list:
+            categories.append(day_item)
+            series_1_value = 0
+            for item in result:
+                if day_item == item[1]:
+                    series_1_value = item[2]
+                    break
+                else:
+                    series_1_value = 0
+
+            series_1.append(series_1_value)
 
         series_1_output = {'name': 'Total plays',
                            'data': series_1}
