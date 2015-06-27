@@ -56,7 +56,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     def home(self):
-        return serve_template(templatename="index.html", title="Home")
+        if plexpy.CONFIG.PLEXWATCH_DATABASE == '':
+            raise cherrypy.HTTPRedirect("config")
+        else:
+            return serve_template(templatename="index.html", title="Home")
 
     @cherrypy.expose
     def get_date_formats(self):
@@ -202,10 +205,6 @@ class WebInterface(object):
             http_password = '    '
         else:
             http_password = ''
-        if plexpy.CONFIG.PMS_PASSWORD != '':
-            pms_password = '    '
-        else:
-            pms_password = ''
 
         config = {
             "http_host": plexpy.CONFIG.HTTP_HOST,
@@ -273,8 +272,7 @@ class WebInterface(object):
             "email_tls": checked(plexpy.CONFIG.EMAIL_TLS),
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_port": plexpy.CONFIG.PMS_PORT,
-            "pms_username": plexpy.CONFIG.PMS_USERNAME,
-            "pms_password": pms_password,
+            "pms_token": plexpy.CONFIG.PMS_TOKEN,
             "plexwatch_database": plexpy.CONFIG.PLEXWATCH_DATABASE,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
@@ -303,29 +301,9 @@ class WebInterface(object):
                 # checked items should be zero or one. if they were not sent then the item was not checked
                 kwargs[checked_config] = 0
 
-        # Write Plex token to the config
-        if (not plexpy.CONFIG.PMS_TOKEN or plexpy.CONFIG.PMS_TOKEN == '' \
-                    or kwargs['pms_username'] != plexpy.CONFIG.PMS_USERNAME) \
-                and (kwargs['pms_username'] != '' or kwargs['pms_password'] != ''):
-
-            plex_tv = plextv.PlexTV(kwargs['pms_username'], kwargs['pms_password'])
-            token = plex_tv.get_token()
-
-            if token:
-                kwargs['pms_token'] = token
-                logger.info('Plex.tv token sucessfully written to config.')
-            else:
-                logger.warn('Unable to write Plex.tv token to config.')
-
-        # Clear Plex token if username or password set to blank
-        if kwargs['pms_username'] == '' or kwargs['pms_password'] == '':
-            kwargs['pms_token'] = ''
-
-        # If passwords exists in config, do not overwrite when blank value received
+        # If http password exists in config, do not overwrite when blank value received
         if kwargs['http_password'] == '    ' and plexpy.CONFIG.HTTP_PASSWORD != '':
             kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
-        if kwargs['pms_password'] == '    ' and plexpy.CONFIG.PMS_PASSWORD != '':
-            kwargs['pms_password'] = plexpy.CONFIG.PMS_PASSWORD
 
         for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
             # the use prefix is fairly nice in the html, but does not match the actual config

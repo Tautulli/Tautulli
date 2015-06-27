@@ -162,15 +162,11 @@
                                                         <p class="help-block">Port that Plex Media Server is listening on.</p>
                                                     </div>
                                                     <div class="form-group">
-                                                        <label for="pms_username">PMS Username</label>
-                                                        <input type="text" id="pms_username" name="pms_username" value="${config['pms_username']}" size="30">
-                                                        <p class="help-block">Username for Plex.tv authentication. Leave empty if no authentication is required.</p>
+                                                        <label for="pms_token">PMS Token</label>
+                                                        <input type="text" id="pms_token" name="pms_token" value="${config['pms_token']}" size="30">
+                                                        <p class="help-block">Token for Plex.tv authentication. Leave empty if no authentication is required.</p>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label for="pms_password">PMS Password</label>
-                                                        <input type="password" id="pms_password" name="pms_password" value="${config['pms_password']}" size="30">
-                                                        <p class="help-block">Password for Plex.tv authentication. Leave empty if no authentication is required.</p>
-                                                    </div>
+                                                    <p class="help-block"><a href="#pms-auth-modal" data-toggle="modal">Fetch Token</a></p>
                                                 </fieldset>
                                             </div>
                                             <div class="span4">
@@ -324,6 +320,42 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer"></div>
+                                </div>
+
+                                <div id="pms-auth-modal" class="modal hide fade" tabindex="-1" role="dialog"
+                                     aria-labelledby="ip-info-modal" aria-hidden="true">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
+                                                class="fa fa-remove"></i></button>
+                                        <h3 id="PMSAuthModal">Fetch Plex.tv Token</h3>
+                                    </div>
+                                    <div class="modal-body" id="modal-text">
+                                        <div>
+                                            <div class="span6">
+                                                <span>
+                                                    This will attempt to fetch your token for you. This will not work on Internet Explorer 9 or lower.
+                                                    PlexPy does not store your username and password.
+                                                </span>
+                                                <br/><br/>
+                                                <div class="form-group">
+                                                    <label for="pms_username">PMS Username</label>
+                                                    <input type="text" id="pms_username" name="pms_username" size="30">
+                                                    <p class="help-block">Username for Plex.tv authentication.</p>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="pms_password">PMS Password</label>
+                                                    <input type="password" id="pms_password" name="pms_password" size="30">
+                                                    <p class="help-block">Password for Plex.tv authentication.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <div class="">
+                                            <input type="button" id="get-pms-auth-token" class="btn btn-primary" value="Fetch Token">
+                                            <span id="pms-token-status"></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 <!--
@@ -682,6 +714,38 @@
 
 <%def name="javascriptIncludes()">
     <script>
+
+        // Plex.tv auth token fetch
+        $("#get-pms-auth-token").click(function() {
+            $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i> Fetching token...');
+            if (($("#pms_username").val() !== '') || ($("#pms_password").val() !== '')) {
+                $.ajax({
+                    type: "post",
+                    url: "https://plex.tv/users/sign_in.xml",
+                    dataType: 'xml',
+                    async: true,
+                    headers: {'Content-Type': 'application/xml; charset=utf-8',
+                              'Content-Length': '0',
+                              'X-Plex-Device-Name': 'PlexPy',
+                              'X-Plex-Product': 'PlexPy',
+                              'X-Plex-Version': 'v0.1 dev',
+                              'X-Plex-Client-Identifier': 'f0864d3531d75b19fa9204eaea456515e2502017',
+                              'Authorization': 'Basic ' + btoa($("#pms_username").val() + ':' + $("#pms_password").val())
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Authentation failed!');
+                    },
+                    success: function (xml) {
+                        var authToken = $(xml).find('user').attr('authenticationToken');
+                        $("#pms-token-status").html('<i class="fa fa-check"></i> Authentation successful!');
+                        $("#pms_token").val(authToken);
+                        $('#pms-auth-modal').modal('hide');
+                    }
+                });
+            } else {
+                $("#pms-token-status").html("You must enter both fields.");
+            }
+        });
 
         function openExtrasDialog() {
             $("#dialog").dialog({ close: function(){
