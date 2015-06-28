@@ -1,4 +1,7 @@
 $('#log_table').dataTable( {
+    "responsive": {
+        details: false
+    },
     "processing": false,
     "serverSide": true,
     "ajax": {

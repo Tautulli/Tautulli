@@ -22,6 +22,7 @@ from plexpy import helpers
 
 <%def name="headIncludes()">
 <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.responsive.css">
 </%def>
 
 % if user != None:
@@ -105,55 +106,53 @@ from plexpy import helpers
         <div class="container-fluid">
             <div class="row-fluid">
                 <div class="span12">
-                    <div class="wellbg">
-                        <div class="wellheader">
-                            <div class="dashboard-wellheader">
-                                <h3>IP Addresses for <strong>
-                                    ${user}
-                                </strong></h3>
-                            </div>
-                        </div>
+                    <div class="table-card-back">
+                        <h3>IP Addresses for <strong>
+                            ${user}
+                        </strong></h3>
+                    </div>
+                    <div class="table-card-back">
                         <table id="user_ip_table" class="display" width="100%">
                             <thead>
                             <tr>
-                                <th align="left"><i class="fa fa-sort"></i> Last seen</th>
-                                <th align="left"><i class="fa fa-sort"></i> IP Address</th>
-                                <th align="left"><i class="fa fa-sort"></i> Play Count</th>
-                                <th align="left"><i class="fa fa-sort"></i> Platform (Last Seen)</th>
-                                <th align="left"> Last Watched</th>
+                                <th class="all" align="left">Last seen</th>
+                                <th class="all" align="left">IP Address</th>
+                                <th class="min-tablet" align="left">Play Count</th>
+                                <th class="min-tablet" align="left">Platform (Last Seen)</th>
+                                <th class="desktop" align="left">Last Watched</th>
                             </tr>
                             </thead>
                         </table>
-                        <div id="ip-info-modal" class="modal hide fade" tabindex="-1" role="dialog"
-                             aria-labelledby="ip-info-modal" aria-hidden="true">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
-                                        class="fa fa-remove"></i></button>
-                                <h3 id="myModalLabel">IP Address: <strong><span id="ip_address"></span></strong></h3>
-                            </div>
-                            <div class="modal-body" id="modal-text">
-                                <div class="span6">
-                                    <h4>Location Details</h4>
-                                    <ul>
-                                        <li>Country: <strong><span id="country"></span></strong></li>
-                                        <li>City: <strong><span id="city"></span></strong></li>
-                                        <li>Region: <strong><span id="region"></span></strong></li>
-                                        <li>Timezone: <strong><span id="timezone"></span></strong></li>
-                                        <li>Latitude: <strong><span id="lat"></span></strong></li>
-                                        <li>Longitude: <strong><span id="lon"></span></strong></li>
-                                    </ul>
-                                </div>
-                                <div class="span6">
-                                    <h4>Connection Details</h4>
-                                    <ul>
-                                        <li>ISP: <strong><span id="isp"></span></strong></li>
-                                        <li>Organization: <strong><span id="org"></span></strong></li>
-                                        <li>AS: <strong><span id="as"></span></strong></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="modal-footer"></div>
+                    </div>
+                    <div id="ip-info-modal" class="modal hide fade" tabindex="-1" role="dialog"
+                         aria-labelledby="ip-info-modal" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
+                                    class="fa fa-remove"></i></button>
+                            <h3 id="myModalLabel">IP Address: <strong><span id="modal_header_ip_address"></span></strong></h3>
                         </div>
+                        <div class="modal-body" id="modal-text">
+                            <div class="span6">
+                                <h4>Location Details</h4>
+                                <ul>
+                                    <li>Country: <strong><span id="country"></span></strong></li>
+                                    <li>City: <strong><span id="city"></span></strong></li>
+                                    <li>Region: <strong><span id="region"></span></strong></li>
+                                    <li>Timezone: <strong><span id="timezone"></span></strong></li>
+                                    <li>Latitude: <strong><span id="lat"></span></strong></li>
+                                    <li>Longitude: <strong><span id="lon"></span></strong></li>
+                                </ul>
+                            </div>
+                            <div class="span6">
+                                <h4>Connection Details</h4>
+                                <ul>
+                                    <li>ISP: <strong><span id="isp"></span></strong></li>
+                                    <li>Organization: <strong><span id="org"></span></strong></li>
+                                    <li>AS: <strong><span id="as"></span></strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="modal-footer"></div>
                     </div>
                 </div>
             </div>
@@ -163,38 +162,36 @@ from plexpy import helpers
         <div class="container-fluid">
             <div class="row-fluid">
                 <div class="span12">
-                    <div class="wellbg">
-                        <div class="wellheader">
-                            <div class="dashboard-wellheader">
-                                <h3>Watch History for <strong>
-                                    ${user}
-                                </strong></h3>
-                            </div>
-                        </div>
+                    <div class="table-card-back">
+                        <h3>Watch History for <strong>
+                            ${user}
+                        </strong></h3>
+                    </div>
+                    <div class="table-card-back">
                         <table class="display" id="history_table" width="100%">
                             <thead>
                             <tr>
-                                <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
-                                <th align='left' id="date"><i class='fa fa-sort'></i> Time</th>
-                                <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
-                                <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
-                                <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
-                                <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
-                                <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
-                                <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
-                                <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
-                                <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
-                                <th align='left' id="percent_complete"> Completed</th>
-                                <th align='left' id="rating_key"> RatingKey</th>
-                                <th align='left' id="xml"></th>
+                                <th class="never" align='left' id="id">ID</th>
+                                <th class="all" align='left' id="time">Time</th>
+                                <th class="never" align='left' id="user">User</th>
+                                <th class="min-tablet" align='left' id="platform">Platform</th>
+                                <th class="desktop" align='left' id="ip_address">IP Address</th>
+                                <th class="min-tablet" align='left' id="title">Title</th>
+                                <th class="desktop" align='left' id="started">Started</th>
+                                <th class="desktop" align='left' id="paused_counter">Paused</th>
+                                <th class="desktop" align='left' id="stopped">Stopped</th>
+                                <th class="desktop" align='left' id="duration">Duration</th>
+                                <th class="desktop" align='left' id="percent_complete">Completed</th>
+                                <th class="never" align='left' id="rating_key">RatingKey</th>
+                                <th class="never" align='left' id="xml"></th>
                             </tr>
                             </thead>
                             <tbody>
                             </tbody>
                         </table>
-                        <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog"
-                             aria-labelledby="info-modal" aria-hidden="true">
-                        </div>
+                    </div>
+                    <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog"
+                         aria-labelledby="info-modal" aria-hidden="true">
                     </div>
                 </div>
             </div>
@@ -206,6 +203,7 @@ from plexpy import helpers
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.responsive.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/history_table.js"></script>

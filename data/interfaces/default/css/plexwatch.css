@@ -863,7 +863,6 @@ pre code {
 .label,
 .badge {
 	display: inline-block;
-	font-size: 14px;
 	padding: 4px 8px;
 	border-radius: 10px;
 	vertical-align: baseline;
@@ -879,7 +878,6 @@ pre code {
 	display: inline-block;
 	font-weight: normal;
 	padding: 4px 8px;
-	font-size: 14px;
 	border-radius: 10px;
 	vertical-align: baseline;
 	white-space: nowrap;
@@ -1217,7 +1215,7 @@ button,
 select,
 textarea {
 	color: #fff;
-	font-size: 16px;
+	font-size: 14x;
 	font-weight: normal;
 	line-height: normal;
 }
@@ -2224,6 +2222,7 @@ input[type="button"].btn-block {
 	/* Darken IE7 buttons by default so they stand out more given they won't have borders */
 	filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
 	padding: 6px 25px;
+
 }
 .btn-primary:hover,
 .btn-primary:focus,
@@ -4070,6 +4069,7 @@ text-shadow: 0 0 10px rgba(255,255,255,0.85);
 }
 .pagination {
 	margin: 0px 0;
+	padding-top: 12px;
 }
 .pagination ul {
 	display: inline-block;
@@ -4094,7 +4094,7 @@ text-shadow: 0 0 10px rgba(255,255,255,0.85);
 	line-height: 20px;
 	text-decoration: none;
 	background-color: #262626;
-	border: 1px solid #1f1f1f;
+	border: 1px solid #444444;
 	border-left-width: 0;
 }
 .pagination ul > li > a:hover,
@@ -4114,7 +4114,7 @@ text-shadow: 0 0 10px rgba(255,255,255,0.85);
 .pagination ul > .disabled > a,
 .pagination ul > .disabled > a:hover,
 .pagination ul > .disabled > a:focus {
-	color: #222;
+	color: #444444;
 	background-color: transparent;
 	cursor: default;
 	text-shadow: none;
@@ -8168,4 +8168,30 @@ ol.test >li {
 	color: #999999;
 	text-align: center;
 	line-height: 300px;
+}
+
+.card-back {
+    padding: 20px;
+    background-color: #282828;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 80%;
+    overflow: hidden;
+}
+
+.table-card-back {
+    padding: 20px 20px 20px 40px;
+    background-color: #282828;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 90%;
+    overflow: hidden;
+}
+
+.table-card-back td {
+	font-size: 12px;
 }

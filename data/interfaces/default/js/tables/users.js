@@ -1,4 +1,7 @@
 users_list_table_options = {
+    "responsive": {
+        details: false
+    },
     "language": {
         "search": "Search: ",
         "lengthMenu":"Show _MENU_ entries per page",

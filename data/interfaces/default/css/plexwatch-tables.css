@@ -79,7 +79,6 @@
 .dataTables_paginate {
 	float: right;
 	text-align: right;
-	margin-top: 7px;
 	margin-right: 15px;
 }
 
@@ -145,7 +144,7 @@ table.display {
 	clear: both;
 	width: 100%;
 	font-size: 14px;
-	line-height: 30px;
+	line-height: 25px;
 	/* Note Firefox 3.5 and before have a bug with border-collapse
 	 * ( https://bugzilla.mozilla.org/show%5Fbug.cgi?id=155955 )
 	 * border-spacing: 0; is one possible option. Conditional-css.com is
@@ -176,6 +175,36 @@ table.display thead th i {
 margin-top: -1px;
 }
 
+table.display thead .sorting,
+table.display thead .sorting_asc,
+table.display thead .sorting_desc {
+  cursor: pointer;
+  *cursor: hand;
+}
+table.display thead .sorting,
+table.display thead .sorting_asc,
+table.display thead .sorting_desc,
+table.display thead .sorting_asc_disabled,
+table.display thead .sorting_desc_disabled {
+  background-repeat: no-repeat;
+  background-position: left;
+}
+table.display thead .sorting {
+  background-image: url("../images/sort_both.png");
+}
+table.display thead .sorting_asc {
+  background-image: url("../images/sort_asc.png");
+}
+table.display thead .sorting_desc {
+  background-image: url("../images/sort_desc.png");
+}
+table.display thead .sorting_asc_disabled {
+  background-image: url("../images/sort_asc_disabled.png");
+}
+table.display thead .sorting_desc_disabled {
+  background-image: url("../images/sort_desc_disabled.png");
+}
+
 table.display tfoot th {
 	padding: 3px 18px 3px 10px;
 	border-top: 1px solid black;
@@ -188,7 +217,6 @@ table.display tr.heading2 td {
 
 table.display td {
 	padding: 5px 0 5px 20px;
-	white-space:nowrap;
 }
 
 table.display td.title {
@@ -619,4 +647,8 @@ div.box {
 	overflow: auto;
 	border: 1px solid #8080FF;
 	background-color: #E5E5FF;
+}
+
+td.no-wrap, th.no-wrap {
+	white-space:nowrap;
 }

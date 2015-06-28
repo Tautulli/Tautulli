@@ -5,6 +5,7 @@ from plexpy import helpers
 
 <%def name="headIncludes()">
 <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.responsive.css">
 </%def>
 
 <%def name="body()">
@@ -22,15 +23,15 @@ from plexpy import helpers
 <div class='container-fluid'>
     <div class='row-fluid'>
         <div class='span12'>
-            <div class='wellbg'>
+            <div class='table-card-back'>
                 <table id="users_list_table" class="display" width="100%">
                     <thead>
                     <tr>
-                        <th align="right" id="avatar"></th>
-                        <th align="left" id="username"><i class='fa fa-sort'></i> User</th>
-                        <th align="left" id="last_seen"><i class='fa fa-sort'></i> Last Seen</th>
-                        <th align="left" id="last_known_ip"><i class='fa fa-sort'></i> Last Known IP</th>
-                        <th align="left" id="total_plays"><i class='fa fa-sort'></i> Total Plays</th>
+                        <th class="all" align="right" id="avatar"></th>
+                        <th class="all" align="left" id="username">User</th>
+                        <th class="min-tablet" align="left" id="last_seen">Last Seen</th>
+                        <th class="min-tablet" align="left" id="last_known_ip">Last Known IP</th>
+                        <th class="min-tablet" align="left" id="total_plays">Total Plays</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -46,6 +47,7 @@ from plexpy import helpers
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.responsive.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/users.js"></script>

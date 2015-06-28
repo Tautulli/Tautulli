@@ -1,4 +1,7 @@
 user_ip_table_options = {
+    "responsive": {
+        details: false
+    },
     "destroy": true,
     "language": {
         "search": "Search: ",
@@ -23,7 +26,8 @@ user_ip_table_options = {
                 return moment(data, "X").fromNow();
             },
             "searchable": false,
-            "width": "15%"
+            "width": "15%",
+            "className": "no-wrap"
         },
         {
             "targets": [1],
@@ -41,7 +45,8 @@ user_ip_table_options = {
                     $(td).html('<a href="#ip-info-modal" data-toggle="modal"><span data-toggle="ip-tooltip" data-placement="left" title="IP Address Info" id="ip-info"><i class="icon-map-marker icon-white"></i></span>&nbsp' + cellData +'</a>');
                 }
             },
-            "width": "15%"
+            "width": "15%",
+            "className": "no-wrap"
         },
         {
             "targets": [2],

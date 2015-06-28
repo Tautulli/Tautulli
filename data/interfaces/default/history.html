@@ -5,6 +5,7 @@ from plexpy import helpers
 
 <%def name="headIncludes()">
 <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.responsive.css">
 </%def>
 
 <%def name="body()">
@@ -23,23 +24,23 @@ from plexpy import helpers
 <div class='container-fluid'>
     <div class='row-fluid'>
         <div class='span12'>
-            <div class='wellbg'>
+            <div class='table-card-back'>
                 <table class="display" id="history_table" width="100%">
                     <thead>
                     <tr>
-                        <th align='left' id="id"><i class='fa fa-sort'></i> ID</th>
-                        <th align='left' id="time"><i class='fa fa-sort'></i> Time</th>
-                        <th align='left' id="user"><i class='fa fa-sort'></i> User</th>
-                        <th align='left' id="platform"><i class='fa fa-sort'></i> Platform</th>
-                        <th align='left' id="ip_address"><i class='fa fa-sort'></i> IP Address</th>
-                        <th align='left' id="title"><i class='fa fa-sort'></i> Title</th>
-                        <th align='left' id="started"><i class='fa fa-sort'></i> Started</th>
-                        <th align='left' id="paused_counter"><i class='fa fa-sort'></i> Paused</th>
-                        <th align='left' id="stopped"><i class='fa fa-sort'></i> Stopped</th>
-                        <th align='left' id="duration"><i class='fa fa-sort'></i> Duration</th>
-                        <th align='left' id="percent_complete"> Completed</th>
-                        <th align='left' id="rating_key"> RatingKey</th>
-                        <th align='left' id="xml"></th>
+                        <th class="never" align='left' id="id">ID</th>
+                        <th class="all" align='left' id="time">Time</th>
+                        <th class="all" align='left' id="user">User</th>
+                        <th class="min-tablet" align='left' id="platform">Platform</th>
+                        <th class="desktop" align='left' id="ip_address">IP Address</th>
+                        <th class="min-tablet" align='left' id="title">Title</th>
+                        <th class="desktop" align='left' id="started">Started</th>
+                        <th class="desktop" align='left' id="paused_counter">Paused</th>
+                        <th class="desktop" align='left' id="stopped">Stopped</th>
+                        <th class="desktop" align='left' id="duration">Duration</th>
+                        <th class="desktop" align='left' id="percent_complete">Completed</th>
+                        <th class="never" align='left' id="rating_key">RatingKey</th>
+                        <th class="never" align='left' id="xml"></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -59,6 +60,7 @@ from plexpy import helpers
 <%def name="javascriptIncludes()">
 
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.responsive.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/history_table.js"></script>
