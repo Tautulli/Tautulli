@@ -307,6 +307,8 @@ def sig_handler(signum=None, frame=None):
 def dbcheck():
     conn = sqlite3.connect(plexpy.CONFIG.PLEXWATCH_DATABASE)
     c = conn.cursor()
+    c.execute('CREATE TABLE IF NOT EXISTS plexpy_users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+              'username TEXT NOT NULL UNIQUE, friendly_name TEXT)')
     conn.commit()
     c.close()
 

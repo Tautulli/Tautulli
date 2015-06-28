@@ -99,7 +99,42 @@ class WebInterface(object):
 
     @cherrypy.expose
     def user(self, user=None):
-        return serve_template(templatename="user.html", title="User", user=user)
+        try:
+            plex_watch = plexwatch.PlexWatch()
+            friendly_name = plex_watch.get_user_friendly_name(user)
+        except:
+            logger.warn("Unable to retrieve friendly name for user %s " % user)
+            friendly_name = user
+
+        return serve_template(templatename="user.html", title="User", user=user, friendly_name=friendly_name)
+
+    @cherrypy.expose
+    def edit_user(self, user=None, friendly_name=None, **kwargs):
+        if user and friendly_name:
+            try:
+                plex_watch = plexwatch.PlexWatch()
+                plex_watch.set_user_friendly_name(user, friendly_name)
+                status_message = "Successfully updated user."
+                return status_message
+            except:
+                status_message = "Failed to updated user."
+                return status_message
+        elif user and not friendly_name:
+            try:
+                plex_watch = plexwatch.PlexWatch()
+                result = {'user': user,
+                          'friendly_name': plex_watch.get_user_friendly_name(user)
+                          }
+                status_message = ""
+            except:
+                result = {'user': user,
+                          'friendly_name': ''
+                          }
+                status_message = "There was an error."
+
+            return serve_template(templatename="edit_user.html", title="Edit User", data=result, status_message=status_message)
+        else:
+            return serve_template(templatename="edit_user.html", title="Edit User", data=user, status_message='Unknown error.')
 
     @cherrypy.expose
     def get_stream_data(self, row_id=None, user=None, **kwargs):

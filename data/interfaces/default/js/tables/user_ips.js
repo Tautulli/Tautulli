@@ -33,7 +33,7 @@ user_ip_table_options = {
             "targets": [1],
             "data":"ip_address",
             "width": "15%",
-            "className": "modal-control",
+            "className": "modal-control no-wrap",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (isPrivateIP(cellData)) {
                     if (cellData != '') {
@@ -45,8 +45,7 @@ user_ip_table_options = {
                     $(td).html('<a href="#ip-info-modal" data-toggle="modal"><span data-toggle="ip-tooltip" data-placement="left" title="IP Address Info" id="ip-info"><i class="icon-map-marker icon-white"></i></span>&nbsp' + cellData +'</a>');
                 }
             },
-            "width": "15%",
-            "className": "no-wrap"
+            "width": "15%"
         },
         {
             "targets": [2],

@@ -10,6 +10,7 @@ Variable names:     user [string]
 user :: Usable parameters
 
 user                Returns the name of the user.
+friendly_name       Returns the friendly name of the user.
 
 DOCUMENTATION :: END
 
@@ -35,7 +36,7 @@ from plexpy import helpers
                     <img src="interfaces/default/images/gravatar-default-80x80.png">
                 </div>
                 <div class="user-info-username">
-                    ${user}
+                    <span class="set-username">${friendly_name}</span> <a href="#edit-user-modal" data-toggle="modal" id="toggle-edit-user-modal"><i class="fa fa-pencil"></i></a>
                 </div>
                 <div class="user-info-nav">
                     <ul class="user-info-nav">
@@ -46,6 +47,9 @@ from plexpy import helpers
                 </div>
             </div>
         </div>
+    </div>
+    <div id="edit-user-modal" class="modal hide fade" tabindex="-1" role="dialog"
+         aria-labelledby="edit-user-modal" aria-hidden="true">
     </div>
 </div>
 <div class="tab-content">
@@ -108,7 +112,7 @@ from plexpy import helpers
                 <div class="span12">
                     <div class="table-card-back">
                         <h3>IP Addresses for <strong>
-                            ${user}
+                            <span class="set-username">${friendly_name}</span>
                         </strong></h3>
                     </div>
                     <div class="table-card-back">
@@ -164,7 +168,7 @@ from plexpy import helpers
                 <div class="span12">
                     <div class="table-card-back">
                         <h3>Watch History for <strong>
-                            ${user}
+                            <span class="set-username">${friendly_name}</span>
                         </strong></h3>
                     </div>
                     <div class="table-card-back">
@@ -271,6 +275,19 @@ from plexpy import helpers
                             $('#user-gravatar').html('<img src="' + thumb + '">');
                         }
                     }
+                });
+
+                // Load edit user modal
+                $("#toggle-edit-user-modal").click(function() {
+                    $.ajax({
+                        url: 'edit_user',
+                        data: {user: '${user}'},
+                        cache: false,
+                        async: true,
+                        complete: function(xhr, status) {
+                            $("#edit-user-modal").html(xhr.responseText);
+                        }
+                    });
                 });
             });
 

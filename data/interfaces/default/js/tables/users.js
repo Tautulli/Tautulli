@@ -14,7 +14,7 @@ users_list_table_options = {
     "processing": false,
     "serverSide": true,
     "pageLength": 10,
-    "order": [ 0, 'asc'],
+    "order": [ 1, 'asc'],
     "ajax": {
         "url": "get_user_list"
     },

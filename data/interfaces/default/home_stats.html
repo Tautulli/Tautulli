@@ -28,6 +28,7 @@ users_watched           Returns the count for the associated stat.
 == Only if 'stat_id' is 'top_user' ==
 thumb                   Returns url of the user's gravatar. Returns '' if none exists.
 user                    Returns the username for the associated stat.
+friendly_name           Returns the friendly name of the user for the associated stat.
 
 == Only if 'stat_id' is 'top_platform' ==
 platform_type           Returns the platform name for the associated stat.
@@ -112,12 +113,11 @@ DOCUMENTATION :: END
                 <div class="home-platforms-instance-name">
                     <h4>Most Active User</h4>
                     <a href="user?user=${a['rows'][0]['user']}">
-                        <h5>${a['rows'][0]['user']}</h5>
+                        <h5>${a['rows'][0]['friendly_name']}</h5>
                     </a>
                 </div>
                 <div class="user-platforms-instance-playcount">
                     <h3>${a['rows'][0]['total_plays']}</h3>
-
                     <p> plays</p>
                 </div>
             </li>

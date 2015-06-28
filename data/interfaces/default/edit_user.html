@@ -1,0 +1,56 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           edit_user.html
+Version:            0.1
+Variable names:     data [list]
+
+data :: Usable parameters
+
+== Global keys ==
+user                Return the real Plex username
+friendly_name       Returns the friendly edited Plex username
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data is not None:
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+    <h3>Edit user <strong>${data['user']}</strong></h3>
+</div>
+<div class="modal-body" id="modal-text">
+    <div class="card-back">
+        <div class="form-group">
+            <label for="friendly_name">Friendly Name</label>
+            <input type="text" id="friendly_name" name="friendly_name" value="${data['friendly_name']}" size="30">
+            <p class="help-block">Replace all occurances of the username with this name.</p>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <div>
+        <input type="button" id="save_user_name" class="btn btn-primary" value="Save">
+        <span id="edit-user-status-message"></span>
+    </div>
+</div>
+<script>
+    // Set new friendly name
+    $("#save_user_name").click(function() {
+        var friendly_name = $("#friendly_name").val();
+        $.ajax({
+            url: 'edit_user',
+            data: {user: '${data['user']}', friendly_name: friendly_name},
+            cache: false,
+            async: true,
+            success: function(data) {
+                $("#edit-user-status-message").html(data);
+                $(".set-username").html(friendly_name);
+            }
+        });
+    });
+</script>
+
+% endif

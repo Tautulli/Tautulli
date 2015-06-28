@@ -660,11 +660,14 @@ class PlexWatch(object):
             elif 'top_users' in stat:
                 top_users = []
                 try:
-                    query = 'SELECT user, COUNT(id) as total_plays, MAX(time) as last_watch ' \
-                            'FROM %s ' \
-                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                            'GROUP BY user ' \
-                            'ORDER BY total_plays DESC LIMIT 10' % (self.get_history_table_name(), time_range)
+                    s = self.get_history_table_name()
+                    query = 'SELECT user, (case when friendly_name is null then user else friendly_name end) as friendly_name,' \
+                            'COUNT(' + s + '.id) as total_plays, MAX(time) as last_watch ' \
+                            'FROM ' + s + ' ' \
+                            'LEFT OUTER JOIN plexpy_users ON ' + s + '.user = plexpy_users.username ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-' + time_range + ' days", "localtime") '\
+                            'GROUP BY ' + s + '.user ' \
+                            'ORDER BY total_plays DESC LIMIT 10'
                     result = myDB.select(query)
                 except:
                     logger.warn("Unable to open PlexWatch database.")
@@ -673,8 +676,9 @@ class PlexWatch(object):
                 for item in result:
                     thumb = self.get_user_gravatar_image(item[0])
                     row = {'user': item[0],
-                           'total_plays': item[1],
-                           'last_play': item[2],
+                           'friendly_name': item[1],
+                           'total_plays': item[2],
+                           'last_play': item[3],
                            'thumb': thumb['user_thumb']
                     }
                     top_users.append(row)
@@ -874,6 +878,24 @@ class PlexWatch(object):
         output = {'categories': categories,
                   'series': [series_1_output]}
         return output
+
+    def set_user_friendly_name(self, user=None, friendly_name=None):
+        if user and friendly_name:
+            myDB = db.DBConnection()
+
+            control_value_dict = {"username": user}
+            new_value_dict = {"friendly_name": friendly_name}
+
+            myDB.upsert('plexpy_users', new_value_dict, control_value_dict)
+
+    def get_user_friendly_name(self, user=None):
+        if user:
+            myDB = db.DBConnection()
+
+            query = 'select friendly_name FROM plexpy_users WHERE username = "%s"' % user
+            result = myDB.select_single(query)
+
+            return result
 
     # Taken from:
     # https://stackoverflow.com/questions/18066269/group-by-and-aggregate-the-values-of-a-list-of-dictionaries-in-python

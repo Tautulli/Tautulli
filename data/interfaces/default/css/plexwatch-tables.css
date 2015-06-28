@@ -161,9 +161,7 @@ table.display {
 
 table.display thead th {
 white-space:nowrap;
-padding: 0px 0px 0px 19px;
-border-top: 1px solid #2d2d2d;
-border-bottom: 1px solid #0e0e0e;
+padding: 0px 0px 0px 18px;
 cursor: pointer;
 color: #999;
 background-color: #212121;
@@ -180,6 +178,7 @@ table.display thead .sorting_asc,
 table.display thead .sorting_desc {
   cursor: pointer;
   *cursor: hand;
+  height: 35px;
 }
 table.display thead .sorting,
 table.display thead .sorting_asc,
@@ -216,7 +215,7 @@ table.display tr.heading2 td {
 }
 
 table.display td {
-	padding: 5px 0 5px 20px;
+	padding: 5px 0 5px 5px;
 }
 
 table.display td.title {
