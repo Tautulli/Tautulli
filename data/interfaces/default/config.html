@@ -732,11 +732,10 @@
                     dataType: 'xml',
                     async: true,
                     headers: {'Content-Type': 'application/xml; charset=utf-8',
-                              'Content-Length': '0',
                               'X-Plex-Device-Name': 'PlexPy',
                               'X-Plex-Product': 'PlexPy',
                               'X-Plex-Version': 'v0.1 dev',
-                              'X-Plex-Client-Identifier': 'f0864d3531d75b19fa9204eaea456515e2502017',
+                              'X-Plex-Client-Identifier': '${config['pms_uuid']}',
                               'Authorization': 'Basic ' + btoa($("#pms_username").val() + ':' + $("#pms_password").val())
                     },
                     error: function(jqXHR, textStatus, errorThrown) {

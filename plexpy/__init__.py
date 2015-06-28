@@ -24,6 +24,7 @@ import webbrowser
 import sqlite3
 import cherrypy
 import datetime
+import uuid
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -127,6 +128,12 @@ def initialize(config_file):
             dbcheck()
         except Exception as e:
             logger.error("Can't connect to the database: %s", e)
+
+        # Check if PlexPy has a uuid
+        if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
+            my_uuid = generate_uuid()
+            CONFIG.__setattr__('PMS_UUID', my_uuid)
+            CONFIG.write()
 
         # Get the currently installed version. Returns None, 'win32' or the git
         # hash.
@@ -334,3 +341,7 @@ def shutdown(restart=False, update=False):
         subprocess.Popen(popen_list, cwd=os.getcwd())
 
     os._exit(0)
+
+def generate_uuid():
+    logger.debug(u"Generating UUID...")
+    return uuid.uuid4().hex

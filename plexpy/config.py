@@ -28,6 +28,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_TOKEN': (str, 'PMS', ''),
     'PMS_USERNAME': (str, 'PMS', ''),
     'PMS_USE_BIF': (int, 'PMS', 0),
+    'PMS_UUID': (str, 'PMS', ''),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
     'API_ENABLED': (int, 'General', 0),
     'API_KEY': (str, 'General', ''),

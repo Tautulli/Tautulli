@@ -274,6 +274,7 @@ class WebInterface(object):
             "pms_port": plexpy.CONFIG.PMS_PORT,
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
             "pms_use_bif": checked(plexpy.CONFIG.PMS_USE_BIF),
+            "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "plexwatch_database": plexpy.CONFIG.PLEXWATCH_DATABASE,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
