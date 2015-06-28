@@ -39,10 +39,11 @@ class PlexTV(object):
     def __init__(self, username='', password=''):
         self.username = username
         self.password = password
+        self.url = 'plex.tv'
 
     def get_plex_auth(self):
 
-        http_handler = HTTPSConnection("plex.tv")
+        http_handler = HTTPSConnection(self.url)
         base64string = base64.encodestring('%s:%s' % (self.username, self.password)).replace('\n', '')
 
         http_handler.request("POST",
@@ -110,3 +111,107 @@ class PlexTV(object):
             return user_data
         else:
             return False
+
+    def get_plextv_friends(self, output_format=''):
+        url_command = '/api/users'
+        http_handler = HTTPSConnection(self.url, timeout=10)
+
+        try:
+            http_handler.request("GET", url_command + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN)
+            response = http_handler.getresponse()
+            request_status = response.status
+            request_content = response.read()
+        except IOError, e:
+            logger.warn(u"Failed to access friends list. %s" % e)
+            return None
+
+        if request_status == 200:
+            if output_format == 'dict':
+                output = helpers.convert_xml_to_dict(request_content)
+            elif output_format == 'json':
+                output = helpers.convert_xml_to_json(request_content)
+            else:
+                output = request_content
+        else:
+            logger.warn(u"Failed to access friends list. Status code %r" % request_status)
+            return None
+
+        return output
+
+    def get_plextv_user_details(self, output_format=''):
+        url_command = '/users/account'
+        http_handler = HTTPSConnection(self.url, timeout=10)
+
+        try:
+            http_handler.request("GET", url_command + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN)
+            response = http_handler.getresponse()
+            request_status = response.status
+            request_content = response.read()
+        except IOError, e:
+            logger.warn(u"Failed to access user details. %s" % e)
+            return None
+
+        if request_status == 200:
+            if output_format == 'dict':
+                output = helpers.convert_xml_to_dict(request_content)
+            elif output_format == 'json':
+                output = helpers.convert_xml_to_json(request_content)
+            else:
+                output = request_content
+        else:
+            logger.warn(u"Failed to access user details. Status code %r" % request_status)
+            return None
+
+        return output
+
+    def get_plextv_server_list(self, output_format=''):
+        url_command = '/pms/servers.xml'
+        http_handler = HTTPSConnection(self.url, timeout=10)
+
+        try:
+            http_handler.request("GET", url_command + '?includeLite=1&X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN)
+            response = http_handler.getresponse()
+            request_status = response.status
+            request_content = response.read()
+        except IOError, e:
+            logger.warn(u"Failed to access server list. %s" % e)
+            return None
+
+        if request_status == 200:
+            if output_format == 'dict':
+                output = helpers.convert_xml_to_dict(request_content)
+            elif output_format == 'json':
+                output = helpers.convert_xml_to_json(request_content)
+            else:
+                output = request_content
+        else:
+            logger.warn(u"Failed to access server list. Status code %r" % request_status)
+            return None
+
+        return output
+
+    def get_plextv_sync_lists(self, machine_id='', output_format=''):
+        url_command = '/servers/' + machine_id + '/sync_lists'
+        http_handler = HTTPSConnection(self.url, timeout=10)
+
+        try:
+            http_handler.request("GET", url_command + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN)
+            response = http_handler.getresponse()
+            request_status = response.status
+            request_content = response.read()
+        except IOError, e:
+            logger.warn(u"Failed to access server list. %s" % e)
+            return None
+
+        if request_status == 200:
+            if output_format == 'dict':
+                output = helpers.convert_xml_to_dict(request_content)
+            elif output_format == 'json':
+                output = helpers.convert_xml_to_json(request_content)
+            else:
+                output = request_content
+        else:
+            logger.warn(u"Failed to access server list. Status code %r" % request_status)
+            return None
+
+        return output

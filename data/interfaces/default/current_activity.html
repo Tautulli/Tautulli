@@ -41,6 +41,7 @@ videoDecision           Returns the video transcode decision. Either 'transcode'
 videoCodec              Returns the name of the video codec.
 height                  Returns the value of the video height.
 width                   Returns the value of the video width.
+indexes                 Returns true if the media has media indexes and are enabled
 
 DOCUMENTATION :: END
 </%doc>
@@ -50,16 +51,17 @@ DOCUMENTATION :: END
 % for a in data['sessions']:
 <div class="instance" id="instance-${a['sessionKey']}">
     <div class="poster">
-        % if a['type'] == 'track-to-do':
-        <div class="art-music-face"
-             style="background-image:url(pms_image_proxy?img=${a['thumb']}&width=300&height=300)"></div>
-        % elif a['type'] == 'movie':
+        % if a['type'] == 'movie' and not a['indexes']:
         <div class="dashboard-activity-poster-face">
-            <img src="pms_image_proxy?img=${a['art']}&width=300&height=169"/> <!-- media artwork -->
+            <img src="pms_image_proxy?img=${a['art']}&width=300&height=169"/>
+        </div>
+        % elif a['indexes']:
+        <div class="dashboard-activity-poster-face">
+            <img onload="fadeIn(this)" src="pms_image_proxy?img=${a['thumb']}&width=300&height=169" style="display: none;"/>
         </div>
         % else:
         <div class="dashboard-activity-poster-face">
-            <img src="pms_image_proxy?img=${a['thumb']}&width=300&height=169"/> <!-- media artwork -->
+            <img src="pms_image_proxy?img=${a['thumb']}&width=300&height=169"/>
         </div>
         % endif
         <div class='dashboard-activity-metadata-wrapper'>
@@ -140,6 +142,11 @@ DOCUMENTATION :: END
 
 </script>
 % endfor
+<script>
+    function fadeIn(obj) {
+        $(obj).fadeIn(450);
+    }
+</script>
 % else:
 <div class="muted">Nothing is currently being watched.</div><br>
 % endif

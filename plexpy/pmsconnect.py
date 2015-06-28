@@ -180,6 +180,39 @@ class PmsConnect(object):
         return output
 
     """
+    Return list of local servers.
+
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_server_list(self, output_format=''):
+        url_command = '/servers'
+        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+
+        try:
+            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
+            response = http_handler.getresponse()
+            request_status = response.status
+            request_content = response.read()
+        except IOError, e:
+            logger.warn(u"Failed to access metadata. %s" % e)
+            return None
+
+        if request_status == 200:
+            if output_format == 'dict':
+                output = helpers.convert_xml_to_dict(request_content)
+            elif output_format == 'json':
+                output = helpers.convert_xml_to_json(request_content)
+            else:
+                output = request_content
+        else:
+            logger.warn(u"Failed to access metadata. Status code %r" % request_status)
+            return None
+
+        return output
+
+    """
     Return processed and validated list of recently added items.
 
     Parameters required:    count { number of results to return }
@@ -522,10 +555,29 @@ class PmsConnect(object):
                 duration = self.get_xml_attr(media_info, 'duration')
                 progress = self.get_xml_attr(session, 'viewOffset')
 
+            media_info = session.getElementsByTagName('Media')[0]
+            if media_info.getElementsByTagName('Part'):
+                indexes = self.get_xml_attr(media_info.getElementsByTagName('Part')[0], 'indexes')
+                part_id = self.get_xml_attr(media_info.getElementsByTagName('Part')[0], 'id')
+                if indexes == 'sd':
+                    bif_thumb = '/library/parts/' + part_id + '/indexes/sd/' + progress
+                else:
+                    bif_thumb = ''
+            else:
+                indexes = ''
+                bif_thumb = ''
+
+            if plexpy.CONFIG.PMS_USE_BIF and indexes == 'sd':
+                thumb = bif_thumb
+                use_indexes = 1
+            else:
+                thumb = self.get_xml_attr(session, 'thumb')
+                use_indexes = 0
+
             if self.get_xml_attr(session, 'type') == 'episode':
                 session_output = {'sessionKey': self.get_xml_attr(session, 'sessionKey'),
                                   'art': self.get_xml_attr(session, 'art'),
-                                  'thumb': self.get_xml_attr(session, 'thumb'),
+                                  'thumb': thumb,
                                   'user': self.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
                                   'player': self.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
                                   'state': self.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
@@ -542,12 +594,13 @@ class PmsConnect(object):
                                   'duration': duration,
                                   'progress': progress,
                                   'progressPercent': str(helpers.get_percent(progress, duration)),
-                                  'type': self.get_xml_attr(session, 'type')
+                                  'type': self.get_xml_attr(session, 'type'),
+                                  'indexes': use_indexes
                                   }
             elif self.get_xml_attr(session, 'type') == 'movie':
                 session_output = {'sessionKey': self.get_xml_attr(session, 'sessionKey'),
                                   'art': self.get_xml_attr(session, 'art'),
-                                  'thumb': self.get_xml_attr(session, 'thumb'),
+                                  'thumb': thumb,
                                   'user': self.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
                                   'player': self.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
                                   'state': self.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
@@ -563,7 +616,8 @@ class PmsConnect(object):
                                   'duration': duration,
                                   'progress': progress,
                                   'progressPercent': str(helpers.get_percent(progress, duration)),
-                                  'type': self.get_xml_attr(session, 'type')
+                                  'type': self.get_xml_attr(session, 'type'),
+                                  'indexes': use_indexes
                                   }
         else:
             logger.warn(u"No known stream types found in session list.")
@@ -636,6 +690,7 @@ class PmsConnect(object):
                     image_path = '/photo/:/transcode?url=http://127.0.0.1:32400' + img + '&width=' + width + '&height=' + height
                 else:
                     image_path = '/photo/:/transcode?url=http://127.0.0.1:32400' + img
+
                 http_handler.request("GET", image_path + '&X-Plex-Token=' + self.token)
                 response = http_handler.getresponse()
                 request_status = response.status

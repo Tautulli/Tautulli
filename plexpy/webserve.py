@@ -273,6 +273,7 @@ class WebInterface(object):
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_port": plexpy.CONFIG.PMS_PORT,
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
+            "pms_use_bif": checked(plexpy.CONFIG.PMS_USE_BIF),
             "plexwatch_database": plexpy.CONFIG.PLEXWATCH_DATABASE,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
@@ -294,7 +295,7 @@ class WebInterface(object):
             "synoindex_enabled", "pushover_enabled", "pushbullet_enabled",
             "subsonic_enabled", "twitter_enabled", "osx_notify_enabled",
             "boxcar_enabled", "mpc_enabled", "email_enabled", "email_tls",
-            "grouping_global_history", "grouping_user_history", "grouping_charts"
+            "grouping_global_history", "grouping_user_history", "grouping_charts", "pms_use_bif"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -731,5 +732,65 @@ class WebInterface(object):
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_friends_list(self, **kwargs):
+
+        plex_tv = plextv.PlexTV()
+        result = plex_tv.get_plextv_friends('json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_user_details(self, **kwargs):
+
+        plex_tv = plextv.PlexTV()
+        result = plex_tv.get_plextv_user_details('json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_server_list(self, **kwargs):
+
+        plex_tv = plextv.PlexTV()
+        result = plex_tv.get_plextv_server_list('json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_sync_lists(self, machine_id='', **kwargs):
+
+        plex_tv = plextv.PlexTV()
+        result = plex_tv.get_plextv_sync_lists(machine_id=machine_id, output_format='json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_servers(self, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_server_list(output_format='json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
         else:
             logger.warn('Unable to retrieve data.')
