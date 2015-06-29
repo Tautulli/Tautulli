@@ -18,12 +18,8 @@ users_list_table_options = {
     "ajax": {
         "url": "get_user_list"
     },
-    "bLengthChange": true,
-    "bInfo": true,
-    "bAutoWidth": true,
-    "aaSorting": [[ 0, "asc" ]],
-    "bStateSave": true,
-    "bSortClasses": true,
+    "autoWidth": true,
+    "stateSave": true,
     "sPaginationType": "bootstrap",
     "columnDefs": [
         {
@@ -42,10 +38,10 @@ users_list_table_options = {
         },
         {
             "targets": [1],
-            "data": "user",
+            "data": "friendly_name",
              "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="user?user=' + cellData + '">' + cellData + '</a>');
+                    $(td).html('<a href="user?user=' + rowData['user'] + '">' + cellData + '</a>');
                 } else {
                     $(td).html(cellData);
                 }
@@ -66,7 +62,14 @@ users_list_table_options = {
         {
             "targets": [4],
             "data": "plays"
+        },
+        {
+            "targets": [5],
+            "data": "user",
+            "searchable": false,
+            "visible": false
         }
+
     ],
     "drawCallback": function (settings) {
         // Jump to top of page

@@ -64,12 +64,16 @@ class PlexWatch(object):
         if 'search[regex]' in kwargs:
             search_regex = kwargs.get('search[regex]', "")
 
-        columns = ['user',
-                   'time',
-                   'ip_address',
-                   'COUNT(title) as plays']
+        t = self.get_history_table_name()
+
+        columns = [t + '.id',
+                   '(case when plexpy_users.friendly_name is null then ' + t + '.user else plexpy_users.friendly_name end) as friendly_name',
+                   t + '.time',
+                   t + '.ip_address',
+                   'COUNT(' + t + '.title) as plays',
+                   t + '.user']
         try:
-            query = data_tables.ssp_query(table_name=self.get_history_table_name(),
+            query = data_tables.ssp_query(table_name=t,
                                           columns=columns,
                                           start=start,
                                           length=length,
@@ -78,7 +82,10 @@ class PlexWatch(object):
                                           search_value=search_value,
                                           search_regex=search_regex,
                                           custom_where='',
-                                          group_by='user',
+                                          group_by=(t + '.user'),
+                                          join_type='LEFT OUTER JOIN',
+                                          join_table='plexpy_users',
+                                          join_evals=[t + '.user', 'plexpy_users.username'],
                                           kwargs=kwargs)
         except:
             logger.warn("Unable to open PlexWatch database.")
@@ -94,9 +101,10 @@ class PlexWatch(object):
 
             row = {"plays": item['plays'],
                    "time": item['time'],
-                   "user": item["user"],
+                   "friendly_name": item["friendly_name"],
                    "ip_address": item["ip_address"],
-                   "thumb": thumb['user_thumb']
+                   "thumb": thumb['user_thumb'],
+                   "user": item["user"]
                    }
 
             rows.append(row)
@@ -132,12 +140,14 @@ class PlexWatch(object):
         if 'search[regex]' in kwargs:
             search_regex = kwargs.get('search[regex]', "")
 
-        columns = ['time as last_seen',
-                   'ip_address',
-                   'COUNT(ip_address) as play_count',
-                   'platform',
-                   'user',
-                   'orig_title as last_watched'
+        t = self.get_history_table_name()
+
+        columns = [t + '.time as last_seen',
+                   t + '.user',
+                   t + '.ip_address',
+                   'COUNT(' + t + '.ip_address) as play_count',
+                   t + '.platform',
+                   t + '.title as last_watched'
                    ]
 
         try:
@@ -150,7 +160,10 @@ class PlexWatch(object):
                                           search_value=search_value,
                                           search_regex=search_regex,
                                           custom_where=custom_where,
-                                          group_by='ip_address',
+                                          group_by=(t + '.ip_address'),
+                                          join_type=None,
+                                          join_table=None,
+                                          join_evals=None,
                                           kwargs=kwargs)
         except:
             logger.warn("Unable to open PlexWatch database.")
@@ -190,6 +203,8 @@ class PlexWatch(object):
         order_column = 1
         order_dir = "desc"
 
+        t = self.get_history_table_name()
+
         if 'order[0][dir]' in kwargs:
             order_dir = kwargs.get('order[0][dir]', "desc")
 
@@ -202,24 +217,25 @@ class PlexWatch(object):
         if 'search[regex]' in kwargs:
             search_regex = kwargs.get('search[regex]', "")
 
-        columns = ['id',
-                   'time as date',
-                   'user',
-                   'platform',
-                   'ip_address',
-                   'title',
-                   'time as started',
-                   'paused_counter',
-                   'stopped',
-                   'ratingKey as rating_key',
-                   'xml',
-                   'round((julianday(datetime(stopped, "unixepoch", "localtime")) - \
-                    julianday(datetime(time, "unixepoch", "localtime"))) * 86400) - \
-                    (case when paused_counter is null then 0 else paused_counter end) as duration',
-                   'grandparentRatingKey as grandparent_rating_key'
+        columns = [t + '.id',
+                   t + '.time as date',
+                   '(case when plexpy_users.friendly_name is null then ' + t + '.user else plexpy_users.friendly_name end) as friendly_name',
+                   t + '.platform',
+                   t + '.ip_address',
+                   t + '.title',
+                   t + '.time as started',
+                   t + '.paused_counter',
+                   t + '.stopped',
+                   'round((julianday(datetime(' + t + '.stopped, "unixepoch", "localtime")) - \
+                    julianday(datetime(' + t + '.time, "unixepoch", "localtime"))) * 86400) - \
+                    (case when ' + t + '.paused_counter is null then 0 else ' + t + '.paused_counter end) as duration',
+                   t + '.ratingKey as rating_key',
+                   t + '.xml',
+                   t + '.user',
+                   t + '.grandparentRatingKey as grandparent_rating_key'
                    ]
         try:
-            query = data_tables.ssp_query(table_name=self.get_history_table_name(),
+            query = data_tables.ssp_query(table_name=t,
                                           columns=columns,
                                           start=start,
                                           length=length,
@@ -229,6 +245,9 @@ class PlexWatch(object):
                                           search_regex=search_regex,
                                           custom_where=custom_where,
                                           group_by='',
+                                          join_type='LEFT OUTER JOIN',
+                                          join_table='plexpy_users',
+                                          join_evals=[t + '.user', 'plexpy_users.username'],
                                           kwargs=kwargs)
         except:
             logger.warn("Unable to open PlexWatch database.")
@@ -243,7 +262,7 @@ class PlexWatch(object):
         for item in history:
             row = {"id": item['id'],
                    "date": item['date'],
-                   "user": item["user"],
+                   "friendly_name": item['friendly_name'],
                    "platform": item["platform"],
                    "ip_address": item["ip_address"],
                    "title": item["title"],
@@ -253,7 +272,9 @@ class PlexWatch(object):
                    "rating_key": item["rating_key"],
                    "duration": item["duration"],
                    "percent_complete": 0,
-                   "xml": ""}
+                   "xml": "",
+                   "user": item["user"]
+                   }
 
             if item['paused_counter'] > 0:
                 row['paused_counter'] = item['paused_counter']

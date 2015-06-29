@@ -39,6 +39,9 @@ class DataTables(object):
                   search_regex='',
                   custom_where='',
                   group_by='',
+                  join_type=None,
+                  join_table=None,
+                  join_evals=None,
                   kwargs=None):
 
         parameters = self.process_kwargs(kwargs)
@@ -50,7 +53,14 @@ class DataTables(object):
 
         column_data = self.extract_columns(columns)
         where = self.construct_where(column_data, search_value, grouping, parameters)
-        order = self.construct_order(column_data, order_column, order_dir, parameters)
+        order = self.construct_order(column_data, order_column, order_dir, parameters, table_name, grouping)
+        join = ''
+
+        if join_type:
+            if join_type.upper() == 'LEFT OUTER JOIN':
+                join = 'LEFT OUTER JOIN %s ON %s = %s' % (join_table, join_evals[0], join_evals[1])
+            else:
+                join = ''
 
         # TODO: custom_where is ugly and causes issues with reported total results
         if custom_where != '':
@@ -58,21 +68,21 @@ class DataTables(object):
 
         if grouping:
             if custom_where == '':
-                query = 'SELECT * FROM (SELECT %s FROM %s GROUP BY %s) %s %s' \
-                        % (column_data['column_string'], table_name, group_by,
+                query = 'SELECT * FROM (SELECT %s FROM %s %s GROUP BY %s) %s %s' \
+                        % (column_data['column_string'], table_name, join, group_by,
                            where, order)
             else:
-                query = 'SELECT * FROM (SELECT * FROM (SELECT %s FROM %s GROUP BY %s) %s %s) %s' \
-                        % (column_data['column_string'], table_name, group_by,
+                query = 'SELECT * FROM (SELECT * FROM (SELECT %s FROM %s %s GROUP BY %s) %s %s) %s' \
+                        % (column_data['column_string'], table_name, join, group_by,
                            where, order, custom_where)
         else:
             if custom_where == '':
-                query = 'SELECT %s FROM %s %s %s' \
-                        % (column_data['column_string'], table_name, where,
+                query = 'SELECT %s FROM %s %s %s %s' \
+                        % (column_data['column_string'], table_name, join, where,
                            order)
             else:
-                query = 'SELECT * FROM (SELECT %s FROM %s %s %s) %s' \
-                        % (column_data['column_string'], table_name, where,
+                query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s) %s' \
+                        % (column_data['column_string'], table_name, join, where,
                            order, custom_where)
 
         # logger.debug(u"Query string: %s" % query)
@@ -91,16 +101,23 @@ class DataTables(object):
         return output
 
     @staticmethod
-    def construct_order(column_data, order_column, order_dir, parameters=None):
+    def construct_order(column_data, order_column, order_dir, parameters=None, table_name=None, grouped=False):
         order = ''
+        if grouped:
+            sort_col = column_data['column_named'][order_column]
+        else:
+            sort_col = column_data['column_order'][order_column]
         if parameters:
             for parameter in parameters:
                 if parameter['data'] != '':
                     if int(order_column) == parameter['index']:
                         if parameter['data'] in column_data['column_named'] and parameter['orderable'] == 'true':
-                            order = 'ORDER BY %s COLLATE NOCASE %s' % (parameter['data'], order_dir)
+                            if table_name and table_name != '':
+                                order = 'ORDER BY %s COLLATE NOCASE %s' % (sort_col, order_dir)
+                            else:
+                                order = 'ORDER BY %s COLLATE NOCASE %s' % (sort_col, order_dir)
         else:
-            order = 'ORDER BY %s COLLATE NOCASE %s' % (column_data['column_named'][order_column], order_dir)
+            order = 'ORDER BY %s COLLATE NOCASE %s' % (sort_col, order_dir)
 
         return order
 
@@ -112,7 +129,7 @@ class DataTables(object):
                 for column in column_data['column_named']:
                     search_skip = False
                     for parameter in parameters:
-                        if column in parameter['data']:
+                        if column.rpartition('.')[-1] in parameter['data']:
                             if parameter['searchable'] == 'true':
                                 where += column + ' LIKE "%' + search_value + '%" OR '
                                 search_skip = True
@@ -139,6 +156,7 @@ class DataTables(object):
         columns_string = ''
         columns_literal = []
         columns_named = []
+        columns_order = []
 
         for column in columns:
             columns_string += column
@@ -146,23 +164,25 @@ class DataTables(object):
             # TODO: make this case insensitive
             if ' as ' in column:
                 columns_literal.append(column.rpartition(' as ')[0])
-                columns_named.append(column.rpartition(' as ')[-1])
+                columns_named.append(column.rpartition(' as ')[-1].rpartition('.')[-1])
+                columns_order.append(column.rpartition(' as ')[-1])
             else:
                 columns_literal.append(column)
-                columns_named.append(column)
+                columns_named.append(column.rpartition('.')[-1])
+                columns_order.append(column)
 
         columns_string = columns_string[:-2]
 
         column_data = {'column_string': columns_string,
                        'column_literal': columns_literal,
-                       'column_named': columns_named
+                       'column_named': columns_named,
+                       'column_order': columns_order
                        }
 
         return column_data
 
     # TODO: Fix this method. Should not break if kwarg list is not sorted.
-    @staticmethod
-    def process_kwargs(kwargs):
+    def process_kwargs(self, kwargs):
 
         column_parameters = []
 

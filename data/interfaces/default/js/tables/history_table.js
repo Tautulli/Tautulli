@@ -53,10 +53,10 @@ history_table_options = {
         },
         {
             "targets": [2],
-            "data":"user",
+            "data":"friendly_name",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="user?user=' + cellData + '">' + cellData + '</a>');
+                    $(td).html('<a href="user?user=' + rowData['user'] + '">' + cellData + '</a>');
                 } else {
                     $(td).html(cellData);
                 }
@@ -162,7 +162,14 @@ history_table_options = {
             "data":"xml",
             "searchable":false,
             "visible":false
+        },
+        {
+            "targets": [13],
+            "data":"user",
+            "searchable":false,
+            "visible":false
         }
+
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
@@ -187,7 +194,7 @@ $('#history_table').on('click', 'td.modal-control', function () {
     function showStreamDetails() {
         $.ajax({
             url: 'get_stream_data',
-            data: {row_id: rowData['id'], user: rowData['user']},
+            data: {row_id: rowData['id'], user: rowData['friendly_name']},
             cache: false,
             async: true,
             complete: function(xhr, status) {
