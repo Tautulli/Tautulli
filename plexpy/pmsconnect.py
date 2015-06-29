@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers
+from plexpy import logger, helpers, plexwatch
 
 from xml.dom import minidom
 from httplib import HTTPSConnection
@@ -497,6 +497,7 @@ class PmsConnect(object):
     """
     def get_session_each(self, stream_type='', session=None):
         session_output = None
+        plex_watch = plexwatch.PlexWatch()
         if stream_type == 'track':
             if session.getElementsByTagName('TranscodeSession'):
                 transcode_session = session.getElementsByTagName('TranscodeSession')[0]
@@ -517,6 +518,8 @@ class PmsConnect(object):
                               'parentThumb': self.get_xml_attr(session, 'parentThumb'),
                               'thumb': self.get_xml_attr(session, 'thumb'),
                               'user': self.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
+                              'friendly_name': plex_watch.get_user_friendly_name(
+                                  self.get_xml_attr(session.getElementsByTagName('User')[0], 'title')),
                               'player': self.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
                               'state': self.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
                               'artist': self.get_xml_attr(session, 'grandparentTitle'),
@@ -529,7 +532,8 @@ class PmsConnect(object):
                               'duration': duration,
                               'progress': progress,
                               'progressPercent': str(helpers.get_percent(progress, duration)),
-                              'type': 'track'
+                              'type': 'track',
+                              'indexes': 0
                               }
         elif stream_type == 'video':
             if session.getElementsByTagName('TranscodeSession'):
@@ -579,6 +583,8 @@ class PmsConnect(object):
                                   'art': self.get_xml_attr(session, 'art'),
                                   'thumb': thumb,
                                   'user': self.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
+                                  'friendly_name': plex_watch.get_user_friendly_name(
+                                      self.get_xml_attr(session.getElementsByTagName('User')[0], 'title')),
                                   'player': self.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
                                   'state': self.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
                                   'grandparentTitle': self.get_xml_attr(session, 'grandparentTitle'),
@@ -602,6 +608,8 @@ class PmsConnect(object):
                                   'art': self.get_xml_attr(session, 'art'),
                                   'thumb': thumb,
                                   'user': self.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
+                                  'friendly_name': plex_watch.get_user_friendly_name(
+                                      self.get_xml_attr(session.getElementsByTagName('User')[0], 'title')),
                                   'player': self.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
                                   'state': self.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
                                   'title': self.get_xml_attr(session, 'title'),

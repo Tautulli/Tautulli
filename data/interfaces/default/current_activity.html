@@ -22,6 +22,7 @@ thumb                   Returns the location of the item's thumbnail. Use with p
 art                     Returns the location of the item's artwork
 progress_percent        Returns the current progress of the item. 0 to 100.
 user                    Returns the name of the user owning the session.
+friendly_name           Returns the friendlly name of the user owning the session.
 state                   Returns the state of the current session. Either 'playing', 'paused' or 'buffering'.
 title                   Returns the name of the episode, movie or music track.
 player                  Returns the name of the platform used to play the stream.
@@ -74,7 +75,7 @@ DOCUMENTATION :: END
                 <div class="dashboard-activity-metadata-platform" id="platform-${a['sessionKey']}">
                 </div>
                 <div class="dashboard-activity-metadata-user">
-                    <a href="user?user=${a['user']}">${a['user']}</a> is ${a['state']}
+                    <a href="user?user=${a['user']}">${a['friendly_name']}</a> is ${a['state']}
                 </div>
                 <div class="dashboard-activity-metadata-title">
                     % if a['type'] == 'episode':
