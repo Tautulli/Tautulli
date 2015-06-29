@@ -911,12 +911,15 @@ class PlexWatch(object):
 
     def get_user_friendly_name(self, user=None):
         if user:
-            myDB = db.DBConnection()
+            try:
+                myDB = db.DBConnection()
+                query = 'select friendly_name FROM plexpy_users WHERE username = "%s"' % user
+                result = myDB.select_single(query)
+                return result
+            except:
+                return user
 
-            query = 'select friendly_name FROM plexpy_users WHERE username = "%s"' % user
-            result = myDB.select_single(query)
-
-            return result
+        return None
 
     # Taken from:
     # https://stackoverflow.com/questions/18066269/group-by-and-aggregate-the-values-of-a-list-of-dictionaries-in-python
