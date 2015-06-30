@@ -209,9 +209,11 @@ class LogManager(object):
         If ``traceback`` is True, the traceback of the current exception
         (if any) will be appended to ``msg``.
         """
+        exc_info = None
         if traceback:
-            msg += _cperror.format_exc()
-        self.error_log.log(severity, ' '.join((self.time(), context, msg)))
+            exc_info = _cperror._exc_info()
+
+        self.error_log.log(severity, ' '.join((self.time(), context, msg)), exc_info=exc_info)
 
     def __call__(self, *args, **kwargs):
         """An alias for ``error``."""

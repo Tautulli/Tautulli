@@ -6,7 +6,7 @@
 *.pyproj
 *.sln
 
-# Headphones files #
+# PlexPy files #
 ######################
 *.log
 *.db*

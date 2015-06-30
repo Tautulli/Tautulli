@@ -1,0 +1,209 @@
+#!/bin/sh
+#
+## Don't edit this file
+## Edit user configuation in /etc/default/plexpy to change
+##
+## Make sure init script is executable
+## sudo chmod +x /path/to/init.ubuntu
+##
+## Install the init script
+## sudo ln -s /path/to/init.ubuntu /etc/init.d/plexpy
+##
+## Create the plexpy daemon user:
+## sudo adduser --system --no-create-home plexpy
+##
+## Make sure /opt/plexpy is owned by the plexpy user
+## sudo chown plexpy:nogroup -R /opt/plexpy
+##
+## Touch the default file to stop the warning message when starting
+## sudo touch /etc/default/plexpy
+##
+## To start PlexPy automatically
+## sudo  update-rc.d plexpy defaults
+##
+## To start/stop/restart PlexPy
+## sudo service plexpy start
+## sudo service plexpy stop
+## sudo service plexpy restart
+##
+## HP_USER=         #$RUN_AS, username to run plexpy under, the default is plexpy
+## HP_HOME=         #$APP_PATH, the location of PlexPy.py, the default is /opt/plexpy
+## HP_DATA=         #$DATA_DIR, the location of plexpy.db, cache, logs, the default is /opt/plexpy
+## HP_PIDFILE=      #$PID_FILE, the location of plexpy.pid, the default is /var/run/plexpy/plexpy.pid
+## PYTHON_BIN=      #$DAEMON, the location of the python binary, the default is /usr/bin/python
+## HP_OPTS=         #$EXTRA_DAEMON_OPTS, extra cli option for plexpy, i.e. " --config=/home/plexpy/config.ini"
+## SSD_OPTS=        #$EXTRA_SSD_OPTS, extra start-stop-daemon option like " --group=users"
+## HP_PORT=         #$PORT_OPTS, hardcoded port for the webserver, overrides value in config.ini
+##
+## EXAMPLE if want to run as different user
+## add HP_USER=username to /etc/default/plexpy
+## otherwise default plexpy is used
+#
+### BEGIN INIT INFO
+# Provides:          plexpy
+# Required-Start:    $local_fs $network $remote_fs
+# Required-Stop:     $local_fs $network $remote_fs
+# Should-Start:      $NetworkManager
+# Should-Stop:       $NetworkManager
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts instance of PlexPy
+# Description:       starts instance of PlexPy using start-stop-daemon
+### END INIT INFO
+
+# Script name
+NAME=plexpy
+
+# App name
+DESC=PlexPy
+
+SETTINGS_LOADED=FALSE
+
+. /lib/lsb/init-functions
+
+# Source PlexPy configuration
+if [ -f /etc/default/plexpy ]; then
+    SETTINGS=/etc/default/plexpy
+else
+    log_warning_msg "/etc/default/plexpy not found using default settings.";
+fi
+
+check_retval() {
+    if [ $? -eq 0 ]; then
+        log_end_msg 0
+        return 0
+    else
+        log_end_msg 1
+        exit 1
+    fi
+}
+
+load_settings() {
+    if [ $SETTINGS_LOADED != "TRUE" ]; then
+        . $SETTINGS
+
+        ## The defaults
+        # Run as username
+        RUN_AS=${HP_USER-plexpy}
+
+        # Path to app HP_HOME=path_to_app_PlexPy.py
+        APP_PATH=${HP_HOME-/opt/plexpy}
+
+        # Data directory where plexpy.db, cache and logs are stored
+        DATA_DIR=${HP_DATA-/opt/plexpy}
+
+        # Path to store PID file
+        PID_FILE=${HP_PIDFILE-/var/run/plexpy/plexpy.pid}
+
+        # Path to python bin
+        DAEMON=${PYTHON_BIN-/usr/bin/python}
+
+        # Extra daemon option like: HP_OPTS=" --config=/home/plexpy/config.ini"
+        EXTRA_DAEMON_OPTS=${HP_OPTS-}
+
+        # Extra start-stop-daemon option like START_OPTS=" --group=users"
+        EXTRA_SSD_OPTS=${SSD_OPTS-}
+
+        # Hardcoded port to run on, overrides config.ini settings
+        [ -n "$HP_PORT" ] && {
+            PORT_OPTS=" --port=${HP_PORT} "
+        }
+
+        DAEMON_OPTS=" PlexPy.py --quiet --daemon --nolaunch --pidfile=${PID_FILE} --datadir=${DATA_DIR} ${PORT_OPTS}${EXTRA_DAEMON_OPTS}"
+
+        SETTINGS_LOADED=TRUE
+    fi
+
+    [ -x $DAEMON ] || {
+        log_warning_msg "$DESC: Can't execute daemon, aborting. See $DAEMON";
+        return 1;}
+
+    return 0
+}
+
+load_settings || exit 0
+
+is_running () {
+    # returns 1 when running, else 0.
+    if [ -e $PID_FILE ]; then
+      PID=`cat $PID_FILE`
+
+      RET=$?
+      [ $RET -gt 1 ] && exit 1 || return $RET
+    else
+      return 1
+    fi
+}
+
+handle_pid () {
+    PID_PATH=`dirname $PID_FILE`
+    [ -d $PID_PATH ] || mkdir -p $PID_PATH && chown -R $RUN_AS $PID_PATH > /dev/null || {
+        log_warning_msg "$DESC: Could not create $PID_FILE, See $SETTINGS, aborting.";
+        return 1;}
+
+    if [ -e $PID_FILE ]; then
+        PID=`cat $PID_FILE`
+        if ! kill -0 $PID > /dev/null 2>&1; then
+            log_warning_msg "Removing stale $PID_FILE"
+            rm $PID_FILE
+        fi
+    fi
+}
+
+handle_datadir () {
+    [ -d $DATA_DIR ] || mkdir -p $DATA_DIR && chown -R $RUN_AS $DATA_DIR > /dev/null || {
+        log_warning_msg "$DESC: Could not create $DATA_DIR, See $SETTINGS, aborting.";
+        return 1;}
+}
+
+handle_updates () {
+    chown -R $RUN_AS $APP_PATH > /dev/null || {
+        log_warning_msg "$DESC: $APP_PATH not writable by $RUN_AS for web-updates";
+        return 0; }
+}
+
+start_plexpy () {
+    handle_pid
+    handle_datadir
+    handle_updates
+    if ! is_running; then
+        log_daemon_msg "Starting $DESC"
+        start-stop-daemon -o -d $APP_PATH -c $RUN_AS --start $EXTRA_SSD_OPTS --pidfile $PID_FILE --exec $DAEMON -- $DAEMON_OPTS
+        check_retval
+    else
+        log_success_msg "$DESC: already running (pid $PID)"
+    fi
+}
+
+stop_plexpy () {
+    if is_running; then
+        log_daemon_msg "Stopping $DESC"
+        start-stop-daemon -o --stop --pidfile $PID_FILE --retry 15
+        check_retval
+    else
+        log_success_msg "$DESC: not running"
+    fi
+}
+
+case "$1" in
+    start)
+        start_plexpy
+        ;;
+    stop)
+        stop_plexpy
+        ;;
+    restart|force-reload)
+        stop_plexpy
+        start_plexpy
+        ;;
+    status)
+        status_of_proc -p "$PID_FILE" "$DAEMON" "$DESC"
+        ;;
+    *)
+        N=/etc/init.d/$NAME
+        echo "Usage: $N {start|stop|restart|force-reload|status}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

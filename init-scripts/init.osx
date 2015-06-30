@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>plexpy</string>
+  <key>ProgramArguments</key>
+  <array>
+       <!-- Modify these two lines if you need to to reflect your python location and PlexPy install location -->
+       <string>/usr/bin/python</string>
+       <string>/Applications/PlexPy/PlexPy.py</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+</dict>
+</plist>

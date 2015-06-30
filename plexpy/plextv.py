@@ -19,7 +19,6 @@ from xml.dom import minidom
 from httplib import HTTPSConnection
 from urlparse import parse_qsl
 from urllib import urlencode
-from pynma import pynma
 
 import base64
 import cherrypy

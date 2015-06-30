@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 """The CherryPy daemon."""
 
 import sys
@@ -76,7 +75,7 @@ def start(configfiles=None, daemonize=False, environment=None,
         engine.block()
 
 
-if __name__ == '__main__':
+def run():
     from optparse import OptionParser
 
     p = OptionParser()
