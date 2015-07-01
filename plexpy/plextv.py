@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers
+from plexpy import logger, helpers, plexwatch
 
 from xml.dom import minidom
 from httplib import HTTPSConnection
@@ -283,3 +283,96 @@ class PlexTV(object):
                 users_list.append(friend)
 
         return users_list
+
+    def get_synced_items(self, machine_id=None):
+        sync_list = self.get_plextv_sync_lists(machine_id)
+        plex_watch = plexwatch.PlexWatch()
+
+        synced_items = []
+
+        try:
+            xml_parse = minidom.parseString(sync_list)
+        except Exception, e:
+            logger.warn("Error parsing XML for Plex sync lists: %s" % e)
+        except:
+            logger.warn("Error parsing XML for Plex sync lists.")
+
+        xml_head = xml_parse.getElementsByTagName('SyncList')
+
+        if not xml_head:
+            logger.warn("Error parsing XML for Plex sync lists.")
+        else:
+            for a in xml_head:
+                client_id = self.get_xml_attr(a, 'id')
+
+                sync_device = a.getElementsByTagName('Device')
+                for device in sync_device:
+                    device_name = self.get_xml_attr(device, 'name')
+                    device_product = self.get_xml_attr(device, 'product')
+                    device_product_version = self.get_xml_attr(device, 'productVersion')
+                    device_platform = self.get_xml_attr(device, 'platform')
+                    device_platform_version = self.get_xml_attr(device, 'platformVersion')
+                    device_type = self.get_xml_attr(device, 'device')
+                    device_model = self.get_xml_attr(device, 'model')
+                    device_last_seen = self.get_xml_attr(device, 'lastSeenAt')
+                    device_user_id = self.get_xml_attr(device, 'userID')
+                    device_username = plex_watch.get_user_details(user_id=device_user_id)['username']
+                    device_friendly_name = plex_watch.get_user_details(user_id=device_user_id)['friendly_name']
+
+                for synced in a.getElementsByTagName('SyncItems'):
+                    sync_item = synced.getElementsByTagName('SyncItem')
+                    for item in sync_item:
+                        sync_id = self.get_xml_attr(item, 'id')
+                        sync_version = self.get_xml_attr(item, 'version')
+                        sync_root_title = self.get_xml_attr(item, 'rootTitle')
+                        sync_title = self.get_xml_attr(item, 'title')
+                        sync_metadata_type = self.get_xml_attr(item, 'metadataType')
+                        sync_content_type = self.get_xml_attr(item, 'contentType')
+
+                        for status in item.getElementsByTagName('Status'):
+                            status_failure_code = self.get_xml_attr(status, 'failureCode')
+                            status_failure = self.get_xml_attr(status, 'failure')
+                            status_state = self.get_xml_attr(status, 'state')
+                            status_item_count = self.get_xml_attr(status, 'itemsCount')
+                            status_item_complete_count = self.get_xml_attr(status, 'itemsCompleteCount')
+                            status_item_downloaded_count = self.get_xml_attr(status, 'itemsDownloadedCount')
+                            status_item_ready_count = self.get_xml_attr(status, 'itemsReadyCount')
+                            status_item_successful_count = self.get_xml_attr(status, 'itemsSuccessfulCount')
+                            status_total_size = self.get_xml_attr(status, 'totalSize')
+
+                        for settings in item.getElementsByTagName('MediaSettings'):
+                            settings_audio_boost = self.get_xml_attr(settings, 'audioBoost')
+                            settings_music_bitrate = self.get_xml_attr(settings, 'musicBitrate')
+                            settings_photo_quality = self.get_xml_attr(settings, 'photoQuality')
+                            settings_photo_resolution = self.get_xml_attr(settings, 'photoResolution')
+                            settings_video_quality = self.get_xml_attr(settings, 'videoQuality')
+                            settings_video_resolution = self.get_xml_attr(settings, 'videoResolution')
+
+                        rating_key = self.get_xml_attr(
+                            item.getElementsByTagName('Location')[0], 'uri').rpartition('%2F')[-1]
+
+                        sync_details = {"device_name": device_name,
+                                        "platform": device_platform,
+                                        "username": device_username,
+                                        "friendly_name": device_friendly_name,
+                                        "user_id": device_user_id,
+                                        "root_title": sync_root_title,
+                                        "title": sync_title,
+                                        "metadata_type": sync_metadata_type,
+                                        "content_type": sync_content_type,
+                                        "rating_key": rating_key,
+                                        "state": status_state,
+                                        "item_count": status_item_count,
+                                        "item_complete_count": status_item_complete_count,
+                                        "item_downloaded_count": status_item_downloaded_count,
+                                        "music_bitrate": settings_music_bitrate,
+                                        "photo_quality": settings_photo_quality,
+                                        "video_quality": settings_video_quality,
+                                        "total_size": status_total_size,
+                                        "failure": status_failure,
+                                        "sync_id": sync_id
+                                        }
+
+                        synced_items.append(sync_details)
+
+        return synced_items

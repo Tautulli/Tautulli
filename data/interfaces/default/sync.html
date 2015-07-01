@@ -1,0 +1,66 @@
+<%inherit file="base.html"/>
+<%!
+from plexpy import helpers
+%>
+
+<%def name="headIncludes()">
+<link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.responsive.css">
+<style>
+    td {word-wrap: break-word}
+</style>
+</%def>
+
+<%def name="headerIncludes()">
+</%def>
+
+<%def name="body()">
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="wellheader-bg">
+                <div class="dashboard-wellheader-no-chevron">
+                    <h2><i class="fa fa-book"></i> Synced Items</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class='container-fluid'>
+    <div class='row-fluid'>
+        <div class='span12'>
+            <div class='table-card-back'>
+                <table class="display" id="sync_table" width="100%">
+                    <thead>
+                    <tr>
+                        <th align='left' id="state">State</th>
+                        <th align='left' id="username">Username</th>
+                        <th align='left' id="title">Title</th>
+                        <th align='left' id="type">Type</th>
+                        <th align='left' id="device">Device</th>
+                        <th align='left' id="platform">Platform</th>
+                        <th align='left' id="size">Total Size</th>
+                        <th align='left' id="items">Total Items</th>
+                        <th align='left' id="converted">Converted</th>
+                        <th align='left' id="downloaded">Downloaded</th>
+                        <th align='left' id="percent_complete">Complete</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+</%def>
+
+<%def name="javascriptIncludes()">
+<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.responsive.js"></script>
+<script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
+<script src="interfaces/default/js/tables/sync_table.js"></script>
+
+</%def>

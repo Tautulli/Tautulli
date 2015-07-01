@@ -946,33 +946,37 @@ class PlexWatch(object):
         return None
 
     def get_user_details(self, user=None, user_id=None):
-        if user:
-            try:
-                myDB = db.DBConnection()
+        try:
+            myDB = db.DBConnection()
+            if user:
                 query = 'select user_id, username, friendly_name, email, thumb, ' \
                         'is_home_user, is_allow_sync, is_restricted FROM plexpy_users WHERE username = ? LIMIT 1'
                 result = myDB.select(query, args=[user])
-                if result:
-                    for item in result:
-                        if not item['friendly_name']:
-                            friendly_name = item['username']
-                        else:
-                            friendly_name = item['friendly_name']
+            elif user_id:
+                query = 'select user_id, username, friendly_name, email, thumb, ' \
+                        'is_home_user, is_allow_sync, is_restricted FROM plexpy_users WHERE user_id = ? LIMIT 1'
+                result = myDB.select(query, args=[user_id])
+            if result:
+                for item in result:
+                    if not item['friendly_name']:
+                        friendly_name = item['username']
+                    else:
+                        friendly_name = item['friendly_name']
 
-                        user_details = {"user_id": item['user_id'],
-                                        "username": item['username'],
-                                        "friendly_name": friendly_name,
-                                        "email": item['email'],
-                                        "thumb": item['thumb'],
-                                        "is_home_user": item['is_home_user'],
-                                        "is_allow_sync": item['is_allow_sync'],
-                                        "is_restricted": item['is_restricted']
-                                        }
-                    return user_details
-                else:
-                    return None
-            except:
+                    user_details = {"user_id": item['user_id'],
+                                    "username": item['username'],
+                                    "friendly_name": friendly_name,
+                                    "email": item['email'],
+                                    "thumb": item['thumb'],
+                                    "is_home_user": item['is_home_user'],
+                                    "is_allow_sync": item['is_allow_sync'],
+                                    "is_restricted": item['is_restricted']
+                                    }
+                return user_details
+            else:
                 return None
+        except:
+            return None
 
         return None
 

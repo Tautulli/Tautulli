@@ -739,7 +739,7 @@ class PmsConnect(object):
         server_info = []
         for a in xml_head:
             output = {"name": self.get_xml_attr(a, 'name'),
-                      "machineIdentifier": self.get_xml_attr(a, 'machineIdentifier'),
+                      "machine_identifier": self.get_xml_attr(a, 'machineIdentifier'),
                       "host": self.get_xml_attr(a, 'host'),
                       "port": self.get_xml_attr(a, 'port'),
                       "version": self.get_xml_attr(a, 'version')
