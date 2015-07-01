@@ -67,7 +67,8 @@ class PlexWatch(object):
         t = self.get_history_table_name()
 
         columns = [t + '.id',
-                   '(case when plexpy_users.friendly_name is null then ' + t + '.user else plexpy_users.friendly_name end) as friendly_name',
+                   '(case when plexpy_users.friendly_name is null then ' + t +
+                   '.user else plexpy_users.friendly_name end) as friendly_name',
                    t + '.time',
                    t + '.ip_address',
                    'COUNT(' + t + '.title) as plays',
@@ -219,7 +220,8 @@ class PlexWatch(object):
 
         columns = [t + '.id',
                    t + '.time as date',
-                   '(case when plexpy_users.friendly_name is null then ' + t + '.user else plexpy_users.friendly_name end) as friendly_name',
+                   '(case when plexpy_users.friendly_name is null then ' + t +
+                   '.user else plexpy_users.friendly_name end) as friendly_name',
                    t + '.platform',
                    t + '.ip_address',
                    t + '.title',
@@ -338,8 +340,8 @@ class PlexWatch(object):
         myDB = db.DBConnection()
 
         if row_id:
-            query = 'SELECT xml from %s where id = %s' % (self.get_history_table_name(), row_id)
-            xml = myDB.select_single(query)
+            query = 'SELECT xml from %s where id = ?' % (self.get_history_table_name())
+            xml = myDB.select_single(query, args=[row_id])
             xml_data = helpers.latinToAscii(xml)
         else:
             return None
@@ -419,13 +421,13 @@ class PlexWatch(object):
 
         try:
             if user:
-                query = 'SELECT time, user, xml FROM %s WHERE user = "%s" ORDER BY time DESC LIMIT %s' % \
-                        (self.get_history_table_name(), user, limit)
-                xml = myDB.select(query)
+                query = 'SELECT time, user, xml FROM %s WHERE user = ? ORDER BY time DESC LIMIT ?' % \
+                        (self.get_history_table_name())
+                xml = myDB.select(query, args=[user, limit])
             else:
-                query = 'SELECT time, user, xml FROM %s ORDER BY time DESC LIMIT %s' % \
-                        (self.get_history_table_name(), limit)
-                xml = myDB.select(query)
+                query = 'SELECT time, user, xml FROM %s ORDER BY time DESC LIMIT ?' % \
+                        (self.get_history_table_name())
+                xml = myDB.select(query, args=[limit])
         except:
             logger.warn("Unable to open PlexWatch database.")
             return None
@@ -471,19 +473,20 @@ class PlexWatch(object):
 
         for days in time_queries:
             if days > 0:
-                where = 'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                        'AND user = "%s"' % (days, user)
-            else:
-                where = 'WHERE user = "%s"' % user
-
-            try:
-                query = 'SELECT (SUM(stopped - time) - SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
+                query = 'SELECT (SUM(stopped - time) - ' \
+                        'SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
                         'COUNT(id) AS total_plays ' \
-                        'FROM %s %s' % (self.get_history_table_name(), where)
-                result = myDB.select(query)
-            except:
-                logger.warn("Unable to open PlexWatch database.")
-                return None
+                        'FROM %s ' \
+                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                        'AND user = ?' % (self.get_history_table_name(), days)
+                result = myDB.select(query, args=[user])
+            else:
+                query = 'SELECT (SUM(stopped - time) - ' \
+                        'SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
+                        'COUNT(id) AS total_plays ' \
+                        'FROM %s ' \
+                        'WHERE user = ?' % self.get_history_table_name()
+                result = myDB.select(query, args=[user])
 
             for item in result:
                 if item[0]:
@@ -510,11 +513,11 @@ class PlexWatch(object):
 
         try:
             query = 'SELECT platform, COUNT(platform) as platform_count, xml ' \
-                    'FROM %s ' \
-                    'WHERE user = "%s" ' \
+                    'FROM grouped ' \
+                    'WHERE user = ? ' \
                     'GROUP BY platform ' \
-                    'ORDER BY platform_count DESC' % (self.get_history_table_name(), user)
-            result = myDB.select(query)
+                    'ORDER BY platform_count DESC'
+            result = myDB.select(query, args=[user])
         except:
             logger.warn("Unable to open PlexWatch database.")
             return None
@@ -553,9 +556,9 @@ class PlexWatch(object):
         try:
             query = 'SELECT xml ' \
                     'FROM %s ' \
-                    'WHERE user = "%s" ' \
-                    'ORDER BY id DESC LIMIT 1' % (self.get_history_table_name(), user)
-            result = myDB.select_single(query)
+                    'WHERE user = ? ' \
+                    'ORDER BY id DESC LIMIT 1' % self.get_history_table_name()
+            result = myDB.select_single(query, args=[user])
         except:
             logger.warn("Unable to open PlexWatch database.")
             return None
@@ -595,9 +598,11 @@ class PlexWatch(object):
             if 'top_tv' in stat:
                 top_tv = []
                 try:
-                    query = 'SELECT orig_title, COUNT(orig_title) as total_plays, grandparentRatingKey, MAX(time) as last_watch, xml ' \
+                    query = 'SELECT orig_title, COUNT(orig_title) as total_plays, ' \
+                            'grandparentRatingKey, MAX(time) as last_watch, xml ' \
                             'FROM %s ' \
-                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") ' \
+                            '>= datetime("now", "-%s days", "localtime") ' \
                             'AND episode != "" ' \
                             'GROUP BY orig_title ' \
                             'ORDER BY total_plays DESC LIMIT 10' % (self.get_history_table_name(), time_range)
@@ -640,10 +645,12 @@ class PlexWatch(object):
                     query = 'SELECT orig_title, COUNT(DISTINCT user) as users_watched, grandparentRatingKey, ' \
                             'MAX(time) as last_watch, xml, COUNT(id) as total_plays ' \
                             'FROM %s ' \
-                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") ' \
+                            '>= datetime("now", "-%s days", "localtime") ' \
                             'AND episode != "" ' \
                             'GROUP BY orig_title ' \
-                            'ORDER BY users_watched DESC, total_plays DESC LIMIT 10' % (self.get_history_table_name(), time_range)
+                            'ORDER BY users_watched DESC, total_plays DESC ' \
+                            'LIMIT 10' % (self.get_history_table_name(), time_range)
                     result = myDB.select(query)
                 except:
                     logger.warn("Unable to open PlexWatch database.")
@@ -682,11 +689,13 @@ class PlexWatch(object):
                 top_users = []
                 try:
                     s = self.get_history_table_name()
-                    query = 'SELECT user, (case when friendly_name is null then user else friendly_name end) as friendly_name,' \
+                    query = 'SELECT user, ' \
+                            '(case when friendly_name is null then user else friendly_name end) as friendly_name,' \
                             'COUNT(' + s + '.id) as total_plays, MAX(time) as last_watch ' \
                             'FROM ' + s + ' ' \
                             'LEFT OUTER JOIN plexpy_users ON ' + s + '.user = plexpy_users.username ' \
-                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-' + time_range + ' days", "localtime") '\
+                            'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
+                            'datetime("now", "-' + time_range + ' days", "localtime") '\
                             'GROUP BY ' + s + '.user ' \
                             'ORDER BY total_plays DESC LIMIT 10'
                     result = myDB.select(query)
@@ -713,7 +722,8 @@ class PlexWatch(object):
                 try:
                     query = 'SELECT platform, COUNT(id) as total_plays, MAX(time) as last_watch, xml ' \
                             'FROM %s ' \
-                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") ' \
+                            '>= datetime("now", "-%s days", "localtime") ' \
                             'GROUP BY platform ' \
                             'ORDER BY total_plays DESC' % (self.get_history_table_name(), time_range)
                     result = myDB.select(query)
@@ -913,8 +923,8 @@ class PlexWatch(object):
         if user:
             try:
                 myDB = db.DBConnection()
-                query = 'select friendly_name FROM plexpy_users WHERE username = "%s"' % user
-                result = myDB.select_single(query)
+                query = 'select friendly_name FROM plexpy_users WHERE username = ?'
+                result = myDB.select_single(query, args=[user])
                 return result
             except:
                 return user
@@ -940,3 +950,13 @@ class PlexWatch(object):
         new_dataset.sort(key=lambda item: item[sort_by_key], reverse=True)
 
         return new_dataset
+
+
+def check_db_tables():
+    try:
+        myDB = db.DBConnection()
+        query = 'CREATE TABLE IF NOT EXISTS plexpy_users (id INTEGER PRIMARY KEY AUTOINCREMENT, ' \
+                'username TEXT NOT NULL UNIQUE, friendly_name TEXT)'
+        result = myDB.action(query)
+    except:
+        logger.debug(u"Unable to create users table.")

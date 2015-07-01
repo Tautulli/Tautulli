@@ -42,7 +42,7 @@ from plexpy import helpers
                     <ul class="user-info-nav">
                         <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
                         <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
-                        <li><a href="#userHistory" data-toggle="tab">History</a></li>
+                        <li><a id="history-tab-btn" href="#userHistory" data-toggle="tab">History</a></li>
                     </ul>
                 </div>
             </div>
@@ -246,24 +246,28 @@ from plexpy import helpers
                     }
                 });
 
-                // Build watch history table
-                history_table_options.ajax = {
-                    "url": "get_history",
-                    "data": function(d) {
-                       d.user = "${user}";
+                $( "#history-tab-btn" ).one( "click", function() {
+                    // Build watch history table
+                    history_table_options.ajax = {
+                        "url": "get_history",
+                        "data": function(d) {
+                           d.user = "${user}";
+                        }
                     }
-                }
-                history_table = $('#history_table').DataTable(history_table_options);
-                history_table.column(2).visible(false); // Hide the title column
+                    history_table = $('#history_table').DataTable(history_table_options);
+                    history_table.column(2).visible(false); // Hide the title column
+                });
 
-                // Build user IP table
-                user_ip_table_options.ajax = {
-                    "url": "get_user_ips",
-                    "data": function(d) {
-                       d.user = "${user}";
+                $( "#ip-tab-btn" ).one( "click", function() {
+                    // Build user IP table
+                    user_ip_table_options.ajax = {
+                        "url": "get_user_ips",
+                        "data": function(d) {
+                           d.user = "${user}";
+                        }
                     }
-                }
-                user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
+                    user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
+                });
 
                 // Load user gravatar image
                 $.ajax({

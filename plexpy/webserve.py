@@ -352,6 +352,9 @@ class WebInterface(object):
         # Write the config
         plexpy.CONFIG.write()
 
+        # Check if we have our users table
+        plexwatch.check_db_tables()
+
         # Reconfigure scheduler
         plexpy.initialize_scheduler()
 
