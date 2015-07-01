@@ -94,7 +94,7 @@ $('#user_ip_table').on('click', 'td.modal-control', function () {
                 type: 'GET',
                 dataType: 'json',
                 success: function(data) {
-                    $('#ip_address').html(ip_address);
+                    $('#modal_header_ip_address').html(ip_address);
                     $('#country').html(data.country);
                     $('#city').html(data.city);
                     $('#region').html(data.regionName);

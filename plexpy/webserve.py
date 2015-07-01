@@ -101,12 +101,12 @@ class WebInterface(object):
     def user(self, user=None):
         try:
             plex_watch = plexwatch.PlexWatch()
-            friendly_name = plex_watch.get_user_friendly_name(user)
+            user_details = plex_watch.get_user_details(user)
         except:
             logger.warn("Unable to retrieve friendly name for user %s " % user)
             friendly_name = user
 
-        return serve_template(templatename="user.html", title="User", user=user, friendly_name=friendly_name)
+        return serve_template(templatename="user.html", title="User", data=user_details)
 
     @cherrypy.expose
     def edit_user(self, user=None, friendly_name=None, **kwargs):

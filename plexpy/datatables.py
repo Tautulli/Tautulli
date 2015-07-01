@@ -59,6 +59,8 @@ class DataTables(object):
         if join_type:
             if join_type.upper() == 'LEFT OUTER JOIN':
                 join = 'LEFT OUTER JOIN %s ON %s = %s' % (join_table, join_evals[0], join_evals[1])
+            elif join_type.upper() == 'JOIN' or join_type.upper() == 'INNER JOIN':
+                join = 'INNER JOIN %s ON %s = %s' % (join_table, join_evals[0], join_evals[1])
             else:
                 join = ''
 

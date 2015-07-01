@@ -5,12 +5,18 @@ For Mako templating syntax documentation please visit: http://docs.makotemplates
 
 Filename:           user.html
 Version:            0.1
-Variable names:     user [string]
+Variable names:     data [list]
 
-user :: Usable parameters
+data :: Usable parameters
 
-user                Returns the name of the user.
+user_id             Returns the user id of the user.
+username            Returns the user's username.
 friendly_name       Returns the friendly name of the user.
+email               Returns the user's email address.
+thumb               Returns the thumbnail for the user.
+is_home_user        Returns bool value for whether the user is part of a Plex Home.
+is_allow_sync       Returns bool value for whether the user has sync rights.
+is_restricted       Returns bool value for whether the user account is restricted.
 
 DOCUMENTATION :: END
 
@@ -33,10 +39,10 @@ from plexpy import helpers
         <div class="span12">
             <div class="user-info-wrapper">
                 <div class="user-info-poster-face" id="user-gravatar">
-                    <img src="interfaces/default/images/gravatar-default-80x80.png">
+                    <img src="${data['thumb']}" height="80px" width="80px">
                 </div>
                 <div class="user-info-username">
-                    <span class="set-username">${friendly_name}</span> <a href="#edit-user-modal" data-toggle="modal" id="toggle-edit-user-modal"><i class="fa fa-pencil"></i></a>
+                    <span class="set-username">${data['friendly_name']}</span> <a href="#edit-user-modal" data-toggle="modal" id="toggle-edit-user-modal"><i class="fa fa-pencil"></i></a>
                 </div>
                 <div class="user-info-nav">
                     <ul class="user-info-nav">
@@ -112,7 +118,7 @@ from plexpy import helpers
                 <div class="span12">
                     <div class="table-card-back">
                         <h3>IP Addresses for <strong>
-                            <span class="set-username">${friendly_name}</span>
+                            <span class="set-username">${data['friendly_name']}</span>
                         </strong></h3>
                     </div>
                     <div class="table-card-back">
@@ -168,7 +174,7 @@ from plexpy import helpers
                 <div class="span12">
                     <div class="table-card-back">
                         <h3>Watch History for <strong>
-                            <span class="set-username">${friendly_name}</span>
+                            <span class="set-username">${data['friendly_name']}</span>
                         </strong></h3>
                     </div>
                     <div class="table-card-back">
@@ -220,7 +226,7 @@ from plexpy import helpers
                 $.ajax({
                     url: 'get_user_watch_time_stats',
                     async: true,
-                    data: { user: '${user}' },
+                    data: { user: '${data['username']}' },
                     complete: function(xhr, status) {
                         $("#user-time-stats").html(xhr.responseText);
                     }
@@ -230,7 +236,7 @@ from plexpy import helpers
                 $.ajax({
                     url: 'get_user_platform_stats',
                     async: true,
-                    data: { user: '${user}' },
+                    data: { user: '${data['username']}' },
                     complete: function(xhr, status) {
                         $("#user-platform-stats").html(xhr.responseText);
                     }
@@ -240,7 +246,7 @@ from plexpy import helpers
                 $.ajax({
                     url: 'get_user_recently_watched',
                     async: true,
-                    data: { user: '${user}' },
+                    data: { user: '${data['username']}' },
                     complete: function(xhr, status) {
                         $("#user-recently-watched").html(xhr.responseText);
                     }
@@ -251,7 +257,7 @@ from plexpy import helpers
                     history_table_options.ajax = {
                         "url": "get_history",
                         "data": function(d) {
-                           d.user = "${user}";
+                           d.user = "${data['username']}";
                         }
                     }
                     history_table = $('#history_table').DataTable(history_table_options);
@@ -263,30 +269,17 @@ from plexpy import helpers
                     user_ip_table_options.ajax = {
                         "url": "get_user_ips",
                         "data": function(d) {
-                           d.user = "${user}";
+                           d.user = "${data['username']}";
                         }
                     }
                     user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
-                });
-
-                // Load user gravatar image
-                $.ajax({
-                    url: 'get_user_gravatar_image',
-                    async: true,
-                    data: { user: '${user}' },
-                    success: function(data) {
-                        if (data.user_thumb !== '') {
-                            thumb = data.user_thumb;
-                            $('#user-gravatar').html('<img src="' + thumb + '">');
-                        }
-                    }
                 });
 
                 // Load edit user modal
                 $("#toggle-edit-user-modal").click(function() {
                     $.ajax({
                         url: 'edit_user',
-                        data: {user: '${user}'},
+                        data: {user: '${data['username']}'},
                         cache: false,
                         async: true,
                         complete: function(xhr, status) {

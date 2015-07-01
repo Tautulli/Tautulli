@@ -697,7 +697,7 @@ class PlexWatch(object):
                     s = self.get_history_table_name()
                     query = 'SELECT user, ' \
                             '(case when friendly_name is null then user else friendly_name end) as friendly_name,' \
-                            'COUNT(' + s + '.id) as total_plays, MAX(time) as last_watch ' \
+                            'COUNT(' + s + '.id) as total_plays, MAX(time) as last_watch, thumb ' \
                             'FROM ' + s + ' ' \
                             'LEFT OUTER JOIN plexpy_users ON ' + s + '.user = plexpy_users.username ' \
                             'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
@@ -710,12 +710,17 @@ class PlexWatch(object):
                     return None
 
                 for item in result:
+                    if not item['thumb']:
+                        user_thumb = 'interfaces/default/images/gravatar-default-80x80.png'
+                    else:
+                        user_thumb = item[4]
+
                     thumb = self.get_user_gravatar_image(item[0])
                     row = {'user': item[0],
                            'friendly_name': item[1],
                            'total_plays': item[2],
                            'last_play': item[3],
-                           'thumb': thumb['user_thumb']
+                           'thumb': user_thumb
                     }
                     top_users.append(row)
 
@@ -937,6 +942,37 @@ class PlexWatch(object):
                     return user
             except:
                 return user
+
+        return None
+
+    def get_user_details(self, user=None, user_id=None):
+        if user:
+            try:
+                myDB = db.DBConnection()
+                query = 'select user_id, username, friendly_name, email, thumb, ' \
+                        'is_home_user, is_allow_sync, is_restricted FROM plexpy_users WHERE username = ? LIMIT 1'
+                result = myDB.select(query, args=[user])
+                if result:
+                    for item in result:
+                        if not item['friendly_name']:
+                            friendly_name = item['username']
+                        else:
+                            friendly_name = item['friendly_name']
+
+                        user_details = {"user_id": item['user_id'],
+                                        "username": item['username'],
+                                        "friendly_name": friendly_name,
+                                        "email": item['email'],
+                                        "thumb": item['thumb'],
+                                        "is_home_user": item['is_home_user'],
+                                        "is_allow_sync": item['is_allow_sync'],
+                                        "is_restricted": item['is_restricted']
+                                        }
+                    return user_details
+                else:
+                    return None
+            except:
+                return None
 
         return None
 
