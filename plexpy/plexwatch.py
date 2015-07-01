@@ -72,7 +72,9 @@ class PlexWatch(object):
                    t + '.time',
                    t + '.ip_address',
                    'COUNT(' + t + '.title) as plays',
-                   t + '.user']
+                   t + '.user',
+                   'plexpy_users.user_id as user_id',
+                   'plexpy_users.thumb as thumb']
         try:
             query = data_tables.ssp_query(table_name=t,
                                           columns=columns,
@@ -98,14 +100,18 @@ class PlexWatch(object):
 
         rows = []
         for item in users:
-            thumb = self.get_user_gravatar_image(item['user'])
+            if not item['thumb']:
+                user_thumb = 'interfaces/default/images/gravatar-default-80x80.png'
+            else:
+                user_thumb = item['thumb']
 
             row = {"plays": item['plays'],
                    "time": item['time'],
                    "friendly_name": item["friendly_name"],
                    "ip_address": item["ip_address"],
-                   "thumb": thumb['user_thumb'],
-                   "user": item["user"]
+                   "thumb": user_thumb,
+                   "user": item["user"],
+                   "user_id": item['user_id']
                    }
 
             rows.append(row)
@@ -295,12 +301,12 @@ class PlexWatch(object):
 
             try:
                 xml_parse = minidom.parseString(helpers.latinToAscii(item['xml']))
-            except IOError, e:
-                logger.warn("Error parsing XML in PlexWatch db: %s" % e)
+            except:
+                logger.warn("Error parsing XML in PlexWatch db")
 
             xml_head = xml_parse.getElementsByTagName('opt')
             if not xml_head:
-                logger.warn("Error parsing XML in PlexWatch db: %s" % e)
+                logger.warn("Error parsing XML in PlexWatch db.")
 
             for s in xml_head:
                 if s.getAttribute('duration') and s.getAttribute('viewOffset'):
@@ -925,7 +931,10 @@ class PlexWatch(object):
                 myDB = db.DBConnection()
                 query = 'select friendly_name FROM plexpy_users WHERE username = ?'
                 result = myDB.select_single(query, args=[user])
-                return result
+                if result:
+                    return result
+                else:
+                    return user
             except:
                 return user
 
@@ -956,7 +965,9 @@ def check_db_tables():
     try:
         myDB = db.DBConnection()
         query = 'CREATE TABLE IF NOT EXISTS plexpy_users (id INTEGER PRIMARY KEY AUTOINCREMENT, ' \
-                'username TEXT NOT NULL UNIQUE, friendly_name TEXT)'
+                'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL UNIQUE, ' \
+                'friendly_name TEXT, thumb TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, ' \
+                'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL)'
         result = myDB.action(query)
     except:
         logger.debug(u"Unable to create users table.")

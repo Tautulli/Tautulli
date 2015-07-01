@@ -213,6 +213,39 @@ class PmsConnect(object):
         return output
 
     """
+    Return the local servers preferences.
+
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_server_prefs(self, output_format=''):
+        url_command = '/:/prefs'
+        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+
+        try:
+            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
+            response = http_handler.getresponse()
+            request_status = response.status
+            request_content = response.read()
+        except IOError, e:
+            logger.warn(u"Failed to access metadata. %s" % e)
+            return None
+
+        if request_status == 200:
+            if output_format == 'dict':
+                output = helpers.convert_xml_to_dict(request_content)
+            elif output_format == 'json':
+                output = helpers.convert_xml_to_json(request_content)
+            else:
+                output = request_content
+        else:
+            logger.warn(u"Failed to access metadata. Status code %r" % request_status)
+            return None
+
+        return output
+
+    """
     Return processed and validated list of recently added items.
 
     Parameters required:    count { number of results to return }
@@ -680,6 +713,41 @@ class PmsConnect(object):
                   }
 
         return output
+
+    """
+    Return the local machine identifier.
+
+    Output: string
+    """
+    def get_servers_info(self):
+        recent = self.get_server_list()
+
+        try:
+            xml_parse = minidom.parseString(recent)
+        except Exception, e:
+            logger.warn("Error parsing XML for Plex server prefs: %s" % e)
+            return None
+        except:
+            logger.warn("Error parsing XML for Plex server prefs.")
+            return None
+
+        xml_head = xml_parse.getElementsByTagName('Server')
+        if not xml_head:
+            logger.warn("Error parsing XML for Plex server prefs.")
+            return None
+
+        server_info = []
+        for a in xml_head:
+            output = {"name": self.get_xml_attr(a, 'name'),
+                      "machineIdentifier": self.get_xml_attr(a, 'machineIdentifier'),
+                      "host": self.get_xml_attr(a, 'host'),
+                      "port": self.get_xml_attr(a, 'port'),
+                      "version": self.get_xml_attr(a, 'version')
+                      }
+
+            server_info.append(output)
+
+        return server_info
 
     """
     Return image data as array.

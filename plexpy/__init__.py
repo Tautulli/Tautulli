@@ -307,8 +307,35 @@ def sig_handler(signum=None, frame=None):
 def dbcheck():
     conn = sqlite3.connect(plexpy.CONFIG.PLEXWATCH_DATABASE)
     c = conn.cursor()
-    c.execute('CREATE TABLE IF NOT EXISTS plexpy_users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-              'username TEXT NOT NULL UNIQUE, friendly_name TEXT)')
+    c.execute(
+        'CREATE TABLE IF NOT EXISTS plexpy_users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL UNIQUE, '
+        'friendly_name TEXT, thumb TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
+        'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL)'
+    )
+
+    # Upgrade plexpy_users table from earlier versions
+    try:
+        c.execute('SELECT user_id from plexpy_users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table plexpy_users.")
+        c.execute(
+            'CREATE TABLE tmp_table (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+            'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL UNIQUE, '
+            'friendly_name TEXT, thumb TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
+            'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL)'
+        )
+        c.execute(
+            'INSERT INTO tmp_table SELECT id, NULL, username, friendly_name, NULL, NULL, NULL, NULL, NULL '
+            'FROM plexpy_users'
+        )
+        c.execute(
+            'DROP TABLE plexpy_users'
+        )
+        c.execute(
+            'ALTER TABLE tmp_table RENAME TO plexpy_users'
+        )
+
     conn.commit()
     c.close()
 

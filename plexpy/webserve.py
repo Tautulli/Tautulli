@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch
+from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db
 from plexpy.helpers import checked, radio
 
 from mako.lookup import TemplateLookup
@@ -833,3 +833,61 @@ class WebInterface(object):
             return result
         else:
             logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_servers_info(self, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_servers_info()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_server_prefs(self, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_server_prefs(output_format='json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_full_users_list(self, **kwargs):
+
+        plex_tv = plextv.PlexTV()
+        result = plex_tv.get_full_users_list()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def refresh_users_list(self, **kwargs):
+        plex_tv = plextv.PlexTV()
+        result = plex_tv.get_full_users_list()
+        myDB = db.DBConnection()
+
+        for item in result:
+            control_value_dict = {"username": item['username']}
+            new_value_dict = {"user_id": item['user_id'],
+                              "username": item['username'],
+                              "thumb": item['thumb'],
+                              "email": item['email'],
+                              "is_home_user": item['is_home_user'],
+                              "is_allow_sync": item['is_allow_sync'],
+                              "is_restricted": item['is_restricted']
+                              }
+
+            myDB.upsert('plexpy_users', new_value_dict, control_value_dict)
+
+        logger.info("Users list refreshed.")
+        raise cherrypy.HTTPRedirect("users")

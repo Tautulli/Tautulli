@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, common, request
+from plexpy import logger, helpers
 
 from xml.dom import minidom
 from httplib import HTTPSConnection
@@ -214,3 +214,72 @@ class PlexTV(object):
             return None
 
         return output
+
+    """
+    Validate xml keys to make sure they exist and return their attribute value, return blank value is none found
+    """
+    @staticmethod
+    def get_xml_attr(xml_key, attribute, return_bool=False, default_return=''):
+        if xml_key.getAttribute(attribute):
+            if return_bool:
+                return True
+            else:
+                return xml_key.getAttribute(attribute)
+        else:
+            if return_bool:
+                return False
+            else:
+                return default_return
+
+    def get_full_users_list(self):
+        friends_list = self.get_plextv_friends()
+        own_account = self.get_plextv_user_details()
+        users_list = []
+
+        try:
+            xml_parse = minidom.parseString(own_account)
+        except Exception, e:
+            logger.warn("Error parsing XML for Plex account details: %s" % e)
+        except:
+            logger.warn("Error parsing XML for Plex account details.")
+
+        xml_head = xml_parse.getElementsByTagName('user')
+        if not xml_head:
+            logger.warn("Error parsing XML for Plex account details.")
+        else:
+            for a in xml_head:
+                own_details = {"user_id": self.get_xml_attr(a, 'id'),
+                               "username": self.get_xml_attr(a, 'username'),
+                               "thumb": self.get_xml_attr(a, 'thumb'),
+                               "email": self.get_xml_attr(a, 'email'),
+                               "is_home_user": self.get_xml_attr(a, 'home'),
+                               "is_allow_sync": None,
+                               "is_restricted": self.get_xml_attr(a, 'restricted')
+                               }
+
+                users_list.append(own_details)
+
+        try:
+            xml_parse = minidom.parseString(friends_list)
+        except Exception, e:
+            logger.warn("Error parsing XML for Plex friends list: %s" % e)
+        except:
+            logger.warn("Error parsing XML for Plex friends list.")
+
+        xml_head = xml_parse.getElementsByTagName('User')
+        if not xml_head:
+            logger.warn("Error parsing XML for Plex friends list.")
+        else:
+            for a in xml_head:
+                friend = {"user_id": self.get_xml_attr(a, 'id'),
+                          "username": self.get_xml_attr(a, 'title'),
+                          "thumb": self.get_xml_attr(a, 'thumb'),
+                          "email": self.get_xml_attr(a, 'email'),
+                          "is_home_user": self.get_xml_attr(a, 'home'),
+                          "is_allow_sync": self.get_xml_attr(a, 'allowSync'),
+                          "is_restricted": self.get_xml_attr(a, 'restricted')
+                          }
+
+                users_list.append(friend)
+
+        return users_list
