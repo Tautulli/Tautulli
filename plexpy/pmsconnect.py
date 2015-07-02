@@ -246,6 +246,39 @@ class PmsConnect(object):
         return output
 
     """
+    Return the local server identity.
+
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_local_server_identity(self, output_format=''):
+        url_command = '/identity'
+        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+
+        try:
+            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
+            response = http_handler.getresponse()
+            request_status = response.status
+            request_content = response.read()
+        except IOError, e:
+            logger.warn(u"Failed to access Plex server identity. %s" % e)
+            return None
+
+        if request_status == 200:
+            if output_format == 'dict':
+                output = helpers.convert_xml_to_dict(request_content)
+            elif output_format == 'json':
+                output = helpers.convert_xml_to_json(request_content)
+            else:
+                output = request_content
+        else:
+            logger.warn(u"Failed to access Plex server identity. Status code %r" % request_status)
+            return None
+
+        return output
+
+    """
     Return processed and validated list of recently added items.
 
     Parameters required:    count { number of results to return }
@@ -715,9 +748,9 @@ class PmsConnect(object):
         return output
 
     """
-    Return the local machine identifier.
+    Return the list of local servers.
 
-    Output: string
+    Output: array
     """
     def get_servers_info(self):
         recent = self.get_server_list()
@@ -748,6 +781,36 @@ class PmsConnect(object):
             server_info.append(output)
 
         return server_info
+
+    """
+    Return the local machine identity.
+
+    Output: dict
+    """
+    def get_server_identity(self):
+        identity = self.get_local_server_identity()
+
+        try:
+            xml_parse = minidom.parseString(identity)
+        except Exception, e:
+            logger.warn("Error parsing XML for Plex server identity: %s" % e)
+            return None
+        except:
+            logger.warn("Error parsing XML for Plex server identity.")
+            return None
+
+        xml_head = xml_parse.getElementsByTagName('MediaContainer')
+        if not xml_head:
+            logger.warn("Error parsing XML for Plex server identity.")
+            return None
+
+        server_identity = {}
+        for a in xml_head:
+            server_identity = {"machine_identifier": self.get_xml_attr(a, 'machineIdentifier'),
+                               "version": self.get_xml_attr(a, 'version')
+                               }
+
+        return server_identity
 
     """
     Return image data as array.

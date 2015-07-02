@@ -911,11 +911,11 @@ class WebInterface(object):
     def get_sync(self, machine_id=None, user_id=None, **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
-        server_info = pms_connect.get_servers_info()
+        server_id = pms_connect.get_server_identity()
 
         plex_tv = plextv.PlexTV()
         if not machine_id:
-            result = plex_tv.get_synced_items(machine_id=server_info[0]['machine_identifier'], user_id=user_id)
+            result = plex_tv.get_synced_items(machine_id=server_id['machine_identifier'], user_id=user_id)
         else:
             result = plex_tv.get_synced_items(machine_id=machine_id, user_id=user_id)
 

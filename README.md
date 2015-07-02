@@ -58,6 +58,7 @@ A python based web front-end for plexWatch.
 	- public ip address history with last seen date and geo tag location
 	- recently watched content
 	- watching history
+	- synced items
 
 * charts **NOT YET IMPLEMENTED**
 	- top 10 all time viewed content
@@ -70,6 +71,8 @@ A python based web front-end for plexWatch.
 	- tv shows (includes watching history)
 	- tv seasons
 	- tv episodes (includes watching history)
+
+* full sync list data on all users syncing items from your library
 
 ## Installation and Notes
 
