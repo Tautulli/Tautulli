@@ -17,17 +17,9 @@ from plexpy import logger, helpers, plexwatch
 
 from xml.dom import minidom
 from httplib import HTTPSConnection
-from urlparse import parse_qsl
-from urllib import urlencode
 
 import base64
-import cherrypy
-import urllib
-import urllib2
 import plexpy
-import os.path
-import subprocess
-import json
 
 
 class PlexTV(object):
@@ -346,6 +338,8 @@ class PlexTV(object):
                             status_item_ready_count = self.get_xml_attr(status, 'itemsReadyCount')
                             status_item_successful_count = self.get_xml_attr(status, 'itemsSuccessfulCount')
                             status_total_size = self.get_xml_attr(status, 'totalSize')
+                            status_item_download_percent_complete = helpers.get_percent(
+                                status_item_downloaded_count, status_item_count)
 
                         for settings in item.getElementsByTagName('MediaSettings'):
                             settings_audio_boost = self.get_xml_attr(settings, 'audioBoost')
@@ -376,6 +370,7 @@ class PlexTV(object):
                                         "item_count": status_item_count,
                                         "item_complete_count": status_item_complete_count,
                                         "item_downloaded_count": status_item_downloaded_count,
+                                        "item_downloaded_percent_complete": status_item_download_percent_complete,
                                         "music_bitrate": settings_music_bitrate,
                                         "photo_quality": settings_photo_quality,
                                         "video_quality": settings_video_quality,

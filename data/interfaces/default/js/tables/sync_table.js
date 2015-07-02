@@ -9,12 +9,14 @@ sync_table_options = {
     "pageLength": 25,
     "stateSave": true,
     "language": {
-                "search":"Search: ",
-                "lengthMenu":"Show _MENU_ lines per page",
-                "emptyTable": "No synced items",
-                "info":"Showing _START_ to _END_ of _TOTAL_ lines",
-                "infoEmpty":"Showing 0 to 0 of 0 lines",
-                "infoFiltered":"(filtered from _MAX_ total lines)"},
+        "search":"Search: ",
+        "lengthMenu":"Show _MENU_ lines per page",
+        "emptyTable": "No synced items",
+        "info":"Showing _START_ to _END_ of _TOTAL_ lines",
+        "infoEmpty":"Showing 0 to 0 of 0 lines",
+        "infoFiltered":"(filtered from _MAX_ total lines)",
+        "loadingRecords":'<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
+    },
     "columnDefs": [
         {
             "targets": [0],
@@ -91,11 +93,10 @@ sync_table_options = {
         },
         {
             "targets": [10],
-            "data": null,
+            "data": "item_downloaded_percent_complete",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (rowData['item_count'] > 0 ) {
-                    percent_complete = Math.round((rowData['item_downloaded_count']/rowData['item_count']*100),0);
-                    $(td).html('<span class="badge">' + percent_complete + '%</span>');
+                    $(td).html('<span class="badge">' + cellData + '%</span>');
                 } else {
                     $(td).html('<span class="badge">0%</span>');
                 }

@@ -25,10 +25,10 @@ import re
 
 from plexpy import version
 
-#Identify Our Application
+# Identify Our Application
 USER_AGENT = 'PlexPy/-' + version.PLEXPY_VERSION + ' (' + platform.system() + ' ' + platform.release() + ')'
 
-### Notification Types
+# Notification Types
 NOTIFY_SNATCH = 1
 NOTIFY_DOWNLOAD = 2
 
@@ -36,13 +36,5 @@ notifyStrings = {}
 notifyStrings[NOTIFY_SNATCH] = "Started Download"
 notifyStrings[NOTIFY_DOWNLOAD] = "Download Finished"
 
-### Release statuses
-UNKNOWN = -1 # should never happen
-UNAIRED = 1 # releases that haven't dropped yet
-SNATCHED = 2 # qualified with quality
-WANTED = 3 # releases we don't have but want to get
-DOWNLOADED = 4 # qualified with quality
-SKIPPED = 5 # releases we don't want
-ARCHIVED = 6 # releases that you don't have locally (counts toward download completion stats)
-IGNORED = 7 # releases that you don't want included in your download stats
-SNATCHED_PROPER = 9 # qualified with quality
+DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
+DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"

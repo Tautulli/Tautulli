@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, datatables, db
+from plexpy import logger, helpers, datatables, db, common
 from xml.dom import minidom
 import sys
 if sys.version_info < (2, 7):
@@ -100,8 +100,8 @@ class PlexWatch(object):
 
         rows = []
         for item in users:
-            if not item['thumb']:
-                user_thumb = 'interfaces/default/images/gravatar-default-80x80.png'
+            if not item['thumb'] or item['thumb'] == '':
+                user_thumb = common.DEFAULT_USER_THUMB
             else:
                 user_thumb = item['thumb']
 
@@ -710,8 +710,8 @@ class PlexWatch(object):
                     return None
 
                 for item in result:
-                    if not item['thumb']:
-                        user_thumb = 'interfaces/default/images/gravatar-default-80x80.png'
+                    if not item['thumb'] or item['thumb'] == '':
+                        user_thumb = common.DEFAULT_USER_THUMB
                     else:
                         user_thumb = item[4]
 
@@ -948,10 +948,20 @@ class PlexWatch(object):
     def get_user_details(self, user=None, user_id=None):
         try:
             myDB = db.DBConnection()
+            t = self.get_history_table_name()
+
             if user:
-                query = 'select user_id, username, friendly_name, email, thumb, ' \
-                        'is_home_user, is_allow_sync, is_restricted FROM plexpy_users WHERE username = ? LIMIT 1'
-                result = myDB.select(query, args=[user])
+                query = 'SELECT user_id, username, friendly_name, email, ' \
+                        'thumb, is_home_user, is_allow_sync, is_restricted ' \
+                        'FROM plexpy_users ' \
+                        'WHERE username = ? ' \
+                        'UNION ALL ' \
+                        'SELECT null, user, null, null, null, null, null, null ' \
+                        'FROM %s ' \
+                        'WHERE user = ? ' \
+                        'GROUP BY user ' \
+                        'LIMIT 1' % t
+                result = myDB.select(query, args=[user, user])
             elif user_id:
                 query = 'select user_id, username, friendly_name, email, thumb, ' \
                         'is_home_user, is_allow_sync, is_restricted FROM plexpy_users WHERE user_id = ? LIMIT 1'
@@ -962,12 +972,16 @@ class PlexWatch(object):
                         friendly_name = item['username']
                     else:
                         friendly_name = item['friendly_name']
+                    if not item['thumb'] or item['thumb'] == '':
+                        user_thumb = common.DEFAULT_USER_THUMB
+                    else:
+                        user_thumb = item['thumb']
 
                     user_details = {"user_id": item['user_id'],
                                     "username": item['username'],
                                     "friendly_name": friendly_name,
                                     "email": item['email'],
-                                    "thumb": item['thumb'],
+                                    "thumb": user_thumb,
                                     "is_home_user": item['is_home_user'],
                                     "is_allow_sync": item['is_allow_sync'],
                                     "is_restricted": item['is_restricted']

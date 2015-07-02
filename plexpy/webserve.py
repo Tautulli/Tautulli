@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db
+from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db, common
 from plexpy.helpers import checked, radio
 
 from mako.lookup import TemplateLookup
@@ -50,6 +50,10 @@ def serve_template(templatename, **kwargs):
 
 
 class WebInterface(object):
+
+    def __init__(self):
+        self.interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/')
+
     @cherrypy.expose
     def index(self):
         raise cherrypy.HTTPRedirect("home")
@@ -108,7 +112,6 @@ class WebInterface(object):
             user_details = plex_watch.get_user_details(user)
         except:
             logger.warn("Unable to retrieve friendly name for user %s " % user)
-            friendly_name = user
 
         return serve_template(templatename="user.html", title="User", data=user_details)
 
@@ -532,7 +535,7 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def pms_image_proxy(self, img='', width='0', height='0', **kwargs):
+    def pms_image_proxy(self, img='', width='0', height='0', fallback=None, **kwargs):
         if img != '':
             try:
                 pms_connect = pmsconnect.PmsConnect()
@@ -541,10 +544,18 @@ class WebInterface(object):
                 return result[1]
             except:
                 logger.warn('Image proxy queried but errors occured.')
-                return 'No image'
+                if fallback == 'poster':
+                    logger.info('Trying fallback image...')
+                    try:
+                        fallback_image = open(self.interface_dir + common.DEFAULT_POSTER_THUMB, 'rb')
+                        cherrypy.response.headers['Content-type'] = 'image/png'
+                        return fallback_image
+                    except IOError, e:
+                        logger.error('Unable to read fallback image. %s' % e)
+                return None
         else:
             logger.warn('Image proxy queried but no parameters received.')
-            return 'No image'
+            return None
 
     @cherrypy.expose
     def info(self, rating_key='', **kwargs):
