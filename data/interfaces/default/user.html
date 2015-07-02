@@ -49,6 +49,7 @@ from plexpy import helpers
                         <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
                         <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
                         <li><a id="history-tab-btn" href="#userHistory" data-toggle="tab">History</a></li>
+                        <li><a id="sync-tab-btn" href="#userSyncItems" data-toggle="tab">Synced Items</a></li>
                     </ul>
                 </div>
             </div>
@@ -208,6 +209,40 @@ from plexpy import helpers
             </div>
         </div>
     </div>
+    <div class="tab-pane" id="userSyncItems">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="table-card-back">
+                        <h3>Synced Items for <strong>
+                            <span class="set-username">${data['friendly_name']}</span>
+                        </strong></h3>
+                    </div>
+                    <div class="table-card-back">
+                        <table class="display" id="sync_table" width="100%">
+                        <thead>
+                        <tr>
+                            <th align='left' id="state">State</th>
+                            <th align='left' id="username">Username</th>
+                            <th align='left' id="sync_title">Title</th>
+                            <th align='left' id="type">Type</th>
+                            <th align='left' id="device">Device</th>
+                            <th align='left' id="sync_platform">Platform</th>
+                            <th align='left' id="size">Total Size</th>
+                            <th align='left' id="items">Total Items</th>
+                            <th align='left' id="converted">Converted</th>
+                            <th align='left' id="downloaded">Downloaded</th>
+                            <th align='left' id="sync_percent_complete">Complete</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <footer></footer>
 </%def>
@@ -219,6 +254,7 @@ from plexpy import helpers
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/history_table.js"></script>
 <script src="interfaces/default/js/tables/user_ips.js"></script>
+<script src="interfaces/default/js/tables/sync_table.js"></script>
 <script>
             $(document).ready(function () {
 
@@ -273,6 +309,17 @@ from plexpy import helpers
                         }
                     }
                     user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
+                });
+
+                $( "#sync-tab-btn" ).one( "click", function() {
+                    // Build user sync table
+                    sync_table_options.ajax = {
+                        "url": "get_sync",
+                        "data": function(d) {
+                           d.user_id = "${data['user_id']}";
+                        }
+                    }
+                    sync_table = $('#sync_table').DataTable(sync_table_options);
                 });
 
                 // Load edit user modal

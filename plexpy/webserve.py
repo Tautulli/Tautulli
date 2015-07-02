@@ -897,20 +897,22 @@ class WebInterface(object):
         raise cherrypy.HTTPRedirect("users")
 
     @cherrypy.expose
-    def get_sync(self, machine_id='', **kwargs):
+    def get_sync(self, machine_id=None, user_id=None, **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
         server_info = pms_connect.get_servers_info()
 
         plex_tv = plextv.PlexTV()
         if not machine_id:
-            result = plex_tv.get_synced_items(machine_id=server_info[0]['machine_identifier'])
+            result = plex_tv.get_synced_items(machine_id=server_info[0]['machine_identifier'], user_id=user_id)
         else:
-            result = plex_tv.get_synced_items(machine_id=machine_id)
+            result = plex_tv.get_synced_items(machine_id=machine_id, user_id=user_id)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
             output = {"data": result}
-            return json.dumps(output)
         else:
-            logger.warn('Unable to retrieve data.')
+            logger.warn('Unable to retrieve sync data for user.')
+            output = {"data": []}
+
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps(output)

@@ -284,7 +284,7 @@ class PlexTV(object):
 
         return users_list
 
-    def get_synced_items(self, machine_id=None):
+    def get_synced_items(self, machine_id=None, user_id=None):
         sync_list = self.get_plextv_sync_lists(machine_id)
         plex_watch = plexwatch.PlexWatch()
 
@@ -304,9 +304,15 @@ class PlexTV(object):
         else:
             for a in xml_head:
                 client_id = self.get_xml_attr(a, 'id')
-
                 sync_device = a.getElementsByTagName('Device')
                 for device in sync_device:
+                    device_user_id = self.get_xml_attr(device, 'userID')
+                    try:
+                        device_username = plex_watch.get_user_details(user_id=device_user_id)['username']
+                        device_friendly_name = plex_watch.get_user_details(user_id=device_user_id)['friendly_name']
+                    except:
+                        device_username = ''
+                        device_friendly_name = ''
                     device_name = self.get_xml_attr(device, 'name')
                     device_product = self.get_xml_attr(device, 'product')
                     device_product_version = self.get_xml_attr(device, 'productVersion')
@@ -315,13 +321,10 @@ class PlexTV(object):
                     device_type = self.get_xml_attr(device, 'device')
                     device_model = self.get_xml_attr(device, 'model')
                     device_last_seen = self.get_xml_attr(device, 'lastSeenAt')
-                    device_user_id = self.get_xml_attr(device, 'userID')
-                    try:
-                        device_username = plex_watch.get_user_details(user_id=device_user_id)['username']
-                        device_friendly_name = plex_watch.get_user_details(user_id=device_user_id)['friendly_name']
-                    except:
-                        device_username = ''
-                        device_friendly_name = ''
+
+                # Filter by user_id
+                if user_id and user_id != device_user_id:
+                    break
 
                 for synced in a.getElementsByTagName('SyncItems'):
                     sync_item = synced.getElementsByTagName('SyncItem')

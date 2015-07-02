@@ -1,12 +1,9 @@
-$('#sync_table').dataTable( {
+sync_table_options = {
     "responsive": {
         details: false
     },
     "processing": false,
     "serverSide": false,
-    "ajax": {
-        "url": "get_sync"
-    },
     "sPaginationType": "bootstrap",
     "order": [ 0, 'desc'],
     "pageLength": 25,
@@ -108,10 +105,5 @@ $('#sync_table').dataTable( {
     "drawCallback": function (settings) {
         // Jump to top of page
         $('html,body').scrollTop(0);
-        $('#ajaxMsg').addClass('success').fadeOut();
-    },
-    "preDrawCallback": function(settings) {
-        $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>Fetching rows...</div>");
-        $('#ajaxMsg').addClass('success').fadeIn();
     }
-});
+}

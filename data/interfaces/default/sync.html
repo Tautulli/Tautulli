@@ -20,7 +20,7 @@ from plexpy import helpers
         <div class="span12">
             <div class="wellheader-bg">
                 <div class="dashboard-wellheader-no-chevron">
-                    <h2><i class="fa fa-book"></i> Synced Items</h2>
+                    <h2><i class="fa fa-cloud-download"></i> Synced Items</h2>
                 </div>
             </div>
         </div>
@@ -62,5 +62,12 @@ from plexpy import helpers
 <script src="interfaces/default/js/dataTables.responsive.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
 <script src="interfaces/default/js/tables/sync_table.js"></script>
-
+<script>
+    $(document).ready(function() {
+        sync_table_options.ajax = {
+            "url": "get_sync"
+        }
+        sync_table = $('#sync_table').DataTable(sync_table_options);
+    });
+</script>
 </%def>

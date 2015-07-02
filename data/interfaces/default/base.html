@@ -113,6 +113,19 @@ from plexpy import version
                     </a>
                 </li>
                 % endif
+                % if title=="Synced Items":
+                <li class="active">
+                    <a href="sync">
+                        <i class="fa fa-cloud-download fa-2x" data-toggle="tooltip" data-placement="bottom" title="Synced Items" id="sync"></i>
+                    </a>
+                </li>
+                % else:
+                <li>
+                    <a href="sync">
+                        <i class="fa fa-cloud-download fa-2x" data-toggle="tooltip" data-placement="bottom" title="Synced Items" id="sync"></i>
+                    </a>
+                </li>
+                % endif
                 % if title=="Log":
                 <li class="active">
                     <a href="logs">
@@ -160,6 +173,9 @@ ${next.body()}
         });
         $(document).ready(function() {
             $('#graphs').tooltip();
+        });
+        $(document).ready(function() {
+            $('#sync').tooltip();
         });
         $(document).ready(function() {
             $('#logs').tooltip();

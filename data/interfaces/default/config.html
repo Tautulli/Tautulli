@@ -57,12 +57,12 @@
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="http_host">HTTP Host</label>
-                                                        <input type="text" id="http_host" name="http_host" value="${config['http_host']}" size="30">
+                                                        <input type="text" id="http_host" name="http_host" value="${config['http_host']}" size="30" required="required">
                                                         <p class="help-block">e.g. localhost or an IP, such as 0.0.0.0</p>
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="http_port">HTTP Port</label>
-                                                        <input type="text" id="http_port" name="http_port" value="${config['http_port']}" size="10">
+                                                        <input type="text" id="http_port" name="http_port" value="${config['http_port']}" size="10" required="required">
                                                         <p class="help-block">Port to bind web server to. Note that ports below 1024 may require root.</p>
                                                     </div>
                                                     <div class="checkbox">
@@ -136,12 +136,12 @@
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="date_format">Date Format</label>
-                                                        <input type="text" id="date_format" name="date_format" value="${config['date_format']}" size="30">
+                                                        <input type="text" id="date_format" name="date_format" value="${config['date_format']}" size="30" required="required">
                                                         <p class="help-block">Set your preferred date format. <a href="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="date_format">Time Format</label>
-                                                        <input type="text" id="time_format" name="time_format" value="${config['time_format']}" size="30">
+                                                        <input type="text" id="time_format" name="time_format" value="${config['time_format']}" size="30" required="required">
                                                         <p class="help-block">Set your preferred time format. <a href="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                                                     </div>
                                                 </fieldset>
@@ -153,12 +153,12 @@
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="pms_ip">PMS IP</label>
-                                                        <input type="text" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30">
+                                                        <input type="text" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" required="required">
                                                         <p class="help-block">IP Address for Plex Media Server.</p>
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="pms_port">PMS Port</label>
-                                                        <input type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30">
+                                                        <input type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" required="required">
                                                         <p class="help-block">Port that Plex Media Server is listening on.</p>
                                                     </div>
                                                     <div class="form-group">
@@ -176,7 +176,7 @@
                                                 <fieldset>
                                                     <div class="form-group">
                                                         <label for="plexwatch_database">PlexWatch Database</label>
-                                                        <input type="text" id="plexwatch_database" name="plexwatch_database" value="${config['plexwatch_database']}" size="30">
+                                                        <input type="text" id="plexwatch_database" name="plexwatch_database" value="${config['plexwatch_database']}" size="30" required="required">
                                                         <p class="help-block">Full path and file name of your PlexWatch database.</p>
                                                     </div>
                                                     <div class="checkbox">
@@ -697,12 +697,12 @@
                             <br/><br/>
                             <div class="form-group">
                                 <label for="pms_username">PMS Username</label>
-                                <input type="text" id="pms_username" name="pms_username" size="30">
+                                <input type="text" id="pms_username" name="pms_username" size="30" required="required">
                                 <p class="help-block">Username for Plex.tv authentication.</p>
                             </div>
                             <div class="form-group">
                                 <label for="pms_password">PMS Password</label>
-                                <input type="password" id="pms_password" name="pms_password" size="30">
+                                <input type="password" id="pms_password" name="pms_password" size="30" required="required">
                                 <p class="help-block">Password for Plex.tv authentication.</p>
                             </div>
                         </div>
