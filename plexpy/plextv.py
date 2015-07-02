@@ -324,7 +324,7 @@ class PlexTV(object):
 
                 # Filter by user_id
                 if user_id and user_id != device_user_id:
-                    break
+                    continue
 
                 for synced in a.getElementsByTagName('SyncItems'):
                     sync_item = synced.getElementsByTagName('SyncItem')
