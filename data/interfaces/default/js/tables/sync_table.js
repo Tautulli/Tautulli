@@ -75,7 +75,7 @@ sync_table_options = {
                     megabytes = Math.round((cellData/1024)/1024, 0)
                     $(td).html(megabytes + 'MB');
                 } else {
-                    $(td).html(megabytes + '0MB');
+                    $(td).html('0MB');
                 }
             }
         },

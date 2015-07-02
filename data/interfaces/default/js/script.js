@@ -15,6 +15,14 @@ function initConfigCheckbox(elem) {
 	});
 }     
 
+function refreshTab() {
+	var url =  $(location).attr('href');
+	var tabId = $('.ui-tabs-panel:visible').attr("id");
+	$('.ui-tabs-panel:visible').load(url + " #"+ tabId, function() {
+		initThisPage();
+	});
+}
+
 function showMsg(msg,loader,timeout,ms) {
 	var feedback = $("#ajaxMsg");
 	update = $("#updatebar");

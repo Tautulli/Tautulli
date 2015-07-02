@@ -77,7 +77,7 @@ users_list_table_options = {
         $('#ajaxMsg').addClass('success').fadeOut();
     },
     "preDrawCallback": function(settings) {
-        $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>Fetching rows...</div>");
+        $('#ajaxMsg').html("<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...</div>");
         $('#ajaxMsg').addClass('success').fadeIn();
     }
 }
