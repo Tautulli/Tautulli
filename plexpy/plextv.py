@@ -316,8 +316,12 @@ class PlexTV(object):
                     device_model = self.get_xml_attr(device, 'model')
                     device_last_seen = self.get_xml_attr(device, 'lastSeenAt')
                     device_user_id = self.get_xml_attr(device, 'userID')
-                    device_username = plex_watch.get_user_details(user_id=device_user_id)['username']
-                    device_friendly_name = plex_watch.get_user_details(user_id=device_user_id)['friendly_name']
+                    try:
+                        device_username = plex_watch.get_user_details(user_id=device_user_id)['username']
+                        device_friendly_name = plex_watch.get_user_details(user_id=device_user_id)['friendly_name']
+                    except:
+                        device_username = ''
+                        device_friendly_name = ''
 
                 for synced in a.getElementsByTagName('SyncItems'):
                     sync_item = synced.getElementsByTagName('SyncItem')
@@ -348,8 +352,12 @@ class PlexTV(object):
                             settings_video_quality = self.get_xml_attr(settings, 'videoQuality')
                             settings_video_resolution = self.get_xml_attr(settings, 'videoResolution')
 
-                        rating_key = self.get_xml_attr(
-                            item.getElementsByTagName('Location')[0], 'uri').rpartition('%2F')[-1]
+                        if self.get_xml_attr(item.getElementsByTagName('Location')[0], 'uri').endswith('%2Fchildren'):
+                            clean_uri = self.get_xml_attr(item.getElementsByTagName('Location')[0], 'uri')[:-11]
+                        else:
+                            clean_uri = self.get_xml_attr(item.getElementsByTagName('Location')[0], 'uri')
+
+                        rating_key = clean_uri.rpartition('%2F')[-1]
 
                         sync_details = {"device_name": device_name,
                                         "platform": device_platform,
