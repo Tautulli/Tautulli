@@ -28,7 +28,8 @@ sync_table_options = {
                 } else {
                     $(td).html(cellData.toProperCase());
                 }
-            }
+            },
+            "className": "no-wrap"
         },
         {
             "targets": [1],
@@ -37,7 +38,8 @@ sync_table_options = {
                 if (cellData !== '') {
                     $(td).html('<a href="user?user=' + rowData['username'] + '">' + cellData + '</a>');
                 }
-            }
+            },
+            "className": "no-wrap"
         },
         {
             "targets": [2],
@@ -57,15 +59,18 @@ sync_table_options = {
             "data": "metadata_type",
             "render": function ( data, type, full ) {
                 return data.toProperCase();
-            }
+            },
+            "className": "no-wrap"
         },
         {
             "targets": [4],
-            "data": "device_name"
+            "data": "device_name",
+            "className": "no-wrap"
         },
         {
             "targets": [5],
-            "data": "platform"
+            "data": "platform",
+            "className": "no-wrap"
         },
         {
             "targets": [6],
@@ -77,19 +82,23 @@ sync_table_options = {
                 } else {
                     $(td).html('0MB');
                 }
-            }
+            },
+            "className": "no-wrap"
         },
         {
             "targets": [7],
-            "data": "item_count"
+            "data": "item_count",
+            "className": "no-wrap"
         },
         {
             "targets": [8],
-            "data": "item_complete_count"
+            "data": "item_complete_count",
+            "className": "no-wrap"
         },
         {
             "targets": [9],
-            "data": "item_downloaded_count"
+            "data": "item_downloaded_count",
+            "className": "no-wrap"
         },
         {
             "targets": [10],
@@ -100,7 +109,8 @@ sync_table_options = {
                 } else {
                     $(td).html('<span class="badge">0%</span>');
                 }
-            }
+            },
+            "className": "no-wrap"
         }
     ],
     "drawCallback": function (settings) {

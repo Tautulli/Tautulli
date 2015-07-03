@@ -178,20 +178,6 @@ class PROWL(object):
 
         self.notify('ZOMG Lazors Pewpewpew!', 'Test Message')
 
-
-class MPC(object):
-    """
-    MPC library update
-    """
-
-    def __init__(self):
-
-        pass
-
-    def notify(self):
-        subprocess.call(["mpc", "update"])
-
-
 class XBMC(object):
     """
     XBMC notifications
@@ -225,25 +211,12 @@ class XBMC(object):
         if response:
             return response[0]['result']
 
-    def update(self):
-        # From what I read you can't update the music library on a per directory or per path basis
-        # so need to update the whole thing
+    def notify(self, subject=None, message=None):
 
         hosts = [x.strip() for x in self.hosts.split(',')]
 
-        for host in hosts:
-            logger.info('Sending library update command to XBMC @ ' + host)
-            request = self._sendjson(host, 'AudioLibrary.Scan')
-
-            if not request:
-                logger.warn('Error sending update request to XBMC')
-
-    def notify(self, artist, album, albumartpath):
-
-        hosts = [x.strip() for x in self.hosts.split(',')]
-
-        header = "PlexPy"
-        message = "%s - %s added to your library" % (artist, album)
+        header = subject
+        message = message
         time = "3000" # in ms
 
         for host in hosts:
@@ -252,12 +225,12 @@ class XBMC(object):
                 version = self._sendjson(host, 'Application.GetProperties', {'properties': ['version']})['version']['major']
 
                 if version < 12: #Eden
-                    notification = header + "," + message + "," + time + "," + albumartpath
+                    notification = header + "," + message + "," + time
                     notifycommand = {'command': 'ExecBuiltIn', 'parameter': 'Notification(' + notification + ')'}
                     request = self._sendhttp(host, notifycommand)
 
                 else: #Frodo
-                    params = {'title': header, 'message': message, 'displaytime': int(time), 'image': albumartpath}
+                    params = {'title': header, 'message': message, 'displaytime': int(time)}
                     request = self._sendjson(host, 'GUI.ShowNotification', params)
 
                 if not request:
@@ -265,48 +238,6 @@ class XBMC(object):
 
             except Exception:
                 logger.error('Error sending notification request to XBMC')
-
-
-class LMS(object):
-    """
-    Class for updating a Logitech Media Server
-    """
-
-    def __init__(self):
-        self.hosts = plexpy.CONFIG.LMS_HOST
-
-    def _sendjson(self, host):
-        data = {'id': 1, 'method': 'slim.request', 'params': ["", ["rescan"]]}
-        data = json.JSONEncoder().encode(data)
-
-        content = {'Content-Type': 'application/json'}
-
-        req = urllib2.Request(host + '/jsonrpc.js', data, content)
-
-        try:
-            handle = urllib2.urlopen(req)
-        except Exception as e:
-            logger.warn('Error opening LMS url: %s' % e)
-            return
-
-        response = json.JSONDecoder().decode(handle.read())
-
-        try:
-            return response['result']
-        except:
-            logger.warn('LMS returned error: %s' % response['error'])
-            return response['error']
-
-    def update(self):
-
-        hosts = [x.strip() for x in self.hosts.split(',')]
-
-        for host in hosts:
-            logger.info('Sending library rescan command to LMS @ ' + host)
-            request = self._sendjson(host)
-
-            if request:
-                logger.warn('Error sending rescan request to LMS')
 
 
 class Plex(object):
@@ -344,48 +275,18 @@ class Plex(object):
 
         return response
 
-    def update(self):
-
-        # From what I read you can't update the music library on a per directory or per path basis
-        # so need to update the whole thing
-
-        hosts = [x.strip() for x in self.server_hosts.split(',')]
-
-        for host in hosts:
-            logger.info('Sending library update command to Plex Media Server@ ' + host)
-            url = "%s/library/sections" % host
-            try:
-                xml_sections = minidom.parse(urllib.urlopen(url))
-            except IOError, e:
-                logger.warn("Error while trying to contact Plex Media Server: %s" % e)
-                return False
-
-            sections = xml_sections.getElementsByTagName('Directory')
-            if not sections:
-                logger.info(u"Plex Media Server not running on: " + host)
-                return False
-
-            for s in sections:
-                if s.getAttribute('type') == "artist":
-                    url = "%s/library/sections/%s/refresh" % (host, s.getAttribute('key'))
-                    try:
-                        urllib.urlopen(url)
-                    except Exception as e:
-                        logger.warn("Error updating library section for Plex Media Server: %s" % e)
-                        return False
-
-    def notify(self, artist, album, albumartpath):
+    def notify(self, subject=None, message=None):
 
         hosts = [x.strip() for x in self.client_hosts.split(',')]
 
-        header = "PlexPy"
-        message = "%s - %s added to your library" % (artist, album)
+        header = subject
+        message = message
         time = "3000" # in ms
 
         for host in hosts:
             logger.info('Sending notification command to Plex Media Server @ ' + host)
             try:
-                notification = header + "," + message + "," + time + "," + albumartpath
+                notification = header + "," + message + "," + time
                 notifycommand = {'command': 'ExecBuiltIn', 'parameter': 'Notification(' + notification + ')'}
                 request = self._sendhttp(host, notifycommand)
 
@@ -397,7 +298,7 @@ class Plex(object):
 
 
 class NMA(object):
-    def notify(self, artist=None, album=None, snatched=None):
+    def notify(self, subject=None, message=None):
         title = 'PlexPy'
         api = plexpy.CONFIG.NMA_APIKEY
         nma_priority = plexpy.CONFIG.NMA_PRIORITY
@@ -406,12 +307,7 @@ class NMA(object):
         logger.debug(u"NMA API: " + api)
         logger.debug(u"NMA Priority: " + str(nma_priority))
 
-        if snatched:
-            event = snatched + " snatched!"
-            message = "PlexPy has snatched: " + snatched
-        else:
-            event = artist + ' - ' + album + ' complete!'
-            message = "PlexPy has downloaded and postprocessed: " + artist + ' [' + album + ']'
+        event = subject
 
         logger.debug(u"NMA event: " + event)
         logger.debug(u"NMA message: " + message)
@@ -460,9 +356,9 @@ class PUSHBULLET(object):
                                 body=json.dumps(data))
         response = http_handler.getresponse()
         request_status = response.status
-        logger.debug(u"PushBullet response status: %r" % request_status)
-        logger.debug(u"PushBullet response headers: %r" % response.getheaders())
-        logger.debug(u"PushBullet response body: %r" % response.read())
+        # logger.debug(u"PushBullet response status: %r" % request_status)
+        # logger.debug(u"PushBullet response headers: %r" % response.getheaders())
+        # logger.debug(u"PushBullet response body: %r" % response.read())
 
         if request_status == 200:
                 logger.info(u"PushBullet notifications sent.")
@@ -473,10 +369,6 @@ class PUSHBULLET(object):
         else:
                 logger.info(u"PushBullet notification failed serverside.")
                 return False
-
-    def updateLibrary(self):
-        #For uniformity reasons not removed
-        return
 
     def test(self, apikey, deviceid):
 
@@ -525,43 +417,6 @@ class PUSHALOT(object):
         else:
                 logger.info(u"Pushalot notification failed.")
                 return False
-
-
-class Synoindex(object):
-    def __init__(self, util_loc='/usr/syno/bin/synoindex'):
-        self.util_loc = util_loc
-
-    def util_exists(self):
-        return os.path.exists(self.util_loc)
-
-    def notify(self, path):
-        path = os.path.abspath(path)
-
-        if not self.util_exists():
-            logger.warn("Error sending notification: synoindex utility not found at %s" % self.util_loc)
-            return
-
-        if os.path.isfile(path):
-            cmd_arg = '-a'
-        elif os.path.isdir(path):
-            cmd_arg = '-A'
-        else:
-            logger.warn("Error sending notification: Path passed to synoindex was not a file or folder.")
-            return
-
-        cmd = [self.util_loc, cmd_arg, path]
-        logger.info("Calling synoindex command: %s" % str(cmd))
-        try:
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=plexpy.PROG_DIR)
-            out, error = p.communicate()
-            #synoindex never returns any codes other than '0', highly irritating
-        except OSError, e:
-            logger.warn("Error sending notification: %s" % str(e))
-
-    def notify_multiple(self, path_list):
-        if isinstance(path_list, list):
-            for path in path_list:
-                self.notify(path)
 
 
 class PUSHOVER(object):
@@ -813,25 +668,6 @@ class BOXCAR(object):
             logger.warn('Error sending Boxcar2 Notification: %s' % e)
             return False
 
-
-class SubSonicNotifier(object):
-
-    def __init__(self):
-        self.host = plexpy.CONFIG.SUBSONIC_HOST
-        self.username = plexpy.CONFIG.SUBSONIC_USERNAME
-        self.password = plexpy.CONFIG.SUBSONIC_PASSWORD
-
-    def notify(self, albumpaths):
-        # Correct URL
-        if not self.host.lower().startswith("http"):
-            self.host = "http://" + self.host
-
-        if not self.host.lower().endswith("/"):
-            self.host = self.host + "/"
-
-        # Invoke request
-        request.request_response(self.host + "musicFolderSettings.view?scanNow",
-            auth=(self.username, self.password))
 
 class Email(object):
 

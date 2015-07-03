@@ -149,7 +149,7 @@ def main():
             'Cannot write to the data directory: ' + plexpy.DATA_DIR + '. Exiting...')
 
     # Put the database in the DATA_DIR
-    # plexpy.DB_FILE = os.path.join(plexpy.DATA_DIR, 'plexpy.db')
+    plexpy.DB_FILE = os.path.join(plexpy.DATA_DIR, 'plexpy.db')
 
     # Read config and start logging
     plexpy.initialize(config_file)

@@ -29,13 +29,8 @@ player                  Returns the name of the platform used to play the stream
 audioDecision           Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
 audioCodec              Returns the name of the audio codec.
 audioChannels           Returns the number of audio channels.
-
-== Only if 'type' is 'episode' ==
-grandparentTitle        Returns the name of the TV Show.
-
-== Only if 'type' is 'track' ==
-artist                  Returns the name of the artist of a music track.
-album                   Returns the name of the album of the music track.
+grandparentTitle        Returns the title of the item's grandparent.
+parentTitle             Returns the title of the item's parent.
 
 == Only if 'type' is 'episode' or 'movie' ==
 videoDecision           Returns the video transcode decision. Either 'transcode', 'copy' or 'direct play'.
@@ -83,7 +78,7 @@ DOCUMENTATION :: END
                     % elif a['type'] == 'movie':
                     <a href="info?rating_key=${a['ratingKey']}">${a['title']}</a>
                     % elif a['type'] == 'track':
-                    ${a['artist']} - ${a['track']}
+                    ${a['grandparentTitle']} - ${a['title']}
                     % else:
                     ${a['grandparentTitle']} - ${a['title']}
                     % endif
@@ -93,9 +88,9 @@ DOCUMENTATION :: END
                 <div class='dashboard-activity-info-details-overlay'>
                     <div class='dashboard-activity-info-details-content'>
                         % if a['type'] == 'track':
-                        Artist: <strong>${a['artist']}</strong>
+                        Artist: <strong>${a['grandparentTitle']}</strong>
                         <br>
-                        Album: <strong>${a['album']}</strong>
+                        Album: <strong>${a['parentTitle']}</strong>
                         <br>
                         % endif
                         % if a['state'] == 'playing':

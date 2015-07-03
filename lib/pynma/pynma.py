@@ -6,7 +6,7 @@ from urllib import urlencode
 
 __version__ = "0.1"
 
-API_SERVER = 'nma.usk.bz'
+API_SERVER = 'www.notifymyandroid.com'
 ADD_PATH   = '/publicapi/notify'
 
 USER_AGENT="PyNMA/v%s"%__version__

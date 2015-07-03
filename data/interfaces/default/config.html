@@ -40,7 +40,7 @@
                         <ul class="nav nav-pills" role="tablist">
                             <li role="presentation" class="active"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Web Interface</a></li>
                             <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Plex & PlexWatch</a></li>
-                            <!--<li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Notifications</a></li>-->
+                            <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Notifications</a></li>
                         </ul>
 
                         <div class="tab-content">
@@ -206,13 +206,13 @@
                                     </div>
                                 </div>
                                 <input type="button" class="btn btn-medium btn-primary save-button" value="Save" data-success="Changes saved successfully">
+                            </div>
 
-<!--
                             <div role="tabpanel" class="tab-pane" id="tabs-5">
-                                <div class="wellbg">
+                                <div class="wellbg" style="padding: 0px 0px 0px 20px;">
                                     <div class="container-fluid">
-                                        <div class="row">
-                                            <div class="col-md-4">
+                                        <div class="row-fluid">
+                                            <div class="span4">
                                                 <fieldset>
                                                     <div class="wellheader">
                                                         <h3>Growl</h3>
@@ -298,17 +298,9 @@
                                                         </div>
                                                     </div>
                                                 </fieldset>
-                                                <fieldset>
-                                                    <div class="wellheader">
-                                                        <h3>Synology NAS</h3>
-                                                    </div>
-                                                    <div class="checkbox">
-                                                        <input type="checkbox" name="synoindex_enabled" id="synoindex" value="1" ${config['synoindex_enabled']}> Enable Synoindex
-                                                    </div>
-                                                </fieldset>
                                             </div>
 
-                                            <div class="col-md-4">
+                                            <div class="span4">
                                                 <fieldset>
                                                     <div class="wellheader">
                                                         <h3>NotifyMyAndroid</h3>
@@ -348,21 +340,6 @@
                                                         </div>
                                                     </div>
                                                 </fieldset>
-                                                <fieldset>
-                                                    <div class="wellheader">
-                                                        <h3>Logitech Media Server</h3>
-                                                    </div>
-                                                    <div class="checkbox">
-                                                        <input type="checkbox" name="lms_enabled" id="lms" value="1" ${config['lms_enabled']}> Enable LMS Updates
-                                                    </div>
-                                                    <div id="lmsoptions">
-                                                        <div class="form-group">
-                                                            <label for="lms_host">LMS Host:Port</label>
-                                                            <input type="text" id="lms_host" name="lms_host" value="${config['lms_host']}" size="30">
-                                                            <p class="help-block">e.g. http://localhost:9000. Seperate hosts with commas.</p>
-                                                        </div>
-                                                    </div>
-                                                </fieldset>
 
                                                 <fieldset>
                                                     <div class="wellheader">
@@ -380,28 +357,6 @@
                                                     </div>
                                                 </fieldset>
 
-                                                <fieldset>
-                                                    <div class="wellheader">
-                                                        <h3>Subsonic</h3>
-                                                    </div>
-                                                    <div class="checkbox">
-                                                        <input type="checkbox" name="subsonic_enabled" id="subsonic" value="1" ${config['subsonic_enabled']}> Enable Subsonic Updates
-                                                    </div>
-                                                    <div id="subsonicoptions">
-                                                        <div class="form-group">
-                                                            <label for="subsonic_host">Subsonic URL</label>
-                                                            <input type="text" id="subsonic_host" name="subsonic_host" value="${config['subsonic_host']}" size="30">
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label for="subsonic_username">Subsonic Username</label>
-                                                            <input type="text" id="subsonic_username" name="subsonic_username" value="${config['subsonic_username']}" size="30">
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label for="subsonic_password">Subsonic Password</label>
-                                                            <input type="password" id="subsonic_password" name="subsonic_password" value="${config['subsonic_password']}" size="30">
-                                                        </div>
-                                                    </div>
-                                                </fieldset>
                                                 <fieldset>
                                                     <div class="wellheader">
                                                         <h3>Email</h3>
@@ -441,7 +396,7 @@
                                                 </fieldset>
                                             </div>
 
-                                            <div class="md-col-4">
+                                            <div class="span4">
                                                 <fieldset>
                                                     <div class="wellheader">
                                                         <h3>Pushover</h3>
@@ -484,6 +439,7 @@
                                                     </div>
                                                 </fieldset>
 
+                                                <!-- We need to test Twitter first
                                                 <fieldset>
                                                     <div class="wellheader">
                                                         <h3>Twitter</h3>
@@ -504,7 +460,7 @@
                                                         </div>
                                                     </div>
                                                 </fieldset>
-
+                                                -->
                                                 <fieldset>
                                                     <div class="wellheader">
                                                         <h3>OS X</h3>
@@ -537,22 +493,13 @@
                                                     </div>
                                                 </fieldset>
 
-                                                <fieldset>
-                                                    <div class="wellheader">
-                                                        <h3>MPC</h3>
-                                                    </div>
-                                                    <div class="checkbox">
-                                                        <input type="checkbox" name="mpc_enabled" id="mpc" value="1" ${config['mpc_enabled']}> Enable MPC Update
-                                                    </div>
-                                                </fieldset>
                                             </div>
                                         </div>
                                     </div>
                                     <br/>
                                 </div>
-                                <input type="button" class="btn btn-medium btn-primary" value="Save" onclick="doAjaxCall('configUpdate',$(this),'tabs',true);return false;" data-success="Changes saved successfully">
+                                <input type="button" class="btn btn-medium btn-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
--->
                         </div>
                     </div>
                 </form>
@@ -885,26 +832,6 @@
                         }
                 });
 
-                if ($("#lms").is(":checked"))
-                        {
-                            $("#lmsoptions").show();
-                        }
-                else
-                        {
-                            $("#lmsoptions").hide();
-                        }
-
-                $("#lms").click(function(){
-                        if ($("#lms").is(":checked"))
-                        {
-                            $("#lmsoptions").slideDown();
-                        }
-                        else
-                        {
-                            $("#lmsoptions").slideUp();
-                        }
-                });
-
                 if ($("#plex").is(":checked"))
                         {
                             $("#plexoptions").show();
@@ -1063,26 +990,6 @@
                         else
                         {
                             $("#boxcar_options").slideUp();
-                        }
-                });
-
-                if ($("#subsonic").is(":checked"))
-                        {
-                            $("#subsonicoptions").show();
-                        }
-                else
-                        {
-                            $("#subsonicoptions").hide();
-                        }
-
-                $("#subsonic").click(function(){
-                        if ($("#subsonic").is(":checked"))
-                        {
-                            $("#subsonicoptions").slideDown();
-                        }
-                        else
-                        {
-                            $("#subsonicoptions").slideUp();
                         }
                 });
 

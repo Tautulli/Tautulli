@@ -29,7 +29,7 @@ import uuid
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from plexpy import versioncheck, logger
+from plexpy import versioncheck, logger, monitor
 import plexpy.config
 
 PROG_DIR = None
@@ -256,6 +256,9 @@ def initialize_scheduler():
             minutes = 0
         schedule_job(versioncheck.checkGithub, 'Check GitHub for updates', hours=0, minutes=minutes)
 
+        if CONFIG.PMS_IP:
+            schedule_job(monitor.check_active_sessions, 'Check for active sessions', hours=0, minutes=0, seconds=60)
+
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
             try:
@@ -267,7 +270,7 @@ def initialize_scheduler():
                 #SCHED.print_jobs()
 
 
-def schedule_job(function, name, hours=0, minutes=0):
+def schedule_job(function, name, hours=0, minutes=0, seconds=0):
     """
     Start scheduled job if starting or restarting plexpy.
     Reschedule job if Interval Settings have changed.
@@ -277,16 +280,16 @@ def schedule_job(function, name, hours=0, minutes=0):
 
     job = SCHED.get_job(name)
     if job:
-        if hours == 0 and minutes == 0:
+        if hours == 0 and minutes == 0 and seconds == 0:
             SCHED.remove_job(name)
             logger.info("Removed background task: %s", name)
         elif job.trigger.interval != datetime.timedelta(hours=hours, minutes=minutes):
             SCHED.reschedule_job(name, trigger=IntervalTrigger(
-                hours=hours, minutes=minutes))
+                hours=hours, minutes=minutes, seconds=seconds))
             logger.info("Re-scheduled background task: %s", name)
-    elif hours > 0 or minutes > 0:
+    elif hours > 0 or minutes > 0 or seconds > 0:
         SCHED.add_job(function, id=name, trigger=IntervalTrigger(
-            hours=hours, minutes=minutes))
+            hours=hours, minutes=minutes, seconds=seconds))
         logger.info("Scheduled background task: %s", name)
 
 
@@ -339,10 +342,22 @@ def dbcheck():
     conn.commit()
     c.close()
 
+    conn_db = sqlite3.connect(DB_FILE)
+    c_db = conn_db.cursor()
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'session_key INTEGER, rating_key INTEGER, media_type TEXT)'
+    )
+    conn_db.commit()
+    c_db.close()
 
 def shutdown(restart=False, update=False):
     cherrypy.engine.exit()
     SCHED.shutdown(wait=False)
+
+    # Clear any sessions in the db - Not sure yet if we should do this. More testing required
+    # logger.debug(u'Clearing Plex sessions.')
+    # monitor.drop_session_db()
 
     CONFIG.write()
 

@@ -274,8 +274,6 @@ class WebInterface(object):
             "xbmc_host": plexpy.CONFIG.XBMC_HOST,
             "xbmc_username": plexpy.CONFIG.XBMC_USERNAME,
             "xbmc_password": plexpy.CONFIG.XBMC_PASSWORD,
-            "lms_enabled": checked(plexpy.CONFIG.LMS_ENABLED),
-            "lms_host": plexpy.CONFIG.LMS_HOST,
             "plex_enabled": checked(plexpy.CONFIG.PLEX_ENABLED),
             "plex_client_host": plexpy.CONFIG.PLEX_CLIENT_HOST,
             "plex_username": plexpy.CONFIG.PLEX_USERNAME,
@@ -285,7 +283,6 @@ class WebInterface(object):
             "nma_priority": int(plexpy.CONFIG.NMA_PRIORITY),
             "pushalot_enabled": checked(plexpy.CONFIG.PUSHALOT_ENABLED),
             "pushalot_apikey": plexpy.CONFIG.PUSHALOT_APIKEY,
-            "synoindex_enabled": checked(plexpy.CONFIG.SYNOINDEX_ENABLED),
             "pushover_enabled": checked(plexpy.CONFIG.PUSHOVER_ENABLED),
             "pushover_keys": plexpy.CONFIG.PUSHOVER_KEYS,
             "pushover_apitoken": plexpy.CONFIG.PUSHOVER_APITOKEN,
@@ -293,17 +290,12 @@ class WebInterface(object):
             "pushbullet_enabled": checked(plexpy.CONFIG.PUSHBULLET_ENABLED),
             "pushbullet_apikey": plexpy.CONFIG.PUSHBULLET_APIKEY,
             "pushbullet_deviceid": plexpy.CONFIG.PUSHBULLET_DEVICEID,
-            "subsonic_enabled": checked(plexpy.CONFIG.SUBSONIC_ENABLED),
-            "subsonic_host": plexpy.CONFIG.SUBSONIC_HOST,
-            "subsonic_username": plexpy.CONFIG.SUBSONIC_USERNAME,
-            "subsonic_password": plexpy.CONFIG.SUBSONIC_PASSWORD,
             "twitter_enabled": checked(plexpy.CONFIG.TWITTER_ENABLED),
             "osx_notify_enabled": checked(plexpy.CONFIG.OSX_NOTIFY_ENABLED),
             "osx_notify_app": plexpy.CONFIG.OSX_NOTIFY_APP,
             "boxcar_enabled": checked(plexpy.CONFIG.BOXCAR_ENABLED),
             "boxcar_token": plexpy.CONFIG.BOXCAR_TOKEN,
             "cache_sizemb": plexpy.CONFIG.CACHE_SIZEMB,
-            "mpc_enabled": checked(plexpy.CONFIG.MPC_ENABLED),
             "email_enabled": checked(plexpy.CONFIG.EMAIL_ENABLED),
             "email_from": plexpy.CONFIG.EMAIL_FROM,
             "email_to": plexpy.CONFIG.EMAIL_TO,
@@ -333,11 +325,11 @@ class WebInterface(object):
 
         checked_configs = [
             "launch_browser", "enable_https", "api_enabled", "freeze_db", "growl_enabled",
-            "prowl_enabled", "xbmc_enabled", "lms_enabled",
+            "prowl_enabled", "xbmc_enabled",
             "plex_enabled", "nma_enabled", "pushalot_enabled",
-            "synoindex_enabled", "pushover_enabled", "pushbullet_enabled",
-            "subsonic_enabled", "twitter_enabled", "osx_notify_enabled",
-            "boxcar_enabled", "mpc_enabled", "email_enabled", "email_tls",
+            "pushover_enabled", "pushbullet_enabled",
+            "twitter_enabled", "osx_notify_enabled",
+            "boxcar_enabled", "email_enabled", "email_tls",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "pms_use_bif"
         ]
         for checked_config in checked_configs:
@@ -870,6 +862,18 @@ class WebInterface(object):
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_activity(self, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_current_activity()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
         else:
             logger.warn('Unable to retrieve data.')
 
