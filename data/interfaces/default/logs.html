@@ -31,21 +31,46 @@ from plexpy import helpers
         </div>
     </div>
 </div>
+
 <div class='container-fluid'>
     <div class='row-fluid'>
         <div class='span12'>
             <div class='table-card-back'>
-                <table class="display" id="log_table" width="100%">
-                    <thead>
-                    <tr>
-                        <th align='left' id="timestamp">Timestamp</th>
-                        <th align='left' id="level">Level</th>
-                        <th align='left' id="message">Message</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                <div role="tabpanel">
+                    <ul class="nav nav-pills" role="tablist">
+                        <li role="presentation" class="active"><a id="plexpy-logs-btn" href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">PlexPy Logs</a></li>
+                        <li role="presentation"><a id="plex-logs-btn" href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Plex Media Server Logs</a></li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="tabs-1">
+                            <table class="display" id="log_table" width="100%">
+                                <thead>
+                                <tr>
+                                    <th align='left' id="timestamp">Timestamp</th>
+                                    <th align='left' id="level">Level</th>
+                                    <th align='left' id="message">Message</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="tabs-2">
+                            <table class="display" id="plex_log_table" width="100%">
+                                <thead>
+                                <tr>
+                                    <th align='left' id="plex_timestamp">Timestamp</th>
+                                    <th align='left' id="plex_level">Level</th>
+                                    <th align='left' id="plex_message">Message</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -71,7 +96,36 @@ from plexpy import helpers
 <script src="interfaces/default/js/dataTables.responsive.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
 <script src="interfaces/default/js/tables/logs.js"></script>
+<script src="interfaces/default/js/tables/plex_logs.js"></script>
 <script>
+
+        $(document).ready(function() {
+            LoadPlexPyLogs();
+        });
+
+        function LoadPlexPyLogs() {
+            log_table_options.ajax = {
+                "url": "getLog"
+            }
+            log_table = $('#log_table').DataTable(log_table_options);
+        }
+
+        function LoadPlexLogs() {
+            plex_log_table_options.ajax = {
+                "url": "get_plex_log"
+            }
+            plex_log_table = $('#plex_log_table').DataTable(plex_log_table_options);
+        }
+
+        $("#plexpy-logs-btn").click(function() {
+            LoadPlexPyLogs();
+        });
+
+        $("#plex-logs-btn").click(function() {
+            console.log('clicked da button');
+            LoadPlexLogs();
+        });
+
         var timer;
         function setRefresh()
         {
@@ -84,7 +138,13 @@ from plexpy import helpers
                 }
                 if(refreshrate.value != 0)
                 {
-                    timer = setInterval("$('#log_table').dataTable().fnDraw()",1000*refreshrate.value);
+                    timer = setInterval(function() {
+                        if ($("#tabs-1").hasClass("active")) {
+                            log_table.ajax.reload();
+                        } else {
+                            plex_log_table.ajax.reload();
+                        }
+                    }, 1000*refreshrate.value);
                 }
             }
         }

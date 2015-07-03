@@ -23,6 +23,7 @@ _CONFIG_DEFINITIONS = {
     'GROUPING_CHARTS': (int, 'PlexWatch', 0),
     'PLEXWATCH_DATABASE': (str, 'PlexWatch', ''),
     'PMS_IP': (str, 'PMS', '127.0.0.1'),
+    'PMS_LOGS_FOLDER': (str, 'PMS', ''),
     'PMS_PORT': (int, 'PMS', 32400),
     'PMS_PASSWORD': (str, 'PMS', ''),
     'PMS_TOKEN': (str, 'PMS', ''),

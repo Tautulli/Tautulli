@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db, common
+from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db, common, log_reader
 from plexpy.helpers import checked, radio
 
 from mako.lookup import TemplateLookup
@@ -230,6 +230,17 @@ class WebInterface(object):
         })
 
     @cherrypy.expose
+    def get_plex_log(self, window=1000, **kwargs):
+        log_lines = []
+        try:
+            log_lines = {'data': log_reader.get_log_tail(window=window)}
+        except:
+            logger.warn("Unable to retrieve Plex Logs.")
+
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps(log_lines)
+
+    @cherrypy.expose
     def generateAPI(self):
         apikey = hashlib.sha224(str(random.getrandbits(256))).hexdigest()[0:32]
         logger.info("New API generated")
@@ -305,6 +316,7 @@ class WebInterface(object):
             "email_smtp_port": int(plexpy.CONFIG.EMAIL_SMTP_PORT),
             "email_tls": checked(plexpy.CONFIG.EMAIL_TLS),
             "pms_ip": plexpy.CONFIG.PMS_IP,
+            "pms_logs_folder": plexpy.CONFIG.PMS_LOGS_FOLDER,
             "pms_port": plexpy.CONFIG.PMS_PORT,
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
             "pms_use_bif": checked(plexpy.CONFIG.PMS_USE_BIF),
