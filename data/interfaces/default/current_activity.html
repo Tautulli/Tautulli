@@ -15,8 +15,8 @@ data['sessions']        Returns an array containing session data
 data[sessions] :: Usable parameters
 
 == Global keys ==
-sessionKey              Returns a unique session id for the active stream
-ratingKey               Returns the unique identifier for the media item.
+session_key             Returns a unique session id for the active stream
+rating_key              Returns the unique identifier for the media item.
 type                    Returns the type of session. Either 'track', 'episode' or 'movie'.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
 art                     Returns the location of the item's artwork
@@ -26,15 +26,13 @@ friendly_name           Returns the friendlly name of the user owning the sessio
 state                   Returns the state of the current session. Either 'playing', 'paused' or 'buffering'.
 title                   Returns the name of the episode, movie or music track.
 player                  Returns the name of the platform used to play the stream.
-audioDecision           Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
-audioCodec              Returns the name of the audio codec.
-audioChannels           Returns the number of audio channels.
-grandparentTitle        Returns the title of the item's grandparent.
-parentTitle             Returns the title of the item's parent.
-
-== Only if 'type' is 'episode' or 'movie' ==
-videoDecision           Returns the video transcode decision. Either 'transcode', 'copy' or 'direct play'.
-videoCodec              Returns the name of the video codec.
+audio_decision          Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
+audio_codec             Returns the name of the audio codec.
+audio_channels          Returns the number of audio channels.
+grandparent_title       Returns the title of the item's grandparent.
+parent_title            Returns the title of the item's parent.
+video_decision          Returns the video transcode decision. Either 'transcode', 'copy' or 'direct play'.
+video_codec             Returns the name of the video codec.
 height                  Returns the value of the video height.
 width                   Returns the value of the video width.
 indexes                 Returns true if the media has media indexes and are enabled
@@ -45,7 +43,7 @@ DOCUMENTATION :: END
 % if data is not None:
 % if data['stream_count'] != '0':
 % for a in data['sessions']:
-<div class="instance" id="instance-${a['sessionKey']}">
+<div class="instance" id="instance-${a['session_key']}">
     <div class="poster">
         % if a['type'] == 'movie' and not a['indexes']:
         <div class="dashboard-activity-poster-face">
@@ -64,33 +62,35 @@ DOCUMENTATION :: END
             <div class='dashboard-activity-instance-overlay'>
                 <div class='dashboard-activity-metadata-progress-minutes'>
                     <div class='progress progress-warning'>
-                        <div class="bar" style="width: ${a['progressPercent']}%">${a['progressPercent']}%</div>
+                        <div class="bar" style="width: ${a['progress_percent']}%">${a['progress_percent']}%</div>
                     </div>
                 </div>
-                <div class="dashboard-activity-metadata-platform" id="platform-${a['sessionKey']}">
+                <div class="dashboard-activity-metadata-platform" id="platform-${a['session_key']}">
                 </div>
                 <div class="dashboard-activity-metadata-user">
                     <a href="user?user=${a['user']}">${a['friendly_name']}</a> is ${a['state']}
                 </div>
                 <div class="dashboard-activity-metadata-title">
                     % if a['type'] == 'episode':
-                    <a href="info?rating_key=${a['ratingKey']}">${a['grandparentTitle']} - ${a['title']}</a>
+                    <a href="info?rating_key=${a['rating_key']}">${a['grandparent_title']} - ${a['title']}</a>
                     % elif a['type'] == 'movie':
-                    <a href="info?rating_key=${a['ratingKey']}">${a['title']}</a>
+                    <a href="info?rating_key=${a['rating_key']}">${a['title']}</a>
+                    % elif a['type'] == 'clip':
+                    ${a['title']}
                     % elif a['type'] == 'track':
-                    ${a['grandparentTitle']} - ${a['title']}
+                    ${a['grandparent_title']} - ${a['title']}
                     % else:
-                    ${a['grandparentTitle']} - ${a['title']}
+                    ${a['grandparent_title']} - ${a['title']}
                     % endif
                 </div>
             </div>
-            <div id="stream-${a['sessionKey']}" class="collapse out">
+            <div id="stream-${a['session_key']}" class="collapse out">
                 <div class='dashboard-activity-info-details-overlay'>
                     <div class='dashboard-activity-info-details-content'>
                         % if a['type'] == 'track':
-                        Artist: <strong>${a['grandparentTitle']}</strong>
+                        Artist: <strong>${a['grandparent_title']}</strong>
                         <br>
-                        Album: <strong>${a['parentTitle']}</strong>
+                        Album: <strong>${a['parent_title']}</strong>
                         <br>
                         % endif
                         % if a['state'] == 'playing':
@@ -102,24 +102,24 @@ DOCUMENTATION :: END
                         % endif
                         <br>
                         % if a['type'] == 'track':
-                        % if a['audioDecision'] == 'direct play':
+                        % if a['audio_decision'] == 'direct play':
                         Stream: <strong>Direct Play</strong>
                         % else:
                         Stream: <strong>Transcoding</strong>
                         % endif
                         <br/>
-                        Audio: <strong>${a['audioCodec']} (${a['audioChannels']}ch)</strong>
-                        % elif a['type'] == 'episode' or a['type'] == 'movie':
-                        % if a['videoDecision'] == 'direct play':
+                        Audio: <strong>${a['audio_codec']} (${a['audio_channels']}ch)</strong>
+                        % elif a['type'] == 'episode' or a['type'] == 'movie' or a['type'] == 'clip':
+                        % if a['video_decision'] == 'direct play':
                         Stream: <strong>Direct Play</strong>
                         % else:
                         Stream: <strong>Transcoding</strong>
                         % endif
                         <br/>
-                        Video: <strong>${a['videoDecision']} (${a['videoCodec']})
+                        Video: <strong>${a['video_decision']} (${a['video_codec']})
                         (${a['width']}x${a['height']})</strong>
                         <br/>
-                        Audio: <strong>${a['audioDecision']} (${a['audioCodec']}) (${a['audioChannels']}ch)</strong>
+                        Audio: <strong>${a['audio_decision']} (${a['audio_codec']}) (${a['audio_channels']}ch)</strong>
                         % endif
                         <br>
                     </div>
@@ -128,13 +128,13 @@ DOCUMENTATION :: END
         </div>
     </div>
     <div class="dashboard-activity-button-info">
-        <button type="button" class="btn btn-warning" data-toggle="collapse" data-target="#stream-${a['sessionKey']}">
+        <button type="button" class="btn btn-warning" data-toggle="collapse" data-target="#stream-${a['session_key']}">
             <i class='icon-info-sign icon-white'></i>
         </button>
     </div>
 </div>
 <script>
-    $("#platform-${a['sessionKey']}").html("<img src='" + getPlatformImagePath('${a['player']}') + "'>");
+    $("#platform-${a['session_key']}").html("<img src='" + getPlatformImagePath('${a['player']}') + "'>");
 
 </script>
 % endfor

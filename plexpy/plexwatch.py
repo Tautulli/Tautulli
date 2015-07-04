@@ -634,11 +634,17 @@ class PlexWatch(object):
                     for a in xml_head:
                         grandparent_thumb = self.get_xml_attr(a, 'grandparentThumb')
 
-                        row = {'orig_title': item[0],
+                        row = {'title': item[0],
                                'total_plays': item[1],
+                               'users_watched': '',
                                'rating_key': item[2],
                                'last_play': item[3],
-                               'grandparent_thumb': grandparent_thumb
+                               'grandparent_thumb': grandparent_thumb,
+                               'thumb': '',
+                               'user': '',
+                               'friendly_name': '',
+                               'platform_type': '',
+                               'platform': ''
                                }
                         top_tv.append(row)
 
@@ -679,12 +685,17 @@ class PlexWatch(object):
                     for a in xml_head:
                         grandparent_thumb = self.get_xml_attr(a, 'grandparentThumb')
 
-                        row = {'orig_title': item[0],
+                        row = {'title': item[0],
                                'users_watched': item[1],
                                'rating_key': item[2],
                                'last_play': item[3],
                                'total_plays': item[5],
-                               'grandparent_thumb': grandparent_thumb
+                               'grandparent_thumb': grandparent_thumb,
+                               'thumb': '',
+                               'user': '',
+                               'friendly_name': '',
+                               'platform_type': '',
+                               'platform': ''
                                }
                         popular_tv.append(row)
 
@@ -720,7 +731,13 @@ class PlexWatch(object):
                            'friendly_name': item[1],
                            'total_plays': item[2],
                            'last_play': item[3],
-                           'thumb': user_thumb
+                           'thumb': user_thumb,
+                           'grandparent_thumb': '',
+                           'users_watched': '',
+                           'rating_key': '',
+                           'title': '',
+                           'platform_type': '',
+                           'platform': ''
                     }
                     top_users.append(row)
 
@@ -762,7 +779,14 @@ class PlexWatch(object):
                         row = {'platform': item[0],
                                'total_plays': item[1],
                                'last_play': item[2],
-                               'platform_type': platform_type
+                               'platform_type': platform_type,
+                               'title': '',
+                               'thumb': '',
+                               'grandparent_thumb': '',
+                               'users_watched': '',
+                               'rating_key': '',
+                               'user': '',
+                               'friendly_name': ''
                                }
                         top_platform.append(row)
 

@@ -17,7 +17,7 @@ data[array_index]['rows'] :: Usable parameters
 == Only if 'stat_id' is 'top_tv' or 'popular_tv' ==
 grandparent_thumb       Returns location of the item's thumbnail. Use with pms_image_proxy.
 rating_key              Returns the unique identifier for the media item.
-orig_title              Returns the title for the associated stat.
+title                   Returns the title for the associated stat.
 
 == Only if 'stat_id' is 'top_tv' or 'top_user' or 'top_platform' ==
 total_plays             Returns the count for the associated stat.
@@ -58,7 +58,7 @@ DOCUMENTATION :: END
                 <div class="home-platforms-instance-name">
                     <h4>Most Watched TV</h4>
                     <a href="info?rating_key=${a['rows'][0]['rating_key']}">
-                        <h5>${a['rows'][0]['orig_title']}</h5>
+                        <h5>${a['rows'][0]['title']}</h5>
                     </a>
                 </div>
                 <div class="user-platforms-instance-playcount">
@@ -85,7 +85,7 @@ DOCUMENTATION :: END
                 <div class="home-platforms-instance-name">
                     <h4>Most Popular TV</h4>
                     <a href="info?rating_key=${a['rows'][0]['rating_key']}">
-                        <h5>${a['rows'][0]['orig_title']}</h5>
+                        <h5>${a['rows'][0]['title']}</h5>
                     </a>
                 </div>
                 <div class="user-platforms-instance-playcount">

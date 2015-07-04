@@ -347,8 +347,12 @@ def convert_xml_to_dict(xml):
 
 
 def get_percent(value1, value2):
-    value1 = cast_to_float(value1)
-    value2 = cast_to_float(value2)
+
+    if value1.isdigit() and value2.isdigit():
+        value1 = cast_to_float(value1)
+        value2 = cast_to_float(value2)
+    else:
+        return 0
 
     if value1 != 0 and value2 != 0:
         percent = (value1 / value2) * 100

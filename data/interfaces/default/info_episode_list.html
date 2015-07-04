@@ -16,7 +16,7 @@ episode_list            Returns an array of episodes.
 data['episode_list'] :: Usable paramaters
 
 == Global keys ==
-ratingKey               Returns the unique identifier for the media item.
+rating_key              Returns the unique identifier for the media item.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
 title                   Returns the name of the episode.
 index                   Returns the episode number.
@@ -32,7 +32,7 @@ DOCUMENTATION :: END
         <li>
             <div class="season-episodes-poster">
                 <div class="season-episodes-poster-face">
-                    <a href="info?rating_key=${a['ratingKey']}">
+                    <a href="info?rating_key=${a['rating_key']}">
                         <img src="pms_image_proxy?img=${a['thumb']}&width=205&height=115"
                              class="season-episodes-poster-face">
                     </a>
@@ -45,7 +45,7 @@ DOCUMENTATION :: END
             </div>
             <div class="season-episodes-instance-text-wrapper">
                 <div class="season-episodes-title">
-                    <a href="info?rating_key=${a['ratingKey']}">
+                    <a href="info?rating_key=${a['rating_key']}">
                         "${a['title']}"
                     </a>
                 </div>
