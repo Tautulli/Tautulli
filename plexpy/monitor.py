@@ -38,14 +38,14 @@ def check_active_sessions():
             active_streams = []
 
             for session in media_container:
-                session_key = session['sessionKey']
-                rating_key = session['ratingKey']
+                session_key = session['session_key']
+                rating_key = session['rating_key']
                 media_type = session['type']
                 friendly_name = session['friendly_name']
                 platform = session['player']
                 title = session['title']
-                parent_title = session['parentTitle']
-                grandparent_title = session['grandparentTitle']
+                parent_title = session['parent_title']
+                grandparent_title = session['grandparent_title']
 
                 write_session = monitor_db.write_session_key(session_key, rating_key, media_type)
                 if write_session == 'insert':
