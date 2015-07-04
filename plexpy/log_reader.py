@@ -52,33 +52,33 @@ def get_log_tail(window=20):
 
     return clean_lines
 
-# https://stackoverflow.com/questions/136168/get-last-n-lines-of-a-file-with-python-similar-to-tail
-def tail(f, window=20):
-    """
-    Returns the last `window` lines of file `f` as a list.
-    """
-    if window == 0:
-        return []
-    BUFSIZ = 1024
-    f.seek(0, 2)
-    bytes = f.tell()
-    size = window + 1
-    block = -1
-    data = []
-    while size > 0 and bytes > 0:
-        if bytes - BUFSIZ > 0:
-            # Seek back one whole BUFSIZ
-            f.seek(block * BUFSIZ, 2)
-            # read BUFFER
-            data.insert(0, f.read(BUFSIZ))
-        else:
-            # file too small, start from begining
-            f.seek(0,0)
-            # only read what was not read
-            data.insert(0, f.read(bytes))
-        linesFound = data[0].count('\n')
-        size -= linesFound
-        bytes -= BUFSIZ
-        block -= 1
-    return ''.join(data).splitlines()[-window:]
+# http://stackoverflow.com/a/13790289/2405162
+def tail(f, lines=1, _buffer=4098):
+    """Tail a file and get X lines from the end"""
+    # place holder for the lines found
+    lines_found = []
 
+    # block counter will be multiplied by buffer
+    # to get the block size from the end
+    block_counter = -1
+
+    # loop until we find X lines
+    while len(lines_found) < lines:
+        try:
+            f.seek(block_counter * _buffer, os.SEEK_END)
+        except IOError:  # either file is too small, or too many lines requested
+            f.seek(0)
+            lines_found = f.readlines()
+            break
+
+        lines_found = f.readlines()
+
+        # we found enough lines, get out
+        if len(lines_found) > lines:
+            break
+
+        # decrement the block counter to get the
+        # next X bytes
+        block_counter -= 1
+
+    return lines_found[-lines:]
