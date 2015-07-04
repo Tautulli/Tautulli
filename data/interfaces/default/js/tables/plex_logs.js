@@ -19,11 +19,13 @@ var plex_log_table_options = {
     "columnDefs": [
         {
             "targets": [0],
-            "width": "15%"
+            "width": "15%",
+            "className": "no-wrap"
         },
         {
             "targets": [1],
-            "width": "10%"
+            "width": "10%",
+            "className": "no-wrap"
         },
         {
             "targets": [2],

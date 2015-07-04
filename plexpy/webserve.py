@@ -903,24 +903,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     def refresh_users_list(self, **kwargs):
-        plex_tv = plextv.PlexTV()
-        result = plex_tv.get_full_users_list()
-        myDB = db.DBConnection()
-
-        for item in result:
-            control_value_dict = {"username": item['username']}
-            new_value_dict = {"user_id": item['user_id'],
-                              "username": item['username'],
-                              "thumb": item['thumb'],
-                              "email": item['email'],
-                              "is_home_user": item['is_home_user'],
-                              "is_allow_sync": item['is_allow_sync'],
-                              "is_restricted": item['is_restricted']
-                              }
-
-            myDB.upsert('plexpy_users', new_value_dict, control_value_dict)
-
-        logger.info("Users list refreshed.")
+        plextv.refresh_users()
         raise cherrypy.HTTPRedirect("users")
 
     @cherrypy.expose

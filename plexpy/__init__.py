@@ -29,7 +29,7 @@ import uuid
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from plexpy import versioncheck, logger, monitor
+from plexpy import versioncheck, logger, monitor, plextv
 import plexpy.config
 
 PROG_DIR = None
@@ -162,6 +162,10 @@ def initialize(config_file):
         else:
             LATEST_VERSION = CURRENT_VERSION
 
+        # Refresh the users list on startup
+        if CONFIG.PMS_TOKEN:
+            plextv.refresh_users()
+
         # Store the original umask
         UMASK = os.umask(0)
         os.umask(UMASK)
@@ -249,15 +253,20 @@ def initialize_scheduler():
         # Check if scheduler should be started
         start_jobs = not len(SCHED.get_jobs())
 
-        #Update check
+        # Update check
         if CONFIG.CHECK_GITHUB_INTERVAL:
             minutes = CONFIG.CHECK_GITHUB_INTERVAL
         else:
             minutes = 0
         schedule_job(versioncheck.checkGithub, 'Check GitHub for updates', hours=0, minutes=minutes)
 
+        # Start checking for new sessions every minute
         if CONFIG.PMS_IP:
             schedule_job(monitor.check_active_sessions, 'Check for active sessions', hours=0, minutes=0, seconds=60)
+
+        # Refresh the users list every 12 hours (we will make this configurable later)
+        if CONFIG.PMS_TOKEN:
+            schedule_job(plextv.refresh_users, 'Refresh users list', hours=12, minutes=0, seconds=0)
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):

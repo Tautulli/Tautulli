@@ -13,13 +13,36 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, plexwatch
+from plexpy import logger, helpers, plexwatch, db
 
 from xml.dom import minidom
 from httplib import HTTPSConnection
 
 import base64
 import plexpy
+
+def refresh_users():
+    logger.info("Requesting users list refresh...")
+    result = PlexTV().get_full_users_list()
+    pw_db = db.DBConnection()
+
+    if len(result) > 0:
+        for item in result:
+            control_value_dict = {"username": item['username']}
+            new_value_dict = {"user_id": item['user_id'],
+                              "username": item['username'],
+                              "thumb": item['thumb'],
+                              "email": item['email'],
+                              "is_home_user": item['is_home_user'],
+                              "is_allow_sync": item['is_allow_sync'],
+                              "is_restricted": item['is_restricted']
+                              }
+
+            pw_db.upsert('plexpy_users', new_value_dict, control_value_dict)
+
+        logger.info("Users list refreshed.")
+    else:
+        logger.warn("Unable to refresh users list.")
 
 
 class PlexTV(object):
@@ -232,8 +255,10 @@ class PlexTV(object):
             xml_parse = minidom.parseString(own_account)
         except Exception, e:
             logger.warn("Error parsing XML for Plex account details: %s" % e)
+            return []
         except:
             logger.warn("Error parsing XML for Plex account details.")
+            return []
 
         xml_head = xml_parse.getElementsByTagName('user')
         if not xml_head:
@@ -286,8 +311,10 @@ class PlexTV(object):
             xml_parse = minidom.parseString(sync_list)
         except Exception, e:
             logger.warn("Error parsing XML for Plex sync lists: %s" % e)
+            return []
         except:
             logger.warn("Error parsing XML for Plex sync lists.")
+            return []
 
         xml_head = xml_parse.getElementsByTagName('SyncList')
 
