@@ -946,7 +946,10 @@ class PlexWatch(object):
         return output
 
     def set_user_friendly_name(self, user=None, friendly_name=None):
-        if user and friendly_name:
+        if user:
+            if friendly_name.strip() == '':
+                friendly_name = None
+
             myDB = db.DBConnection()
 
             control_value_dict = {"username": user}

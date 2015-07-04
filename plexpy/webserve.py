@@ -116,17 +116,8 @@ class WebInterface(object):
         return serve_template(templatename="user.html", title="User", data=user_details)
 
     @cherrypy.expose
-    def edit_user(self, user=None, friendly_name=None, **kwargs):
-        if user and friendly_name:
-            try:
-                plex_watch = plexwatch.PlexWatch()
-                plex_watch.set_user_friendly_name(user, friendly_name)
-                status_message = "Successfully updated user."
-                return status_message
-            except:
-                status_message = "Failed to updated user."
-                return status_message
-        elif user and not friendly_name:
+    def edit_user_dialog(self, user=None, **kwargs):
+        if user:
             try:
                 plex_watch = plexwatch.PlexWatch()
                 result = {'user': user,
@@ -142,6 +133,18 @@ class WebInterface(object):
             return serve_template(templatename="edit_user.html", title="Edit User", data=result, status_message=status_message)
         else:
             return serve_template(templatename="edit_user.html", title="Edit User", data=user, status_message='Unknown error.')
+
+    @cherrypy.expose
+    def edit_user(self, user=None, friendly_name=None, **kwargs):
+        if user:
+            try:
+                plex_watch = plexwatch.PlexWatch()
+                plex_watch.set_user_friendly_name(user, friendly_name)
+                status_message = "Successfully updated user."
+                return status_message
+            except:
+                status_message = "Failed to update user."
+                return status_message
 
     @cherrypy.expose
     def get_stream_data(self, row_id=None, user=None, **kwargs):
@@ -926,3 +929,27 @@ class WebInterface(object):
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(output)
+
+    @cherrypy.expose
+    def get_sync_item(self, sync_id, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_sync_item(sync_id, output_format='json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_sync_transcode_queue(self, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_sync_transcode_queue(output_format='json')
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')

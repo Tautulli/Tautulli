@@ -325,7 +325,7 @@ from plexpy import helpers
                 // Load edit user modal
                 $("#toggle-edit-user-modal").click(function() {
                     $.ajax({
-                        url: 'edit_user',
+                        url: 'edit_user_dialog',
                         data: {user: '${data['username']}'},
                         cache: false,
                         async: true,

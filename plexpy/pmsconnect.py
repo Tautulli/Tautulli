@@ -31,6 +31,7 @@ class PmsConnect(object):
         self.host = plexpy.CONFIG.PMS_IP
         self.port = str(plexpy.CONFIG.PMS_PORT)
         self.token = plexpy.CONFIG.PMS_TOKEN
+        self.protocol = 'HTTP'
 
     """
     Return base url of Plex Server.
@@ -39,10 +40,76 @@ class PmsConnect(object):
     """
     def get_base_url(self):
         if self.host != '' and self.port != '':
-            base_url = 'http://' + self.host + ':' + self.port
+            base_url = self.protocol + self.host + ':' + self.port
             return base_url
         else:
             return False
+
+    """
+    Handle the HTTP requests.
+
+    Output: object
+    """
+    def make_request(self, uri=None, proto='HTTP', request_type='GET', output_format='xml'):
+
+        valid_request_types = ['GET', 'POST', 'PUT', 'DELETE']
+
+        if request_type.upper() not in valid_request_types:
+            logger.debug(u"HTTP request made but unsupported request type given.")
+            return None
+
+        if uri:
+            if proto.upper() == 'HTTPS':
+                handler = HTTPSConnection(self.host, self.port, timeout=10)
+            else:
+                handler = HTTPConnection(self.host, self.port, timeout=10)
+
+            if uri.find('?') > 0:
+                token_string = '&X-Plex-Token=' + self.token
+            else:
+                token_string = '?X-Plex-Token=' + self.token
+
+            try:
+                handler.request(request_type, uri + token_string)
+                response = handler.getresponse()
+                request_status = response.status
+                request_content = response.read()
+            except IOError, e:
+                logger.warn(u"Failed to access uri endpoint %s with error %s" % (uri, e))
+                return None
+
+            if request_status == 200:
+                if output_format == 'dict':
+                    output = helpers.convert_xml_to_dict(request_content)
+                elif output_format == 'json':
+                    output = helpers.convert_xml_to_json(request_content)
+                elif output_format == 'xml':
+                    output = self.parse_xml(request_content)
+                else:
+                    output = request_content
+
+                return output
+            else:
+                logger.warn(u"Failed to access uri endpoint %s. Status code %r" % (uri, request_status))
+                return []
+        else:
+            logger.debug(u"HTTP request made but no enpoint given.")
+            return None
+
+    def parse_xml(self, unparsed=None):
+        if unparsed:
+            try:
+                xml_parse = minidom.parseString(unparsed)
+                return xml_parse
+            except Exception, e:
+                logger.warn("Error parsing XML for Plex recently added: %s" % e)
+                return []
+            except:
+                logger.warn("Error parsing XML for Plex recently added.")
+                return []
+        else:
+            logger.warn("XML parse request made but no data received.")
+            return []
 
     """
     Return current sessions.
@@ -52,30 +119,13 @@ class PmsConnect(object):
     Output: array
     """
     def get_sessions(self, output_format=''):
-        url_command = '/status/sessions'
-        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+        uri = '/status/sessions'
+        request = self.make_request(uri=uri,
+                                    proto=self.protocol,
+                                    request_type='GET',
+                                    output_format=output_format)
 
-        try:
-            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
-            response = http_handler.getresponse()
-            request_status = response.status
-            request_content = response.read()
-        except IOError, e:
-            logger.warn(u"Failed to access sessions. %s" % e)
-            return None
-
-        if request_status == 200:
-            if output_format == 'dict':
-                output = helpers.convert_xml_to_dict(request_content)
-            elif output_format == 'json':
-                output = helpers.convert_xml_to_json(request_content)
-            else:
-                output = request_content
-        else:
-            logger.warn(u"Failed to access sessions. Status code %r" % request_status)
-            return None
-
-        return output
+        return request
 
     """
     Return metadata for request item.
@@ -86,30 +136,13 @@ class PmsConnect(object):
     Output: array
     """
     def get_metadata(self, rating_key='', output_format=''):
-        url_command = '/library/metadata/' + rating_key
-        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+        uri = '/library/metadata/' + rating_key
+        request = self.make_request(uri=uri,
+                                    proto=self.protocol,
+                                    request_type='GET',
+                                    output_format=output_format)
 
-        try:
-            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
-            response = http_handler.getresponse()
-            request_status = response.status
-            request_content = response.read()
-        except IOError, e:
-            logger.warn(u"Failed to access metadata. %s" % e)
-            return None
-
-        if request_status == 200:
-            if output_format == 'dict':
-                output = helpers.convert_xml_to_dict(request_content)
-            elif output_format == 'json':
-                output = helpers.convert_xml_to_json(request_content)
-            else:
-                output = request_content
-        else:
-            logger.warn(u"Failed to access metadata. Status code %r" % request_status)
-            return None
-
-        return output
+        return request
 
     """
     Return list of recently added items.
@@ -120,30 +153,13 @@ class PmsConnect(object):
     Output: array
     """
     def get_recently_added(self, count='0', output_format=''):
-        url_command = '/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count
-        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+        uri = '/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count
+        request = self.make_request(uri=uri,
+                                    proto=self.protocol,
+                                    request_type='GET',
+                                    output_format=output_format)
 
-        try:
-            http_handler.request("GET", url_command + '&X-Plex-Token=' + self.token)
-            response = http_handler.getresponse()
-            request_status = response.status
-            request_content = response.read()
-        except IOError, e:
-            logger.warn(u"Failed to access recently added items. %s" % e)
-            return None
-
-        if request_status == 200:
-            if output_format == 'dict':
-                output = helpers.convert_xml_to_dict(request_content)
-            elif output_format == 'json':
-                output = helpers.convert_xml_to_json(request_content)
-            else:
-                output = request_content
-        else:
-            logger.warn(u"Failed to access recently added. Status code %r" % request_status)
-            return None
-
-        return output
+        return request
 
     """
     Return list of episodes in requested season.
@@ -154,30 +170,13 @@ class PmsConnect(object):
     Output: array
     """
     def get_episode_list(self, rating_key='', output_format=''):
-        url_command = '/library/metadata/' + rating_key + '/children'
-        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+        uri = '/library/metadata/' + rating_key + '/children'
+        request = self.make_request(uri=uri,
+                                    proto=self.protocol,
+                                    request_type='GET',
+                                    output_format=output_format)
 
-        try:
-            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
-            response = http_handler.getresponse()
-            request_status = response.status
-            request_content = response.read()
-        except IOError, e:
-            logger.warn(u"Failed to access metadata. %s" % e)
-            return None
-
-        if request_status == 200:
-            if output_format == 'dict':
-                output = helpers.convert_xml_to_dict(request_content)
-            elif output_format == 'json':
-                output = helpers.convert_xml_to_json(request_content)
-            else:
-                output = request_content
-        else:
-            logger.warn(u"Failed to access metadata. Status code %r" % request_status)
-            return None
-
-        return output
+        return request
 
     """
     Return list of local servers.
@@ -187,30 +186,13 @@ class PmsConnect(object):
     Output: array
     """
     def get_server_list(self, output_format=''):
-        url_command = '/servers'
-        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+        uri = '/servers'
+        request = self.make_request(uri=uri,
+                                    proto=self.protocol,
+                                    request_type='GET',
+                                    output_format=output_format)
 
-        try:
-            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
-            response = http_handler.getresponse()
-            request_status = response.status
-            request_content = response.read()
-        except IOError, e:
-            logger.warn(u"Failed to access metadata. %s" % e)
-            return None
-
-        if request_status == 200:
-            if output_format == 'dict':
-                output = helpers.convert_xml_to_dict(request_content)
-            elif output_format == 'json':
-                output = helpers.convert_xml_to_json(request_content)
-            else:
-                output = request_content
-        else:
-            logger.warn(u"Failed to access metadata. Status code %r" % request_status)
-            return None
-
-        return output
+        return request
 
     """
     Return the local servers preferences.
@@ -220,30 +202,13 @@ class PmsConnect(object):
     Output: array
     """
     def get_server_prefs(self, output_format=''):
-        url_command = '/:/prefs'
-        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+        uri = '/:/prefs'
+        request = self.make_request(uri=uri,
+                                    proto=self.protocol,
+                                    request_type='GET',
+                                    output_format=output_format)
 
-        try:
-            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
-            response = http_handler.getresponse()
-            request_status = response.status
-            request_content = response.read()
-        except IOError, e:
-            logger.warn(u"Failed to access metadata. %s" % e)
-            return None
-
-        if request_status == 200:
-            if output_format == 'dict':
-                output = helpers.convert_xml_to_dict(request_content)
-            elif output_format == 'json':
-                output = helpers.convert_xml_to_json(request_content)
-            else:
-                output = request_content
-        else:
-            logger.warn(u"Failed to access metadata. Status code %r" % request_status)
-            return None
-
-        return output
+        return request
 
     """
     Return the local server identity.
@@ -253,30 +218,46 @@ class PmsConnect(object):
     Output: array
     """
     def get_local_server_identity(self, output_format=''):
-        url_command = '/identity'
-        http_handler = HTTPConnection(self.host, self.port, timeout=10)
+        uri = '/identity'
+        request = self.make_request(uri=uri,
+                                    proto=self.protocol,
+                                    request_type='GET',
+                                    output_format=output_format)
 
-        try:
-            http_handler.request("GET", url_command + '?X-Plex-Token=' + self.token)
-            response = http_handler.getresponse()
-            request_status = response.status
-            request_content = response.read()
-        except IOError, e:
-            logger.warn(u"Failed to access Plex server identity. %s" % e)
-            return None
+        return request
 
-        if request_status == 200:
-            if output_format == 'dict':
-                output = helpers.convert_xml_to_dict(request_content)
-            elif output_format == 'json':
-                output = helpers.convert_xml_to_json(request_content)
-            else:
-                output = request_content
-        else:
-            logger.warn(u"Failed to access Plex server identity. Status code %r" % request_status)
-            return None
+    """
+    Return sync item details.
 
-        return output
+    Parameters required:    sync_id { unique sync id for item }
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_sync_item(self, sync_id=None, output_format=''):
+        uri = '/sync/items/' + sync_id
+        request = self.make_request(uri=uri,
+                                    proto=self.protocol,
+                                    request_type='GET',
+                                    output_format=output_format)
+
+        return request
+
+    """
+    Return sync transcode queue.
+
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_sync_transcode_queue(self, output_format=''):
+        uri = '/sync/transcodeQueue'
+        request = self.make_request(uri=uri,
+                                    proto=self.protocol,
+                                    request_type='GET',
+                                    output_format=output_format)
+
+        return request
 
     """
     Return processed and validated list of recently added items.
@@ -286,19 +267,10 @@ class PmsConnect(object):
     Output: array
     """
     def get_recently_added_details(self, count='0'):
-        recent = self.get_recently_added(count)
+        recent = self.get_recently_added(count, output_format='xml')
         recents_list = []
 
-        try:
-            xml_parse = minidom.parseString(recent)
-        except Exception, e:
-            logger.warn("Error parsing XML for Plex recently added: %s" % e)
-            return None
-        except:
-            logger.warn("Error parsing XML for Plex recently added.")
-            return None
-
-        xml_head = xml_parse.getElementsByTagName('MediaContainer')
+        xml_head = recent.getElementsByTagName('MediaContainer')
         if not xml_head:
             logger.warn("Error parsing XML for Plex recently added.")
             return None
@@ -354,19 +326,10 @@ class PmsConnect(object):
     Output: array
     """
     def get_metadata_details(self, rating_key=''):
-        metadata = self.get_metadata(rating_key)
+        metadata = self.get_metadata(rating_key, output_format='xml')
         metadata_list = []
 
-        try:
-            xml_parse = minidom.parseString(metadata)
-        except Exception, e:
-            logger.warn("Error parsing XML for Plex metadata: %s" % e)
-            return None
-        except:
-            logger.warn("Error parsing XML for Plex metadata.")
-            return None
-
-        xml_head = xml_parse.getElementsByTagName('MediaContainer')
+        xml_head = metadata.getElementsByTagName('MediaContainer')
         if not xml_head:
             logger.warn("Error parsing XML for Plex metadata.")
             return None
@@ -532,19 +495,10 @@ class PmsConnect(object):
     Output: array
     """
     def get_current_activity(self):
-        session_data = self.get_sessions()
+        session_data = self.get_sessions(output_format='xml')
         session_list = []
 
-        try:
-            xml_parse = minidom.parseString(session_data)
-        except Exception, e:
-            logger.warn("Error parsing XML for Plex session data: %s" % e)
-            return None
-        except:
-            logger.warn("Error parsing XML for Plex session data.")
-            return None
-
-        xml_head = xml_parse.getElementsByTagName('MediaContainer')
+        xml_head = session_data.getElementsByTagName('MediaContainer')
         if not xml_head:
             logger.warn("Error parsing XML for Plex session data.")
             return None
@@ -764,19 +718,10 @@ class PmsConnect(object):
     Output: array
     """
     def get_season_children(self, rating_key=''):
-        episode_data = self.get_episode_list(rating_key)
+        episode_data = self.get_episode_list(rating_key, output_format='xml')
         episode_list = []
 
-        try:
-            xml_parse = minidom.parseString(episode_data)
-        except Exception, e:
-            logger.warn("Error parsing XML for Plex session data: %s" % e)
-            return None
-        except:
-            logger.warn("Error parsing XML for Plex session data.")
-            return None
-
-        xml_head = xml_parse.getElementsByTagName('MediaContainer')
+        xml_head = episode_data.getElementsByTagName('MediaContainer')
         if not xml_head:
             logger.warn("Error parsing XML for Plex session data.")
             return None
@@ -813,18 +758,9 @@ class PmsConnect(object):
     Output: array
     """
     def get_servers_info(self):
-        recent = self.get_server_list()
+        recent = self.get_server_list(output_format='xml')
 
-        try:
-            xml_parse = minidom.parseString(recent)
-        except Exception, e:
-            logger.warn("Error parsing XML for Plex server prefs: %s" % e)
-            return None
-        except:
-            logger.warn("Error parsing XML for Plex server prefs.")
-            return None
-
-        xml_head = xml_parse.getElementsByTagName('Server')
+        xml_head = recent.getElementsByTagName('Server')
         if not xml_head:
             logger.warn("Error parsing XML for Plex server prefs.")
             return None
@@ -848,18 +784,9 @@ class PmsConnect(object):
     Output: dict
     """
     def get_server_identity(self):
-        identity = self.get_local_server_identity()
+        identity = self.get_local_server_identity(output_format='xml')
 
-        try:
-            xml_parse = minidom.parseString(identity)
-        except Exception, e:
-            logger.warn("Error parsing XML for Plex server identity: %s" % e)
-            return None
-        except:
-            logger.warn("Error parsing XML for Plex server identity.")
-            return None
-
-        xml_head = xml_parse.getElementsByTagName('MediaContainer')
+        xml_head = identity.getElementsByTagName('MediaContainer')
         if not xml_head:
             logger.warn("Error parsing XML for Plex server identity.")
             return None

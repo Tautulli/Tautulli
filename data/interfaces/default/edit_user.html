@@ -47,7 +47,9 @@ DOCUMENTATION :: END
             async: true,
             success: function(data) {
                 $("#edit-user-status-message").html(data);
-                $(".set-username").html(friendly_name);
+                if ($.trim(friendly_name) !== '') {
+                    $(".set-username").html(friendly_name);
+                }
             }
         });
     });
