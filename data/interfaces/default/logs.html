@@ -7,7 +7,7 @@ from plexpy import helpers
 <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
 <link rel="stylesheet" href="interfaces/default/css/dataTables.responsive.css">
 <style>
-    td {word-wrap: break-word}
+    td {word-break: break-all;}
 </style>
 </%def>
 
@@ -47,9 +47,9 @@ from plexpy import helpers
                             <table class="display" id="log_table" width="100%">
                                 <thead>
                                 <tr>
-                                    <th align='left' id="timestamp">Timestamp</th>
-                                    <th align='left' id="level">Level</th>
-                                    <th align='left' id="message">Message</th>
+                                    <th class="min-tablet" align='left' id="timestamp">Timestamp</th>
+                                    <th class="desktop" align='left' id="level">Level</th>
+                                    <th class="all" align='left' id="message">Message</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -60,9 +60,9 @@ from plexpy import helpers
                             <table class="display" id="plex_log_table" width="100%">
                                 <thead>
                                 <tr>
-                                    <th align='left' id="plex_timestamp">Timestamp</th>
-                                    <th align='left' id="plex_level">Level</th>
-                                    <th align='left' id="plex_message">Message</th>
+                                    <th class="min-tablet" align='left' id="plex_timestamp">Timestamp</th>
+                                    <th class="desktop" align='left' id="plex_level">Level</th>
+                                    <th class="all" align='left' id="plex_message">Message</th>
                                 </tr>
                                 </thead>
                                 <tbody>
