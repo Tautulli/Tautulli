@@ -22,10 +22,13 @@ thumb                   Returns the location of the item's thumbnail. Use with p
 art                     Returns the location of the item's artwork
 progress_percent        Returns the current progress of the item. 0 to 100.
 user                    Returns the name of the user owning the session.
+user_id                 Returns the Plex user id if available.
+machine_id              Returns the machine id of the players being used.
 friendly_name           Returns the friendlly name of the user owning the session.
 state                   Returns the state of the current session. Either 'playing', 'paused' or 'buffering'.
 title                   Returns the name of the episode, movie or music track.
 player                  Returns the name of the platform used to play the stream.
+platform                Returns the type of platform used to play the stream.
 audio_decision          Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
 audio_codec             Returns the name of the audio codec.
 audio_channels          Returns the number of audio channels.
@@ -134,7 +137,7 @@ DOCUMENTATION :: END
     </div>
 </div>
 <script>
-    $("#platform-${a['session_key']}").html("<img src='" + getPlatformImagePath('${a['player']}') + "'>");
+    $("#platform-${a['session_key']}").html("<img src='" + getPlatformImagePath('${a['platform']}') + "'>");
 
 </script>
 % endfor

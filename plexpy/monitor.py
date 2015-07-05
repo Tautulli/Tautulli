@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, plexwatch, pmsconnect, notification_handler, config
+from plexpy import logger, helpers, plexwatch, pmsconnect, notification_handler, config, log_reader
 
 from xml.dom import minidom
 from httplib import HTTPSConnection
@@ -23,6 +23,8 @@ import os
 import sqlite3
 import threading
 import plexpy
+import re
+import time
 
 monitor_lock = threading.Lock()
 
@@ -32,6 +34,7 @@ def check_active_sessions():
         pms_connect = pmsconnect.PmsConnect()
         session_list = pms_connect.get_current_activity()
         monitor_db = MonitorDatabase()
+        # logger.debug(u"Checking for active streams.")
 
         if session_list['stream_count'] != '0':
             media_container = session_list['sessions']
@@ -46,6 +49,7 @@ def check_active_sessions():
                 title = session['title']
                 parent_title = session['parent_title']
                 grandparent_title = session['grandparent_title']
+                machine_id = session['machine_id']
 
                 write_session = monitor_db.write_session_key(session_key, rating_key, media_type)
                 if write_session == 'insert':
@@ -59,6 +63,12 @@ def check_active_sessions():
                     logger.info('%s (%s) starting playing %s' % (friendly_name, platform, item_title))
                     pushmessage = '%s (%s) starting playing %s' % (friendly_name, platform, item_title)
                     notification_handler.push_nofitications(pushmessage, 'PlexPy Playback started', 'Playback Started')
+
+                    # Try and grab IP address from logs
+                    if plexpy.CONFIG.PMS_LOGS_FOLDER:
+                        monitor_processing = MonitorProcessing()
+                        ip_address = monitor_processing.find_session_ip(rating_key=rating_key,
+                                                                        machine_id=machine_id)
 
                 keys = {'session_key': session_key,
                         'rating_key': rating_key}
@@ -186,3 +196,54 @@ class MonitorDatabase(object):
 
         # We want to know if it was an update or insert
         return trans_type
+
+
+class MonitorProcessing(object):
+
+    def __init__(self):
+        pass
+
+    def find_session_ip(self, rating_key=None, machine_id=None):
+
+        logger.debug(u"Requesting log lines...")
+        log_lines = log_reader.get_log_tail(window=5000, parsed=False)
+
+        rating_key_line = 'metadata%2F' + rating_key
+        machine_id_line = 'session=' + machine_id
+
+        for line in reversed(log_lines):
+            # We're good if we find a line with both machine id and rating key
+            # This is usually when there is a transcode session
+            if machine_id_line in line and rating_key_line in line:
+                # Currently only checking for ipv4 addresses
+                ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}', line)
+                if ipv4:
+                    # The logged IP will always be the first match and we don't want localhost entries
+                    if ipv4[0] != '127.0.0.1':
+                        logger.debug(u"Matched IP address (%s) for stream ratingKey %s and machineIdentifier %s."
+                                     % (ipv4[0], rating_key, machine_id))
+                        return ipv4[0]
+
+        logger.debug(u"Unable to find IP address on first pass. Attempting fallback check in 5 seconds...")
+
+        # Wait for the log to catch up and read in new lines
+        time.sleep(5)
+
+        logger.debug(u"Requesting log lines...")
+        log_lines = log_reader.get_log_tail(window=5000, parsed=False)
+
+        for line in reversed(log_lines):
+            if 'GET /:/timeline' in line and rating_key_line in line:
+                # Currently only checking for ipv4 addresses
+                # This method can return the wrong IP address if more than one user
+                # starts watching the same media item around the same time.
+                ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}', line)
+                if ipv4:
+                    # The logged IP will always be the first match and we don't want localhost entries
+                    if ipv4[0] != '127.0.0.1':
+                        logger.debug(u"Matched IP address (%s) for stream ratingKey %s." % (ipv4[0], rating_key))
+                        return ipv4[0]
+
+        logger.debug(u"Unable to find IP address on fallback search. Not logging IP address.")
+
+        return None

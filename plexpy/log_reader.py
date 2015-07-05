@@ -18,7 +18,7 @@ import re
 import os
 import plexpy
 
-def get_log_tail(window=20):
+def get_log_tail(window=20, parsed=True):
 
     if plexpy.CONFIG.PMS_LOGS_FOLDER:
         log_file = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, 'Plex Media Server.log')
@@ -33,24 +33,27 @@ def get_log_tail(window=20):
 
     log_lines = tail(logfile, window)
 
-    line_error = False
-    clean_lines = []
-    for i in log_lines:
-        try:
-            log_time = i.split(' [')[0]
-            log_level = i.split('] ', 1)[1].split(' - ',1)[0]
-            log_msg = i.split('] ', 1)[1].split(' - ',1)[1]
-            full_line = [log_time, log_level, log_msg]
-            clean_lines.append(full_line)
-        except:
-            line_error = True
-            full_line = ['', '', 'Unable to parse log line.']
-            clean_lines.append(full_line)
+    if parsed:
+        line_error = False
+        clean_lines = []
+        for i in log_lines:
+            try:
+                log_time = i.split(' [')[0]
+                log_level = i.split('] ', 1)[1].split(' - ',1)[0]
+                log_msg = i.split('] ', 1)[1].split(' - ',1)[1]
+                full_line = [log_time, log_level, log_msg]
+                clean_lines.append(full_line)
+            except:
+                line_error = True
+                full_line = ['', '', 'Unable to parse log line.']
+                clean_lines.append(full_line)
 
-    if line_error:
-        logger.error('PlexPy was unable to parse some lines of the Plex Media Server log.')
+        if line_error:
+            logger.error('PlexPy was unable to parse some lines of the Plex Media Server log.')
 
-    return clean_lines
+        return clean_lines
+
+    return log_lines
 
 # http://stackoverflow.com/a/13790289/2405162
 def tail(f, lines=1, _buffer=4098):

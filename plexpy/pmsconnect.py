@@ -24,7 +24,7 @@ class PmsConnect(object):
     """
 
     def __init__(self):
-        self.protocol = 'HTTPS'
+        self.protocol = 'HTTP'
         self.request_handler = http_handler.HTTPHandler(host=plexpy.CONFIG.PMS_IP,
                                                         port=plexpy.CONFIG.PMS_PORT,
                                                         token=plexpy.CONFIG.PMS_TOKEN)
@@ -196,7 +196,7 @@ class PmsConnect(object):
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    output = {'recently_added': None}
+                    output = {'recently_added': []}
                     return output
 
             if a.getElementsByTagName('Directory'):
@@ -459,14 +459,24 @@ class PmsConnect(object):
                 duration = helpers.get_xml_attr(media_info, 'duration')
                 progress = helpers.get_xml_attr(session, 'viewOffset')
 
+            user_details = plex_watch.get_user_details(
+                user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
+
+            if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Track'):
+                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')[:-6]
+            else:
+                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
+
             session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                               'art': helpers.get_xml_attr(session, 'art'),
                               'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
                               'thumb': helpers.get_xml_attr(session, 'thumb'),
                               'user': helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
-                              'friendly_name': plex_watch.get_user_friendly_name(
-                                  helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title')),
-                              'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
+                              'user_id': user_details['user_id'],
+                              'friendly_name': user_details['friendly_name'],
+                              'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
+                              'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
+                              'machine_id': machine_id,
                               'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
                               'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                               'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
@@ -528,15 +538,25 @@ class PmsConnect(object):
                 thumb = helpers.get_xml_attr(session, 'thumb')
                 use_indexes = 0
 
+            user_details = plex_watch.get_user_details(
+                user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
+
+            if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Video'):
+                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')[:-6]
+            else:
+                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
+
             if helpers.get_xml_attr(session, 'type') == 'episode':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                                   'art': helpers.get_xml_attr(session, 'art'),
                                   'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
                                   'thumb': thumb,
                                   'user': helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
-                                  'friendly_name': plex_watch.get_user_friendly_name(
-                                      helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title')),
-                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
+                                  'user_id': user_details['user_id'],
+                                  'friendly_name': user_details['friendly_name'],
+                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
+                                  'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
+                                  'machine_id': machine_id,
                                   'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
                                   'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
@@ -561,9 +581,11 @@ class PmsConnect(object):
                                   'thumb': thumb,
                                   'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
                                   'user': helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
-                                  'friendly_name': plex_watch.get_user_friendly_name(
-                                      helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title')),
-                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
+                                  'user_id': user_details['user_id'],
+                                  'friendly_name': user_details['friendly_name'],
+                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
+                                  'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
+                                  'machine_id': machine_id,
                                   'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
                                   'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
@@ -588,9 +610,11 @@ class PmsConnect(object):
                                   'thumb': thumb,
                                   'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
                                   'user': helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
-                                  'friendly_name': plex_watch.get_user_friendly_name(
-                                      helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title')),
-                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
+                                  'user_id': user_details['user_id'],
+                                  'friendly_name': user_details['friendly_name'],
+                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
+                                  'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
+                                  'machine_id': machine_id,
                                   'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
                                   'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
