@@ -14,6 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from operator import itemgetter
+from xml.dom import minidom
 
 import unicodedata
 import plexpy
@@ -360,3 +361,35 @@ def get_percent(value1, value2):
         percent = 0
 
     return math.trunc(percent)
+
+def parse_xml(unparsed=None):
+    from plexpy import logger
+
+    if unparsed:
+        try:
+            xml_parse = minidom.parseString(unparsed)
+            return xml_parse
+        except Exception, e:
+            logger.warn("Error parsing XML. %s" % e)
+            return []
+        except:
+            logger.warn("Error parsing XML.")
+            return []
+    else:
+        logger.warn("XML parse request made but no data received.")
+        return []
+
+"""
+Validate xml keys to make sure they exist and return their attribute value, return blank value is none found
+"""
+def get_xml_attr(xml_key, attribute, return_bool=False, default_return=''):
+    if xml_key.getAttribute(attribute):
+        if return_bool:
+            return True
+        else:
+            return xml_key.getAttribute(attribute)
+    else:
+        if return_bool:
+            return False
+        else:
+            return default_return
