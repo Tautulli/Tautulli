@@ -115,10 +115,13 @@ def convert_milliseconds(ms):
 
 def convert_milliseconds_to_minutes(ms):
 
-    seconds = float(ms) / 1000
-    minutes = round(seconds / 60, 0)
+    if ms.isdigit():
+        seconds = float(ms) / 1000
+        minutes = round(seconds / 60, 0)
 
-    return math.trunc(minutes)
+        return math.trunc(minutes)
+
+    return 0
 
 def convert_seconds(s):
 

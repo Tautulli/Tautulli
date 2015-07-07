@@ -186,12 +186,14 @@ class PmsConnect(object):
     """
     def get_recently_added_details(self, count='0'):
         recent = self.get_recently_added(count, output_format='xml')
-        recents_list = []
 
-        xml_head = recent.getElementsByTagName('MediaContainer')
-        if not xml_head:
-            logger.warn("Error parsing XML for Plex recently added.")
-            return None
+        try:
+            xml_head = recent.getElementsByTagName('MediaContainer')
+        except:
+            logger.warn("Unable to parse XML for get_recently_added.")
+            return []
+
+        recents_list = []
 
         for a in xml_head:
             if a.getAttribute('size'):
@@ -245,12 +247,14 @@ class PmsConnect(object):
     """
     def get_metadata_details(self, rating_key=''):
         metadata = self.get_metadata(rating_key, output_format='xml')
-        metadata_list = []
 
-        xml_head = metadata.getElementsByTagName('MediaContainer')
-        if not xml_head:
-            logger.warn("Error parsing XML for Plex metadata.")
-            return None
+        try:
+            xml_head = metadata.getElementsByTagName('MediaContainer')
+        except:
+            logger.warn("Unable to parse XML for get_metadata.")
+            return []
+
+        metadata_list = []
 
         for a in xml_head:
             if a.getAttribute('size'):
@@ -398,12 +402,14 @@ class PmsConnect(object):
     """
     def get_current_activity(self):
         session_data = self.get_sessions(output_format='xml')
-        session_list = []
 
-        xml_head = session_data.getElementsByTagName('MediaContainer')
-        if not xml_head:
-            logger.warn("Error parsing XML for Plex session data.")
-            return None
+        try:
+            xml_head = session_data.getElementsByTagName('MediaContainer')
+        except:
+            logger.warn("Unable to parse XML for get_sessions.")
+            return []
+
+        session_list = []
 
         for a in xml_head:
             if a.getAttribute('size'):
@@ -645,12 +651,14 @@ class PmsConnect(object):
     """
     def get_season_children(self, rating_key=''):
         episode_data = self.get_episode_list(rating_key, output_format='xml')
-        episode_list = []
 
-        xml_head = episode_data.getElementsByTagName('MediaContainer')
-        if not xml_head:
-            logger.warn("Error parsing XML for Plex session data.")
-            return None
+        try:
+            xml_head = episode_data.getElementsByTagName('MediaContainer')
+        except:
+            logger.warn("Unable to parse XML for get_episode_list.")
+            return []
+
+        episode_list = []
 
         for a in xml_head:
             if a.getAttribute('size'):
@@ -686,10 +694,11 @@ class PmsConnect(object):
     def get_servers_info(self):
         recent = self.get_server_list(output_format='xml')
 
-        xml_head = recent.getElementsByTagName('Server')
-        if not xml_head:
-            logger.warn("Error parsing XML for Plex server prefs.")
-            return None
+        try:
+            xml_head = recent.getElementsByTagName('Server')
+        except:
+            logger.warn("Unable to parse XML for get_server_list.")
+            return []
 
         server_info = []
         for a in xml_head:
@@ -712,10 +721,11 @@ class PmsConnect(object):
     def get_server_identity(self):
         identity = self.get_local_server_identity(output_format='xml')
 
-        xml_head = identity.getElementsByTagName('MediaContainer')
-        if not xml_head:
-            logger.warn("Error parsing XML for Plex server identity.")
-            return None
+        try:
+            xml_head = identity.getElementsByTagName('MediaContainer')
+        except:
+            logger.warn("Unable to parse XML for get_local_server_identity.")
+            return []
 
         server_identity = {}
         for a in xml_head:
