@@ -29,18 +29,28 @@ DOCUMENTATION :: END
         <div class="dashboard-recent-media-instance">
             <li>
                 <div class="poster">
+                    % if item['type'] == 'season' or item['type'] == 'movie':
                     <div class="poster-face">
                         <a href="info?rating_key=${item['rating_key']}">
                             % if item['thumb'] != '':
                             <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=225" class="poster-face">
                             % else:
-                            <img src="interfaces/default/images/poster.png" class="poster-face">
+                            <img src="interfaces/default/images/poster.png" class="poster-face" width="153" height="225">
                             % endif
                         </a>
                     </div>
+                    % elif item['type'] == 'album':
+                    <div class="cover-face">
+                        % if item['thumb'] != '':
+                        <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=153" class="cover-face">
+                        % else:
+                        <img src="interfaces/default/images/poster.png" class="cover-face" width="153" height="153">
+                        % endif
+                    </div>
+                    % endif
                 </div>
                 <div class="dashboard-recent-media-metacontainer">
-                    % if item['type'] == 'season':
+                    % if item['type'] == 'season' or item['type'] == 'album':
                     <h3>${item['title']}</h3>
                     % elif item['type'] == 'movie':
                     <h3>${item['title']} (${item['year']})</h3>

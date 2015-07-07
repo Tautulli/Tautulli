@@ -205,17 +205,14 @@ class PmsConnect(object):
                 recents_main = a.getElementsByTagName('Directory')
                 for item in recents_main:
                     recent_type = helpers.get_xml_attr(item, 'type')
+                    recent_items = {'type': recent_type,
+                                    'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
+                                    'title': helpers.get_xml_attr(item, 'title'),
+                                    'thumb': helpers.get_xml_attr(item, 'thumb'),
+                                    'added_at': helpers.get_xml_attr(item, 'addedAt')
+                                    }
+                    recents_list.append(recent_items)
 
-                    if recent_type == 'season':
-                        recent_items = {'type': recent_type,
-                                        'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
-                                        'title': helpers.get_xml_attr(item, 'title'),
-                                        'thumb': helpers.get_xml_attr(item, 'thumb'),
-                                        'added_at': helpers.get_xml_attr(item, 'addedAt')
-                                        }
-                        recents_list.append(recent_items)
-                    else:
-                        pass
             if a.getElementsByTagName('Video'):
                 recents_main = a.getElementsByTagName('Video')
                 for item in recents_main:
