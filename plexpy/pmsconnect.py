@@ -208,15 +208,14 @@ class PmsConnect(object):
 
                     if recent_type == 'season':
                         recent_items = {'type': recent_type,
-                                        'ratingKey': helpers.get_xml_attr(item, 'ratingKey'),
+                                        'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
                                         'title': helpers.get_xml_attr(item, 'title'),
                                         'thumb': helpers.get_xml_attr(item, 'thumb'),
-                                        'addedAt': helpers.get_xml_attr(item, 'addedAt')
+                                        'added_at': helpers.get_xml_attr(item, 'addedAt')
                                         }
                         recents_list.append(recent_items)
                     else:
-                        recent_items = {}
-                        recents_list.append(recent_items)
+                        pass
             if a.getElementsByTagName('Video'):
                 recents_main = a.getElementsByTagName('Video')
                 for item in recents_main:
@@ -224,18 +223,17 @@ class PmsConnect(object):
 
                     if recent_type == 'movie':
                         recent_items = {'type': recent_type,
-                                        'ratingKey': helpers.get_xml_attr(item, 'ratingKey'),
+                                        'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
                                         'title': helpers.get_xml_attr(item, 'title'),
                                         'year': helpers.get_xml_attr(item, 'year'),
                                         'thumb': helpers.get_xml_attr(item, 'thumb'),
-                                        'addedAt': helpers.get_xml_attr(item, 'addedAt')
+                                        'added_at': helpers.get_xml_attr(item, 'addedAt')
                                         }
                         recents_list.append(recent_items)
                     else:
-                        recent_items = {}
-                        recents_list.append(recent_items)
+                        pass
 
-        output = {'recently_added': sorted(recents_list, key=lambda k: k['addedAt'], reverse=True)}
+        output = {'recently_added': sorted(recents_list, key=lambda k: k['added_at'], reverse=True)}
         return output
 
     """

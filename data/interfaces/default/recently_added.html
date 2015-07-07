@@ -10,10 +10,10 @@ Variable names:     data [array]
 data[array_index] :: Usable parameters
 
 == Global keys ==
-ratingKey               Returns the unique identifier for the media item.
+rating_key              Returns the unique identifier for the media item.
 type                    Returns the type of media. Either 'movie' or 'season'.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
-addedAt                 Returns the time when the media was added to the library.
+added_at                Returns the time when the media was added to the library.
 title                   Returns the name of the movie or season.
 
 == Only if 'type' is 'movie' ==
@@ -30,7 +30,7 @@ DOCUMENTATION :: END
             <li>
                 <div class="poster">
                     <div class="poster-face">
-                        <a href="info?rating_key=${item['ratingKey']}">
+                        <a href="info?rating_key=${item['rating_key']}">
                             % if item['thumb'] != '':
                             <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=225" class="poster-face">
                             % else:
@@ -45,12 +45,12 @@ DOCUMENTATION :: END
                     % elif item['type'] == 'movie':
                     <h3>${item['title']} (${item['year']})</h3>
                     % endif
-                    <div class="muted" id="addedAt-${item['ratingKey']}">${item['addedAt']}</div>
+                    <div class="muted" id="added_at-${item['rating_key']}">${item['added_at']}</div>
                 </div>
             </li>
         </div>
         <script>
-            $('#addedAt-${item['ratingKey']}').html('Added ' + moment(${item['addedAt']}, "X").fromNow())
+            $('#added_at-${item['rating_key']}').html('Added ' + moment(${item['added_at']}, "X").fromNow())
 
 
         </script>
