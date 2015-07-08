@@ -29,12 +29,12 @@ from plexpy import version
 USER_AGENT = 'PlexPy/-' + version.PLEXPY_VERSION + ' (' + platform.system() + ' ' + platform.release() + ')'
 
 # Notification Types
-NOTIFY_SNATCH = 1
-NOTIFY_DOWNLOAD = 2
+NOTIFY_STARTED = 1
+NOTIFY_STOPPED = 2
 
-notifyStrings = {}
-notifyStrings[NOTIFY_SNATCH] = "Started Download"
-notifyStrings[NOTIFY_DOWNLOAD] = "Download Finished"
+notify_strings = {}
+notify_strings[NOTIFY_STARTED] = "Playback started"
+notify_strings[NOTIFY_STOPPED] = "Playback stopped"
 
 DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
 DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"

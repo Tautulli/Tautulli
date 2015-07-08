@@ -40,7 +40,8 @@
                         <ul class="nav nav-pills" role="tablist">
                             <li role="presentation" class="active"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Web Interface</a></li>
                             <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Plex & PlexWatch</a></li>
-                            <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Notifications</a></li>
+                            <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Monitoring</a></li>
+                            <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Notification Agents</a></li>
                         </ul>
 
                         <div class="tab-content">
@@ -216,6 +217,68 @@
                                         </div>
                                     </div>
                                 </div>
+                                <input type="button" class="btn btn-medium btn-primary save-button" value="Save" data-success="Changes saved successfully">
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane" id="tabs-3">
+                                <div class="wellbg" style="padding: 0px 0px 0px 20px;">
+                                    <div class="container-fluid">
+                                        <div class="row-fluid">
+                                            <div class="span4">
+                                                <fieldset>
+                                                    <div class="wellheader">
+                                                        <h3>Global Notifications</h3>
+                                                    </div>
+                                                    <dl>
+                                                        <dt>
+                                                            <div class="checkbox">
+                                                                <input type="checkbox" name="tv_notify_enable" id="tv_notify_enable" value="1" ${config['tv_notify_enable']}> Enable TV Notifications
+                                                            </div>
+                                                        </dt>
+                                                        <dd>
+                                                            <div id="tv_notify_options" data-parsley-group="tv_notify">
+                                                                <div class="checkbox">
+                                                                    <input type="checkbox" name="tv_notify_on_start" id="tv_notify_on_start" data-parsley-multiple="tv_notify" data-parsley-mincheck="1" data-parsley-required value="1" ${config['tv_notify_on_start']}> Notify on playback start
+                                                                </div>
+                                                                <br/>
+                                                            </div>
+                                                        </dd>
+                                                    </dl>
+                                                    <dl>
+                                                        <dt>
+                                                            <div class="checkbox">
+                                                                <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable Movie Notifications
+                                                            </div>
+                                                        </dt>
+                                                        <dd>
+                                                            <div id="movie_notify_options" data-parsley-group="movie_notify">
+                                                                <div class="checkbox">
+                                                                    <input type="checkbox" name="movie_notify_on_start" id="movie_notify_on_start" data-parsley-multiple="movie_notify" data-parsley-mincheck="1" data-parsley-required value="1" ${config['movie_notify_on_start']}> Notify on playback start
+                                                                </div>
+                                                                <br/>
+                                                            </div>
+                                                        </dd>
+                                                    </dl>
+                                                    <dl>
+                                                        <dt>
+                                                            <div class="checkbox">
+                                                                <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1" ${config['music_notify_enable']}> Enable Music Notifications
+                                                            </div>
+                                                        </dt>
+                                                        <dd>
+                                                            <div id="music_notify_options" data-parsley-group="music_notify">
+                                                                <div class="checkbox">
+                                                                    <input type="checkbox" name="music_notify_on_start" id="music_notify_on_start" data-parsley-multiple="music_notify" data-parsley-mincheck="1" data-parsley-required value="1" ${config['music_notify_on_start']}> Notify on playback start
+                                                                </div>
+                                                            </div>
+                                                        </dd>
+                                                    </dl>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br/>
                                 <input type="button" class="btn btn-medium btn-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
 
@@ -1021,6 +1084,66 @@
                         else
                         {
                             $("#email_options").slideUp();
+                        }
+                });
+
+                if ($("#tv_notify_enable").is(":checked"))
+                        {
+                            $("#tv_notify_options").show();
+                        }
+                else
+                        {
+                            $("#tv_notify_options").hide();
+                        }
+
+                $("#tv_notify_enable").click(function(){
+                        if ($("#tv_notify_enable").is(":checked"))
+                        {
+                            $("#tv_notify_options").slideDown();
+                        }
+                        else
+                        {
+                            $("#tv_notify_options").slideUp();
+                        }
+                });
+
+                if ($("#movie_notify_enable").is(":checked"))
+                        {
+                            $("#movie_notify_options").show();
+                        }
+                else
+                        {
+                            $("#movie_notify_options").hide();
+                        }
+
+                $("#movie_notify_enable").click(function(){
+                        if ($("#movie_notify_enable").is(":checked"))
+                        {
+                            $("#movie_notify_options").slideDown();
+                        }
+                        else
+                        {
+                            $("#movie_notify_options").slideUp();
+                        }
+                });
+
+                if ($("#music_notify_enable").is(":checked"))
+                        {
+                            $("#music_notify_options").show();
+                        }
+                else
+                        {
+                            $("#music_notify_options").hide();
+                        }
+
+                $("#music_notify_enable").click(function(){
+                        if ($("#music_notify_enable").is(":checked"))
+                        {
+                            $("#music_notify_options").slideDown();
+                        }
+                        else
+                        {
+                            $("#music_notify_options").slideUp();
                         }
                 });
 

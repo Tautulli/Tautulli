@@ -329,7 +329,13 @@ class WebInterface(object):
             "time_format": plexpy.CONFIG.TIME_FORMAT,
             "grouping_global_history": checked(plexpy.CONFIG.GROUPING_GLOBAL_HISTORY),
             "grouping_user_history": checked(plexpy.CONFIG.GROUPING_USER_HISTORY),
-            "grouping_charts": checked(plexpy.CONFIG.GROUPING_CHARTS)
+            "grouping_charts": checked(plexpy.CONFIG.GROUPING_CHARTS),
+            "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
+            "movie_notify_enable": checked(plexpy.CONFIG.MOVIE_NOTIFY_ENABLE),
+            "music_notify_enable": checked(plexpy.CONFIG.MUSIC_NOTIFY_ENABLE),
+            "tv_notify_on_start": checked(plexpy.CONFIG.TV_NOTIFY_ON_START),
+            "movie_notify_on_start": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_START),
+            "music_notify_on_start": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_START)
         }
 
         return serve_template(templatename="config.html", title="Settings", config=config)
@@ -345,7 +351,9 @@ class WebInterface(object):
             "pushover_enabled", "pushbullet_enabled",
             "twitter_enabled", "osx_notify_enabled",
             "boxcar_enabled", "email_enabled", "email_tls",
-            "grouping_global_history", "grouping_user_history", "grouping_charts", "pms_use_bif"
+            "grouping_global_history", "grouping_user_history", "grouping_charts", "pms_use_bif",
+            "tv_notify_enable", "movie_notify_enable", "music_notify_enable",
+            "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:

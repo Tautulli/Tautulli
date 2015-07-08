@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, plexwatch, pmsconnect, notification_handler, config, log_reader
+from plexpy import logger, helpers, plexwatch, pmsconnect, notification_handler, config, log_reader, common
 
 from xml.dom import minidom
 from httplib import HTTPSConnection
@@ -50,6 +50,7 @@ def check_active_sessions():
                 parent_title = session['parent_title']
                 grandparent_title = session['grandparent_title']
                 machine_id = session['machine_id']
+                user = session['user']
 
                 write_session = monitor_db.write_session_key(session_key, rating_key, media_type)
                 if write_session == 'insert':
@@ -62,7 +63,10 @@ def check_active_sessions():
                         item_title = title
                     logger.info('%s (%s) starting playing %s' % (friendly_name, platform, item_title))
                     pushmessage = '%s (%s) starting playing %s' % (friendly_name, platform, item_title)
-                    notification_handler.push_nofitications(pushmessage, 'PlexPy Playback started', 'Playback Started')
+
+                    # Push any notifications
+                    monitor_notifications = MonitorNotifications(media_type=media_type, user=user)
+                    monitor_notifications.notify(pushmessage)
 
                     # Try and grab IP address from logs
                     if plexpy.CONFIG.PMS_LOGS_FOLDER:
@@ -247,3 +251,32 @@ class MonitorProcessing(object):
         logger.debug(u"Unable to find IP address on fallback search. Not logging IP address.")
 
         return None
+
+
+class MonitorNotifications(object):
+
+    def __init__(self, media_type, user=None):
+        self.media_type = media_type
+        self.user = user
+        self.tv_notify_enabled = plexpy.CONFIG.TV_NOTIFY_ENABLE
+        self.movie_notify_enabled = plexpy.CONFIG.MOVIE_NOTIFY_ENABLE
+        self.music_notify_enabled = plexpy.CONFIG.MUSIC_NOTIFY_ENABLE
+
+    def notify(self, message=None):
+        if message:
+            if self.media_type == 'movie':
+                if self.movie_notify_enabled:
+                    notification_handler.push_nofitications(message, 'PlexPy', common.notify_strings[1])
+            elif self.media_type == 'episode':
+                if self.tv_notify_enabled:
+                    notification_handler.push_nofitications(message, 'PlexPy', common.notify_strings[1])
+            elif self.media_type == 'track':
+                if self.music_notify_enabled:
+                    notification_handler.push_nofitications(message, 'PlexPy', common.notify_strings[1])
+            elif self.media_type == 'clip':
+                pass
+            else:
+                logger.debug(u"Notify called with unsupported media type.")
+                pass
+        else:
+            logger.debug(u"Notify called without a message.")
