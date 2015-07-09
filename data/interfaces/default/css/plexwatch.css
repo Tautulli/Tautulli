@@ -6648,10 +6648,13 @@ button.close {
 	z-index: 1;
 }
 .dashboard-activity-poster-face {
-	height: 152px;
+	height: 141px;
 	width: 250px;
 	position: relative;
 	top: 0px;
+	background-color: rgba(255,255,255,.03);
+	margin-bottom: 11px;
+	text-align: center;
 }
 .dashboard-activity-poster-face img {
 	bottom: 0;
@@ -6682,8 +6685,14 @@ button.close {
 	-ms-backface-visibility: hidden;
 	-o-backface-visibility: hidden;
 	backface-visibility: hidden;
-	height: 141px;
-	width: 250px;
+	height: 140px;
+	min-width: 140px;
+}
+.dashboard-activity-poster-music-bg {
+	position:absolute;
+    width:100%;
+    height:100%;
+    opacity: 0.7;
 }
 .dashboard-activity-metadata-user {
 	text-overflow: ellipsis;

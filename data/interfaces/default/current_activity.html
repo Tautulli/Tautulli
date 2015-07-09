@@ -58,7 +58,10 @@ DOCUMENTATION :: END
         </div>
         % else:
         <div class="dashboard-activity-poster-face">
-            <img src="pms_image_proxy?img=${a['thumb']}&width=300&height=169"/>
+            % if a['type'] == 'track':
+                <div class="dashboard-activity-poster-music-bg" style="background-image: url('pms_image_proxy?img=${a['thumb']}&width=300&height=300');"></div>
+            % endif
+            <img src="pms_image_proxy?img=${a['thumb']}&width=300&height=169&fallback=cover"/>
         </div>
         % endif
         <div class='dashboard-activity-metadata-wrapper'>

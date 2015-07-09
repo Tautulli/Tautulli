@@ -551,25 +551,30 @@ class WebInterface(object):
 
     @cherrypy.expose
     def pms_image_proxy(self, img='', width='0', height='0', fallback=None, **kwargs):
-        if img != '':
-            try:
-                pms_connect = pmsconnect.PmsConnect()
-                result = pms_connect.get_image(img, width, height)
-                cherrypy.response.headers['Content-type'] = result[1]
-                return result[0]
-            except:
-                logger.warn('Image proxy queried but errors occured.')
-                if fallback == 'poster':
-                    logger.info('Trying fallback image...')
-                    try:
-                        fallback_image = open(self.interface_dir + common.DEFAULT_POSTER_THUMB, 'rb')
-                        cherrypy.response.headers['Content-type'] = 'image/png'
-                        return fallback_image
-                    except IOError, e:
-                        logger.error('Unable to read fallback image. %s' % e)
-                return None
-        else:
-            logger.warn('Image proxy queried but no parameters received.')
+        try:
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_image(img, width, height)
+            cherrypy.response.headers['Content-type'] = result[1]
+            return result[0]
+        except:
+            logger.warn('Image proxy queried but errors occured.')
+            if fallback == 'poster':
+                logger.info('Trying fallback image...')
+                try:
+                    fallback_image = open(self.interface_dir + common.DEFAULT_POSTER_THUMB, 'rb')
+                    cherrypy.response.headers['Content-type'] = 'image/png'
+                    return fallback_image
+                except IOError, e:
+                    logger.error('Unable to read fallback image. %s' % e)
+            elif fallback == 'cover':
+                logger.info('Trying fallback image...')
+                try:
+                    fallback_image = open(self.interface_dir + common.DEFAULT_COVER_THUMB, 'rb')
+                    cherrypy.response.headers['Content-type'] = 'image/png'
+                    return fallback_image
+                except IOError, e:
+                    logger.error('Unable to read fallback image. %s' % e)
+
             return None
 
     @cherrypy.expose

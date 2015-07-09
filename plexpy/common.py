@@ -38,3 +38,4 @@ notify_strings[NOTIFY_STOPPED] = "Playback stopped"
 
 DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
 DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
+DEFAULT_COVER_THUMB = "interfaces/default/images/cover.png"
