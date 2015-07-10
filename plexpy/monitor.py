@@ -34,70 +34,37 @@ def check_active_sessions():
         pms_connect = pmsconnect.PmsConnect()
         session_list = pms_connect.get_current_activity()
         monitor_db = MonitorDatabase()
-        # logger.debug(u"Checking for active streams.")
+        monitor_process = MonitorProcessing()
+        # logger.debug(u"PlexPy Monitor :: Checking for active streams.")
 
-        if session_list['stream_count'] != '0':
+        if session_list:
             media_container = session_list['sessions']
-            active_streams = []
 
-            for session in media_container:
-                session_key = session['session_key']
-                rating_key = session['rating_key']
-                media_type = session['type']
-                friendly_name = session['friendly_name']
-                platform = session['player']
-                title = session['title']
-                parent_title = session['parent_title']
-                grandparent_title = session['grandparent_title']
-                machine_id = session['machine_id']
-                user = session['user']
-
-                write_session = monitor_db.write_session_key(session_key, rating_key, media_type)
-                if write_session == 'insert':
-                    # User started playing a stream :: We notify here
-                    if media_type == 'track' or media_type == 'episode':
-                        item_title = grandparent_title + ' - ' + title
-                    elif media_type == 'movie':
-                        item_title = title
-                    else:
-                        item_title = title
-                    logger.info('%s (%s) starting playing %s' % (friendly_name, platform, item_title))
-                    pushmessage = '%s (%s) starting playing %s' % (friendly_name, platform, item_title)
-
-                    # Push any notifications
-                    monitor_notifications = MonitorNotifications(media_type=media_type, user=user)
-                    monitor_notifications.notify(pushmessage)
-
-                    # Try and grab IP address from logs
-                    if plexpy.CONFIG.PMS_LOGS_FOLDER:
-                        monitor_processing = MonitorProcessing()
-                        ip_address = monitor_processing.find_session_ip(rating_key=rating_key,
-                                                                        machine_id=machine_id)
-
-                keys = {'session_key': session_key,
-                        'rating_key': rating_key}
-                active_streams.append(keys)
-
-            # Check our temp table for what we must do with the new stream
+            # Check our temp table for what we must do with the new streams
             db_streams = monitor_db.select('SELECT session_key, rating_key, media_type FROM sessions')
             for result in db_streams:
-                if any(d['session_key'] == str(result[0]) for d in active_streams):
+                if any(d['session_key'] == str(result[0]) for d in media_container):
                     # The user's session is still active
                     pass
-                    if any(d['rating_key'] == str(result[1]) for d in active_streams):
+                    if any(d['rating_key'] == str(result[1]) for d in media_container):
                         # The user is still playing the same media item
                         # Here we can check the play states
+                        # logger.debug(u"PlexPy Monitor :: Session key %s :: Rating key %s is still active." % (result[0], result[1]))
                         pass
                     else:
                         # The user has stopped playing a stream
                         monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?', [result[0], result[1]])
+                        # logger.debug(u"PlexPy Monitor :: Session key %s :: Rating key %s has been stopped." % (result[0], result[1]))
                 else:
                     # The user's session is no longer active
                     monitor_db.action('DELETE FROM sessions WHERE session_key = ?', [result[0]])
+                    # logger.debug(u"PlexPy Monitor :: Session key %s :: Rating key %s has been stopped." % (result[0], result[1]))
+
+            # Process the newly received session data
+            for session in media_container:
+                monitor_process.write_session(session)
         else:
-            # No sessions exist
-            # monitor_db.action('DELETE FROM sessions')
-            pass
+            logger.debug(u"PlexPy Monitor :: Unable to read session list.")
 
 def drop_session_db():
     monitor_db = MonitorDatabase()
@@ -155,17 +122,6 @@ class MonitorDatabase(object):
 
         return sql_result
 
-    def write_session_key(self, session_key=None, rating_key=None, media_type=None):
-
-        values = {'rating_key': rating_key,
-                  'media_type': media_type}
-
-        keys = {'session_key': session_key,
-                'rating_key': rating_key}
-
-        result = self.upsert('sessions', values, keys)
-        return result
-
     def select(self, query, args=None):
 
         sql_results = self.action(query, args).fetchall()
@@ -205,7 +161,46 @@ class MonitorDatabase(object):
 class MonitorProcessing(object):
 
     def __init__(self):
-        pass
+        self.db = MonitorDatabase()
+
+    def write_session(self, session=None):
+
+        values = {'rating_key': session['rating_key'],
+                  'media_type': session['type'],
+                  'state': session['state'],
+                  'user': session['user'],
+                  'machine_id': session['machine_id']}
+
+        timestamp = {'started': int(time.time())}
+
+        keys = {'session_key': session['session_key'],
+                'rating_key': session['rating_key']}
+
+        result = self.db.upsert('sessions', values, keys)
+
+        if result == 'insert':
+            # If it's our first write then time stamp it.
+            self.db.upsert('sessions', timestamp, keys)
+
+            # User started playing a stream :: We notify here
+            if session['type'] == 'track' or session['type'] == 'episode':
+                item_title = session['grandparent_title'] + ' - ' + session['title']
+            elif session['type'] == 'movie':
+                item_title = session['title']
+            else:
+                item_title = session['title']
+
+            logger.info('%s (%s) starting playing %s' % (session['friendly_name'], session['platform'], item_title))
+            pushmessage = '%s (%s) starting playing %s' % (session['friendly_name'], session['platform'], item_title)
+
+            # Push any notifications
+            monitor_notifications = MonitorNotifications(media_type=session['type'], user=session['user'])
+            monitor_notifications.notify(pushmessage)
+
+            # Try and grab IP address from logs
+            if plexpy.CONFIG.PMS_LOGS_FOLDER:
+                ip_address = self.find_session_ip(rating_key=session['rating_key'],
+                                                  machine_id=session['machine_id'])
 
     def find_session_ip(self, rating_key=None, machine_id=None):
 

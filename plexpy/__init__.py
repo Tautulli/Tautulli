@@ -355,8 +355,31 @@ def dbcheck():
     c_db = conn_db.cursor()
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'session_key INTEGER, rating_key INTEGER, media_type TEXT)'
+        'session_key INTEGER, rating_key INTEGER, media_type TEXT, started INTEGER, '
+        'paused_counter INTEGER, state TEXT, user TEXT, machine_id TEXT)'
     )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c.execute('SELECT started from sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN started INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN paused_counter INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN state TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN user TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN machine_id TEXT'
+        )
+
     conn_db.commit()
     c_db.close()
 
