@@ -225,10 +225,48 @@
                                     <div class="container-fluid">
                                         <div class="row-fluid">
                                             <div class="span4">
+                                                <div class="wellheader">
+                                                    <h3>Monitoring Settings</h3>
+                                                </div>
                                                 <fieldset>
-                                                    <div class="wellheader">
-                                                        <h3>Global Notifications</h3>
+                                                    <div class="form-group">
+                                                        <label for="monitoring_interval">Monitoring Interval</label>
+                                                        <input type="text" data-parsley-type="integer" id="monitoring_interval" name="monitoring_interval" value="${config['monitoring_interval']}" size="5" data-parsley-min="30" data-parsley-trigger="change" required>
+                                                        <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Min 30 seconds, Recommended 60 seconds. 0 to disable.</p>
+                                                        <p><strong>Disabling monitoring will disable ALL notifications.</strong></p>
                                                     </div>
+                                                </fieldset>
+                                                <div class="wellheader">
+                                                    <h3>User List</h3>
+                                                </div>
+                                                <fieldset>
+                                                    <div class="form-group">
+                                                        <label for="refresh_users_interval">User list Refresh Interval</label>
+                                                        <input type="text" data-parsley-type="integer" id="refresh_users_interval" name="refresh_users_interval" value="${config['refresh_users_interval']}" size="5" data-parsley-min="0" data-parsley-trigger="change" required>
+                                                        <p class="help-block">The interval (in hours) PlexPy will request an updated friends list from Plex.tv. 0 to disable.</p>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh user list on startup
+                                                        <p class="help-block">Refresh the user list when PlexPy starts.</p>
+                                                    </div>
+                                                </fieldset>
+                                            </div>
+                                            <div class="span4">
+                                                <div class="wellheader">
+                                                    <h3>IP Logging</h3>
+                                                </div>
+                                                <fieldset>
+                                                    <div class="checkbox">
+                                                        <input type="checkbox" id="ip_logging_enable" name="ip_logging_enable" value="1" ${config['ip_logging_enable']}> Enable IP Logging
+                                                        <p class="help-block">Enable this to attempt to log the IP address of the user. This currently does nothing useful.</p>
+                                                    </div>
+                                                </fieldset>
+                                            </div>
+                                            <div class="span4">
+                                                <div class="wellheader">
+                                                    <h3>Global Notifications</h3>
+                                                </div>
+                                                <fieldset>
                                                     <dl>
                                                         <dt>
                                                             <div class="checkbox">
@@ -238,9 +276,14 @@
                                                         <dd>
                                                             <div id="tv_notify_options" data-parsley-group="tv_notify">
                                                                 <div class="checkbox">
-                                                                    <input type="checkbox" name="tv_notify_on_start" id="tv_notify_on_start" data-parsley-multiple="tv_notify" data-parsley-mincheck="1" data-parsley-required value="1" ${config['tv_notify_on_start']}> Notify on playback start
+                                                                    <input type="checkbox" name="tv_notify_on_start" id="tv_notify_on_start" data-parsley-multiple="tv_notify" value="1" ${config['tv_notify_on_start']}> Notify on playback start
                                                                 </div>
-                                                                <br/>
+                                                                <div class="checkbox">
+                                                                    <input type="checkbox" name="tv_notify_on_stop" id="tv_notify_on_stop" data-parsley-multiple="tv_notify" value="1" ${config['tv_notify_on_stop']}> Notify on playback stop
+                                                                </div>
+                                                                <div class="checkbox">
+                                                                    <input type="checkbox" name="tv_notify_on_pause" id="tv_notify_on_pause" data-parsley-multiple="tv_notify" data-parsley-mincheck="1" data-parsley-required value="1" ${config['tv_notify_on_pause']}> Notify on playback pause
+                                                                </div>
                                                             </div>
                                                         </dd>
                                                     </dl>
@@ -253,9 +296,14 @@
                                                         <dd>
                                                             <div id="movie_notify_options" data-parsley-group="movie_notify">
                                                                 <div class="checkbox">
-                                                                    <input type="checkbox" name="movie_notify_on_start" id="movie_notify_on_start" data-parsley-multiple="movie_notify" data-parsley-mincheck="1" data-parsley-required value="1" ${config['movie_notify_on_start']}> Notify on playback start
+                                                                    <input type="checkbox" name="movie_notify_on_start" id="movie_notify_on_start" data-parsley-multiple="movie_notify" value="1" ${config['movie_notify_on_start']}> Notify on playback start
                                                                 </div>
-                                                                <br/>
+                                                                <div class="checkbox">
+                                                                    <input type="checkbox" name="movie_notify_on_stop" id="movie_notify_on_stop" data-parsley-multiple="movie_notify" value="1" ${config['movie_notify_on_stop']}> Notify on playback stop
+                                                                </div>
+                                                                <div class="checkbox">
+                                                                    <input type="checkbox" name="movie_notify_on_pause" id="movie_notify_on_pause" data-parsley-multiple="movie_notify" data-parsley-mincheck="1" data-parsley-required value="1" ${config['movie_notify_on_pause']}> Notify on playback pause
+                                                                </div>
                                                             </div>
                                                         </dd>
                                                     </dl>
@@ -268,7 +316,13 @@
                                                         <dd>
                                                             <div id="music_notify_options" data-parsley-group="music_notify">
                                                                 <div class="checkbox">
-                                                                    <input type="checkbox" name="music_notify_on_start" id="music_notify_on_start" data-parsley-multiple="music_notify" data-parsley-mincheck="1" data-parsley-required value="1" ${config['music_notify_on_start']}> Notify on playback start
+                                                                    <input type="checkbox" name="music_notify_on_start" id="music_notify_on_start" data-parsley-multiple="music_notify" value="1" ${config['music_notify_on_start']}> Notify on playback start
+                                                                </div>
+                                                                <div class="checkbox">
+                                                                    <input type="checkbox" name="music_notify_on_stop" id="music_notify_on_stop" data-parsley-multiple="music_notify" value="1" ${config['music_notify_on_stop']}> Notify on playback stop
+                                                                </div>
+                                                                <div class="checkbox">
+                                                                    <input type="checkbox" name="music_notify_on_pause" id="music_notify_on_pause" data-parsley-multiple="music_notify" data-parsley-mincheck="1" data-parsley-required value="1" ${config['music_notify_on_pause']}> Notify on playback pause
                                                                 </div>
                                                             </div>
                                                         </dd>

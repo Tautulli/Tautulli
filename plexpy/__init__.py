@@ -163,7 +163,7 @@ def initialize(config_file):
             LATEST_VERSION = CURRENT_VERSION
 
         # Refresh the users list on startup
-        if CONFIG.PMS_TOKEN:
+        if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
             plextv.refresh_users()
 
         # Store the original umask
@@ -261,12 +261,26 @@ def initialize_scheduler():
         schedule_job(versioncheck.checkGithub, 'Check GitHub for updates', hours=0, minutes=minutes)
 
         # Start checking for new sessions every minute
-        if CONFIG.PMS_IP:
-            schedule_job(monitor.check_active_sessions, 'Check for active sessions', hours=0, minutes=0, seconds=60)
+        if CONFIG.MONITORING_INTERVAL:
+            # Our interval should never be less than 30 seconds
+            if CONFIG.MONITORING_INTERVAL > 30:
+                seconds = CONFIG.MONITORING_INTERVAL
+            else:
+                seconds = 30
+        else:
+            seconds = 0
 
-        # Refresh the users list every 12 hours (we will make this configurable later)
+        if CONFIG.PMS_IP:
+            schedule_job(monitor.check_active_sessions, 'Check for active sessions', hours=0, minutes=0, seconds=seconds)
+
+        # Refresh the users list
+        if CONFIG.REFRESH_USERS_INTERVAL:
+            hours = CONFIG.REFRESH_USERS_INTERVAL
+        else:
+            hours = 0
+
         if CONFIG.PMS_TOKEN:
-            schedule_job(plextv.refresh_users, 'Refresh users list', hours=12, minutes=0, seconds=0)
+            schedule_job(plextv.refresh_users, 'Refresh users list', hours=hours, minutes=0, seconds=0)
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
@@ -356,7 +370,8 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'session_key INTEGER, rating_key INTEGER, media_type TEXT, started INTEGER, '
-        'paused_counter INTEGER, state TEXT, user TEXT, machine_id TEXT)'
+        'paused_counter INTEGER, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, '
+        'machine_id TEXT, player TEXT, title TEXT, parent_title TEXT, grandparent_title TEXT)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -378,6 +393,30 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN machine_id TEXT'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT title from sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN title TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN parent_title TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN grandparent_title TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN friendly_name TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN player TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN user_id INTEGER'
         )
 
     conn_db.commit()

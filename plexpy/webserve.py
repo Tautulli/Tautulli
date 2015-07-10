@@ -335,7 +335,17 @@ class WebInterface(object):
             "music_notify_enable": checked(plexpy.CONFIG.MUSIC_NOTIFY_ENABLE),
             "tv_notify_on_start": checked(plexpy.CONFIG.TV_NOTIFY_ON_START),
             "movie_notify_on_start": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_START),
-            "music_notify_on_start": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_START)
+            "music_notify_on_start": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_START),
+            "tv_notify_on_stop": checked(plexpy.CONFIG.TV_NOTIFY_ON_STOP),
+            "movie_notify_on_stop": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_STOP),
+            "music_notify_on_stop": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_STOP),
+            "tv_notify_on_pause": checked(plexpy.CONFIG.TV_NOTIFY_ON_PAUSE),
+            "movie_notify_on_pause": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_PAUSE),
+            "music_notify_on_pause": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_PAUSE),
+            "monitoring_interval": plexpy.CONFIG.MONITORING_INTERVAL,
+            "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
+            "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
+            "ip_logging_enable": checked(plexpy.CONFIG.IP_LOGGING_ENABLE)
         }
 
         return serve_template(templatename="config.html", title="Settings", config=config)
@@ -353,7 +363,10 @@ class WebInterface(object):
             "boxcar_enabled", "email_enabled", "email_tls",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "pms_use_bif",
             "tv_notify_enable", "movie_notify_enable", "music_notify_enable",
-            "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start"
+            "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
+            "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
+            "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
+            "ip_logging_enable"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
