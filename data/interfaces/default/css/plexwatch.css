@@ -6689,6 +6689,7 @@ button.close {
 	min-width: 140px;
 }
 .dashboard-activity-poster-music-bg {
+	background-position: center;
 	position:absolute;
     width:100%;
     height:100%;

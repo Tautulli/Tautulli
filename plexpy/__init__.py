@@ -361,7 +361,7 @@ def dbcheck():
 
     # Upgrade sessions table from earlier versions
     try:
-        c.execute('SELECT started from sessions')
+        c_db.execute('SELECT started from sessions')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(

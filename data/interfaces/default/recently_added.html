@@ -32,20 +32,12 @@ DOCUMENTATION :: END
                     % if item['type'] == 'season' or item['type'] == 'movie':
                     <div class="poster-face">
                         <a href="info?rating_key=${item['rating_key']}">
-                            % if item['thumb'] != '':
-                            <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=225" class="poster-face">
-                            % else:
-                            <img src="interfaces/default/images/poster.png" class="poster-face" width="153" height="225">
-                            % endif
+                            <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=225&fallback=poster" class="poster-face">
                         </a>
                     </div>
                     % elif item['type'] == 'album':
                     <div class="cover-face">
-                        % if item['thumb'] != '':
-                        <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=153" class="cover-face">
-                        % else:
-                        <img src="interfaces/default/images/poster.png" class="cover-face" width="153" height="153">
-                        % endif
+                        <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=153&fallback=cover" class="cover-face">
                     </div>
                     % endif
                 </div>
