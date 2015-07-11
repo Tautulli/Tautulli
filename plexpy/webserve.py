@@ -345,7 +345,10 @@ class WebInterface(object):
             "monitoring_interval": plexpy.CONFIG.MONITORING_INTERVAL,
             "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
-            "ip_logging_enable": checked(plexpy.CONFIG.IP_LOGGING_ENABLE)
+            "ip_logging_enable": checked(plexpy.CONFIG.IP_LOGGING_ENABLE),
+            "video_logging_enable": checked(plexpy.CONFIG.VIDEO_LOGGING_ENABLE),
+            "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
+            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
         }
 
         return serve_template(templatename="config.html", title="Settings", config=config)
@@ -366,7 +369,7 @@ class WebInterface(object):
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
-            "ip_logging_enable"
+            "ip_logging_enable", "video_logging_enable", "music_logging_enable"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:

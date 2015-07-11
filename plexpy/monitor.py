@@ -41,21 +41,55 @@ def check_active_sessions():
             media_container = session_list['sessions']
 
             # Check our temp table for what we must do with the new streams
-            db_streams = monitor_db.select('SELECT session_key, rating_key, media_type, title, parent_title, '
-                                           'grandparent_title, user, friendly_name, player, state '
+            db_streams = monitor_db.select('SELECT started, session_key, rating_key, media_type, title, parent_title, '
+                                           'grandparent_title, user_id, user, friendly_name, ip_address, player, '
+                                           'platform, machine_id, parent_rating_key, grandparent_rating_key, state, '
+                                           'view_offset, duration, video_decision, audio_decision, width, height, '
+                                           'container, video_codec, audio_codec, bitrate, video_resolution, '
+                                           'video_framerate, aspect_ratio, audio_channels, transcode_protocol, '
+                                           'transcode_container, transcode_video_codec, transcode_audio_codec, '
+                                           'transcode_audio_channels, transcode_width, transcode_height '
                                            'FROM sessions')
             for result in db_streams:
                 # Build a result dictionary for easier referencing
-                stream = {'session_key': result[0],
-                          'rating_key': result[1],
-                          'media_type': result[2],
-                          'title': result[3],
-                          'parent_title': result[4],
-                          'grandparent_title': result[5],
-                          'user': result[6],
-                          'friendly_name': result[7],
-                          'player': result[8],
-                          'state': result[9]
+                stream = {'started': result[0],
+                          'session_key': result[1],
+                          'rating_key': result[2],
+                          'media_type': result[3],
+                          'title': result[4],
+                          'parent_title': result[5],
+                          'grandparent_title': result[6],
+                          'user_id': result[7],
+                          'user': result[8],
+                          'friendly_name': result[9],
+                          'ip_address': result[10],
+                          'player': result[11],
+                          'platform': result[12],
+                          'machine_id': result[13],
+                          'parent_rating_key': result[14],
+                          'grandparent_rating_key': result[15],
+                          'state': result[16],
+                          'view_offset': result[17],
+                          'duration': result[18],
+                          'video_decision': result[19],
+                          'audio_decision': result[20],
+                          'width': result[21],
+                          'height': result[22],
+                          'container': result[23],
+                          'video_codec': result[24],
+                          'audio_codec': result[25],
+                          'bitrate': result[26],
+                          'video_resolution': result[27],
+                          'video_framerate': result[28],
+                          'aspect_ratio': result[29],
+                          'audio_channels': result[30],
+                          'transcode_protocol': result[31],
+                          'transcode_container': result[32],
+                          'transcode_video_codec': result[33],
+                          'transcode_audio_codec': result[34],
+                          'transcode_audio_channels': result[35],
+                          'transcode_width': result[36],
+                          'transcode_height': result[37]
                           }
 
                 if any(d['session_key'] == str(stream['session_key']) for d in media_container):
@@ -70,15 +104,20 @@ def check_active_sessions():
                                     notify(stream_data=stream, notify_action='pause')
                         else:
                             # The user has stopped playing a stream
+                            logger.debug(u"Removing sessionKey %s ratingKey %s from session queue"
+                                         % (stream['session_key'], stream['rating_key']))
                             monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
                                               [stream['session_key'], stream['rating_key']])
                             # Push any notifications
                             notify(stream_data=stream, notify_action='stop')
+                            monitor_process.write_session_history(session=stream)
                 else:
                     # The user's session is no longer active
+                    logger.debug(u"Removing sessionKey %s from session queue" % stream['session_key'])
                     monitor_db.action('DELETE FROM sessions WHERE session_key = ?', [stream['session_key']])
                     # Push any notifications
                     notify(stream_data=stream, notify_action='stop')
+                    monitor_process.write_session_history(session=stream)
 
             # Process the newly received session data
             for session in media_container:
@@ -151,6 +190,15 @@ class MonitorDatabase(object):
 
         return sql_results
 
+    def select_single(self, query, args=None):
+
+        sql_results = self.action(query, args).fetchone()[0]
+
+        if sql_results is None or sql_results == "":
+            return ""
+
+        return sql_results
+
     def upsert(self, table_name, value_dict, key_dict):
 
         trans_type = 'update'
@@ -188,16 +236,39 @@ class MonitorProcessing(object):
         values = {'rating_key': session['rating_key'],
                   'media_type': session['type'],
                   'state': session['state'],
+                  'user_id': session['user_id'],
                   'user': session['user'],
                   'machine_id': session['machine_id'],
                   'title': session['title'],
                   'parent_title': session['parent_title'],
                   'grandparent_title': session['grandparent_title'],
                   'friendly_name': session['friendly_name'],
-                  'player': session['player']
+                  'player': session['player'],
+                  'platform': session['platform'],
+                  'parent_rating_key': session['parent_rating_key'],
+                  'grandparent_rating_key': session['grandparent_rating_key'],
+                  'view_offset': session['progress'],
+                  'duration': session['duration'],
+                  'video_decision': session['video_decision'],
+                  'audio_decision': session['audio_decision'],
+                  'width': session['width'],
+                  'height': session['height'],
+                  'container': session['container'],
+                  'video_codec': session['video_codec'],
+                  'audio_codec': session['audio_codec'],
+                  'bitrate': session['bitrate'],
+                  'video_resolution': session['video_resolution'],
+                  'video_framerate': session['video_framerate'],
+                  'aspect_ratio': session['aspect_ratio'],
+                  'audio_channels': session['audio_channels'],
+                  'transcode_protocol': session['transcode_protocol'],
+                  'transcode_container': session['transcode_container'],
+                  'transcode_video_codec': session['transcode_video_codec'],
+                  'transcode_audio_codec': session['transcode_audio_codec'],
+                  'transcode_audio_channels': session['transcode_audio_channels'],
+                  'transcode_width': session['transcode_width'],
+                  'transcode_height': session['transcode_height']
                   }
-
-        timestamp = {'started': int(time.time())}
 
         keys = {'session_key': session['session_key'],
                 'rating_key': session['rating_key']}
@@ -205,16 +276,109 @@ class MonitorProcessing(object):
         result = self.db.upsert('sessions', values, keys)
 
         if result == 'insert':
-            # If it's our first write then time stamp it.
-            self.db.upsert('sessions', timestamp, keys)
-
             # Push any notifications
             notify(stream_data=values, notify_action='play')
+            started = int(time.time())
 
             # Try and grab IP address from logs
             if plexpy.CONFIG.IP_LOGGING_ENABLE and plexpy.CONFIG.PMS_LOGS_FOLDER:
                 ip_address = self.find_session_ip(rating_key=session['rating_key'],
                                                   machine_id=session['machine_id'])
+            else:
+                ip_address = None
+
+            timestamp = {'started': started,
+                         'ip_address': ip_address}
+
+            # If it's our first write then time stamp it.
+            self.db.upsert('sessions', timestamp, keys)
+
+    def write_session_history(self, session=None):
+
+        if session:
+            logging_enabled = False
+
+            if plexpy.CONFIG.VIDEO_LOGGING_ENABLE and \
+                    (session['media_type'] == 'movie' or session['media_type'] == 'episode'):
+                logging_enabled = True
+
+            if plexpy.CONFIG.MUSIC_LOGGING_ENABLE and \
+                    session['media_type'] == 'track':
+                logging_enabled = True
+
+            if plexpy.CONFIG.LOGGING_IGNORE_INTERVAL:
+                if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
+                        (int(time.time()) - session['started'] < plexpy.CONFIG.LOGGING_IGNORE_INTERVAL):
+                    logging_enabled = False
+                    logger.debug(u"Item played for %s seconds which is less than %s seconds, so we're not logging it." %
+                                 (str(int(time.time()) - session['started']), plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
+
+            if logging_enabled:
+                logger.debug(u"PlexPy Monitor :: Attempting to write to session_history table...")
+                query = 'INSERT INTO session_history (started, stopped, rating_key, parent_rating_key, grandparent_rating_key, ' \
+                        'media_type, user_id, user, ip_address, player, platform, machine_id, view_offset) VALUES ' \
+                        '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+
+                args = [session['started'], int(time.time()), session['rating_key'], session['parent_rating_key'],
+                        session['grandparent_rating_key'], session['media_type'], session['user_id'], session['user'],
+                        session['ip_address'], session['player'], session['platform'], session['machine_id'],
+                        session['view_offset']]
+
+                logger.debug(u"Writing session_history transaction...")
+                self.db.action(query=query, args=args)
+
+                # Get the id for the last transaction
+                last_id = self.db.select_single('SELECT max(id) FROM session_history')
+                logger.debug(u"Successfully written history item, last id for session_history is %s" % last_id)
+
+                logger.debug(u"PlexPy Monitor :: Attempting to write to session_history_media_info table...")
+                query = 'INSERT INTO session_history_media_info (id, rating_key, video_decision, audio_decision, ' \
+                        'duration, width, height, container, video_codec, audio_codec, bitrate, video_resolution, ' \
+                        'video_framerate, aspect_ratio, audio_channels, transcode_protocol, transcode_container, ' \
+                        'transcode_video_codec, transcode_audio_codec, transcode_audio_channels, transcode_width, ' \
+                        'transcode_height) VALUES ' \
+                        '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+
+                args = [last_id, session['rating_key'], session['video_decision'], session['audio_decision'],
+                        session['duration'], session['width'], session['height'], session['container'],
+                        session['video_codec'], session['audio_codec'], session['bitrate'],
+                        session['video_resolution'], session['video_framerate'], session['aspect_ratio'],
+                        session['audio_channels'], session['transcode_protocol'], session['transcode_container'],
+                        session['transcode_video_codec'], session['transcode_audio_codec'],
+                        session['transcode_audio_channels'], session['transcode_width'], session['transcode_height']]
+
+                logger.debug(u"Writing session_history_media_info transaction...")
+                self.db.action(query=query, args=args)
+
+                logger.debug(u"PlexPy Monitor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
+                pms_connect = pmsconnect.PmsConnect()
+                result = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+
+                metadata = result['metadata']
+
+                directors = ";".join(metadata['directors'])
+                writers = ";".join(metadata['writers'])
+                actors = ";".join(metadata['actors'])
+                genres = ";".join(metadata['genres'])
+
+                logger.debug(u"PlexPy Monitor :: Attempting to write to session_history_metadata table...")
+                query = 'INSERT INTO session_history_metadata (id, rating_key, parent_rating_key, ' \
+                        'grandparent_rating_key, title, parent_title, grandparent_title, media_index, ' \
+                        'parent_media_index, thumb, parent_thumb, grandparent_thumb, art, media_type, year, ' \
+                        'originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, ' \
+                        'rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
+                        '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+
+                args = [last_id, session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
+                        session['title'], session['parent_title'], session['grandparent_title'], metadata['index'],
+                        metadata['parent_index'], metadata['thumb'], metadata['parent_thumb'],
+                        metadata['grandparent_thumb'], metadata['art'], session['media_type'], metadata['year'],
+                        metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
+                        metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['rating'],
+                        metadata['duration'], metadata['guid'], directors, writers, actors, genres, metadata['studio']]
+
+                logger.debug(u"Writing session_history_metadata transaction...")
+                self.db.action(query=query, args=args)
 
     def find_session_ip(self, rating_key=None, machine_id=None):
 

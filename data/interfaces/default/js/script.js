@@ -250,3 +250,27 @@ function humanTime(seconds) {
 String.prototype.toProperCase = function () {
     return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 };
+
+function millisecondsToMinutes(ms, roundToMinute) {
+
+	console.log("Ms: " + ms)
+	if (ms > 0) {
+		seconds = ms / 1000;
+		minutes = seconds / 60;
+
+		if (roundToMinute) {
+			output = Math.round(minutes, 0)
+		} else {
+			minutesFloor = Math.floor(minutes);
+			secondsReal = Math.round((seconds - (minutesFloor * 60)),0);
+			if (secondsReal < 10) {
+				secondsReal = '0' + secondsReal;
+			}
+			output = minutesFloor + ':' + secondsReal;
+		}
+		return output;
+	} else {
+		return '0';
+	}
+}
+

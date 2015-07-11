@@ -233,7 +233,7 @@
                                                         <label for="monitoring_interval">Monitoring Interval</label>
                                                         <input type="text" data-parsley-type="integer" id="monitoring_interval" name="monitoring_interval" value="${config['monitoring_interval']}" size="5" data-parsley-min="30" data-parsley-trigger="change" required>
                                                         <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Min 30 seconds, Recommended 60 seconds. 0 to disable.</p>
-                                                        <p><strong>Disabling monitoring will disable ALL notifications.</strong></p>
+                                                        <p><strong>Disabling monitoring will disable ALL notifications and history logging.</strong></p>
                                                     </div>
                                                 </fieldset>
                                                 <div class="wellheader">
@@ -253,12 +253,32 @@
                                             </div>
                                             <div class="span4">
                                                 <div class="wellheader">
+                                                    <h3>History Logging</h3>
+                                                </div>
+                                                <fieldset>
+                                                    <div class="checkbox">
+                                                        <input type="checkbox" id="video_logging_enable" name="video_logging_enable" value="1" ${config['video_logging_enable']}> Log Movies and TV
+                                                        <p class="help-block">Keep records of all video items played from your Plex Media Server.</p>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="monitoring_interval">Ignore Interval</label>
+                                                        <input type="text" data-parsley-type="integer" id="logging_ignore_interval" name="logging_ignore_interval" value="${config['logging_ignore_interval']}" size="5" data-parsley-min="30" data-parsley-trigger="change" required>
+                                                        <p class="help-block">The interval (in seconds) PlexPy will wait for a video item to be active before logging it. 0 to disable.</p>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1" ${config['music_logging_enable']}> Log Music
+                                                        <p class="help-block">Keep records of all audio items played from your Plex Media Server. Experimental.</p>
+                                                    </div>
+                                                </fieldset>
+                                                <div class="wellheader">
                                                     <h3>IP Logging</h3>
                                                 </div>
                                                 <fieldset>
                                                     <div class="checkbox">
                                                         <input type="checkbox" id="ip_logging_enable" name="ip_logging_enable" value="1" ${config['ip_logging_enable']}> Enable IP Logging
-                                                        <p class="help-block">Enable this to attempt to log the IP address of the user. This currently does nothing useful.</p>
+                                                        <p class="help-block">
+                                                            Enable this to attempt to log the IP address of the user. Debug logging must be enabled and your log folder must be set in the PlexPy settings.
+                                                        </p>
                                                     </div>
                                                 </fieldset>
                                             </div>

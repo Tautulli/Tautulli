@@ -263,6 +263,9 @@ class PmsConnect(object):
             elif a.getElementsByTagName('Video'):
                 metadata_main = a.getElementsByTagName('Video')[0]
                 metadata_type = helpers.get_xml_attr(metadata_main, 'type')
+            elif a.getElementsByTagName('Track'):
+                metadata_main = a.getElementsByTagName('Track')[0]
+                metadata_type = helpers.get_xml_attr(metadata_main, 'type')
             else:
                 logger.debug(u"Metadata failed")
 
@@ -299,12 +302,17 @@ class PmsConnect(object):
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': helpers.get_xml_attr(metadata_main, 'summary'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
-                        'duration': helpers.convert_milliseconds_to_minutes(helpers.get_xml_attr(metadata_main, 'duration')),
+                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
                         'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
+                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
+                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
+                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
+                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
                         'writers': writers,
                         'directors': directors,
                         'genres': genres,
@@ -323,12 +331,17 @@ class PmsConnect(object):
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': helpers.get_xml_attr(metadata_main, 'summary'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
-                        'duration': helpers.convert_milliseconds_to_minutes(helpers.get_xml_attr(metadata_main, 'duration')),
+                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
                         'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
+                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
+                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
+                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
+                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
                         'writers': writers,
                         'directors': directors,
                         'genres': genres,
@@ -347,12 +360,17 @@ class PmsConnect(object):
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': helpers.get_xml_attr(metadata_main, 'summary'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
-                        'duration': helpers.convert_milliseconds_to_minutes(helpers.get_xml_attr(metadata_main, 'duration')),
+                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
                         'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
+                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
+                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
+                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
+                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
                         'genres': genres,
                         'actors': actors,
                         'writers': writers,
@@ -377,8 +395,42 @@ class PmsConnect(object):
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
                         'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
+                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
+                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
+                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
+                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
+                        'genres': genres,
+                        'actors': actors,
+                        'writers': writers,
+                        'directors': directors
+                        }
+            metadata_list = {'metadata': metadata}
+        elif metadata_type == 'track':
+            metadata = {'type': metadata_type,
+                        'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
+                        'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
+                        'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
+                        'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                        'index': helpers.get_xml_attr(metadata_main, 'index'),
+                        'studio': helpers.get_xml_attr(metadata_main, 'studio'),
+                        'title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
+                        'summary': helpers.get_xml_attr(metadata_main, 'summary'),
+                        'rating': helpers.get_xml_attr(metadata_main, 'rating'),
+                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
+                        'year': helpers.get_xml_attr(metadata_main, 'year'),
+                        'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
+                        'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
+                        'art': helpers.get_xml_attr(metadata_main, 'art'),
+                        'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
+                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
+                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
+                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
+                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
                         'genres': genres,
                         'actors': actors,
                         'writers': writers,
@@ -445,20 +497,29 @@ class PmsConnect(object):
         session_output = None
         plex_watch = plexwatch.PlexWatch()
         if stream_type == 'track':
+
+            media_info = session.getElementsByTagName('Media')[0]
+            audio_decision = 'direct play'
+            audio_channels = helpers.get_xml_attr(media_info, 'audioChannels')
+            audio_codec = helpers.get_xml_attr(media_info, 'audioCodec')
+            container = helpers.get_xml_attr(media_info, 'container')
+            bitrate = helpers.get_xml_attr(media_info, 'bitrate')
+            duration = helpers.get_xml_attr(media_info, 'duration')
+            progress = helpers.get_xml_attr(session, 'viewOffset')
+
             if session.getElementsByTagName('TranscodeSession'):
                 transcode_session = session.getElementsByTagName('TranscodeSession')[0]
                 audio_decision = helpers.get_xml_attr(transcode_session, 'audioDecision')
-                audio_channels = helpers.get_xml_attr(transcode_session, 'audioChannels')
-                audio_codec = helpers.get_xml_attr(transcode_session, 'audioCodec')
+                transcode_audio_channels = helpers.get_xml_attr(transcode_session, 'audioChannels')
+                transcode_audio_codec = helpers.get_xml_attr(transcode_session, 'audioCodec')
+                transcode_container = helpers.get_xml_attr(transcode_session, 'container')
+                transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
                 duration = helpers.get_xml_attr(transcode_session, 'duration')
-                progress = helpers.get_xml_attr(session, 'viewOffset')
             else:
-                media_info = session.getElementsByTagName('Media')[0]
-                audio_decision = 'direct play'
-                audio_channels = helpers.get_xml_attr(media_info, 'audioChannels')
-                audio_codec = helpers.get_xml_attr(media_info, 'audioCodec')
-                duration = helpers.get_xml_attr(media_info, 'duration')
-                progress = helpers.get_xml_attr(session, 'viewOffset')
+                transcode_audio_channels = ''
+                transcode_audio_codec = ''
+                transcode_container = ''
+                transcode_protocol = ''
 
             user_details = plex_watch.get_user_details(
                 user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
@@ -471,7 +532,9 @@ class PmsConnect(object):
             session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                               'art': helpers.get_xml_attr(session, 'art'),
                               'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
+                              'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
                               'thumb': helpers.get_xml_attr(session, 'thumb'),
+                              'bif_thumb': '',
                               'user': helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
                               'user_id': user_details['user_id'],
                               'friendly_name': user_details['friendly_name'],
@@ -483,6 +546,8 @@ class PmsConnect(object):
                               'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                               'title': helpers.get_xml_attr(session, 'title'),
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
+                              'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
+                              'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
                               'audio_decision': audio_decision,
                               'audio_channels': audio_channels,
                               'audio_codec': audio_codec,
@@ -490,6 +555,18 @@ class PmsConnect(object):
                               'video_codec': '',
                               'height': '',
                               'width': '',
+                              'container': container,
+                              'bitrate': bitrate,
+                              'video_resolution': '',
+                              'video_framerate': '',
+                              'aspect_ratio': '',
+                              'transcode_audio_channels': transcode_audio_channels,
+                              'transcode_audio_codec': transcode_audio_codec,
+                              'transcode_video_codec': '',
+                              'transcode_width': '',
+                              'transcode_height': '',
+                              'transcode_container': transcode_container,
+                              'transcode_protocol': transcode_protocol,
                               'duration': duration,
                               'progress': progress,
                               'progress_percent': str(helpers.get_percent(progress, duration)),
@@ -497,28 +574,41 @@ class PmsConnect(object):
                               'indexes': 0
                               }
         elif stream_type == 'video':
+            media_info = session.getElementsByTagName('Media')[0]
+            audio_decision = 'direct play'
+            audio_channels = helpers.get_xml_attr(media_info, 'audioChannels')
+            audio_codec = helpers.get_xml_attr(media_info, 'audioCodec')
+            video_decision = 'direct play'
+            video_codec = helpers.get_xml_attr(media_info, 'videoCodec')
+            container = helpers.get_xml_attr(media_info, 'container')
+            bitrate = helpers.get_xml_attr(media_info, 'bitrate')
+            video_resolution = helpers.get_xml_attr(media_info, 'videoResolution')
+            video_framerate = helpers.get_xml_attr(media_info, 'videoFrameRate')
+            aspect_ratio = helpers.get_xml_attr(media_info, 'aspectRatio')
+            width = helpers.get_xml_attr(media_info, 'width')
+            height = helpers.get_xml_attr(media_info, 'height')
+            duration = helpers.get_xml_attr(media_info, 'duration')
+            progress = helpers.get_xml_attr(session, 'viewOffset')
+
             if session.getElementsByTagName('TranscodeSession'):
                 transcode_session = session.getElementsByTagName('TranscodeSession')[0]
                 audio_decision = helpers.get_xml_attr(transcode_session, 'audioDecision')
-                audio_channels = helpers.get_xml_attr(transcode_session, 'audioChannels')
-                audio_codec = helpers.get_xml_attr(transcode_session, 'audioCodec')
+                transcode_audio_channels = helpers.get_xml_attr(transcode_session, 'audioChannels')
+                transcode_audio_codec = helpers.get_xml_attr(transcode_session, 'audioCodec')
                 video_decision = helpers.get_xml_attr(transcode_session, 'videoDecision')
-                video_codec = helpers.get_xml_attr(transcode_session, 'videoCodec')
-                width = helpers.get_xml_attr(transcode_session, 'width')
-                height = helpers.get_xml_attr(transcode_session, 'height')
-                duration = helpers.get_xml_attr(session, 'duration')
-                progress = helpers.get_xml_attr(session, 'viewOffset')
+                transcode_video_codec = helpers.get_xml_attr(transcode_session, 'videoCodec')
+                transcode_width = helpers.get_xml_attr(transcode_session, 'width')
+                transcode_height = helpers.get_xml_attr(transcode_session, 'height')
+                transcode_container = helpers.get_xml_attr(transcode_session, 'container')
+                transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
             else:
-                media_info = session.getElementsByTagName('Media')[0]
-                audio_decision = 'direct play'
-                audio_channels = helpers.get_xml_attr(media_info, 'audioChannels')
-                audio_codec = helpers.get_xml_attr(media_info, 'audioCodec')
-                video_decision = 'direct play'
-                video_codec = helpers.get_xml_attr(media_info, 'videoCodec')
-                width = helpers.get_xml_attr(media_info, 'width')
-                height = helpers.get_xml_attr(media_info, 'height')
-                duration = helpers.get_xml_attr(media_info, 'duration')
-                progress = helpers.get_xml_attr(session, 'viewOffset')
+                transcode_audio_channels = ''
+                transcode_audio_codec = ''
+                transcode_video_codec = ''
+                transcode_width = ''
+                transcode_height = ''
+                transcode_container = ''
+                transcode_protocol = ''
 
             media_info = session.getElementsByTagName('Media')[0]
             if media_info.getElementsByTagName('Part'):
@@ -533,10 +623,8 @@ class PmsConnect(object):
                 bif_thumb = ''
 
             if plexpy.CONFIG.PMS_USE_BIF and indexes == 'sd':
-                thumb = bif_thumb
                 use_indexes = 1
             else:
-                thumb = helpers.get_xml_attr(session, 'thumb')
                 use_indexes = 0
 
             user_details = plex_watch.get_user_details(
@@ -551,7 +639,9 @@ class PmsConnect(object):
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                                   'art': helpers.get_xml_attr(session, 'art'),
                                   'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
-                                  'thumb': thumb,
+                                  'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
+                                  'thumb': helpers.get_xml_attr(session, 'thumb'),
+                                  'bif_thumb': bif_thumb,
                                   'user': helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
                                   'user_id': user_details['user_id'],
                                   'friendly_name': user_details['friendly_name'],
@@ -563,6 +653,8 @@ class PmsConnect(object):
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                                   'title': helpers.get_xml_attr(session, 'title'),
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
+                                  'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
+                                  'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
                                   'audio_decision': audio_decision,
                                   'audio_channels': audio_channels,
                                   'audio_codec': audio_codec,
@@ -570,6 +662,18 @@ class PmsConnect(object):
                                   'video_codec': video_codec,
                                   'height': height,
                                   'width': width,
+                                  'container': container,
+                                  'bitrate': bitrate,
+                                  'video_resolution': video_resolution,
+                                  'video_framerate': video_framerate,
+                                  'aspect_ratio': aspect_ratio,
+                                  'transcode_audio_channels': transcode_audio_channels,
+                                  'transcode_audio_codec': transcode_audio_codec,
+                                  'transcode_video_codec': transcode_video_codec,
+                                  'transcode_width': transcode_width,
+                                  'transcode_height': transcode_height,
+                                  'transcode_container': transcode_container,
+                                  'transcode_protocol': transcode_protocol,
                                   'duration': duration,
                                   'progress': progress,
                                   'progress_percent': str(helpers.get_percent(progress, duration)),
@@ -579,8 +683,10 @@ class PmsConnect(object):
             elif helpers.get_xml_attr(session, 'type') == 'movie':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                                   'art': helpers.get_xml_attr(session, 'art'),
-                                  'thumb': thumb,
+                                  'thumb': helpers.get_xml_attr(session, 'thumb'),
+                                  'bif_thumb': bif_thumb,
                                   'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
+                                  'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
                                   'user': helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
                                   'user_id': user_details['user_id'],
                                   'friendly_name': user_details['friendly_name'],
@@ -592,6 +698,8 @@ class PmsConnect(object):
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                                   'title': helpers.get_xml_attr(session, 'title'),
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
+                                  'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
+                                  'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
                                   'audio_decision': audio_decision,
                                   'audio_channels': audio_channels,
                                   'audio_codec': audio_codec,
@@ -599,6 +707,18 @@ class PmsConnect(object):
                                   'video_codec': video_codec,
                                   'height': height,
                                   'width': width,
+                                  'container': container,
+                                  'bitrate': bitrate,
+                                  'video_resolution': video_resolution,
+                                  'video_framerate': video_framerate,
+                                  'aspect_ratio': aspect_ratio,
+                                  'transcode_audio_channels': transcode_audio_channels,
+                                  'transcode_audio_codec': transcode_audio_codec,
+                                  'transcode_video_codec': transcode_video_codec,
+                                  'transcode_width': transcode_width,
+                                  'transcode_height': transcode_height,
+                                  'transcode_container': transcode_container,
+                                  'transcode_protocol': transcode_protocol,
                                   'duration': duration,
                                   'progress': progress,
                                   'progress_percent': str(helpers.get_percent(progress, duration)),
@@ -608,8 +728,10 @@ class PmsConnect(object):
             elif helpers.get_xml_attr(session, 'type') == 'clip':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                                   'art': helpers.get_xml_attr(session, 'art'),
-                                  'thumb': thumb,
+                                  'thumb': helpers.get_xml_attr(session, 'thumb'),
+                                  'bif_thumb': bif_thumb,
                                   'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
+                                  'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
                                   'user': helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'),
                                   'user_id': user_details['user_id'],
                                   'friendly_name': user_details['friendly_name'],
@@ -621,6 +743,8 @@ class PmsConnect(object):
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                                   'title': helpers.get_xml_attr(session, 'title'),
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
+                                  'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
+                                  'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
                                   'audio_decision': audio_decision,
                                   'audio_channels': audio_channels,
                                   'audio_codec': audio_codec,
@@ -628,6 +752,18 @@ class PmsConnect(object):
                                   'video_codec': video_codec,
                                   'height': height,
                                   'width': width,
+                                  'container': container,
+                                  'bitrate': bitrate,
+                                  'video_resolution': video_resolution,
+                                  'video_framerate': video_framerate,
+                                  'aspect_ratio': aspect_ratio,
+                                  'transcode_audio_channels': transcode_audio_channels,
+                                  'transcode_audio_codec': transcode_audio_codec,
+                                  'transcode_video_codec': transcode_video_codec,
+                                  'transcode_width': transcode_width,
+                                  'transcode_height': transcode_height,
+                                  'transcode_container': transcode_container,
+                                  'transcode_protocol': transcode_protocol,
                                   'duration': duration,
                                   'progress': progress,
                                   'progress_percent': str(helpers.get_percent(progress, duration)),

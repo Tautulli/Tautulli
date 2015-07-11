@@ -367,11 +367,58 @@ def dbcheck():
 
     conn_db = sqlite3.connect(DB_FILE)
     c_db = conn_db.cursor()
+
+    # sessions table :: This is a temp table that logs currently active sessions
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'session_key INTEGER, rating_key INTEGER, media_type TEXT, started INTEGER, '
-        'paused_counter INTEGER, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, '
-        'machine_id TEXT, player TEXT, title TEXT, parent_title TEXT, grandparent_title TEXT)'
+        'paused_counter INTEGER, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, ip_address TEXT, '
+        'machine_id TEXT, player TEXT, platform TEXT, title TEXT, parent_title TEXT, '
+        'grandparent_title TEXT, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+        'view_offset INTEGER DEFAULT 0, duration INTEGER, video_decision TEXT, audio_decision TEXT, '
+        'width INTEGER, height INTEGER, container TEXT, video_codec TEXT, audio_codec TEXT, '
+        'bitrate INTEGER, video_resolution TEXT, video_framerate TEXT, aspect_ratio TEXT, '
+        'audio_channels INTEGER, transcode_protocol TEXT, transcode_container TEXT, '
+        'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
+        'transcode_width INTEGER, transcode_height INTEGER)'
+    )
+
+    # session_history table :: This is a history table which logs essential stream details
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS session_history (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'started INTEGER, stopped INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
+        'ip_address TEXT, paused_counter INTEGER, player TEXT, platform TEXT, machine_id TEXT, '
+        'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, view_offset INTEGER)'
+    )
+
+    # session_history_media_info table :: This is a table which logs each session's media info
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS session_history_media_info (id INTEGER PRIMARY KEY, '
+        'rating_key INTEGER, video_decision TEXT, audio_decision TEXT, duration INTEGER, width INTEGER, '
+        'height INTEGER, container TEXT, video_codec TEXT, audio_codec TEXT, bitrate INTEGER, video_resolution TEXT, '
+        'video_framerate TEXT, aspect_ratio TEXT, audio_channels INTEGER, transcode_protocol TEXT, '
+        'transcode_container TEXT, transcode_video_codec TEXT, transcode_audio_codec TEXT, '
+        'transcode_audio_channels INTEGER, transcode_width INTEGER, transcode_height INTEGER)'
+    )
+
+    # session_history_metadata table :: This is a table which logs each session's media metadata
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS session_history_metadata (id INTEGER PRIMARY KEY, '
+        'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+        'title TEXT, parent_title TEXT, grandparent_title TEXT, media_index INTEGER, parent_media_index INTEGER, '
+        'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, art TEXT, media_type TEXT, '
+        'year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, last_viewed_at INTEGER, '
+        'content_rating TEXT, summary TEXT, rating TEXT, duration INTEGER, guid TEXT, '
+        'directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT)'
+        ''
+    )
+
+    # users table :: This table keeps record of the friends list
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL UNIQUE, '
+        'friendly_name TEXT, thumb TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
+        'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -417,6 +464,87 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN user_id INTEGER'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT ip_address from sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN ip_address TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN platform TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN parent_rating_key INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN grandparent_rating_key INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN view_offset INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN duration INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN video_decision TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN audio_decision TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN width INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN height INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN container TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN video_codec TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN audio_codec TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN bitrate INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN video_resolution TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN video_framerate TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN aspect_ratio TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN audio_channels INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN transcode_protocol TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN transcode_container TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN transcode_video_codec TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN transcode_audio_codec TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN transcode_audio_channels INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN transcode_width INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN transcode_height INTEGER'
         )
 
     conn_db.commit()

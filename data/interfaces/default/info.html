@@ -93,7 +93,7 @@ from plexpy import helpers
                                             % endif
                                         </div>
                                         <div class="summary-content-duration">
-                                            Runtime <strong> ${data['duration']} mins</strong>
+                                            Runtime <strong> <span id="runtime">${data['duration']}</span> mins</strong>
                                         </div>
                                         <div class="summary-content-content-rating">
                                             Rated <strong> ${data['content_rating']} </strong>
@@ -287,5 +287,8 @@ from plexpy import helpers
 
 </script>
 % endif
+<script>
+    $("#runtime").html(millisecondsToMinutes($("#runtime").html(), true));
+</script>
 % endif
 </%def>

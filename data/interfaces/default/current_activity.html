@@ -15,30 +15,43 @@ data['sessions']        Returns an array containing session data
 data[sessions] :: Usable parameters
 
 == Global keys ==
-session_key             Returns a unique session id for the active stream
-rating_key              Returns the unique identifier for the media item.
-type                    Returns the type of session. Either 'track', 'episode' or 'movie'.
-thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
-art                     Returns the location of the item's artwork
-progress_percent        Returns the current progress of the item. 0 to 100.
-user                    Returns the name of the user owning the session.
-user_id                 Returns the Plex user id if available.
-machine_id              Returns the machine id of the players being used.
-friendly_name           Returns the friendlly name of the user owning the session.
-state                   Returns the state of the current session. Either 'playing', 'paused' or 'buffering'.
-title                   Returns the name of the episode, movie or music track.
-player                  Returns the name of the platform used to play the stream.
-platform                Returns the type of platform used to play the stream.
-audio_decision          Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
-audio_codec             Returns the name of the audio codec.
-audio_channels          Returns the number of audio channels.
-grandparent_title       Returns the title of the item's grandparent.
-parent_title            Returns the title of the item's parent.
-video_decision          Returns the video transcode decision. Either 'transcode', 'copy' or 'direct play'.
-video_codec             Returns the name of the video codec.
-height                  Returns the value of the video height.
-width                   Returns the value of the video width.
-indexes                 Returns true if the media has media indexes and are enabled
+session_key                 Returns a unique session id for the active stream
+rating_key                  Returns the unique identifier for the media item.
+type                        Returns the type of session. Either 'track', 'episode' or 'movie'.
+thumb                       Returns the location of the item's thumbnail. Use with pms_image_proxy.
+bif_thumb                   Returns the location of the item's bif thumbnail. Use with pms_image_proxy.
+art                         Returns the location of the item's artwork
+progress_percent            Returns the current progress of the item. 0 to 100.
+user                        Returns the name of the user owning the session.
+user_id                     Returns the Plex user id if available.
+machine_id                  Returns the machine id of the players being used.
+friendly_name               Returns the friendlly name of the user owning the session.
+state                       Returns the state of the current session. Either 'playing', 'paused' or 'buffering'.
+title                       Returns the name of the episode, movie or music track.
+player                      Returns the name of the platform used to play the stream.
+platform                    Returns the type of platform used to play the stream.
+audio_decision              Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
+audio_codec                 Returns the name of the audio codec.
+audio_channels              Returns the number of audio channels.
+grandparent_title           Returns the title of the item's grandparent.
+parent_title                Returns the title of the item's parent.
+video_decision              Returns the video transcode decision. Either 'transcode', 'copy' or 'direct play'.
+video_codec                 Returns the name of the video codec.
+height                      Returns the value of the video height.
+width                       Returns the value of the video width.
+container                   Returns the value of the media container.
+bitrate                     Returns the value of the media bitrate.
+video_resolution            Returns the value of the video resolution.
+video_framerate             Returns the value of the video framerate.
+video_aspect_ratio          Returns the value of the video aspect ratio.
+transcode_audio_channels    Returns the amount of audio channels if there is a transcode session.
+transcode_audio_codec       Returns the name of the audio codec if there is a transcode session.
+transcode_video_codec       Returns the name of the video codec if there is a transcode session.
+transcode_width             Returns the video width if there is a transcode session.
+transcode_height            Returns the video height if there is a transcode session.
+transcode_container         Returns the value of media container if there is a transcode session.
+transcode_protocol          Returns the value of media protocol if there is a transcode session.
+indexes                     Returns true if the media has media indexes and are enabled
 
 DOCUMENTATION :: END
 </%doc>
@@ -54,7 +67,7 @@ DOCUMENTATION :: END
         </div>
         % elif a['indexes']:
         <div class="dashboard-activity-poster-face">
-            <img onload="fadeIn(this)" src="pms_image_proxy?img=${a['thumb']}&width=300&height=169" style="display: none;"/>
+            <img onload="fadeIn(this)" src="pms_image_proxy?img=${a['bif_thumb']}&width=300&height=169" style="display: none;"/>
         </div>
         % else:
         <div class="dashboard-activity-poster-face">
@@ -114,7 +127,11 @@ DOCUMENTATION :: END
                         Stream: <strong>Transcoding</strong>
                         % endif
                         <br/>
-                        Audio: <strong>${a['audio_codec']} (${a['audio_channels']}ch)</strong>
+                        % if a['audio_decision'] != 'direct play':
+                            Audio: <strong>${a['transcode_audio_codec']} (${a['transcode_audio_channels']}ch)</strong>
+                        % elif a['audio_decision'] == 'direct play':
+                            Audio: <strong>${a['audio_codec']} (${a['audio_channels']}ch)</strong>
+                        % endif
                         % elif a['type'] == 'episode' or a['type'] == 'movie' or a['type'] == 'clip':
                         % if a['video_decision'] == 'direct play':
                         Stream: <strong>Direct Play</strong>
@@ -122,10 +139,19 @@ DOCUMENTATION :: END
                         Stream: <strong>Transcoding</strong>
                         % endif
                         <br/>
-                        Video: <strong>${a['video_decision']} (${a['video_codec']})
-                        (${a['width']}x${a['height']})</strong>
+                        % if a['video_decision'] != 'direct play':
+                            Video: <strong>${a['video_decision']} (${a['transcode_video_codec']})
+                            (${a['transcode_width']}x${a['transcode_height']})</strong>
+                        % elif a['audio_decision'] == 'direct play':
+                            Video: <strong>${a['video_decision']} (${a['video_codec']})
+                            (${a['width']}x${a['height']})</strong>
+                        % endif
                         <br/>
-                        Audio: <strong>${a['audio_decision']} (${a['audio_codec']}) (${a['audio_channels']}ch)</strong>
+                        % if a['audio_decision'] != 'direct play':
+                            Audio: <strong>${a['audio_decision']} ${a['transcode_audio_codec']} (${a['transcode_audio_channels']}ch)</strong>
+                        % elif a['audio_decision'] == 'direct play':
+                            Audio: <strong>${a['audio_codec']} (${a['audio_channels']}ch)</strong>
+                        % endif
                         % endif
                         <br>
                     </div>
