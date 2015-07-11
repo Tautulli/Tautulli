@@ -92,29 +92,24 @@ def check_active_sessions():
                           'transcode_height': result[37]
                           }
 
-                if any(d['session_key'] == str(stream['session_key']) for d in media_container):
+                if any(d['session_key'] == str(stream['session_key']) and d['rating_key'] == str(stream['rating_key'])
+                       for d in media_container):
                     # The user's session is still active
                     for session in media_container:
-                        if session['rating_key'] == str(stream['rating_key']):
+                        if session['session_key'] == str(stream['session_key']) and \
+                                session['rating_key'] == str(stream['rating_key']):
                             # The user is still playing the same media item
                             # Here we can check the play states
                             if session['state'] != stream['state']:
                                 if session['state'] == 'paused':
                                     # Push any notifications
                                     notify(stream_data=stream, notify_action='pause')
-                        else:
-                            # The user has stopped playing a stream
-                            logger.debug(u"Removing sessionKey %s ratingKey %s from session queue"
-                                         % (stream['session_key'], stream['rating_key']))
-                            monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
-                                              [stream['session_key'], stream['rating_key']])
-                            # Push any notifications
-                            notify(stream_data=stream, notify_action='stop')
-                            monitor_process.write_session_history(session=stream)
                 else:
-                    # The user's session is no longer active
-                    logger.debug(u"Removing sessionKey %s from session queue" % stream['session_key'])
-                    monitor_db.action('DELETE FROM sessions WHERE session_key = ?', [stream['session_key']])
+                    # The user has stopped playing a stream
+                    logger.debug(u"Removing sessionKey %s ratingKey %s from session queue"
+                                 % (stream['session_key'], stream['rating_key']))
+                    monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
+                                      [stream['session_key'], stream['rating_key']])
                     # Push any notifications
                     notify(stream_data=stream, notify_action='stop')
                     monitor_process.write_session_history(session=stream)
