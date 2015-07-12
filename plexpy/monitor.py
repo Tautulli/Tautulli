@@ -48,7 +48,7 @@ def check_active_sessions():
                                            'container, video_codec, audio_codec, bitrate, video_resolution, '
                                            'video_framerate, aspect_ratio, audio_channels, transcode_protocol, '
                                            'transcode_container, transcode_video_codec, transcode_audio_codec, '
-                                           'transcode_audio_channels, transcode_width, transcode_height '
+                                           'transcode_audio_channels, transcode_width, transcode_height, paused_counter '
                                            'FROM sessions')
             for result in db_streams:
                 # Build a result dictionary for easier referencing
@@ -89,7 +89,8 @@ def check_active_sessions():
                           'transcode_audio_codec': result[34],
                           'transcode_audio_channels': result[35],
                           'transcode_width': result[36],
-                          'transcode_height': result[37]
+                          'transcode_height': result[37],
+                          'paused_counter': result[38]
                           }
 
                 if any(d['session_key'] == str(stream['session_key']) and d['rating_key'] == str(stream['rating_key'])
@@ -104,14 +105,23 @@ def check_active_sessions():
                                 if session['state'] == 'paused':
                                     # Push any notifications
                                     notify(stream_data=stream, notify_action='pause')
+                            if stream['state'] == 'paused':
+                                # The stream is still paused so we need to increment the paused_counter
+                                # Using the set config parameter as the interval, probably not the most accurate but
+                                # it will have to do for now.
+                                paused_counter = int(stream['paused_counter']) + plexpy.CONFIG.MONITORING_INTERVAL
+                                monitor_db.action('UPDATE sessions SET paused_counter = ? '
+                                                  'WHERE session_key = ? AND rating_key = ?',
+                                                  [paused_counter, stream['session_key'], stream['rating_key']])
                 else:
                     # The user has stopped playing a stream
-                    logger.debug(u"Removing sessionKey %s ratingKey %s from session queue"
+                    logger.debug(u"PlexPy Monitor :: Removing sessionKey %s ratingKey %s from session queue"
                                  % (stream['session_key'], stream['rating_key']))
                     monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
                                       [stream['session_key'], stream['rating_key']])
                     # Push any notifications
                     notify(stream_data=stream, notify_action='stop')
+                    # Write the item history on playback stop
                     monitor_process.write_session_history(session=stream)
 
             # Process the newly received session data
@@ -305,26 +315,29 @@ class MonitorProcessing(object):
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
                         (int(time.time()) - session['started'] < plexpy.CONFIG.LOGGING_IGNORE_INTERVAL):
                     logging_enabled = False
-                    logger.debug(u"Item played for %s seconds which is less than %s seconds, so we're not logging it." %
+                    logger.debug(u"PlexPy Monitor :: Item played for %s seconds which is less than %s seconds, "
+                                 u"so we're not logging it." %
                                  (str(int(time.time()) - session['started']), plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
 
             if logging_enabled:
                 logger.debug(u"PlexPy Monitor :: Attempting to write to session_history table...")
-                query = 'INSERT INTO session_history (started, stopped, rating_key, parent_rating_key, grandparent_rating_key, ' \
-                        'media_type, user_id, user, ip_address, player, platform, machine_id, view_offset) VALUES ' \
-                        '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                query = 'INSERT INTO session_history (started, stopped, rating_key, parent_rating_key, ' \
+                        'grandparent_rating_key, media_type, user_id, user, ip_address, paused_counter, player, ' \
+                        'platform, machine_id, view_offset) VALUES ' \
+                        '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
                 args = [session['started'], int(time.time()), session['rating_key'], session['parent_rating_key'],
                         session['grandparent_rating_key'], session['media_type'], session['user_id'], session['user'],
-                        session['ip_address'], session['player'], session['platform'], session['machine_id'],
-                        session['view_offset']]
+                        session['ip_address'], session['paused_counter'], session['player'], session['platform'],
+                        session['machine_id'], session['view_offset']]
 
-                logger.debug(u"Writing session_history transaction...")
+                logger.debug(u"PlexPy Monitor :: Writing session_history transaction...")
                 self.db.action(query=query, args=args)
 
                 # Get the id for the last transaction
                 last_id = self.db.select_single('SELECT max(id) FROM session_history')
-                logger.debug(u"Successfully written history item, last id for session_history is %s" % last_id)
+                logger.debug(u"PlexPy Monitor :: Successfully written history item, last id for session_history is %s"
+                             % last_id)
 
                 logger.debug(u"PlexPy Monitor :: Attempting to write to session_history_media_info table...")
                 query = 'INSERT INTO session_history_media_info (id, rating_key, video_decision, audio_decision, ' \
@@ -342,7 +355,7 @@ class MonitorProcessing(object):
                         session['transcode_video_codec'], session['transcode_audio_codec'],
                         session['transcode_audio_channels'], session['transcode_width'], session['transcode_height']]
 
-                logger.debug(u"Writing session_history_media_info transaction...")
+                logger.debug(u"PlexPy Monitor :: Writing session_history_media_info transaction...")
                 self.db.action(query=query, args=args)
 
                 logger.debug(u"PlexPy Monitor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
@@ -372,12 +385,12 @@ class MonitorProcessing(object):
                         metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['rating'],
                         metadata['duration'], metadata['guid'], directors, writers, actors, genres, metadata['studio']]
 
-                logger.debug(u"Writing session_history_metadata transaction...")
+                logger.debug(u"PlexPy Monitor :: Writing session_history_metadata transaction...")
                 self.db.action(query=query, args=args)
 
     def find_session_ip(self, rating_key=None, machine_id=None):
 
-        logger.debug(u"Requesting log lines...")
+        logger.debug(u"PlexPy Monitor :: Requesting log lines...")
         log_lines = log_reader.get_log_tail(window=5000, parsed=False)
 
         rating_key_line = 'metadata%2F' + rating_key
@@ -392,16 +405,18 @@ class MonitorProcessing(object):
                 if ipv4:
                     # The logged IP will always be the first match and we don't want localhost entries
                     if ipv4[0] != '127.0.0.1':
-                        logger.debug(u"Matched IP address (%s) for stream ratingKey %s and machineIdentifier %s."
+                        logger.debug(u"PlexPy Monitor :: Matched IP address (%s) for stream ratingKey %s "
+                                     u"and machineIdentifier %s."
                                      % (ipv4[0], rating_key, machine_id))
                         return ipv4[0]
 
-        logger.debug(u"Unable to find IP address on first pass. Attempting fallback check in 5 seconds...")
+        logger.debug(u"PlexPy Monitor :: Unable to find IP address on first pass. "
+                     u"Attempting fallback check in 5 seconds...")
 
         # Wait for the log to catch up and read in new lines
         time.sleep(5)
 
-        logger.debug(u"Requesting log lines...")
+        logger.debug(u"PlexPy Monitor :: Requesting log lines...")
         log_lines = log_reader.get_log_tail(window=5000, parsed=False)
 
         for line in reversed(log_lines):
@@ -413,10 +428,11 @@ class MonitorProcessing(object):
                 if ipv4:
                     # The logged IP will always be the first match and we don't want localhost entries
                     if ipv4[0] != '127.0.0.1':
-                        logger.debug(u"Matched IP address (%s) for stream ratingKey %s." % (ipv4[0], rating_key))
+                        logger.debug(u"PlexPy Monitor :: Matched IP address (%s) for stream ratingKey %s." %
+                                     (ipv4[0], rating_key))
                         return ipv4[0]
 
-        logger.debug(u"Unable to find IP address on fallback search. Not logging IP address.")
+        logger.debug(u"PlexPy Monitor :: Unable to find IP address on fallback search. Not logging IP address.")
 
         return None
 
@@ -432,7 +448,8 @@ def notify(stream_data=None, notify_action=None):
             item_title = stream_data['title']
 
         if notify_action == 'play':
-            logger.info('%s (%s) started playing %s.' % (stream_data['friendly_name'], stream_data['player'], item_title))
+            logger.info('PlexPy Monitor :: %s (%s) started playing %s.' % (stream_data['friendly_name'],
+                                                                           stream_data['player'], item_title))
 
         if stream_data['media_type'] == 'movie':
             if plexpy.CONFIG.MOVIE_NOTIFY_ENABLE:
@@ -491,7 +508,7 @@ def notify(stream_data=None, notify_action=None):
         elif stream_data['media_type'] == 'clip':
             pass
         else:
-            logger.debug(u"Notify called with unsupported media type.")
+            logger.debug(u"PlexPy Monitor :: Notify called with unsupported media type.")
             pass
     else:
-        logger.debug(u"Notify called but incomplete data received.")
+        logger.debug(u"PlexPy Monitor :: Notify called but incomplete data received.")

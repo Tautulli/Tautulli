@@ -372,8 +372,8 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'session_key INTEGER, rating_key INTEGER, media_type TEXT, started INTEGER, '
-        'paused_counter INTEGER, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, ip_address TEXT, '
-        'machine_id TEXT, player TEXT, platform TEXT, title TEXT, parent_title TEXT, '
+        'paused_counter INTEGER DEFAULT 0, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, '
+        'ip_address TEXT, machine_id TEXT, player TEXT, platform TEXT, title TEXT, parent_title TEXT, '
         'grandparent_title TEXT, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
         'view_offset INTEGER DEFAULT 0, duration INTEGER, video_decision TEXT, audio_decision TEXT, '
         'width INTEGER, height INTEGER, container TEXT, video_codec TEXT, audio_codec TEXT, '
@@ -387,7 +387,7 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS session_history (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'started INTEGER, stopped INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
-        'ip_address TEXT, paused_counter INTEGER, player TEXT, platform TEXT, machine_id TEXT, '
+        'ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, platform TEXT, machine_id TEXT, '
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, view_offset INTEGER)'
     )
 
@@ -430,7 +430,7 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN started INTEGER'
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN paused_counter INTEGER'
+            'ALTER TABLE sessions ADD COLUMN paused_counter INTEGER DEFAULT 0'
         )
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN state TEXT'
