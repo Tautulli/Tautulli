@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, plexwatch, db, http_handler
+from plexpy import logger, helpers, plexwatch, db, http_handler, monitor
 
 from xml.dom import minidom
 
@@ -24,6 +24,7 @@ def refresh_users():
     logger.info("Requesting users list refresh...")
     result = PlexTV().get_full_users_list()
     pw_db = db.DBConnection()
+    monitor_db = monitor.MonitorDatabase()
 
     if len(result) > 0:
         for item in result:
@@ -38,6 +39,7 @@ def refresh_users():
                               }
 
             pw_db.upsert('plexpy_users', new_value_dict, control_value_dict)
+            monitor_db.upsert('users', new_value_dict, control_value_dict)
 
         logger.info("Users list refreshed.")
     else:

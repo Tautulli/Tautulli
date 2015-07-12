@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db, common, log_reader
+from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db, common, log_reader, datafactory
 from plexpy.helpers import checked, radio
 
 from mako.lookup import TemplateLookup
@@ -94,8 +94,16 @@ class WebInterface(object):
         return serve_template(templatename="history.html", title="History")
 
     @cherrypy.expose
+    def history_new(self):
+        return serve_template(templatename="history_new.html", title="History")
+
+    @cherrypy.expose
     def users(self):
         return serve_template(templatename="users.html", title="Users")
+
+    @cherrypy.expose
+    def users_new(self):
+        return serve_template(templatename="users_new.html", title="Users")
 
     @cherrypy.expose
     def graphs(self):
@@ -140,6 +148,11 @@ class WebInterface(object):
             try:
                 plex_watch = plexwatch.PlexWatch()
                 plex_watch.set_user_friendly_name(user, friendly_name)
+
+                # For the new database too
+                data_factory = datafactory.DataFactory()
+                data_factory.set_user_friendly_name(user, friendly_name)
+
                 status_message = "Successfully updated user."
                 return status_message
             except:
@@ -159,6 +172,15 @@ class WebInterface(object):
 
         plex_watch = plexwatch.PlexWatch()
         users = plex_watch.get_user_list(start, length, kwargs)
+
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps(users)
+
+    @cherrypy.expose
+    def get_user_list_new(self, start=0, length=100, **kwargs):
+
+        data_factory = datafactory.DataFactory()
+        users = data_factory.get_user_list(start, length, kwargs)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(users)
@@ -420,6 +442,25 @@ class WebInterface(object):
 
         plex_watch = plexwatch.PlexWatch()
         history = plex_watch.get_history(start, length, kwargs, custom_where)
+
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps(history)
+
+    @cherrypy.expose
+    def get_history_new(self, start=0, length=100, custom_where='', **kwargs):
+
+        if 'user' in kwargs:
+            user = kwargs.get('user', "")
+            custom_where = 'user = "%s"' % user
+        if 'rating_key' in kwargs:
+            rating_key = kwargs.get('rating_key', "")
+            custom_where = 'rating_key = %s' % rating_key
+        if 'grandparent_rating_key' in kwargs:
+            rating_key = kwargs.get('grandparent_rating_key', "")
+            custom_where = 'grandparent_rating_key = %s' % rating_key
+
+        data_factory = datafactory.DataFactory()
+        history = data_factory.get_history(start, length, kwargs, custom_where)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)

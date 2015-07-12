@@ -15,9 +15,6 @@ users_list_table_options = {
     "serverSide": true,
     "pageLength": 10,
     "order": [ 1, 'asc'],
-    "ajax": {
-        "url": "get_user_list"
-    },
     "autoWidth": true,
     "stateSave": true,
     "sPaginationType": "bootstrap",
