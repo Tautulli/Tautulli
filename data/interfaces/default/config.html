@@ -262,7 +262,7 @@
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="monitoring_interval">Ignore Interval</label>
-                                                        <input type="text" data-parsley-type="integer" id="logging_ignore_interval" name="logging_ignore_interval" value="${config['logging_ignore_interval']}" size="5" data-parsley-min="30" data-parsley-trigger="change" required>
+                                                        <input type="text" data-parsley-type="integer" id="logging_ignore_interval" name="logging_ignore_interval" value="${config['logging_ignore_interval']}" size="5" data-parsley-min="0" data-parsley-trigger="change" required>
                                                         <p class="help-block">The interval (in seconds) PlexPy will wait for a video item to be active before logging it. 0 to disable.</p>
                                                     </div>
                                                     <div class="checkbox">

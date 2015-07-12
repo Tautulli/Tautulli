@@ -867,6 +867,34 @@ class PmsConnect(object):
         return server_identity
 
     """
+    Return a specified server preference.
+
+    Parameters required:    pref { name of preference }
+
+    Output: string
+    """
+    def get_server_pref(self, pref=None):
+        if pref:
+            prefs = self.get_server_prefs(output_format='xml')
+
+            try:
+                xml_head = prefs.getElementsByTagName('Setting')
+            except:
+                logger.warn("Unable to parse XML for get_local_server_name.")
+                return ''
+
+            pref_value = 'None'
+            for a in xml_head:
+                if helpers.get_xml_attr(a, 'id') == pref:
+                    pref_value = helpers.get_xml_attr(a, 'value')
+                    break
+
+            return pref_value
+        else:
+            logger.debug(u"Server preferences queried but no parameter received.")
+            return None
+
+    """
     Return image data as array.
     Array contains the image content type and image binary
 

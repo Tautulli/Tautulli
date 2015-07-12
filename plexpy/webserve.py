@@ -982,3 +982,14 @@ class WebInterface(object):
             return result
         else:
             logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_server_pref(self, pref=None, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_server_pref(pref=pref)
+
+        if result:
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
