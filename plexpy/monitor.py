@@ -440,7 +440,7 @@ def notify(stream_data=None, notify_action=None):
         server_name = pms_connect.get_server_pref(pref='FriendlyName')
 
         # Build the notification heading
-        notify_header = 'PleyPy (%s)' % server_name
+        notify_header = 'PlexPy (%s)' % server_name
 
         # Build media item title
         if stream_data['media_type'] == 'episode' or stream_data['media_type'] == 'track':
