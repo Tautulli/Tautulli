@@ -530,6 +530,8 @@ class PmsConnect(object):
                 machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
 
             session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                              'media_index': helpers.get_xml_attr(session, 'index'),
+                              'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
                               'art': helpers.get_xml_attr(session, 'art'),
                               'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
                               'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
@@ -637,6 +639,8 @@ class PmsConnect(object):
 
             if helpers.get_xml_attr(session, 'type') == 'episode':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                                  'media_index': helpers.get_xml_attr(session, 'index'),
+                                  'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
                                   'art': helpers.get_xml_attr(session, 'art'),
                                   'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
                                   'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
@@ -682,6 +686,8 @@ class PmsConnect(object):
                                   }
             elif helpers.get_xml_attr(session, 'type') == 'movie':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                                  'media_index': helpers.get_xml_attr(session, 'index'),
+                                  'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
                                   'art': helpers.get_xml_attr(session, 'art'),
                                   'thumb': helpers.get_xml_attr(session, 'thumb'),
                                   'bif_thumb': bif_thumb,
@@ -727,6 +733,8 @@ class PmsConnect(object):
                                   }
             elif helpers.get_xml_attr(session, 'type') == 'clip':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                                  'media_index': helpers.get_xml_attr(session, 'index'),
+                                  'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
                                   'art': helpers.get_xml_attr(session, 'art'),
                                   'thumb': helpers.get_xml_attr(session, 'thumb'),
                                   'bif_thumb': bif_thumb,

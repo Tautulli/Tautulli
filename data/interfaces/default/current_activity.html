@@ -17,6 +17,8 @@ data[sessions] :: Usable parameters
 == Global keys ==
 session_key                 Returns a unique session id for the active stream
 rating_key                  Returns the unique identifier for the media item.
+media_index                 Returns the index of the media item.
+parent_media_index          Returns the index of the media item's parent.
 type                        Returns the type of session. Either 'track', 'episode' or 'movie'.
 thumb                       Returns the location of the item's thumbnail. Use with pms_image_proxy.
 bif_thumb                   Returns the location of the item's bif thumbnail. Use with pms_image_proxy.
@@ -75,6 +77,20 @@ DOCUMENTATION :: END
                 <div class="dashboard-activity-poster-music-bg" style="background-image: url('pms_image_proxy?img=${a['thumb']}&width=300&height=300');"></div>
             % endif
             <img src="pms_image_proxy?img=${a['thumb']}&width=300&height=169&fallback=cover"/>
+            <div class="dashboard-activity-poster-info-bar">
+                <div class="dashboard-activity-poster-info-text">
+                    % if a['type'] == 'track':
+                    Track ${a['media_index']}
+                    % elif a['type'] == 'episode':
+                    Season ${a['parent_media_index']}, Episode ${a['media_index']}
+                    % else:
+                    ${a['title']}
+                    % endif
+                </div>
+                <div class="dashboard-activity-poster-info-time">
+                    <span class="progress_time">${a['progress']}</span>/<span class="progress_time">${a['duration']}</span>
+                </div>
+            </div>
         </div>
         % endif
         <div class='dashboard-activity-metadata-wrapper'>
@@ -167,13 +183,30 @@ DOCUMENTATION :: END
 </div>
 <script>
     $("#platform-${a['session_key']}").html("<img src='" + getPlatformImagePath('${a['platform']}') + "'>");
-
 </script>
+
 % endfor
 <script>
+    // When using bif indexes make the image transition a little smoother.
     function fadeIn(obj) {
         $(obj).fadeIn(450);
     }
+    // Convert timestamps to readable times
+    $('.progress_time').each(function(index) {
+        $(this).html(millisecondsToMinutes($(this).text(), false));
+    });
+
+    // Hide the info bar on page load
+    $('.dashboard-activity-poster-info-bar').hide();
+
+    // When mouse over the activity pane, show an info bar with extra info.
+    $('.dashboard-activity-poster-face').mouseenter(function() {
+        $('.dashboard-activity-poster-info-bar', this).slideDown();
+    });
+    $('.dashboard-activity-poster-face').mouseleave(function() {
+        $('.dashboard-activity-poster-info-bar', this).slideUp();
+    });
+
 </script>
 % else:
 <div class="muted">Nothing is currently being watched.</div><br>

@@ -253,7 +253,6 @@ String.prototype.toProperCase = function () {
 
 function millisecondsToMinutes(ms, roundToMinute) {
 
-	console.log("Ms: " + ms)
 	if (ms > 0) {
 		seconds = ms / 1000;
 		minutes = seconds / 60;
@@ -270,7 +269,10 @@ function millisecondsToMinutes(ms, roundToMinute) {
 		}
 		return output;
 	} else {
-		return '0';
+		if (roundToMinute) {
+			return '0';
+		} else {
+			return '0:00';
+		}
 	}
 }
-
