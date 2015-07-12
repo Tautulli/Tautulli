@@ -63,20 +63,17 @@ DOCUMENTATION :: END
 % for a in data['sessions']:
 <div class="instance" id="instance-${a['session_key']}">
     <div class="poster">
-        % if a['type'] == 'movie' and not a['indexes']:
         <div class="dashboard-activity-poster-face">
+            % if a['type'] == 'movie' and not a['indexes']:
             <img src="pms_image_proxy?img=${a['art']}&width=300&height=169"/>
-        </div>
-        % elif a['indexes']:
-        <div class="dashboard-activity-poster-face">
+            % elif a['indexes']:
             <img onload="fadeIn(this)" src="pms_image_proxy?img=${a['bif_thumb']}&width=300&height=169" style="display: none;"/>
-        </div>
-        % else:
-        <div class="dashboard-activity-poster-face">
+            % else:
             % if a['type'] == 'track':
                 <div class="dashboard-activity-poster-music-bg" style="background-image: url('pms_image_proxy?img=${a['thumb']}&width=300&height=300');"></div>
             % endif
             <img src="pms_image_proxy?img=${a['thumb']}&width=300&height=169&fallback=cover"/>
+            % endif
             <div class="dashboard-activity-poster-info-bar">
                 <div class="dashboard-activity-poster-info-text">
                     % if a['type'] == 'track':
@@ -92,7 +89,6 @@ DOCUMENTATION :: END
                 </div>
             </div>
         </div>
-        % endif
         <div class='dashboard-activity-metadata-wrapper'>
             <div class='dashboard-activity-instance-overlay'>
                 <div class='dashboard-activity-metadata-progress-minutes'>
