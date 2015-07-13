@@ -130,6 +130,14 @@ def drop_session_db():
     monitor_db = MonitorDatabase()
     monitor_db.action('DROP TABLE sessions')
 
+def clear_history_tables():
+    logger.debug(u"PlexPy Monitor :: Deleting all session_history records... No turning back now bub.")
+    monitor_db = MonitorDatabase()
+    monitor_db.action('DELETE FROM session_history')
+    monitor_db.action('DELETE FROM session_history_media_info')
+    monitor_db.action('DELETE FROM session_history_metadata')
+    monitor_db.action('VACUUM;')
+
 def db_filename(filename="plexpy.db"):
 
     return os.path.join(plexpy.DATA_DIR, filename)
@@ -365,17 +373,25 @@ class MonitorProcessing(object):
                 actors = ";".join(metadata['actors'])
                 genres = ";".join(metadata['genres'])
 
+                # Build media item title
+                if session['media_type'] == 'episode' or session['media_type'] == 'track':
+                    full_title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+                elif session['media_type'] == 'movie':
+                    full_title = metadata['title']
+                else:
+                    full_title = metadata['title']
+
                 logger.debug(u"PlexPy Monitor :: Attempting to write to session_history_metadata table...")
                 query = 'INSERT INTO session_history_metadata (id, rating_key, parent_rating_key, ' \
-                        'grandparent_rating_key, title, parent_title, grandparent_title, media_index, ' \
+                        'grandparent_rating_key, title, parent_title, grandparent_title, full_title, media_index, ' \
                         'parent_media_index, thumb, parent_thumb, grandparent_thumb, art, media_type, year, ' \
                         'originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, ' \
                         'rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
-                        '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                        '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
                 args = [last_id, session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
-                        session['title'], session['parent_title'], session['grandparent_title'], metadata['index'],
-                        metadata['parent_index'], metadata['thumb'], metadata['parent_thumb'],
+                        session['title'], session['parent_title'], session['grandparent_title'], full_title,
+                        metadata['index'], metadata['parent_index'], metadata['thumb'], metadata['parent_thumb'],
                         metadata['grandparent_thumb'], metadata['art'], session['media_type'], metadata['year'],
                         metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
                         metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['rating'],

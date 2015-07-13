@@ -90,7 +90,11 @@ history_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['media_type'] === 'movie' || rowData['media_type'] === 'episode') {
-                        $(td).html('<div><div style="float: left;"><a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a></div><div style="float: right; text-align: right; padding-right: 5px;"><i class="fa fa-video-camera"></i></div></div>');
+                        var transcode_dec = '';
+                        if (rowData['video_decision'] === 'transcode') {
+                            transcode_dec = '<i class="fa fa-server"></i>&nbsp';
+                        }
+                        $(td).html('<div><div style="float: left;"><a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a></div><div style="float: right; text-align: right; padding-right: 5px;">' + transcode_dec + '<i class="fa fa-video-camera"></i></div></div>');
                     } else if (rowData['media_type'] === 'track') {
                         $(td).html('<div><div style="float: left;">' + cellData + '</div><div style="float: right; text-align: right; padding-right: 5px;"><i class="fa fa-music"></i></div></div>');
                     } else {
@@ -147,13 +151,18 @@ history_table_options = {
             "targets": [10],
             "data":"percent_complete",
             "render": function ( data, type, full ) {
-                if (data < 85) {
-                    return '<span class="badge">'+Math.round(data)+'%</span>';
+                if (data > 80) {
+                    return '<i class="fa fa-lg fa-circle"></i>'
+                    //return '<span class="badge">'+Math.round(data)+'%</span>';
+                } else if (data > 40) {
+                    return '<i class="fa fa-lg fa-adjust"></i>'
+                    //return '<span class="badge">100%</span>';
                 } else {
-                    return '<span class="badge">100%</span>';
+                    return '<i class="fa fa-lg fa-circle-o"></i>'
                 }
             },
             "searchable": false,
+            "orderable": true,
             "className": "no-wrap"
         },
         {
@@ -179,7 +188,14 @@ history_table_options = {
             "data":"user",
             "searchable":false,
             "visible":false
+        },
+        {
+            "targets": [15],
+            "data":"video_decision",
+            "searchable":false,
+            "visible":false
         }
+
 
     ],
     "drawCallback": function (settings) {

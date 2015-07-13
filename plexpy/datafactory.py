@@ -148,7 +148,7 @@ class DataFactory(object):
                    '.user ELSE users.friendly_name END) as friendly_name',
                    t1 + '.player',
                    t1 + '.ip_address',
-                   t2 + '.title',
+                   t2 + '.full_title',
                    t1 + '.started',
                    t1 + '.paused_counter',
                    t1 + '.stopped',
@@ -160,7 +160,8 @@ class DataFactory(object):
                    t1 + '.grandparent_rating_key as grandparent_rating_key',
                    t1 + '.rating_key as rating_key',
                    t1 + '.user',
-                   t2 + '.media_type'
+                   t2 + '.media_type',
+                   t4 + '.video_decision'
                    ]
         try:
             query = data_tables.ssp_query(table_name=t1,
@@ -173,9 +174,11 @@ class DataFactory(object):
                                           search_regex=search_regex,
                                           custom_where=custom_where,
                                           group_by='',
-                                          join_type=['JOIN', 'JOIN'],
-                                          join_table=[t3, t2],
-                                          join_evals=[[t1 + '.user_id', t3 + '.user_id'], [t1 + '.id', t2 + '.id']],
+                                          join_type=['JOIN', 'JOIN', 'JOIN'],
+                                          join_table=[t3, t2, t4],
+                                          join_evals=[[t1 + '.user_id', t3 + '.user_id'],
+                                                      [t1 + '.id', t2 + '.id'],
+                                                      [t1 + '.id', t4 + '.id']],
                                           kwargs=kwargs)
         except:
             logger.warn("Unable to open PlexWatch database.")
@@ -193,7 +196,7 @@ class DataFactory(object):
                    "friendly_name": item['friendly_name'],
                    "platform": item["player"],
                    "ip_address": item["ip_address"],
-                   "title": item["title"],
+                   "title": item["full_title"],
                    "started": item["started"],
                    "paused_counter": item["paused_counter"],
                    "stopped": item["stopped"],
@@ -202,7 +205,8 @@ class DataFactory(object):
                    "grandparent_rating_key": item["grandparent_rating_key"],
                    "rating_key": item["rating_key"],
                    "user": item["user"],
-                   "media_type": item["media_type"]
+                   "media_type": item["media_type"],
+                   "video_decision": item["video_decision"],
                    }
 
             if item['paused_counter'] > 0:

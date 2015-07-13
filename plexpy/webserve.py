@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db, common, log_reader, datafactory
+from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db, common, log_reader, datafactory, monitor
 from plexpy.helpers import checked, radio
 
 from mako.lookup import TemplateLookup
@@ -464,6 +464,12 @@ class WebInterface(object):
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)
+
+    @cherrypy.expose
+    def clear_all_history_new(self, **kwargs):
+
+        monitor.clear_history_tables()
+        raise cherrypy.HTTPRedirect("history_new")
 
     @cherrypy.expose
     def get_stream_details(self, rating_key=0, **kwargs):
