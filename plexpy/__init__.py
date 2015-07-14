@@ -331,40 +331,6 @@ def sig_handler(signum=None, frame=None):
 
 
 def dbcheck():
-    conn = sqlite3.connect(plexpy.CONFIG.PLEXWATCH_DATABASE)
-    c = conn.cursor()
-    c.execute(
-        'CREATE TABLE IF NOT EXISTS plexpy_users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL UNIQUE, '
-        'friendly_name TEXT, thumb TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
-        'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL)'
-    )
-
-    # Upgrade plexpy_users table from earlier versions
-    try:
-        c.execute('SELECT user_id from plexpy_users')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table plexpy_users.")
-        c.execute(
-            'CREATE TABLE tmp_table (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-            'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL UNIQUE, '
-            'friendly_name TEXT, thumb TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
-            'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL)'
-        )
-        c.execute(
-            'INSERT INTO tmp_table SELECT id, NULL, username, friendly_name, NULL, NULL, NULL, NULL, NULL '
-            'FROM plexpy_users'
-        )
-        c.execute(
-            'DROP TABLE plexpy_users'
-        )
-        c.execute(
-            'ALTER TABLE tmp_table RENAME TO plexpy_users'
-        )
-
-    conn.commit()
-    c.close()
-
     conn_db = sqlite3.connect(DB_FILE)
     c_db = conn_db.cursor()
 
@@ -388,13 +354,13 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS session_history (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'started INTEGER, stopped INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
         'ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, platform TEXT, machine_id TEXT, '
-        'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, view_offset INTEGER)'
+        'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, view_offset INTEGER DEFAULT 0)'
     )
 
     # session_history_media_info table :: This is a table which logs each session's media info
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS session_history_media_info (id INTEGER PRIMARY KEY, '
-        'rating_key INTEGER, video_decision TEXT, audio_decision TEXT, duration INTEGER, width INTEGER, '
+        'rating_key INTEGER, video_decision TEXT, audio_decision TEXT, duration INTEGER DEFAULT 0, width INTEGER, '
         'height INTEGER, container TEXT, video_codec TEXT, audio_codec TEXT, bitrate INTEGER, video_resolution TEXT, '
         'video_framerate TEXT, aspect_ratio TEXT, audio_channels INTEGER, transcode_protocol TEXT, '
         'transcode_container TEXT, transcode_video_codec TEXT, transcode_audio_codec TEXT, '
@@ -408,7 +374,7 @@ def dbcheck():
         'title TEXT, parent_title TEXT, grandparent_title TEXT, full_title TEXT, media_index INTEGER, '
         'parent_media_index INTEGER, thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, art TEXT, media_type TEXT, '
         'year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, last_viewed_at INTEGER, '
-        'content_rating TEXT, summary TEXT, rating TEXT, duration INTEGER, guid TEXT, '
+        'content_rating TEXT, summary TEXT, rating TEXT, duration INTEGER DEFAULT 0, guid TEXT, '
         'directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT)'
         ''
     )

@@ -14,12 +14,12 @@ media_type                  Returns the type of session. Either 'episode' or 'mo
 title                       Returns the name of the episode or movie.
 user                        Returns the name of the user.
 transcode_video_dec         Returns the video transcode decision. Either 'transcode', 'copy' or 'direct play'.
-transcode_video_codec       Returns the name of the video codec for the stream.
-transcode_height            Returns the value of the video height for the stream.
-transcode_width             Returns the value of the video width for the stream.
+transcode_video_codec       Returns the name of the video codec for any transcode session.
+transcode_height            Returns the value of the video height for any transcode session.
+transcode_width             Returns the value of the video width for any transcode session.
 transcode_audio_dec         Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
-transcode_audio_codec       Returns the name of the audio codec for the stream.
-transcode_audio_channels    Returns the number of audio channels for the stream.
+transcode_audio_codec       Returns the name of the audio codec for any transcode session.
+transcode_audio_channels    Returns the number of audio channels for any transcode session.
 container                   Returns the type of container for the original media.
 height                      Returns the value of the video height for the original media.
 bitrate                     Returns the value of the video bitrate for the original media.
@@ -50,17 +50,35 @@ DOCUMENTATION :: END
         <h4>Stream Details</h4>
         <ul>
             <h5>Video</h5>
+            % if data['transcode_video_dec'] != 'direct play':
             <li>Stream Type: <strong>${data['transcode_video_dec']}</strong></li>
             <li>Video Resolution: <strong>${data['transcode_height']}p</strong></li>
             <li>Video Codec: <strong>${data['transcode_video_codec']}</strong></li>
             <li>Video Width: <strong>${data['transcode_width']}</strong></li>
             <li>Video Height: <strong>${data['transcode_height']}</span></strong></li>
+            % else:
+            <li>Stream Type: <strong>${data['transcode_video_dec']}</strong></li>
+                % if data['video_resolution'] != 'sd':
+                <li>Video Resolution: <strong>${data['video_resolution']}p</strong></li>
+                % else:
+                <li>Video Resolution: <strong>${data['video_resolution']}</strong></li>
+                % endif
+            <li>Video Codec: <strong>${data['video_codec']}</strong></li>
+            <li>Video Width: <strong>${data['width']}</strong></li>
+            <li>Video Height: <strong>${data['height']}</span></strong></li>
+            % endif
         </ul>
         <ul>
             <h5>Audio</h5>
+            % if data['transcode_audio_dec'] != 'direct play':
             <li>Stream Type: <strong>${data['transcode_audio_dec']}</strong></li>
             <li>Audio Codec: <strong>${data['transcode_audio_codec']}</strong></li>
             <li>Audio Channels: <strong>${data['transcode_audio_channels']}</strong></li>
+            % else:
+            <li>Stream Type: <strong>${data['transcode_audio_dec']}</strong></li>
+            <li>Audio Codec: <strong>${data['audio_codec']}</strong></li>
+            <li>Audio Channels: <strong>${data['audio_channels']}</strong></li>
+            % endif
         </ul>
     </div>
     <div class="span4">

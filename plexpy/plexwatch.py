@@ -972,6 +972,21 @@ class PlexWatch(object):
 
         return None
 
+    def get_user_id(self, user=None):
+        if user:
+            try:
+                myDB = db.DBConnection()
+                query = 'select user_id FROM plexpy_users WHERE username = ?'
+                result = myDB.select_single(query, args=[user])
+                if result:
+                    return result
+                else:
+                    return None
+            except:
+                return None
+
+        return None
+
     def get_user_details(self, user=None, user_id=None):
         try:
             myDB = db.DBConnection()

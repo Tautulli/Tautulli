@@ -1,0 +1,50 @@
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+    <h3>Import PlexWatch Database</h3>
+</div>
+<div class="modal-body" id="modal-text">
+    <div class="card-back">
+        <div class="form-group">
+            <label for="db_location">Database Location</label>
+            <input type="text" id="db_location" name="db_location" value="" size="30" required>
+            <p class="help-block">Enter the path and file name for the PlexWatch database you wish to import.</p>
+        </div>
+        <div class="form-group">
+            <label for="table_name">Table Name</label>
+            <select id="table_name" name="table_name">
+                <option value="processed">processed</option>
+                <option value="processed">grouped</option>
+            </select>
+            <p class="help-block">The table name from which you wish to import.</p>
+        </div>
+        <div class="form-group">
+            <label for="import_ignore_interval">Ignore Interval</label>
+            <input type="text" id="import_ignore_interval" name="import_ignore_interval" value="120" size="30" required>
+            <p class="help-block">Enter the minimum duration (in seconds) an item must have been active for. Set to 0 to import all.</p>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <div>
+        <input type="button" id="import_db" class="btn btn-primary" value="Save">
+        <span id="status-message"></span>
+    </div>
+</div>
+<script>
+    // Send database path to import script
+    $("#import_db").click(function() {
+        var database_path = $("#db_location").val();
+        var table_name = $("#table_name").val();
+        var import_ignore_interval = $("#import_ignore_interval").val();
+        $.ajax({
+            url: 'get_plexwatch_export_data',
+            data: {database_path: database_path, table_name:table_name, import_ignore_interval:import_ignore_interval},
+            cache: false,
+            async: true,
+            success: function(data) {
+                $("#status-message").html(data);
+                $("#db_location").val('')
+            }
+        });
+    });
+</script>

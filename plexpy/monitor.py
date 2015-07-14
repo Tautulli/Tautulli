@@ -163,7 +163,7 @@ class MonitorDatabase(object):
         self.connection.execute("PRAGMA cache_size=-%s" % (get_cache_size() * 1024))
         self.connection.row_factory = sqlite3.Row
 
-    def action(self, query, args=None):
+    def action(self, query, args=None, return_last_id=False):
 
         if query is None:
             return
@@ -302,56 +302,74 @@ class MonitorProcessing(object):
             # If it's our first write then time stamp it.
             self.db.upsert('sessions', timestamp, keys)
 
-    def write_session_history(self, session=None):
+    def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
 
         if session:
             logging_enabled = False
 
+            if is_import:
+                if str(session['stopped']).isdigit():
+                    stopped = session['stopped']
+                else:
+                    stopped = int(time.time())
+            else:
+                stopped = int(time.time())
+
             if plexpy.CONFIG.VIDEO_LOGGING_ENABLE and \
                     (session['media_type'] == 'movie' or session['media_type'] == 'episode'):
                 logging_enabled = True
-
-            if plexpy.CONFIG.MUSIC_LOGGING_ENABLE and \
+            elif plexpy.CONFIG.MUSIC_LOGGING_ENABLE and \
                     session['media_type'] == 'track':
                 logging_enabled = True
+            else:
+                logger.debug(u"PlexPy Monitor :: ratingKey %s not logged. Does not meet logging criteria. "
+                             u"Media type is '%s'" % (session['rating_key'], session['media_type']))
 
-            if plexpy.CONFIG.LOGGING_IGNORE_INTERVAL:
+            if plexpy.CONFIG.LOGGING_IGNORE_INTERVAL and not is_import:
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
-                        (int(time.time()) - session['started'] < plexpy.CONFIG.LOGGING_IGNORE_INTERVAL):
+                        (int(stopped) - session['started'] < int(plexpy.CONFIG.LOGGING_IGNORE_INTERVAL)):
                     logging_enabled = False
-                    logger.debug(u"PlexPy Monitor :: Item played for %s seconds which is less than %s seconds, "
-                                 u"so we're not logging it." %
-                                 (str(int(time.time()) - session['started']), plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
+                    logger.debug(u"PlexPy Monitor :: Play duration for ratingKey %s is %s secs which is less than %s "
+                                 u"seconds, so we're not logging it." %
+                                 (session['rating_key'], str(int(stopped) - session['started']),
+                                  plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
+            elif is_import and import_ignore_interval:
+                if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
+                        (int(stopped) - session['started'] < int(import_ignore_interval)):
+                    logging_enabled = False
+                    logger.debug(u"PlexPy Monitor :: Play duration for ratingKey %s is %s secs which is less than %s "
+                                 u"seconds, so we're not logging it." %
+                                 (session['rating_key'], str(int(stopped) - session['started']),
+                                  import_ignore_interval))
 
             if logging_enabled:
-                logger.debug(u"PlexPy Monitor :: Attempting to write to session_history table...")
+                # logger.debug(u"PlexPy Monitor :: Attempting to write to session_history table...")
                 query = 'INSERT INTO session_history (started, stopped, rating_key, parent_rating_key, ' \
                         'grandparent_rating_key, media_type, user_id, user, ip_address, paused_counter, player, ' \
                         'platform, machine_id, view_offset) VALUES ' \
                         '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
-                args = [session['started'], int(time.time()), session['rating_key'], session['parent_rating_key'],
+                args = [session['started'], stopped, session['rating_key'], session['parent_rating_key'],
                         session['grandparent_rating_key'], session['media_type'], session['user_id'], session['user'],
                         session['ip_address'], session['paused_counter'], session['player'], session['platform'],
                         session['machine_id'], session['view_offset']]
 
-                logger.debug(u"PlexPy Monitor :: Writing session_history transaction...")
+                # logger.debug(u"PlexPy Monitor :: Writing session_history transaction...")
                 self.db.action(query=query, args=args)
 
-                # Get the id for the last transaction
-                last_id = self.db.select_single('SELECT max(id) FROM session_history')
-                logger.debug(u"PlexPy Monitor :: Successfully written history item, last id for session_history is %s"
-                             % last_id)
+                # logger.debug(u"PlexPy Monitor :: Successfully written history item, last id for session_history is %s"
+                #              % last_id)
 
-                logger.debug(u"PlexPy Monitor :: Attempting to write to session_history_media_info table...")
+                # Write the session_history_media_info table
+                # logger.debug(u"PlexPy Monitor :: Attempting to write to session_history_media_info table...")
                 query = 'INSERT INTO session_history_media_info (id, rating_key, video_decision, audio_decision, ' \
                         'duration, width, height, container, video_codec, audio_codec, bitrate, video_resolution, ' \
                         'video_framerate, aspect_ratio, audio_channels, transcode_protocol, transcode_container, ' \
                         'transcode_video_codec, transcode_audio_codec, transcode_audio_channels, transcode_width, ' \
                         'transcode_height) VALUES ' \
-                        '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                        '(last_insert_rowid(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
-                args = [last_id, session['rating_key'], session['video_decision'], session['audio_decision'],
+                args = [session['rating_key'], session['video_decision'], session['audio_decision'],
                         session['duration'], session['width'], session['height'], session['container'],
                         session['video_codec'], session['audio_codec'], session['bitrate'],
                         session['video_resolution'], session['video_framerate'], session['aspect_ratio'],
@@ -359,15 +377,18 @@ class MonitorProcessing(object):
                         session['transcode_video_codec'], session['transcode_audio_codec'],
                         session['transcode_audio_channels'], session['transcode_width'], session['transcode_height']]
 
-                logger.debug(u"PlexPy Monitor :: Writing session_history_media_info transaction...")
+                # logger.debug(u"PlexPy Monitor :: Writing session_history_media_info transaction...")
                 self.db.action(query=query, args=args)
 
-                logger.debug(u"PlexPy Monitor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
-                pms_connect = pmsconnect.PmsConnect()
-                result = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+                if not is_import:
+                    logger.debug(u"PlexPy Monitor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
+                    pms_connect = pmsconnect.PmsConnect()
+                    result = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+                    metadata = result['metadata']
+                else:
+                    metadata = import_metadata
 
-                metadata = result['metadata']
-
+                # Write the session_history_metadata table
                 directors = ";".join(metadata['directors'])
                 writers = ";".join(metadata['writers'])
                 actors = ";".join(metadata['actors'])
@@ -381,15 +402,16 @@ class MonitorProcessing(object):
                 else:
                     full_title = metadata['title']
 
-                logger.debug(u"PlexPy Monitor :: Attempting to write to session_history_metadata table...")
+                # logger.debug(u"PlexPy Monitor :: Attempting to write to session_history_metadata table...")
                 query = 'INSERT INTO session_history_metadata (id, rating_key, parent_rating_key, ' \
                         'grandparent_rating_key, title, parent_title, grandparent_title, full_title, media_index, ' \
                         'parent_media_index, thumb, parent_thumb, grandparent_thumb, art, media_type, year, ' \
                         'originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, ' \
                         'rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
-                        '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                        '(last_insert_rowid(), ' \
+                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
-                args = [last_id, session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
+                args = [session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
                         session['title'], session['parent_title'], session['grandparent_title'], full_title,
                         metadata['index'], metadata['parent_index'], metadata['thumb'], metadata['parent_thumb'],
                         metadata['grandparent_thumb'], metadata['art'], session['media_type'], metadata['year'],
@@ -397,7 +419,7 @@ class MonitorProcessing(object):
                         metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['rating'],
                         metadata['duration'], metadata['guid'], directors, writers, actors, genres, metadata['studio']]
 
-                logger.debug(u"PlexPy Monitor :: Writing session_history_metadata transaction...")
+                # logger.debug(u"PlexPy Monitor :: Writing session_history_metadata transaction...")
                 self.db.action(query=query, args=args)
 
     def find_session_ip(self, rating_key=None, machine_id=None):

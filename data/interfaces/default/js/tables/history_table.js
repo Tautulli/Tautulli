@@ -68,7 +68,7 @@ history_table_options = {
             "data":"platform",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="#info-modal" data-toggle="modal"><span data-toggle="tooltip" data-placement="left" title="Stream Info" id="stream-info" class="badge badge-inverse"><i class="fa fa-info"></i></span></a>&nbsp'+cellData);
+                    $(td).html('<a href="#info-modal" data-toggle="modal"><span data-toggle="tooltip" data-placement="left" title="Stream Info" id="stream-info"><i class="fa fa-lg fa-info-circle"></i></span></a>&nbsp'+cellData);
                 }
             },
             "className": "modal-control no-wrap"
@@ -89,7 +89,17 @@ history_table_options = {
             "name":"title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                    if (rowData['media_type'] === 'movie' || rowData['media_type'] === 'episode') {
+                        var transcode_dec = '';
+                        if (rowData['video_decision'] === 'transcode') {
+                            transcode_dec = '<i class="fa fa-server"></i>&nbsp';
+                        }
+                        $(td).html('<div><div style="float: left;"><a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a></div><div style="float: right; text-align: right; padding-right: 5px;">' + transcode_dec + '<i class="fa fa-video-camera"></i></div></div>');
+                    } else if (rowData['media_type'] === 'track') {
+                        $(td).html('<div><div style="float: left;">' + cellData + '</div><div style="float: right; text-align: right; padding-right: 5px;"><i class="fa fa-music"></i></div></div>');
+                    } else {
+                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                    }
                 }
             }
         },
@@ -140,35 +150,52 @@ history_table_options = {
         {
             "targets": [10],
             "data":"percent_complete",
-            "orderable": false,
             "render": function ( data, type, full ) {
-                if (data < 95) {
-                    return '<span class="badge">'+Math.round(data)+'%</span>';
+                if (data > 80) {
+                    return '<i class="fa fa-lg fa-circle"></i>'
+                    //return '<span class="badge">'+Math.round(data)+'%</span>';
+                } else if (data > 40) {
+                    return '<i class="fa fa-lg fa-adjust"></i>'
+                    //return '<span class="badge">100%</span>';
                 } else {
-                    return '<span class="badge">100%</span>';
+                    return '<i class="fa fa-lg fa-circle-o"></i>'
                 }
             },
             "searchable": false,
+            "orderable": true,
             "className": "no-wrap"
         },
         {
             "targets": [11],
-            "data":"rating_key",
+            "data":"grandparent_rating_key",
             "visible": false,
             "searchable": false
         },
         {
             "targets": [12],
-            "data":"xml",
+            "data":"rating_key",
+            "visible": false,
+            "searchable": false
+        },
+        {
+            "targets": [13],
+            "data":"media_type",
             "searchable":false,
             "visible":false
         },
         {
-            "targets": [13],
+            "targets": [14],
             "data":"user",
             "searchable":false,
             "visible":false
+        },
+        {
+            "targets": [15],
+            "data":"video_decision",
+            "searchable":false,
+            "visible":false
         }
+
 
     ],
     "drawCallback": function (settings) {

@@ -13,13 +13,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db, common, log_reader, datafactory, monitor
+from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db, common, log_reader, datafactory
 from plexpy.helpers import checked, radio
 
 from mako.lookup import TemplateLookup
 from mako import exceptions
 
 import plexpy
+import threading
 import cherrypy
 import hashlib
 import random
@@ -60,10 +61,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     def home(self):
-        if plexpy.CONFIG.PLEXWATCH_DATABASE == '':
-            raise cherrypy.HTTPRedirect("config")
-        else:
-            return serve_template(templatename="index.html", title="Home")
+        return serve_template(templatename="index.html", title="Home")
 
     @cherrypy.expose
     def get_date_formats(self):
@@ -83,9 +81,16 @@ class WebInterface(object):
         return json.dumps(formats)
 
     @cherrypy.expose
-    def home_stats(self, time_range='30', **kwargs):
+    def home_stats_old(self, time_range='30', **kwargs):
         plex_watch = plexwatch.PlexWatch()
         stats_data = plex_watch.get_home_stats(time_range)
+
+        return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
+
+    @cherrypy.expose
+    def home_stats(self, time_range='30', **kwargs):
+        data_factory = datafactory.DataFactory()
+        stats_data = data_factory.get_home_stats(time_range=time_range)
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
 
@@ -94,16 +99,8 @@ class WebInterface(object):
         return serve_template(templatename="history.html", title="History")
 
     @cherrypy.expose
-    def history_new(self):
-        return serve_template(templatename="history_new.html", title="History")
-
-    @cherrypy.expose
     def users(self):
         return serve_template(templatename="users.html", title="Users")
-
-    @cherrypy.expose
-    def users_new(self):
-        return serve_template(templatename="users_new.html", title="Users")
 
     @cherrypy.expose
     def graphs(self):
@@ -116,8 +113,8 @@ class WebInterface(object):
     @cherrypy.expose
     def user(self, user=None):
         try:
-            plex_watch = plexwatch.PlexWatch()
-            user_details = plex_watch.get_user_details(user)
+            data_factory = datafactory.DataFactory()
+            user_details = data_factory.get_user_details(user=user)
         except:
             logger.warn("Unable to retrieve friendly name for user %s " % user)
 
@@ -127,9 +124,9 @@ class WebInterface(object):
     def edit_user_dialog(self, user=None, **kwargs):
         if user:
             try:
-                plex_watch = plexwatch.PlexWatch()
+                data_factory = datafactory.DataFactory()
                 result = {'user': user,
-                          'friendly_name': plex_watch.get_user_friendly_name(user)
+                          'friendly_name': data_factory.get_user_friendly_name(user)
                           }
                 status_message = ""
             except:
@@ -146,10 +143,6 @@ class WebInterface(object):
     def edit_user(self, user=None, friendly_name=None, **kwargs):
         if user:
             try:
-                plex_watch = plexwatch.PlexWatch()
-                plex_watch.set_user_friendly_name(user, friendly_name)
-
-                # For the new database too
                 data_factory = datafactory.DataFactory()
                 data_factory.set_user_friendly_name(user, friendly_name)
 
@@ -162,22 +155,13 @@ class WebInterface(object):
     @cherrypy.expose
     def get_stream_data(self, row_id=None, user=None, **kwargs):
 
-        plex_watch = plexwatch.PlexWatch()
-        stream_data = plex_watch.get_stream_details(row_id)
+        data_factory = datafactory.DataFactory()
+        stream_data = data_factory.get_stream_details(row_id)
 
         return serve_template(templatename="stream_data.html", title="Stream Data", data=stream_data, user=user)
 
     @cherrypy.expose
     def get_user_list(self, start=0, length=100, **kwargs):
-
-        plex_watch = plexwatch.PlexWatch()
-        users = plex_watch.get_user_list(start, length, kwargs)
-
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(users)
-
-    @cherrypy.expose
-    def get_user_list_new(self, start=0, length=100, **kwargs):
 
         data_factory = datafactory.DataFactory()
         users = data_factory.get_user_list(start, length, kwargs)
@@ -440,25 +424,6 @@ class WebInterface(object):
             rating_key = kwargs.get('grandparent_rating_key', "")
             custom_where = 'grandparent_rating_key = %s' % rating_key
 
-        plex_watch = plexwatch.PlexWatch()
-        history = plex_watch.get_history(start, length, kwargs, custom_where)
-
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(history)
-
-    @cherrypy.expose
-    def get_history_new(self, start=0, length=100, custom_where='', **kwargs):
-
-        if 'user' in kwargs:
-            user = kwargs.get('user', "")
-            custom_where = 'user = "%s"' % user
-        if 'rating_key' in kwargs:
-            rating_key = kwargs.get('rating_key', "")
-            custom_where = 'rating_key = %s' % rating_key
-        if 'grandparent_rating_key' in kwargs:
-            rating_key = kwargs.get('grandparent_rating_key', "")
-            custom_where = 'grandparent_rating_key = %s' % rating_key
-
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(start, length, kwargs, custom_where)
 
@@ -466,19 +431,11 @@ class WebInterface(object):
         return json.dumps(history)
 
     @cherrypy.expose
-    def clear_all_history_new(self, **kwargs):
+    def clear_all_history(self, **kwargs):
+        from plexpy import monitor
 
-        monitor.clear_history_tables()
-        raise cherrypy.HTTPRedirect("history_new")
-
-    @cherrypy.expose
-    def get_stream_details(self, rating_key=0, **kwargs):
-
-        plex_watch = plexwatch.PlexWatch()
-        stream_details = plex_watch.get_stream_details(rating_key)
-
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(stream_details)
+        threading.Thread(target=monitor.clear_history_tables).start()
+        raise cherrypy.HTTPRedirect("config")
 
     @cherrypy.expose
     def shutdown(self):
@@ -655,8 +612,8 @@ class WebInterface(object):
     @cherrypy.expose
     def get_user_recently_watched(self, user=None, limit='10', **kwargs):
 
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_recently_watched(user, limit)
+        data_factory = datafactory.DataFactory()
+        result = data_factory.get_recently_watched(user=user, limit=limit)
 
         if result:
             return serve_template(templatename="user_recently_watched.html", data=result,
@@ -669,8 +626,8 @@ class WebInterface(object):
     @cherrypy.expose
     def get_user_watch_time_stats(self, user=None, **kwargs):
 
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_user_watch_time_stats(user)
+        data_factory = datafactory.DataFactory()
+        result = data_factory.get_user_watch_time_stats(user=user)
 
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
@@ -681,8 +638,8 @@ class WebInterface(object):
     @cherrypy.expose
     def get_user_platform_stats(self, user=None, **kwargs):
 
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_user_platform_stats(user)
+        data_factory = datafactory.DataFactory()
+        result = data_factory.get_user_platform_stats(user=user)
 
         if result:
             return serve_template(templatename="user_platform_stats.html", data=result,
@@ -752,95 +709,26 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_stream(self, row_id='', **kwargs):
-
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_stream_details('122')
-
-        if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return result
-        else:
-            logger.warn('Unable to retrieve data.')
-
-    @cherrypy.expose
     def get_user_ips(self, start=0, length=100, custom_where='', **kwargs):
 
         if 'user' in kwargs:
             user = kwargs.get('user', "")
             custom_where = 'user = "%s"' % user
 
-        plex_watch = plexwatch.PlexWatch()
-        history = plex_watch.get_user_unique_ips(start, length, kwargs, custom_where)
+        data_factory = datafactory.DataFactory()
+        history = data_factory.get_user_unique_ips(start=start,
+                                                   length=length,
+                                                   kwargs=kwargs,
+                                                   custom_where=custom_where)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)
 
     @cherrypy.expose
-    def get_watched(self, user=None, limit='10', **kwargs):
-
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_recently_watched(user, limit)
-
-        if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
-        else:
-            logger.warn('Unable to retrieve data.')
-
-    @cherrypy.expose
-    def get_time_stats(self, user=None, **kwargs):
-
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_user_watch_time_stats(user)
-
-        if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
-        else:
-            logger.warn('Unable to retrieve data.')
-
-    @cherrypy.expose
-    def get_platform_stats(self, user=None, **kwargs):
-
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_user_platform_stats(user)
-
-        if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
-        else:
-            logger.warn('Unable to retrieve data.')
-
-    @cherrypy.expose
-    def get_user_gravatar_image(self, user=None, **kwargs):
-
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_user_gravatar_image(user)
-
-        if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
-        else:
-            logger.warn('Unable to retrieve data.')
-
-    @cherrypy.expose
-    def get_home_stats(self, time_range='30', **kwargs):
-
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_home_stats(time_range)
-
-        if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
-        else:
-            logger.warn('Unable to retrieve data.')
-
-    @cherrypy.expose
     def get_plays_by_date(self, time_range='30', **kwargs):
 
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_total_plays_per_day(time_range)
+        data_factory = datafactory.DataFactory()
+        result = data_factory.get_total_plays_per_day(time_range=time_range)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -851,8 +739,8 @@ class WebInterface(object):
     @cherrypy.expose
     def get_plays_by_dayofweek(self, time_range='30', **kwargs):
 
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_total_plays_per_dayofweek(time_range)
+        data_factory = datafactory.DataFactory()
+        result = data_factory.get_total_plays_per_dayofweek(time_range=time_range)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -863,8 +751,8 @@ class WebInterface(object):
     @cherrypy.expose
     def get_plays_by_hourofday(self, time_range='30', **kwargs):
 
-        plex_watch = plexwatch.PlexWatch()
-        result = plex_watch.get_total_plays_per_hourofday(time_range)
+        data_factory = datafactory.DataFactory()
+        result = data_factory.get_total_plays_per_hourofday(time_range=time_range)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -1040,3 +928,22 @@ class WebInterface(object):
             return result
         else:
             logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_plexwatch_export_data(self, database_path=None, table_name=None, import_ignore_interval=0, **kwargs):
+        from plexpy import plexwatch_import
+
+        db_check_msg = plexwatch_import.validate_database(database=database_path,
+                                                          table_name=table_name)
+        if db_check_msg == 'success':
+            threading.Thread(target=plexwatch_import.import_from_plexwatch,
+                             kwargs={'database': database_path,
+                                     'table_name': table_name,
+                                     'import_ignore_interval': import_ignore_interval}).start()
+            return 'Import has started. Check the PlexPy logs to monitor any problems.'
+        else:
+            return db_check_msg
+
+    @cherrypy.expose
+    def plexwatch_import(self, **kwargs):
+        return serve_template(templatename="plexwatch_import.html", title="Import PlexWatch Database")

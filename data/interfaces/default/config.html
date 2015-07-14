@@ -39,7 +39,7 @@
                         <!-- Nav tabs -->
                         <ul class="nav nav-pills" role="tablist">
                             <li role="presentation" class="active"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Web Interface</a></li>
-                            <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Plex & PlexWatch</a></li>
+                            <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Plex Settings</a></li>
                             <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Monitoring</a></li>
                             <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Notification Agents</a></li>
                         </ul>
@@ -183,21 +183,9 @@
                                             </div>
                                             <div class="span4">
                                                 <div class="wellheader">
-                                                    <h3>PlexWatch</h3>
+                                                    <h3>Extra Settings</h3>
                                                 </div>
                                                 <fieldset>
-                                                    <div class="form-group">
-                                                        <label for="plexwatch_database">PlexWatch Database</label>
-                                                        <input type="text" id="plexwatch_database" name="plexwatch_database" value="${config['plexwatch_database']}" size="30" data-parsley-trigger="change" required>
-                                                        <p class="help-block">Full path and file name of your PlexWatch database.</p>
-                                                    </div>
-                                                    <div class="checkbox">
-                                                        <input type="checkbox" id="grouping_global_history" name="grouping_global_history" value="1" ${config['grouping_global_history']}> Enable Grouping
-                                                        <p class="help-block">Show grouped history data. <a target="_blank" href="https://github.com/ljunkie/plexWatch#list-watched-shows-option---nogrouping-vs-default">More info.</a></p>
-                                                    </div>
-                                                    <div class="wellheader">
-                                                        <h3>Extra Settings</h3>
-                                                    </div>
                                                     <div class="checkbox">
                                                         <input type="checkbox" id="pms_use_bif" name="pms_use_bif" value="1" ${config['pms_use_bif']}> Use BIF thumbs
                                                         <p class="help-block">If you have media indexing enabled on your server, use these on the activity pane.</p>
@@ -221,7 +209,7 @@
                             </div>
 
                             <div role="tabpanel" class="tab-pane" id="tabs-3">
-                                <div class="alert">History and IP logging are experimental features which shouldn't be enabled unless you are doing development on the project.</div>
+                                <div class="alert">These features are currently experimental, please report any bugs on the Github project page <a href="https://www.github.com/drzoidberg33/plexpy/issues" target="_blank">Here</a></div>
                                 <div class="wellbg" style="padding: 0px 0px 0px 20px;">
                                     <div class="container-fluid">
                                         <div class="row-fluid">
@@ -250,6 +238,12 @@
                                                         <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh user list on startup
                                                         <p class="help-block">Refresh the user list when PlexPy starts.</p>
                                                     </div>
+                                                </fieldset>
+                                                <div class="wellheader">
+                                                    <h3>PlexWatch Import Tool</h3>
+                                                </div>
+                                                <fieldset>
+                                                    <p class="help-block"><a href="#plexwatch-import-modal" id="toggle-plexwatch-import-modal" data-toggle="modal">Click here to Import an existing Plexwatch database.</a></p>
                                                 </fieldset>
                                             </div>
                                             <div class="span4">
@@ -811,6 +805,9 @@
                     </div>
                 </div>
             </div>
+            <div id="plexwatch-import-modal" class="modal hide fade" tabindex="-1" role="dialog"
+                 aria-labelledby="plexwatch-import-modal" aria-hidden="true">
+            </div>
         </div>
     </div>
 </%def>
@@ -860,6 +857,18 @@
             } else {
                 $("#pms-token-status").html("You must enter both fields.");
             }
+        });
+
+        // Load PlexWatch import modal
+        $("#toggle-plexwatch-import-modal").click(function() {
+            $.ajax({
+                url: 'plexwatch_import',
+                cache: false,
+                async: true,
+                complete: function(xhr, status) {
+                    $("#plexwatch-import-modal").html(xhr.responseText);
+                }
+            });
         });
 
         function openExtrasDialog() {
