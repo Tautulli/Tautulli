@@ -4,10 +4,9 @@ NB: This project is still very early in development.
 
 This project is based on code from Headphones (https://github.com/rembo10/headphones) and PlexWatchWeb (https://github.com/ecleese/plexWatchWeb).
 
-A python based web front-end for plexWatch.
+A python based web application for monitoring and logging activity on your Plex Media Server.
 
-* plexWatch Plex forum thread: http://forums.plexapp.com/index.php/topic/72552-plexwatch-plex-notify-script-send-push-alerts-on-new-sessions-and-stopped/
-* plexWatch (Windows branch) Plex forum thread: http://forums.plexapp.com/index.php/topic/79616-plexwatch-windows-branch/
+* plexPy forum thread: https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program
 
 
 ###Support
