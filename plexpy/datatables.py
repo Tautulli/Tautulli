@@ -15,7 +15,7 @@
 
 # TODO: Implement with sqlite3 directly instead of using db class
 
-from plexpy import logger, helpers, db
+from plexpy import logger, helpers, database
 
 import re
 
@@ -26,7 +26,8 @@ class DataTables(object):
     """
 
     def __init__(self):
-        self.ssp_db = db.DBConnection()
+        self.ssp_db = database.MonitorDatabase()
+        logger.debug(u"Database initilised!")
 
     # TODO: Pass all parameters via kwargs
     def ssp_query(self, table_name,
@@ -57,12 +58,20 @@ class DataTables(object):
         join = ''
 
         if join_type:
-            if join_type.upper() == 'LEFT OUTER JOIN':
-                join = 'LEFT OUTER JOIN %s ON %s = %s' % (join_table, join_evals[0], join_evals[1])
-            elif join_type.upper() == 'JOIN' or join_type.upper() == 'INNER JOIN':
-                join = 'INNER JOIN %s ON %s = %s' % (join_table, join_evals[0], join_evals[1])
-            else:
-                join = ''
+            join_iter = 0
+            for join_type_item in join_type:
+                if join_type_item.upper() == 'LEFT OUTER JOIN':
+                    join_item = 'LEFT OUTER JOIN %s ON %s = %s ' % \
+                                (join_table[join_iter], join_evals[join_iter][0], join_evals[join_iter][1])
+                elif join_type_item.upper() == 'JOIN' or join_type.upper() == 'INNER JOIN':
+                    join_item = 'INNER JOIN %s ON %s = %s ' % \
+                                (join_table[join_iter], join_evals[join_iter][0], join_evals[join_iter][1])
+                else:
+                    join_item = ''
+                join_iter += 1
+                join += join_item
+
+        logger.debug(u"join string = %s" % join)
 
         # TODO: custom_where is ugly and causes issues with reported total results
         if custom_where != '':
@@ -87,7 +96,7 @@ class DataTables(object):
                         % (column_data['column_string'], table_name, join, where,
                            order, custom_where)
 
-        # logger.debug(u"Query string: %s" % query)
+        logger.debug(u"Query string: %s" % query)
         filtered = self.ssp_db.select(query)
 
         if search_value == '':

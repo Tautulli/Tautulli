@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, plexwatch, db, common, log_reader, datafactory
+from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory
 from plexpy.helpers import checked, radio
 
 from mako.lookup import TemplateLookup
@@ -79,13 +79,6 @@ class WebInterface(object):
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(formats)
-
-    @cherrypy.expose
-    def home_stats_old(self, time_range='30', **kwargs):
-        plex_watch = plexwatch.PlexWatch()
-        stats_data = plex_watch.get_home_stats(time_range)
-
-        return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
 
     @cherrypy.expose
     def home_stats(self, time_range='30', **kwargs):
@@ -396,11 +389,11 @@ class WebInterface(object):
         # Write the config
         plexpy.CONFIG.write()
 
-        # Check if we have our users table
-        plexwatch.check_db_tables()
-
         # Reconfigure scheduler
         plexpy.initialize_scheduler()
+
+        # Refresh users table. Probably shouldn't do this on every config save, will improve this later.
+        threading.Thread(target=plextv.refresh_users).start()
 
         raise cherrypy.HTTPRedirect("config")
 
@@ -432,9 +425,9 @@ class WebInterface(object):
 
     @cherrypy.expose
     def clear_all_history(self, **kwargs):
-        from plexpy import monitor
+        from plexpy import database
 
-        threading.Thread(target=monitor.clear_history_tables).start()
+        threading.Thread(target=database.clear_history_tables).start()
         raise cherrypy.HTTPRedirect("config")
 
     @cherrypy.expose

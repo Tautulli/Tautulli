@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, plexwatch, db, http_handler, monitor
+from plexpy import logger, helpers, datafactory, http_handler, database
 
 from xml.dom import minidom
 
@@ -23,7 +23,7 @@ import plexpy
 def refresh_users():
     logger.info("Requesting users list refresh...")
     result = PlexTV().get_full_users_list()
-    monitor_db = monitor.MonitorDatabase()
+    monitor_db = database.MonitorDatabase()
 
     if len(result) > 0:
         for item in result:
@@ -194,7 +194,7 @@ class PlexTV(object):
 
     def get_synced_items(self, machine_id=None, user_id=None):
         sync_list = self.get_plextv_sync_lists(machine_id)
-        plex_watch = plexwatch.PlexWatch()
+        data_factory = datafactory.DataFactory()
 
         synced_items = []
 
@@ -218,8 +218,8 @@ class PlexTV(object):
                 for device in sync_device:
                     device_user_id = helpers.get_xml_attr(device, 'userID')
                     try:
-                        device_username = plex_watch.get_user_details(user_id=device_user_id)['username']
-                        device_friendly_name = plex_watch.get_user_details(user_id=device_user_id)['friendly_name']
+                        device_username = data_factory.get_user_details(user_id=device_user_id)['username']
+                        device_friendly_name = data_factory.get_user_details(user_id=device_user_id)['friendly_name']
                     except:
                         device_username = ''
                         device_friendly_name = ''

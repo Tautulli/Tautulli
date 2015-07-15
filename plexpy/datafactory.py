@@ -13,11 +13,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, datatables_new, common, monitor
-from xml.dom import minidom
+from plexpy import logger, datatables, common, database
 
 import datetime
-import plexpy
 
 
 class DataFactory(object):
@@ -29,7 +27,7 @@ class DataFactory(object):
         pass
 
     def get_user_list(self, start='', length='', kwargs=None):
-        data_tables = datatables_new.DataTables()
+        data_tables = datatables.DataTables()
 
         start = int(start)
         length = int(length)
@@ -114,7 +112,7 @@ class DataFactory(object):
         return dict
 
     def get_history(self, start='', length='', kwargs=None, custom_where=''):
-        data_tables = datatables_new.DataTables()
+        data_tables = datatables.DataTables()
 
         start = int(start)
         length = int(length)
@@ -234,7 +232,7 @@ class DataFactory(object):
         return dict
 
     def get_user_unique_ips(self, start='', length='', kwargs=None, custom_where=''):
-        data_tables = datatables_new.DataTables()
+        data_tables = datatables.DataTables()
 
         start = int(start)
         length = int(length)
@@ -311,7 +309,7 @@ class DataFactory(object):
             if friendly_name.strip() == '':
                 friendly_name = None
 
-            monitor_db = monitor.MonitorDatabase()
+            monitor_db = database.MonitorDatabase()
 
             control_value_dict = {"username": user}
             new_value_dict = {"friendly_name": friendly_name}
@@ -323,7 +321,7 @@ class DataFactory(object):
     def get_user_friendly_name(self, user=None):
         if user:
             try:
-                monitor_db = monitor.MonitorDatabase()
+                monitor_db = database.MonitorDatabase()
                 query = 'select friendly_name FROM users WHERE username = ?'
                 result = monitor_db.select_single(query, args=[user])
                 if result:
@@ -338,7 +336,7 @@ class DataFactory(object):
     def get_user_id(self, user=None):
         if user:
             try:
-                monitor_db = monitor.MonitorDatabase()
+                monitor_db = database.MonitorDatabase()
                 query = 'select user_id FROM users WHERE username = ?'
                 result = monitor_db.select_single(query, args=[user])
                 if result:
@@ -352,7 +350,7 @@ class DataFactory(object):
 
     def get_user_details(self, user=None, user_id=None):
         try:
-            monitor_db = monitor.MonitorDatabase()
+            monitor_db = database.MonitorDatabase()
 
             if user:
                 query = 'SELECT user_id, username, friendly_name, email, ' \
@@ -399,7 +397,7 @@ class DataFactory(object):
         return None
 
     def get_home_stats(self, time_range='30'):
-        monitor_db = monitor.MonitorDatabase()
+        monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'
@@ -568,7 +566,7 @@ class DataFactory(object):
         return home_stats
 
     def get_stream_details(self, row_id=None):
-        monitor_db = monitor.MonitorDatabase()
+        monitor_db = database.MonitorDatabase()
 
         if row_id:
             query = 'SELECT container, bitrate, video_resolution, width, height, aspect_ratio, video_framerate, ' \
@@ -611,7 +609,7 @@ class DataFactory(object):
         return stream_output
 
     def get_recently_watched(self, user=None, limit='10'):
-        monitor_db = monitor.MonitorDatabase()
+        monitor_db = database.MonitorDatabase()
         recently_watched = []
 
         if not limit.isdigit():
@@ -657,7 +655,7 @@ class DataFactory(object):
         return recently_watched
 
     def get_user_watch_time_stats(self, user=None):
-        monitor_db = monitor.MonitorDatabase()
+        monitor_db = database.MonitorDatabase()
 
         time_queries = [1, 7, 30, 0]
         user_watch_time_stats = []
@@ -697,7 +695,7 @@ class DataFactory(object):
         return user_watch_time_stats
 
     def get_user_platform_stats(self, user=None):
-        monitor_db = monitor.MonitorDatabase()
+        monitor_db = database.MonitorDatabase()
 
         platform_stats = []
         result_id = 0
@@ -725,7 +723,7 @@ class DataFactory(object):
         return platform_stats
 
     def get_total_plays_per_day(self, time_range='30'):
-        monitor_db = monitor.MonitorDatabase()
+        monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'
@@ -780,7 +778,7 @@ class DataFactory(object):
         return output
 
     def get_total_plays_per_dayofweek(self, time_range='30'):
-        monitor_db = monitor.MonitorDatabase()
+        monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'
@@ -829,7 +827,7 @@ class DataFactory(object):
         return output
 
     def get_total_plays_per_hourofday(self, time_range='30'):
-        monitor_db = monitor.MonitorDatabase()
+        monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'

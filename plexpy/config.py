@@ -117,7 +117,7 @@ _CONFIG_DEFINITIONS = {
     'TWITTER_USERNAME': (str, 'Twitter', ''),
     'UPDATE_DB_INTERVAL': (int, 'General', 24),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
-    'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 0),
+    'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'XBMC_ENABLED': (int, 'XBMC', 0),
     'XBMC_HOST': (str, 'XBMC', ''),
     'XBMC_PASSWORD': (str, 'XBMC', ''),

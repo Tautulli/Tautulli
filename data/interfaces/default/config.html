@@ -146,16 +146,6 @@
                                                         <p class="help-block">Set your preferred time format. <a href="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                                                     </div>
                                                 </fieldset>
-                                                <fieldset>
-                                                    <div class="wellheader">
-                                                        <h3>Plex Logs</h3>
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label for="pms_logs_folder">Logs Folder</label>
-                                                        <input type="text" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change">
-                                                        <p class="help-block">Set the folder where your Plex Server logs are. <br/><a href="https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files" target="_blank">Click here</a> for help.</p>
-                                                    </div>
-                                                </fieldset>
                                                 <br/>
                                             </div>
                                             <div class="span4">
@@ -175,8 +165,8 @@
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="pms_token">PMS Token</label>
-                                                        <input type="text" id="pms_token" name="pms_token" value="${config['pms_token']}" size="30">
-                                                        <p class="help-block">Token for Plex.tv authentication. Leave empty if no authentication is required.</p>
+                                                        <input type="text" id="pms_token" name="pms_token" value="${config['pms_token']}" size="30" data-parsley-trigger="change" required>
+                                                        <p class="help-block">Token for Plex.tv authentication. This field is required.</p>
                                                     </div>
                                                     <p class="help-block"><a href="#pms-auth-modal" data-toggle="modal">Fetch Token</a></p>
                                                 </fieldset>
@@ -190,6 +180,17 @@
                                                         <input type="checkbox" id="pms_use_bif" name="pms_use_bif" value="1" ${config['pms_use_bif']}> Use BIF thumbs
                                                         <p class="help-block">If you have media indexing enabled on your server, use these on the activity pane.</p>
                                                     </div>
+                                                </fieldset>
+                                                <div class="wellheader">
+                                                    <h3>Plex Logs</h3>
+                                                </div>
+                                                <fieldset>
+                                                    <div class="form-group">
+                                                        <label for="pms_logs_folder">Logs Folder</label>
+                                                        <input type="text" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change">
+                                                        <p class="help-block">Set the folder where your Plex Server logs are. <br/><a href="https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files" target="_blank">Click here</a> for help.</p>
+                                                    </div>
+                                                </fieldset>
                                                     <!--
                                                     <div class="checkbox">
                                                         <input type="checkbox" id="grouping_user_history" name="grouping_user_history" value="1" ${config['grouping_user_history']}> User History
@@ -200,7 +201,6 @@
                                                         <p class="help-block">Enable chart grouping.</p>
                                                     </div>
                                                     -->
-                                                </fieldset>
                                             </div>
                                         </div>
                                     </div>
@@ -262,7 +262,7 @@
                                                     </div>
                                                     <div class="checkbox">
                                                         <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1" ${config['music_logging_enable']}> Log Music
-                                                        <p class="help-block">Keep records of all audio items played from your Plex Media Server. Experimental.</p>
+                                                        <p class="help-block">Keep records of all audio items played from your Plex Media Server. VERY experimental.</p>
                                                     </div>
                                                 </fieldset>
                                                 <div class="wellheader">

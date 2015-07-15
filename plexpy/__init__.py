@@ -13,9 +13,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-# NZBGet support added by CurlyMo <curlymoo1@gmail.com> as a part of
-# XBian - XBMC on the Raspberry Pi
-
 import os
 import sys
 import subprocess
