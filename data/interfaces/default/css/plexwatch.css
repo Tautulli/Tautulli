@@ -6885,19 +6885,19 @@ button.close {
 	color: #fff;
 }
 .logo {
-	background: url(../images/logo-plexwatch.png);
-	background-size: 120px 50px;
+	background: url(../images/logo-plexpy.png);
+	background-size: 170px 50px;
 	min-height: 50px;
-	min-width: 120px;
+	min-width: 170px;
 	float: left;
 	margin-top: 4px;
 }
 @media only screen and (-webkit-min-device-pixel-ratio: 2) {
 	.logo {
-		background: url(../images/logo-plexwatch@2x.png);
-		background-size: 120px 50px;
+		background: url(../images/logo-plexpy@2x.png);
+		background-size: 170px 50px;
 		min-height: 50px;
-		min-width: 120px;
+		min-width: 170px;
 		float: left;
 		margin-top: 4px;
 	}
