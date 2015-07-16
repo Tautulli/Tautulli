@@ -73,13 +73,13 @@ class DataFactory(object):
                                           search_value=search_value,
                                           search_regex=search_regex,
                                           custom_where='',
-                                          group_by=(t1 + '.user'),
+                                          group_by=(t1 + '.user_id'),
                                           join_type=['LEFT OUTER JOIN'],
                                           join_table=['users'],
-                                          join_evals=[[t1 + '.user', 'users.username']],
+                                          join_evals=[[t1 + '.user_id', 'users.user_id']],
                                           kwargs=kwargs)
         except:
-            logger.warn("Unable to open session_history table.")
+            logger.warn("Unable to execute database query.")
             return {'recordsFiltered': 0,
                     'recordsTotal': 0,
                     'data': 'null'},
@@ -159,7 +159,8 @@ class DataFactory(object):
                    t1 + '.rating_key as rating_key',
                    t1 + '.user',
                    t2 + '.media_type',
-                   t4 + '.video_decision'
+                   t4 + '.video_decision',
+                   t1 + '.user_id as user_id'
                    ]
         try:
             query = data_tables.ssp_query(table_name=t1,
@@ -179,7 +180,7 @@ class DataFactory(object):
                                                       [t1 + '.id', t4 + '.id']],
                                           kwargs=kwargs)
         except:
-            logger.warn("Unable to open PlexWatch database.")
+            logger.warn("Unable to execute database query.")
             return {'recordsFiltered': 0,
                     'recordsTotal': 0,
                     'data': 'null'},
@@ -205,6 +206,7 @@ class DataFactory(object):
                    "user": item["user"],
                    "media_type": item["media_type"],
                    "video_decision": item["video_decision"],
+                   "user_id": item["user_id"]
                    }
 
             if item['paused_counter'] > 0:
@@ -260,7 +262,8 @@ class DataFactory(object):
                    'COUNT(session_history.ip_address) as play_count',
                    'session_history.player as platform',
                    'session_history_metadata.full_title as last_watched',
-                   'session_history.user as user'
+                   'session_history.user as user',
+                   'session_history.user_id as user_id'
                    ]
 
         try:
@@ -304,7 +307,19 @@ class DataFactory(object):
 
         return dict
 
-    def set_user_friendly_name(self, user=None, friendly_name=None):
+    def set_user_friendly_name(self, user=None, user_id=None, friendly_name=None):
+        if user_id:
+            if friendly_name.strip() == '':
+                friendly_name = None
+
+            monitor_db = database.MonitorDatabase()
+
+            control_value_dict = {"user_id": user_id}
+            new_value_dict = {"friendly_name": friendly_name}
+            try:
+                monitor_db.upsert('users', new_value_dict, control_value_dict)
+            except Exception, e:
+                logger.debug(u"Uncaught exception %s" % e)
         if user:
             if friendly_name.strip() == '':
                 friendly_name = None
@@ -318,18 +333,51 @@ class DataFactory(object):
             except Exception, e:
                 logger.debug(u"Uncaught exception %s" % e)
 
-    def get_user_friendly_name(self, user=None):
-        if user:
+    def get_user_friendly_name(self, user=None, user_id=None):
+        if user_id:
             try:
                 monitor_db = database.MonitorDatabase()
-                query = 'select friendly_name FROM users WHERE username = ?'
-                result = monitor_db.select_single(query, args=[user])
+                query = 'select username, ' \
+                        '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END) ' \
+                        'FROM users WHERE user_id = ?'
+                result = monitor_db.select(query, args=[user_id])
                 if result:
-                    return result
+                    user_detail = {'user_id': user_id,
+                                   'user': result[0][0],
+                                   'friendly_name': result[0][1]}
+                    return user_detail
                 else:
-                    return user
+                    user_detail = {'user_id': user_id,
+                                   'user': '',
+                                   'friendly_name': ''}
+                    return user_detail
             except:
-                return user
+                user_detail = {'user_id': user_id,
+                               'user': '',
+                               'friendly_name': ''}
+                return user_detail
+        elif user:
+            try:
+                monitor_db = database.MonitorDatabase()
+                query = 'select user_id, ' \
+                        '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END)  ' \
+                        'FROM users WHERE username = ?'
+                result = monitor_db.select(query, args=[user])
+                if result:
+                    user_detail = {'user_id': result[0][0],
+                                   'user': user,
+                                   'friendly_name': result[0][1]}
+                    return user_detail
+                else:
+                    user_detail = {'user_id': None,
+                                   'user': user,
+                                   'friendly_name': ''}
+                    return user_detail
+            except:
+                user_detail = {'user_id': None,
+                               'user': user,
+                               'friendly_name': ''}
+                return user_detail
 
         return None
 
@@ -608,7 +656,7 @@ class DataFactory(object):
 
         return stream_output
 
-    def get_recently_watched(self, user=None, limit='10'):
+    def get_recently_watched(self, user=None, user_id=None, limit='10'):
         monitor_db = database.MonitorDatabase()
         recently_watched = []
 
@@ -616,7 +664,14 @@ class DataFactory(object):
             limit = '10'
 
         try:
-            if user:
+            if user_id:
+                query = 'SELECT session_history.media_type, session_history.rating_key, title, thumb, parent_thumb, ' \
+                        'media_index, parent_media_index, year, started, user ' \
+                        'FROM session_history_metadata ' \
+                        'JOIN session_history ON session_history_metadata.id = session_history.id ' \
+                        'WHERE user_id = ? ORDER BY started DESC LIMIT ?'
+                result = monitor_db.select(query, args=[user_id, limit])
+            elif user:
                 query = 'SELECT session_history.media_type, session_history.rating_key, title, thumb, parent_thumb, ' \
                         'media_index, parent_media_index, year, started, user ' \
                         'FROM session_history_metadata ' \
@@ -654,7 +709,7 @@ class DataFactory(object):
 
         return recently_watched
 
-    def get_user_watch_time_stats(self, user=None):
+    def get_user_watch_time_stats(self, user=None, user_id=None):
         monitor_db = database.MonitorDatabase()
 
         time_queries = [1, 7, 30, 0]
@@ -662,13 +717,22 @@ class DataFactory(object):
 
         for days in time_queries:
             if days > 0:
-                query = 'SELECT (SUM(stopped - started) - ' \
-                        'SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
-                        'COUNT(id) AS total_plays ' \
-                        'FROM session_history ' \
-                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                        'AND user = ?' % days
-                result = monitor_db.select(query, args=[user])
+                if user_id:
+                    query = 'SELECT (SUM(stopped - started) - ' \
+                            'SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
+                            'COUNT(id) AS total_plays ' \
+                            'FROM session_history ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                            'AND user_id = ?' % days
+                    result = monitor_db.select(query, args=[user_id])
+                elif user:
+                    query = 'SELECT (SUM(stopped - started) - ' \
+                            'SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
+                            'COUNT(id) AS total_plays ' \
+                            'FROM session_history ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                            'AND user = ?' % days
+                    result = monitor_db.select(query, args=[user])
             else:
                 query = 'SELECT (SUM(stopped - started) - ' \
                         'SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
@@ -694,19 +758,27 @@ class DataFactory(object):
 
         return user_watch_time_stats
 
-    def get_user_platform_stats(self, user=None):
+    def get_user_platform_stats(self, user=None, user_id=None):
         monitor_db = database.MonitorDatabase()
 
         platform_stats = []
         result_id = 0
 
         try:
-            query = 'SELECT player, COUNT(player) as player_count, platform ' \
-                    'FROM session_history ' \
-                    'WHERE user = ? ' \
-                    'GROUP BY player ' \
-                    'ORDER BY player_count DESC'
-            result = monitor_db.select(query, args=[user])
+            if user_id:
+                query = 'SELECT player, COUNT(player) as player_count, platform ' \
+                        'FROM session_history ' \
+                        'WHERE user_id = ? ' \
+                        'GROUP BY player ' \
+                        'ORDER BY player_count DESC'
+                result = monitor_db.select(query, args=[user_id])
+            else:
+                query = 'SELECT player, COUNT(player) as player_count, platform ' \
+                        'FROM session_history ' \
+                        'WHERE user = ? ' \
+                        'GROUP BY player ' \
+                        'ORDER BY player_count DESC'
+                result = monitor_db.select(query, args=[user])
         except:
             logger.warn("Unable to execute database query.")
             return None

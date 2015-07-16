@@ -1,0 +1,382 @@
+<%
+import plexpy
+from plexpy import version
+%>
+
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>PlexPy - ${title}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="interfaces/default/css/bootstrap3/bootstrap.css" rel="stylesheet">
+    <link href="interfaces/default/css/bootstrap-wizard.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <link href="interfaces/default/css/font-awesome.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="interfaces/default/images/favicon.ico"/>
+    <link rel="shortcut icon" href="interfaces/default/images/favicon.ico">
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="wizard" id="some-wizard" data-title="PlexPy Setup Wizard">
+            <div class="wizard-card" data-cardname="card1">
+                <div style="float: right;">
+                    <img src="interfaces/default/images/logo-plexpy.png"/>
+                </div>
+                <h3 style="line-height: 50px;">Welcome!</h3>
+                <br/>
+                <div>
+                    Thanks for taking the time to try out PlexPy. Hope you find it useful.
+                    <br/><br/>
+                    PlexPy requires a permanent internet connection to ensure a reliable experience.
+                    <br/><br/>
+                    This wizard will help you get set up, to continue press Next.
+                </div>
+            </div>
+            <div class="wizard-card" data-cardname="card2">
+                <h3>Plex Media Server</h3>
+                <form>
+                    <p class="help-block">Enter your Plex Server details and then click the Verify button to make sure PlexPy can reach the server.</p>
+                <div class="wizard-input-section">
+                    <label for="pms_ip">Plex IP or Hostname</label>
+                    <div class="row">
+                        <div class="col-xs-8">
+                            <input type="text" class="form-control pms-settings" name="pms_ip" id="pms_ip" placeholder="127.0.0.1" value="${config['pms_ip']}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="wizard-input-section">
+                    <label for="pms_port">Port Number</label>
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <input type="text" class="form-control pms-settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
+                <a class="btn btn-default btn-sm" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
+            </div>
+
+            <div class="wizard-card" data-cardname="card3">
+                <h3>Plex Authentication</h3>
+                <p class="help-block">Enter your Plex.tv username and password. PlexPy does not store your username or password.</p>
+                <div class="wizard-input-section">
+                    <label for="pms_username">Plex.tv Username</label>
+                    <div class="row">
+                        <div class="col-xs-8">
+                            <input type="text" class="form-control pms-auth" id="pms_username" placeholder="" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="wizard-input-section">
+                    <label for="pms_password">Plex.tv Password</label>
+                    <div class="row">
+                        <div class="col-xs-8">
+                            <input type="password" class="form-control pms-auth" id="pms_password" placeholder="" required>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" class="form-control pms-auth" name="pms_token" id="pms_token" value="${config['pms_token']}" data-validate="validatePMStoken">
+                <a class="btn btn-default btn-sm" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
+            </div>
+            <div class="wizard-card" data-cardname="card4">
+                <h3>Monitoring</h3>
+                <div class="wizard-input-section">
+                    <input type="checkbox" id="video_logging_enable" name="video_logging_enable" value="1" ${config['video_logging_enable']}> Log Movies and TV
+                    <p class="help-block">Keep records of all video items played from your Plex Media Server.</p>
+                </div>
+                <div class="wizard-input-section">
+                    <label for="logging_ignore_interval">Ignore Interval</label>
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <input type="text" class="form-control pms-monitoring" id="logging_ignore_interval" name="logging_ignore_interval" placeholder="120" value="${config['logging_ignore_interval']}" data-validate="validateIgnoreInterval" required>
+                        </div>
+                        <span style="margin-left: 10px; line-height: 35px; display: none;" id="ignore-int-status"></span>
+                    </div>
+                    <p class="help-block">The interval (in seconds) PlexPy will wait for a video item to be active before logging it. 0 to disable.</p>
+                </div>
+                <!-- Music logging is still very experimental -- leave this for now.
+                <div class="wizard-input-section">
+                    <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1"> Log Music
+                    <p class="help-block">Keep records of all audio items played from your Plex Media Server. VERY experimental.</p>
+                </div>
+                -->
+            </div>
+            <div class="wizard-card" data-cardname="card5" data-validate="validateNotifications">
+                <h3>Notifications</h3>
+                <p class="help-block">PlexPy supports a wide variety of notification options. To set up a notification agent conifgure this in <strong>Settings -> Notification Agents</strong>
+                after you have completed this setup wizard.</p><br/>
+                <div class="wizard-input-section">
+                    <input type="checkbox" name="movie_notify_on_start" id="movie_notify_on_start" value="1" ${config['movie_notify_on_start']}> Enable notifications on Movie playback
+                </div>
+                <div class="wizard-input-section">
+                    <input type="checkbox" name="tv_notify_on_start" id="tv_notify_on_start" value="1" ${config['tv_notify_on_start']}> Enable notifications on TV playback
+                </div>
+                <div class="wizard-input-section">
+                    <input type="checkbox" name="music_notify_on_start" id="music_notify_on_start" value="1" ${config['music_notify_on_start']}> Enable notifications on Music playback
+                </div>
+            </div>
+
+            <div class="wizard-card" data-cardname="card6">
+                <h3>PlexWatch Import</h3>
+                <p class="help-block">If you have an existing PlexWatch database, you can import the data into PlexPy.</p>
+                <p class="help-block">
+                    When you complete this wizard navigate to the settings menu and to the Monitoring tab. You will find an import tool there
+                    which will convert your plexWatch database into a format that PlexPy can read.
+                </p>
+                <!-- Figure out best way to get friends list refreshed before adding this back
+                    You can skip this and do it later if you wish.</p>
+                <p class="help-block">Enter the path and file name where your
+                plexWatch database file is located and hit Import. The import will run in the background so you can safely finish the wizard when the
+                Import status below changes to "Started"</p>
+                <div class="wizard-input-section">
+                    <label for="db_location">Database full Path and Filename</label>
+                    <div class="row">
+                        <div class="col-xs-8">
+                            <input type="text" class="form-control plexwatch-import" id="db_location" value="">
+                        </div>
+                        <div class="col-xs-4">
+                            <a class="btn btn-default btn-sm" id="plexwatch-import" style="margin-top: 4px;" href="#" role="button">Import</a>
+                        </div>
+                    </div>
+                </div>
+                <span>Import status: </span><strong><span id="plexwatch-import-status">Idle</span></strong>
+                -->
+                <div style="display: none;">
+                    <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}>
+                    <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}>
+                    <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
+                    <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1">
+                    <input type="checkbox" name="tv_notify_enable" id="tv_notify_enable" value="1">
+                    <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1">
+                </div>
+            </div>
+            <!-- Required fields but hidden -->
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="interfaces/default/js/jquery-2.1.4.min.js"></script>
+<script src="interfaces/default/js/bootstrap3/bootstrap.min.js"></script>
+<script src="interfaces/default/js/script.js"></script>
+<script src="interfaces/default/js/bootstrap-wizard.min.js"></script>
+<script>
+
+    $(document).ready(function() {
+
+        $.fn.wizard.logging = false;
+        var options = {
+            keyboard : false,
+            contentHeight : 400,
+            contentWidth : 700,
+            backdrop: 'static',
+            buttons: {submitText: 'Finish'},
+            submitUrl: "configUpdate"
+        };
+        var wizard = $("#some-wizard").wizard(options);
+        wizard.show();
+
+        wizard.on("submit", function(wizard) {
+            $.ajax({
+                url: "configUpdate",
+                type: "POST",
+                url: wizard.args.submitUrl,
+                data: wizard.serialize(),
+                dataType: "json",
+                complete: function (data) {
+                    setTimeout(function(){
+                        location.reload();
+                    }, 3000);
+                }
+            })
+        });
+    });
+
+
+    function validatePMSip(el) {
+        var valid_pms_ip = el.val();
+        var retValue = {};
+
+        if (valid_pms_ip == "") {
+            retValue.status = false;
+            retValue.msg = "Please verify your server.";
+            $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Please verify your server.');
+            $('#pms-verify-status').fadeIn('fast').delay(2000).fadeOut('fast');
+        } else {
+            retValue.status = true;
+        }
+
+        return retValue;
+    }
+
+    function validatePMStoken(el) {
+        var valid_pms_token = el.val();
+        var retValue = {};
+
+        if (valid_pms_token == "") {
+            retValue.status = false;
+            retValue.msg = "Please authenticate.";
+            $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Please authenticate.');
+            $('#pms-token-status').fadeIn('fast').delay(2000).fadeOut('fast');
+        } else {
+            retValue.status = true;
+        }
+
+        return retValue;
+    }
+
+    function validateIgnoreInterval(el) {
+        var valid_ignore_int = el.val();
+        var retValue = {};
+
+        if (!isPositiveInt(valid_ignore_int)) {
+            retValue.status = false;
+            retValue.msg = "Please enter a valid integer.";
+            $("#ignore-int-status").html('<i class="fa fa-exclamation-circle"></i> Please enter a valid ignore interval.');
+            $('#ignore-int-status').fadeIn('fast').delay(2000).fadeOut('fast');
+        } else {
+            retValue.status = true;
+        }
+
+        return retValue;
+    }
+
+    function validateNotifications(el) {
+        var retValue = {};
+        retValue.status = true;
+
+        if ($('#movie_notify_on_start').is(':checked')) {
+            $('#movie_notify_enable').prop('checked', true);
+        }
+
+        if ($('#tv_notify_on_start').is(':checked')) {
+            $('#tv_notify_enable').prop('checked', true);
+        }
+
+        if ($('#music_notify_on_start').is(':checked')) {
+            $('#music_notify_enable').prop('checked', true);
+        }
+
+        return retValue;
+    }
+
+    function isPositiveInt(n) {
+        return $.isNumeric(n) && (Math.floor(n) == n) && (n >= 0)
+    }
+
+    var pms_verified = false;
+    var authenticated = false;
+
+    $("#verify-plex-server").click(function() {
+        var pms_ip = $("#pms_ip").val()
+        var pms_port = $("#pms_port").val()
+        if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
+            $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Validating server...');
+            $('#pms-verify-status').fadeIn('fast');
+            $.ajax({
+                url: 'http://' + pms_ip + ':' + pms_port + '/identity',
+                cache: true,
+                async: true,
+                timeout: 5000,
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log('we dont have a plex server');
+                    $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> This is not a Plex Server!');
+                    $('#pms-verify-status').fadeIn('fast');
+                },
+                success: function (xml) {
+                    if ( $(xml).find('MediaContainer').attr('machineIdentifier') ) {
+                        $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!');
+                        $('#pms-verify-status').fadeIn('fast');
+                        pms_verified = true;
+                        $("#pms_valid").val("valid");
+                    } else {
+                        $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> This is not a Plex Server!');
+                        $('#pms-verify-status').fadeIn('fast');
+                    }
+                }
+            });
+        } else {
+            $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Please enter both fields.');
+            $('#pms-verify-status').fadeIn('fast');
+        }
+    });
+
+    $( ".pms-settings" ).change(function() {
+        pms_verified = false;
+        $("#pms_valid").val("");
+        $("#pms-verify-status").html("");
+    });
+
+    $( ".pms-auth" ).change(function() {
+        authenticated = false;
+        $("#pms_token").val("");
+        $("#pms-token-status").html("");
+    });
+
+    // Plex.tv auth token fetch
+    $("#pms-authenticate").click(function() {
+        $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i> Fetching token...');
+        $('#pms-token-status').fadeIn('fast');
+        if (($("#pms_username").val() !== '') || ($("#pms_password").val() !== '')) {
+            $.ajax({
+                type: "post",
+                url: "https://plex.tv/users/sign_in.xml",
+                dataType: 'xml',
+                async: true,
+                headers: {'Content-Type': 'application/xml; charset=utf-8',
+                          'X-Plex-Device-Name': 'PlexPy',
+                          'X-Plex-Product': 'PlexPy',
+                          'X-Plex-Version': 'v0.1 dev',
+                          'X-Plex-Client-Identifier': '${config['pms_uuid']}',
+                          'Authorization': 'Basic ' + btoa($("#pms_username").val() + ':' + $("#pms_password").val())
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Authentation failed!');
+                    $('#pms-token-status').fadeIn('fast');
+                },
+                success: function (xml) {
+                    var authToken = $(xml).find('user').attr('authenticationToken');
+                    $("#pms-token-status").html('<i class="fa fa-check"></i> Authentation successful!');
+                    $('#pms-token-status').fadeIn('fast');
+                    $("#pms_token").val(authToken);
+                    authenticated = true;
+                }
+            });
+        } else {
+            $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> You must enter both fields.');
+            $('#pms-token-status').fadeIn('fast');
+        }
+    });
+
+    // Send database path to import script
+    $("#plexwatch-import").click(function() {
+        var database_path = $("#db_location").val();
+        var table_name = 'processed';
+        var import_ignore_interval = 0;
+        $.ajax({
+            url: 'get_plexwatch_export_data',
+            data: {database_path: database_path, table_name:table_name, import_ignore_interval:import_ignore_interval},
+            cache: false,
+            async: true,
+            success: function(data) {
+                if (data === 'Import has started. Check the PlexPy logs to monitor any problems.') {
+                    $("#plexwatch-import-status").html('Started');
+                } else {
+                    $("#plexwatch-import-status").html(data);
+                }
+                $("#db_location").val('')
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

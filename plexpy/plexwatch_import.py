@@ -206,6 +206,9 @@ def validate_database(database=None, table_name=None):
     except ValueError:
         logger.error('PlexPy Importer :: Invalid database specified.')
         return 'Invalid database specified.'
+    except:
+        logger.error('PlexPy Importer :: Uncaught exception.')
+        return 'Uncaught exception.'
 
     try:
         connection.execute('SELECT ratingKey from %s' % table_name)
@@ -213,6 +216,9 @@ def validate_database(database=None, table_name=None):
     except sqlite3.OperationalError:
         logger.error('PlexPy Importer :: Invalid database specified.')
         return 'Invalid database specified.'
+    except:
+        logger.error('PlexPy Importer :: Uncaught exception.')
+        return 'Uncaught exception.'
 
     return 'success'
 

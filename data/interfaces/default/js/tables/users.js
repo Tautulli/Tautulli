@@ -38,7 +38,11 @@ users_list_table_options = {
             "data": "friendly_name",
              "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="user?user=' + rowData['user'] + '">' + cellData + '</a>');
+                    if (rowData['user_id'] > 0) {
+                        $(td).html('<a href="user?user_id=' + rowData['user_id'] + '">' + cellData + '</a>');
+                    } else {
+                        $(td).html('<a href="user?user=' + rowData['user'] + '">' + cellData + '</a>');
+                    }
                 } else {
                     $(td).html(cellData);
                 }

@@ -57,11 +57,41 @@ class WebInterface(object):
 
     @cherrypy.expose
     def index(self):
-        raise cherrypy.HTTPRedirect("home")
+        if plexpy.CONFIG.FIRST_RUN_COMPLETE:
+            raise cherrypy.HTTPRedirect("home")
+        else:
+            raise cherrypy.HTTPRedirect("welcome")
 
     @cherrypy.expose
     def home(self):
         return serve_template(templatename="index.html", title="Home")
+
+    @cherrypy.expose
+    def welcome(self, **kwargs):
+        config = {
+            "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
+            "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
+            "pms_ip": plexpy.CONFIG.PMS_IP,
+            "pms_port": plexpy.CONFIG.PMS_PORT,
+            "pms_token": plexpy.CONFIG.PMS_TOKEN,
+            "pms_uuid": plexpy.CONFIG.PMS_UUID,
+            "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
+            "movie_notify_enable": checked(plexpy.CONFIG.MOVIE_NOTIFY_ENABLE),
+            "music_notify_enable": checked(plexpy.CONFIG.MUSIC_NOTIFY_ENABLE),
+            "tv_notify_on_start": checked(plexpy.CONFIG.TV_NOTIFY_ON_START),
+            "movie_notify_on_start": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_START),
+            "music_notify_on_start": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_START),
+            "video_logging_enable": checked(plexpy.CONFIG.VIDEO_LOGGING_ENABLE),
+            "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
+            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
+        }
+
+        # The setup wizard just refreshes the page on submit so we must redirect to home if config set.
+        # Also redirecting to home if a PMS token already exists - will remove this in future.
+        if plexpy.CONFIG.FIRST_RUN_COMPLETE or plexpy.CONFIG.PMS_TOKEN:
+            raise cherrypy.HTTPRedirect("home")
+        else:
+            return serve_template(templatename="welcome.html", title="Welcome", config=config)
 
     @cherrypy.expose
     def get_date_formats(self):
@@ -104,40 +134,57 @@ class WebInterface(object):
         return serve_template(templatename="sync.html", title="Synced Items")
 
     @cherrypy.expose
-    def user(self, user=None):
-        try:
-            data_factory = datafactory.DataFactory()
-            user_details = data_factory.get_user_details(user=user)
-        except:
-            logger.warn("Unable to retrieve friendly name for user %s " % user)
+    def user(self, user=None, user_id=None):
+        if user_id:
+            try:
+                data_factory = datafactory.DataFactory()
+                user_details = data_factory.get_user_details(user_id=user_id)
+            except:
+                logger.warn("Unable to retrieve friendly name for user_id %s " % user_id)
+        elif user:
+            try:
+                data_factory = datafactory.DataFactory()
+                user_details = data_factory.get_user_details(user=user)
+            except:
+                logger.warn("Unable to retrieve friendly name for user %s " % user)
+        else:
+            logger.debug(u"User page requested but no parameters received.")
+            raise cherrypy.HTTPRedirect("home")
 
         return serve_template(templatename="user.html", title="User", data=user_details)
 
     @cherrypy.expose
-    def edit_user_dialog(self, user=None, **kwargs):
-        if user:
-            try:
-                data_factory = datafactory.DataFactory()
-                result = {'user': user,
-                          'friendly_name': data_factory.get_user_friendly_name(user)
-                          }
-                status_message = ""
-            except:
-                result = {'user': user,
-                          'friendly_name': ''
-                          }
-                status_message = "There was an error."
-
-            return serve_template(templatename="edit_user.html", title="Edit User", data=result, status_message=status_message)
+    def edit_user_dialog(self, user=None, user_id=None, **kwargs):
+        if user_id:
+            data_factory = datafactory.DataFactory()
+            result = data_factory.get_user_friendly_name(user_id=user_id)
+            status_message = ''
+        elif user:
+            data_factory = datafactory.DataFactory()
+            result = data_factory.get_user_friendly_name(user=user)
+            status_message = ''
         else:
-            return serve_template(templatename="edit_user.html", title="Edit User", data=user, status_message='Unknown error.')
+            result = None
+            status_message = 'An error occured.'
+
+        return serve_template(templatename="edit_user.html", title="Edit User", data=result, status_message=status_message)
 
     @cherrypy.expose
-    def edit_user(self, user=None, friendly_name=None, **kwargs):
+    def edit_user(self, user=None, user_id=None, friendly_name=None, **kwargs):
+        if user_id:
+            try:
+                data_factory = datafactory.DataFactory()
+                data_factory.set_user_friendly_name(user_id=user_id, friendly_name=friendly_name)
+
+                status_message = "Successfully updated user."
+                return status_message
+            except:
+                status_message = "Failed to update user."
+                return status_message
         if user:
             try:
                 data_factory = datafactory.DataFactory()
-                data_factory.set_user_friendly_name(user, friendly_name)
+                data_factory.set_user_friendly_name(user=user, friendly_name=friendly_name)
 
                 status_message = "Successfully updated user."
                 return status_message
@@ -376,8 +423,9 @@ class WebInterface(object):
                 kwargs[checked_config] = 0
 
         # If http password exists in config, do not overwrite when blank value received
-        if kwargs['http_password'] == '    ' and plexpy.CONFIG.HTTP_PASSWORD != '':
-            kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
+        if 'http_password' in kwargs:
+            if kwargs['http_password'] == '    ' and plexpy.CONFIG.HTTP_PASSWORD != '':
+                kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
 
         for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
             # the use prefix is fairly nice in the html, but does not match the actual config
@@ -405,10 +453,12 @@ class WebInterface(object):
                               message=message, timer=timer)
 
     @cherrypy.expose
-    def get_history(self, start=0, length=100, custom_where='', **kwargs):
+    def get_history(self, start=0, length=100, user=None, user_id=None, **kwargs):
 
-        if 'user' in kwargs:
-            user = kwargs.get('user', "")
+        custom_where=''
+        if user_id:
+            custom_where = 'user_id = "%s"' % user_id
+        elif user:
             custom_where = 'user = "%s"' % user
         if 'rating_key' in kwargs:
             rating_key = kwargs.get('rating_key', "")
@@ -603,10 +653,10 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_user_recently_watched(self, user=None, limit='10', **kwargs):
+    def get_user_recently_watched(self, user=None, user_id=None, limit='10', **kwargs):
 
         data_factory = datafactory.DataFactory()
-        result = data_factory.get_recently_watched(user=user, limit=limit)
+        result = data_factory.get_recently_watched(user_id=user_id, user=user, limit=limit)
 
         if result:
             return serve_template(templatename="user_recently_watched.html", data=result,
@@ -617,10 +667,10 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_user_watch_time_stats(self, user=None, **kwargs):
+    def get_user_watch_time_stats(self, user=None, user_id=None, **kwargs):
 
         data_factory = datafactory.DataFactory()
-        result = data_factory.get_user_watch_time_stats(user=user)
+        result = data_factory.get_user_watch_time_stats(user_id=user_id, user=user)
 
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
@@ -629,10 +679,10 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_user_platform_stats(self, user=None, **kwargs):
+    def get_user_platform_stats(self, user=None, user_id=None, **kwargs):
 
         data_factory = datafactory.DataFactory()
-        result = data_factory.get_user_platform_stats(user=user)
+        result = data_factory.get_user_platform_stats(user_id=user_id, user=user)
 
         if result:
             return serve_template(templatename="user_platform_stats.html", data=result,
@@ -702,10 +752,12 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_user_ips(self, start=0, length=100, custom_where='', **kwargs):
+    def get_user_ips(self, start=0, length=100, user_id=None, user=None, **kwargs):
 
-        if 'user' in kwargs:
-            user = kwargs.get('user', "")
+        custom_where=''
+        if user_id:
+            custom_where = 'user_id = "%s"' % user_id
+        elif user:
             custom_where = 'user = "%s"' % user
 
         data_factory = datafactory.DataFactory()

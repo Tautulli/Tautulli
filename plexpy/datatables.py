@@ -27,7 +27,6 @@ class DataTables(object):
 
     def __init__(self):
         self.ssp_db = database.MonitorDatabase()
-        logger.debug(u"Database initilised!")
 
     # TODO: Pass all parameters via kwargs
     def ssp_query(self, table_name,
@@ -71,8 +70,6 @@ class DataTables(object):
                 join_iter += 1
                 join += join_item
 
-        logger.debug(u"join string = %s" % join)
-
         # TODO: custom_where is ugly and causes issues with reported total results
         if custom_where != '':
             custom_where = 'WHERE (' + custom_where + ')'
@@ -96,7 +93,7 @@ class DataTables(object):
                         % (column_data['column_string'], table_name, join, where,
                            order, custom_where)
 
-        logger.debug(u"Query string: %s" % query)
+        # logger.debug(u"Query string: %s" % query)
         filtered = self.ssp_db.select(query)
 
         if search_value == '':

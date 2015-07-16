@@ -53,6 +53,7 @@ _CONFIG_DEFINITIONS = {
     'EMAIL_SMTP_PORT': (int, 'Email', 25),
     'EMAIL_TLS': (int, 'Email', 0),
     'ENABLE_HTTPS': (int, 'General', 0),
+    'FIRST_RUN_COMPLETE': (int, 'General', 0),
     'FREEZE_DB': (int, 'General', 0),
     'GIT_BRANCH': (str, 'General', 'master'),
     'GIT_PATH': (str, 'General', ''),

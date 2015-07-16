@@ -260,11 +260,17 @@ from plexpy import helpers
 <script>
             $(document).ready(function () {
 
+                % if data['user_id']:
+                    var user_id = ${data['user_id']};
+                % else:
+                    var user_id = null;
+                % endif
+
                 // Populate watch time stats
                 $.ajax({
                     url: 'get_user_watch_time_stats',
                     async: true,
-                    data: { user: '${data['username']}' },
+                    data: { user_id: user_id, user: '${data['username']}' },
                     complete: function(xhr, status) {
                         $("#user-time-stats").html(xhr.responseText);
                     }
@@ -274,7 +280,7 @@ from plexpy import helpers
                 $.ajax({
                     url: 'get_user_platform_stats',
                     async: true,
-                    data: { user: '${data['username']}' },
+                    data: { user_id: user_id, user: '${data['username']}' },
                     complete: function(xhr, status) {
                         $("#user-platform-stats").html(xhr.responseText);
                     }
@@ -284,7 +290,7 @@ from plexpy import helpers
                 $.ajax({
                     url: 'get_user_recently_watched',
                     async: true,
-                    data: { user: '${data['username']}' },
+                    data: { user_id: user_id, user: '${data['username']}' },
                     complete: function(xhr, status) {
                         $("#user-recently-watched").html(xhr.responseText);
                     }
@@ -295,6 +301,7 @@ from plexpy import helpers
                     history_table_options.ajax = {
                         "url": "get_history",
                         "data": function(d) {
+                           d.user_id = user_id;
                            d.user = "${data['username']}";
                         }
                     }
@@ -307,7 +314,8 @@ from plexpy import helpers
                     user_ip_table_options.ajax = {
                         "url": "get_user_ips",
                         "data": function(d) {
-                           d.user = "${data['username']}";
+                            d.user_id = user_id;
+                            d.user = "${data['username']}";
                         }
                     }
                     user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
@@ -318,7 +326,8 @@ from plexpy import helpers
                     sync_table_options.ajax = {
                         "url": "get_sync",
                         "data": function(d) {
-                           d.user_id = "${data['user_id']}";
+                           d.user_id = user_id;
+                           d.user = "${data['username']}";
                         }
                     }
                     sync_table = $('#sync_table').DataTable(sync_table_options);
@@ -328,7 +337,7 @@ from plexpy import helpers
                 $("#toggle-edit-user-modal").click(function() {
                     $.ajax({
                         url: 'edit_user_dialog',
-                        data: {user: '${data['username']}'},
+                        data: { user_id: user_id, user: '${data['username']}' },
                         cache: false,
                         async: true,
                         complete: function(xhr, status) {
