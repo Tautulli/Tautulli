@@ -24,7 +24,10 @@ class PmsConnect(object):
     """
 
     def __init__(self):
-        self.protocol = 'HTTP'
+        if plexpy.CONFIG.PMS_SSL:
+            self.protocol = 'HTTPS'
+        else:
+            self.protocol = 'HTTP'
         self.request_handler = http_handler.HTTPHandler(host=plexpy.CONFIG.PMS_IP,
                                                         port=plexpy.CONFIG.PMS_PORT,
                                                         token=plexpy.CONFIG.PMS_TOKEN)
