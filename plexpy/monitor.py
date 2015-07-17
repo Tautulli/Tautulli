@@ -317,13 +317,14 @@ class MonitorProcessing(object):
         logger.debug(u"PlexPy Monitor :: Requesting log lines...")
         log_lines = log_reader.get_log_tail(window=5000, parsed=False)
 
-        rating_key_line = 'metadata%2F' + rating_key
+        rating_key_line = 'ratingKey=' + rating_key
+        rating_key_line_2 = 'metadata%2F' + rating_key
         machine_id_line = 'session=' + machine_id
 
         for line in reversed(log_lines):
             # We're good if we find a line with both machine id and rating key
             # This is usually when there is a transcode session
-            if machine_id_line in line and rating_key_line in line:
+            if machine_id_line in line and (rating_key_line in line or rating_key_line_2 in line):
                 # Currently only checking for ipv4 addresses
                 ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}', line)
                 if ipv4:
@@ -344,7 +345,7 @@ class MonitorProcessing(object):
         log_lines = log_reader.get_log_tail(window=5000, parsed=False)
 
         for line in reversed(log_lines):
-            if 'GET /:/timeline' in line and rating_key_line in line:
+            if 'GET /:/timeline' in line and (rating_key_line in line or rating_key_line_2 in line):
                 # Currently only checking for ipv4 addresses
                 # This method can return the wrong IP address if more than one user
                 # starts watching the same media item around the same time.
