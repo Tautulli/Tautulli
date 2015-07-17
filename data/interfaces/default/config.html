@@ -859,7 +859,8 @@
                 $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Verifying server...');
                 $('#pms-verify-status').fadeIn('fast');
                 $.ajax({
-                    url: 'http://' + pms_ip + ':' + pms_port + '/identity',
+                    url: 'get_server_id',
+                    data : { hostname: pms_ip, port: pms_port },
                     cache: true,
                     async: true,
                     timeout: 5000,
@@ -868,7 +869,7 @@
                         $('#pms-verify-status').fadeIn('fast');
                     },
                     success: function (xml) {
-                        if ( $(xml).find('MediaContainer').attr('machineIdentifier') ) {
+                        if ($(xml).find('MediaContainer').attr('machineIdentifier')) {
                             $("#pms_identifier").val($(xml).find('MediaContainer').attr('machineIdentifier'));
                             $("#pms-verify-status").html('<i class="fa fa-check"></i> Server verified!');
                             $('#pms-verify-status').fadeIn('fast');

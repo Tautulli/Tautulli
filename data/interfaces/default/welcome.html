@@ -299,12 +299,12 @@ from plexpy import version
             $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Validating server...');
             $('#pms-verify-status').fadeIn('fast');
             $.ajax({
-                url: 'http://' + pms_ip + ':' + pms_port + '/identity',
+                url: 'get_server_id',
+                data : { hostname: pms_ip, port: pms_port },
                 cache: true,
                 async: true,
                 timeout: 5000,
                 error: function(jqXHR, textStatus, errorThrown) {
-                    console.log('we dont have a plex server');
                     $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> This is not a Plex Server!');
                     $('#pms-verify-status').fadeIn('fast');
                 },

@@ -39,7 +39,8 @@ class HTTPHandler(object):
                      request_type='GET',
                      headers=None,
                      output_format='raw',
-                     return_type=False):
+                     return_type=False,
+                     no_token=False):
 
         valid_request_types = ['GET', 'POST', 'PUT', 'DELETE']
 
@@ -53,10 +54,12 @@ class HTTPHandler(object):
             else:
                 handler = HTTPConnection(self.host, self.port, timeout=10)
 
-            if uri.find('?') > 0:
-                token_string = '&X-Plex-Token=' + self.token
-            else:
-                token_string = '?X-Plex-Token=' + self.token
+            token_string = ''
+            if not no_token:
+                if uri.find('?') > 0:
+                    token_string = '&X-Plex-Token=' + self.token
+                else:
+                    token_string = '?X-Plex-Token=' + self.token
 
             try:
                 if headers:

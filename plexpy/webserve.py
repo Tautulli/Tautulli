@@ -1000,3 +1000,26 @@ class WebInterface(object):
     @cherrypy.expose
     def plexwatch_import(self, **kwargs):
         return serve_template(templatename="plexwatch_import.html", title="Import PlexWatch Database")
+
+    @cherrypy.expose
+    def get_server_id(self, hostname=None, port=None, **kwargs):
+        from plexpy import http_handler
+
+        if hostname and port:
+            request_handler = http_handler.HTTPHandler(host=hostname,
+                                                       port=port,
+                                                       token=None)
+            uri = '/identity'
+            request = request_handler.make_request(uri=uri,
+                                                   proto='http',
+                                                   request_type='GET',
+                                                   output_format='',
+                                                   no_token=True)
+            if request:
+                cherrypy.response.headers['Content-type'] = 'application/xml'
+                return request
+            else:
+                logger.warn('Unable to retrieve data.')
+                return None
+        else:
+            return None
