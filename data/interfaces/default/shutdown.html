@@ -1,20 +1,60 @@
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
-<meta http-equiv="refresh" content="${timer};url=index">
+
 </%def>
 
 <%def name="body()">
 <div class="container-fluid">
     <div class="row-fluid">
         <div class="span12">
-            <div class="wellbg">
-                <div class="wellheader">
-                    <div class="dashboard-wellheader">
-                        <h2><i class="fa fa-refresh fa-spin"></i> PlexPy is ${message}</h2>
+            <div id="state-change-modal" class="modal hide fade">
+                <div class="modal-header">
+                    <h3>${message}</h3>
+                </div>
+                <div class="modal-body" id="modal-text">
+                    <div align="center">
+                        % if message == "Shutting Down":
+                        <h2><i class="fa fa-refresh fa-spin"></i> PlexPy is ${message}.</h2>
+                        <br/>
+                        % else:
+                        <h2><i class="fa fa-refresh fa-spin"></i> PlexPy is ${message}.</h2>
+                        <br/>
+                        <h3>Restart in <span class="countdown"></span></h3>
+                        % endif
                     </div>
+                </div>
+                <div class="modal-footer">
+                    <div style="float: right;"><span class="muted" id="rquote"></span></div>
                 </div>
             </div>
         </div>
     </div>
+</%def>
+<%def name="javascriptIncludes()">
+    <script>
+        // Use p.countdown as container, pass redirect, duration, and optional message
+        $(".countdown").countdown(reloadPage, ${timer}, "");
+        $('#state-change-modal').modal({
+            keyboard: false
+        })
+        // Make modal visible
+        $('#state-change-modal').modal('show')
+
+        // Redirect to home page after countdown.
+        function reloadPage() {
+            window.location.href = "index";
+        }
+
+        $(document).ready(function () {
+            $.ajax({
+                url: 'random_arnold_quotes',
+                cache: false,
+                async: true,
+                success: function (data) {
+                    $("#rquote").html(data);
+                }
+            });
+        });
+    </script>
 </%def>

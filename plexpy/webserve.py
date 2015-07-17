@@ -456,7 +456,7 @@ class WebInterface(object):
     @cherrypy.expose
     def do_state_change(self, signal, title, timer):
         plexpy.SIGNAL = signal
-        message = title + '...'
+        message = title
         return serve_template(templatename="shutdown.html", title=title,
                               message=message, timer=timer)
 
@@ -1023,3 +1023,32 @@ class WebInterface(object):
                 return None
         else:
             return None
+
+    @cherrypy.expose
+    def random_arnold_quotes(self, **kwargs):
+        from random import randint
+        quote_list = ['To crush your enemies, see them driven before you, and to hear the lamentation of their women!',
+                      'Your clothes, give them to me, now!',
+                      'Do it!',
+                      'If it bleeds, we can kill it',
+                      'See you at the party Richter!',
+                      'Let off some steam, Bennett',
+                      'I\'ll be back',
+                      'Get to the chopper!',
+                      'Hasta La Vista, Baby!',
+                      'It\'s not a tumor!',
+                      'Dillon, you son of a bitch!',
+                      'Benny!! Screw you!!',
+                      'Stop whining! You kids are soft. You lack discipline.',
+                      'Nice night for a walk.',
+                      'Stick around!',
+                      'I need your clothes, your boots and your motorcycle.',
+                      'No, it\'s not a tumor. It\'s not a tumor!',
+                      'I LIED!',
+                      'See you at the party, Richter!',
+                      'Are you Sarah Conner?',
+                      'I\'m a cop you idiot!'
+                      ]
+
+        random_number = randint(0, len(quote_list))
+        return quote_list[int(random_number)]
