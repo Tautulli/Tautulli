@@ -159,9 +159,13 @@ def initialize(config_file):
         else:
             LATEST_VERSION = CURRENT_VERSION
 
+        # Get the real PMS urls for SSL and remote access
+        if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT:
+            plextv.get_real_pms_url()
+
         # Refresh the users list on startup
         if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
-            plextv.refresh_users()
+            threading.Thread(target=plextv.refresh_users).start()
 
         # Store the original umask
         UMASK = os.umask(0)
@@ -268,6 +272,7 @@ def initialize_scheduler():
             seconds = 0
 
         if CONFIG.PMS_IP:
+            schedule_job(plextv.get_real_pms_url, 'Refresh Plex Server URLs', hours=12, minutes=0, seconds=0)
             schedule_job(monitor.check_active_sessions, 'Check for active sessions', hours=0, minutes=0, seconds=seconds)
 
         # Refresh the users list

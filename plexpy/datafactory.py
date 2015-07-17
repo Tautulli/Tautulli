@@ -173,7 +173,7 @@ class DataFactory(object):
                                           search_regex=search_regex,
                                           custom_where=custom_where,
                                           group_by='',
-                                          join_type=['JOIN', 'JOIN', 'JOIN'],
+                                          join_type=['LEFT OUTER JOIN', 'JOIN', 'JOIN'],
                                           join_table=[t3, t2, t4],
                                           join_evals=[[t1 + '.user_id', t3 + '.user_id'],
                                                       [t1 + '.id', t2 + '.id'],

@@ -43,6 +43,42 @@ def refresh_users():
     else:
         logger.warn("Unable to refresh users list.")
 
+def get_real_pms_url():
+    logger.info("Requesting URLs for server...")
+
+    # Reset any current PMS_URL value
+    plexpy.CONFIG.__setattr__('PMS_URL', '')
+    plexpy.CONFIG.write()
+
+    if plexpy.CONFIG.PMS_SSL:
+        result = PlexTV().get_server_urls(include_https=True)
+        process_urls = True
+    elif plexpy.CONFIG.PMS_IS_REMOTE:
+        result = PlexTV().get_server_urls(include_https=False)
+        process_urls = True
+    else:
+        real_url = 'http://' + plexpy.CONFIG.PMS_IP + ':' + str(plexpy.CONFIG.PMS_PORT)
+        process_urls = False
+
+    if process_urls:
+        if len(result) > 0:
+            for item in result:
+                if plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '0':
+                    real_url = item['uri']
+                else:
+                    real_url = item['uri']
+
+            plexpy.CONFIG.__setattr__('PMS_URL', real_url)
+            plexpy.CONFIG.write()
+            logger.info("Server URL retrieved.")
+        else:
+            fallback_url = 'http://' + plexpy.CONFIG.PMS_IP + ':' + str(plexpy.CONFIG.PMS_PORT)
+            plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
+            plexpy.CONFIG.write()
+            logger.warn("Unable to retrieve server URLs. Using user-defined value.")
+    else:
+        plexpy.CONFIG.__setattr__('PMS_URL', real_url)
+        plexpy.CONFIG.write()
 
 class PlexTV(object):
     """
@@ -130,6 +166,18 @@ class PlexTV(object):
 
     def get_plextv_sync_lists(self, machine_id='', output_format=''):
         uri = '/servers/' + machine_id + '/sync_lists'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    def get_plextv_resources(self, include_https=False, output_format=''):
+        if include_https:
+            uri = '/api/resources?includeHttps=1'
+        else:
+            uri = '/api/resources'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -300,3 +348,44 @@ class PlexTV(object):
                         synced_items.append(sync_details)
 
         return synced_items
+
+    def get_server_urls(self, include_https=True):
+
+        if plexpy.CONFIG.PMS_IDENTIFIER:
+            server_id = plexpy.CONFIG.PMS_IDENTIFIER
+        else:
+            logger.error('PlexPy PlexTV connector :: Unable to retrieve server identity.')
+            return []
+
+        plextv_resources = self.get_plextv_resources(include_https=include_https)
+        server_urls = []
+
+        try:
+            xml_parse = minidom.parseString(plextv_resources)
+        except Exception, e:
+            logger.warn("Error parsing XML for Plex resources: %s" % e)
+            return []
+        except:
+            logger.warn("Error parsing XML for Plex resources.")
+            return []
+
+        try:
+            xml_head = xml_parse.getElementsByTagName('Device')
+        except:
+            logger.warn("Error parsing XML for Plex resources.")
+            return []
+
+        for a in xml_head:
+            if helpers.get_xml_attr(a, 'clientIdentifier') == server_id:
+                connections = a.getElementsByTagName('Connection')
+                for connection in connections:
+                    server_details = {"protocol": helpers.get_xml_attr(connection, 'protocol'),
+                                      "address": helpers.get_xml_attr(connection, 'address'),
+                                      "port": helpers.get_xml_attr(connection, 'port'),
+                                      "uri": helpers.get_xml_attr(connection, 'uri'),
+                                      "local": helpers.get_xml_attr(connection, 'local')
+                                      }
+
+                    server_urls.append(server_details)
+
+        return server_urls

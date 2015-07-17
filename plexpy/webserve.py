@@ -71,9 +71,12 @@ class WebInterface(object):
         config = {
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_ip": plexpy.CONFIG.PMS_IP,
+            "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
             "pms_port": plexpy.CONFIG.PMS_PORT,
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
+            "pms_ssl": checked(plexpy.CONFIG.PMS_SSL),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
             "movie_notify_enable": checked(plexpy.CONFIG.MOVIE_NOTIFY_ENABLE),
@@ -364,6 +367,7 @@ class WebInterface(object):
             "email_smtp_password": plexpy.CONFIG.EMAIL_SMTP_PASSWORD,
             "email_smtp_port": int(plexpy.CONFIG.EMAIL_SMTP_PORT),
             "email_tls": checked(plexpy.CONFIG.EMAIL_TLS),
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_logs_folder": plexpy.CONFIG.PMS_LOGS_FOLDER,
             "pms_port": plexpy.CONFIG.PMS_PORT,
@@ -395,7 +399,8 @@ class WebInterface(object):
             "ip_logging_enable": checked(plexpy.CONFIG.IP_LOGGING_ENABLE),
             "video_logging_enable": checked(plexpy.CONFIG.VIDEO_LOGGING_ENABLE),
             "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
-            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
+            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
+            "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE)
         }
 
         return serve_template(templatename="config.html", title="Settings", config=config)
@@ -416,7 +421,7 @@ class WebInterface(object):
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
-            "ip_logging_enable", "video_logging_enable", "music_logging_enable"
+            "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -440,6 +445,8 @@ class WebInterface(object):
 
         # Reconfigure scheduler
         plexpy.initialize_scheduler()
+
+        plextv.get_real_pms_url()
 
         # Refresh users table. Probably shouldn't do this on every config save, will improve this later.
         threading.Thread(target=plextv.refresh_users).start()

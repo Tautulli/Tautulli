@@ -146,6 +146,17 @@
                                                         <p class="help-block">Set your preferred time format. <a href="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                                                     </div>
                                                 </fieldset>
+                                                <fieldset>
+                                                    <div class="wellheader">
+                                                        <h3>Plex.tv Authentication</h3>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="pms_token">PMS Token</label>
+                                                        <input type="text" id="pms_token" name="pms_token" value="${config['pms_token']}" size="30" data-parsley-trigger="change" required>
+                                                        <p class="help-block">Token for Plex.tv authentication.</p>
+                                                    </div>
+                                                    <p class="help-block"><a href="#pms-auth-modal" data-toggle="modal">Fetch Token</a></p>
+                                                </fieldset>
                                                 <br/>
                                             </div>
                                             <div class="span4">
@@ -154,21 +165,25 @@
                                                         <h3>Plex Media Server</h3>
                                                     </div>
                                                     <div class="form-group">
-                                                        <label for="pms_ip">PMS IP</label>
-                                                        <input type="text" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" required>
-                                                        <p class="help-block">IP Address for Plex Media Server.</p>
+                                                        <label for="pms_ip">Plex IP or Hostname</label>
+                                                        <input type="text" class="pms-settings" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" required>
+                                                        <p class="help-block">IP Address or hostname for Plex Media Server.</p>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
+                                                        <p class="help-block">Check this is your Plex Server is not on the same local network as PlexPy.</p>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Force SSL
+                                                        <p class="help-block">Force PlexPy to connect to your Plex Server via SSL. Your server needs to have remote access enabled.</p>
                                                     </div>
                                                     <div class="form-group">
-                                                        <label for="pms_port">PMS Port</label>
-                                                        <input data-parsley-type="integer" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" required>
+                                                        <label for="pms_port">Plex Port</label>
+                                                        <input data-parsley-type="integer" class="pms-settings" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" required>
                                                         <p class="help-block">Port that Plex Media Server is listening on.</p>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label for="pms_token">PMS Token</label>
-                                                        <input type="text" id="pms_token" name="pms_token" value="${config['pms_token']}" size="30" data-parsley-trigger="change" required>
-                                                        <p class="help-block">Token for Plex.tv authentication.</p>
-                                                    </div>
-                                                    <p class="help-block"><a href="#pms-auth-modal" data-toggle="modal">Fetch Token</a></p>
+                                                    <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
+                                                    <a class="btn btn-default btn-sm" id="verify-plex-server" href="javascript:void(0)" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
                                                 </fieldset>
                                             </div>
                                             <div class="span4">
@@ -179,12 +194,6 @@
                                                     <div class="checkbox">
                                                         <input type="checkbox" id="pms_use_bif" name="pms_use_bif" value="1" ${config['pms_use_bif']}> Use BIF thumbs
                                                         <p class="help-block">If you have media indexing enabled on your server, use these on the activity pane.</p>
-                                                    </div>
-                                                </fieldset>
-                                                <fieldset>
-                                                    <div class="checkbox">
-                                                        <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Force SSL
-                                                        <p class="help-block">Force PlexPy to connect to your Plex Server via SSL.</p>
                                                     </div>
                                                 </fieldset>
                                                 <div class="wellheader">
@@ -825,13 +834,54 @@
         $(document).ready(function () {
             var configForm = $("#configUpdate");
             $('.save-button').click(function() {
-                if (configForm.parsley().validate()) {
-                    doAjaxCall('configUpdate',$(this),'tabs',true);
-                    return false;
+                if ($("#pms_identifier").val() == "") {
+                    showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your server.',false,true,2000)
                 } else {
-                    showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your settings.',false,true,2000)
+                    if (configForm.parsley().validate()) {
+                        doAjaxCall('configUpdate',$(this),'tabs',true);
+                        return false;
+                    } else {
+                        showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your settings.',false,true,2000)
+                    }
                 }
             });
+        });
+
+        $( ".pms-settings" ).change(function() {
+            $("#pms_identifier").val("");
+            $("#pms-verify-status").html("");
+        });
+
+        $("#verify-plex-server").click(function() {
+            var pms_ip = $("#pms_ip").val()
+            var pms_port = $("#pms_port").val()
+            if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
+                $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Verifying server...');
+                $('#pms-verify-status').fadeIn('fast');
+                $.ajax({
+                    url: 'http://' + pms_ip + ':' + pms_port + '/identity',
+                    cache: true,
+                    async: true,
+                    timeout: 5000,
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> This is not a Plex Server!');
+                        $('#pms-verify-status').fadeIn('fast');
+                    },
+                    success: function (xml) {
+                        if ( $(xml).find('MediaContainer').attr('machineIdentifier') ) {
+                            $("#pms_identifier").val($(xml).find('MediaContainer').attr('machineIdentifier'));
+                            $("#pms-verify-status").html('<i class="fa fa-check"></i> Server verified!');
+                            $('#pms-verify-status').fadeIn('fast');
+                        } else {
+                            $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> This is not a Plex Server!');
+                            $('#pms-verify-status').fadeIn('fast');
+                        }
+                    }
+                });
+            } else {
+                $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Please enter IP and port number.');
+                $('#pms-verify-status').fadeIn('fast');
+            }
         });
 
         // Plex.tv auth token fetch

@@ -14,6 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from plexpy import logger, helpers, datafactory, http_handler
+from urlparse import urlparse
 
 import plexpy
 
@@ -24,12 +25,18 @@ class PmsConnect(object):
     """
 
     def __init__(self):
-        if plexpy.CONFIG.PMS_SSL:
-            self.protocol = 'HTTPS'
+        if plexpy.CONFIG.PMS_URL:
+            url_parsed = urlparse(plexpy.CONFIG.PMS_URL)
+            hostname = url_parsed.hostname
+            port = url_parsed.port
+            self.protocol = url_parsed.scheme
         else:
-            self.protocol = 'HTTP'
-        self.request_handler = http_handler.HTTPHandler(host=plexpy.CONFIG.PMS_IP,
-                                                        port=plexpy.CONFIG.PMS_PORT,
+            hostname = plexpy.CONFIG.PMS_IP
+            port = plexpy.CONFIG.PMS_PORT
+            self.protocol = 'http'
+
+        self.request_handler = http_handler.HTTPHandler(host=hostname,
+                                                        port=port,
                                                         token=plexpy.CONFIG.PMS_TOKEN)
 
     """

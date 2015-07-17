@@ -57,9 +57,16 @@ from plexpy import version
                         <div class="col-xs-3">
                             <input type="text" class="form-control pms-settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
                         </div>
+                        <div class="col-xs-4" style="padding-top: 8px;">
+                            <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Server uses SSL
+                        </div>
+                        <div class="col-xs-4" style="padding-top: 8px;">
+                            <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
+                        </div>
                     </div>
                 </div>
                 <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
+                <input type="hidden" class="form-control pms-settings" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
                 <a class="btn btn-default btn-sm" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
             </div>
 
@@ -160,6 +167,14 @@ from plexpy import version
             <!-- Required fields but hidden -->
 
             </form>
+            <div class="wizard-success">
+                <h3>Setup Complete!</h3>
+                <br/>
+                <p>Setup is now complete. For more configuration options please visit the Settings menu on the home page.</p>
+                <br/>
+                <i class="fa fa-refresh fa-spin"></i> Just configuring a few things, please wait...
+
+            </div>
         </div>
     </div>
 </div>
@@ -185,6 +200,8 @@ from plexpy import version
         wizard.show();
 
         wizard.on("submit", function(wizard) {
+            // Probably should not success before we know, but hopefully validation is good enough.
+            wizard.submitSuccess();
             $.ajax({
                 url: "configUpdate",
                 type: "POST",
@@ -194,7 +211,7 @@ from plexpy import version
                 complete: function (data) {
                     setTimeout(function(){
                         location.reload();
-                    }, 3000);
+                    }, 5000);
                 }
             })
         });
@@ -293,6 +310,7 @@ from plexpy import version
                 },
                 success: function (xml) {
                     if ( $(xml).find('MediaContainer').attr('machineIdentifier') ) {
+                        $("#pms_identifier").val($(xml).find('MediaContainer').attr('machineIdentifier'));
                         $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!');
                         $('#pms-verify-status').fadeIn('fast');
                         pms_verified = true;
