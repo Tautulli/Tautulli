@@ -89,8 +89,8 @@ history_table_options = {
         },
         {
             "targets": [5],
-            "data":"title",
-            "name":"title",
+            "data":"full_title",
+            "name":"full_title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['media_type'] === 'movie' || rowData['media_type'] === 'episode') {
@@ -196,6 +196,12 @@ history_table_options = {
         {
             "targets": [15],
             "data":"video_decision",
+            "searchable":false,
+            "visible":false
+        },
+        {
+            "targets": [16],
+            "data":"user_id",
             "searchable":false,
             "visible":false
         }

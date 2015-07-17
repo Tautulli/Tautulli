@@ -28,6 +28,7 @@ users_watched           Returns the count for the associated stat.
 == Only if 'stat_id' is 'top_user' ==
 thumb                   Returns url of the user's gravatar. Returns '' if none exists.
 user                    Returns the username for the associated stat.
+user_id                 Returns the user id for the associated stat.
 friendly_name           Returns the friendly name of the user for the associated stat.
 
 == Only if 'stat_id' is 'top_platform' ==
@@ -112,7 +113,7 @@ DOCUMENTATION :: END
 
                 <div class="home-platforms-instance-name">
                     <h4>Most Active User</h4>
-                    <a href="user?user=${a['rows'][0]['user']}">
+                    <a href="user?user_id=${a['rows'][0]['user_id']}">
                         <h5>${a['rows'][0]['friendly_name']}</h5>
                     </a>
                 </div>

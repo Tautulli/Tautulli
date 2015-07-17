@@ -146,7 +146,7 @@ class DataFactory(object):
                    '.user ELSE users.friendly_name END) as friendly_name',
                    t1 + '.player as platform',
                    t1 + '.ip_address',
-                   t2 + '.full_title as title',
+                   t2 + '.full_title as full_title',
                    t1 + '.started',
                    t1 + '.paused_counter',
                    t1 + '.stopped',
@@ -195,7 +195,7 @@ class DataFactory(object):
                    "friendly_name": item['friendly_name'],
                    "platform": item["platform"],
                    "ip_address": item["ip_address"],
-                   "title": item["title"],
+                   "full_title": item["full_title"],
                    "started": item["started"],
                    "paused_counter": item["paused_counter"],
                    "stopped": item["stopped"],
@@ -259,7 +259,7 @@ class DataFactory(object):
 
         columns = ['session_history.started as last_seen',
                    'session_history.ip_address as ip_address',
-                   'COUNT(session_history.ip_address) as play_count',
+                   'COUNT(session_history.id) as play_count',
                    'session_history.player as platform',
                    'session_history_metadata.full_title as last_watched',
                    'session_history.user as user',
@@ -413,9 +413,17 @@ class DataFactory(object):
                         'LIMIT 1'
                 result = monitor_db.select(query, args=[user, user])
             elif user_id:
-                query = 'SELECT user_id, username, friendly_name, email, thumb, ' \
-                        'is_home_user, is_allow_sync, is_restricted FROM users WHERE user_id = ? LIMIT 1'
-                result = monitor_db.select(query, args=[user_id])
+                query = 'SELECT user_id, username, friendly_name, email, ' \
+                        'thumb, is_home_user, is_allow_sync, is_restricted ' \
+                        'FROM users ' \
+                        'WHERE user_id = ? ' \
+                        'UNION ALL ' \
+                        'SELECT user_id, user, null, null, null, null, null, null ' \
+                        'FROM session_history ' \
+                        'WHERE user_id = ? ' \
+                        'GROUP BY user ' \
+                        'LIMIT 1'
+                result = monitor_db.select(query, args=[user_id, user_id])
             if result:
                 for item in result:
                     if not item['friendly_name']:
@@ -540,7 +548,8 @@ class DataFactory(object):
                             'users.friendly_name end) as friendly_name,' \
                             'COUNT(session_history.id) as total_plays, ' \
                             'MAX(session_history.started) as last_watch, ' \
-                            'users.thumb ' \
+                            'users.thumb, ' \
+                            'users.user_id ' \
                             'FROM session_history ' \
                             'JOIN session_history_metadata ON session_history.id = session_history_metadata.id ' \
                             'LEFT OUTER JOIN users ON session_history.user_id = users.user_id ' \
@@ -560,6 +569,7 @@ class DataFactory(object):
                         user_thumb = item[4]
 
                     row = {'user': item[0],
+                           'user_id': item[5],
                            'friendly_name': item[1],
                            'total_plays': item[2],
                            'last_play': item[3],

@@ -80,9 +80,9 @@ class DataTables(object):
                         % (column_data['column_string'], table_name, join, group_by,
                            where, order)
             else:
-                query = 'SELECT * FROM (SELECT * FROM (SELECT %s FROM %s %s GROUP BY %s) %s %s) %s' \
-                        % (column_data['column_string'], table_name, join, group_by,
-                           where, order, custom_where)
+                query = 'SELECT * FROM (SELECT %s FROM %s %s %s GROUP BY %s) %s %s' \
+                        % (column_data['column_string'], table_name, join, custom_where, group_by,
+                           where, order)
         else:
             if custom_where == '':
                 query = 'SELECT %s FROM %s %s %s %s' \
