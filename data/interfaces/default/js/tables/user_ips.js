@@ -35,14 +35,18 @@ user_ip_table_options = {
             "width": "15%",
             "className": "modal-control no-wrap",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (isPrivateIP(cellData)) {
-                    if (cellData != '') {
-                        $(td).html(cellData);
+                if (cellData) {
+                    if (isPrivateIP(cellData)) {
+                        if (cellData != '') {
+                            $(td).html(cellData);
+                        } else {
+                            $(td).html('n/a');
+                        }
                     } else {
-                        $(td).html('n/a');
+                        $(td).html('<a href="#ip-info-modal" data-toggle="modal"><span data-toggle="ip-tooltip" data-placement="left" title="IP Address Info" id="ip-info"><i class="icon-map-marker icon-white"></i></span>&nbsp' + cellData +'</a>');
                     }
                 } else {
-                    $(td).html('<a href="#ip-info-modal" data-toggle="modal"><span data-toggle="ip-tooltip" data-placement="left" title="IP Address Info" id="ip-info"><i class="icon-map-marker icon-white"></i></span>&nbsp' + cellData +'</a>');
+                    $(td).html('n/a');
                 }
             },
             "width": "15%"
