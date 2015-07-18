@@ -455,10 +455,12 @@ class WebInterface(object):
 
     @cherrypy.expose
     def do_state_change(self, signal, title, timer):
-        plexpy.SIGNAL = signal
         message = title
+        quote = self.random_arnold_quotes()
+        plexpy.SIGNAL = signal
+
         return serve_template(templatename="shutdown.html", title=title,
-                              message=message, timer=timer)
+                              message=message, timer=timer, quote=quote)
 
     @cherrypy.expose
     def get_history(self, user=None, user_id=None, **kwargs):

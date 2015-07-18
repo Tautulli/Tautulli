@@ -25,7 +25,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <div style="float: right;"><span class="muted" id="rquote"></span></div>
+                    <div style="float: right;"><span class="muted" id="rquote">${quote}</span></div>
                 </div>
             </div>
         </div>
@@ -45,16 +45,5 @@
         function reloadPage() {
             window.location.href = "index";
         }
-
-        $(document).ready(function () {
-            $.ajax({
-                url: 'random_arnold_quotes',
-                cache: false,
-                async: true,
-                success: function (data) {
-                    $("#rquote").html(data);
-                }
-            });
-        });
     </script>
 </%def>
