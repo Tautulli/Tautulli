@@ -52,7 +52,9 @@ class DataFactory(object):
             logger.warn("Unable to execute database query.")
             return {'recordsFiltered': 0,
                     'recordsTotal': 0,
-                    'data': 'null'},
+                    'draw': 0,
+                    'data': 'null',
+                    'error': 'Unable to execute database query.'}
 
         users = query['result']
 
@@ -78,6 +80,7 @@ class DataFactory(object):
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
                 'data': rows,
+                'draw': query['draw']
         }
 
         return dict
@@ -129,7 +132,9 @@ class DataFactory(object):
             logger.warn("Unable to execute database query.")
             return {'recordsFiltered': 0,
                     'recordsTotal': 0,
-                    'data': 'null'},
+                    'draw': 0,
+                    'data': 'null',
+                    'error': 'Unable to execute database query.'}
 
         history = query['result']
 
@@ -159,6 +164,7 @@ class DataFactory(object):
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
                 'data': rows,
+                'draw': query['draw']
         }
 
         return dict
@@ -188,7 +194,9 @@ class DataFactory(object):
             logger.warn("Unable to execute database query.")
             return {'recordsFiltered': 0,
                     'recordsTotal': 0,
-                    'data': 'null'},
+                    'draw': 0,
+                    'data': 'null',
+                    'error': 'Unable to execute database query.'}
 
         results = query['result']
 
@@ -206,6 +214,7 @@ class DataFactory(object):
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
                 'data': rows,
+                'draw': query['draw']
         }
 
         return dict

@@ -177,8 +177,12 @@ class DataTables(object):
         # Build grand totals
         totalcount = self.ssp_db.select('SELECT COUNT(id) from %s' % table_name)[0][0]
 
+        # Get draw counter
+        draw_counter = int(parameters['draw'])
+
         result = filtered[parameters['start']:(parameters['start'] + parameters['length'])]
         output = {'result': result,
+                  'draw': draw_counter,
                   'filteredCount': len(filtered),
                   'totalCount': totalcount}
 
