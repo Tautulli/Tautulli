@@ -68,11 +68,11 @@ users_list_table_options = {
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
-        $('html,body').scrollTop(0);
-        $('#ajaxMsg').addClass('success').fadeOut();
+        //$('html,body').scrollTop(0);
+        $('#ajaxMsg').fadeOut();
     },
     "preDrawCallback": function(settings) {
-        $('#ajaxMsg').html("<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...</div>");
-        $('#ajaxMsg').addClass('success').fadeIn();
+        var msg = "<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...</div>";
+        showMsg(msg, false, false, 0)
     }
 }

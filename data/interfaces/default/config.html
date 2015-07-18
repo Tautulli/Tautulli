@@ -835,13 +835,13 @@
             var configForm = $("#configUpdate");
             $('.save-button').click(function() {
                 if ($("#pms_identifier").val() == "") {
-                    showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your server.',false,true,2000)
+                    showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your server.',false,true,2000,true)
                 } else {
                     if (configForm.parsley().validate()) {
                         doAjaxCall('configUpdate',$(this),'tabs',true);
                         return false;
                     } else {
-                        showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your settings.',false,true,2000)
+                        showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your settings.',false,true,2000,true)
                     }
                 }
             });

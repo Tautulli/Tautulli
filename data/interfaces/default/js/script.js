@@ -23,7 +23,7 @@ function refreshTab() {
 	});
 }
 
-function showMsg(msg,loader,timeout,ms) {
+function showMsg(msg,loader,timeout,ms,error) {
 	var feedback = $("#ajaxMsg");
 	update = $("#updatebar");
 	if ( update.is(":visible") ) {
@@ -32,13 +32,18 @@ function showMsg(msg,loader,timeout,ms) {
 	} else {
 		feedback.removeAttr("style");
 	}
-	feedback.fadeIn();
 	var message = $("<div class='msg'>" + msg + "</div>");
 	if (loader) {
 		var message = $("<i class='fa fa-refresh fa-spin'></i> " + msg + "</div>");
 		feedback.css("padding","14px 10px")
 	}
-	$(feedback).prepend(message);
+	if (error) {
+		feedback.css("background-color", "rgba(255,0,0,0.5)");
+		console.log('is error');
+	}
+	$(feedback).html(message);
+	feedback.fadeIn();
+
 	if (timeout) {
 		setTimeout(function(){
 			message.fadeOut(function(){
