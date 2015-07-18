@@ -13,8 +13,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-# TODO: Implement with sqlite3 directly instead of using db class
-
 from plexpy import logger, helpers, database
 
 import re
@@ -28,159 +26,216 @@ class DataTables(object):
     def __init__(self):
         self.ssp_db = database.MonitorDatabase()
 
-    # TODO: Pass all parameters via kwargs
-    def ssp_query(self, table_name,
+    def ssp_query(self,
+                  table_name=None,
                   columns=[],
-                  start=0,
-                  length=0,
-                  order_column=0,
-                  order_dir='asc',
-                  search_value='',
-                  search_regex='',
-                  custom_where='',
-                  group_by='',
-                  join_type=None,
-                  join_table=None,
-                  join_evals=None,
+                  custom_where=[],
+                  group_by=[],
+                  join_types=[],
+                  join_tables=[],
+                  join_evals=[],
                   kwargs=None):
 
-        parameters = self.process_kwargs(kwargs)
+        if not table_name:
+            logger.error('PlexPy DataTables :: No table name received.')
+            return None
 
-        if group_by != '':
-            grouping = True
+        # Set default variable values
+        parameters = {}
+        args = []
+        group = ''
+        order = ''
+        where = ''
+        join = ''
+        c_where = ''
+
+        # Fetch all our parameters
+        if kwargs.get('json_data'):
+            parameters = helpers.process_json_kwargs(json_kwargs=kwargs.get('json_data'))
+        else:
+            logger.error('PlexPy DataTables :: Parameters for Datatables must be sent as a serialised json object '
+                         'named json_data.')
+            return None
+
+        dt_columns = parameters['columns']
+        extracted_columns = self.extract_columns(columns=columns)
+
+        # Build grouping
+        if group_by:
+            for g in group_by:
+                group += g + ', '
+            if group:
+                grouping = True
+                group = 'GROUP BY ' + group.rstrip(', ')
         else:
             grouping = False
 
-        column_data = self.extract_columns(columns)
-        where = self.construct_where(column_data, search_value, grouping, parameters)
-        order = self.construct_order(column_data, order_column, order_dir, parameters, table_name, grouping)
-        join = ''
+        # Build ordering
+        for o in parameters['order']:
+            sort_order = ' COLLATE NOCASE'
+            if o['dir'] == 'desc':
+                sort_order = ' COLLATE NOCASE DESC'
+            # We first see if a name was sent though for the column sort.
+            if dt_columns[int(o['column'])]['data']:
+                # We have a name, now check if it's a valid column name for our query
+                # so we don't just inject a random value
+                if any(d.lower() == dt_columns[int(o['column'])]['data'].lower()
+                       for d in extracted_columns['column_named']):
+                    order += dt_columns[int(o['column'])]['data'] + '%s' % sort_order
+                else:
+                    # if we receive a bogus name, rather not sort at all.
+                    pass
+            # If no name exists for the column, just use the column index to sort
+            else:
+                order += extracted_columns['column_named'][int(o['column'])]
 
-        if join_type:
-            join_iter = 0
-            for join_type_item in join_type:
-                if join_type_item.upper() == 'LEFT OUTER JOIN':
+            order += ', '
+
+        if order:
+            order = 'ORDER BY ' + order.rstrip(', ')
+
+        # Build where parameters
+        if parameters['search']['value']:
+            counter = 0
+            for s in parameters['columns']:
+                if s['searchable']:
+                    # We first see if a name was sent though for the column search.
+                    if s['data']:
+                        # We have a name, now check if it's a valid column name for our query
+                        # so we don't just inject a random value
+                        if any(d.lower() == s['data'].lower() for d in extracted_columns['column_named']):
+                            where += s['data'] + ' LIKE ? OR '
+                            args.append('%' + parameters['search']['value'] + '%')
+                        else:
+                            # if we receive a bogus name, rather not search at all.
+                            pass
+                    # If no name exists for the column, just use the column index to search
+                    else:
+                        where += extracted_columns['column_named'][counter] + ' LIKE ? OR '
+                        args.append('%' + parameters['search']['value'] + '%')
+
+                counter += 1
+
+            if where:
+                where = 'WHERE ' + where.rstrip(' OR ')
+
+        # Build join parameters
+        if join_types:
+            counter = 0
+            for join_type in join_types:
+                if join_type.upper() == 'LEFT OUTER JOIN':
                     join_item = 'LEFT OUTER JOIN %s ON %s = %s ' % \
-                                (join_table[join_iter], join_evals[join_iter][0], join_evals[join_iter][1])
-                elif join_type_item.upper() == 'JOIN' or join_type.upper() == 'INNER JOIN':
-                    join_item = 'INNER JOIN %s ON %s = %s ' % \
-                                (join_table[join_iter], join_evals[join_iter][0], join_evals[join_iter][1])
+                                (join_tables[counter], join_evals[counter][0], join_evals[counter][1])
+                elif join_type.upper() == 'JOIN' or join_type.upper() == 'INNER JOIN':
+                    join_item = 'JOIN %s ON %s = %s ' % \
+                                (join_tables[counter], join_evals[counter][0], join_evals[counter][1])
                 else:
                     join_item = ''
-                join_iter += 1
+
+                counter += 1
                 join += join_item
 
-        # TODO: custom_where is ugly and causes issues with reported total results
-        if custom_where != '':
-            custom_where = 'WHERE (' + custom_where + ')'
+        # Build custom where parameters
+        if custom_where:
+            for w in custom_where:
+                c_where += w[0] + ' = ? AND '
 
+                # The order of our args changes if we are grouping
+                if grouping:
+                    args.insert(0, w[1])
+                else:
+                    args.append(w[1])
+
+            if c_where:
+                c_where = 'WHERE ' + c_where.rstrip(' AND ')
+
+        # Build our queries
         if grouping:
-            if custom_where == '':
-                query = 'SELECT * FROM (SELECT %s FROM %s %s GROUP BY %s) %s %s' \
-                        % (column_data['column_string'], table_name, join, group_by,
+            if c_where == '':
+                query = 'SELECT * FROM (SELECT %s FROM %s %s %s) %s %s' \
+                        % (extracted_columns['column_string'], table_name, join, group,
                            where, order)
             else:
-                query = 'SELECT * FROM (SELECT %s FROM %s %s %s GROUP BY %s) %s %s' \
-                        % (column_data['column_string'], table_name, join, custom_where, group_by,
+                query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s) %s %s' \
+                        % (extracted_columns['column_string'], table_name, join, c_where, group,
                            where, order)
         else:
-            if custom_where == '':
+            if c_where == '':
                 query = 'SELECT %s FROM %s %s %s %s' \
-                        % (column_data['column_string'], table_name, join, where,
+                        % (extracted_columns['column_string'], table_name, join, where,
                            order)
             else:
                 query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s) %s' \
-                        % (column_data['column_string'], table_name, join, where,
-                           order, custom_where)
+                        % (extracted_columns['column_string'], table_name, join, where,
+                           order, c_where)
 
-        # logger.debug(u"Query string: %s" % query)
-        filtered = self.ssp_db.select(query)
+        # logger.debug(u"Query: %s" % query)
 
-        if search_value == '':
-            totalcount = len(filtered)
-        else:
-            totalcount = self.ssp_db.select('SELECT COUNT(*) from %s' % table_name)[0][0]
+        # Execute the query
+        filtered = self.ssp_db.select(query, args=args)
 
-        result = filtered[start:(start + length)]
+        # Build grand totals
+        totalcount = self.ssp_db.select('SELECT COUNT(id) from %s' % table_name)[0][0]
+
+        result = filtered[parameters['start']:(parameters['start'] + parameters['length'])]
         output = {'result': result,
                   'filteredCount': len(filtered),
                   'totalCount': totalcount}
 
         return output
 
+    # This method extracts column data from our column list
+    # The first parameter is required, the match_columns parameter is optional and will cause the function to
+    # only return results if the value also exists in the match_columns 'data' field
     @staticmethod
-    def construct_order(column_data, order_column, order_dir, parameters=None, table_name=None, grouped=False):
-        order = ''
-        if grouped:
-            sort_col = column_data['column_named'][order_column]
-        else:
-            sort_col = column_data['column_order'][order_column]
-        if parameters:
-            for parameter in parameters:
-                if parameter['data'] != '':
-                    if int(order_column) == parameter['index']:
-                        if parameter['data'] in column_data['column_named'] and parameter['orderable'] == 'true':
-                            if table_name and table_name != '':
-                                order = 'ORDER BY %s COLLATE NOCASE %s' % (sort_col, order_dir)
-                            else:
-                                order = 'ORDER BY %s COLLATE NOCASE %s' % (sort_col, order_dir)
-        else:
-            order = 'ORDER BY %s COLLATE NOCASE %s' % (sort_col, order_dir)
-
-        return order
-
-    @staticmethod
-    def construct_where(column_data, search_value='', grouping=False, parameters=None):
-        if search_value != '':
-            where = 'WHERE '
-            if parameters:
-                for column in column_data['column_named']:
-                    search_skip = False
-                    for parameter in parameters:
-                        if column.rpartition('.')[-1] in parameter['data']:
-                            if parameter['searchable'] == 'true':
-                                where += column + ' LIKE "%' + search_value + '%" OR '
-                                search_skip = True
-                            else:
-                                search_skip = True
-
-                    if not search_skip:
-                        where += column + ' LIKE "%' + search_value + '%" OR '
-            else:
-                for column in column_data['column_named']:
-                    where += column + ' LIKE "%' + search_value + '%" OR '
-
-            # TODO: This will break the query if all parameters are excluded
-            where = where[:-4]
-
-            return where
-        else:
-            where = ''
-
-            return where
-
-    @staticmethod
-    def extract_columns(columns=[]):
+    def extract_columns(columns=None, match_columns=None):
         columns_string = ''
         columns_literal = []
         columns_named = []
         columns_order = []
 
         for column in columns:
-            columns_string += column
-            columns_string += ', '
-            # TODO: make this case insensitive
-            if ' as ' in column:
-                columns_literal.append(column.rpartition(' as ')[0])
-                columns_named.append(column.rpartition(' as ')[-1].rpartition('.')[-1])
-                columns_order.append(column.rpartition(' as ')[-1])
+            # We allow using "as" in column names for more complex sql functions.
+            # This function breaks up the column to get all it's parts.
+            as_search = re.compile(' as ', re.IGNORECASE)
+
+            if re.search(as_search, column):
+                column_named = re.split(as_search, column)[1].rpartition('.')[-1]
+                column_literal = re.split(as_search, column)[0]
+                column_order = re.split(as_search, column)[1]
+                if match_columns:
+                    if any(d['data'].lower() == column_named.lower() for d in match_columns):
+                        columns_string += column + ', '
+                        columns_literal.append(column_literal)
+                        columns_named.append(column_named)
+                        columns_order.append(column_order)
+                else:
+                    columns_string += column + ', '
+                    columns_literal.append(column_literal)
+                    columns_named.append(column_named)
+                    columns_order.append(column_order)
             else:
-                columns_literal.append(column)
-                columns_named.append(column.rpartition('.')[-1])
-                columns_order.append(column)
+                column_named = column.rpartition('.')[-1]
+                if match_columns:
+                    if any(d['data'].lower() == column_named.lower() for d in match_columns):
+                        columns_string += column + ', '
+                        columns_literal.append(column)
+                        columns_named.append(column_named)
+                        columns_order.append(column)
+                else:
+                    columns_string += column + ', '
+                    columns_literal.append(column)
+                    columns_named.append(column_named)
+                    columns_order.append(column)
 
-        columns_string = columns_string[:-2]
+        columns_string = columns_string.rstrip(', ')
 
+        # We return a dict of the column params
+        # column_string is a comma seperated list of the exact column variables received.
+        # column_literal is the text before the "as" if we have an "as". Usually a function.
+        # column_named is the text after the "as", if we have an "as". Any table prefix is also stripped off.
+        #   We use this to match with columns received from the Datatables request.
+        # column_order is the text after the "as", if we have an "as". Any table prefix is left intact.
         column_data = {'column_string': columns_string,
                        'column_literal': columns_literal,
                        'column_named': columns_named,
@@ -188,32 +243,3 @@ class DataTables(object):
                        }
 
         return column_data
-
-    # TODO: Fix this method. Should not break if kwarg list is not sorted.
-    def process_kwargs(self, kwargs):
-
-        column_parameters = []
-
-        for kwarg in sorted(kwargs):
-            if re.search(r"\[(\w+)\]", kwarg) and kwarg[:7] == 'columns':
-                parameters = re.findall(r"\[(\w+)\]", kwarg)
-                array_index = ''
-                for parameter in parameters:
-                    pass_complete = False
-                    if parameter.isdigit():
-                        array_index = parameter
-                    if parameter == 'data':
-                        data = kwargs.get('columns[' + array_index + '][data]', "")
-                    if parameter == 'orderable':
-                        orderable = kwargs.get('columns[' + array_index + '][orderable]', "")
-                    if parameter == 'searchable':
-                        searchable = kwargs.get('columns[' + array_index + '][searchable]', "")
-                        pass_complete = True
-                    if pass_complete:
-                        row = {'index': int(array_index),
-                               'data': data,
-                               'searchable': searchable,
-                               'orderable': orderable}
-                        column_parameters.append(row)
-
-        return sorted(column_parameters, key=lambda i: i['index'])

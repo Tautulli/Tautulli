@@ -37,7 +37,6 @@ from plexpy import helpers
                         <th class="min-tablet" align="left" id="last_seen">Last Seen</th>
                         <th class="min-tablet" align="left" id="last_known_ip">Last Known IP</th>
                         <th class="min-tablet" align="left" id="total_plays">Total Plays</th>
-                        <th class="never" align="left" id="user"></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -59,7 +58,11 @@ from plexpy import helpers
 <script src="interfaces/default/js/tables/users.js"></script>
 <script>
         users_list_table_options.ajax = {
-            "url": "get_user_list"
+            "url": "get_user_list",
+            type: "post",
+            data: function ( d ) {
+                return { 'json_data': JSON.stringify( d ) };
+            }
         }
 
         var users_list_table = $('#users_list_table').DataTable(users_list_table_options);

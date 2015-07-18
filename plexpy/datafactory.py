@@ -20,63 +20,33 @@ import datetime
 
 class DataFactory(object):
     """
-    Retrieve and process data from the plexwatch database
+    Retrieve and process data from the monitor database
     """
 
     def __init__(self):
         pass
 
-    def get_user_list(self, start='', length='', kwargs=None):
+    def get_user_list(self, kwargs=None):
         data_tables = datatables.DataTables()
 
-        start = int(start)
-        length = int(length)
-        filtered = []
-        totalcount = 0
-        search_value = ""
-        search_regex = ""
-        order_column = 1
-        order_dir = "desc"
-
-        if 'order[0][dir]' in kwargs:
-            order_dir = kwargs.get('order[0][dir]', "desc")
-
-        if 'order[0][column]' in kwargs:
-            order_column = kwargs.get('order[0][column]', 1)
-
-        if 'search[value]' in kwargs:
-            search_value = kwargs.get('search[value]', "")
-
-        if 'search[regex]' in kwargs:
-            search_regex = kwargs.get('search[regex]', "")
-
-        t1 = 'session_history'
-        t2 = 'session_history_metadata'
-        t3 = 'users'
-
-        columns = [t1 + '.id',
-                   '(case when users.friendly_name is null then ' + t1 +
-                   '.user else users.friendly_name end) as friendly_name',
-                   t1 + '.started',
-                   t1 + '.ip_address',
-                   'COUNT(' + t1 + '.rating_key) as plays',
-                   t1 + '.user',
-                   t1 + '.user_id',
-                   'users.thumb as thumb']
+        columns = ['session_history.id',
+                   'users.thumb as thumb',
+                   '(case when users.friendly_name is null then session_history.user else \
+                    users.friendly_name end) as friendly_name',
+                   'session_history.started',
+                   'session_history.ip_address',
+                   'COUNT(session_history.rating_key) as plays',
+                   'session_history.user',
+                   'session_history.user_id'
+                   ]
         try:
-            query = data_tables.ssp_query(table_name=t1,
+            query = data_tables.ssp_query(table_name='session_history',
                                           columns=columns,
-                                          start=start,
-                                          length=length,
-                                          order_column=int(order_column),
-                                          order_dir=order_dir,
-                                          search_value=search_value,
-                                          search_regex=search_regex,
-                                          custom_where='',
-                                          group_by=(t1 + '.user_id'),
-                                          join_type=['LEFT OUTER JOIN'],
-                                          join_table=['users'],
-                                          join_evals=[[t1 + '.user_id', 'users.user_id']],
+                                          custom_where=[],
+                                          group_by=['session_history.user_id'],
+                                          join_types=['LEFT OUTER JOIN'],
+                                          join_tables=['users'],
+                                          join_evals=[['session_history.user_id', 'users.user_id']],
                                           kwargs=kwargs)
         except:
             logger.warn("Unable to execute database query.")
@@ -93,8 +63,9 @@ class DataFactory(object):
             else:
                 user_thumb = item['thumb']
 
-            row = {"plays": item['plays'],
-                   "time": item['started'],
+            row = {"id": item['id'],
+                   "plays": item['plays'],
+                   "started": item['started'],
                    "friendly_name": item["friendly_name"],
                    "ip_address": item["ip_address"],
                    "thumb": user_thumb,
@@ -111,73 +82,48 @@ class DataFactory(object):
 
         return dict
 
-    def get_history(self, start='', length='', kwargs=None, custom_where=''):
+    def get_history(self, kwargs=None, custom_where=None):
         data_tables = datatables.DataTables()
 
-        start = int(start)
-        length = int(length)
-        filtered = []
-        totalcount = 0
-        search_value = ""
-        search_regex = ""
-        order_column = 1
-        order_dir = "desc"
-
-        t1 = 'session_history'
-        t2 = 'session_history_metadata'
-        t3 = 'users'
-        t4 = 'session_history_media_info'
-
-        if 'order[0][dir]' in kwargs:
-            order_dir = kwargs.get('order[0][dir]', "desc")
-
-        if 'order[0][column]' in kwargs:
-            order_column = kwargs.get('order[0][column]', "1")
-
-        if 'search[value]' in kwargs:
-            search_value = kwargs.get('search[value]', "")
-
-        if 'search[regex]' in kwargs:
-            search_regex = kwargs.get('search[regex]', "")
-
-        columns = [t1 + '.id',
-                   t1 + '.started as date',
-                   '(CASE WHEN users.friendly_name IS NULL THEN ' + t1 +
+        columns = ['session_history.id',
+                   'session_history.started as date',
+                   '(CASE WHEN users.friendly_name IS NULL THEN session_history'
                    '.user ELSE users.friendly_name END) as friendly_name',
-                   t1 + '.player as platform',
-                   t1 + '.ip_address',
-                   t2 + '.full_title as full_title',
-                   t1 + '.started',
-                   t1 + '.paused_counter',
-                   t1 + '.stopped',
-                   'round((julianday(datetime(' + t1 + '.stopped, "unixepoch", "localtime")) - \
-                    julianday(datetime(' + t1 + '.started, "unixepoch", "localtime"))) * 86400) - \
-                    (CASE WHEN ' + t1 + '.paused_counter IS NULL THEN 0 ELSE ' + t1 + '.paused_counter END) as duration',
-                   '((CASE WHEN ' + t1 + '.view_offset IS NULL THEN 0.1 ELSE ' + t1 + '.view_offset * 1.0 END) / \
-                   (CASE WHEN ' + t2 + '.duration IS NULL THEN 1.0 ELSE ' + t2 + '.duration * 1.0 END) * 100) as percent_complete',
-                   t1 + '.grandparent_rating_key as grandparent_rating_key',
-                   t1 + '.rating_key as rating_key',
-                   t1 + '.user',
-                   t2 + '.media_type',
-                   t4 + '.video_decision',
-                   t1 + '.user_id as user_id'
+                   'session_history.player',
+                   'session_history.ip_address',
+                   'session_history_metadata.full_title as full_title',
+                   'session_history.started',
+                   'session_history.paused_counter',
+                   'session_history.stopped',
+                   'round((julianday(datetime(session_history.stopped, "unixepoch", "localtime")) - \
+                    julianday(datetime(session_history.started, "unixepoch", "localtime"))) * 86400) - \
+                    (CASE WHEN session_history.paused_counter IS NULL THEN 0 \
+                    ELSE session_history.paused_counter END) as duration',
+                   '((CASE WHEN session_history.view_offset IS NULL THEN 0.1 ELSE \
+                    session_history.view_offset * 1.0 END) / \
+                   (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 ELSE \
+                    session_history_metadata.duration * 1.0 END) * 100) as percent_complete',
+                   'session_history.grandparent_rating_key as grandparent_rating_key',
+                   'session_history.rating_key as rating_key',
+                   'session_history.user',
+                   'session_history_metadata.media_type',
+                   'session_history_media_info.video_decision',
+                   'session_history.user_id as user_id'
                    ]
         try:
-            query = data_tables.ssp_query(table_name=t1,
+            query = data_tables.ssp_query(table_name='session_history',
                                           columns=columns,
-                                          start=start,
-                                          length=length,
-                                          order_column=int(order_column),
-                                          order_dir=order_dir,
-                                          search_value=search_value,
-                                          search_regex=search_regex,
                                           custom_where=custom_where,
-                                          group_by='',
-                                          join_type=['LEFT OUTER JOIN', 'JOIN', 'JOIN'],
-                                          join_table=[t3, t2, t4],
-                                          join_evals=[[t1 + '.user_id', t3 + '.user_id'],
-                                                      [t1 + '.id', t2 + '.id'],
-                                                      [t1 + '.id', t4 + '.id']],
+                                          group_by=[],
+                                          join_types=['LEFT OUTER JOIN',
+                                                      'JOIN',
+                                                      'JOIN'],
+                                          join_tables=['users',
+                                                       'session_history_metadata',
+                                                       'session_history_media_info'],
+                                          join_evals=[['session_history.user_id', 'users.user_id'],
+                                                      ['session_history.id', 'session_history_metadata.id'],
+                                                      ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
         except:
             logger.warn("Unable to execute database query.")
@@ -188,12 +134,11 @@ class DataFactory(object):
         history = query['result']
 
         rows = []
-        # NOTE: We are adding in a blank xml field in order enable the Datatables "searchable" parameter
         for item in history:
             row = {"id": item['id'],
                    "date": item['date'],
                    "friendly_name": item['friendly_name'],
-                   "platform": item["platform"],
+                   "player": item["player"],
                    "ip_address": item["ip_address"],
                    "full_title": item["full_title"],
                    "started": item["started"],
@@ -209,21 +154,6 @@ class DataFactory(object):
                    "user_id": item["user_id"]
                    }
 
-            if item['paused_counter'] > 0:
-                row['paused_counter'] = item['paused_counter']
-            else:
-                row['paused_counter'] = 0
-
-            if item['started']:
-                if item['stopped'] > 0:
-                    stopped = item['stopped']
-                else:
-                    stopped = 0
-                if item['paused_counter'] > 0:
-                    paused_counter = item['paused_counter']
-                else:
-                    paused_counter = 0
-
             rows.append(row)
 
         dict = {'recordsFiltered': query['filteredCount'],
@@ -233,29 +163,8 @@ class DataFactory(object):
 
         return dict
 
-    def get_user_unique_ips(self, start='', length='', kwargs=None, custom_where=''):
+    def get_user_unique_ips(self, kwargs=None, custom_where=None):
         data_tables = datatables.DataTables()
-
-        start = int(start)
-        length = int(length)
-        filtered = []
-        totalcount = 0
-        search_value = ""
-        search_regex = ""
-        order_column = 0
-        order_dir = "desc"
-
-        if 'order[0][dir]' in kwargs:
-            order_dir = kwargs.get('order[0][dir]', "desc")
-
-        if 'order[0][column]' in kwargs:
-            order_column = kwargs.get('order[0][column]', 1)
-
-        if 'search[value]' in kwargs:
-            search_value = kwargs.get('search[value]', "")
-
-        if 'search[regex]' in kwargs:
-            search_regex = kwargs.get('search[regex]', "")
 
         columns = ['session_history.started as last_seen',
                    'session_history.ip_address as ip_address',
@@ -269,16 +178,10 @@ class DataFactory(object):
         try:
             query = data_tables.ssp_query(table_name='session_history',
                                           columns=columns,
-                                          start=start,
-                                          length=length,
-                                          order_column=int(order_column),
-                                          order_dir=order_dir,
-                                          search_value=search_value,
-                                          search_regex=search_regex,
                                           custom_where=custom_where,
-                                          group_by='session_history.ip_address',
-                                          join_type=['JOIN'],
-                                          join_table=['session_history_metadata'],
+                                          group_by=['ip_address'],
+                                          join_types=['JOIN'],
+                                          join_tables=['session_history_metadata'],
                                           join_evals=[['session_history.id', 'session_history_metadata.id']],
                                           kwargs=kwargs)
         except:

@@ -204,10 +204,10 @@ class WebInterface(object):
         return serve_template(templatename="stream_data.html", title="Stream Data", data=stream_data, user=user)
 
     @cherrypy.expose
-    def get_user_list(self, start=0, length=100, **kwargs):
+    def get_user_list(self, **kwargs):
 
         data_factory = datafactory.DataFactory()
-        users = data_factory.get_user_list(start, length, kwargs)
+        users = data_factory.get_user_list(kwargs=kwargs)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(users)
@@ -461,22 +461,22 @@ class WebInterface(object):
                               message=message, timer=timer)
 
     @cherrypy.expose
-    def get_history(self, start=0, length=100, user=None, user_id=None, **kwargs):
+    def get_history(self, user=None, user_id=None, **kwargs):
 
-        custom_where=''
+        custom_where=[]
         if user_id:
-            custom_where = 'user_id = "%s"' % user_id
+            custom_where = [['user_id', user_id]]
         elif user:
-            custom_where = 'user = "%s"' % user
+            custom_where = [['user', user]]
         if 'rating_key' in kwargs:
             rating_key = kwargs.get('rating_key', "")
-            custom_where = 'rating_key = %s' % rating_key
+            custom_where = [['rating_key', rating_key]]
         if 'grandparent_rating_key' in kwargs:
             rating_key = kwargs.get('grandparent_rating_key', "")
-            custom_where = 'grandparent_rating_key = %s' % rating_key
+            custom_where = [['grandparent_rating_key', rating_key]]
 
         data_factory = datafactory.DataFactory()
-        history = data_factory.get_history(start, length, kwargs, custom_where)
+        history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)
@@ -760,18 +760,16 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_user_ips(self, start=0, length=100, user_id=None, user=None, **kwargs):
+    def get_user_ips(self, user_id=None, user=None, **kwargs):
 
-        custom_where=''
+        custom_where=[]
         if user_id:
-            custom_where = 'user_id = "%s"' % user_id
+            custom_where = [['user_id', user_id]]
         elif user:
-            custom_where = 'user = "%s"' % user
+            custom_where = [['user', user]]
 
         data_factory = datafactory.DataFactory()
-        history = data_factory.get_user_unique_ips(start=start,
-                                                   length=length,
-                                                   kwargs=kwargs,
+        history = data_factory.get_user_unique_ips(kwargs=kwargs,
                                                    custom_where=custom_where)
 
         cherrypy.response.headers['Content-type'] = 'application/json'

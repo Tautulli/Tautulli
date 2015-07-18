@@ -28,17 +28,10 @@ history_table_options = {
     "processing": false,
     "serverSide": true,
     "pageLength": 25,
-    "order": [ 1, 'desc'],
+    "order": [ 0, 'desc'],
     "columnDefs": [
         {
             "targets": [0],
-            "data":"id",
-            "visible": false,
-            "searchable": false,
-            "className": "no-wrap"
-        },
-        {
-            "targets": [1],
             "data":"date",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (rowData['stopped'] === null) {
@@ -52,7 +45,7 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [2],
+            "targets": [1],
             "data":"friendly_name",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -68,8 +61,8 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [3],
-            "data":"platform",
+            "targets": [2],
+            "data":"player",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     $(td).html('<a href="#info-modal" data-toggle="modal"><span data-toggle="tooltip" data-placement="left" title="Stream Info" id="stream-info"><i class="fa fa-lg fa-info-circle"></i></span></a>&nbsp'+cellData);
@@ -78,7 +71,7 @@ history_table_options = {
             "className": "modal-control no-wrap"
         },
         {
-            "targets": [4],
+            "targets": [3],
             "data":"ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if ((cellData == '') || (cellData == '0')) {
@@ -88,9 +81,8 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [5],
+            "targets": [4],
             "data":"full_title",
-            "name":"full_title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['media_type'] === 'movie' || rowData['media_type'] === 'episode') {
@@ -108,7 +100,7 @@ history_table_options = {
             }
         },
         {
-            "targets": [6],
+            "targets": [5],
             "data":"started",
             "render": function ( data, type, full ) {
                 return moment(data, "X").format(time_format);
@@ -117,16 +109,20 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [7],
+            "targets": [6],
             "data":"paused_counter",
             "render": function ( data, type, full ) {
-                return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
+                if (data !== null) {
+                    return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
+                } else {
+                    return '0 mins';
+                }
             },
             "searchable": false,
             "className": "no-wrap"
         },
         {
-            "targets": [8],
+            "targets": [7],
             "data":"stopped",
             "render": function ( data, type, full ) {
                 if (data !== null) {
@@ -139,7 +135,7 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [9],
+            "targets": [8],
             "data":"duration",
             "render": function ( data, type, full ) {
                 if (data !== null) {
@@ -152,15 +148,13 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [10],
+            "targets": [9],
             "data":"percent_complete",
             "render": function ( data, type, full ) {
                 if (data > 80) {
                     return '<i class="fa fa-lg fa-circle"></i>'
-                    //return '<span class="badge">'+Math.round(data)+'%</span>';
                 } else if (data > 40) {
-                    return '<i class="fa fa-lg fa-adjust"></i>'
-                    //return '<span class="badge">100%</span>';
+                    return '<i class="fa fa-lg fa-adjust fa-rotate-180"></i>'
                 } else {
                     return '<i class="fa fa-lg fa-circle-o"></i>'
                 }
@@ -168,45 +162,7 @@ history_table_options = {
             "searchable": false,
             "orderable": true,
             "className": "no-wrap"
-        },
-        {
-            "targets": [11],
-            "data":"grandparent_rating_key",
-            "visible": false,
-            "searchable": false
-        },
-        {
-            "targets": [12],
-            "data":"rating_key",
-            "visible": false,
-            "searchable": false
-        },
-        {
-            "targets": [13],
-            "data":"media_type",
-            "searchable":false,
-            "visible":false
-        },
-        {
-            "targets": [14],
-            "data":"user",
-            "searchable":false,
-            "visible":false
-        },
-        {
-            "targets": [15],
-            "data":"video_decision",
-            "searchable":false,
-            "visible":false
-        },
-        {
-            "targets": [16],
-            "data":"user_id",
-            "searchable":false,
-            "visible":false
         }
-
-
     ],
     "drawCallback": function (settings) {
         // Jump to top of page

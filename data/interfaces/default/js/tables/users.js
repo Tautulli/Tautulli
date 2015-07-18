@@ -50,7 +50,7 @@ users_list_table_options = {
         },
         {
             "targets": [2],
-            "data": "time",
+            "data": "started",
             "render": function ( data, type, full ) {
                 return moment(data, "X").fromNow();
             }
@@ -63,12 +63,6 @@ users_list_table_options = {
         {
             "targets": [4],
             "data": "plays"
-        },
-        {
-            "targets": [5],
-            "data": "user",
-            "searchable": false,
-            "visible": false
         }
 
     ],

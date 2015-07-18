@@ -173,7 +173,6 @@ from plexpy import helpers
                 <table class="display" id="history_table" width="100%">
                     <thead>
                     <tr>
-                        <th class="never" align='left' id="id">ID</th>
                         <th class="all" align='left' id="time">Time</th>
                         <th class="all" align='left' id="friendly_name">User</th>
                         <th class="desktop" align='left' id="platform">Platform</th>
@@ -184,12 +183,6 @@ from plexpy import helpers
                         <th class="desktop" align='left' id="stopped">Stopped</th>
                         <th class="desktop" align='left' id="duration">Duration</th>
                         <th class="desktop" align='left' id="percent_complete"></th>
-                        <th class="never" align='left' id="grandparent_rating_key">grandparentRatingKey</th>
-                        <th class="never" align='left' id="rating_key">RatingKey</th>
-                        <th class="never" align='left' id="user"></th>
-                        <th class="never" align='left' id="media_type"></th>
-                        <th class="never" align='left' id="video_decision"></th>
-                        <th class="never" align='left' id="user_id"></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -246,8 +239,11 @@ from plexpy import helpers
     $(document).ready(function () {
         history_table_options.ajax = {
             "url": "get_history",
-            "data": function(d) {
-               d.rating_key = ${data['rating_key']};
+            type: 'post',
+            data: function ( d ) {
+                return { 'json_data': JSON.stringify( d ),
+                         'rating_key': ${data['rating_key']}
+                };
             }
         }
 
@@ -264,8 +260,11 @@ from plexpy import helpers
     $(document).ready(function () {
         history_table_options.ajax = {
             "url": "get_history",
-            "data": function(d) {
-               d.grandparent_rating_key = ${data['rating_key']};
+            type: 'post',
+            data: function ( d ) {
+                return { 'json_data': JSON.stringify( d ),
+                         'grandparent_rating_key': ${data['grandparent_rating_key']}
+                };
             }
         }
 

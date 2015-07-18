@@ -396,3 +396,10 @@ def get_xml_attr(xml_key, attribute, return_bool=False, default_return=''):
             return False
         else:
             return default_return
+
+def process_json_kwargs(json_kwargs):
+    params = {}
+    if json_kwargs:
+        params = json.loads(json_kwargs)
+
+    return params
