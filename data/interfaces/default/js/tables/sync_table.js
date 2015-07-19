@@ -7,7 +7,7 @@ sync_table_options = {
     "sPaginationType": "bootstrap",
     "order": [ 0, 'desc'],
     "pageLength": 25,
-    "stateSave": true,
+    "stateSave": false,
     "language": {
         "search":"Search: ",
         "lengthMenu":"Show _MENU_ lines per page",

@@ -1320,7 +1320,6 @@ input[type="color"]:focus,
 }
 input[type="radio"],
 input[type="checkbox"] {
-	margin: 4px 0 0;
 	*margin-top: 0;
 	/* IE7 */
 
@@ -8276,4 +8275,32 @@ ol.test >li {
 
 .table-card-back td {
 	font-size: 12px;
+}
+
+button.rounded {
+	padding: 4px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+      touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+    background-image: none;
+    background-color: #444;
+    border: 1px solid transparent;
+    border-radius: 14.5px;
+    outline:0px !important;
+    -webkit-appearance:none;
+}
+
+.rounded:hover{
+    color: #F9AA03;
 }

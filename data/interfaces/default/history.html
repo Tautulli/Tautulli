@@ -6,24 +6,22 @@ from plexpy import helpers
 <%def name="headIncludes()">
 <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
 <link rel="stylesheet" href="interfaces/default/css/dataTables.responsive.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
 </%def>
 
 <%def name="body()">
 
-<div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span12">
-            <div class="wellheader-bg">
-                <div class="dashboard-wellheader-no-chevron">
-                    <h2><i class="fa fa-history"></i> History</h2>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 <div class='container-fluid'>
     <div class='row-fluid'>
         <div class='span12'>
+            <div class='table-card-back'>
+                <div style="float: left;">
+                    <h2><i class="fa fa-history"></i> History</h2>
+                </div>
+                <div style="float: right;" class="button-bar">
+                </div>
+            </div>
+
             <div class='table-card-back'>
                 <table class="display" id="history_table" width="100%">
                     <thead>
@@ -57,6 +55,7 @@ from plexpy import helpers
 <%def name="javascriptIncludes()">
 
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.colVis.js"></script>
 <script src="interfaces/default/js/dataTables.responsive.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
@@ -72,6 +71,9 @@ from plexpy import helpers
         }
 
         history_table = $('#history_table').DataTable(history_table_options);
+
+        var colvis = new $.fn.dataTable.ColVis( history_table );
+        $( colvis.button() ).appendTo('div.button-bar');
     });
 
 </script>

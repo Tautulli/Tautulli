@@ -29,6 +29,7 @@ from plexpy import helpers
 
 <%def name="headIncludes()">
 <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
 <link rel="stylesheet" href="interfaces/default/css/dataTables.responsive.css">
 </%def>
 
@@ -173,10 +174,14 @@ from plexpy import helpers
         <div class="container-fluid">
             <div class="row-fluid">
                 <div class="span12">
-                    <div class="table-card-back">
-                        <h3>Watch History for <strong>
-                            <span class="set-username">${data['friendly_name']}</span>
-                        </strong></h3>
+                    <div class='table-card-back'>
+                        <div style="float: left;">
+                            <h3>Watch History for <strong>
+                                <span class="set-username">${data['friendly_name']}</span>
+                            </strong></h3>
+                        </div>
+                        <div style="float: right;" id="button-bar-history">
+                        </div>
                     </div>
                     <div class="table-card-back">
                         <table class="display" id="history_table" width="100%">
@@ -209,10 +214,14 @@ from plexpy import helpers
         <div class="container-fluid">
             <div class="row-fluid">
                 <div class="span12">
-                    <div class="table-card-back">
-                        <h3>Synced Items for <strong>
+                    <div class='table-card-back'>
+                        <div style="float: left;">
+                            <h3>Synced Items for <strong>
                             <span class="set-username">${data['friendly_name']}</span>
                         </strong></h3>
+                        </div>
+                        <div style="float: right;" id="button-bar-sync">
+                        </div>
                     </div>
                     <div class="table-card-back">
                         <table class="display" id="sync_table" width="100%">
@@ -245,6 +254,7 @@ from plexpy import helpers
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.colVis.js"></script>
 <script src="interfaces/default/js/dataTables.responsive.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
@@ -303,7 +313,10 @@ from plexpy import helpers
                         }
                     }
                     history_table = $('#history_table').DataTable(history_table_options);
-                    history_table.column(2).visible(false); // Hide the title column
+                    history_table.column(1).visible(false);
+
+                    var colvis = new $.fn.dataTable.ColVis( history_table );
+                    $( colvis.button() ).appendTo('#button-bar-history');
                 });
 
                 $( "#ip-tab-btn" ).one( "click", function() {
@@ -331,6 +344,9 @@ from plexpy import helpers
                         }
                     }
                     sync_table = $('#sync_table').DataTable(sync_table_options);
+
+                    var colvis_sync = new $.fn.dataTable.ColVis( sync_table );
+                    $( colvis_sync.button() ).appendTo('#button-bar-sync');
                 });
 
                 // Load edit user modal

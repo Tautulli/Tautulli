@@ -150,7 +150,7 @@ def initialize(config_file):
                              version_lock_file, e)
 
         # Check for new versions
-        if CONFIG.CHECK_GITHUB_ON_STARTUP:
+        if CONFIG.CHECK_GITHUB_ON_STARTUP and CONFIG.CHECK_GITHUB:
             try:
                 LATEST_VERSION = versioncheck.checkGithub()
             except:
@@ -255,7 +255,7 @@ def initialize_scheduler():
         start_jobs = not len(SCHED.get_jobs())
 
         # Update check
-        if CONFIG.CHECK_GITHUB_INTERVAL:
+        if CONFIG.CHECK_GITHUB_INTERVAL and CONFIG.CHECK_GITHUB:
             minutes = CONFIG.CHECK_GITHUB_INTERVAL
         else:
             minutes = 0

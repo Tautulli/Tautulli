@@ -326,6 +326,7 @@ class WebInterface(object):
             "freeze_db": checked(plexpy.CONFIG.FREEZE_DB),
             "log_dir": plexpy.CONFIG.LOG_DIR,
             "cache_dir": plexpy.CONFIG.CACHE_DIR,
+            "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),
             "interface_list": interface_list,
             "growl_enabled": checked(plexpy.CONFIG.GROWL_ENABLED),
             "growl_host": plexpy.CONFIG.GROWL_HOST,
@@ -411,7 +412,7 @@ class WebInterface(object):
 
         checked_configs = [
             "launch_browser", "enable_https", "api_enabled", "freeze_db", "growl_enabled",
-            "prowl_enabled", "xbmc_enabled",
+            "prowl_enabled", "xbmc_enabled", "check_github",
             "plex_enabled", "nma_enabled", "pushalot_enabled",
             "pushover_enabled", "pushbullet_enabled",
             "twitter_enabled", "osx_notify_enabled",
@@ -482,13 +483,6 @@ class WebInterface(object):
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)
-
-    @cherrypy.expose
-    def clear_all_history(self, **kwargs):
-        from plexpy import database
-
-        threading.Thread(target=database.clear_history_tables).start()
-        raise cherrypy.HTTPRedirect("config")
 
     @cherrypy.expose
     def shutdown(self):
@@ -923,8 +917,8 @@ class WebInterface(object):
 
     @cherrypy.expose
     def refresh_users_list(self, **kwargs):
-        plextv.refresh_users()
-        raise cherrypy.HTTPRedirect("users")
+        threading.Thread(target=plextv.refresh_users).start()
+        logger.info('Manual user list refresh requested.')
 
     @cherrypy.expose
     def get_sync(self, machine_id=None, user_id=None, **kwargs):

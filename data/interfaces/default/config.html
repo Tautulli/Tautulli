@@ -9,31 +9,22 @@
 </%def>
 
 <%def name="body()">
-
-    <div class="container-fluid">
-        <div class="row-fluid">
-            <div class="span12">
-                <div class="wellheader-bg">
-                    <div class="dashboard-wellheader-no-chevron">
-                        <div class="row-fluid">
-                            <div class="span9"><h2><i class="fa fa-cog"></i> Settings</h2></div>
-                            <div class="span3">
-                                <div class="pull-right">
-                                    <h5><a id="menu_link_shutdown" href="shutdown"><i class="fa fa-power-off"></i> Shut Down</a>
-                                    &nbsp<a id="menu_link_restart" href="restart"><i class="fa fa-refresh"></i> Restart</a></h5>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="container-fluid">
+<div class="container-fluid">
         <div class='row-fluid'>
             <div class='span12'>
-            <div class="card-back">
+                <div class='table-card-back'>
+                <div style="float: left;">
+                    <h2><i class="fa fa-cog"></i> Settings</h2>
+                </div>
+                <div style="float: right;" class="button-bar">
+                    % if config['check_github']:
+                    <button id="menu_link_update_check" class="rounded"><i class="fa fa-arrow-circle-up"></i> Check for Updates</button>
+                    % endif
+                    <button id="menu_link_restart" class="rounded"><i class="fa fa-refresh"></i> Restart</button>
+                    <button id="menu_link_shutdown" class="rounded alert"><i class="fa fa-power-off"></i> Shut Down</button>
+                </div>
+            </div>
+            <div class="table-card-back">
                 <form action="configUpdate" method="post" class="form" id="configUpdate" data-parsley-validate>
                     <div role="tabpanel">
                         <!-- Nav tabs -->
@@ -117,6 +108,15 @@
                                                         <input type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20">
                                                         <input type="button" class="btn btn-link" value="Generate" id="generate_api">
                                                         <p class="help-block">Current API key: <strong><br/>${config['api_key']}</strong></p>
+                                                    </div>
+                                                </fieldset>
+                                                <fieldset>
+                                                    <div class="wellheader">
+                                                        <h3>Software Updates</h3>
+                                                    </div>
+                                                    <div class="checkbox">
+                                                        <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
+                                                        <p class="help-block">If you have Git installed, allow periodic checks for updates.</p>
                                                     </div>
                                                 </fieldset>
                                             </div>
@@ -845,6 +845,20 @@
                     }
                 }
             });
+        });
+        $("#menu_link_shutdown").click(function() {
+            var r = confirm("Are you sure you want to shutdown PlexPy?");
+            if (r == true) {
+                window.location.href = "shutdown";
+            }
+        });
+
+        $("#menu_link_restart").click(function() {
+            window.location.href = "restart";
+        });
+
+        $("#menu_link_update_check").click(function() {
+            window.location.href = "checkGithub";
         });
 
         $( ".pms-settings" ).change(function() {

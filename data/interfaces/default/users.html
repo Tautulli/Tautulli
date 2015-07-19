@@ -9,25 +9,17 @@ from plexpy import helpers
 </%def>
 
 <%def name="body()">
-<div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span12">
-            <div class="wellheader-bg">
-                <div class="dashboard-wellheader-no-chevron">
-                    <div class="span9"><h2><i class="fa fa-group"></i> Active Users</h2></div>
-                    <div class="span3">
-                        <div class="pull-right">
-                            <h5><a href="refresh_users_list"><i class="fa fa-refresh"></i> Refresh users</a></h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 <div class='container-fluid'>
     <div class='row-fluid'>
         <div class='span12'>
+            <div class='table-card-back'>
+                <div style="float: left;">
+                    <h2><i class="fa fa-group"></i> Active Users</h2>
+                </div>
+                <div style="float: right;" class="button-bar">
+                    <button class="rounded" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
+                </div>
+            </div>
             <div class='table-card-back'>
                 <table id="users_list_table" class="display" width="100%">
                     <thead>
@@ -67,6 +59,19 @@ from plexpy import helpers
 
         var users_list_table = $('#users_list_table').DataTable(users_list_table_options);
 
+        $("#refresh-users-list").click(function() {
+            $.ajax({
+                url: 'refresh_users_list',
+                cache: false,
+                async: true,
+                success : function(data) {
+                    showMsg('<i class="fa fa-check"></i>&nbspUser list refresh started...',false,true,2000,false)
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh user list.',false,true,2000,true)
+                },
+            });
+        });
 
 </script>
 </%def>
