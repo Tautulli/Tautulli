@@ -5,7 +5,6 @@ from plexpy import helpers
 
 <%def name="headIncludes()">
 <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.responsive.css">
 <link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
 </%def>
 
@@ -18,7 +17,7 @@ from plexpy import helpers
                 <div class="header-bar">
                     <h2><i class="fa fa-history"></i> History</h2>
                 </div>
-                <div class="colvis-button-bar">
+                <div class="colvis-button-bar hidden-phone">
                 </div>
             </div>
 
@@ -26,16 +25,16 @@ from plexpy import helpers
                 <table class="display" id="history_table" width="100%">
                     <thead>
                     <tr>
-                        <th class="all" align='left' id="time">Time</th>
-                        <th class="min-tablet" align='left' id="friendly_name">User</th>
-                        <th class="desktop" align='left' id="platform">Platform</th>
-                        <th class="desktop" align='left' id="ip_address">IP Address</th>
-                        <th class="all" align='left' id="title">Title</th>
-                        <th class="min-tablet" align='left' id="started">Started</th>
-                        <th class="desktop" align='left' id="paused_counter">Paused</th>
-                        <th class="desktop" align='left' id="stopped">Stopped</th>
-                        <th class="desktop" align='left' id="duration">Duration</th>
-                        <th class="desktop" align='left' id="percent_complete"></th>
+                        <th align='left' id="time">Time</th>
+                        <th align='left' id="friendly_name">User</th>
+                        <th align='left' id="platform">Platform</th>
+                        <th align='left' id="ip_address">IP Address</th>
+                        <th align='left' id="title">Title</th>
+                        <th align='left' id="started">Started</th>
+                        <th align='left' id="paused_counter">Paused</th>
+                        <th align='left' id="stopped">Stopped</th>
+                        <th align='left' id="duration">Duration</th>
+                        <th align='left' id="percent_complete"></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -56,7 +55,6 @@ from plexpy import helpers
 
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
 <script src="interfaces/default/js/dataTables.colVis.js"></script>
-<script src="interfaces/default/js/dataTables.responsive.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/history_table.js"></script>
@@ -69,11 +67,9 @@ from plexpy import helpers
                 return { 'json_data': JSON.stringify( d ) };
             }
         }
-
         history_table = $('#history_table').DataTable(history_table_options);
-
-        var colvis = new $.fn.dataTable.ColVis( history_table );
-        $( colvis.button() ).appendTo('div.colvis-button-bar');
+        var colvis = new $.fn.dataTable.ColVis(history_table);
+        $(colvis.button()).appendTo('div.colvis-button-bar');
     });
 
 </script>

@@ -1,7 +1,4 @@
 user_ip_table_options = {
-    "responsive": {
-        details: false
-    },
     "destroy": true,
     "language": {
         "search": "Search: ",
@@ -11,7 +8,7 @@ user_ip_table_options = {
         "infoFiltered":"(filtered from _MAX_ total entries)",
         "emptyTable": "No data in table",
     },
-    "stateSave": false,
+    "stateSave": true,
     "sPaginationType": "bootstrap",
     "processing": false,
     "serverSide": true,
@@ -54,17 +51,20 @@ user_ip_table_options = {
         {
             "targets": [2],
             "data":"play_count",
-            "width": "10%"
+            "width": "10%",
+            "className": "hidden-phone"
         },
         {
             "targets": [3],
             "data":"platform",
-            "width": "15%"
+            "width": "15%",
+            "className": "hidden-phone"
         },
         {
             "targets": [4],
             "data":"last_watched",
-            "width": "30%"
+            "width": "30%",
+            "className": "hidden-tablet hidden-phone"
         }
     ],
     "drawCallback": function (settings) {

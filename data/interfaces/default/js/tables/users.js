@@ -1,7 +1,4 @@
 users_list_table_options = {
-    "responsive": {
-        details: false
-    },
     "language": {
         "search": "Search: ",
         "lengthMenu":"Show _MENU_ entries per page",
@@ -53,12 +50,14 @@ users_list_table_options = {
             "data": "started",
             "render": function ( data, type, full ) {
                 return moment(data, "X").fromNow();
-            }
+            },
+            "className": "hidden-phone",
         },
         {
             "targets": [3],
             "data": "ip_address",
-            "searchable": false
+            "searchable": false,
+            "className": "hidden-phone",
         },
         {
             "targets": [4],

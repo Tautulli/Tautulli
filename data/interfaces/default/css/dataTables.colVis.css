@@ -84,6 +84,7 @@ ul.ColVis_collection li {
 	right: 0;
 	display: block;
 	float: none;
+	padding: 0;
 }
 
 ul.ColVis_collection li {
@@ -120,4 +121,10 @@ div.ColVis_catcher {
 
 .disabled {
 	color: #999;
+}
+
+ul.ColVis_collection label {
+    display: block;
+    padding: 0.5em;
+    cursor: pointer;
 }

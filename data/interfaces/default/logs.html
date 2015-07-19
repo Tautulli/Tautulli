@@ -5,7 +5,6 @@ from plexpy import helpers
 
 <%def name="headIncludes()">
 <link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.responsive.css">
 <style>
     td {word-break: break-all;}
 </style>
@@ -51,9 +50,9 @@ from plexpy import helpers
                             <table class="display" id="plex_log_table" width="100%">
                                 <thead>
                                 <tr>
-                                    <th class="min-tablet" align='left' id="plex_timestamp">Timestamp</th>
-                                    <th class="desktop" align='left' id="plex_level">Level</th>
-                                    <th class="all" align='left' id="plex_message">Message</th>
+                                    <th align='left' id="plex_timestamp">Timestamp</th>
+                                    <th align='left' id="plex_level">Level</th>
+                                    <th align='left' id="plex_message">Message</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -84,7 +83,6 @@ from plexpy import helpers
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/dataTables.responsive.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
 <script src="interfaces/default/js/tables/logs.js"></script>
 <script src="interfaces/default/js/tables/plex_logs.js"></script>

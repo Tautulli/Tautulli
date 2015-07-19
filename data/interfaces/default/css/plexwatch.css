@@ -8331,14 +8331,6 @@ ol.test >li {
 	float: right;
 }
 
-@media (min-width: 1024px) {
-	.colvis-button-bar {
-		float: right;
-	}
-}
-
-@media (max-width: 1023px) {
-	.colvis-button-bar {
-		display: none;
-	}
+.colvis-button-bar {
+	float: right;
 }

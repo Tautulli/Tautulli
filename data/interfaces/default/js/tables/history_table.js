@@ -12,9 +12,6 @@ $.ajax({
 
 history_table_options = {
     "destroy": true,
-    "responsive": {
-        details: false
-    },
     "language": {
         "search": "Search: ",
         "lengthMenu":"Show _MENU_ entries per page",
@@ -23,8 +20,8 @@ history_table_options = {
         "infoFiltered":"(filtered from _MAX_ total entries)",
         "emptyTable": "No data in table",
     },
-    "stateSave": false,
     "sPaginationType": "bootstrap",
+    "stateSave": true,
     "processing": false,
     "serverSide": true,
     "pageLength": 25,
@@ -58,7 +55,7 @@ history_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "className": "no-wrap"
+            "className": "no-wrap hidden-phone"
         },
         {
             "targets": [2],
@@ -68,7 +65,7 @@ history_table_options = {
                     $(td).html('<a href="#info-modal" data-toggle="modal"><span data-toggle="tooltip" data-placement="left" title="Stream Info" id="stream-info"><i class="fa fa-lg fa-info-circle"></i></span></a>&nbsp'+cellData);
                 }
             },
-            "className": "modal-control no-wrap"
+            "className": "modal-control no-wrap hidden-tablet hidden-phone"
         },
         {
             "targets": [3],
@@ -78,7 +75,7 @@ history_table_options = {
                     $(td).html('n/a');
                 }
             },
-            "className": "no-wrap"
+            "className": "no-wrap hidden-phone"
         },
         {
             "targets": [4],
@@ -106,7 +103,7 @@ history_table_options = {
                 return moment(data, "X").format(time_format);
             },
             "searchable": false,
-            "className": "no-wrap"
+            "className": "no-wrap hidden-tablet hidden-phone"
         },
         {
             "targets": [6],
@@ -119,7 +116,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
-            "className": "no-wrap"
+            "className": "no-wrap hidden-phone"
         },
         {
             "targets": [7],
@@ -132,7 +129,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
-            "className": "no-wrap"
+            "className": "no-wrap hidden-tablet hidden-phone"
         },
         {
             "targets": [8],
@@ -145,7 +142,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
-            "className": "no-wrap"
+            "className": "no-wrap hidden-phone"
         },
         {
             "targets": [9],
@@ -161,7 +158,7 @@ history_table_options = {
             },
             "searchable": false,
             "orderable": true,
-            "className": "no-wrap"
+            "className": "no-wrap hidden-tablet hidden-phone"
         }
     ],
     "drawCallback": function (settings) {
