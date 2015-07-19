@@ -65,7 +65,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
                 // Add the new list items and their event handlers
                 for ( j=iStart ; j<=iEnd ; j++ ) {
                     sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
-                    $('<li '+sClass+'><a href="#">'+j+'</a></li>')
+                    $('<li '+sClass+'><a class="hidden-phone" href="#">'+j+'</a></li>')
                         .insertBefore( $('li:last', an[i])[0] )
                         .bind('click', function (e) {
                             e.preventDefault();

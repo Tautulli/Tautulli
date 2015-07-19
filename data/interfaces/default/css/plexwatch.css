@@ -8277,9 +8277,9 @@ ol.test >li {
 	font-size: 12px;
 }
 
-button.rounded {
+.rounded {
 	padding: 4px 12px;
-    margin-bottom: 0;
+    margin: 4px 4px 4px 0px;
     font-size: 14px;
     font-weight: normal;
     line-height: 1.42857143;
@@ -8301,6 +8301,44 @@ button.rounded {
     -webkit-appearance:none;
 }
 
-.rounded:hover{
+.rounded:hover {
     color: #F9AA03;
+}
+
+.rounded:active {
+    border: 1px solid #eb8600;
+}
+
+.rounded-primary {
+	background-color: #eb8600;
+	color: #f2f2f2;
+}
+
+.rounded-primary:hover {
+	color: #fff;
+}
+
+.rounded-primary:active {
+    border: 1px solid #444;
+    color: #444;
+}
+
+.header-bar {
+	float: left;
+}
+
+.button-bar {
+	float: right;
+}
+
+@media (min-width: 1024px) {
+	.colvis-button-bar {
+		float: right;
+	}
+}
+
+@media (max-width: 1023px) {
+	.colvis-button-bar {
+		display: none;
+	}
 }

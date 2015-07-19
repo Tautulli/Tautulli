@@ -175,12 +175,12 @@ from plexpy import helpers
             <div class="row-fluid">
                 <div class="span12">
                     <div class='table-card-back'>
-                        <div style="float: left;">
+                        <div class="header-bar">
                             <h3>Watch History for <strong>
                                 <span class="set-username">${data['friendly_name']}</span>
                             </strong></h3>
                         </div>
-                        <div style="float: right;" id="button-bar-history">
+                        <div class="colvis-button-bar" id="button-bar-history">
                         </div>
                     </div>
                     <div class="table-card-back">
@@ -191,12 +191,12 @@ from plexpy import helpers
                                 <th class="never" align='left' id="friendly_name">User</th>
                                 <th class="desktop" align='left' id="platform">Platform</th>
                                 <th class="desktop" align='left' id="ip_address">IP Address</th>
-                                <th class="min-tablet" align='left' id="title">Title</th>
+                                <th class="all" align='left' id="title">Title</th>
                                 <th class="min-tablet" align='left' id="started">Started</th>
                                 <th class="desktop" align='left' id="paused_counter">Paused</th>
-                                <th class="desktop" align='left' id="stopped">Stopped</th>
+                                <th class="min-tablet" align='left' id="stopped">Stopped</th>
                                 <th class="desktop" align='left' id="duration">Duration</th>
-                                <th class="desktop" align='left' id="percent_complete"></th>
+                                <th class="min-tablet" align='left' id="percent_complete"></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -215,12 +215,12 @@ from plexpy import helpers
             <div class="row-fluid">
                 <div class="span12">
                     <div class='table-card-back'>
-                        <div style="float: left;">
+                        <div class="header-bar">
                             <h3>Synced Items for <strong>
                             <span class="set-username">${data['friendly_name']}</span>
                         </strong></h3>
                         </div>
-                        <div style="float: right;" id="button-bar-sync">
+                        <div class="colvis-button-bar" id="button-bar-sync">
                         </div>
                     </div>
                     <div class="table-card-back">

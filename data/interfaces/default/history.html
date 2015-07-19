@@ -15,10 +15,10 @@ from plexpy import helpers
     <div class='row-fluid'>
         <div class='span12'>
             <div class='table-card-back'>
-                <div style="float: left;">
+                <div class="header-bar">
                     <h2><i class="fa fa-history"></i> History</h2>
                 </div>
-                <div style="float: right;" class="button-bar">
+                <div class="colvis-button-bar">
                 </div>
             </div>
 
@@ -27,10 +27,10 @@ from plexpy import helpers
                     <thead>
                     <tr>
                         <th class="all" align='left' id="time">Time</th>
-                        <th class="all" align='left' id="friendly_name">User</th>
+                        <th class="min-tablet" align='left' id="friendly_name">User</th>
                         <th class="desktop" align='left' id="platform">Platform</th>
                         <th class="desktop" align='left' id="ip_address">IP Address</th>
-                        <th class="min-tablet" align='left' id="title">Title</th>
+                        <th class="all" align='left' id="title">Title</th>
                         <th class="min-tablet" align='left' id="started">Started</th>
                         <th class="desktop" align='left' id="paused_counter">Paused</th>
                         <th class="desktop" align='left' id="stopped">Stopped</th>
@@ -73,7 +73,7 @@ from plexpy import helpers
         history_table = $('#history_table').DataTable(history_table_options);
 
         var colvis = new $.fn.dataTable.ColVis( history_table );
-        $( colvis.button() ).appendTo('div.button-bar');
+        $( colvis.button() ).appendTo('div.colvis-button-bar');
     });
 
 </script>

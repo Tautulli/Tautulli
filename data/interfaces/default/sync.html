@@ -20,10 +20,10 @@ from plexpy import helpers
     <div class='row-fluid'>
         <div class='span12'>
             <div class='table-card-back'>
-                <div style="float: left;">
+                <div class="header-bar">
                     <h2><i class="fa fa-cloud-download"></i> Synced Items</h2>
                 </div>
-                <div style="float: right;" class="button-bar">
+                <div class="colvis-button-bar">
                 </div>
             </div>
             <div class='table-card-back'>
@@ -68,7 +68,7 @@ from plexpy import helpers
         sync_table = $('#sync_table').DataTable(sync_table_options);
 
         var colvis = new $.fn.dataTable.ColVis( sync_table );
-        $( colvis.button() ).appendTo('div.button-bar');
+        $( colvis.button() ).appendTo('div.colvis-button-bar');
     });
 </script>
 </%def>

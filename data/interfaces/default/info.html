@@ -167,11 +167,11 @@ from plexpy import helpers
     <div class='row-fluid'>
         <div class='span12'>
             <div class='table-card-back'>
-                <div style="float: left;">
+                <div class="header-bar">
                     % if data['type'] == 'movie' or data['type'] == 'episode' or data['type'] == 'show':
                     <h3>Watch history for <strong>${data['title']}</strong></h3>
                 </div>
-                <div style="float: right;" class="button-bar">
+                <div class="colvis-button-bar">
                 </div>
             </div>
             <div class="table-card-back">
@@ -185,9 +185,9 @@ from plexpy import helpers
                         <th class="min-tablet" align='left' id="title">Title</th>
                         <th class="min-tablet" align='left' id="started">Started</th>
                         <th class="desktop" align='left' id="paused_counter">Paused</th>
-                        <th class="desktop" align='left' id="stopped">Stopped</th>
+                        <th class="min-tablet" align='left' id="stopped">Stopped</th>
                         <th class="desktop" align='left' id="duration">Duration</th>
-                        <th class="desktop" align='left' id="percent_complete"></th>
+                        <th class="min-tablet" align='left' id="percent_complete"></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -260,7 +260,7 @@ from plexpy import helpers
         history_table.column(4).visible(false);
 
         var colvis = new $.fn.dataTable.ColVis( history_table );
-        $( colvis.button() ).appendTo('div.button-bar');
+        $( colvis.button() ).appendTo('div.colvis-button-bar');
     });
 
 </script>
@@ -281,7 +281,7 @@ from plexpy import helpers
         history_table = $('#history_table').DataTable(history_table_options);
 
         var colvis = new $.fn.dataTable.ColVis( history_table );
-        $( colvis.button() ).appendTo('div.button-bar');
+        $( colvis.button() ).appendTo('div.colvis-button-bar');
     });
 
 
