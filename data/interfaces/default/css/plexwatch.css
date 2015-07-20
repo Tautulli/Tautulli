@@ -1405,7 +1405,7 @@ textarea::-webkit-input-placeholder {
 .radio input[type="radio"],
 .checkbox input[type="checkbox"] {
 	float: left;
-	margin-left: -25px;
+	margin-left: -20px;
 	margin-top: 2px;
 }
 .controls > .radio:first-child,
@@ -8333,4 +8333,57 @@ ol.test >li {
 
 .colvis-button-bar {
 	float: right;
+}
+
+.settings-pane {
+	padding: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 90%;
+    overflow: hidden;
+}
+
+@media (min-width: 768px) {
+	.settings-pane-options-list {
+		float: left;
+		width: 25%;
+	}
+	.settings-pane-content {
+		margin-left: 25%;
+		padding-left: 40px;
+	}
+}
+
+.nav-settings,
+.nav-settings ul {
+	margin: 0px 0px 20px 0px;
+}
+
+.nav-settings > li {
+	list-style: none;
+	background-color: #282828;
+	width: 100%;
+	max-width: 320px;
+	min-width: 200px;
+}
+
+.nav-settings > li > a {
+	display: block;
+	padding: 15px 15px 15px 15px;
+	color: #999;
+}
+
+.nav-settings > li > a:hover,
+.nav-settings > li > a:focus {
+	color: #eee;
+	background-color: #2f2f2f;
+}
+
+.nav-settings > .active > a,
+.nav-settings > .active > a:hover,
+.nav-settings > .active > a:focus {
+	color: #eb8600;
+	background-color: #2f2f2f;
 }

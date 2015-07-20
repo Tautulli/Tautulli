@@ -86,7 +86,8 @@ class WebInterface(object):
             "music_notify_on_start": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_START),
             "video_logging_enable": checked(plexpy.CONFIG.VIDEO_LOGGING_ENABLE),
             "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
-            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
+            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
+            "check_github": checked(plexpy.CONFIG.CHECK_GITHUB)
         }
 
         # The setup wizard just refreshes the page on submit so we must redirect to home if config set.
@@ -405,6 +406,114 @@ class WebInterface(object):
         }
 
         return serve_template(templatename="config.html", title="Settings", config=config)
+
+    @cherrypy.expose
+    def settings(self):
+        interface_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/')
+        interface_list = [name for name in os.listdir(interface_dir) if
+                          os.path.isdir(os.path.join(interface_dir, name))]
+
+        # Initialise blank passwords so we do not expose them in the html forms
+        # but users are still able to clear them
+        if plexpy.CONFIG.HTTP_PASSWORD != '':
+            http_password = '    '
+        else:
+            http_password = ''
+
+        config = {
+            "http_host": plexpy.CONFIG.HTTP_HOST,
+            "http_username": plexpy.CONFIG.HTTP_USERNAME,
+            "http_port": plexpy.CONFIG.HTTP_PORT,
+            "http_password": http_password,
+            "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
+            "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),
+            "https_cert": plexpy.CONFIG.HTTPS_CERT,
+            "https_key": plexpy.CONFIG.HTTPS_KEY,
+            "api_enabled": checked(plexpy.CONFIG.API_ENABLED),
+            "api_key": plexpy.CONFIG.API_KEY,
+            "update_db_interval": plexpy.CONFIG.UPDATE_DB_INTERVAL,
+            "freeze_db": checked(plexpy.CONFIG.FREEZE_DB),
+            "log_dir": plexpy.CONFIG.LOG_DIR,
+            "cache_dir": plexpy.CONFIG.CACHE_DIR,
+            "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),
+            "interface_list": interface_list,
+            "growl_enabled": checked(plexpy.CONFIG.GROWL_ENABLED),
+            "growl_host": plexpy.CONFIG.GROWL_HOST,
+            "growl_password": plexpy.CONFIG.GROWL_PASSWORD,
+            "prowl_enabled": checked(plexpy.CONFIG.PROWL_ENABLED),
+            "prowl_keys": plexpy.CONFIG.PROWL_KEYS,
+            "prowl_priority": plexpy.CONFIG.PROWL_PRIORITY,
+            "xbmc_enabled": checked(plexpy.CONFIG.XBMC_ENABLED),
+            "xbmc_host": plexpy.CONFIG.XBMC_HOST,
+            "xbmc_username": plexpy.CONFIG.XBMC_USERNAME,
+            "xbmc_password": plexpy.CONFIG.XBMC_PASSWORD,
+            "plex_enabled": checked(plexpy.CONFIG.PLEX_ENABLED),
+            "plex_client_host": plexpy.CONFIG.PLEX_CLIENT_HOST,
+            "plex_username": plexpy.CONFIG.PLEX_USERNAME,
+            "plex_password": plexpy.CONFIG.PLEX_PASSWORD,
+            "nma_enabled": checked(plexpy.CONFIG.NMA_ENABLED),
+            "nma_apikey": plexpy.CONFIG.NMA_APIKEY,
+            "nma_priority": int(plexpy.CONFIG.NMA_PRIORITY),
+            "pushalot_enabled": checked(plexpy.CONFIG.PUSHALOT_ENABLED),
+            "pushalot_apikey": plexpy.CONFIG.PUSHALOT_APIKEY,
+            "pushover_enabled": checked(plexpy.CONFIG.PUSHOVER_ENABLED),
+            "pushover_keys": plexpy.CONFIG.PUSHOVER_KEYS,
+            "pushover_apitoken": plexpy.CONFIG.PUSHOVER_APITOKEN,
+            "pushover_priority": plexpy.CONFIG.PUSHOVER_PRIORITY,
+            "pushbullet_enabled": checked(plexpy.CONFIG.PUSHBULLET_ENABLED),
+            "pushbullet_apikey": plexpy.CONFIG.PUSHBULLET_APIKEY,
+            "pushbullet_deviceid": plexpy.CONFIG.PUSHBULLET_DEVICEID,
+            "twitter_enabled": checked(plexpy.CONFIG.TWITTER_ENABLED),
+            "osx_notify_enabled": checked(plexpy.CONFIG.OSX_NOTIFY_ENABLED),
+            "osx_notify_app": plexpy.CONFIG.OSX_NOTIFY_APP,
+            "boxcar_enabled": checked(plexpy.CONFIG.BOXCAR_ENABLED),
+            "boxcar_token": plexpy.CONFIG.BOXCAR_TOKEN,
+            "cache_sizemb": plexpy.CONFIG.CACHE_SIZEMB,
+            "email_enabled": checked(plexpy.CONFIG.EMAIL_ENABLED),
+            "email_from": plexpy.CONFIG.EMAIL_FROM,
+            "email_to": plexpy.CONFIG.EMAIL_TO,
+            "email_smtp_server": plexpy.CONFIG.EMAIL_SMTP_SERVER,
+            "email_smtp_user": plexpy.CONFIG.EMAIL_SMTP_USER,
+            "email_smtp_password": plexpy.CONFIG.EMAIL_SMTP_PASSWORD,
+            "email_smtp_port": int(plexpy.CONFIG.EMAIL_SMTP_PORT),
+            "email_tls": checked(plexpy.CONFIG.EMAIL_TLS),
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
+            "pms_ip": plexpy.CONFIG.PMS_IP,
+            "pms_logs_folder": plexpy.CONFIG.PMS_LOGS_FOLDER,
+            "pms_port": plexpy.CONFIG.PMS_PORT,
+            "pms_token": plexpy.CONFIG.PMS_TOKEN,
+            "pms_ssl": checked(plexpy.CONFIG.PMS_SSL),
+            "pms_use_bif": checked(plexpy.CONFIG.PMS_USE_BIF),
+            "pms_uuid": plexpy.CONFIG.PMS_UUID,
+            "plexwatch_database": plexpy.CONFIG.PLEXWATCH_DATABASE,
+            "date_format": plexpy.CONFIG.DATE_FORMAT,
+            "time_format": plexpy.CONFIG.TIME_FORMAT,
+            "grouping_global_history": checked(plexpy.CONFIG.GROUPING_GLOBAL_HISTORY),
+            "grouping_user_history": checked(plexpy.CONFIG.GROUPING_USER_HISTORY),
+            "grouping_charts": checked(plexpy.CONFIG.GROUPING_CHARTS),
+            "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
+            "movie_notify_enable": checked(plexpy.CONFIG.MOVIE_NOTIFY_ENABLE),
+            "music_notify_enable": checked(plexpy.CONFIG.MUSIC_NOTIFY_ENABLE),
+            "tv_notify_on_start": checked(plexpy.CONFIG.TV_NOTIFY_ON_START),
+            "movie_notify_on_start": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_START),
+            "music_notify_on_start": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_START),
+            "tv_notify_on_stop": checked(plexpy.CONFIG.TV_NOTIFY_ON_STOP),
+            "movie_notify_on_stop": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_STOP),
+            "music_notify_on_stop": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_STOP),
+            "tv_notify_on_pause": checked(plexpy.CONFIG.TV_NOTIFY_ON_PAUSE),
+            "movie_notify_on_pause": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_PAUSE),
+            "music_notify_on_pause": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_PAUSE),
+            "monitoring_interval": plexpy.CONFIG.MONITORING_INTERVAL,
+            "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
+            "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
+            "ip_logging_enable": checked(plexpy.CONFIG.IP_LOGGING_ENABLE),
+            "video_logging_enable": checked(plexpy.CONFIG.VIDEO_LOGGING_ENABLE),
+            "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
+            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
+            "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE)
+        }
+
+        return serve_template(templatename="settings.html", title="Settings", config=config)
 
     @cherrypy.expose
     def configUpdate(self, **kwargs):
