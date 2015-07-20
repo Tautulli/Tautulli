@@ -1044,5 +1044,5 @@ class WebInterface(object):
                       'I\'m a cop you idiot!'
                       ]
 
-        random_number = randint(0, len(quote_list))
+        random_number = randint(0, len(quote_list) - 1)
         return quote_list[int(random_number)]
