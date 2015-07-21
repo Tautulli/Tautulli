@@ -1,0 +1,53 @@
+% if data:
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
+            class="fa fa-remove"></i></button>
+    <h3 id="notification-config-modal-header">Set Config</h3>
+</div>
+<div class="modal-body" id="">
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <form action="set_notification_config" method="post" class="form" id="set_notification_config" data-parsley-validate>
+            <div class="span6">
+            % for item in data:
+                % if item['input_type'] != 'checkbox':
+                <div class="form-group">
+                    <label for="${item['name']}">${item['label']}</label>
+                    <input type="${item['input_type']}" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30">
+                    % if item['name'] == 'osx_notify_app':
+                        <input type="button" class="btn btn-link" value="Register" id="osxnotifyregister">
+                    % endif
+                    <p class="help-block">${item['description']}</p>
+                </div>
+                % elif item['input_type'] == 'checkbox':
+                <div class="checkbox">
+                    <input type="checkbox" id="${item['name']}" name="${item['name']}" value="1" ${item['value']}> ${item['label']}
+                    <p class="help-block">${item['description']}</p>
+                </div>
+                % endif
+            % endfor
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <div class="">
+        <input type="button" id="save-notification-item" class="rounded rounded-primary" value="Save">
+    </div>
+</div>
+% endif
+
+<script>
+    $('#osxnotifyregister').click(function () {
+        var osx_notify_app = $("#osx_notify_app").val();
+        $.get("/osxnotifyregister", {'app': osx_notify_app}, function (data) { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>"+data+"</div>"); });
+        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut()
+    })
+
+    var notificationConfig = $("#set_notification_config");
+    $('#save-notification-item').click(function() {
+        doAjaxCall('set_notification_config',$(this),'tabs',true);
+        return false;
+    });
+</script>

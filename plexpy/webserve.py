@@ -564,6 +564,30 @@ class WebInterface(object):
         raise cherrypy.HTTPRedirect("config")
 
     @cherrypy.expose
+    def set_notification_config(self, **kwargs):
+        # Handle the variable config options. Note - keys with False values aren't getting passed
+
+        checked_configs = [
+            "email_tls"
+        ]
+        for checked_config in checked_configs:
+            if checked_config not in kwargs:
+                # checked items should be zero or one. if they were not sent then the item was not checked
+                kwargs[checked_config] = 0
+
+        for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
+            # the use prefix is fairly nice in the html, but does not match the actual config
+            kwargs[plain_config] = kwargs[use_config]
+            del kwargs[use_config]
+
+        plexpy.CONFIG.process_kwargs(kwargs)
+
+        # Write the config
+        plexpy.CONFIG.write()
+
+        raise cherrypy.HTTPRedirect("settings")
+
+    @cherrypy.expose
     def do_state_change(self, signal, title, timer):
         message = title
         quote = self.random_arnold_quotes()
@@ -1155,3 +1179,12 @@ class WebInterface(object):
 
         random_number = randint(0, len(quote_list) - 1)
         return quote_list[int(random_number)]
+
+    @cherrypy.expose
+    def get_notification_agent_config(self, config_id, **kwargs):
+        config = notifiers.get_notification_agent_config(config_id=config_id)
+
+        checkboxes = {'email_tls': checked(plexpy.CONFIG.EMAIL_TLS)}
+
+        return serve_template(templatename="notification_config.html", title="Notification Configuration",
+                              data=config, checkboxes=checkboxes)

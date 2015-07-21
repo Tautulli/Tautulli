@@ -8367,6 +8367,7 @@ ol.test >li {
 	width: 100%;
 	max-width: 320px;
 	min-width: 200px;
+	border-top: 1px solid #2d2d2d;
 }
 
 .nav-settings > li > a {
@@ -8386,4 +8387,44 @@ ol.test >li {
 .nav-settings > .active > a:focus {
 	color: #eb8600;
 	background-color: #2f2f2f;
+}
+
+.stacked-configs,
+.stacked-configs ul {
+	margin: 0px 0px 20px 0px;
+}
+
+.stacked-configs > li {
+	list-style: none;
+	background-color: #282828;
+	width: 100%;
+	min-width: 320px;
+	max-width: 768px;
+}
+
+.stacked-configs > li > span {
+	display: block;
+	padding: 8px 20px 8px 15px;
+	color: #eee;
+	border-left: 2px solid #444;
+	border-top: 1px solid #2d2d2d;
+}
+
+.stacked-configs > li > span:hover,
+.stacked-configs > li > span:focus {
+	color: #eee;
+	background-color: #2f2f2f;
+}
+
+.stacked-configs > li > span > a {
+	float: right;
+	color: #999;
+}
+
+.stacked-configs > li > span > a:hover {
+	color: #eee;
+}
+
+.stacked-configs > li > span > input[type='checkbox'] {
+
 }

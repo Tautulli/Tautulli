@@ -14,6 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from plexpy import logger, helpers, common, request
+from plexpy.helpers import checked, radio
 
 from xml.dom import minidom
 from httplib import HTTPSConnection
@@ -37,6 +38,131 @@ import pythontwitter as twitter
 from email.mime.text import MIMEText
 import smtplib
 import email.utils
+
+AGENT_IDS = {"Growl": 0,
+             "Prowl": 1,
+             "XBMC": 2,
+             "Plex": 3,
+             "NMA": 4,
+             "PushAlot": 5,
+             "PushBullet": 6,
+             "PushOver": 7,
+             "OSX Notify": 8,
+             "Boxcar2": 9,
+             "Email": 10}
+
+def available_notification_agents():
+    agents = [{'name': 'Growl',
+               'id': AGENT_IDS['Growl'],
+               'config_name': 'growl_enabled',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.GROWL_ENABLED)
+               },
+              {'name': 'Prowl',
+               'id': AGENT_IDS['Prowl'],
+               'config_name': 'prowl_enabled',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.PROWL_ENABLED)
+               },
+              {'name': 'XBMC',
+               'id': AGENT_IDS['XBMC'],
+               'config_name': 'xbmc_enabled',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.XBMC_ENABLED)
+               },
+              {'name': 'Plex',
+               'id': AGENT_IDS['Plex'],
+               'config_name': 'plex_enabled',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.PLEX_ENABLED)
+               },
+              {'name': 'NotifyMyAndroid',
+               'id': AGENT_IDS['NMA'],
+               'config_name': 'nma_enabled',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.NMA_ENABLED)
+               },
+              {'name': 'PushAlot',
+               'id': AGENT_IDS['PushAlot'],
+               'config_name': 'pushalot_enabled',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.PUSHALOT_ENABLED)
+               },
+              {'name': 'PushBullet',
+               'id': AGENT_IDS['PushBullet'],
+               'config_name': 'pushbullet_enabled',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.PUSHBULLET_ENABLED)
+               },
+              {'name': 'PushOver',
+               'id': AGENT_IDS['PushOver'],
+               'config_name': 'pushover_enabled',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.PUSHOVER_ENABLED)
+               },
+              {'name': 'OSX Notify',
+               'id': AGENT_IDS['OSX Notify'],
+               'config_name': 'osx_notify_enabled',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.OSX_NOTIFY_ENABLED)
+               },
+              {'name': 'Boxcar2',
+               'id': AGENT_IDS['Boxcar2'],
+               'config_name': 'boxcar_enabled',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.BOXCAR_ENABLED)
+               },
+              {'name': 'E-mail',
+               'id': AGENT_IDS['Email'],
+               'config_name': 'email_enabled',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.EMAIL_ENABLED)
+               }
+              ]
+
+    return agents
+
+def get_notification_agent_config(config_id):
+    if config_id:
+        config_id = int(config_id)
+
+        if config_id == 0:
+            growl = GROWL()
+            return growl.return_config_options()
+        elif config_id == 1:
+            prowl = PROWL()
+            return prowl.return_config_options()
+        elif config_id == 2:
+            xbmc = XBMC()
+            return xbmc.return_config_options()
+        elif config_id == 3:
+            plex = Plex()
+            return plex.return_config_options()
+        elif config_id == 4:
+            nma = NMA()
+            return nma.return_config_options()
+        elif config_id == 5:
+            pushalot = PUSHALOT()
+            return pushalot.return_config_options()
+        elif config_id == 6:
+            pushbullet = PUSHBULLET()
+            return pushbullet.return_config_options()
+        elif config_id == 7:
+            pushover = PUSHOVER()
+            return pushover.return_config_options()
+        elif config_id == 8:
+            osx_notify = OSX_NOTIFY()
+            return osx_notify.return_config_options()
+        elif config_id == 9:
+            boxcar = BOXCAR()
+            return boxcar.return_config_options()
+        elif config_id == 10:
+            email = Email()
+            return email.return_config_options()
+        else:
+            return []
+    else:
+        return []
 
 
 class GROWL(object):
@@ -124,6 +250,22 @@ class GROWL(object):
 
         self.notify('ZOMG Lazors Pewpewpew!', 'Test Message')
 
+    def return_config_options(self):
+        config_option = [{'label': 'Host',
+                          'value': self.host,
+                          'name': 'growl_host',
+                          'description': 'Set the hostname.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Password',
+                          'value': self.password,
+                          'name': 'growl_password',
+                          'description': 'Set the password.',
+                          'input_type': 'password'
+                          }
+                         ]
+
+        return config_option
 
 class PROWL(object):
     """
@@ -177,6 +319,23 @@ class PROWL(object):
         self.priority = priority
 
         self.notify('ZOMG Lazors Pewpewpew!', 'Test Message')
+
+    def return_config_options(self):
+        config_option = [{'label': 'API Key',
+                          'value': self.keys,
+                          'name': 'prowl_keys',
+                          'description': 'Set the API key.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Priority (-2,-1,0,1 or 2)',
+                          'value': self.priority,
+                          'name': 'prowl_priority',
+                          'description': 'Set the priority.',
+                          'input_type': 'number'
+                          }
+                         ]
+
+        return config_option
 
 class XBMC(object):
     """
@@ -239,11 +398,32 @@ class XBMC(object):
             except Exception:
                 logger.error('Error sending notification request to XBMC')
 
+    def return_config_options(self):
+        config_option = [{'label': 'XBMC Host:Port',
+                          'value': self.hosts,
+                          'name': 'xbmc_host',
+                          'description': 'e.g. http://localhost:8080. Separate hosts with commas.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Username',
+                          'value': self.username,
+                          'name': 'xbmc_username',
+                          'description': 'Set the Username.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Password',
+                          'value': self.password,
+                          'name': 'xbmc_password',
+                          'description': 'Set the Password.',
+                          'input_type': 'password'
+                          }
+                         ]
+
+        return config_option
 
 class Plex(object):
     def __init__(self):
 
-        self.server_hosts = plexpy.CONFIG.PLEX_SERVER_HOST
         self.client_hosts = plexpy.CONFIG.PLEX_CLIENT_HOST
         self.username = plexpy.CONFIG.PLEX_USERNAME
         self.password = plexpy.CONFIG.PLEX_PASSWORD
@@ -296,6 +476,28 @@ class Plex(object):
             except:
                 logger.warn('Error sending notification request to Plex Media Server')
 
+    def return_config_options(self):
+        config_option = [{'label': 'Plex Client Host:Port',
+                          'value': self.client_hosts,
+                          'name': 'plex_client_host',
+                          'description': 'Host running Plex Client (eg. http://192.168.1.100:3000).',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Plex Username',
+                          'value': self.username,
+                          'name': 'plex_username',
+                          'description': 'Username of your Plex client API (blank for none).',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Plex Password',
+                          'value': self.password,
+                          'name': 'plex_password',
+                          'description': 'Password of your Plex client API (blank for none).',
+                          'input_type': 'password'
+                          }
+                         ]
+
+        return config_option
 
 class NMA(object):
     def notify(self, subject=None, message=None):
@@ -329,6 +531,22 @@ class NMA(object):
         else:
             return True
 
+    def return_config_options(self):
+        config_option = [{'label': 'NotifyMyAndroid API Key',
+                          'value': plexpy.CONFIG.NMA_APIKEY,
+                          'name': 'nma_apikey',
+                          'description': 'Separate multiple api keys with commas.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Priority',
+                          'value': plexpy.CONFIG.NMA_PRIORITY,
+                          'name': 'nma_priority',
+                          'description': 'Priority (-2,-1,0,1 or 2).',
+                          'input_type': 'number'
+                          }
+                         ]
+
+        return config_option
 
 class PUSHBULLET(object):
 
@@ -378,6 +596,22 @@ class PUSHBULLET(object):
 
         self.notify('Main Screen Activate', 'Test Message')
 
+    def return_config_options(self):
+        config_option = [{'label': 'API Key',
+                          'value': self.apikey,
+                          'name': 'pushbullet_apikey',
+                          'description': 'Your Pushbullet API key.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Device ID',
+                          'value': self.deviceid,
+                          'name': 'pushbullet_deviceid',
+                          'description': 'A device ID (optional).',
+                          'input_type': 'text'
+                          }
+                         ]
+
+        return config_option
 
 class PUSHALOT(object):
 
@@ -418,6 +652,16 @@ class PUSHALOT(object):
                 logger.info(u"Pushalot notification failed.")
                 return False
 
+    def return_config_options(self):
+        config_option = [{'label': 'API Key',
+                          'value': plexpy.CONFIG.PUSHALOT_APIKEY,
+                          'name': 'pushalot_apikey',
+                          'description': 'Your Pushalot API key.',
+                          'input_type': 'text'
+                          }
+                         ]
+
+        return config_option
 
 class PUSHOVER(object):
 
@@ -477,6 +721,28 @@ class PUSHOVER(object):
 
         self.notify('Main Screen Activate', 'Test Message')
 
+    def return_config_options(self):
+        config_option = [{'label': 'API Key',
+                          'value': self.keys,
+                          'name': 'pushover_keys',
+                          'description': 'Your Pushover API key.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Priority',
+                          'value': self.priority,
+                          'name': 'pushover_priority',
+                          'description': 'Priority (-1,0, or 1).',
+                          'input_type': 'number'
+                          },
+                         {'label': 'API Token',
+                          'value': self.priority,
+                          'name': 'pushover_apitoken',
+                          'description': 'Leave blank to use PlexPy default.',
+                          'input_type': 'text'
+                          }
+                         ]
+
+        return config_option
 
 class TwitterNotifier(object):
 
@@ -579,7 +845,6 @@ class TwitterNotifier(object):
 
         return self._send_tweet(prefix + ": " + message)
 
-
 class OSX_NOTIFY(object):
 
     def __init__(self):
@@ -641,6 +906,17 @@ class OSX_NOTIFY(object):
     def swizzled_bundleIdentifier(self, original, swizzled):
         return 'ade.plexpy.osxnotify'
 
+    def return_config_options(self):
+        config_option = [{'label': 'Register Notify App',
+                          'value': plexpy.CONFIG.OSX_NOTIFY_APP,
+                          'name': 'osx_notify_app',
+                          'description': 'Enter the path/application name to be registered with the '
+                                         'Notification Center, default is /Applications/PlexPy.',
+                          'input_type': 'text'
+                          }
+                         ]
+
+        return config_option
 
 class BOXCAR(object):
 
@@ -668,6 +944,16 @@ class BOXCAR(object):
             logger.warn('Error sending Boxcar2 Notification: %s' % e)
             return False
 
+    def return_config_options(self):
+        config_option = [{'label': 'Access Token',
+                          'value': plexpy.CONFIG.BOXCAR_TOKEN,
+                          'name': 'boxcar_token',
+                          'description': 'Your Boxcar access token.',
+                          'input_type': 'text'
+                          }
+                         ]
+
+        return config_option
 
 class Email(object):
 
@@ -696,3 +982,50 @@ class Email(object):
         except Exception, e:
             logger.warn('Error sending Email: %s' % e)
             return False
+
+    def return_config_options(self):
+        config_option = [{'label': 'From',
+                          'value': plexpy.CONFIG.EMAIL_FROM,
+                          'name': 'email_from',
+                          'description': 'Who should the sender be.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'To',
+                          'value': plexpy.CONFIG.EMAIL_TO,
+                          'name': 'email_to',
+                          'description': 'Who should the recipeint be.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'SMTP Server',
+                          'value': plexpy.CONFIG.EMAIL_SMTP_SERVER,
+                          'name': 'email_smtp_server',
+                          'description': 'Host for the SMTP server.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'SMTP Port',
+                          'value': plexpy.CONFIG.EMAIL_SMTP_PORT,
+                          'name': 'email_smtp_port',
+                          'description': 'Port for the SMTP server.',
+                          'input_type': 'number'
+                          },
+                         {'label': 'SMTP User',
+                          'value': plexpy.CONFIG.EMAIL_SMTP_USER,
+                          'name': 'email_smtp_user',
+                          'description': 'User for the SMTP server.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'SMTP Password',
+                          'value': plexpy.CONFIG.EMAIL_SMTP_PASSWORD,
+                          'name': 'email_smtp_password',
+                          'description': 'Password for the SMTP server.',
+                          'input_type': 'password'
+                          },
+                         {'label': 'TLS',
+                          'value': checked(plexpy.CONFIG.EMAIL_TLS),
+                          'name': 'email_tls',
+                          'description': 'Does the server use encryption.',
+                          'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
