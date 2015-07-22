@@ -120,13 +120,10 @@ from plexpy import version
                 <p class="help-block">PlexPy supports a wide variety of notification options. To set up a notification agent conifgure this in <strong>Settings -> Notification Agents</strong>
                 after you have completed this setup wizard.</p><br/>
                 <div class="wizard-input-section">
-                    <input type="checkbox" name="movie_notify_on_start" id="movie_notify_on_start" value="1" ${config['movie_notify_on_start']}> Enable notifications on Movie playback
+                    <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable notifications on Movie and TV playback
                 </div>
                 <div class="wizard-input-section">
-                    <input type="checkbox" name="tv_notify_on_start" id="tv_notify_on_start" value="1" ${config['tv_notify_on_start']}> Enable notifications on TV playback
-                </div>
-                <div class="wizard-input-section">
-                    <input type="checkbox" name="music_notify_on_start" id="music_notify_on_start" value="1" ${config['music_notify_on_start']}> Enable notifications on Music playback
+                    <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1" ${config['music_notify_enable']}> Enable notifications on Music playback
                 </div>
             </div>
 
@@ -159,9 +156,6 @@ from plexpy import version
                     <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}>
                     <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}>
                     <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
-                    <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1">
-                    <input type="checkbox" name="tv_notify_enable" id="tv_notify_enable" value="1">
-                    <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1">
                     <input type="checkbox" name="check_github" id="check_github" value="1" checked>
                 </div>
             </div>

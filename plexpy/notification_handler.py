@@ -17,74 +17,63 @@ from plexpy import logger, config, notifiers
 
 import plexpy
 
+def notify(stream_data=None, notify_action=None):
+    from plexpy import pmsconnect, common
+    
+    if stream_data and notify_action:
+        # Get the server name
+        pms_connect = pmsconnect.PmsConnect()
+        server_name = pms_connect.get_server_pref(pref='FriendlyName')
 
-def push_nofitications(push_message=None, subject=None, status_message=None):
+        # Build the notification heading
+        notify_header = 'PlexPy (%s)' % server_name
 
-    if push_message:
-        if not subject:
-            subject = 'PlexPy'
+        # Build media item title
+        if stream_data['media_type'] == 'episode' or stream_data['media_type'] == 'track':
+            item_title = '%s - %s' % (stream_data['grandparent_title'], stream_data['title'])
+        elif stream_data['media_type'] == 'movie':
+            item_title = stream_data['title']
+        else:
+            item_title = stream_data['title']
 
-        if plexpy.CONFIG.GROWL_ENABLED:
-            logger.info(u"Growl request")
-            growl = notifiers.GROWL()
-            growl.notify(push_message, status_message)
+        if notify_action == 'play':
+            logger.info('PlexPy Monitor :: %s (%s) started playing %s.' % (stream_data['friendly_name'],
+                                                                           stream_data['player'], item_title))
 
-        if plexpy.CONFIG.PROWL_ENABLED:
-            logger.info(u"Prowl request")
-            prowl = notifiers.PROWL()
-            prowl.notify(push_message, status_message)
+        if stream_data['media_type'] == 'movie' or stream_data['media_type'] == 'episode':
+            if plexpy.CONFIG.MOVIE_NOTIFY_ENABLE or plexpy.CONFIG.TV_NOTIFY_ENABLE:
 
-        if plexpy.CONFIG.XBMC_ENABLED:
-            xbmc = notifiers.XBMC()
-            if plexpy.CONFIG.XBMC_NOTIFY:
-                xbmc.notify(subject, push_message)
+                for agent in notifiers.available_notification_agents():
+                    if agent['on_play'] and notify_action == 'play':
+                        logger.debug("%s agent is configured to notify on playback start." % agent['name'])
+                        message = '%s (%s) started playing %s.' % \
+                              (stream_data['friendly_name'], stream_data['player'], item_title)
+                        notifiers.send_notification(config_id=agent['id'], subject=notify_header, body=message)
+                    elif agent['on_stop'] and notify_action == 'stop':
+                        logger.debug("%s agent is configured to notify on playback stop." % agent['name'])
+                        message = '%s (%s) has stopped %s.' % \
+                              (stream_data['friendly_name'], stream_data['player'], item_title)
+                        notifiers.send_notification(config_id=agent['id'], subject=notify_header, body=message)
 
-        if plexpy.CONFIG.PLEX_ENABLED:
-            plex = notifiers.Plex()
-            if plexpy.CONFIG.PLEX_NOTIFY:
-                plex.notify(subject, push_message)
+        elif stream_data['media_type'] == 'track':
+            if plexpy.CONFIG.MUSIC_NOTIFY_ENABLE:
 
-        if plexpy.CONFIG.NMA_ENABLED:
-            nma = notifiers.NMA()
-            nma.notify(subject, push_message)
+                for agent in notifiers.available_notification_agents():
+                    if agent['on_play'] and notify_action == 'play':
+                        logger.debug("%s agent is configured to notify on playback start." % agent['name'])
+                        message = '%s (%s) started playing %s.' % \
+                              (stream_data['friendly_name'], stream_data['player'], item_title)
+                        notifiers.send_notification(config_id=agent['id'], subject=notify_header, body=message)
+                    elif agent['on_stop'] and notify_action == 'stop':
+                        logger.debug("%s agent is configured to notify on playback stop." % agent['name'])
+                        message = '%s (%s) has stopped %s.' % \
+                              (stream_data['friendly_name'], stream_data['player'], item_title)
+                        notifiers.send_notification(config_id=agent['id'], subject=notify_header, body=message)
 
-        if plexpy.CONFIG.PUSHALOT_ENABLED:
-            logger.info(u"Pushalot request")
-            pushalot = notifiers.PUSHALOT()
-            pushalot.notify(push_message, status_message)
-
-        if plexpy.CONFIG.PUSHOVER_ENABLED:
-            logger.info(u"Pushover request")
-            pushover = notifiers.PUSHOVER()
-            pushover.notify(push_message, status_message)
-
-        if plexpy.CONFIG.PUSHBULLET_ENABLED:
-            logger.info(u"PushBullet request")
-            pushbullet = notifiers.PUSHBULLET()
-            pushbullet.notify(push_message, status_message)
-
-        if plexpy.CONFIG.TWITTER_ENABLED:
-            logger.info(u"Sending Twitter notification")
-            twitter = notifiers.TwitterNotifier()
-            twitter.notify_download(push_message)
-
-        if plexpy.CONFIG.OSX_NOTIFY_ENABLED:
-            # TODO: Get thumb in notification
-            # from plexpy import cache
-            # c = cache.Cache()
-            # album_art = c.get_artwork_from_cache(None, release['AlbumID'])
-            logger.info(u"Sending OS X notification")
-            osx_notify = notifiers.OSX_NOTIFY()
-            osx_notify.notify(subject, push_message)
-
-        if plexpy.CONFIG.BOXCAR_ENABLED:
-            logger.info(u"Sending Boxcar2 notification")
-            boxcar = notifiers.BOXCAR()
-            boxcar.notify(subject, push_message)
-
-        if plexpy.CONFIG.EMAIL_ENABLED:
-            logger.info(u"Sending Email notification")
-            email = notifiers.Email()
-            email.notify(subject=subject, message=push_message)
+        elif stream_data['media_type'] == 'clip':
+            pass
+        else:
+            logger.debug(u"PlexPy Monitor :: Notify called with unsupported media type.")
+            pass
     else:
-        logger.warning('Notification requested but no message received.')
+        logger.debug(u"PlexPy Monitor :: Notify called but incomplete data received.")

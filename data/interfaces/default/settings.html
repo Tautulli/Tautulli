@@ -275,66 +275,12 @@
                                     <div class="wellheader">
                                         <h3>Global Notifications</h3>
                                     </div>
-                                    <dl>
-                                        <dt>
-                                            <div class="checkbox">
-                                                <input type="checkbox" name="tv_notify_enable" id="tv_notify_enable" value="1" ${config['tv_notify_enable']}> Enable TV Notifications
-                                            </div>
-                                        </dt>
-                                        <dd>
-                                            <div id="tv_notify_options" data-parsley-group="tv_notify">
-                                                <div class="checkbox">
-                                                    <input type="checkbox" name="tv_notify_on_start" id="tv_notify_on_start" value="1" ${config['tv_notify_on_start']}> Notify on playback start
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input type="checkbox" name="tv_notify_on_stop" id="tv_notify_on_stop" value="1" ${config['tv_notify_on_stop']}> Notify on playback stop
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input type="checkbox" name="tv_notify_on_pause" id="tv_notify_on_pause" value="1" ${config['tv_notify_on_pause']}> Notify on playback pause
-                                                </div>
-                                            </div>
-                                        </dd>
-                                    </dl>
-                                    <dl>
-                                        <dt>
-                                            <div class="checkbox">
-                                                <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable Movie Notifications
-                                            </div>
-                                        </dt>
-                                        <dd>
-                                            <div id="movie_notify_options" data-parsley-group="movie_notify">
-                                                <div class="checkbox">
-                                                    <input type="checkbox" name="movie_notify_on_start" id="movie_notify_on_start" value="1" ${config['movie_notify_on_start']}> Notify on playback start
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input type="checkbox" name="movie_notify_on_stop" id="movie_notify_on_stop" value="1" ${config['movie_notify_on_stop']}> Notify on playback stop
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input type="checkbox" name="movie_notify_on_pause" id="movie_notify_on_pause" value="1" ${config['movie_notify_on_pause']}> Notify on playback pause
-                                                </div>
-                                            </div>
-                                        </dd>
-                                    </dl>
-                                    <dl>
-                                        <dt>
-                                            <div class="checkbox">
-                                                <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1" ${config['music_notify_enable']}> Enable Music Notifications
-                                            </div>
-                                        </dt>
-                                        <dd>
-                                            <div id="music_notify_options" data-parsley-group="music_notify">
-                                                <div class="checkbox">
-                                                    <input type="checkbox" name="music_notify_on_start" id="music_notify_on_start" value="1" ${config['music_notify_on_start']}> Notify on playback start
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input type="checkbox" name="music_notify_on_stop" id="music_notify_on_stop" value="1" ${config['music_notify_on_stop']}> Notify on playback stop
-                                                </div>
-                                                <div class="checkbox">
-                                                    <input type="checkbox" name="music_notify_on_pause" id="music_notify_on_pause" value="1" ${config['music_notify_on_pause']}> Notify on playback pause
-                                                </div>
-                                            </div>
-                                        </dd>
-                                    </dl>
+                                    <div class="checkbox">
+                                        <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable Movie and TV Notifications
+                                    </div>
+                                    <div class="checkbox">
+                                        <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1" ${config['music_notify_enable']}> Enable Music Notifications
+                                    </div>
                                 </fieldset>
                                 <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
@@ -344,23 +290,27 @@
                                         <h3>Notification Agents</h3>
                                     </div>
                                     <p class="help-block">
-                                        Check the desired notification option and configure it by selecting the settings icon to the right.
+                                        Toggle the desired notification option and configure it by selecting the settings icon to the right.
+                                        Watched notifications are only applicable for video items.
                                     </p>
                                     <br/>
                                     <ul class="stacked-configs">
                                         % for agent in available_notification_agents:
                                         <li>
                                             <span>
-                                                <input type="checkbox" name="${agent['config_name']}" id="${agent['config_name']}" value="1" ${agent['state']}> ${agent['name']}
+                                                <!--<input type="checkbox" name="${agent['config_prefix']}_enabled" id="${agent['config_prefix']}" value="1" ${agent['state']}> ${agent['name']}-->
+                                                <i class="fa fa-play notify-toggle-icon" data-toggle="tooltip" data-placement="top" title data-title="Notify on playback start" data-id="${agent['id']}" data-config-name="${agent['config_prefix']}_on_play" data-config-value="${agent['on_play']}"></i>
+                                                <i class="fa fa-stop notify-toggle-icon" data-toggle="tooltip" data-placement="top" title data-title="Notify on stop" data-id="${agent['id']}" data-config-name="${agent['config_prefix']}_on_stop" data-config-value="${agent['on_stop']}"></i>
+                                                <!--<i class="fa fa-eye notify-toggle-icon"  data-toggle="tooltip" data-placement="top" title data-title="Notify on watched" data-id="${agent['id']}" data-config-name="${agent['config_prefix']}_on_watched" data-config-value="${agent['on_watched']}"></i>-->
+                                                ${agent['name']}
                                                 % if agent['has_config']:
-                                                <a href="#notification-config-modal" data-id="${agent['id']}" class="toggle-notification-config-modal" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
+                                                <a href="#notification-config-modal" rel="tooltip" data-placement="top" title data-title="Open configuration" data-id="${agent['id']}" class="toggle-notification-config-modal" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
                                                 % endif
                                             </span>
                                         </li>
                                         % endfor
                                     </ul>
                                 </fieldset>
-                                <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
                         </div>
                         </form>
@@ -705,6 +655,47 @@
                 $("#notification-config-modal").html(xhr.responseText);
             }
         });
+    });
+
+    $('.notify-toggle-icon').tooltip();
+
+    $('.notify-toggle-icon').each(function() {
+        if ($(this).data('config-value') == 1) {
+            $(this).css("color", "#eb8600");
+            $(this).addClass("active");
+        } else {
+            $(this).css("color", "#444");
+        }
+    });
+
+    $('.notify-toggle-icon').click(function() {
+        var configToggle = $(this).data('id');
+        var toggle = $(this);
+        if ($(this).hasClass("active")) {
+            var data = {};
+            data[$(this).data('config-name')] = 0;
+            $.ajax({
+                url: 'set_notification_config',
+                data: data,
+                async: true,
+                success: function(data) {
+                    toggle.css("color", "#444");
+                    toggle.removeClass("active");
+                }
+            });
+        } else {
+            var data = {};
+            data[$(this).data('config-name')] = 1;
+            $.ajax({
+                url: 'set_notification_config',
+                data: data,
+                async: true,
+                success: function(data) {
+                    toggle.css("color", "#eb8600");
+                    toggle.addClass("active");
+                }
+            });
+        }
     });
 
     if ($("#tv_notify_enable").is(":checked"))

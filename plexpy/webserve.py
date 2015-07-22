@@ -585,7 +585,7 @@ class WebInterface(object):
         # Write the config
         plexpy.CONFIG.write()
 
-        raise cherrypy.HTTPRedirect("settings")
+        cherrypy.response.status = 200
 
     @cherrypy.expose
     def do_state_change(self, signal, title, timer):

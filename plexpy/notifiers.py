@@ -54,69 +54,102 @@ AGENT_IDS = {"Growl": 0,
 def available_notification_agents():
     agents = [{'name': 'Growl',
                'id': AGENT_IDS['Growl'],
-               'config_name': 'growl_enabled',
+               'config_prefix': 'growl',
                'has_config': True,
-               'state': checked(plexpy.CONFIG.GROWL_ENABLED)
+               'state': checked(plexpy.CONFIG.GROWL_ENABLED),
+               'on_play': plexpy.CONFIG.GROWL_ON_PLAY,
+               'on_stop': plexpy.CONFIG.GROWL_ON_STOP,
+               'on_watched': plexpy.CONFIG.GROWL_ON_WATCHED
                },
               {'name': 'Prowl',
                'id': AGENT_IDS['Prowl'],
-               'config_name': 'prowl_enabled',
+               'config_prefix': 'prowl',
                'has_config': True,
-               'state': checked(plexpy.CONFIG.PROWL_ENABLED)
+               'state': checked(plexpy.CONFIG.PROWL_ENABLED),
+               'on_play': plexpy.CONFIG.PROWL_ON_PLAY,
+               'on_stop': plexpy.CONFIG.PROWL_ON_STOP,
+               'on_watched': plexpy.CONFIG.PROWL_ON_WATCHED
                },
               {'name': 'XBMC',
                'id': AGENT_IDS['XBMC'],
-               'config_name': 'xbmc_enabled',
+               'config_prefix': 'xbmc',
                'has_config': True,
-               'state': checked(plexpy.CONFIG.XBMC_ENABLED)
+               'state': checked(plexpy.CONFIG.XBMC_ENABLED),
+               'on_play': plexpy.CONFIG.XBMC_ON_PLAY,
+               'on_stop': plexpy.CONFIG.XBMC_ON_STOP,
+               'on_watched': plexpy.CONFIG.XBMC_ON_WATCHED
                },
               {'name': 'Plex',
                'id': AGENT_IDS['Plex'],
-               'config_name': 'plex_enabled',
+               'config_prefix': 'plex',
                'has_config': True,
-               'state': checked(plexpy.CONFIG.PLEX_ENABLED)
+               'state': checked(plexpy.CONFIG.PLEX_ENABLED),
+               'on_play': plexpy.CONFIG.PLEX_ON_PLAY,
+               'on_stop': plexpy.CONFIG.PLEX_ON_STOP,
+               'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED
                },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
-               'config_name': 'nma_enabled',
+               'config_prefix': 'nma',
                'has_config': True,
-               'state': checked(plexpy.CONFIG.NMA_ENABLED)
+               'state': checked(plexpy.CONFIG.NMA_ENABLED),
+               'on_play': plexpy.CONFIG.NMA_ON_PLAY,
+               'on_stop': plexpy.CONFIG.NMA_ON_STOP,
+               'on_watched': plexpy.CONFIG.NMA_ON_WATCHED
                },
               {'name': 'PushAlot',
                'id': AGENT_IDS['PushAlot'],
-               'config_name': 'pushalot_enabled',
+               'config_prefix': 'pushalot',
                'has_config': True,
-               'state': checked(plexpy.CONFIG.PUSHALOT_ENABLED)
+               'state': checked(plexpy.CONFIG.PUSHALOT_ENABLED),
+               'on_play': plexpy.CONFIG.PUSHALOT_ON_PLAY,
+               'on_stop': plexpy.CONFIG.PUSHALOT_ON_STOP,
+               'on_watched': plexpy.CONFIG.PUSHALOT_ON_WATCHED
                },
               {'name': 'PushBullet',
                'id': AGENT_IDS['PushBullet'],
-               'config_name': 'pushbullet_enabled',
+               'config_prefix': 'pushbullet',
                'has_config': True,
-               'state': checked(plexpy.CONFIG.PUSHBULLET_ENABLED)
+               'state': checked(plexpy.CONFIG.PUSHBULLET_ENABLED),
+               'on_play': plexpy.CONFIG.PUSHBULLET_ON_PLAY,
+               'on_stop': plexpy.CONFIG.PUSHBULLET_ON_STOP,
+               'on_watched': plexpy.CONFIG.PUSHBULLET_ON_WATCHED
                },
               {'name': 'PushOver',
                'id': AGENT_IDS['PushOver'],
-               'config_name': 'pushover_enabled',
+               'config_prefix': 'pushover',
                'has_config': True,
-               'state': checked(plexpy.CONFIG.PUSHOVER_ENABLED)
+               'state': checked(plexpy.CONFIG.PUSHOVER_ENABLED),
+               'on_play': plexpy.CONFIG.PUSHOVER_ON_PLAY,
+               'on_stop': plexpy.CONFIG.PUSHOVER_ON_STOP,
+               'on_watched': plexpy.CONFIG.PUSHOVER_ON_WATCHED
                },
               {'name': 'OSX Notify',
                'id': AGENT_IDS['OSX Notify'],
-               'config_name': 'osx_notify_enabled',
+               'config_prefix': 'osx_notify',
                'has_config': True,
-               'state': checked(plexpy.CONFIG.OSX_NOTIFY_ENABLED)
+               'state': checked(plexpy.CONFIG.OSX_NOTIFY_ENABLED),
+               'on_play': plexpy.CONFIG.OSX_NOTIFY_ON_PLAY,
+               'on_stop': plexpy.CONFIG.OSX_NOTIFY_ON_STOP,
+               'on_watched': plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED
                },
               {'name': 'Boxcar2',
                'id': AGENT_IDS['Boxcar2'],
-               'config_name': 'boxcar_enabled',
+               'config_prefix': 'boxcar',
                'has_config': True,
-               'state': checked(plexpy.CONFIG.BOXCAR_ENABLED)
+               'state': checked(plexpy.CONFIG.BOXCAR_ENABLED),
+               'on_play': plexpy.CONFIG.BOXCAR_ON_PLAY,
+               'on_stop': plexpy.CONFIG.BOXCAR_ON_STOP,
+               'on_watched': plexpy.CONFIG.BOXCAR_ON_WATCHED
                },
               {'name': 'E-mail',
                'id': AGENT_IDS['Email'],
-               'config_name': 'email_enabled',
+               'config_prefix': 'email',
                'has_config': True,
-               'state': checked(plexpy.CONFIG.EMAIL_ENABLED)
+               'state': checked(plexpy.CONFIG.EMAIL_ENABLED),
+               'on_play': plexpy.CONFIG.EMAIL_ON_PLAY,
+               'on_stop': plexpy.CONFIG.EMAIL_ON_STOP,
+               'on_watched': plexpy.CONFIG.EMAIL_ON_WATCHED
                }
               ]
 
@@ -164,6 +197,48 @@ def get_notification_agent_config(config_id):
     else:
         return []
 
+def send_notification(config_id, subject, body):
+    if config_id:
+        config_id = int(config_id)
+
+        if config_id == 0:
+            growl = GROWL()
+            growl.notify(message=body, event=subject)
+        elif config_id == 1:
+            prowl = PROWL()
+            prowl.notify(message=body, event=subject)
+        elif config_id == 2:
+            xbmc = XBMC()
+            xbmc.notify(subject=subject, message=body)
+        elif config_id == 3:
+            plex = Plex()
+            plex.notify(subject=subject, message=body)
+        elif config_id == 4:
+            nma = NMA()
+            nma.notify(subject=subject, message=body)
+        elif config_id == 5:
+            pushalot = PUSHALOT()
+            pushalot.notify(message=body, event=subject)
+        elif config_id == 6:
+            pushbullet = PUSHBULLET()
+            pushbullet.notify(message=body, subject=subject)
+        elif config_id == 7:
+            pushover = PUSHOVER()
+            pushover.notify(message=body, event=subject)
+        elif config_id == 8:
+            osx_notify = OSX_NOTIFY()
+            osx_notify.notify(title=subject, text=body)
+        elif config_id == 9:
+            boxcar = BOXCAR()
+            boxcar.notify(title=subject, message=body)
+        elif config_id == 10:
+            email = Email()
+            email.notify(subject=subject, message=body)
+        else:
+            logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
+    else:
+        logger.debug(u"PlexPy Notifier :: Notification requested but no agent id received.")
+
 
 class GROWL(object):
     """
@@ -174,6 +249,9 @@ class GROWL(object):
         self.enabled = plexpy.CONFIG.GROWL_ENABLED
         self.host = plexpy.CONFIG.GROWL_HOST
         self.password = plexpy.CONFIG.GROWL_PASSWORD
+        self.on_play = plexpy.CONFIG.GROWL_ON_PLAY
+        self.on_stop = plexpy.CONFIG.GROWL_ON_STOP
+        self.on_watched = plexpy.CONFIG.GROWL_ON_WATCHED
 
     def conf(self, options):
         return cherrypy.config['config'].get('Growl', options)
@@ -276,6 +354,9 @@ class PROWL(object):
         self.enabled = plexpy.CONFIG.PROWL_ENABLED
         self.keys = plexpy.CONFIG.PROWL_KEYS
         self.priority = plexpy.CONFIG.PROWL_PRIORITY
+        self.on_play = plexpy.CONFIG.PROWL_ON_PLAY
+        self.on_stop = plexpy.CONFIG.PROWL_ON_STOP
+        self.on_watched = plexpy.CONFIG.PROWL_ON_WATCHED
 
     def conf(self, options):
         return cherrypy.config['config'].get('Prowl', options)
@@ -347,6 +428,9 @@ class XBMC(object):
         self.hosts = plexpy.CONFIG.XBMC_HOST
         self.username = plexpy.CONFIG.XBMC_USERNAME
         self.password = plexpy.CONFIG.XBMC_PASSWORD
+        self.on_play = plexpy.CONFIG.XBMC_ON_PLAY
+        self.on_stop = plexpy.CONFIG.XBMC_ON_STOP
+        self.on_watched = plexpy.CONFIG.XBMC_ON_WATCHED
 
     def _sendhttp(self, host, command):
         url_command = urllib.urlencode(command)
@@ -427,6 +511,9 @@ class Plex(object):
         self.client_hosts = plexpy.CONFIG.PLEX_CLIENT_HOST
         self.username = plexpy.CONFIG.PLEX_USERNAME
         self.password = plexpy.CONFIG.PLEX_PASSWORD
+        self.on_play = plexpy.CONFIG.PLEX_ON_PLAY
+        self.on_stop = plexpy.CONFIG.PLEX_ON_STOP
+        self.on_watched = plexpy.CONFIG.PLEX_ON_WATCHED
 
     def _sendhttp(self, host, command):
 
@@ -500,6 +587,14 @@ class Plex(object):
         return config_option
 
 class NMA(object):
+
+    def __init__(self):
+        self.api = plexpy.CONFIG.NMA_APIKEY
+        self.nma_priority = plexpy.CONFIG.NMA_PRIORITY
+        self.on_play = plexpy.CONFIG.NMA_ON_PLAY
+        self.on_stop = plexpy.CONFIG.NMA_ON_STOP
+        self.on_watched = plexpy.CONFIG.NMA_ON_WATCHED
+
     def notify(self, subject=None, message=None):
         title = 'PlexPy'
         api = plexpy.CONFIG.NMA_APIKEY
@@ -553,18 +648,21 @@ class PUSHBULLET(object):
     def __init__(self):
         self.apikey = plexpy.CONFIG.PUSHBULLET_APIKEY
         self.deviceid = plexpy.CONFIG.PUSHBULLET_DEVICEID
+        self.on_play = plexpy.CONFIG.PUSHBULLET_ON_PLAY
+        self.on_stop = plexpy.CONFIG.PUSHBULLET_ON_STOP
+        self.on_watched = plexpy.CONFIG.PUSHBULLET_ON_WATCHED
 
     def conf(self, options):
         return cherrypy.config['config'].get('PUSHBULLET', options)
 
-    def notify(self, message, event):
-        if not plexpy.CONFIG.PUSHBULLET_ENABLED:
+    def notify(self, message, subject):
+        if not message or not subject:
             return
 
         http_handler = HTTPSConnection("api.pushbullet.com")
 
         data = {'type': "note",
-                'title': "PlexPy",
+                'title': subject.encode("utf-8"),
                 'body': message.encode("utf-8")}
 
         http_handler.request("POST",
@@ -574,9 +672,9 @@ class PUSHBULLET(object):
                                 body=json.dumps(data))
         response = http_handler.getresponse()
         request_status = response.status
-        # logger.debug(u"PushBullet response status: %r" % request_status)
-        # logger.debug(u"PushBullet response headers: %r" % response.getheaders())
-        # logger.debug(u"PushBullet response body: %r" % response.read())
+        logger.debug(u"PushBullet response status: %r" % request_status)
+        logger.debug(u"PushBullet response headers: %r" % response.getheaders())
+        logger.debug(u"PushBullet response body: %r" % response.read())
 
         if request_status == 200:
                 logger.info(u"PushBullet notifications sent.")
@@ -614,6 +712,12 @@ class PUSHBULLET(object):
         return config_option
 
 class PUSHALOT(object):
+
+    def __init__(self):
+        self.api_key = plexpy.CONFIG.PUSHALOT_APIKEY
+        self.on_play = plexpy.CONFIG.PUSHALOT_ON_PLAY
+        self.on_stop = plexpy.CONFIG.PUSHALOT_ON_STOP
+        self.on_watched = plexpy.CONFIG.PUSHALOT_ON_WATCHED
 
     def notify(self, message, event):
         if not plexpy.CONFIG.PUSHALOT_ENABLED:
@@ -669,6 +773,9 @@ class PUSHOVER(object):
         self.enabled = plexpy.CONFIG.PUSHOVER_ENABLED
         self.keys = plexpy.CONFIG.PUSHOVER_KEYS
         self.priority = plexpy.CONFIG.PUSHOVER_PRIORITY
+        self.on_play = plexpy.CONFIG.PUSHOVER_ON_PLAY
+        self.on_stop = plexpy.CONFIG.PUSHOVER_ON_STOP
+        self.on_watched = plexpy.CONFIG.PUSHOVER_ON_WATCHED
 
         if plexpy.CONFIG.PUSHOVER_APITOKEN:
             self.application_token = plexpy.CONFIG.PUSHOVER_APITOKEN
@@ -848,6 +955,9 @@ class TwitterNotifier(object):
 class OSX_NOTIFY(object):
 
     def __init__(self):
+        self.on_play = plexpy.CONFIG.OSX_NOTIFY_ON_PLAY
+        self.on_stop = plexpy.CONFIG.OSX_NOTIFY_ON_STOP
+        self.on_watched = plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED
         try:
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
@@ -922,6 +1032,10 @@ class BOXCAR(object):
 
     def __init__(self):
         self.url = 'https://new.boxcar.io/api/notifications'
+        self.token = plexpy.CONFIG.BOXCAR_TOKEN
+        self.on_play = plexpy.CONFIG.BOXCAR_ON_PLAY
+        self.on_stop = plexpy.CONFIG.BOXCAR_ON_STOP
+        self.on_watched = plexpy.CONFIG.BOXCAR_ON_WATCHED
 
     def notify(self, title, message, rgid=None):
         try:
@@ -956,6 +1070,11 @@ class BOXCAR(object):
         return config_option
 
 class Email(object):
+
+    def __init__(self):
+        self.on_play = plexpy.CONFIG.EMAIL_ON_PLAY
+        self.on_stop = plexpy.CONFIG.EMAIL_ON_STOP
+        self.on_watched = plexpy.CONFIG.EMAIL_ON_WATCHED
 
     def notify(self, subject, message):
 

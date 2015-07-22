@@ -8399,7 +8399,7 @@ ol.test >li {
 	background-color: #282828;
 	width: 100%;
 	min-width: 320px;
-	max-width: 768px;
+	max-width: 900px;
 }
 
 .stacked-configs > li > span {
@@ -8419,9 +8419,20 @@ ol.test >li {
 .stacked-configs > li > span > a {
 	float: right;
 	color: #999;
+	padding-left: 10px;
 }
 
 .stacked-configs > li > span > a:hover {
+	color: #eee;
+}
+
+.stacked-configs > li > span > i {
+	cursor: pointer;
+	padding-right: 2px;
+	color: #444;
+}
+
+.stacked-configs > li > span > i:hover {
 	color: #eee;
 }
 

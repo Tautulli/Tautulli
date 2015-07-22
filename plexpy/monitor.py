@@ -98,7 +98,7 @@ def check_active_sessions():
                             if session['state'] != stream['state']:
                                 if session['state'] == 'paused':
                                     # Push any notifications
-                                    notify(stream_data=stream, notify_action='pause')
+                                    notification_handler.notify(stream_data=stream, notify_action='pause')
                             if stream['state'] == 'paused':
                                 # The stream is still paused so we need to increment the paused_counter
                                 # Using the set config parameter as the interval, probably not the most accurate but
@@ -114,7 +114,7 @@ def check_active_sessions():
                     monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
                                       [stream['session_key'], stream['rating_key']])
                     # Push any notifications
-                    notify(stream_data=stream, notify_action='stop')
+                    notification_handler.notify(stream_data=stream, notify_action='stop')
                     # Write the item history on playback stop
                     monitor_process.write_session_history(session=stream)
 
@@ -176,7 +176,7 @@ class MonitorProcessing(object):
 
         if result == 'insert':
             # Push any notifications
-            notify(stream_data=values, notify_action='play')
+            notification_handler.notify(stream_data=values, notify_action='play')
             started = int(time.time())
 
             # Try and grab IP address from logs
@@ -360,87 +360,3 @@ class MonitorProcessing(object):
         logger.debug(u"PlexPy Monitor :: Unable to find IP address on fallback search. Not logging IP address.")
 
         return None
-
-def notify(stream_data=None, notify_action=None):
-
-    if stream_data and notify_action:
-        # Get the server name
-        pms_connect = pmsconnect.PmsConnect()
-        server_name = pms_connect.get_server_pref(pref='FriendlyName')
-
-        # Build the notification heading
-        notify_header = 'PlexPy (%s)' % server_name
-
-        # Build media item title
-        if stream_data['media_type'] == 'episode' or stream_data['media_type'] == 'track':
-            item_title = '%s - %s' % (stream_data['grandparent_title'], stream_data['title'])
-        elif stream_data['media_type'] == 'movie':
-            item_title = stream_data['title']
-        else:
-            item_title = stream_data['title']
-
-        if notify_action == 'play':
-            logger.info('PlexPy Monitor :: %s (%s) started playing %s.' % (stream_data['friendly_name'],
-                                                                           stream_data['player'], item_title))
-
-        if stream_data['media_type'] == 'movie':
-            if plexpy.CONFIG.MOVIE_NOTIFY_ENABLE:
-
-                if plexpy.CONFIG.MOVIE_NOTIFY_ON_START and notify_action == 'play':
-                    message = '%s (%s) started playing %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                    notification_handler.push_nofitications(message, notify_header, common.notify_strings[1])
-
-                elif plexpy.CONFIG.MOVIE_NOTIFY_ON_PAUSE and notify_action == 'pause':
-                    message = '%s (%s) has paused %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                    notification_handler.push_nofitications(message, notify_header, common.notify_strings[1])
-
-                elif plexpy.CONFIG.MOVIE_NOTIFY_ON_STOP and notify_action == 'stop':
-                    message = '%s (%s) stopped playing %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                    notification_handler.push_nofitications(message, notify_header, common.notify_strings[1])
-
-        elif stream_data['media_type'] == 'episode':
-            if plexpy.CONFIG.TV_NOTIFY_ENABLE:
-
-                if plexpy.CONFIG.TV_NOTIFY_ON_START and notify_action == 'play':
-                    message = '%s (%s) started playing %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                    notification_handler.push_nofitications(message, notify_header, common.notify_strings[1])
-
-                elif plexpy.CONFIG.TV_NOTIFY_ON_PAUSE and notify_action == 'pause':
-                    message = '%s (%s) has paused %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                    notification_handler.push_nofitications(message, notify_header, common.notify_strings[1])
-
-                elif plexpy.CONFIG.TV_NOTIFY_ON_STOP and notify_action == 'stop':
-                    message = '%s (%s) stopped playing %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                    notification_handler.push_nofitications(message, notify_header, common.notify_strings[1])
-
-        elif stream_data['media_type'] == 'track':
-            if plexpy.CONFIG.MUSIC_NOTIFY_ENABLE:
-
-                if plexpy.CONFIG.MUSIC_NOTIFY_ON_START and notify_action == 'play':
-                    message = '%s (%s) started playing %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                    notification_handler.push_nofitications(message, notify_header, common.notify_strings[1])
-
-                elif plexpy.CONFIG.MUSIC_NOTIFY_ON_PAUSE and notify_action == 'pause':
-                    message = '%s (%s) has paused %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                    notification_handler.push_nofitications(message, notify_header, common.notify_strings[1])
-
-                elif plexpy.CONFIG.MUSIC_NOTIFY_ON_STOP and notify_action == 'stop':
-                    message = '%s (%s) stopped playing %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                    notification_handler.push_nofitications(message, notify_header, common.notify_strings[1])
-
-        elif stream_data['media_type'] == 'clip':
-            pass
-        else:
-            logger.debug(u"PlexPy Monitor :: Notify called with unsupported media type.")
-            pass
-    else:
-        logger.debug(u"PlexPy Monitor :: Notify called but incomplete data received.")
