@@ -80,6 +80,7 @@
                                     <div class="wellheader">
                                         <h3>Web Interface</h3>
                                     </div>
+                                    <p class="help-block">Web interface changes require a restart.</p>
                                     <div class="form-group">
                                         <label for="http_host">HTTP Host</label>
                                         <input type="text" id="http_host" name="http_host" value="${config['http_host']}" size="30" data-parsley-trigger="change" required>
@@ -116,6 +117,7 @@
                                     <div class="wellheader">
                                         <h3>Authentication</h3>
                                     </div>
+                                    <p class="help-block">Authentication changes require a restart.</p>
                                     <div class="form-group">
                                         <label for="http_username">HTTP Username</label>
                                         <input type="text" id="http_username" name="http_username" value="${config['http_username']}" size="30">
@@ -273,13 +275,23 @@
                             <div role="tabpanel" class="tab-pane" id="tabs-8">
                                 <fieldset>
                                     <div class="wellheader">
-                                        <h3>Global Notifications</h3>
+                                        <h3>Global Notification Toggles</h3>
                                     </div>
                                     <div class="checkbox">
                                         <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable Movie and TV Notifications
                                     </div>
                                     <div class="checkbox">
                                         <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1" ${config['music_notify_enable']}> Enable Music Notifications
+                                    </div>
+                                </fieldset>
+                                <div class="wellheader">
+                                        <h3>Notification Tuning</h3>
+                                    </div>
+                                <fieldset>
+                                    <div class="form-group">
+                                        <label for="notify_watched_percent">Watched Percent</label>
+                                        <input type="text" data-parsley-type="integer" id="notify_watched_percent" name="notify_watched_percent" value="${config['notify_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" required>
+                                        <p class="help-block">Set the progress percentage of when a watched notification should be triggered. Minimum 50, Maximum 95.</p>
                                     </div>
                                 </fieldset>
                                 <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
@@ -299,12 +311,12 @@
                                         <li>
                                             <span>
                                                 <!--<input type="checkbox" name="${agent['config_prefix']}_enabled" id="${agent['config_prefix']}" value="1" ${agent['state']}> ${agent['name']}-->
-                                                <i class="fa fa-play notify-toggle-icon" data-toggle="tooltip" data-placement="top" title data-title="Notify on playback start" data-id="${agent['id']}" data-config-name="${agent['config_prefix']}_on_play" data-config-value="${agent['on_play']}"></i>
-                                                <i class="fa fa-stop notify-toggle-icon" data-toggle="tooltip" data-placement="top" title data-title="Notify on stop" data-id="${agent['id']}" data-config-name="${agent['config_prefix']}_on_stop" data-config-value="${agent['on_stop']}"></i>
-                                                <!--<i class="fa fa-eye notify-toggle-icon"  data-toggle="tooltip" data-placement="top" title data-title="Notify on watched" data-id="${agent['id']}" data-config-name="${agent['config_prefix']}_on_watched" data-config-value="${agent['on_watched']}"></i>-->
+                                                <a class="toggle-left notify-toggle-icon" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title data-title="Notify on playback start" data-id="${agent['id']}" data-config-name="${agent['config_prefix']}_on_play" data-config-value="${agent['on_play']}"><i class="fa fa-play"></i></a>
+                                                <a class="toggle-left notify-toggle-icon" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title data-title="Notify on stop" data-id="${agent['id']}" data-config-name="${agent['config_prefix']}_on_stop" data-config-value="${agent['on_stop']}"><i class="fa fa-stop"></i></a>
+                                                <a class="toggle-left notify-toggle-icon" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title data-title="Notify on watched" data-id="${agent['id']}" data-config-name="${agent['config_prefix']}_on_watched" data-config-value="${agent['on_watched']}"><i class="fa fa-eye"></i></a>
                                                 ${agent['name']}
                                                 % if agent['has_config']:
-                                                <a href="#notification-config-modal" rel="tooltip" data-placement="top" title data-title="Open configuration" data-id="${agent['id']}" class="toggle-notification-config-modal" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
+                                                <a href="#notification-config-modal" rel="tooltip" data-placement="top" title data-title="Open configuration" data-id="${agent['id']}" class="toggle-notification-config-modal toggle-right" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
                                                 % endif
                                             </span>
                                         </li>
@@ -661,10 +673,7 @@
 
     $('.notify-toggle-icon').each(function() {
         if ($(this).data('config-value') == 1) {
-            $(this).css("color", "#eb8600");
             $(this).addClass("active");
-        } else {
-            $(this).css("color", "#444");
         }
     });
 
@@ -679,7 +688,6 @@
                 data: data,
                 async: true,
                 success: function(data) {
-                    toggle.css("color", "#444");
                     toggle.removeClass("active");
                 }
             });
@@ -691,7 +699,6 @@
                 data: data,
                 async: true,
                 success: function(data) {
-                    toggle.css("color", "#eb8600");
                     toggle.addClass("active");
                 }
             });

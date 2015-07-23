@@ -44,9 +44,9 @@ AGENT_IDS = {"Growl": 0,
              "XBMC": 2,
              "Plex": 3,
              "NMA": 4,
-             "PushAlot": 5,
-             "PushBullet": 6,
-             "PushOver": 7,
+             "Pushalot": 5,
+             "Pushbullet": 6,
+             "Pushover": 7,
              "OSX Notify": 8,
              "Boxcar2": 9,
              "Email": 10}
@@ -97,8 +97,8 @@ def available_notification_agents():
                'on_stop': plexpy.CONFIG.NMA_ON_STOP,
                'on_watched': plexpy.CONFIG.NMA_ON_WATCHED
                },
-              {'name': 'PushAlot',
-               'id': AGENT_IDS['PushAlot'],
+              {'name': 'Pushalot',
+               'id': AGENT_IDS['Pushalot'],
                'config_prefix': 'pushalot',
                'has_config': True,
                'state': checked(plexpy.CONFIG.PUSHALOT_ENABLED),
@@ -106,8 +106,8 @@ def available_notification_agents():
                'on_stop': plexpy.CONFIG.PUSHALOT_ON_STOP,
                'on_watched': plexpy.CONFIG.PUSHALOT_ON_WATCHED
                },
-              {'name': 'PushBullet',
-               'id': AGENT_IDS['PushBullet'],
+              {'name': 'Pushbullet',
+               'id': AGENT_IDS['Pushbullet'],
                'config_prefix': 'pushbullet',
                'has_config': True,
                'state': checked(plexpy.CONFIG.PUSHBULLET_ENABLED),
@@ -115,8 +115,8 @@ def available_notification_agents():
                'on_stop': plexpy.CONFIG.PUSHBULLET_ON_STOP,
                'on_watched': plexpy.CONFIG.PUSHBULLET_ON_WATCHED
                },
-              {'name': 'PushOver',
-               'id': AGENT_IDS['PushOver'],
+              {'name': 'Pushover',
+               'id': AGENT_IDS['Pushover'],
                'config_prefix': 'pushover',
                'has_config': True,
                'state': checked(plexpy.CONFIG.PUSHOVER_ENABLED),
@@ -257,7 +257,7 @@ class GROWL(object):
         return cherrypy.config['config'].get('Growl', options)
 
     def notify(self, message, event):
-        if not self.enabled:
+        if not message or not event:
             return
 
         # Split host and port
@@ -362,7 +362,7 @@ class PROWL(object):
         return cherrypy.config['config'].get('Prowl', options)
 
     def notify(self, message, event):
-        if not plexpy.CONFIG.PROWL_ENABLED:
+        if not message or not event:
             return
 
         http_handler = HTTPSConnection("api.prowlapp.com")
@@ -596,18 +596,21 @@ class NMA(object):
         self.on_watched = plexpy.CONFIG.NMA_ON_WATCHED
 
     def notify(self, subject=None, message=None):
+        if not subject or not message:
+            return
+
         title = 'PlexPy'
         api = plexpy.CONFIG.NMA_APIKEY
         nma_priority = plexpy.CONFIG.NMA_PRIORITY
 
-        logger.debug(u"NMA title: " + title)
-        logger.debug(u"NMA API: " + api)
-        logger.debug(u"NMA Priority: " + str(nma_priority))
+        # logger.debug(u"NMA title: " + title)
+        # logger.debug(u"NMA API: " + api)
+        # logger.debug(u"NMA Priority: " + str(nma_priority))
 
         event = subject
 
-        logger.debug(u"NMA event: " + event)
-        logger.debug(u"NMA message: " + message)
+        # logger.debug(u"NMA event: " + event)
+        # logger.debug(u"NMA message: " + message)
 
         batch = False
 
@@ -648,6 +651,7 @@ class PUSHBULLET(object):
     def __init__(self):
         self.apikey = plexpy.CONFIG.PUSHBULLET_APIKEY
         self.deviceid = plexpy.CONFIG.PUSHBULLET_DEVICEID
+        self.channel_tag = plexpy.CONFIG.PUSHBULLET_CHANNEL_TAG
         self.on_play = plexpy.CONFIG.PUSHBULLET_ON_PLAY
         self.on_stop = plexpy.CONFIG.PUSHBULLET_ON_STOP
         self.on_watched = plexpy.CONFIG.PUSHBULLET_ON_WATCHED
@@ -665,16 +669,22 @@ class PUSHBULLET(object):
                 'title': subject.encode("utf-8"),
                 'body': message.encode("utf-8")}
 
+        # Can only send to a device or channel, not both.
+        if self.deviceid:
+            data['device_iden'] = self.deviceid
+        elif self.channel_tag:
+            data['channel_tag'] = self.channel_tag
+
         http_handler.request("POST",
                                 "/v2/pushes",
                                 headers={'Content-type': "application/json",
-                                            'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")},
+                                         'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")},
                                 body=json.dumps(data))
         response = http_handler.getresponse()
         request_status = response.status
-        logger.debug(u"PushBullet response status: %r" % request_status)
-        logger.debug(u"PushBullet response headers: %r" % response.getheaders())
-        logger.debug(u"PushBullet response body: %r" % response.read())
+        # logger.debug(u"PushBullet response status: %r" % request_status)
+        # logger.debug(u"PushBullet response headers: %r" % response.getheaders())
+        # logger.debug(u"PushBullet response body: %r" % response.read())
 
         if request_status == 200:
                 logger.info(u"PushBullet notifications sent.")
@@ -704,7 +714,13 @@ class PUSHBULLET(object):
                          {'label': 'Device ID',
                           'value': self.deviceid,
                           'name': 'pushbullet_deviceid',
-                          'description': 'A device ID (optional).',
+                          'description': 'A device ID (optional). If set, will override channel tag.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Channel',
+                          'value': self.channel_tag,
+                          'name': 'pushbullet_channel_tag',
+                          'description': 'A channel tag (optional).',
                           'input_type': 'text'
                           }
                          ]
@@ -720,7 +736,7 @@ class PUSHALOT(object):
         self.on_watched = plexpy.CONFIG.PUSHALOT_ON_WATCHED
 
     def notify(self, message, event):
-        if not plexpy.CONFIG.PUSHALOT_ENABLED:
+        if not message or not event:
             return
 
         pushalot_authorizationtoken = plexpy.CONFIG.PUSHALOT_APIKEY
@@ -786,7 +802,7 @@ class PUSHOVER(object):
         return cherrypy.config['config'].get('Pushover', options)
 
     def notify(self, message, event):
-        if not plexpy.CONFIG.PUSHOVER_ENABLED:
+        if not message or not event:
             return
 
         http_handler = HTTPSConnection("api.pushover.net")
@@ -1037,11 +1053,11 @@ class BOXCAR(object):
         self.on_stop = plexpy.CONFIG.BOXCAR_ON_STOP
         self.on_watched = plexpy.CONFIG.BOXCAR_ON_WATCHED
 
-    def notify(self, title, message, rgid=None):
-        try:
-            if rgid:
-                message += '<br></br><a href="http://musicbrainz.org/release-group/%s">MusicBrainz</a>' % rgid
+    def notify(self, title, message):
+        if not title or not message:
+            return
 
+        try:
             data = urllib.urlencode({
                 'user_credentials': plexpy.CONFIG.BOXCAR_TOKEN,
                 'notification[title]': title.encode('utf-8'),
@@ -1077,6 +1093,8 @@ class Email(object):
         self.on_watched = plexpy.CONFIG.EMAIL_ON_WATCHED
 
     def notify(self, subject, message):
+        if not subject or not message:
+            return
 
         message = MIMEText(message, 'plain', "utf-8")
         message['Subject'] = subject

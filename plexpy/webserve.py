@@ -510,7 +510,8 @@ class WebInterface(object):
             "video_logging_enable": checked(plexpy.CONFIG.VIDEO_LOGGING_ENABLE),
             "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
-            "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE)
+            "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
+            "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)

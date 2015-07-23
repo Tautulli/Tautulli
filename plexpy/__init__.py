@@ -524,6 +524,13 @@ def dbcheck():
             'ALTER TABLE session_history_metadata ADD COLUMN full_title TEXT'
         )
 
+    # notify_log table :: This is a table which logs notifications sent
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
+        'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER)'
+    )
+
     conn_db.commit()
     c_db.close()
 

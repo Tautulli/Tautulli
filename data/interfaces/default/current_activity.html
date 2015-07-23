@@ -99,7 +99,11 @@ DOCUMENTATION :: END
                 <div class="dashboard-activity-metadata-platform" id="platform-${a['session_key']}">
                 </div>
                 <div class="dashboard-activity-metadata-user">
+                    % if a['user_id']:
+                    <a href="user?user_id=${a['user_id']}">${a['friendly_name']}</a> is ${a['state']}
+                    % else:
                     <a href="user?user=${a['user']}">${a['friendly_name']}</a> is ${a['state']}
+                    % endif
                 </div>
                 <div class="dashboard-activity-metadata-title">
                     % if a['type'] == 'episode':

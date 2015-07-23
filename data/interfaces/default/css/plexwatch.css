@@ -8416,24 +8416,23 @@ ol.test >li {
 	background-color: #2f2f2f;
 }
 
-.stacked-configs > li > span > a {
+.stacked-configs > li > span > a.toggle-right {
 	float: right;
 	color: #999;
 	padding-left: 10px;
+}
+
+.stacked-configs > li > span > a.toggle-left {
+	color: #444;
+	padding-right: 2px;
 }
 
 .stacked-configs > li > span > a:hover {
 	color: #eee;
 }
 
-.stacked-configs > li > span > i {
-	cursor: pointer;
-	padding-right: 2px;
-	color: #444;
-}
-
-.stacked-configs > li > span > i:hover {
-	color: #eee;
+.stacked-configs > li > span > a.active {
+	color: #eb8600;
 }
 
 .stacked-configs > li > span > input[type='checkbox'] {

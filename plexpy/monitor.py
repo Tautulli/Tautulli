@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, pmsconnect, notification_handler, log_reader, common, database
+from plexpy import logger, pmsconnect, notification_handler, log_reader, common, database, helpers
 
 import threading
 import plexpy
@@ -97,8 +97,10 @@ def check_active_sessions():
                             # Here we can check the play states
                             if session['state'] != stream['state']:
                                 if session['state'] == 'paused':
-                                    # Push any notifications
-                                    notification_handler.notify(stream_data=stream, notify_action='pause')
+                                    # Push any notifications -
+                                    # Push it on it's own thread so we don't hold up our db actions
+                                    threading.Thread(target=notification_handler.notify,
+                                                     kwargs=dict(stream_data=stream, notify_action='pause')).start()
                             if stream['state'] == 'paused':
                                 # The stream is still paused so we need to increment the paused_counter
                                 # Using the set config parameter as the interval, probably not the most accurate but
@@ -107,14 +109,33 @@ def check_active_sessions():
                                 monitor_db.action('UPDATE sessions SET paused_counter = ? '
                                                   'WHERE session_key = ? AND rating_key = ?',
                                                   [paused_counter, stream['session_key'], stream['rating_key']])
+                            # Check if the user has reached the offset in the media we defined as the "watched" percent
+                            if session['progress'] and session['duration']:
+                                if helpers.get_percent(session['progress'], session['duration']) > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
+                                    # Push any notifications -
+                                    # Push it on it's own thread so we don't hold up our db actions
+                                    threading.Thread(target=notification_handler.notify,
+                                                     kwargs=dict(stream_data=stream, notify_action='watched')).start()
+
                 else:
                     # The user has stopped playing a stream
                     logger.debug(u"PlexPy Monitor :: Removing sessionKey %s ratingKey %s from session queue"
                                  % (stream['session_key'], stream['rating_key']))
                     monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
                                       [stream['session_key'], stream['rating_key']])
-                    # Push any notifications
-                    notification_handler.notify(stream_data=stream, notify_action='stop')
+
+                    # Check if the user has reached the offset in the media we defined as the "watched" percent
+                    if stream['view_offset'] and stream['duration']:
+                        if helpers.get_percent(stream['view_offset'], stream['duration']) > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
+                            # Push any notifications -
+                            # Push it on it's own thread so we don't hold up our db actions
+                            threading.Thread(target=notification_handler.notify,
+                                             kwargs=dict(stream_data=stream, notify_action='watched')).start()
+
+                    # Push any notifications - Push it on it's own thread so we don't hold up our db actions
+                    threading.Thread(target=notification_handler.notify,
+                                     kwargs=dict(stream_data=stream, notify_action='stop')).start()
+
                     # Write the item history on playback stop
                     monitor_process.write_session_history(session=stream)
 
@@ -132,7 +153,8 @@ class MonitorProcessing(object):
 
     def write_session(self, session=None):
 
-        values = {'rating_key': session['rating_key'],
+        values = {'session_key': session['session_key'],
+                  'rating_key': session['rating_key'],
                   'media_type': session['type'],
                   'state': session['state'],
                   'user_id': session['user_id'],
@@ -175,8 +197,10 @@ class MonitorProcessing(object):
         result = self.db.upsert('sessions', values, keys)
 
         if result == 'insert':
-            # Push any notifications
-            notification_handler.notify(stream_data=values, notify_action='play')
+            # Push any notifications - Push it on it's own thread so we don't hold up our db actions
+            threading.Thread(target=notification_handler.notify,
+                             kwargs=dict(stream_data=values,notify_action='play')).start()
+
             started = int(time.time())
 
             # Try and grab IP address from logs
