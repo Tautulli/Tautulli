@@ -217,6 +217,8 @@ function getPlatformImagePath(platformName) {
         return 'interfaces/default/images/platforms/playstation.png';
     } else if (platformName.indexOf("Mystery 4") > -1) {
         return 'interfaces/default/images/platforms/playstation.png';
+	} else if (platformName.indexOf("Mystery 5") > -1) {
+        return 'interfaces/default/images/platforms/xbox.png';
     } else {
         return 'interfaces/default/images/platforms/default.png';
     }
