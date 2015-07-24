@@ -50,6 +50,8 @@ def get_real_pms_url():
     plexpy.CONFIG.__setattr__('PMS_URL', '')
     plexpy.CONFIG.write()
 
+    fallback_url = 'http://' + plexpy.CONFIG.PMS_IP + ':' + str(plexpy.CONFIG.PMS_PORT)
+
     if plexpy.CONFIG.PMS_SSL:
         result = PlexTV().get_server_urls(include_https=True)
         process_urls = True
@@ -57,27 +59,25 @@ def get_real_pms_url():
         result = PlexTV().get_server_urls(include_https=False)
         process_urls = True
     else:
-        real_url = 'http://' + plexpy.CONFIG.PMS_IP + ':' + str(plexpy.CONFIG.PMS_PORT)
         process_urls = False
 
     if process_urls:
         if len(result) > 0:
             for item in result:
                 if plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '0':
-                    real_url = item['uri']
-                else:
-                    real_url = item['uri']
-
-            plexpy.CONFIG.__setattr__('PMS_URL', real_url)
-            plexpy.CONFIG.write()
-            logger.info("Server URL retrieved.")
+                        plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
+                        plexpy.CONFIG.write()
+                        logger.info("Server URL retrieved.")
+                if not plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '1':
+                        plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
+                        plexpy.CONFIG.write()
+                        logger.info("Server URL retrieved.")
         else:
-            fallback_url = 'http://' + plexpy.CONFIG.PMS_IP + ':' + str(plexpy.CONFIG.PMS_PORT)
             plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
             plexpy.CONFIG.write()
             logger.warn("Unable to retrieve server URLs. Using user-defined value.")
     else:
-        plexpy.CONFIG.__setattr__('PMS_URL', real_url)
+        plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
         plexpy.CONFIG.write()
 
 class PlexTV(object):
