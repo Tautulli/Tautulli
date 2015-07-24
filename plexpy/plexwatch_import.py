@@ -226,6 +226,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
 
     try:
         connection = sqlite3.connect(database, timeout=20)
+        cur = connection.cursor()
     except sqlite3.OperationalError:
         logger.error('PlexPy Importer :: Invalid filename.')
         return None
@@ -256,7 +257,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
 
     query = 'SELECT time AS started, ' \
             'stopped, ' \
-            'ratingKey AS rating_key, ' \
+            'cast(ratingKey as text) AS rating_key, ' \
             'null AS user_id, ' \
             'user, ' \
             'ip_address, ' \
@@ -276,7 +277,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
             'orig_title_ep AS grandparent_title ' \
             'FROM ' + table_name + ' ORDER BY id'
 
-    result = connection.execute(query)
+    result = cur.execute(query)
 
     for row in result:
         # Extract the xml from the Plexwatch db xml field.
@@ -291,9 +292,9 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
         session_history = {'started': row[0],
                            'stopped': row[1],
                            'rating_key': row[2],
-                           'title': extracted_xml['title'],
+                           'title': row[18],
                            'parent_title': extracted_xml['parent_title'],
-                           'grandparent_title': extracted_xml['grandparent_title'],
+                           'grandparent_title': row[19],
                            'user_id': user_id,
                            'user': row[4],
                            'ip_address': row[5],
@@ -327,12 +328,12 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                            'transcode_height': extracted_xml['transcode_height']
                            }
 
-        session_history_metadata = {'rating_key': row[2],
+        session_history_metadata = {'rating_key': helpers.latinToAscii(row[2]),
                                     'parent_rating_key': row[10],
                                     'grandparent_rating_key': row[11],
-                                    'title': extracted_xml['title'],
+                                    'title': row[18],
                                     'parent_title': extracted_xml['parent_title'],
-                                    'grandparent_title': extracted_xml['grandparent_title'],
+                                    'grandparent_title': row[19],
                                     'index': extracted_xml['media_index'],
                                     'parent_index': extracted_xml['parent_media_index'],
                                     'thumb': extracted_xml['thumb'],
@@ -360,13 +361,13 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
 
         # On older versions of PMS, "clip" items were still classified as "movie" and had bad ratingKey values
         # Just make sure that the ratingKey is indeed an integer
-        if str(row[2]).isdigit():
+        if session_history_metadata['rating_key'].isdigit():
             monitor_processing.write_session_history(session=session_history,
                                                      import_metadata=session_history_metadata,
                                                      is_import=True,
                                                      import_ignore_interval=import_ignore_interval)
         else:
-            logger.debug(u"PlexPy Importer :: Item has bad rating_key: %s" % str(row[2]))
+            logger.debug(u"PlexPy Importer :: Item has bad rating_key: %s" % session_history_metadata['rating_key'])
 
     logger.debug(u"PlexPy Importer :: PlexWatch data import complete.")
 

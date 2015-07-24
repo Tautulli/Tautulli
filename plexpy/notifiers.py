@@ -858,7 +858,7 @@ class PUSHOVER(object):
                           'input_type': 'number'
                           },
                          {'label': 'API Token',
-                          'value': self.priority,
+                          'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
                           'name': 'pushover_apitoken',
                           'description': 'Leave blank to use PlexPy default.',
                           'input_type': 'text'
