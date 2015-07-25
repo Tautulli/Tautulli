@@ -11,6 +11,7 @@ data[array_index] :: Usable parameters
 
 == Global keys ==
 rating_key              Returns the unique identifier for the media item.
+row_id                  Returns the unique row id for the media item in the database.
 type                    Returns the type of media. Either 'movie' or 'episode'.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
 time                    Returns the last watched time of the media.
@@ -34,7 +35,7 @@ DOCUMENTATION :: END
             <li>
                 <div class="poster">
                     <div class="poster-face">
-                        <a href="info?item_id=${item['rating_key']}">
+                        <a href="info?source=history&item_id=${item['row_id']}">
                             <img src="pms_image_proxy?img=${item['thumb']}&width=153&height=225&fallback=poster" class="poster-face">
                         </a>
                     </div>
