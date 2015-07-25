@@ -35,7 +35,7 @@ class DataFactory(object):
                     users.friendly_name end) as friendly_name',
                    'session_history.started',
                    'session_history.ip_address',
-                   'COUNT(session_history.rating_key) as plays',
+                   'COUNT(session_history.id) as plays',
                    'session_history.user',
                    'session_history.user_id'
                    ]
@@ -377,7 +377,8 @@ class DataFactory(object):
             if 'top_tv' in stat:
                 top_tv = []
                 try:
-                    query = 'SELECT session_history_metadata.grandparent_title, ' \
+                    query = 'SELECT session_history_metadata.id, ' \
+                            'session_history_metadata.grandparent_title, ' \
                             'COUNT(session_history_metadata.grandparent_title) as total_plays, ' \
                             'session_history_metadata.grandparent_rating_key, ' \
                             'MAX(session_history.started) as last_watch,' \
@@ -395,17 +396,18 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    row = {'title': item[0],
-                           'total_plays': item[1],
+                    row = {'title': item[1],
+                           'total_plays': item[2],
                            'users_watched': '',
-                           'rating_key': item[2],
-                           'last_play': item[3],
-                           'grandparent_thumb': item[4],
+                           'rating_key': item[3],
+                           'last_play': item[4],
+                           'grandparent_thumb': item[5],
                            'thumb': '',
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
-                           'platform': ''
+                           'platform': '',
+                           'row_id': item[0]
                            }
                     top_tv.append(row)
 
@@ -415,7 +417,8 @@ class DataFactory(object):
             elif 'popular_tv' in stat:
                 popular_tv = []
                 try:
-                    query = 'SELECT session_history_metadata.grandparent_title, ' \
+                    query = 'SELECT session_history_metadata.id, ' \
+                            'session_history_metadata.grandparent_title, ' \
                             'COUNT(DISTINCT session_history.user_id) as users_watched, ' \
                             'session_history_metadata.grandparent_rating_key, ' \
                             'MAX(session_history.started) as last_watch, ' \
@@ -435,17 +438,18 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    row = {'title': item[0],
-                           'users_watched': item[1],
-                           'rating_key': item[2],
-                           'last_play': item[3],
-                           'total_plays': item[4],
-                           'grandparent_thumb': item[5],
+                    row = {'title': item[1],
+                           'users_watched': item[2],
+                           'rating_key': item[3],
+                           'last_play': item[4],
+                           'total_plays': item[5],
+                           'grandparent_thumb': item[6],
                            'thumb': '',
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
-                           'platform': ''
+                           'platform': '',
+                           'row_id': item[0]
                            }
                     popular_tv.append(row)
 
@@ -491,7 +495,8 @@ class DataFactory(object):
                            'rating_key': '',
                            'title': '',
                            'platform_type': '',
-                           'platform': ''
+                           'platform': '',
+                           'row_id': ''
                     }
                     top_users.append(row)
 
@@ -526,7 +531,8 @@ class DataFactory(object):
                            'users_watched': '',
                            'rating_key': '',
                            'user': '',
-                           'friendly_name': ''
+                           'friendly_name': '',
+                           'row_id': ''
                            }
                     top_platform.append(row)
 
@@ -862,3 +868,54 @@ class DataFactory(object):
         output = {'categories': categories,
                   'series': [series_1_output]}
         return output
+
+    def get_metadata_details(self, row_id):
+        monitor_db = database.MonitorDatabase()
+
+        if row_id:
+            query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
+                    'full_title, media_index, parent_media_index, thumb, parent_thumb, grandparent_thumb, art, media_type, ' \
+                    'year, originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, rating, ' \
+                    'duration, guid, directors, writers, actors, genres, studio ' \
+                    'FROM session_history_metadata ' \
+                    'WHERE id = ?'
+            result = monitor_db.select(query=query, args=[row_id])
+        else:
+            result = []
+
+        metadata = {}
+        for item in result:
+            directors = item['directors'].split(';')
+            writers = item['writers'].split(';')
+            actors = item['actors'].split(';')
+            genres = item['genres'].split(';')
+
+            metadata = {'type': item['media_type'],
+                        'rating_key': item['rating_key'],
+                        'grandparent_title': item['grandparent_title'],
+                        'parent_index': item['parent_media_index'],
+                        'parent_title': item['parent_title'],
+                        'index': item['media_index'],
+                        'studio': item['studio'],
+                        'title': item['title'],
+                        'content_rating': item['content_rating'],
+                        'summary': item['summary'],
+                        'rating': item['rating'],
+                        'duration': item['duration'],
+                        'year': item['year'],
+                        'thumb': item['thumb'],
+                        'parent_thumb': item['parent_thumb'],
+                        'grandparent_thumb': item['grandparent_thumb'],
+                        'art': item['art'],
+                        'originally_available_at': item['originally_available_at'],
+                        'added_at': item['added_at'],
+                        'updated_at': item['updated_at'],
+                        'last_viewed_at': item['last_viewed_at'],
+                        'guid': item['guid'],
+                        'writers': writers,
+                        'directors': directors,
+                        'genres': genres,
+                        'actors': actors
+                        }
+
+        return metadata

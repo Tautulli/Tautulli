@@ -14,6 +14,8 @@ data['rows']        Returns an array containing stat data
 
 data[array_index]['rows'] :: Usable parameters
 
+row_id                  Return the db row id for a metadata item if one exists
+
 == Only if 'stat_id' is 'top_tv' or 'popular_tv' ==
 grandparent_thumb       Returns location of the item's thumbnail. Use with pms_image_proxy.
 rating_key              Returns the unique identifier for the media item.
@@ -46,7 +48,7 @@ DOCUMENTATION :: END
         <div class="home-platforms-instance">
             <li>
                 <span>
-                    <a href="info?rating_key=${a['rows'][0]['rating_key']}">
+                    <a href="info?item_id=${a['rows'][0]['rating_key']}">
                         % if a['rows'][0]['grandparent_thumb']:
                         <img class="home-platforms-instance-poster"
                              src="pms_image_proxy?img=${a['rows'][0]['grandparent_thumb']}&width=162&height=240&fallback=poster">
@@ -58,7 +60,7 @@ DOCUMENTATION :: END
 
                 <div class="home-platforms-instance-name">
                     <h4>Most Watched TV</h4>
-                    <a href="info?rating_key=${a['rows'][0]['rating_key']}">
+                    <a href="info?item_id=${a['rows'][0]['rating_key']}">
                         <h5>${a['rows'][0]['title']}</h5>
                     </a>
                 </div>
@@ -73,7 +75,7 @@ DOCUMENTATION :: END
         <div class="home-platforms-instance">
             <li>
                 <span>
-                    <a href="info?rating_key=${a['rows'][0]['rating_key']}">
+                    <a href="info?item_id=${a['rows'][0]['rating_key']}">
                         % if a['rows'][0]['grandparent_thumb'] != '':
                         <img class="home-platforms-instance-poster"
                              src="pms_image_proxy?img=${a['rows'][0]['grandparent_thumb']}&width=162&height=240&fallback=poster">
@@ -85,7 +87,7 @@ DOCUMENTATION :: END
 
                 <div class="home-platforms-instance-name">
                     <h4>Most Popular TV</h4>
-                    <a href="info?rating_key=${a['rows'][0]['rating_key']}">
+                    <a href="info?item_id=${a['rows'][0]['rating_key']}">
                         <h5>${a['rows'][0]['title']}</h5>
                     </a>
                 </div>
@@ -100,7 +102,11 @@ DOCUMENTATION :: END
         <div class="home-platforms-instance">
             <li>
                 <span>
+                    % if a['rows'][0]['user_id']:
                     <a href="user?user_id=${a['rows'][0]['user_id']}">
+                    % else:
+                    <a href="user?user=${a['rows'][0]['user']}">
+                    % endif
                         % if a['rows'][0]['thumb'] != '':
                         <img class="home-platforms-instance-oval" src="${a['rows'][0]['thumb']}"
                              class="poster-face">
@@ -113,7 +119,11 @@ DOCUMENTATION :: END
 
                 <div class="home-platforms-instance-name">
                     <h4>Most Active User</h4>
+                    % if a['rows'][0]['user_id']:
                     <a href="user?user_id=${a['rows'][0]['user_id']}">
+                    % else:
+                    <a href="user?user=${a['rows'][0]['user']}">
+                    % endif
                         <h5>${a['rows'][0]['friendly_name']}</h5>
                     </a>
                 </div>

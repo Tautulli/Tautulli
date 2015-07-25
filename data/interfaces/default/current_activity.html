@@ -107,9 +107,9 @@ DOCUMENTATION :: END
                 </div>
                 <div class="dashboard-activity-metadata-title">
                     % if a['type'] == 'episode':
-                    <a href="info?rating_key=${a['rating_key']}">${a['grandparent_title']} - ${a['title']}</a>
+                    <a href="info?item_id=${a['rating_key']}">${a['grandparent_title']} - ${a['title']}</a>
                     % elif a['type'] == 'movie':
-                    <a href="info?rating_key=${a['rating_key']}">${a['title']}</a>
+                    <a href="info?item_id=${a['rating_key']}">${a['title']}</a>
                     % elif a['type'] == 'clip':
                     ${a['title']}
                     % elif a['type'] == 'track':

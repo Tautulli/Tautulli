@@ -226,7 +226,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
 
     try:
         connection = sqlite3.connect(database, timeout=20)
-        cur = connection.cursor()
+        connection.row_factory = sqlite3.Row
     except sqlite3.OperationalError:
         logger.error('PlexPy Importer :: Invalid filename.')
         return None
@@ -273,37 +273,39 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
             'rating as content_rating,' \
             'summary,' \
             'title AS full_title,' \
-            'orig_title AS title, ' \
-            'orig_title_ep AS grandparent_title ' \
+            '(case when orig_title_ep = "" then orig_title else ' \
+            'orig_title_ep end) as title,' \
+            '(case when orig_title_ep != "" then orig_title else ' \
+            'null end) as grandparent_title ' \
             'FROM ' + table_name + ' ORDER BY id'
 
-    result = cur.execute(query)
+    result = connection.execute(query)
 
     for row in result:
         # Extract the xml from the Plexwatch db xml field.
-        extracted_xml = extract_plexwatch_xml(row[14])
+        extracted_xml = extract_plexwatch_xml(row['xml'])
 
         # If the user_id no longer exists in the friends list, pull it from the xml.
-        if data_factory.get_user_id(user=row[4]):
-            user_id = data_factory.get_user_id(user=row[4])
+        if data_factory.get_user_id(user=row['user']):
+            user_id = data_factory.get_user_id(user=row['user'])
         else:
             user_id = extracted_xml['user_id']
 
-        session_history = {'started': row[0],
-                           'stopped': row[1],
-                           'rating_key': row[2],
-                           'title': row[18],
+        session_history = {'started': row['started'],
+                           'stopped': row['stopped'],
+                           'rating_key': row['rating_key'],
+                           'title': row['title'],
                            'parent_title': extracted_xml['parent_title'],
-                           'grandparent_title': row[19],
+                           'grandparent_title': row['grandparent_title'],
                            'user_id': user_id,
-                           'user': row[4],
-                           'ip_address': row[5],
-                           'paused_counter': row[6],
-                           'player': row[7],
+                           'user': row['user'],
+                           'ip_address': row['ip_address'],
+                           'paused_counter': row['paused_counter'],
+                           'player': row['player'],
                            'platform': extracted_xml['platform'],
                            'machine_id': extracted_xml['machine_id'],
-                           'parent_rating_key': row[10],
-                           'grandparent_rating_key': row[11],
+                           'parent_rating_key': row['parent_rating_key'],
+                           'grandparent_rating_key': row['grandparent_rating_key'],
                            'media_type': extracted_xml['media_type'],
                            'view_offset': extracted_xml['view_offset'],
                            'video_decision': extracted_xml['video_decision'],
@@ -328,12 +330,12 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                            'transcode_height': extracted_xml['transcode_height']
                            }
 
-        session_history_metadata = {'rating_key': helpers.latinToAscii(row[2]),
-                                    'parent_rating_key': row[10],
-                                    'grandparent_rating_key': row[11],
-                                    'title': row[18],
+        session_history_metadata = {'rating_key': helpers.latinToAscii(row['rating_key']),
+                                    'parent_rating_key': row['parent_rating_key'],
+                                    'grandparent_rating_key': row['grandparent_rating_key'],
+                                    'title': row['title'],
                                     'parent_title': extracted_xml['parent_title'],
-                                    'grandparent_title': row[19],
+                                    'grandparent_title': row['grandparent_title'],
                                     'index': extracted_xml['media_index'],
                                     'parent_index': extracted_xml['parent_media_index'],
                                     'thumb': extracted_xml['thumb'],
@@ -346,8 +348,8 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                                     'added_at': extracted_xml['added_at'],
                                     'updated_at': extracted_xml['updated_at'],
                                     'last_viewed_at': extracted_xml['last_viewed_at'],
-                                    'content_rating': row[15],
-                                    'summary': row[16],
+                                    'content_rating': row['content_rating'],
+                                    'summary': row['summary'],
                                     'rating': extracted_xml['rating'],
                                     'duration': extracted_xml['duration'],
                                     'guid': extracted_xml['guid'],
@@ -356,7 +358,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                                     'actors': extracted_xml['actors'],
                                     'genres': extracted_xml['genres'],
                                     'studio': extracted_xml['studio'],
-                                    'full_title': row[17]
+                                    'full_title': row['full_title']
                                     }
 
         # On older versions of PMS, "clip" items were still classified as "movie" and had bad ratingKey values

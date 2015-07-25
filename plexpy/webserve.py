@@ -671,16 +671,20 @@ class WebInterface(object):
             return None
 
     @cherrypy.expose
-    def info(self, rating_key='', **kwargs):
+    def info(self, item_id=None, source=None, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_metadata_details(rating_key)
+        if source == 'history':
+            data_factory = datafactory.DataFactory()
+            result = data_factory.get_metadata_details(row_id=item_id)
+        else:
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_metadata_details(rating_key=item_id)['metadata']
 
         if result:
-            return serve_template(templatename="info.html", data=result['metadata'], title="Info")
+            return serve_template(templatename="info.html", data=result, title="Info")
         else:
-            return serve_template(templatename="info.html", data=None, title="Info")
             logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="info.html", data=None, title="Info")
 
     @cherrypy.expose
     def get_user_recently_watched(self, user=None, user_id=None, limit='10', **kwargs):

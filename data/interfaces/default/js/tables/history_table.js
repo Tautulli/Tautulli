@@ -87,11 +87,11 @@ history_table_options = {
                         if (rowData['video_decision'] === 'transcode') {
                             transcode_dec = '<i class="fa fa-server"></i>&nbsp';
                         }
-                        $(td).html('<div><div style="float: left;"><a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a></div><div style="float: right; text-align: right; padding-right: 5px;">' + transcode_dec + '<i class="fa fa-video-camera"></i></div></div>');
+                        $(td).html('<div><div style="float: left;"><a href="info?source=history&item_id=' + rowData['id'] + '">' + cellData + '</a></div><div style="float: right; text-align: right; padding-right: 5px;">' + transcode_dec + '<i class="fa fa-video-camera"></i></div></div>');
                     } else if (rowData['media_type'] === 'track') {
                         $(td).html('<div><div style="float: left;">' + cellData + '</div><div style="float: right; text-align: right; padding-right: 5px;"><i class="fa fa-music"></i></div></div>');
                     } else {
-                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="info?item_id=' + rowData['id'] + '">' + cellData + '</a>');
                     }
                 }
             }

@@ -58,9 +58,9 @@ from plexpy import helpers
                             <div class="span9">
                                 <div class="summary-content-poster hidden-phone hidden-tablet">
                                     % if data['type'] == 'episode':
-                                    <img src="pms_image_proxy?img=${data['parent_thumb']}&width=256&height=352">
+                                    <img src="pms_image_proxy?img=${data['parent_thumb']}&width=256&height=352&fallback=poster">
                                     % else:
-                                    <img src="pms_image_proxy?img=${data['thumb']}&width=256&height=352">
+                                    <img src="pms_image_proxy?img=${data['thumb']}&width=256&height=352&fallback=poster">
                                     % endif
                                 </div>
                                 <div class="summary-content">
