@@ -372,6 +372,24 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
             logger.debug(u"PlexPy Importer :: Item has bad rating_key: %s" % session_history_metadata['rating_key'])
 
     logger.debug(u"PlexPy Importer :: PlexWatch data import complete.")
+    import_users()
 
     logger.debug(u"PlexPy Importer :: Re-enabling monitoring.")
     plexpy.initialize_scheduler()
+
+def import_users():
+    from plexpy import database
+
+    logger.debug(u"PlexPy Importer :: Importing PlexWatch Users...")
+    monitor_db = database.MonitorDatabase()
+
+    query = 'INSERT OR IGNORE INTO users (user_id, username) ' \
+            'SELECT user_id, user ' \
+            'FROM session_history WHERE user_id != 1 GROUP BY user_id'
+
+    try:
+        monitor_db.action(query)
+        logger.debug(u"PlexPy Importer :: Users imported.")
+    except:
+        logger.debug(u"PlexPy Importer :: Failed to import users.")
+

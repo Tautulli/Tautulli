@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, datatables, common, database
+from plexpy import logger, datatables, common, database, helpers
 
 import datetime
 
@@ -221,7 +221,8 @@ class DataFactory(object):
 
         return dict
 
-    def set_user_friendly_name(self, user=None, user_id=None, friendly_name=None):
+    # TODO: The getter and setter for this needs to become a config getter/setter for more than just friendlyname
+    def set_user_friendly_name(self, user=None, user_id=None, friendly_name=None, do_notify=0):
         if user_id:
             if friendly_name.strip() == '':
                 friendly_name = None
@@ -229,7 +230,8 @@ class DataFactory(object):
             monitor_db = database.MonitorDatabase()
 
             control_value_dict = {"user_id": user_id}
-            new_value_dict = {"friendly_name": friendly_name}
+            new_value_dict = {"friendly_name": friendly_name,
+                              "do_notify": do_notify}
             try:
                 monitor_db.upsert('users', new_value_dict, control_value_dict)
             except Exception, e:
@@ -241,7 +243,8 @@ class DataFactory(object):
             monitor_db = database.MonitorDatabase()
 
             control_value_dict = {"username": user}
-            new_value_dict = {"friendly_name": friendly_name}
+            new_value_dict = {"friendly_name": friendly_name,
+                              "do_notify": do_notify}
             try:
                 monitor_db.upsert('users', new_value_dict, control_value_dict)
             except Exception, e:
@@ -249,48 +252,42 @@ class DataFactory(object):
 
     def get_user_friendly_name(self, user=None, user_id=None):
         if user_id:
-            try:
-                monitor_db = database.MonitorDatabase()
-                query = 'select username, ' \
-                        '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END) ' \
-                        'FROM users WHERE user_id = ?'
-                result = monitor_db.select(query, args=[user_id])
-                if result:
-                    user_detail = {'user_id': user_id,
-                                   'user': result[0][0],
-                                   'friendly_name': result[0][1]}
-                    return user_detail
-                else:
-                    user_detail = {'user_id': user_id,
-                                   'user': '',
-                                   'friendly_name': ''}
-                    return user_detail
-            except:
+            monitor_db = database.MonitorDatabase()
+            query = 'select username, ' \
+                    '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END),' \
+                    'do_notify ' \
+                    'FROM users WHERE user_id = ?'
+            result = monitor_db.select(query, args=[user_id])
+            if result:
+                user_detail = {'user_id': user_id,
+                               'user': result[0][0],
+                               'friendly_name': result[0][1],
+                               'do_notify': helpers.checked(result[0][2])}
+                return user_detail
+            else:
                 user_detail = {'user_id': user_id,
                                'user': '',
-                               'friendly_name': ''}
+                               'friendly_name': '',
+                               'do_notify': ''}
                 return user_detail
         elif user:
-            try:
-                monitor_db = database.MonitorDatabase()
-                query = 'select user_id, ' \
-                        '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END)  ' \
-                        'FROM users WHERE username = ?'
-                result = monitor_db.select(query, args=[user])
-                if result:
-                    user_detail = {'user_id': result[0][0],
-                                   'user': user,
-                                   'friendly_name': result[0][1]}
-                    return user_detail
-                else:
-                    user_detail = {'user_id': None,
-                                   'user': user,
-                                   'friendly_name': ''}
-                    return user_detail
-            except:
+            monitor_db = database.MonitorDatabase()
+            query = 'select user_id, ' \
+                    '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END),' \
+                    'do_notify  ' \
+                    'FROM users WHERE username = ?'
+            result = monitor_db.select(query, args=[user])
+            if result:
+                user_detail = {'user_id': result[0][0],
+                               'user': user,
+                               'friendly_name': result[0][1],
+                               'do_notify': helpers.checked(result[0][2])}
+                return user_detail
+            else:
                 user_detail = {'user_id': None,
                                'user': user,
-                               'friendly_name': ''}
+                               'friendly_name': '',
+                               'do_notify': ''}
                 return user_detail
 
         return None
@@ -315,11 +312,11 @@ class DataFactory(object):
 
         if user:
             query = 'SELECT user_id, username, friendly_name, email, ' \
-                    'thumb, is_home_user, is_allow_sync, is_restricted ' \
+                    'thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
                     'FROM users ' \
                     'WHERE username = ? ' \
                     'UNION ALL ' \
-                    'SELECT null, user, null, null, null, null, null, null ' \
+                    'SELECT null, user, null, null, null, null, null, null, null ' \
                     'FROM session_history ' \
                     'WHERE user = ? ' \
                     'GROUP BY user ' \
@@ -327,11 +324,11 @@ class DataFactory(object):
             result = monitor_db.select(query, args=[user, user])
         elif user_id:
             query = 'SELECT user_id, username, friendly_name, email, ' \
-                    'thumb, is_home_user, is_allow_sync, is_restricted ' \
+                    'thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
                     'FROM users ' \
                     'WHERE user_id = ? ' \
                     'UNION ALL ' \
-                    'SELECT user_id, user, null, null, null, null, null, null ' \
+                    'SELECT user_id, user, null, null, null, null, null, null, null ' \
                     'FROM session_history ' \
                     'WHERE user_id = ? ' \
                     'GROUP BY user ' \
@@ -359,7 +356,8 @@ class DataFactory(object):
                                 "thumb": user_thumb,
                                 "is_home_user": item['is_home_user'],
                                 "is_allow_sync": item['is_allow_sync'],
-                                "is_restricted": item['is_restricted']
+                                "is_restricted": item['is_restricted'],
+                                "do_notify": item['do_notify']
                                 }
             return user_details
         else:
@@ -372,7 +370,8 @@ class DataFactory(object):
                     "thumb": '',
                     "is_home_user": 0,
                     "is_allow_sync": 0,
-                    "is_restricted": 0
+                    "is_restricted": 0,
+                    "do_notify": 0
                     }
 
     def get_home_stats(self, time_range='30'):

@@ -175,10 +175,14 @@ class WebInterface(object):
 
     @cherrypy.expose
     def edit_user(self, user=None, user_id=None, friendly_name=None, **kwargs):
+        if 'do_notify' in kwargs:
+            do_notify = kwargs.get('do_notify')
+        else:
+            do_notify = 0
         if user_id:
             try:
                 data_factory = datafactory.DataFactory()
-                data_factory.set_user_friendly_name(user_id=user_id, friendly_name=friendly_name)
+                data_factory.set_user_friendly_name(user_id=user_id, friendly_name=friendly_name, do_notify=do_notify)
 
                 status_message = "Successfully updated user."
                 return status_message
@@ -188,7 +192,7 @@ class WebInterface(object):
         if user:
             try:
                 data_factory = datafactory.DataFactory()
-                data_factory.set_user_friendly_name(user=user, friendly_name=friendly_name)
+                data_factory.set_user_friendly_name(user=user, friendly_name=friendly_name, do_notify=do_notify)
 
                 status_message = "Successfully updated user."
                 return status_message

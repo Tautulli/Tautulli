@@ -386,7 +386,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL UNIQUE, '
         'friendly_name TEXT, thumb TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
-        'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL)'
+        'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -530,6 +530,15 @@ def dbcheck():
         'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
         'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER)'
     )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT do_notify from users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN do_notify INTEGER DEFAULT 1'
+        )
 
     conn_db.commit()
     c_db.close()

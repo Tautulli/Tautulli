@@ -19,7 +19,7 @@ import plexpy
 import time
 
 def notify(stream_data=None, notify_action=None):
-    from plexpy import pmsconnect, common
+    from plexpy import pmsconnect, common, datafactory
     
     if stream_data and notify_action:
         # Get the server name
@@ -40,6 +40,13 @@ def notify(stream_data=None, notify_action=None):
         if notify_action == 'play':
             logger.info('PlexPy Notifier :: %s (%s) started playing %s.' % (stream_data['friendly_name'],
                                                                            stream_data['player'], item_title))
+
+        # Check if notifications enabled for user
+        data_factory = datafactory.DataFactory()
+        user_details = data_factory.get_user_friendly_name(user=stream_data['user'])
+
+        if not user_details['do_notify']:
+            return
 
         if stream_data['media_type'] == 'movie' or stream_data['media_type'] == 'episode':
             if plexpy.CONFIG.MOVIE_NOTIFY_ENABLE or plexpy.CONFIG.TV_NOTIFY_ENABLE:

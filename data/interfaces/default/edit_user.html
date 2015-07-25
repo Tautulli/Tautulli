@@ -13,6 +13,7 @@ data :: Usable parameters
 user                Return the real Plex username
 user_id             Return the Plex user_id
 friendly_name       Returns the friendly edited Plex username
+do_notify           Returns bool value for whether the user should trigger notifications
 
 DOCUMENTATION :: END
 </%doc>
@@ -29,6 +30,10 @@ DOCUMENTATION :: END
             <input type="text" id="friendly_name" name="friendly_name" value="${data['friendly_name']}" size="30">
             <p class="help-block">Replace all occurances of the username with this name.</p>
         </div>
+        <div class="checkbox">
+            <input type="checkbox" id="do_notify" name="do_notify" value="1" ${data['do_notify']}> Enable notifications
+            <p class="help-block">Uncheck this if you do not want to receive notifications for this user's activity.</p>
+        </div>
     </div>
 </div>
 <div class="modal-footer">
@@ -41,10 +46,15 @@ DOCUMENTATION :: END
     // Set new friendly name
     $("#save_user_name").click(function() {
         var friendly_name = $("#friendly_name").val();
+        var do_notify = 0;
+        if ($("#do_notify").is(":checked")) {
+            do_notify = 1;
+        }
+
         % if data['user_id']:
             $.ajax({
                 url: 'edit_user',
-                data: {user_id: '${data['user_id']}', friendly_name: friendly_name},
+                data: {user_id: '${data['user_id']}', friendly_name: friendly_name, do_notify: do_notify},
                 cache: false,
                 async: true,
                 success: function(data) {
@@ -57,7 +67,7 @@ DOCUMENTATION :: END
         % else:
             $.ajax({
                 url: 'edit_user',
-                data: {user: '${data['user']}', friendly_name: friendly_name},
+                data: {user: '${data['user']}', friendly_name: friendly_name, do_notify: do_notify},
                 cache: false,
                 async: true,
                 success: function(data) {
