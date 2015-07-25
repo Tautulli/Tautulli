@@ -37,16 +37,18 @@ class DataFactory(object):
                    'session_history.ip_address',
                    'COUNT(session_history.id) as plays',
                    'session_history.user',
-                   'session_history.user_id'
+                   'session_history.user_id',
+                   '(case when typeof(session_history.user_id) = "integer" \
+                    then session_history.user_id else -1 end) as grp_id',
                    ]
         try:
             query = data_tables.ssp_query(table_name='session_history',
                                           columns=columns,
                                           custom_where=[],
-                                          group_by=['session_history.user_id'],
+                                          group_by=['grp_id'],
                                           join_types=['LEFT OUTER JOIN'],
                                           join_tables=['users'],
-                                          join_evals=[['session_history.user_id', 'users.user_id']],
+                                          join_evals=[['grp_id', 'users.user_id']],
                                           kwargs=kwargs)
         except:
             logger.warn("Unable to execute database query.")
@@ -309,60 +311,69 @@ class DataFactory(object):
         return None
 
     def get_user_details(self, user=None, user_id=None):
-        try:
-            monitor_db = database.MonitorDatabase()
+        monitor_db = database.MonitorDatabase()
 
-            if user:
-                query = 'SELECT user_id, username, friendly_name, email, ' \
-                        'thumb, is_home_user, is_allow_sync, is_restricted ' \
-                        'FROM users ' \
-                        'WHERE username = ? ' \
-                        'UNION ALL ' \
-                        'SELECT null, user, null, null, null, null, null, null ' \
-                        'FROM session_history ' \
-                        'WHERE user = ? ' \
-                        'GROUP BY user ' \
-                        'LIMIT 1'
-                result = monitor_db.select(query, args=[user, user])
-            elif user_id:
-                query = 'SELECT user_id, username, friendly_name, email, ' \
-                        'thumb, is_home_user, is_allow_sync, is_restricted ' \
-                        'FROM users ' \
-                        'WHERE user_id = ? ' \
-                        'UNION ALL ' \
-                        'SELECT user_id, user, null, null, null, null, null, null ' \
-                        'FROM session_history ' \
-                        'WHERE user_id = ? ' \
-                        'GROUP BY user ' \
-                        'LIMIT 1'
-                result = monitor_db.select(query, args=[user_id, user_id])
-            if result:
-                for item in result:
-                    if not item['friendly_name']:
-                        friendly_name = item['username']
-                    else:
-                        friendly_name = item['friendly_name']
-                    if not item['thumb'] or item['thumb'] == '':
-                        user_thumb = common.DEFAULT_USER_THUMB
-                    else:
-                        user_thumb = item['thumb']
+        if user:
+            query = 'SELECT user_id, username, friendly_name, email, ' \
+                    'thumb, is_home_user, is_allow_sync, is_restricted ' \
+                    'FROM users ' \
+                    'WHERE username = ? ' \
+                    'UNION ALL ' \
+                    'SELECT null, user, null, null, null, null, null, null ' \
+                    'FROM session_history ' \
+                    'WHERE user = ? ' \
+                    'GROUP BY user ' \
+                    'LIMIT 1'
+            result = monitor_db.select(query, args=[user, user])
+        elif user_id:
+            query = 'SELECT user_id, username, friendly_name, email, ' \
+                    'thumb, is_home_user, is_allow_sync, is_restricted ' \
+                    'FROM users ' \
+                    'WHERE user_id = ? ' \
+                    'UNION ALL ' \
+                    'SELECT user_id, user, null, null, null, null, null, null ' \
+                    'FROM session_history ' \
+                    'WHERE user_id = ? ' \
+                    'GROUP BY user ' \
+                    'LIMIT 1'
+            result = monitor_db.select(query, args=[user_id, user_id])
+        else:
+            result = None
 
-                    user_details = {"user_id": item['user_id'],
-                                    "username": item['username'],
-                                    "friendly_name": friendly_name,
-                                    "email": item['email'],
-                                    "thumb": user_thumb,
-                                    "is_home_user": item['is_home_user'],
-                                    "is_allow_sync": item['is_allow_sync'],
-                                    "is_restricted": item['is_restricted']
-                                    }
-                return user_details
-            else:
-                return None
-        except:
-            return None
+        if result:
+            user_details = {}
+            for item in result:
+                if not item['friendly_name']:
+                    friendly_name = item['username']
+                else:
+                    friendly_name = item['friendly_name']
+                if not item['thumb'] or item['thumb'] == '':
+                    user_thumb = common.DEFAULT_USER_THUMB
+                else:
+                    user_thumb = item['thumb']
 
-        return None
+                user_details = {"user_id": item['user_id'],
+                                "username": item['username'],
+                                "friendly_name": friendly_name,
+                                "email": item['email'],
+                                "thumb": user_thumb,
+                                "is_home_user": item['is_home_user'],
+                                "is_allow_sync": item['is_allow_sync'],
+                                "is_restricted": item['is_restricted']
+                                }
+            return user_details
+        else:
+            # If there is no user data we must return something
+            # Use "Local" user to retain compatibility with PlexWatch database value
+            return {"user_id": None,
+                    "username": 'Local',
+                    "friendly_name": 'Local',
+                    "email": '',
+                    "thumb": '',
+                    "is_home_user": 0,
+                    "is_allow_sync": 0,
+                    "is_restricted": 0
+                    }
 
     def get_home_stats(self, time_range='30'):
         monitor_db = database.MonitorDatabase()
