@@ -113,9 +113,14 @@ DOCUMENTATION :: END
 
                 <div class="home-platforms-instance-name">
                     <h4>Most Active User</h4>
+                    % if a['rows'][0]['user_id']:
                     <a href="user?user_id=${a['rows'][0]['user_id']}">
                         <h5>${a['rows'][0]['friendly_name']}</h5>
                     </a>
+                    % else:
+                    <a href="user?user=${a['rows'][0]['friendly_name']}">
+                        <h5>${a['rows'][0]['friendly_name']}</h5>
+                    % endif
                 </div>
                 <div class="user-platforms-instance-playcount">
                     <h3>${a['rows'][0]['total_plays']}</h3>
