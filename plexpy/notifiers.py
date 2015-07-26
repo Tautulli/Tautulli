@@ -146,7 +146,7 @@ def available_notification_agents():
 
     # OSX Notifications should only be visible if it can be used
     osx_notify = OSX_NOTIFY()
-    if osx_notify:
+    if osx_notify.validate():
         agents.append({'name': 'OSX Notify',
                        'id': AGENT_IDS['OSX Notify'],
                        'config_prefix': 'osx_notify',
@@ -981,6 +981,14 @@ class OSX_NOTIFY(object):
         try:
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
+        except:
+            logger.error(u"PlexPy Notifier :: Cannot load OSX Notifications agent.")
+
+    def validate(self):
+        try:
+            self.objc = __import__("objc")
+            self.AppKit = __import__("AppKit")
+            return True
         except:
             return False
 
