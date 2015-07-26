@@ -24,7 +24,7 @@ DOCUMENTATION :: END
     <h3>Edit user <strong>${data['user']}</strong></h3>
 </div>
 <div class="modal-body" id="modal-text">
-    <div class="card-back">
+    <fieldset>
         <div class="form-group">
             <label for="friendly_name">Friendly Name</label>
             <input type="text" id="friendly_name" name="friendly_name" value="${data['friendly_name']}" size="30">
@@ -34,7 +34,7 @@ DOCUMENTATION :: END
             <input type="checkbox" id="do_notify" name="do_notify" value="1" ${data['do_notify']}> Enable notifications
             <p class="help-block">Uncheck this if you do not want to receive notifications for this user's activity.</p>
         </div>
-    </div>
+    </fieldset>
 </div>
 <div class="modal-footer">
     <div>

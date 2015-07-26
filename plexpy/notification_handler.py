@@ -19,28 +19,9 @@ import plexpy
 import time
 
 def notify(stream_data=None, notify_action=None):
-    from plexpy import pmsconnect, common, datafactory
+    from plexpy import datafactory
     
     if stream_data and notify_action:
-        # Get the server name
-        pms_connect = pmsconnect.PmsConnect()
-        server_name = pms_connect.get_server_pref(pref='FriendlyName')
-
-        # Build the notification heading
-        notify_header = 'PlexPy (%s)' % server_name
-
-        # Build media item title
-        if stream_data['media_type'] == 'episode' or stream_data['media_type'] == 'track':
-            item_title = '%s - %s' % (stream_data['grandparent_title'], stream_data['title'])
-        elif stream_data['media_type'] == 'movie':
-            item_title = stream_data['title']
-        else:
-            item_title = stream_data['title']
-
-        if notify_action == 'play':
-            logger.info('PlexPy Notifier :: %s (%s) started playing %s.' % (stream_data['friendly_name'],
-                                                                           stream_data['player'], item_title))
-
         # Check if notifications enabled for user
         data_factory = datafactory.DataFactory()
         user_details = data_factory.get_user_friendly_name(user=stream_data['user'])
@@ -53,34 +34,47 @@ def notify(stream_data=None, notify_action=None):
 
                 for agent in notifiers.available_notification_agents():
                     if agent['on_play'] and notify_action == 'play':
-                        logger.debug("PlexPy Notifier :: %s agent is configured to notify on playback start." % agent['name'])
-                        message = '%s (%s) started playing %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                        notifiers.send_notification(config_id=agent['id'], subject=notify_header, body=message)
+                        # Build and send notification
+                        notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                        notifiers.send_notification(config_id=agent['id'],
+                                                    subject=notify_strings[0],
+                                                    body=notify_strings[1])
+                        # Set the notification state in the db
                         set_notify_state(session=stream_data, state='play', agent_info=agent)
+
                     elif agent['on_stop'] and notify_action == 'stop':
-                        logger.debug("PlexPy Notifier :: %s agent is configured to notify on playback stop." % agent['name'])
-                        message = '%s (%s) has stopped %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                        notifiers.send_notification(config_id=agent['id'], subject=notify_header, body=message)
+                        # Build and send notification
+                        notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                        notifiers.send_notification(config_id=agent['id'],
+                                                    subject=notify_strings[0],
+                                                    body=notify_strings[1])
+
                         set_notify_state(session=stream_data, state='stop', agent_info=agent)
+
                     elif agent['on_watched'] and notify_action == 'watched':
+                        # Get the current states for notifications from our db
                         notify_states = get_notify_state(session=stream_data)
+
                         # If there is nothing in the notify_log for our agent id but it is enabled we should notify
                         if not any(d['agent_id'] == agent['id'] for d in notify_states):
-                            logger.debug("PlexPy Notifier :: %s agent is configured to notify on watched." % agent['name'])
-                            message = '%s (%s) has watched %s.' % \
-                                  (stream_data['friendly_name'], stream_data['player'], item_title)
-                            notifiers.send_notification(config_id=agent['id'], subject=notify_header, body=message)
+                            # Build and send notification
+                            notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                            notifiers.send_notification(config_id=agent['id'],
+                                                        subject=notify_strings[0],
+                                                        body=notify_strings[1])
+                            # Set the notification state in the db
                             set_notify_state(session=stream_data, state='watched', agent_info=agent)
+
                         else:
                             # Check in our notify log if the notification has already been sent
                             for notify_state in notify_states:
                                 if not notify_state['on_watched'] and (notify_state['agent_id'] == agent['id']):
-                                    logger.debug("PlexPy Notifier :: %s agent is configured to notify on watched." % agent['name'])
-                                    message = '%s (%s) has watched %s.' % \
-                                          (stream_data['friendly_name'], stream_data['player'], item_title)
-                                    notifiers.send_notification(config_id=agent['id'], subject=notify_header, body=message)
+                                    # Build and send notification
+                                    notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                                    notifiers.send_notification(config_id=agent['id'],
+                                                                subject=notify_strings[0],
+                                                                body=notify_strings[1])
+                                    # Set the notification state in the db
                                     set_notify_state(session=stream_data, state='watched', agent_info=agent)
 
         elif stream_data['media_type'] == 'track':
@@ -88,16 +82,21 @@ def notify(stream_data=None, notify_action=None):
 
                 for agent in notifiers.available_notification_agents():
                     if agent['on_play'] and notify_action == 'play':
-                        logger.debug("PlexPy Notifier :: %s agent is configured to notify on playback start." % agent['name'])
-                        message = '%s (%s) started playing %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                        notifiers.send_notification(config_id=agent['id'], subject=notify_header, body=message)
+                        # Build and send notification
+                        notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                        notifiers.send_notification(config_id=agent['id'],
+                                                    subject=notify_strings[0],
+                                                    body=notify_strings[1])
+                        # Set the notification state in the db
                         set_notify_state(session=stream_data, state='play', agent_info=agent)
+
                     elif agent['on_stop'] and notify_action == 'stop':
-                        logger.debug("PlexPy Notifier :: %s agent is configured to notify on playback stop." % agent['name'])
-                        message = '%s (%s) has stopped %s.' % \
-                              (stream_data['friendly_name'], stream_data['player'], item_title)
-                        notifiers.send_notification(config_id=agent['id'], subject=notify_header, body=message)
+                        # Build and send notification
+                        notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                        notifiers.send_notification(config_id=agent['id'],
+                                                    subject=notify_strings[0],
+                                                    body=notify_strings[1])
+                        # Set the notification state in the db
                         set_notify_state(session=stream_data, state='stop', agent_info=agent)
 
         elif stream_data['media_type'] == 'clip':
@@ -151,3 +150,100 @@ def set_notify_state(session, state, agent_info):
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
     else:
         logger.error('PlexPy Notifier :: Unable to set notify state.')
+
+def build_notify_text(session, state):
+    from plexpy import pmsconnect
+
+    # Get the server name
+    pms_connect = pmsconnect.PmsConnect()
+    server_name = pms_connect.get_server_pref(pref='FriendlyName')
+
+    # Create a title
+    if session['media_type'] == 'episode':
+        full_title = '%s - %s' % (session['grandparent_title'],
+                                  session['title'])
+    elif session['media_type'] == 'track':
+        full_title = '%s - %s' % (session['grandparent_title'],
+                                  session['title'])
+    else:
+        full_title = session['title']
+
+    # Generate a combined transcode decision value
+    if session['video_decision']:
+        transcode_decision = 'V:%s/A:%s' % (session['video_decision'], session['audio_decision'])
+    else:
+        transcode_decision = 'A:%s' % session['audio_decision']
+
+    available_params = {'server_name': server_name,
+                        'user': session['friendly_name'],
+                        'player': session['player'],
+                        'title': full_title,
+                        'platform': session['platform'],
+                        'media_type': session['media_type'],
+                        'transcode_decision': transcode_decision}
+
+    # Default subject text
+    subject_text = 'PlexPy (%s)' % server_name
+
+    if state == 'play':
+        # Default body text
+        body_text = '%s (%s) is watching %s' % (session['friendly_name'],
+                                                session['player'],
+                                                full_title)
+
+        if plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT and plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT:
+            try:
+                subject_text = plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT.format(**available_params)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using default.")
+
+            try:
+                body_text = plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT.format(**available_params)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using default.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    elif state == 'stop':
+        # Default body text
+        body_text = '%s (%s) has stopped %s' % (session['friendly_name'],
+                                                session['player'],
+                                                full_title)
+
+        if plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT and plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT:
+            try:
+                subject_text = plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT.format(**available_params)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using default.")
+
+            try:
+                body_text = plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT.format(**available_params)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using default.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    elif state == 'watched':
+        # Default body text
+        body_text = '%s (%s) has watched %s' % (session['friendly_name'],
+                                                session['player'],
+                                                full_title)
+
+        if plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT and plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT:
+            try:
+                subject_text = plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT.format(**available_params)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using default.")
+
+            try:
+                body_text = plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT.format(**available_params)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using default.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    else:
+        return None

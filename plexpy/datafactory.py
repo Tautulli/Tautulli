@@ -607,19 +607,19 @@ class DataFactory(object):
                         'thumb, parent_thumb, media_index, parent_media_index, year, started, user ' \
                         'FROM session_history_metadata ' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
-                        'WHERE user_id = ? ORDER BY started DESC LIMIT ?'
+                        'WHERE user_id = ? AND session_history.media_type != "track" ORDER BY started DESC LIMIT ?'
                 result = monitor_db.select(query, args=[user_id, limit])
             elif user:
                 query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, title, ' \
                         'thumb, parent_thumb, media_index, parent_media_index, year, started, user ' \
                         'FROM session_history_metadata ' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
-                        'WHERE user = ? ORDER BY started DESC LIMIT ?'
+                        'WHERE user = ? AND session_history.media_type != "track" ORDER BY started DESC LIMIT ?'
                 result = monitor_db.select(query, args=[user, limit])
             else:
                 query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, title, ' \
                         'thumb, parent_thumb, media_index, parent_media_index, year, started, user ' \
-                        'FROM session_history_metadata ' \
+                        'FROM session_history_metadata WHERE session_history.media_type != "track"' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                         'ORDER BY started DESC LIMIT ?'
                 result = monitor_db.select(query, args=[limit])

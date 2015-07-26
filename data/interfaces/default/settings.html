@@ -265,8 +265,9 @@
                                     </div>
                                     <div class="checkbox">
                                         <input type="checkbox" id="ip_logging_enable" name="ip_logging_enable" value="1" ${config['ip_logging_enable']}> Enable IP Logging
+                                        <span id="debugLogCheck" style="color: red; padding-left: 10px;"></span>
                                         <p class="help-block">
-                                            Enable this to attempt to log the IP address of the user. Debug logging must be enabled and your log folder must be set in the PlexPy settings.
+                                            Enable this to attempt to log the IP address of the user.
                                         </p>
                                     </div>
                                 </fieldset>
@@ -293,6 +294,70 @@
                                         <input type="text" data-parsley-type="integer" id="notify_watched_percent" name="notify_watched_percent" value="${config['notify_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" required>
                                         <p class="help-block">Set the progress percentage of when a watched notification should be triggered. Minimum 50, Maximum 95.</p>
                                     </div>
+                                </fieldset>
+                                <br/>
+                                <fieldset>
+                                    <div class="wellheader">
+                                        <h3>Custom Notification Messages</h3>
+                                    </div>
+                                    <p class="help-block">
+                                        You can set custom formatted text for each type of notification.
+                                        Click <a href="#notify-text-sub-modal" data-toggle="modal">here</a> for a list of available parameters which can be used.
+                                    </p>
+                                    <br/>
+                                    <ul id="accordion" class="accordion">
+                                      <li>
+                                        <div class="link"><i class="fa fa-play"></i>Playback Start<i class="fa fa-chevron-down"></i></div>
+                                        <ul class="submenu">
+                                          <li>
+                                              <div class="form-group">
+                                                  <label for="notify_on_start_subject_text">Subject Line</label>
+                                                  <input class="input-xxlarge" type="text" id="notify_on_start_subject_text" name="notify_on_start_subject_text" value="${config['notify_on_start_subject_text']}" data-parsley-trigger="change" required>
+                                                  <p class="help-block">Set a custom subject line.</p>
+                                              </div>
+                                              <div class="form-group">
+                                                  <label for="notify_on_start_body_text">Message Body</label>
+                                                  <input class="input-xxlarge" type="text" id="notify_on_start_body_text" name="notify_on_start_body_text" value="${config['notify_on_start_body_text']}" data-parsley-trigger="change" required>
+                                                  <p class="help-block">Set a custom body.</p>
+                                              </div>
+                                          </li>
+                                        </ul>
+                                      </li>
+                                      <li>
+                                        <div class="link"><i class="fa fa-stop"></i>Playback Stop<i class="fa fa-chevron-down"></i></div>
+                                        <ul class="submenu">
+                                          <li>
+                                              <div class="form-group">
+                                                  <label for="notify_on_stop_subject_text">Subject Line</label>
+                                                  <input class="input-xxlarge" type="text" id="notify_on_stop_subject_text" name="notify_on_stop_subject_text" value="${config['notify_on_stop_subject_text']}" data-parsley-trigger="change" required>
+                                                  <p class="help-block">Set a custom subject line.</p>
+                                              </div>
+                                              <div class="form-group">
+                                                  <label for="notify_on_stop_body_text">Message Body</label>
+                                                  <input class="input-xxlarge" type="text" id="notify_on_stop_body_text" name="notify_on_stop_body_text" value="${config['notify_on_stop_body_text']}" data-parsley-trigger="change" required>
+                                                  <p class="help-block">Set a custom body.</p>
+                                              </div>
+                                          </li>
+                                        </ul>
+                                      </li>
+                                      <li>
+                                        <div class="link"><i class="fa fa-eye"></i>Watched<i class="fa fa-chevron-down"></i></div>
+                                        <ul class="submenu">
+                                          <li>
+                                              <div class="form-group">
+                                                  <label for="notify_on_watched_subject_text">Subject Line</label>
+                                                  <input class="input-xxlarge" type="text" id="notify_on_watched_subject_text" name="notify_on_watched_subject_text" value="${config['notify_on_watched_subject_text']}" data-parsley-trigger="change" required>
+                                                  <p class="help-block">Set a custom subject line.</p>
+                                              </div>
+                                              <div class="form-group">
+                                                  <label for="notify_on_watched_body_text">Message Body</label>
+                                                  <input class="input-xxlarge" type="text" id="notify_on_watched_body_text" name="notify_on_watched_body_text" value="${config['notify_on_watched_body_text']}" data-parsley-trigger="change" required>
+                                                  <p class="help-block">Set a custom body.</p>
+                                              </div>
+                                          </li>
+                                        </ul>
+                                      </li>
+                                    </ul>
                                 </fieldset>
                                 <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
@@ -493,6 +558,51 @@
             <div id="notification-config-modal" class="modal hide fade" tabindex="-1" role="dialog"
                  aria-labelledby="notification-setting-modal" aria-hidden="true">
             </div>
+            <div id="notify-text-sub-modal" class="modal hide fade" tabindex="-1" role="dialog"
+                 aria-labelledby="notify-text-sub-modal" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
+                            class="fa fa-remove"></i></button>
+                    <h3>Notification string substitutions</h3>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td width="150"><strong>{user}</strong></td>
+                                    <td>The username of the person streaming.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{server_name}</strong></td>
+                                    <td>The name of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{player}</strong></td>
+                                    <td>The name of the device being used for playback.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{platform}</strong></td>
+                                    <td>The type of client being used for playback.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{title}</strong></td>
+                                    <td>The title of the item being played back.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{transcode_decision}</strong></td>
+                                    <td>Returns the transcode decisions for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">More options will be added soon.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -502,7 +612,7 @@
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/parsley.min.js"></script>
 <script>
-    $(document).ready(function() {
+$(document).ready(function() {
 
     var configForm = $("#configUpdate");
     $('.save-button').click(function() {
@@ -770,6 +880,20 @@
         $.get("/osxnotifyregister", {'app': osx_notify_app}, function (data) { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>"+data+"</div>"); });
         $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut()
     })
+
+    $.ajax({
+        url: 'get_server_pref',
+        data: { pref: 'logDebug' },
+        async: true,
+        success: function(data) {
+            if (data !== 'true') {
+                $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server'> More..</a>");
+                $("#ip_logging_enable").attr("disabled", true);
+            }
+        }
     });
+
+    var accordion = new Accordion($('#accordion'), false);
+});
 </script>
 </%def>

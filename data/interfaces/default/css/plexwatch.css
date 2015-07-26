@@ -8438,3 +8438,89 @@ ol.test >li {
 .stacked-configs > li > span > input[type='checkbox'] {
 
 }
+
+.accordion {
+  width: 100%;
+  max-width: 900px;
+  margin: 0px 0px 20px 0px;
+  background: #282828;
+  list-style: none;
+}
+
+.accordion .link {
+  cursor: pointer;
+  display: block;
+  padding: 8px 20px 8px 30px;
+  color: #999;
+  border-bottom: 1px solid #2d2d2d;
+  position: relative;
+  -webkit-transition: all 0.4s ease;
+  -o-transition: all 0.4s ease;
+  transition: all 0.4s ease;
+}
+
+.accordion li:last-child .link { border-bottom: 0; }
+
+.accordion li i {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #999;
+  -webkit-transition: all 0.4s ease;
+  -o-transition: all 0.4s ease;
+  transition: all 0.4s ease;
+}
+
+.accordion li i.fa-chevron-down {
+  right: 12px;
+  left: auto;
+  font-size: 16px;
+}
+
+.accordion li .link:hover {
+  color: #FFF;
+  background: #2f2f2f;
+}
+
+.accordion li.open .link { color: #eb8600; }
+
+.accordion li.open i { color: #eb8600; }
+
+.accordion li.open i.fa-chevron-down {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+/**
+ * Submenu
+ -----------------------------*/
+
+
+.submenu {
+  display: none;
+  background: #2d2d2d;
+  list-style: none;
+  margin: 0px;
+  padding: 20px;
+}
+
+.submenu li {
+	border-bottom: 1px solid #2f2f2f;
+}
+
+.submenu a {
+  display: block;
+  text-decoration: none;
+  color: #d9d9d9;
+  padding: 12px;
+  -webkit-transition: all 0.25s ease;
+  -o-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+}
+
+.submenu a:hover {
+  background: #eb8600;
+  color: #FFF;
+}

@@ -407,7 +407,13 @@ class WebInterface(object):
             "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
             "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
-            "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
+            "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
+            "notify_on_start_subject_text": plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT,
+            "notify_on_start_body_text": plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT,
+            "notify_on_stop_subject_text": plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT,
+            "notify_on_stop_body_text": plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT,
+            "notify_on_watched_subject_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT,
+            "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)
@@ -1075,7 +1081,9 @@ class WebInterface(object):
                       'I LIED!',
                       'See you at the party, Richter!',
                       'Are you Sarah Conner?',
-                      'I\'m a cop you idiot!'
+                      'I\'m a cop you idiot!',
+                      'Come with me if you want to live.',
+                      'Who is your daddy and what does he do?'
                       ]
 
         random_number = randint(0, len(quote_list) - 1)
