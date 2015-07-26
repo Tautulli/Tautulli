@@ -124,15 +124,6 @@ def available_notification_agents():
                'on_stop': plexpy.CONFIG.PUSHOVER_ON_STOP,
                'on_watched': plexpy.CONFIG.PUSHOVER_ON_WATCHED
                },
-              {'name': 'OSX Notify',
-               'id': AGENT_IDS['OSX Notify'],
-               'config_prefix': 'osx_notify',
-               'has_config': True,
-               'state': checked(plexpy.CONFIG.OSX_NOTIFY_ENABLED),
-               'on_play': plexpy.CONFIG.OSX_NOTIFY_ON_PLAY,
-               'on_stop': plexpy.CONFIG.OSX_NOTIFY_ON_STOP,
-               'on_watched': plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED
-               },
               {'name': 'Boxcar2',
                'id': AGENT_IDS['Boxcar2'],
                'config_prefix': 'boxcar',
@@ -152,6 +143,19 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.EMAIL_ON_WATCHED
                }
               ]
+
+    # OSX Notifications should only be visible if it can be used
+    osx_notify = OSX_NOTIFY()
+    if osx_notify:
+        agents.append({'name': 'OSX Notify',
+                       'id': AGENT_IDS['OSX Notify'],
+                       'config_prefix': 'osx_notify',
+                       'has_config': True,
+                       'state': checked(plexpy.CONFIG.OSX_NOTIFY_ENABLED),
+                       'on_play': plexpy.CONFIG.OSX_NOTIFY_ON_PLAY,
+                       'on_stop': plexpy.CONFIG.OSX_NOTIFY_ON_STOP,
+                       'on_watched': plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED
+                       })
 
     return agents
 
