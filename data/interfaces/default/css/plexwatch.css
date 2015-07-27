@@ -1288,10 +1288,10 @@ input[type="color"],
 	margin-top: 5px;
 	color: #fff;
 	border: 0px solid #444;
-	background: #333;
+	background: #555;
 	height: 24px;
 	padding: 2px 5px 2px 12px;
-	background-color: #3a3a3a;
+	background-color: #555;
 	border-radius: 14.5px;
 	transition: background-color .3s;
 }

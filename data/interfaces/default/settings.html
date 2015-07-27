@@ -265,7 +265,7 @@
                                     </div>
                                     <div class="checkbox">
                                         <input type="checkbox" id="ip_logging_enable" name="ip_logging_enable" value="1" ${config['ip_logging_enable']}> Enable IP Logging
-                                        <span id="debugLogCheck" style="color: red; padding-left: 10px;"></span>
+                                        <span id="debugLogCheck" style="color: #eb8600; padding-left: 10px;"></span>
                                         <p class="help-block">
                                             Enable this to attempt to log the IP address of the user.
                                         </p>
@@ -303,6 +303,10 @@
                                     <p class="help-block">
                                         You can set custom formatted text for each type of notification.
                                         Click <a href="#notify-text-sub-modal" data-toggle="modal">here</a> for a list of available parameters which can be used.
+                                    </p>
+                                    <p class="help-block">
+                                        You can also add tags to exclude certain text depending on the media type. Click
+                                        <a href="#notify-text-tags-modal" data-toggle="modal">here</a> to view usage information.
                                     </p>
                                     <br/>
                                     <ul id="accordion" class="accordion">
@@ -593,51 +597,94 @@
                                     <td>The title of the item being played back.</td>
                                 </tr>
                                 <tr>
+                                    <td width="150"><strong>{show_name}</strong></td>
+                                    <td>The title of the TV series being played back.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{episode_name}</strong></td>
+                                    <td>The title of the episode being played back.</td>
+                                </tr>
+                                <tr>
                                     <td width="150"><strong>{transcode_decision}</strong></td>
-                                    <td>Returns the transcode decisions for the media item.</td>
+                                    <td>The transcode decisions for the media item.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{year}</strong></td>
-                                    <td>Returns the release year for the media item.</td>
+                                    <td>The release year for the media item.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{studio}</strong></td>
-                                    <td>Returns the studio for the media item.</td>
+                                    <td>The studio for the media item.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{content_rating}</strong></td>
-                                    <td>Returns the content rating for the media item. E.g. TV-MA, TV-PG, etc.</td>
+                                    <td>The content rating for the media item. E.g. TV-MA, TV-PG, etc.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{summary}</strong></td>
-                                    <td>Returns the a short plot summary for the media item.</td>
+                                    <td>A short plot summary for the media item.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{season_num}</strong></td>
-                                    <td>Returns the season number for the media item if item is episode.</td>
+                                    <td>The season number for the media item if item is episode.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{episode_num}</strong></td>
-                                    <td>Returns the episode number for the media item if item is episode.</td>
+                                    <td>The episode number for the media item if item is episode.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{rating}</strong></td>
-                                    <td>Returns the rating (out of 10) for the item.</td>
+                                    <td>The rating (out of 10) for the item.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{duration}</strong></td>
-                                    <td>Returns the duration (in minutes) for the item.</td>
+                                    <td>The duration (in minutes) for the item.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{progress}</strong></td>
-                                    <td>Returns the last reported offset (in minutes) for the item.</td>
+                                    <td>The last reported offset (in minutes) for the item.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{progress_percent}</strong></td>
-                                    <td>Returns the last reported progress percent for the item.</td>
+                                    <td>The last reported progress percent for the item.</td>
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+            <div id="notify-text-tags-modal" class="modal hide fade" tabindex="-1" role="dialog"
+                 aria-labelledby="notify-text-tags-modal" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
+                            class="fa fa-remove"></i></button>
+                    <h3>Notification exclusion tags</h3>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <div class="wellheader">
+                            <h4>Movie Tag <strong>&lt;movie&gt;&lt;/movie&gt;</strong></h4>
+                        </div>
+                        <div>
+                            <p class="help-block">All text inside a <strong>movie</strong> tag will only be sent when the media item being played back is a movie.</p>
+                            <pre>Example: {user} has started playing {title} &lt;movie&gt;({year})&lt;/movie&gt;</pre>
+                        </div>
+                        <div class="wellheader">
+                            <h4>TV Tag <strong>&lt;tv&gt;&lt;/tv&gt;</strong></h4>
+                        </div>
+                        <div>
+                            <p class="help-block">All text inside a <strong>tv</strong> tag will only be sent when the media item being played back is an episode.</p>
+                            <pre>Example: {user} has started playing {title} &lt;tv&gt;(S{season_num}E{episode_num})&lt;/tv&gt;</pre>
+                        </div>
+                        <div class="wellheader">
+                            <h4>Music Tag <strong>&lt;music&gt;&lt;/music&gt;</strong></h4>
+                        </div>
+                        <div>
+                            <p class="help-block">All text inside a <strong>music</strong> tag will only be sent when the media item being played back is a music track.</p>
+                            <pre>Example: {user} has started playing {title} &lt;music&gt;(Track {episode_num})&lt;/music&gt;</pre>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -651,7 +698,6 @@
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/parsley.min.js"></script>
-<script src="interfaces/default/js/jquery.highlighttextarea.min.js"></script>
 <script>
 $(document).ready(function() {
 
@@ -933,6 +979,23 @@ $(document).ready(function() {
             }
         }
     });
+
+    // Check to see if our logs folder is set before allowing IP logging to be enabled.
+    checkLogsPath();
+
+    $("#pms_logs_folder").change(function() {
+        checkLogsPath();
+    });
+
+    function checkLogsPath() {
+        if ($("#pms_logs_folder").val() == '') {
+            $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Extra Settings tab.");
+            $("#ip_logging_enable").attr("disabled", true);
+        } else {
+            $("#ip_logging_enable").attr("disabled", false);
+            $("#debugLogCheck").html("");
+        }
+    }
 
     var accordion = new Accordion($('#accordion'), false);
 });

@@ -153,6 +153,7 @@ def set_notify_state(session, state, agent_info):
 
 def build_notify_text(session, state):
     from plexpy import pmsconnect, helpers
+    import re
 
     # Get the server name
     pms_connect = pmsconnect.PmsConnect()
@@ -167,12 +168,59 @@ def build_notify_text(session, state):
         logger.error(u"PlexPy Notifier :: Unable to retrieve metadata for rating_key %s" % str(session['rating_key']))
         return []
 
+    # TODO: There must be a better way to do this. Laziness.
+    # Check for exclusion tags
+    if session['media_type'] == 'episode':
+        on_start_subject = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
+                                            plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
+        on_start_body = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
+                                         plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
+        on_stop_subject = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
+                                           plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
+        on_stop_body = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
+                                        plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
+        on_watched_subject = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
+                                              plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
+        on_watched_body = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
+                                           plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
+    elif session['media_type'] == 'movie':
+        on_start_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
+                                            plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
+        on_start_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
+                                         plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
+        on_stop_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
+                                           plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
+        on_stop_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
+                                        plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
+        on_watched_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
+                                              plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
+        on_watched_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
+                                           plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
+    elif session['media_type'] == 'track':
+        on_start_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
+                                            plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
+        on_start_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
+                                         plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
+        on_stop_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
+                                           plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
+        on_stop_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
+                                        plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
+        on_watched_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
+                                              plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
+        on_watched_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
+                                           plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
+    else:
+        on_start_subject =  plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT
+        on_start_body = plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT
+        on_stop_subject = plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT
+        on_stop_body = plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT
+        on_watched_subject = plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT
+        on_watched_body = plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT
+
     # Create a title
     if session['media_type'] == 'episode':
-        full_title = '%s - %s (%sx%s)' % (session['grandparent_title'],
-                                          session['title'],
-                                          item_metadata['parent_index'],
-                                          item_metadata['index'])
+        full_title = '%s - %s' % (session['grandparent_title'],
+                                  session['title'])
     elif session['media_type'] == 'track':
         full_title = '%s - %s' % (session['grandparent_title'],
                                   session['title'])
@@ -202,6 +250,8 @@ def build_notify_text(session, state):
                         'user': session['friendly_name'],
                         'player': session['player'],
                         'title': full_title,
+                        'show_name': item_metadata['grandparent_title'],
+                        'episode_name': item_metadata['title'],
                         'platform': session['platform'],
                         'media_type': session['media_type'],
                         'transcode_decision': transcode_decision,
@@ -226,14 +276,14 @@ def build_notify_text(session, state):
                                                 session['player'],
                                                 full_title)
 
-        if plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT and plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT:
+        if on_start_subject and on_start_body:
             try:
-                subject_text = plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT.format(**available_params)
+                subject_text = on_start_subject.format(**available_params)
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using default.")
 
             try:
-                body_text = plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT.format(**available_params)
+                body_text = on_start_body.format(**available_params)
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using default.")
 
@@ -246,14 +296,14 @@ def build_notify_text(session, state):
                                                 session['player'],
                                                 full_title)
 
-        if plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT and plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT:
+        if on_stop_subject and on_stop_body:
             try:
-                subject_text = plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT.format(**available_params)
+                subject_text = on_stop_subject.format(**available_params)
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using default.")
 
             try:
-                body_text = plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT.format(**available_params)
+                body_text = on_stop_body.format(**available_params)
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using default.")
 
@@ -266,14 +316,14 @@ def build_notify_text(session, state):
                                                 session['player'],
                                                 full_title)
 
-        if plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT and plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT:
+        if on_watched_subject and on_watched_body:
             try:
-                subject_text = plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT.format(**available_params)
+                subject_text = on_watched_subject.format(**available_params)
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using default.")
 
             try:
-                body_text = plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT.format(**available_params)
+                body_text = on_watched_body.format(**available_params)
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using default.")
 
@@ -282,3 +332,9 @@ def build_notify_text(session, state):
             return [subject_text, body_text]
     else:
         return None
+
+def strip_tag(data):
+    import re
+
+    p = re.compile(r'<.*?>')
+    return p.sub('', data)
