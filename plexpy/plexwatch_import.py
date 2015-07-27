@@ -285,6 +285,11 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
         # Extract the xml from the Plexwatch db xml field.
         extracted_xml = extract_plexwatch_xml(row['xml'])
 
+        # If we get back None from our xml extractor skip over the record and log error.
+        if not extracted_xml:
+            logger.error(u"PlexPy Importer :: Skipping line due to malformed xml.")
+            continue
+
         # If the user_id no longer exists in the friends list, pull it from the xml.
         if data_factory.get_user_id(user=row['user']):
             user_id = data_factory.get_user_id(user=row['user'])

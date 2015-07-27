@@ -64,12 +64,12 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="date_format">Date Format</label>
-                                        <input type="text" id="date_format" name="date_format" value="${config['date_format']}" size="30" data-parsley-trigger="change" required>
+                                        <input type="text" id="date_format" name="date_format" value="${config['date_format']}" data-parsley-trigger="change" required>
                                         <p class="help-block">Set your preferred date format. <a href="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                                     </div>
                                     <div class="form-group">
                                         <label for="date_format">Time Format</label>
-                                        <input type="text" id="time_format" name="time_format" value="${config['time_format']}" size="30" data-parsley-trigger="change" required>
+                                        <input type="text" class="input-small" id="time_format" name="time_format" value="${config['time_format']}" data-parsley-trigger="change" required>
                                         <p class="help-block">Set your preferred time format. <a href="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                                     </div>
                                 </fieldset>
@@ -83,12 +83,12 @@
                                     <p class="help-block">Web interface changes require a restart.</p>
                                     <div class="form-group">
                                         <label for="http_host">HTTP Host</label>
-                                        <input type="text" id="http_host" name="http_host" value="${config['http_host']}" size="30" data-parsley-trigger="change" required>
+                                        <input type="text" class="input-xlarge" id="http_host" name="http_host" value="${config['http_host']}" data-parsley-trigger="change" required>
                                         <p class="help-block">e.g. localhost or an IP, such as 0.0.0.0</p>
                                     </div>
                                     <div class="form-group">
                                         <label for="http_port">HTTP Port</label>
-                                        <input type="text" data-parsley-type="integer" id="http_port" name="http_port" value="${config['http_port']}" size="10" data-parsley-trigger="change" required>
+                                        <input type="text" class="input-small" data-parsley-type="integer" id="http_port" name="http_port" value="${config['http_port']}" data-parsley-trigger="change" required>
                                         <p class="help-block">Port to bind web server to. Note that ports below 1024 may require root.</p>
                                     </div>
                                     <div class="checkbox">
@@ -139,7 +139,7 @@
                                     </div>
                                     <div id="apioptions" class="form-group">
                                         <label for="api_key">API key</label>
-                                        <input type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20">
+                                        <input class="input-xlarge" type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20">
                                         <input type="button" class="btn btn-link" value="Generate" id="generate_api">
                                         <p class="help-block">Current API key: <strong><br/>${config['api_key']}</strong></p>
                                     </div>
@@ -153,13 +153,13 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="pms_ip">Plex IP or Hostname</label>
-                                        <input type="text" class="pms-settings" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" required>
+                                        <input type="text" class="pms-settings input-xlarge" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" required>
                                         <span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
                                         <p class="help-block">IP Address or hostname for Plex Media Server.</p>
                                     </div>
                                     <div class="form-group">
                                         <label for="pms_port">Plex Port</label>
-                                        <input data-parsley-type="integer" class="pms-settings" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" required>
+                                        <input data-parsley-type="integer" class="pms-settings input-small" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" required>
                                         <p class="help-block">Port that Plex Media Server is listening on.</p>
                                     </div>
                                     <div class="checkbox">
@@ -192,7 +192,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="refresh_users_interval">User list Refresh Interval</label>
-                                        <input type="text" data-parsley-type="integer" id="refresh_users_interval" name="refresh_users_interval" value="${config['refresh_users_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" required>
+                                        <input type="text" class="input-mini" data-parsley-type="integer" id="refresh_users_interval" name="refresh_users_interval" value="${config['refresh_users_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" required>
                                         <p class="help-block">The interval (in hours) PlexPy will request an updated friends list from Plex.tv. 1 minimum, 24 maximum.</p>
                                     </div>
                                     <div class="checkbox">
@@ -218,7 +218,7 @@
                                 <fieldset>
                                     <div class="form-group">
                                         <label for="pms_logs_folder">Logs Folder</label>
-                                        <input type="text" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change">
+                                        <input type="text" class="input-xlarge" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change">
                                         <p class="help-block">Set the folder where your Plex Server logs are. This is required if you enable IP logging.<br/><a href="https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files" target="_blank">Click here</a> for help.</p>
                                     </div>
                                 </fieldset>
@@ -237,7 +237,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="monitoring_interval">Monitoring Interval</label>
-                                        <input type="text" data-parsley-type="integer" id="monitoring_interval" name="monitoring_interval" value="${config['monitoring_interval']}" size="5" data-parsley-min="30" data-parsley-trigger="change" required>
+                                        <input type="text" class="input-mini" data-parsley-type="integer" id="monitoring_interval" name="monitoring_interval" value="${config['monitoring_interval']}" size="5" data-parsley-min="30" data-parsley-trigger="change" required>
                                         <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Min 30 seconds, Recommended 60 seconds.</p>
                                     </div>
                                 </fieldset>
@@ -251,7 +251,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="monitoring_interval">Ignore Interval</label>
-                                        <input type="text" data-parsley-type="integer" id="logging_ignore_interval" name="logging_ignore_interval" value="${config['logging_ignore_interval']}" size="5" data-parsley-min="0" data-parsley-trigger="change" required>
+                                        <input type="text" class="input-mini" data-parsley-type="integer" id="logging_ignore_interval" name="logging_ignore_interval" value="${config['logging_ignore_interval']}" size="5" data-parsley-min="0" data-parsley-trigger="change" required>
                                         <p class="help-block">The interval (in seconds) PlexPy will wait for a video item to be active before logging it. 0 to disable.</p>
                                     </div>
                                     <div class="checkbox">
@@ -291,7 +291,7 @@
                                 <fieldset>
                                     <div class="form-group">
                                         <label for="notify_watched_percent">Watched Percent</label>
-                                        <input type="text" data-parsley-type="integer" id="notify_watched_percent" name="notify_watched_percent" value="${config['notify_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" required>
+                                        <input type="text" class="input-mini" data-parsley-type="integer" id="notify_watched_percent" name="notify_watched_percent" value="${config['notify_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" required>
                                         <p class="help-block">Set the progress percentage of when a watched notification should be triggered. Minimum 50, Maximum 95.</p>
                                     </div>
                                 </fieldset>
@@ -611,6 +611,7 @@
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/parsley.min.js"></script>
+<script src="interfaces/default/js/jquery.highlighttextarea.min.js"></script>
 <script>
 $(document).ready(function() {
 

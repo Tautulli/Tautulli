@@ -982,7 +982,8 @@ class OSX_NOTIFY(object):
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
         except:
-            logger.error(u"PlexPy Notifier :: Cannot load OSX Notifications agent.")
+            #logger.error(u"PlexPy Notifier :: Cannot load OSX Notifications agent.")
+            pass
 
     def validate(self):
         try:

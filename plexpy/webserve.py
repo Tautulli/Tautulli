@@ -619,8 +619,8 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="current_activity.html", data=result)
         else:
-            return serve_template(templatename="current_activity.html", data=None)
             logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="current_activity.html", data=None)
 
     @cherrypy.expose
     def get_current_activity_header(self, **kwargs):
@@ -634,8 +634,8 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="current_activity_header.html", data=result['stream_count'])
         else:
-            return serve_template(templatename="current_activity_header.html", data=None)
             logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="current_activity_header.html", data=None)
 
     @cherrypy.expose
     def get_recently_added(self, count='0', **kwargs):
@@ -649,8 +649,8 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="recently_added.html", data=result['recently_added'])
         else:
-            return serve_template(templatename="recently_added.html", data=None)
             logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="recently_added.html", data=None)
 
     @cherrypy.expose
     def pms_image_proxy(self, img='', width='0', height='0', fallback=None, **kwargs):
@@ -706,9 +706,9 @@ class WebInterface(object):
             return serve_template(templatename="user_recently_watched.html", data=result,
                                   title="Recently Watched")
         else:
+            logger.warn('Unable to retrieve data.')
             return serve_template(templatename="user_recently_watched.html", data=None,
                                   title="Recently Watched")
-            logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
     def get_user_watch_time_stats(self, user=None, user_id=None, **kwargs):
@@ -719,8 +719,8 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
         else:
-            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
             logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
     def get_user_platform_stats(self, user=None, user_id=None, **kwargs):
@@ -732,8 +732,8 @@ class WebInterface(object):
             return serve_template(templatename="user_platform_stats.html", data=result,
                                   title="Platform Stats")
         else:
-            return serve_template(templatename="user_platform_stats.html", data=None, title="Platform Stats")
             logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="user_platform_stats.html", data=None, title="Platform Stats")
 
     @cherrypy.expose
     def get_children(self, rating_key='', **kwargs):
@@ -744,8 +744,8 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="info_episode_list.html", data=result, title="Episode List")
         else:
-            return serve_template(templatename="info_episode_list.html", data=None, title="Episode List")
             logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="info_episode_list.html", data=None, title="Episode List")
 
     @cherrypy.expose
     def get_metadata_json(self, rating_key='', **kwargs):
