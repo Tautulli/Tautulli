@@ -181,9 +181,17 @@ def build_notify_text(session, state):
 
     # Generate a combined transcode decision value
     if session['video_decision']:
-        transcode_decision = 'V:%s/A:%s' % (session['video_decision'], session['audio_decision'])
+        if session['video_decision'] == 'transcode':
+            transcode_decision = 'Transcode'
+        elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
+            transcode_decision = 'Direct Stream'
+        else:
+            transcode_decision = 'Direct Play'
     else:
-        transcode_decision = 'A:%s' % session['audio_decision']
+        if session['audio_decision'] == 'transcode':
+            transcode_decision = 'Transcode'
+        else:
+            transcode_decision = 'Direct Play'
 
     duration = helpers.convert_milliseconds_to_minutes(item_metadata['duration'])
     view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
