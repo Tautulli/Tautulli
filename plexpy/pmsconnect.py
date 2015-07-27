@@ -251,7 +251,7 @@ class PmsConnect(object):
     Output: array
     """
     def get_metadata_details(self, rating_key=''):
-        metadata = self.get_metadata(rating_key, output_format='xml')
+        metadata = self.get_metadata(str(rating_key), output_format='xml')
 
         try:
             xml_head = metadata.getElementsByTagName('MediaContainer')

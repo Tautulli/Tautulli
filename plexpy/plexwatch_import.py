@@ -287,7 +287,8 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
 
         # If we get back None from our xml extractor skip over the record and log error.
         if not extracted_xml:
-            logger.error(u"PlexPy Importer :: Skipping line due to malformed xml.")
+            logger.error(u"PlexPy Importer :: Skipping line with ratingKey %s due to malformed xml."
+                         % str(row['rating_key']))
             continue
 
         # If the user_id no longer exists in the friends list, pull it from the xml.

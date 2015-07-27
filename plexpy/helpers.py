@@ -99,7 +99,7 @@ def latinToAscii(unicrap):
             pass
         else:
             r += str(i)
-    return r.encode('utf-8')
+    return r
 
 
 def convert_milliseconds(ms):
@@ -115,7 +115,7 @@ def convert_milliseconds(ms):
 
 def convert_milliseconds_to_minutes(ms):
 
-    if ms.isdigit():
+    if str(ms).isdigit():
         seconds = float(ms) / 1000
         minutes = round(seconds / 60, 0)
 

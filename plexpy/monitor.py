@@ -44,49 +44,7 @@ def check_active_sessions():
                                            'transcode_container, transcode_video_codec, transcode_audio_codec, '
                                            'transcode_audio_channels, transcode_width, transcode_height, paused_counter '
                                            'FROM sessions')
-            for result in db_streams:
-                # Build a result dictionary for easier referencing
-                stream = {'started': result[0],
-                          'session_key': result[1],
-                          'rating_key': result[2],
-                          'media_type': result[3],
-                          'title': result[4],
-                          'parent_title': result[5],
-                          'grandparent_title': result[6],
-                          'user_id': result[7],
-                          'user': result[8],
-                          'friendly_name': result[9],
-                          'ip_address': result[10],
-                          'player': result[11],
-                          'platform': result[12],
-                          'machine_id': result[13],
-                          'parent_rating_key': result[14],
-                          'grandparent_rating_key': result[15],
-                          'state': result[16],
-                          'view_offset': result[17],
-                          'duration': result[18],
-                          'video_decision': result[19],
-                          'audio_decision': result[20],
-                          'width': result[21],
-                          'height': result[22],
-                          'container': result[23],
-                          'video_codec': result[24],
-                          'audio_codec': result[25],
-                          'bitrate': result[26],
-                          'video_resolution': result[27],
-                          'video_framerate': result[28],
-                          'aspect_ratio': result[29],
-                          'audio_channels': result[30],
-                          'transcode_protocol': result[31],
-                          'transcode_container': result[32],
-                          'transcode_video_codec': result[33],
-                          'transcode_audio_codec': result[34],
-                          'transcode_audio_channels': result[35],
-                          'transcode_width': result[36],
-                          'transcode_height': result[37],
-                          'paused_counter': result[38]
-                          }
-
+            for stream in db_streams:
                 if any(d['session_key'] == str(stream['session_key']) and d['rating_key'] == str(stream['rating_key'])
                        for d in media_container):
                     # The user's session is still active
@@ -111,7 +69,8 @@ def check_active_sessions():
                                                   [paused_counter, stream['session_key'], stream['rating_key']])
                             # Check if the user has reached the offset in the media we defined as the "watched" percent
                             if session['progress'] and session['duration']:
-                                if helpers.get_percent(session['progress'], session['duration']) > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
+                                if helpers.get_percent(session['progress'],
+                                                       session['duration']) > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
                                     # Push any notifications -
                                     # Push it on it's own thread so we don't hold up our db actions
                                     threading.Thread(target=notification_handler.notify,
@@ -126,7 +85,8 @@ def check_active_sessions():
 
                     # Check if the user has reached the offset in the media we defined as the "watched" percent
                     if stream['view_offset'] and stream['duration']:
-                        if helpers.get_percent(stream['view_offset'], stream['duration']) > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
+                        if helpers.get_percent(stream['view_offset'],
+                                               stream['duration']) > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
                             # Push any notifications -
                             # Push it on it's own thread so we don't hold up our db actions
                             threading.Thread(target=notification_handler.notify,

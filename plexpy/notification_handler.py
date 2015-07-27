@@ -152,16 +152,27 @@ def set_notify_state(session, state, agent_info):
         logger.error('PlexPy Notifier :: Unable to set notify state.')
 
 def build_notify_text(session, state):
-    from plexpy import pmsconnect
+    from plexpy import pmsconnect, helpers
 
     # Get the server name
     pms_connect = pmsconnect.PmsConnect()
     server_name = pms_connect.get_server_pref(pref='FriendlyName')
 
+    # Get metadata feed for item
+    metadata = pms_connect.get_metadata_details(rating_key=session['rating_key'])
+
+    if metadata:
+        item_metadata = metadata['metadata']
+    else:
+        logger.error(u"PlexPy Notifier :: Unable to retrieve metadata for rating_key %s" % str(session['rating_key']))
+        return []
+
     # Create a title
     if session['media_type'] == 'episode':
-        full_title = '%s - %s' % (session['grandparent_title'],
-                                  session['title'])
+        full_title = '%s - %s (%sx%s)' % (session['grandparent_title'],
+                                          session['title'],
+                                          item_metadata['parent_index'],
+                                          item_metadata['index'])
     elif session['media_type'] == 'track':
         full_title = '%s - %s' % (session['grandparent_title'],
                                   session['title'])
@@ -174,13 +185,29 @@ def build_notify_text(session, state):
     else:
         transcode_decision = 'A:%s' % session['audio_decision']
 
+    duration = helpers.convert_milliseconds_to_minutes(item_metadata['duration'])
+    view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
+
+    progress_percent = helpers.get_percent(view_offset, duration)
+
     available_params = {'server_name': server_name,
                         'user': session['friendly_name'],
                         'player': session['player'],
                         'title': full_title,
                         'platform': session['platform'],
                         'media_type': session['media_type'],
-                        'transcode_decision': transcode_decision}
+                        'transcode_decision': transcode_decision,
+                        'year': item_metadata['year'],
+                        'studio': item_metadata['studio'],
+                        'content_rating': item_metadata['content_rating'],
+                        'summary': item_metadata['summary'],
+                        'season_num': item_metadata['parent_index'],
+                        'episode_num': item_metadata['index'],
+                        'rating': item_metadata['rating'],
+                        'duration': duration,
+                        'progress': view_offset,
+                        'progress_percent': progress_percent
+                        }
 
     # Default subject text
     subject_text = 'PlexPy (%s)' % server_name

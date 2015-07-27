@@ -567,6 +567,9 @@
                 </div>
                 <div class="modal-body">
                     <div>
+                        <p class="help-block">
+                            If a value for a selected parameter cannot be provided nothing will be outputted for it.
+                        </p>
                         <table>
                             <tbody>
                                 <tr>
@@ -594,7 +597,44 @@
                                     <td>Returns the transcode decisions for the media item.</td>
                                 </tr>
                                 <tr>
-                                    <td colspan="2">More options will be added soon.</td>
+                                    <td width="150"><strong>{year}</strong></td>
+                                    <td>Returns the release year for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{studio}</strong></td>
+                                    <td>Returns the studio for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{content_rating}</strong></td>
+                                    <td>Returns the content rating for the media item. E.g. TV-MA, TV-PG, etc.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{summary}</strong></td>
+                                    <td>Returns the a short plot summary for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{season_num}</strong></td>
+                                    <td>Returns the season number for the media item if item is episode.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{episode_num}</strong></td>
+                                    <td>Returns the episode number for the media item if item is episode.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{rating}</strong></td>
+                                    <td>Returns the rating (out of 10) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{duration}</strong></td>
+                                    <td>Returns the duration (in minutes) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{progress}</strong></td>
+                                    <td>Returns the last reported offset (in minutes) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{progress_percent}</strong></td>
+                                    <td>Returns the last reported progress percent for the item.</td>
                                 </tr>
                             </tbody>
                         </table>
