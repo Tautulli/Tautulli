@@ -14,19 +14,19 @@
 <div class="container-fluid">
     <div class='row-fluid'>
         <div class='span12'>
-            <div class='table-card-back'>
-                <div class="header-bar">
-                    <h2><i class="fa fa-cog"></i> Settings</h2>
-                </div>
-                <div class="button-bar">
-                    % if config['check_github']:
-                    <button id="menu_link_update_check" class="rounded"><i class="fa fa-arrow-circle-up"></i> Check for Updates</button>
-                    % endif
-                    <button id="menu_link_restart" class="rounded"><i class="fa fa-refresh"></i> Restart</button>
-                    <button id="menu_link_shutdown" class="rounded"><i class="fa fa-power-off"></i> Shut Down</button>
-                </div>
-            </div>
             <div class="settings-pane">
+                <div class='table-card-back' style="width: initial;">
+                    <div class="header-bar">
+                        <h2><i class="fa fa-cog"></i> Settings</h2>
+                    </div>
+                    <div class="button-bar">
+                        % if config['check_github']:
+                        <button id="menu_link_update_check" class="squared"><i class="fa fa-arrow-circle-up"></i> Check for Updates</button>
+                        % endif
+                        <button id="menu_link_restart" class="squared"><i class="fa fa-refresh"></i> Restart</button>
+                        <button id="menu_link_shutdown" class="squared"><i class="fa fa-power-off"></i> Shut Down</button>
+                    </div>
+                </div>
                 <div role="tabpanel" class="row-fluid">
                     <!-- Nav tabs -->
                     <div class="settings-pane-options-list">
@@ -73,7 +73,7 @@
                                         <p class="help-block">Set your preferred time format. <a href="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                                     </div>
                                 </fieldset>
-                                <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
+                                <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
                             <div role="tabpanel" class="tab-pane" id="tabs-2">
                                 <fieldset>
@@ -110,7 +110,7 @@
                                         </div>
                                     </div>
                                 </fieldset>
-                                <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
+                                <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
                             <div role="tabpanel" class="tab-pane" id="tabs-3">
                                 <fieldset>
@@ -144,7 +144,7 @@
                                         <p class="help-block">Current API key: <strong><br/>${config['api_key']}</strong></p>
                                     </div>
                                 </fieldset>
-                                <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
+                                <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
                             <div role="tabpanel" class="tab-pane" id="tabs-4">
                                 <fieldset>
@@ -172,7 +172,7 @@
                                     </div>
                                     <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
                                 </fieldset>
-                                <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
+                                <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
                             <div role="tabpanel" class="tab-pane" id="tabs-5">
                                 <fieldset>
@@ -200,7 +200,7 @@
                                         <p class="help-block">Refresh the user list when PlexPy starts.</p>
                                     </div>
                                 </fieldset>
-                                <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
+                                <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
                             <div role="tabpanel" class="tab-pane" id="tabs-6">
                                 <div class="wellheader">
@@ -228,7 +228,7 @@
                                     </div>
                                     <p class="help-block"><a href="#plexwatch-import-modal" id="toggle-plexwatch-import-modal" data-toggle="modal">Click here to Import an existing Plexwatch database.</a></p>
                                 </fieldset>
-                                <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
+                                <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
                             <div role="tabpanel" class="tab-pane" id="tabs-7">
                                 <fieldset>
@@ -271,7 +271,7 @@
                                         </p>
                                     </div>
                                 </fieldset>
-                                <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
+                                <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
                             <div role="tabpanel" class="tab-pane" id="tabs-8">
                                 <fieldset>
@@ -363,7 +363,7 @@
                                       </li>
                                     </ul>
                                 </fieldset>
-                                <input type="button" class="rounded rounded-primary save-button" value="Save" data-success="Changes saved successfully">
+                                <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
                             </div>
                             <div role="tabpanel" class="tab-pane" id="tabs-9">
                                 <fieldset>
@@ -551,7 +551,7 @@
                 </div>
                 <div class="modal-footer">
                     <div class="">
-                        <input type="button" id="get-pms-auth-token" class="rounded rounded-primary" value="Fetch Token">
+                        <input type="button" id="get-pms-auth-token" class="squared squared-primary" value="Fetch Token">
                         <span id="pms-token-status"></span>
                     </div>
                 </div>
@@ -700,6 +700,18 @@
 <script src="interfaces/default/js/parsley.min.js"></script>
 <script>
 $(document).ready(function() {
+
+    // Javascript to enable link to tab
+    var hash = document.location.hash;
+    var prefix = "tab_";
+    if (hash) {
+        $('.nav-settings a[href='+hash.replace(prefix,"")+']').tab('show');
+    }
+
+    // Change hash for page-reload
+    $('.nav-settings a').on('shown', function (e) {
+        window.location.hash = e.target.hash.replace("#", "#" + prefix);
+    });
 
     var configForm = $("#configUpdate");
     $('.save-button').click(function() {

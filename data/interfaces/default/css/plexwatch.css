@@ -640,7 +640,7 @@ h3,
 h4,
 h5,
 h6 {
-	line-height: 24px;
+	line-height: 1.5em;
 }
 h1 {
 	font-size: 30px;
@@ -1254,7 +1254,7 @@ input[type="color"],
 	padding: 4px 6px;
 	margin-bottom: 10px;
 	font-size: 14px;
-	line-height: 20px;
+	line-height: 1.5em;
 	color: #555555;
 	-webkit-border-radius: 4px;
 	-moz-border-radius: 4px;
@@ -1289,10 +1289,10 @@ input[type="color"],
 	color: #fff;
 	border: 0px solid #444;
 	background: #555;
-	height: 24px;
-	padding: 2px 5px 2px 12px;
+	height: 22px;
+	padding: 6px 12px;
 	background-color: #555;
-	border-radius: 14.5px;
+	border-radius: 3px;
 	transition: background-color .3s;
 }
 textarea:focus,
@@ -8323,6 +8323,61 @@ ol.test >li {
     color: #444;
 }
 
+.squared {
+	padding: 4px 12px;
+    margin: 2px 2px 2px 0px;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+      touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+    background-image: none;
+    background-color: #444;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    outline:0px !important;
+    -webkit-appearance:none;
+}
+
+.squared:hover {
+    color: #F9AA03;
+}
+
+.squared:active {
+    border: 1px solid #eb8600;
+}
+
+.squared-primary {
+	background-color: #eb8600;
+	color: #f2f2f2;
+}
+
+.squared-primary:hover {
+	color: #fff;
+}
+
+.squared-primary:active {
+    border: 1px solid #444;
+    color: #444;
+}
+
+.squared-caps {
+	color: #f2f2f2;
+	font-size: 12px;
+	padding: 2px 8px;
+	text-transform: uppercase;
+	font-weight: bold;
+
+}
+
 .header-bar {
 	float: left;
 }
@@ -8336,7 +8391,7 @@ ol.test >li {
 }
 
 .settings-pane {
-	padding: 20px;
+	padding: 0px;
     margin-left: auto;
     margin-right: auto;
     margin-top: 20px;
@@ -8349,9 +8404,10 @@ ol.test >li {
 	.settings-pane-options-list {
 		float: left;
 		width: 25%;
+		max-width: 300px;
+		margin-right: 40px;
 	}
 	.settings-pane-content {
-		margin-left: 25%;
 		padding-left: 40px;
 	}
 }
@@ -8374,9 +8430,9 @@ ol.test >li {
 	display: block;
 	padding: 15px 15px 15px 15px;
 	color: #999;
-	-webkit-transition: all 0.4s ease;
-  	-o-transition: all 0.4s ease;
-  	transition: all 0.4s ease;
+	-webkit-transition: all 0.3s ease;
+  	-o-transition: all 0.3s ease;
+  	transition: all 0.3s ease;
 }
 
 .nav-settings > li > a:hover,
@@ -8411,9 +8467,9 @@ ol.test >li {
 	color: #eee;
 	border-left: 2px solid #444;
 	border-top: 1px solid #2d2d2d;
-	-webkit-transition: all 0.4s ease;
-  	-o-transition: all 0.4s ease;
-  	transition: all 0.4s ease;
+	-webkit-transition: all 0.3s ease;
+  	-o-transition: all 0.3s ease;
+  	transition: all 0.3s ease;
 }
 
 .stacked-configs > li > span:hover,
@@ -8460,9 +8516,9 @@ ol.test >li {
   color: #999;
   border-bottom: 1px solid #2d2d2d;
   position: relative;
-  -webkit-transition: all 0.4s ease;
-  -o-transition: all 0.4s ease;
-  transition: all 0.4s ease;
+  -webkit-transition: all 0.3s ease;
+  -o-transition: all 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .accordion li:last-child .link { border-bottom: 0; }
@@ -8472,9 +8528,9 @@ ol.test >li {
   top: 10px;
   left: 10px;
   color: #999;
-  -webkit-transition: all 0.4s ease;
-  -o-transition: all 0.4s ease;
-  transition: all 0.4s ease;
+  -webkit-transition: all 0.3s ease;
+  -o-transition: all 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .accordion li i.fa-chevron-down {

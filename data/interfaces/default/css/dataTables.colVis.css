@@ -43,7 +43,7 @@ button.ColVis_Button {
     background-image: none;
     background-color: #444;
     border: 1px solid transparent;
-    border-radius: 14.5px;
+    border-radius: 3px;
     outline:0px !important;
     -webkit-appearance:none;
 }
