@@ -3,25 +3,23 @@
     <h3>Import PlexWatch Database</h3>
 </div>
 <div class="modal-body" id="modal-text">
-    <div class="card-back">
-        <div class="form-group">
-            <label for="db_location">Database Location</label>
-            <input type="text" id="db_location" name="db_location" value="" size="30" required>
-            <p class="help-block">Enter the path and file name for the PlexWatch database you wish to import.</p>
-        </div>
-        <div class="form-group">
-            <label for="table_name">Table Name</label>
-            <select id="table_name" name="table_name">
-                <option value="processed">processed</option>
-                <option value="processed">grouped</option>
-            </select>
-            <p class="help-block">The table name from which you wish to import. Only import one of these, importing both will result in duplicated data.</p>
-        </div>
-        <div class="form-group">
-            <label for="import_ignore_interval">Ignore Interval</label>
-            <input type="text" id="import_ignore_interval" name="import_ignore_interval" value="120" size="30" required>
-            <p class="help-block">Enter the minimum duration (in seconds) an item must have been active for. Set to 0 to import all.</p>
-        </div>
+    <div class="form-group">
+        <label for="db_location">Database Location</label>
+        <input type="text" class="input-xlarge" id="db_location" name="db_location" value="" required>
+        <p class="help-block">Enter the path and file name for the PlexWatch database you wish to import.</p>
+    </div>
+    <div class="form-group">
+        <label for="table_name">Table Name</label>
+        <select id="table_name" name="table_name">
+            <option value="processed">processed</option>
+            <option value="processed">grouped</option>
+        </select>
+        <p class="help-block">The table name from which you wish to import. Only import one of these, importing both will result in duplicated data.</p>
+    </div>
+    <div class="form-group">
+        <label for="import_ignore_interval">Ignore Interval</label>
+        <input type="text" class="input-mini" id="import_ignore_interval" name="import_ignore_interval" value="120" required>
+        <p class="help-block">Enter the minimum duration (in seconds) an item must have been active for. Set to 0 to import all.</p>
     </div>
 </div>
 <div class="modal-footer">

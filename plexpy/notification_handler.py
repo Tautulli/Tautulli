@@ -210,7 +210,7 @@ def build_notify_text(session, state):
         on_watched_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
                                            plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
     else:
-        on_start_subject =  plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT
+        on_start_subject = plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT
         on_start_body = plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT
         on_stop_subject = plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT
         on_stop_body = plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT
@@ -261,6 +261,7 @@ def build_notify_text(session, state):
                         'summary': item_metadata['summary'],
                         'season_num': item_metadata['parent_index'],
                         'episode_num': item_metadata['index'],
+                        'album_name': item_metadata['parent_title'],
                         'rating': item_metadata['rating'],
                         'duration': duration,
                         'progress': view_offset,
