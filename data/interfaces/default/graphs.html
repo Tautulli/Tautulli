@@ -1,83 +1,60 @@
 <%inherit file="base.html"/>
-<%!
-from plexpy import helpers
-%>
 
 <%def name="headIncludes()">
-
 </%def>
 
 <%def name="body()">
 <div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span12">
-            <div class="wellheader-bg">
-                <div class="dashboard-wellheader-no-chevron">
-                    <h2><i class="fa fa-bar-chart"></i> Graphs</h2>
+    <div class="row">
+        <div class="col-md-12">
+            <div class='card-back-full'>
+                <div class="header-bar">
+                    <span><i class="fa fa-bar-chart"></i> Graphs</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 <div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span12">
-            <div class="wellbg">
-                <div class="wellheader">
-                    <div class="dashboard-wellheader">
-                        <div class="span12">
-                            <div class="span8"><h4>Daily Watch History (Past <span class="days">30</span> days)</h4>
-                            </div>
-                            <div class="span4" style="text-align: right; padding-right: 30px;">
-                                <h5>
-                                    <a href="javascript:void(0)" id="graph-30"> 30 days</a> |
-                                    <a href="javascript:void(0)" id="graph-90"> 90 days</a> |
-                                    <a href="javascript:void(0)" id="graph-365"> 1 year</a>
-                                </h5>
-                            </div>
-                        </div>
-                    </div>
+    <div class="row">
+        <div class="col-md-8"><h4>Daily Watch History (Past <span class="days">30</span> days)</h4>
+        </div>
+        <div class="col-md-4" style="text-align: right; padding-right: 30px;">
+            <h5>
+                <a href="javascript:void(0)" id="graph-30"> 30 days</a> |
+                <a href="javascript:void(0)" id="graph-90"> 90 days</a> |
+                <a href="javascript:void(0)" id="graph-365"> 1 year</a>
+            </h5>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="graphs-instance">
+                <div class="watch-chart" id="chart_div_plays_by_day">
+                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
+                    <br>
                 </div>
-                <div>
-                    <div class="graphs-instance">
-                        <div class="watch-chart" id="chart_div_plays_by_day">
-                            <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
-                            <br>
-                        </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Watches by day of week (Past <span class="days">30</span> days)</h4>
+            <div class="graphs-instance">
+                <div class="watch-chart" id="chart_div_plays_by_dayofweek" style="float: left;">
+                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
                     </div>
+                    <br>
                 </div>
-
-                <div class="container-fluid">
-                    <div class="row-fluid">
-                        <div class="span6">
-                            <div class="wellheader">
-                                <div class="dashboard-wellheader">
-                                    <h4>Watches by day of week (Past <span class="days">30</span> days)</h4>
-                                </div>
-                            </div>
-                            <div class="graphs-instance">
-                                <div class="watch-chart" id="chart_div_plays_by_dayofweek" style="float: left;">
-                                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
-                                    </div>
-                                    <br>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="span6">
-                            <div class="wellheader">
-                                <div class="dashboard-wellheader">
-                                    <h4>Watches by hour of day (Past <span class="days">30</span> days)</h4>
-                                </div>
-                            </div>
-                            <div class="graphs-instance">
-                                <div class="watch-chart" id="chart_div_plays_by_hourofday">
-                                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
-                                    </div>
-                                    <br>
-                                </div>
-                            </div>
-                        </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h4>Watches by hour of day (Past <span class="days">30</span> days)</h4>
+            <div class="graphs-instance">
+                <div class="watch-chart" id="chart_div_plays_by_hourofday">
+                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
                     </div>
+                    <br>
                 </div>
             </div>
         </div>
@@ -165,6 +142,5 @@ from plexpy import helpers
         });
 
     });
-
 </script>
 </%def>

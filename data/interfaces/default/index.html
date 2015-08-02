@@ -1,61 +1,43 @@
 <%inherit file="base.html"/>
-<%!
-from plexpy import helpers
-%>
 
 <%def name="headIncludes()">
-
 </%def>
 
 <%def name="body()">
 <div class="container-fluid">
-
-    <div class="row-fluid">
-        <div class="span12">
-            <div class="wellbg">
-                <div class="wellheader">
-                    <div class="dashboard-wellheader">
-                        <div id="currentActivityHeader">
-                            <h3>Activity</h3>
-                        </div>
-                    </div>
-                </div>
-                <div id="currentActivity">
-                    <div class="muted"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
-                    <br>
-                </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="padded-header" id="current-activity-header">
+                <h3>Activity</h3>
             </div>
-        </div>
-    </div>
-    <div class="row-fluid">
-        <div class="span12">
-            <div class="wellbg">
-                <div class="wellheader">
-                    <div class="dashboard-wellheader">
-                        <h3>Statistics (Past 30 days)</h3>
-                    </div>
-                </div>
-                <div id="home-stats" class="user-platforms">
-                    <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
-                    <br>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class='row-fluid'>
-        <div class='wellbg'>
-            <div class='wellheader'>
-                <div class='dashboard-wellheader'>
-                    <h3>Recently Added</h3>
-                </div>
-            </div>
-            <div id='recentlyAdded'>
-                <div class='muted'><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
+            <div id="currentActivity">
+                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
                 <br>
             </div>
         </div>
     </div>
-    <footer></footer>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="padded-header">
+                <h3>Statistics (Past 30 days)</h3>
+            </div>
+            <div id="home-stats" class="user-platforms">
+                <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
+                <br>
+            </div>
+        </div>
+    </div>
+    <div class='row'>
+        <div class="col-md-12">
+            <div class="padded-header">
+                <h3>Recently Added</h3>
+            </div>
+            <div id='recentlyAdded'>
+                <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
+                <br>
+            </div>
+        </div>
+    </div>
 </div>
 </%def>
 
@@ -94,7 +76,7 @@ from plexpy import helpers
             cache: false,
             async: true,
             complete: function(xhr, status) {
-                $("#currentActivityHeader").html(xhr.responseText);
+                $("#current-activity-header").html(xhr.responseText);
             }
         });
     }

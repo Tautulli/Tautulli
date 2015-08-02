@@ -1,75 +1,68 @@
 <%inherit file="base.html"/>
-<%!
-from plexpy import helpers
-%>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
 </%def>
 
 <%def name="body()">
 <div class='container-fluid'>
-    <div class='row-fluid'>
-        <div class='span12'>
-            <div class='table-card-back'>
-                <div class="header-bar">
-                    <h2><i class="fa fa-group"></i> Active Users</h2>
-                </div>
-                <div class="button-bar">
-                    <button class="squared" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
-                </div>
-            </div>
-            <div class='table-card-back'>
-                <table id="users_list_table" class="display" width="100%">
-                    <thead>
-                    <tr>
-                        <th align="right" id="avatar"></th>
-                        <th align="left" id="friendly_name">User</th>
-                        <th align="left" id="last_seen">Last Seen</th>
-                        <th align="left" id="last_known_ip">Last Known IP</th>
-                        <th align="left" id="total_plays">Total Plays</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
+    <div class='table-card-back'>
+        <div class="header-bar">
+            <span><i class="fa fa-group"></i> Active Users</span>
+        </div>
+        <div class="button-bar">
+            <button class="squared" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
         </div>
     </div>
-    <footer></footer>
+    <div class='table-card-back'>
+        <table id="users_list_table" class="display" width="100%">
+            <thead>
+            <tr>
+                <th align="right" id="avatar"></th>
+                <th align="left" id="friendly_name">User</th>
+                <th align="left" id="last_seen">Last Seen</th>
+                <th align="left" id="last_known_ip">Last Known IP</th>
+                <th align="left" id="total_plays">Total Plays</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 </%def>
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/users.js"></script>
 <script>
-        users_list_table_options.ajax = {
-            "url": "get_user_list",
-            type: "post",
-            data: function ( d ) {
-                return { 'json_data': JSON.stringify( d ) };
-            }
+    users_list_table_options.ajax = {
+        "url": "get_user_list",
+        type: "post",
+        data: function ( d ) {
+            return { 'json_data': JSON.stringify( d ) };
         }
+    }
 
-        var users_list_table = $('#users_list_table').DataTable(users_list_table_options);
+    var users_list_table = $('#users_list_table').DataTable(users_list_table_options);
 
-        $("#refresh-users-list").click(function() {
-            $.ajax({
-                url: 'refresh_users_list',
-                cache: false,
-                async: true,
-                success : function(data) {
-                    showMsg('<i class="fa fa-check"></i>&nbspUser list refresh started...',false,true,2000,false)
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh user list.',false,true,2000,true)
-                },
-            });
+    $("#refresh-users-list").click(function() {
+        $.ajax({
+            url: 'refresh_users_list',
+            cache: false,
+            async: true,
+            success : function(data) {
+                showMsg('<i class="fa fa-check"></i>&nbspUser list refresh started...',false,true,2000,false)
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh user list.',false,true,2000,true)
+            },
         });
-
+    });
 </script>
 </%def>

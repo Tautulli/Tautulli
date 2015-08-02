@@ -1085,7 +1085,7 @@ body {
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   line-height: 1.42857143;
-  color: #333;
+  color: #fff;
   background-color: #1f1f1f;
 }
 input,
@@ -1146,7 +1146,6 @@ input[type="color"]:focus,
 	/* IE6-9 */
 }
 a {
-  color: #337ab7;
   text-decoration: none;
 }
 a:hover,

@@ -9,7 +9,7 @@ user_ip_table_options = {
         "emptyTable": "No data in table",
     },
     "stateSave": true,
-    "sPaginationType": "bootstrap",
+    "pagingType": "bootstrap",
     "processing": false,
     "serverSide": true,
     "pageLength": 10,
@@ -40,7 +40,7 @@ user_ip_table_options = {
                             $(td).html('n/a');
                         }
                     } else {
-                        $(td).html('<a href="#ip-info-modal" data-toggle="modal"><span data-toggle="ip-tooltip" data-placement="left" title="IP Address Info" id="ip-info"><i class="icon-map-marker icon-white"></i></span>&nbsp' + cellData +'</a>');
+                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal"><span data-toggle="ip-tooltip" data-placement="left" title="IP Address Info" id="ip-info"><i class="fa fa-map-marker"></i></span>&nbsp' + cellData +'</a>');
                     }
                 } else {
                     $(td).html('n/a');
@@ -52,19 +52,19 @@ user_ip_table_options = {
             "targets": [2],
             "data":"play_count",
             "width": "10%",
-            "className": "hidden-phone"
+            "className": "hidden-xs"
         },
         {
             "targets": [3],
             "data":"platform",
             "width": "15%",
-            "className": "hidden-phone"
+            "className": "hidden-xs"
         },
         {
             "targets": [4],
             "data":"last_watched",
             "width": "30%",
-            "className": "hidden-tablet hidden-phone"
+            "className": "hidden-sm hidden-xs"
         }
     ],
     "drawCallback": function (settings) {

@@ -24,7 +24,7 @@ DOCUMENTATION :: END
 
 % if data != None:
 <div class="dashboard-recent-media-row">
-    <ul class="dashboard-recent-media">
+    <ul class="dashboard-recent-media list-unstyled">
         % for item in data:
         <div class="dashboard-recent-media-instance">
             <li>
@@ -47,20 +47,17 @@ DOCUMENTATION :: END
                     % elif item['type'] == 'movie':
                     <h3>${item['title']} (${item['year']})</h3>
                     % endif
-                    <div class="muted" id="added_at-${item['rating_key']}">${item['added_at']}</div>
+                    <div class="text-muted" id="added_at-${item['rating_key']}">${item['added_at']}</div>
                 </div>
             </li>
         </div>
         <script>
             $('#added_at-${item['rating_key']}').html('Added ' + moment(${item['added_at']}, "X").fromNow())
-
-
         </script>
         % endfor
     </ul>
 </div>
 % else:
-<div class="muted">There was an error communicating with your Plex Server. Please check your <a
-        href="config">settings</a>.
+<div class="muted">There was an error communicating with your Plex Server. Please check your <a href="settings">settings</a>.
 </div><br>
 % endif

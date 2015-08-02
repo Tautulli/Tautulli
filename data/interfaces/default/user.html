@@ -28,21 +28,22 @@ from plexpy import helpers
 %>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
 <link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
+<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
 </%def>
 
 % if user != None:
 <%def name="body()">
 <div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span12">
+    <div class="row">
+        <div class="col-md-12">
             <div class="user-info-wrapper">
                 <div class="user-info-poster-face" id="user-gravatar">
                     <img src="${data['thumb']}" height="80px" width="80px">
                 </div>
                 <div class="user-info-username">
-                    <span class="set-username">${data['friendly_name']}</span> <a href="#edit-user-modal" data-toggle="modal" id="toggle-edit-user-modal"><i class="fa fa-pencil"></i></a>
+                    <span class="set-username">${data['friendly_name']}</span> <a href="#" data-toggle="modal" data-target="#edit-user-modal" id="toggle-edit-user-modal"><i class="fa fa-pencil"></i></a>
                 </div>
                 <div class="user-info-nav">
                     <ul class="user-info-nav">
@@ -55,59 +56,47 @@ from plexpy import helpers
             </div>
         </div>
     </div>
-    <div id="edit-user-modal" class="modal hide fade" tabindex="-1" role="dialog"
-         aria-labelledby="edit-user-modal" aria-hidden="true">
+    <div id="edit-user-modal" class="modal fade" tabindex="-1" role="dialog"
+         aria-labelledby="edit-user-modal">
     </div>
 </div>
 <div class="tab-content">
     <div class="tab-pane active" id="profile">
         <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div class="wellbg">
-                        <div class="wellheader">
-                            <div class="dashboard-wellheader">
-                                <h3>Global Stats</h3>
-                            </div>
-                        </div>
-                        <div id="user-time-stats" class="user-overview-stats-wrapper">
-                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                            <br>
-                        </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="padded-header">
+                        <h3>Global Stats</h3>
+                    </div>
+                    <div id="user-time-stats" class="user-overview-stats-wrapper">
+                        <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                        <br>
                     </div>
                 </div>
             </div>
         </div>
         <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div class="wellbg">
-                        <div class="wellheader">
-                            <div class="dashboard-wellheader">
-                                <h3>Platform Stats</h3>
-                            </div>
-                        </div>
-                        <div id="user-platform-stats" class="user-platforms">
-                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                            <br>
-                        </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="padded-header">
+                        <h3>Platform Stats</h3>
+                    </div>
+                    <div id="user-platform-stats" class="user-platforms">
+                        <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                        <br>
                     </div>
                 </div>
             </div>
         </div>
         <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div class="wellbg">
-                        <div class="wellheader">
-                            <div class="dashboard-wellheader">
-                                <h3>Recently watched</h3>
-                            </div>
-                        </div>
-                        <div id="user-recently-watched">
-                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                            <br>
-                        </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="padded-header">
+                        <h3>Recently watched</h3>
+                    </div>
+                    <div id="user-recently-watched">
+                        <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                        <br>
                     </div>
                 </div>
             </div>
@@ -115,12 +104,14 @@ from plexpy import helpers
     </div>
     <div class="tab-pane" id="userAddresses">
         <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
+            <div class="row">
+                <div class="col-md-12">
                     <div class="table-card-back">
-                        <h3>IP Addresses for <strong>
-                            <span class="set-username">${data['friendly_name']}</span>
-                        </strong></h3>
+                        <div class="header-bar">
+                            <span>IP Addresses for <strong>
+                                <span class="set-username">${data['friendly_name']}</span>
+                            </strong></span>
+                        </div>
                     </div>
                     <div class="table-card-back">
                         <table id="user_ip_table" class="display" width="100%">
@@ -135,35 +126,37 @@ from plexpy import helpers
                             </thead>
                         </table>
                     </div>
-                    <div id="ip-info-modal" class="modal hide fade" tabindex="-1" role="dialog"
-                         aria-labelledby="ip-info-modal" aria-hidden="true">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
-                                    class="fa fa-remove"></i></button>
-                            <h3 id="myModalLabel">IP Address: <strong><span id="modal_header_ip_address"></span></strong></h3>
-                        </div>
-                        <div class="modal-body" id="modal-text">
-                            <div class="span6">
-                                <h4>Location Details</h4>
-                                <ul>
-                                    <li>Country: <strong><span id="country"></span></strong></li>
-                                    <li>City: <strong><span id="city"></span></strong></li>
-                                    <li>Region: <strong><span id="region"></span></strong></li>
-                                    <li>Timezone: <strong><span id="timezone"></span></strong></li>
-                                    <li>Latitude: <strong><span id="lat"></span></strong></li>
-                                    <li>Longitude: <strong><span id="lon"></span></strong></li>
-                                </ul>
+                    <div id="ip-info-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                                    <h4 id="myModalLabel">IP Address: <strong><span id="modal_header_ip_address"></span></strong></h4>
+                                </div>
+                                <div class="modal-body" id="modal-text">
+                                    <div class="col-md-6">
+                                        <h4><strong>Location Details</strong></h4>
+                                        <ul>
+                                            <li>Country: <strong><span id="country"></span></strong></li>
+                                            <li>City: <strong><span id="city"></span></strong></li>
+                                            <li>Region: <strong><span id="region"></span></strong></li>
+                                            <li>Timezone: <strong><span id="timezone"></span></strong></li>
+                                            <li>Latitude: <strong><span id="lat"></span></strong></li>
+                                            <li>Longitude: <strong><span id="lon"></span></strong></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h4><strong>Connection Details</strong></h4>
+                                        <ul>
+                                            <li>ISP: <strong><span id="isp"></span></strong></li>
+                                            <li>Organization: <strong><span id="org"></span></strong></li>
+                                            <li>AS: <strong><span id="as"></span></strong></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="modal-footer"></div>
                             </div>
-                            <div class="span6">
-                                <h4>Connection Details</h4>
-                                <ul>
-                                    <li>ISP: <strong><span id="isp"></span></strong></li>
-                                    <li>Organization: <strong><span id="org"></span></strong></li>
-                                    <li>AS: <strong><span id="as"></span></strong></li>
-                                </ul>
-                            </div>
                         </div>
-                        <div class="modal-footer"></div>
                     </div>
                 </div>
             </div>
@@ -171,15 +164,15 @@ from plexpy import helpers
     </div>
     <div class="tab-pane" id="userHistory">
         <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
+            <div class="row">
+                <div class="col-md-12">
                     <div class='table-card-back'>
                         <div class="header-bar">
-                            <h3>Watch History for <strong>
+                            <span>Watch History for <strong>
                                 <span class="set-username">${data['friendly_name']}</span>
-                            </strong></h3>
+                            </strong></span>
                         </div>
-                        <div class="colvis-button-bar hidden-phone" id="button-bar-history">
+                        <div class="colvis-button-bar hidden-xs" id="button-bar-history">
                         </div>
                     </div>
                     <div class="table-card-back">
@@ -202,46 +195,44 @@ from plexpy import helpers
                             </tbody>
                         </table>
                     </div>
-                    <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog"
-                         aria-labelledby="info-modal" aria-hidden="true">
-                    </div>
+                    <div id="info-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="info-modal"></div>
                 </div>
             </div>
         </div>
     </div>
     <div class="tab-pane" id="userSyncItems">
         <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span12">
+            <div class="row">
+                <div class="col-md-12">
                     <div class='table-card-back'>
                         <div class="header-bar">
-                            <h3>Synced Items for <strong>
-                            <span class="set-username">${data['friendly_name']}</span>
-                        </strong></h3>
+                            <span>Synced Items for <strong>
+                                <span class="set-username">${data['friendly_name']}</span>
+                            </strong></span>
                         </div>
-                        <div class="colvis-button-bar hidden-phone" id="button-bar-sync">
+                        <div class="colvis-button-bar hidden-xs" id="button-bar-sync">
                         </div>
                     </div>
                     <div class="table-card-back">
                         <table class="display" id="sync_table" width="100%">
-                        <thead>
-                        <tr>
-                            <th align='left' id="state">State</th>
-                            <th align='left' id="username">Username</th>
-                            <th align='left' id="sync_title">Title</th>
-                            <th align='left' id="type">Type</th>
-                            <th align='left' id="device">Device</th>
-                            <th align='left' id="sync_platform">Platform</th>
-                            <th align='left' id="size">Total Size</th>
-                            <th align='left' id="items">Total Items</th>
-                            <th align='left' id="converted">Converted</th>
-                            <th align='left' id="downloaded">Downloaded</th>
-                            <th align='left' id="sync_percent_complete">Complete</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+                            <thead>
+                            <tr>
+                                <th align='left' id="state">State</th>
+                                <th align='left' id="username">Username</th>
+                                <th align='left' id="sync_title">Title</th>
+                                <th align='left' id="type">Type</th>
+                                <th align='left' id="device">Device</th>
+                                <th align='left' id="sync_platform">Platform</th>
+                                <th align='left' id="size">Total Size</th>
+                                <th align='left' id="items">Total Items</th>
+                                <th align='left' id="converted">Converted</th>
+                                <th align='left' id="downloaded">Downloaded</th>
+                                <th align='left' id="sync_percent_complete">Complete</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -254,115 +245,114 @@ from plexpy import helpers
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
 <script src="interfaces/default/js/dataTables.colVis.js"></script>
-<script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/history_table.js"></script>
 <script src="interfaces/default/js/tables/user_ips.js"></script>
 <script src="interfaces/default/js/tables/sync_table.js"></script>
 <script>
-            $(document).ready(function () {
+    $(document).ready(function () {
 
-                % if data['user_id']:
-                    var user_id = ${data['user_id']};
-                % else:
-                    var user_id = null;
-                % endif
+        % if data['user_id']:
+            var user_id = ${data['user_id']};
+        % else:
+            var user_id = null;
+        % endif
 
-                // Populate watch time stats
-                $.ajax({
-                    url: 'get_user_watch_time_stats',
-                    async: true,
-                    data: { user_id: user_id, user: '${data['username']}' },
-                    complete: function(xhr, status) {
-                        $("#user-time-stats").html(xhr.responseText);
-                    }
-                });
+        // Populate watch time stats
+        $.ajax({
+            url: 'get_user_watch_time_stats',
+            async: true,
+            data: { user_id: user_id, user: '${data['username']}' },
+            complete: function(xhr, status) {
+                $("#user-time-stats").html(xhr.responseText);
+            }
+        });
 
-                // Populate platform stats
-                $.ajax({
-                    url: 'get_user_platform_stats',
-                    async: true,
-                    data: { user_id: user_id, user: '${data['username']}' },
-                    complete: function(xhr, status) {
-                        $("#user-platform-stats").html(xhr.responseText);
-                    }
-                });
+        // Populate platform stats
+        $.ajax({
+            url: 'get_user_platform_stats',
+            async: true,
+            data: { user_id: user_id, user: '${data['username']}' },
+            complete: function(xhr, status) {
+                $("#user-platform-stats").html(xhr.responseText);
+            }
+        });
 
-                // Populate recently watched
-                $.ajax({
-                    url: 'get_user_recently_watched',
-                    async: true,
-                    data: { user_id: user_id, user: '${data['username']}' },
-                    complete: function(xhr, status) {
-                        $("#user-recently-watched").html(xhr.responseText);
-                    }
-                });
+        // Populate recently watched
+        $.ajax({
+            url: 'get_user_recently_watched',
+            async: true,
+            data: { user_id: user_id, user: '${data['username']}' },
+            complete: function(xhr, status) {
+                $("#user-recently-watched").html(xhr.responseText);
+            }
+        });
 
-                $( "#history-tab-btn" ).one( "click", function() {
-                    // Build watch history table
-                    history_table_options.ajax = {
-                        "url": "get_history",
-                        type: 'post',
-                        data: function ( d ) {
-                            return { 'json_data': JSON.stringify( d ),
-                                     'user_id': user_id,
-                                     'user': "${data['username']}"
-                            };
-                        }
-                    }
-                    history_table = $('#history_table').DataTable(history_table_options);
-                    history_table.column(1).visible(false);
+        $( "#history-tab-btn" ).one( "click", function() {
+            // Build watch history table
+            history_table_options.ajax = {
+                "url": "get_history",
+                type: 'post',
+                data: function ( d ) {
+                    return { 'json_data': JSON.stringify( d ),
+                             'user_id': user_id,
+                             'user': "${data['username']}"
+                    };
+                }
+            }
+            history_table = $('#history_table').DataTable(history_table_options);
+            history_table.column(1).visible(false);
 
-                    var colvis = new $.fn.dataTable.ColVis(history_table);
-                    $(colvis.button()).appendTo('#button-bar-history');
-                });
+            var colvis = new $.fn.dataTable.ColVis(history_table);
+            $(colvis.button()).appendTo('#button-bar-history');
+        });
 
-                $( "#ip-tab-btn" ).one( "click", function() {
-                    // Build user IP table
-                    user_ip_table_options.ajax = {
-                        "url": "get_user_ips",
-                        type: 'post',
-                        data: function ( d ) {
-                            return { 'json_data': JSON.stringify( d ),
-                                     'user_id': user_id,
-                                     'user': "${data['username']}"
-                            };
-                        }
-                    }
-                    user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
-                });
+        $( "#ip-tab-btn" ).one( "click", function() {
+            // Build user IP table
+            user_ip_table_options.ajax = {
+                "url": "get_user_ips",
+                type: 'post',
+                data: function ( d ) {
+                    return { 'json_data': JSON.stringify( d ),
+                             'user_id': user_id,
+                             'user': "${data['username']}"
+                    };
+                }
+            }
+            user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
+        });
 
-                $( "#sync-tab-btn" ).one( "click", function() {
-                    // Build user sync table
-                    sync_table_options.ajax = {
-                        "url": "get_sync",
-                        "data": function(d) {
-                           d.user_id = user_id;
-                           d.user = "${data['username']}";
-                        }
-                    }
-                    sync_table = $('#sync_table').DataTable(sync_table_options);
-                    history_table.column(1).visible(false);
+        $( "#sync-tab-btn" ).one( "click", function() {
+            // Build user sync table
+            sync_table_options.ajax = {
+                "url": "get_sync",
+                "data": function(d) {
+                   d.user_id = user_id;
+                   d.user = "${data['username']}";
+                }
+            }
+            sync_table = $('#sync_table').DataTable(sync_table_options);
+            history_table.column(1).visible(false);
 
-                    var colvis_sync = new $.fn.dataTable.ColVis( sync_table );
-                    $( colvis_sync.button() ).appendTo('#button-bar-sync');
-                });
+            var colvis_sync = new $.fn.dataTable.ColVis( sync_table );
+            $( colvis_sync.button() ).appendTo('#button-bar-sync');
+        });
 
-                // Load edit user modal
-                $("#toggle-edit-user-modal").click(function() {
-                    $.ajax({
-                        url: 'edit_user_dialog',
-                        data: { user_id: user_id, user: '${data['username']}' },
-                        cache: false,
-                        async: true,
-                        complete: function(xhr, status) {
-                            $("#edit-user-modal").html(xhr.responseText);
-                        }
-                    });
-                });
+        // Load edit user modal
+        $("#toggle-edit-user-modal").click(function() {
+            $.ajax({
+                url: 'edit_user_dialog',
+                data: { user_id: user_id, user: '${data['username']}' },
+                cache: false,
+                async: true,
+                complete: function(xhr, status) {
+                    $("#edit-user-modal").html(xhr.responseText);
+                }
             });
-
-
+        });
+    });
 </script>
 </%def>
 % else:

@@ -20,7 +20,7 @@ history_table_options = {
         "infoFiltered":"(filtered from _MAX_ total entries)",
         "emptyTable": "No data in table",
     },
-    "sPaginationType": "bootstrap",
+    "pagingType": "bootstrap",
     "stateSave": true,
     "processing": false,
     "serverSide": true,
@@ -55,17 +55,17 @@ history_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "className": "no-wrap hidden-phone"
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [2],
             "data":"player",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="#info-modal" data-toggle="modal"><span data-toggle="tooltip" data-placement="left" title="Stream Info" id="stream-info"><i class="fa fa-lg fa-info-circle"></i></span></a>&nbsp'+cellData);
+                    $(td).html('<a href="#" data-target="#info-modal" data-toggle="modal"><i class="fa fa-lg fa-info-circle"></i></a>&nbsp'+cellData);
                 }
             },
-            "className": "modal-control no-wrap hidden-tablet hidden-phone"
+            "className": "modal-control no-wrap hidden-sm hidden-xs"
         },
         {
             "targets": [3],
@@ -75,7 +75,7 @@ history_table_options = {
                     $(td).html('n/a');
                 }
             },
-            "className": "no-wrap hidden-phone"
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [4],
@@ -103,7 +103,7 @@ history_table_options = {
                 return moment(data, "X").format(time_format);
             },
             "searchable": false,
-            "className": "no-wrap hidden-tablet hidden-phone"
+            "className": "no-wrap hidden-sm hidden-xs"
         },
         {
             "targets": [6],
@@ -116,7 +116,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
-            "className": "no-wrap hidden-phone"
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [7],
@@ -129,7 +129,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
-            "className": "no-wrap hidden-tablet hidden-phone"
+            "className": "no-wrap hidden-md hidden-xs"
         },
         {
             "targets": [8],
@@ -142,7 +142,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
-            "className": "no-wrap hidden-phone"
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [9],
@@ -157,24 +157,24 @@ history_table_options = {
                 }
             },
             "searchable": false,
-            "orderable": true,
-            "className": "no-wrap hidden-tablet hidden-phone"
+            "orderable": false,
+            "className": "no-wrap hidden-md hidden-xs"
         }
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
         // $('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
+        // Create the tooltips.
+        $('.info-modal').each(function() {
+            $(this).tooltip();
+        });
     },
     "preDrawCallback": function(settings) {
         var msg = "<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...</div>";
         showMsg(msg, false, false, 0)
     }
 }
-
-$('#history_table').on('mouseenter', 'td.modal-control span', function () {
-    $(this).tooltip();
-});
 
 $('#history_table').on('click', 'td.modal-control', function () {
     var tr = $(this).parents('tr');

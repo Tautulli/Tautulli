@@ -35,28 +35,24 @@ DOCUMENTATION :: END
 </%doc>
 
 <%inherit file="base.html"/>
-<%!
-from plexpy import helpers
-%>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/plexwatch-tables.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
 <link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
+<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
 </%def>
 
 <%def name="body()">
 % if data:
-<div class="clear"></div>
 <div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span12">
-            <div class="art-face"
-                 style="background-image:url(pms_image_proxy?img=${data['art']}&width=1920&height=1080)">
+    <div class="row">
+        <div>
+            <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['art']}&width=1920&height=1080)">
                 <div class="summary-wrapper">
                     <div class="summary-overlay">
-                        <div class="row-fluid">
-                            <div class="span9">
-                                <div class="summary-content-poster hidden-phone hidden-tablet">
+                        <div class="row">
+                            <div class="col-md-9">
+                                <div class="summary-content-poster hidden-xs hidden-sm">
                                     % if data['type'] == 'episode':
                                     <img src="pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster">
                                     % else:
@@ -77,7 +73,7 @@ from plexpy import helpers
                                         % endif
                                     </div>
                                     % if data['type'] == 'movie':
-                                    <div id="stars" class="rateit hidden-phone hidden-tablet" data-rateit-value=""
+                                    <div id="stars" class="rateit hidden-xs hidden-sm" data-rateit-value=""
                                          data-rateit-ispreset="true" data-rateit-readonly="true"></div>
                                     % endif
                                     <div class="summary-content-details-wrapper">
@@ -105,10 +101,10 @@ from plexpy import helpers
                                 </div>
                             </div>
                             % if data['type'] == 'episode':
-                            <div class="span3">
-                                <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
+                            <div class="col-md-3">
+                                <div class="summary-content-people-wrapper hidden-xs hidden-sm">
                                     <div class="summary-content-writers">
-                                        <h6><strong>Written by</strong></h6>
+                                        <strong>Written by</strong>
                                         <ul>
                                             % for writer in data['writers']:
                                             % if loop.index < 5:
@@ -122,8 +118,8 @@ from plexpy import helpers
                                 </div>
                             </div>
                             % elif data['type'] == 'movie' or data['type'] == 'show':
-                            <div class="span3">
-                                <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
+                            <div class="col-md-3">
+                                <div class="summary-content-people-wrapper hidden-xs hidden-sm">
                                     <div class="summary-content-actors">
                                         <h6><strong>Genres</strong></h6>
                                         <ul>
@@ -136,7 +132,7 @@ from plexpy import helpers
                                             % endfor
                                         </ul>
                                     </div>
-                                    <div class="summary-content-people-wrapper hidden-phone hidden-tablet">
+                                    <div class="summary-content-people-wrapper hidden-xs hidden-sm">
                                         <div class="summary-content-actors">
                                             <h6><strong>Starring</strong></h6>
                                             <ul>
@@ -153,7 +149,7 @@ from plexpy import helpers
                                 </div>
                             </div>
                             % elif data['type'] == 'season':
-                            <div class="span3"></div>
+                            <div class="col-md-3"></div>
                             % endif
                         </div>
                     </div>
@@ -162,15 +158,15 @@ from plexpy import helpers
         </div>
     </div>
 </div>
+% if data['type'] == 'movie' or data['type'] == 'episode' or data['type'] == 'show':
 <div class='container-fluid'>
-    <div class='row-fluid'>
-        <div class='span12'>
+    <div class='row'>
+        <div class='col-md-12'>
             <div class='table-card-back'>
                 <div class="header-bar">
-                    % if data['type'] == 'movie' or data['type'] == 'episode' or data['type'] == 'show':
-                    <h3>Watch history for <strong>${data['title']}</strong></h3>
+                    <span>Watch history for <strong>${data['title']}</strong></span>
                 </div>
-                <div class="colvis-button-bar hidden-phone">
+                <div class="colvis-button-bar hidden-xs">
                 </div>
             </div>
             <div class="table-card-back">
@@ -196,23 +192,29 @@ from plexpy import helpers
             <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal"
                  aria-hidden="true">
             </div>
-            % elif data['type'] == 'season':
-            <div class="wellheader">
-                <div class="dashboard-wellheader">
-                    <h3>Episode list for <strong>${data['title']}</strong></h3>
+        </div>
+    </div>
+</div>
+% elif data['type'] == 'season':
+<div class='container-fluid'>
+    <div class='row'>
+        <div class='col-md-12'>
+            <div class='table-card-back'>
+                <div class="header-bar">
+                    <span>Episode list for <strong>${data['title']}</strong></span>
                 </div>
             </div>
-            <div id="episode-list">
+            <div class='table-card-back'>
+                <div id="episode-list"></div>
             </div>
             % endif
         </div>
     </div>
 </div>
 % else:
-<div class="clear"></div>
 <div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span10 offset1">
+    <div class="row">
+        <div class="col-md-10">
             <h3>Error retrieving item data. This media may not be available in the Plex Media Server database
                 anymore.</h3>
         </div>
@@ -225,7 +227,8 @@ from plexpy import helpers
 <script src="interfaces/default/js/jquery.rateit.min.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
 <script src="interfaces/default/js/dataTables.colVis.js"></script>
-<script src="interfaces/default/js/jquery.dataTables.bootstrap.pagination.integration.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 
 % if data:
@@ -234,7 +237,6 @@ from plexpy import helpers
     // Convert rating to 5 star rating type
     var starRating = Math.round(${data['rating']} / 2)
     $('#stars').attr('data-rateit-value', starRating)
-
 </script>
 % endif
 % if data['type'] == 'movie' or data['type'] == 'episode':
@@ -288,8 +290,6 @@ from plexpy import helpers
             $("#episode-list").html(xhr.responseText);
         }
     });
-
-
 </script>
 % endif
 <script>

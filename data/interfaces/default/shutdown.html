@@ -6,26 +6,30 @@
 
 <%def name="body()">
 <div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span12">
-            <div id="state-change-modal" class="modal hide fade">
-                <div class="modal-header">
-                    <h3>${message}</h3>
-                </div>
-                <div class="modal-body" id="modal-text">
-                    <div align="center">
-                        % if message == "Shutting Down":
-                        <h2><i class="fa fa-refresh fa-spin"></i> PlexPy is ${message}.</h2>
-                        <br/>
-                        % else:
-                        <h2><i class="fa fa-refresh fa-spin"></i> PlexPy is ${message}.</h2>
-                        <br/>
-                        <h3>Restart in <span class="countdown"></span></h3>
-                        % endif
+    <div class="row">
+        <div class="col-md-12">
+            <div id="state-change-modal" class="modal fade">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4>${message}</h4>
+                        </div>
+                        <div class="modal-body" id="modal-text">
+                            <div align="center">
+                                % if message == "Shutting Down":
+                                <h3><i class="fa fa-refresh fa-spin"></i> PlexPy is ${message}.</h3>
+                                <br/>
+                                % else:
+                                <h3><i class="fa fa-refresh fa-spin"></i> PlexPy is ${message}.</h3>
+                                <br/>
+                                <h4>Restart in <span class="countdown"></span></h4>
+                                % endif
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div style="float: right;"><span class="text-muted" id="rquote">${quote}</span></div>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <div style="float: right;"><span class="muted" id="rquote">${quote}</span></div>
                 </div>
             </div>
         </div>

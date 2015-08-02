@@ -29,7 +29,7 @@ DOCUMENTATION :: END
 
 % if data != None:
 <div class="dashboard-recent-media-row">
-    <ul class="dashboard-recent-media">
+    <ul class="dashboard-recent-media list-unstyled">
         % for item in data:
         <div class="dashboard-recent-media-instance">
             <li>
@@ -51,13 +51,12 @@ DOCUMENTATION :: END
             </li>
         </div>
         <script>
-                    $('#time-${item['time']}').html('Watched ' + moment(${item['time']}, "X").fromNow())
-
+            $('#time-${item['time']}').html('Watched ' + moment(${item['time']}, "X").fromNow())
         </script>
         % endfor
     </ul>
 </div>
 % else:
-<div class="muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
+<div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
 </div><br>
 % endif

@@ -19,27 +19,37 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data is not None:
-<div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-    <h3>Edit user <strong>${data['user']}</strong></h3>
-</div>
-<div class="modal-body" id="modal-text">
-    <fieldset>
-        <div class="form-group">
-            <label for="friendly_name">Friendly Name</label>
-            <input type="text" id="friendly_name" name="friendly_name" value="${data['friendly_name']}" size="30">
-            <p class="help-block">Replace all occurances of the username with this name.</p>
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4>Edit user <strong>${data['user']}</strong></h4>
         </div>
-        <div class="checkbox">
-            <input type="checkbox" id="do_notify" name="do_notify" value="1" ${data['do_notify']}> Enable notifications
-            <p class="help-block">Uncheck this if you do not want to receive notifications for this user's activity.</p>
+        <div class="modal-body" id="modal-text">
+            <fieldset>
+                <div class="form-group">
+                    <label for="friendly_name">Friendly Name</label>
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${data['friendly_name']}" size="30">
+                        </div>
+                    </div>
+                    <p class="help-block">Replace all occurances of the username with this name.</p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="do_notify" name="do_notify" value="1" ${data['do_notify']}> Enable notifications
+                    </label>
+                    <p class="help-block">Uncheck this if you do not want to receive notifications for this user's activity.</p>
+                </div>
+            </fieldset>
         </div>
-    </fieldset>
-</div>
-<div class="modal-footer">
-    <div>
-        <input type="button" id="save_user_name" class="squared squared-primary" value="Save">
-        <span id="edit-user-status-message"></span>
+        <div class="modal-footer">
+            <div>
+                <input type="button" id="save_user_name" class="squared squared-primary" value="Save">
+                <span id="edit-user-status-message"></span>
+            </div>
+        </div>
     </div>
 </div>
 <script>

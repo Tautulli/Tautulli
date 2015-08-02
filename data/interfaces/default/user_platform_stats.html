@@ -19,29 +19,25 @@ DOCUMENTATION :: END
 
 % if data != None:
 % for a in data:
-<ul>
+<ul class="list-unstyled">
     <div class="user-platforms-instance">
         <li>
             <span id="user-platform-image-${a['result_id']}"></span>
-
             <div class="user-platforms-instance-name">
                 ${a['platform_name']}
             </div>
             <div class="user-platforms-instance-playcount">
                 <h3>${a['total_plays']}</h3>
-
                 <p> plays</p>
             </div>
         </li>
     </div>
 </ul>
 <script>
-           $("#user-platform-image-${a['result_id']}").html("<img class='user-platforms-instance-poster' src='" + getPlatformImagePath('${a['platform_type']}') + "'>");
-
-
+    $("#user-platform-image-${a['result_id']}").html("<img class='user-platforms-instance-poster' src='" + getPlatformImagePath('${a['platform_type']}') + "'>");
 </script>
 % endfor
 % else:
-<div class="muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
+<div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
 </div><br>
 % endif

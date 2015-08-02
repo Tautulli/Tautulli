@@ -27,14 +27,13 @@ DOCUMENTATION :: END
 % if data != None:
 % if data['episode_count'] > 0:
 <div class="season-episodes-wrapper">
-    <ul class="season-episodes-instance">
+    <ul class="season-episodes-instance list-unstyled">
         % for a in data['episode_list']:
         <li>
             <div class="season-episodes-poster">
                 <div class="season-episodes-poster-face">
                     <a href="info?item_id=${a['rating_key']}">
-                        <img src="pms_image_proxy?img=${a['thumb']}&width=205&height=115"
-                             class="season-episodes-poster-face">
+                        <img src="pms_image_proxy?img=${a['thumb']}&width=410&height=230" class="season-episodes-poster-face">
                     </a>
                 </div>
                 <div class="season-episodes-card-overlay">

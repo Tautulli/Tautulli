@@ -168,47 +168,40 @@ def build_notify_text(session, state):
         logger.error(u"PlexPy Notifier :: Unable to retrieve metadata for rating_key %s" % str(session['rating_key']))
         return []
 
-    # TODO: There must be a better way to do this. Laziness.
     # Check for exclusion tags
     if session['media_type'] == 'episode':
-        on_start_subject = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
-                                            plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
-        on_start_body = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
-                                         plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
-        on_stop_subject = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
-                                           plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
-        on_stop_body = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
-                                        plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
-        on_watched_subject = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
-                                              plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
-        on_watched_body = strip_tag(re.sub('<movie>[^>]+.</movie>|<music>[^>]+.</music>', '',
-                                           plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
+        # Regex pattern to remove the text in the tags we don't want
+        pattern = re.compile('<movie>[^>]+.</movie>|<music>[^>]+.</music>', re.IGNORECASE)
+
+        # Remove the unwanted tags and strip any unmatch tags too.
+        on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
+        on_start_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
+        on_stop_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
+        on_stop_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
+        on_watched_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
+        on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
     elif session['media_type'] == 'movie':
-        on_start_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
-                                            plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
-        on_start_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
-                                         plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
-        on_stop_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
-                                           plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
-        on_stop_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
-                                        plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
-        on_watched_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
-                                              plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
-        on_watched_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<music>[^>]+.</music>', '',
-                                           plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
+        # Regex pattern to remove the text in the tags we don't want
+        pattern = re.compile('<tv>[^>]+.</tv>|<music>[^>]+.</music>', re.IGNORECASE)
+
+        # Remove the unwanted tags and strip any unmatch tags too.
+        on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
+        on_start_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
+        on_stop_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
+        on_stop_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
+        on_watched_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
+        on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
     elif session['media_type'] == 'track':
-        on_start_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
-                                            plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
-        on_start_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
-                                         plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
-        on_stop_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
-                                           plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
-        on_stop_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
-                                        plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
-        on_watched_subject = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
-                                              plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
-        on_watched_body = strip_tag(re.sub('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', '',
-                                           plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
+        # Regex pattern to remove the text in the tags we don't want
+        pattern = re.compile('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', re.IGNORECASE)
+
+        # Remove the unwanted tags and strip any unmatch tags too.
+        on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
+        on_start_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
+        on_stop_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
+        on_stop_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
+        on_watched_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
+        on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
     else:
         on_start_subject = plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT
         on_start_body = plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT

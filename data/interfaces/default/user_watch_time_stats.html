@@ -17,7 +17,7 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data != None:
-<ul>
+<ul class="list-unstyled">
     % for a in data:
     <div class='user-overview-stats-instance'>
         <li>
@@ -38,12 +38,10 @@ DOCUMENTATION :: END
     </div>
     <script>
         $('#total-time-${a['query_days']}').html(humanTime(${a['total_time']}));
-
-
     </script>
     % endfor
 </ul>
 % else:
-<div class="muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
+<div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
 </div><br>
 % endif

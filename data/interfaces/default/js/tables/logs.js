@@ -2,7 +2,7 @@ var log_table_options = {
     "destroy": true,
     "serverSide": true,
     "processing": false,
-    "sPaginationType": "bootstrap",
+    "pagingType": "bootstrap",
     "order": [ 0, 'desc'],
     "pageLength": 10,
     "stateSave": true,
@@ -17,12 +17,12 @@ var log_table_options = {
         {
             "targets": [0],
             "width": "15%",
-            "className": "no-wrap hidden-phone"
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [1],
             "width": "10%",
-            "className": "no-wrap hidden-tablet hidden-phone"
+            "className": "no-wrap hidden-sm hidden-xs"
         },
         {
             "targets": [2],

@@ -1,7 +1,7 @@
 sync_table_options = {
     "processing": false,
     "serverSide": false,
-    "sPaginationType": "bootstrap",
+    "pagingType": "bootstrap",
     "order": [ 0, 'desc'],
     "pageLength": 25,
     "stateSave": true,
@@ -26,7 +26,7 @@ sync_table_options = {
                     $(td).html(cellData.toProperCase());
                 }
             },
-            "className": "no-wrap hidden-phone"
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [1],
@@ -57,17 +57,17 @@ sync_table_options = {
             "render": function ( data, type, full ) {
                 return data.toProperCase();
             },
-            "className": "no-wrap hidden-tablet hidden-phone"
+            "className": "no-wrap hidden-sm hidden-xs"
         },
         {
             "targets": [4],
             "data": "device_name",
-            "className": "no-wrap hidden-phone"
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [5],
             "data": "platform",
-            "className": "no-wrap hidden-tablet hidden-phone"
+            "className": "no-wrap hidden-sm hidden-xs"
         },
         {
             "targets": [6],
@@ -80,22 +80,22 @@ sync_table_options = {
                     $(td).html('0MB');
                 }
             },
-            "className": "no-wrap hidden-tablet hidden-phone"
+            "className": "no-wrap hidden-sm hidden-xs"
         },
         {
             "targets": [7],
             "data": "item_count",
-            "className": "no-wrap hidden-phone"
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [8],
             "data": "item_complete_count",
-            "className": "no-wrap hidden-tablet hidden-phone"
+            "className": "no-wrap hidden-sm hidden-xs"
         },
         {
             "targets": [9],
             "data": "item_downloaded_count",
-            "className": "no-wrap hidden-tablet hidden-phone"
+            "className": "no-wrap hidden-sm hidden-xs"
         },
         {
             "targets": [10],
@@ -107,7 +107,7 @@ sync_table_options = {
                     $(td).html('<span class="badge">0%</span>');
                 }
             },
-            "className": "no-wrap hidden-tablet hidden-phone"
+            "className": "no-wrap hidden-sm hidden-xs"
         }
     ],
     "drawCallback": function (settings) {

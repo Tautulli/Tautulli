@@ -14,7 +14,7 @@ users_list_table_options = {
     "order": [ 1, 'asc'],
     "autoWidth": true,
     "stateSave": true,
-    "sPaginationType": "bootstrap",
+    "pagingType": "bootstrap",
     "columnDefs": [
         {
             "targets": [0],
@@ -51,13 +51,13 @@ users_list_table_options = {
             "render": function ( data, type, full ) {
                 return moment(data, "X").fromNow();
             },
-            "className": "hidden-phone",
+            "className": "hidden-xs",
         },
         {
             "targets": [3],
             "data": "ip_address",
             "searchable": false,
-            "className": "hidden-phone",
+            "className": "hidden-xs",
         },
         {
             "targets": [4],

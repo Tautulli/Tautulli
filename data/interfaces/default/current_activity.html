@@ -65,14 +65,14 @@ DOCUMENTATION :: END
     <div class="poster">
         <div class="dashboard-activity-poster-face">
             % if a['type'] == 'movie' and not a['indexes']:
-            <img src="pms_image_proxy?img=${a['art']}&width=300&height=169"/>
+            <img src="pms_image_proxy?img=${a['art']}&width=410&height=230"/>
             % elif a['indexes']:
             <img onload="fadeIn(this)" src="pms_image_proxy?img=${a['bif_thumb']}&width=300&height=169" style="display: none;"/>
             % else:
             % if a['type'] == 'track':
-                <div class="dashboard-activity-poster-music-bg" style="background-image: url('pms_image_proxy?img=${a['thumb']}&width=300&height=300');"></div>
+            <div class="dashboard-activity-poster-music-bg" style="background-image: url('pms_image_proxy?img=${a['thumb']}&width=300&height=300');"></div>
             % endif
-            <img src="pms_image_proxy?img=${a['thumb']}&width=300&height=169&fallback=cover"/>
+            <img src="pms_image_proxy?img=${a['thumb']}&width=410&height=230&fallback=cover"/>
             % endif
             <div class="dashboard-activity-poster-info-bar">
                 <div class="dashboard-activity-poster-info-text">
@@ -92,7 +92,7 @@ DOCUMENTATION :: END
         <div class='dashboard-activity-metadata-wrapper'>
             <div class='dashboard-activity-instance-overlay'>
                 <div class='dashboard-activity-metadata-progress-minutes'>
-                    <div class='progress progress-warning'>
+                    <div class='activity-progress'>
                         <div class="bar" style="width: ${a['progress_percent']}%">${a['progress_percent']}%</div>
                     </div>
                 </div>
@@ -144,9 +144,9 @@ DOCUMENTATION :: END
                         % endif
                         <br/>
                         % if a['audio_decision'] != 'direct play':
-                            Audio: <strong>${a['transcode_audio_codec']} (${a['transcode_audio_channels']}ch)</strong>
+                        Audio: <strong>${a['transcode_audio_codec']} (${a['transcode_audio_channels']}ch)</strong>
                         % elif a['audio_decision'] == 'direct play':
-                            Audio: <strong>${a['audio_codec']} (${a['audio_channels']}ch)</strong>
+                        Audio: <strong>${a['audio_codec']} (${a['audio_channels']}ch)</strong>
                         % endif
                         % elif a['type'] == 'episode' or a['type'] == 'movie' or a['type'] == 'clip':
                         % if a['video_decision'] == 'direct play':
@@ -156,17 +156,17 @@ DOCUMENTATION :: END
                         % endif
                         <br/>
                         % if a['video_decision'] != 'direct play':
-                            Video: <strong>${a['video_decision']} (${a['transcode_video_codec']})
-                            (${a['transcode_width']}x${a['transcode_height']})</strong>
+                        Video: <strong>${a['video_decision']} (${a['transcode_video_codec']})
+                        (${a['transcode_width']}x${a['transcode_height']})</strong>
                         % elif a['audio_decision'] == 'direct play':
-                            Video: <strong>${a['video_decision']} (${a['video_codec']})
-                            (${a['width']}x${a['height']})</strong>
+                        Video: <strong>${a['video_decision']} (${a['video_codec']})
+                        (${a['width']}x${a['height']})</strong>
                         % endif
                         <br/>
                         % if a['audio_decision'] != 'direct play':
-                            Audio: <strong>${a['audio_decision']} ${a['transcode_audio_codec']} (${a['transcode_audio_channels']}ch)</strong>
+                        Audio: <strong>${a['audio_decision']} ${a['transcode_audio_codec']} (${a['transcode_audio_channels']}ch)</strong>
                         % elif a['audio_decision'] == 'direct play':
-                            Audio: <strong>${a['audio_codec']} (${a['audio_channels']}ch)</strong>
+                        Audio: <strong>${a['audio_codec']} (${a['audio_channels']}ch)</strong>
                         % endif
                         % endif
                         <br>
@@ -176,8 +176,8 @@ DOCUMENTATION :: END
         </div>
     </div>
     <div class="dashboard-activity-button-info">
-        <button type="button" class="btn btn-warning" data-toggle="collapse" data-target="#stream-${a['session_key']}">
-            <i class='icon-info-sign icon-white'></i>
+        <button type="button" class="btn btn-activity-info btn-sm" data-toggle="collapse" data-target="#stream-${a['session_key']}">
+            <i class='fa fa-info-circle'></i>
         </button>
     </div>
 </div>
@@ -201,18 +201,18 @@ DOCUMENTATION :: END
 
     // When mouse over the activity pane, show an info bar with extra info.
     $('.dashboard-activity-poster-face').mouseenter(function() {
-        $('.dashboard-activity-poster-info-bar', this).slideDown();
+        $('.dashboard-activity-poster-info-bar', this).slideDown('fast');
     });
     $('.dashboard-activity-poster-face').mouseleave(function() {
-        $('.dashboard-activity-poster-info-bar', this).slideUp();
+        $('.dashboard-activity-poster-info-bar', this).slideUp('fast');
     });
 
 </script>
 % else:
-<div class="muted">Nothing is currently being watched.</div><br>
+<div class="text-muted">Nothing is currently being watched.</div><br>
 % endif
 % else:
-<div class="muted">There was an error communicating with your Plex Server. Please check your <a
-        href="config">settings</a>.
+<div class="text-muted">There was an error communicating with your Plex Server. Please check your <a
+        href="settings">settings</a>.
 </div><br>
 % endif

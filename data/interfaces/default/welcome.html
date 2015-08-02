@@ -14,16 +14,16 @@ from plexpy import version
     <meta name="author" content="">
     <link href="interfaces/default/css/bootstrap3/bootstrap.css" rel="stylesheet">
     <link href="interfaces/default/css/bootstrap-wizard.css" rel="stylesheet">
+    <link href="interfaces/default/css/plexpy.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
-    <link href="interfaces/default/css/font-awesome.css" rel="stylesheet">
+    <link href="interfaces/default/css/font-awesome.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="interfaces/default/images/favicon.ico"/>
     <link rel="shortcut icon" href="interfaces/default/images/favicon.ico">
 </head>
 
 <body>
-
 <div class="container-fluid">
-    <div class="row-fluid">
+    <div class="row">
         <div class="wizard" id="some-wizard" data-title="PlexPy Setup Wizard">
             <div class="wizard-card" data-cardname="card1">
                 <div style="float: right;">
@@ -57,17 +57,25 @@ from plexpy import version
                         <div class="col-xs-3">
                             <input type="text" class="form-control pms-settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
                         </div>
-                        <div class="col-xs-4" style="padding-top: 8px;">
-                            <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Server uses SSL
+                        <div class="col-xs-4">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Force SSL
+                                </label>
+                            </div>
                         </div>
-                        <div class="col-xs-4" style="padding-top: 8px;">
-                            <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
+                        <div class="col-xs-4">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
                 <input type="hidden" class="form-control pms-settings" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
-                <a class="btn btn-default btn-sm" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
+                <a class="squared" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
             </div>
 
             <div class="wizard-card" data-cardname="card3">
@@ -90,7 +98,7 @@ from plexpy import version
                     </div>
                 </div>
                 <input type="hidden" class="form-control pms-auth" name="pms_token" id="pms_token" value="${config['pms_token']}" data-validate="validatePMStoken">
-                <a class="btn btn-default btn-sm" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
+                <a class="squared" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
             </div>
             <div class="wizard-card" data-cardname="card4">
                 <h3>Monitoring</h3>
@@ -167,7 +175,7 @@ from plexpy import version
                 <br/>
                 <p>Setup is now complete. For more configuration options please visit the Settings menu on the home page.</p>
                 <br/>
-                <i class="fa fa-refresh fa-spin"></i> Just configuring a few things, please wait...
+                <i class="fa fa-refresh fa-spin"></i>&nbspJust configuring a few things, please wait...
 
             </div>
         </div>
