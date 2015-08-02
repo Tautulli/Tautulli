@@ -19,10 +19,10 @@ available_notification_agents = notifiers.available_notification_agents()
                 </div>
                 <div class="button-bar">
                     % if config['check_github']:
-                    <button id="menu_link_update_check" class="squared"><i class="fa fa-arrow-circle-up"></i> Check for Updates</button>
+                    <button id="menu_link_update_check" class="btn btn-dark"><i class="fa fa-arrow-circle-up"></i> Check for Updates</button>
                     % endif
-                    <button id="menu_link_restart" class="squared"><i class="fa fa-refresh"></i> Restart</button>
-                    <button id="menu_link_shutdown" class="squared"><i class="fa fa-power-off"></i> Shut Down</button>
+                    <button id="menu_link_restart" class="btn btn-dark"><i class="fa fa-refresh"></i> Restart</button>
+                    <button id="menu_link_shutdown" class="btn btn-dark"><i class="fa fa-power-off"></i> Shut Down</button>
                 </div>
             </div>
         </div>
@@ -79,7 +79,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             </div>
                             <p class="help-block">Set your preferred time format. <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                         </div>
-                        <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
+                        <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-2">
                         <div class="padded-header">
@@ -127,7 +127,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             </div>
                         </div>
 
-                        <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
+                        <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-3">
 
@@ -179,7 +179,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             <p class="help-block">Current API key: <strong><br/>${config['api_key']}</strong></p>
                         </div>
 
-                        <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
+                        <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-4">
 
@@ -219,7 +219,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         </div>
                         <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
 
-                        <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
+                        <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-5">
 
@@ -230,10 +230,14 @@ available_notification_agents = notifiers.available_notification_agents()
                             <label for="pms_token">PMS Token</label>
                             <div class="row">
                                 <div class="col-xs-6">
-                                    <input type="text" class="form-control" id="pms_token" name="pms_token" value="${config['pms_token']}" size="30" data-parsley-trigger="change" required>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="pms_token" name="pms_token" value="${config['pms_token']}" data-parsley-trigger="change" required>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" data-toggle="modal" data-target="#pms-auth-modal">Fetch Token</button>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                            <a href="#pms-auth-modal" data-toggle="modal">&nbspFetch Token</a>
                             <p class="help-block">Token for Plex.tv authentication.</p>
                         </div>
 
@@ -256,7 +260,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             <p class="help-block">Refresh the user list when PlexPy starts.</p>
                         </div>
 
-                        <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
+                        <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-6">
                         <div class="padded-header">
@@ -290,7 +294,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         </div>
                         <p class="help-block"><a href="javascript:void(0)" id="toggle-plexwatch-import-modal" data-target="#plexwatch-import-modal" data-toggle="modal">Click here to Import an existing Plexwatch database.</a></p>
 
-                        <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
+                        <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-7">
 
@@ -345,7 +349,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             </p>
                         </div>
 
-                        <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
+                        <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-8">
 
@@ -443,7 +447,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             </li>
                         </ul>
 
-                        <input type="button" class="squared squared-primary save-button" value="Save" data-success="Changes saved successfully">
+                        <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-9">
 
@@ -485,7 +489,7 @@ available_notification_agents = notifiers.available_notification_agents()
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <i class="fa fa-remove"></i>
                     </button>
-                    <h4>Date &amp; Time Format Options</h4>
+                    <h4 class="modal-title">Date &amp; Time Format Options</h4>
                 </div>
                 <div class="modal-body">
                     <table>
@@ -609,7 +613,7 @@ available_notification_agents = notifiers.available_notification_agents()
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
                             class="fa fa-remove"></i></button>
-                    <h4>Fetch Plex.tv Token</h4>
+                    <h4 class="modal-title">Fetch Plex.tv Token</h4>
                 </div>
                 <div class="modal-body" id="modal-text">
                     <div>
@@ -638,10 +642,10 @@ available_notification_agents = notifiers.available_notification_agents()
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <div class="">
-                        <input type="button" id="get-pms-auth-token" class="squared squared-primary" value="Fetch Token">
-                        <span id="pms-token-status"></span>
+                    <div style="float: left;">
+                        <strong><span id="pms-token-status"></span></strong>
                     </div>
+                    <input type="button" id="get-pms-auth-token" class="btn btn-bright" value="Fetch Token">
                 </div>
             </div>
         </div>
@@ -654,7 +658,7 @@ available_notification_agents = notifiers.available_notification_agents()
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
                             class="fa fa-remove"></i></button>
-                    <h4>Notification string substitutions</h4>
+                    <h4 class="modal-title">Notification string substitutions</h4>
                 </div>
                 <div class="modal-body">
                     <div>
@@ -752,7 +756,7 @@ available_notification_agents = notifiers.available_notification_agents()
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4>Notification exclusion tags</h4>
+                    <h4 class="modal-title">Notification exclusion tags</h4>
                 </div>
                 <div class="modal-body">
                     <div>

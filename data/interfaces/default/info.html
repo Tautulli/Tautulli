@@ -254,7 +254,7 @@ DOCUMENTATION :: END
         history_table = $('#history_table').DataTable(history_table_options);
         history_table.column(4).visible(false);
 
-        var colvis = new $.fn.dataTable.ColVis(history_table);
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: 'Select columns', buttonClass: 'btn btn-dark' });
         $(colvis.button()).appendTo('div.colvis-button-bar');
     });
 </script>
@@ -272,7 +272,7 @@ DOCUMENTATION :: END
             }
         }
         history_table = $('#history_table').DataTable(history_table_options);
-        var colvis = new $.fn.dataTable.ColVis(history_table);
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: 'Select columns', buttonClass: 'btn btn-dark' });
         $(colvis.button()).appendTo('div.colvis-button-bar');
     });
 </script>

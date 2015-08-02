@@ -255,7 +255,7 @@ ColVis.prototype = {
 
 		this.dom.button = $( '<button />', {
 				'class': !this.s.dt.bJUI ?
-					"ColVis_Button ColVis_MasterButton" :
+					this.s.buttonClass :
 					"ColVis_Button ColVis_MasterButton ui-button ui-state-default"
 			} )
 			.append( '<span>'+this.s.buttonText+'</span>' )
@@ -922,6 +922,14 @@ ColVis.defaults = {
 	 *  @default  Show / hide columns
 	 */
 	buttonText: 'Show / hide columns',
+
+	/**
+	 * Class name used for the button
+	 *  @property buttonClass
+	 *  @type     string
+	 *  @default  ColVis_Button ColVis_MasterButton
+	 */
+	buttonClass: 'ColVis_Button ColVis_MasterButton',
 
 	/**
 	 * List of columns (integers) which should be excluded from the list

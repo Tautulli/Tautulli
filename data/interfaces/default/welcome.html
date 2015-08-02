@@ -75,7 +75,7 @@ from plexpy import version
                 </div>
                 <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
                 <input type="hidden" class="form-control pms-settings" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
-                <a class="squared" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
+                <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
             </div>
 
             <div class="wizard-card" data-cardname="card3">
@@ -98,7 +98,7 @@ from plexpy import version
                     </div>
                 </div>
                 <input type="hidden" class="form-control pms-auth" name="pms_token" id="pms_token" value="${config['pms_token']}" data-validate="validatePMStoken">
-                <a class="squared" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
+                <a class="btn btn-dark" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
             </div>
             <div class="wizard-card" data-cardname="card4">
                 <h3>Monitoring</h3>

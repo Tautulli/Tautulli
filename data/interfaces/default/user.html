@@ -131,7 +131,7 @@ from plexpy import helpers
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                                    <h4 id="myModalLabel">IP Address: <strong><span id="modal_header_ip_address"></span></strong></h4>
+                                    <h4 class="modal-title" id="myModalLabel">IP Address: <strong><span id="modal_header_ip_address"></span></strong></h4>
                                 </div>
                                 <div class="modal-body" id="modal-text">
                                     <div class="col-md-6">
@@ -305,7 +305,7 @@ from plexpy import helpers
             history_table = $('#history_table').DataTable(history_table_options);
             history_table.column(1).visible(false);
 
-            var colvis = new $.fn.dataTable.ColVis(history_table);
+            var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: 'Select columns', buttonClass: 'btn btn-dark' });
             $(colvis.button()).appendTo('#button-bar-history');
         });
 
@@ -336,7 +336,7 @@ from plexpy import helpers
             sync_table = $('#sync_table').DataTable(sync_table_options);
             history_table.column(1).visible(false);
 
-            var colvis_sync = new $.fn.dataTable.ColVis( sync_table );
+            var colvis_sync = new $.fn.dataTable.ColVis( sync_table, { buttonText: 'Select columns', buttonClass: 'btn btn-dark' } );
             $( colvis_sync.button() ).appendTo('#button-bar-sync');
         });
 

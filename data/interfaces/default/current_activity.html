@@ -96,7 +96,7 @@ DOCUMENTATION :: END
                         <div class="bar" style="width: ${a['progress_percent']}%">${a['progress_percent']}%</div>
                     </div>
                 </div>
-                <div class="dashboard-activity-metadata-platform" id="platform-${a['session_key']}">
+                <div class="dashboard-activity-metadata-platform" data-toggle="tooltip" data-placement="right" title data-title="${a['player']}" id="platform-${a['session_key']}">
                 </div>
                 <div class="dashboard-activity-metadata-user">
                     % if a['user_id']:
@@ -207,6 +207,10 @@ DOCUMENTATION :: END
         $('.dashboard-activity-poster-info-bar', this).slideUp('fast');
     });
 
+    // Tooltips
+    $('.dashboard-activity-metadata-platform').each(function() {
+        $(this).tooltip();
+    });
 </script>
 % else:
 <div class="text-muted">Nothing is currently being watched.</div><br>

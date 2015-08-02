@@ -13,7 +13,7 @@
         <div class="header-bar">
             <span><i class="fa fa-history"></i> History</span>
         </div>
-        <div class="colvis-button-bar hidden-phone">
+        <div class="colvis-button-bar hidden-xs">
         </div>
     </div>
     <div class='table-card-back'>
@@ -58,7 +58,7 @@
             }
         }
         history_table = $('#history_table').DataTable(history_table_options);
-        var colvis = new $.fn.dataTable.ColVis(history_table);
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: 'Select columns', buttonClass: 'btn btn-dark' });
         $(colvis.button()).appendTo('div.colvis-button-bar');
     });
 
