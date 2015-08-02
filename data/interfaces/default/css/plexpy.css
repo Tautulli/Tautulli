@@ -351,7 +351,7 @@ input[type="color"],
 }
 .dashboard-activity-poster-face {
 	height: 141px;
-	width: 250px;
+	max-width: 250px;
 	position: relative;
 	top: 0px;
 	background-color: rgba(255,255,255,.03);

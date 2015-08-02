@@ -68,7 +68,9 @@ def check_active_sessions():
                                                   'WHERE session_key = ? AND rating_key = ?',
                                                   [paused_counter, stream['session_key'], stream['rating_key']])
                             # Check if the user has reached the offset in the media we defined as the "watched" percent
-                            if session['progress'] and session['duration']:
+                            # Don't trigger if state is buffer as some clients push the progress to the end when
+                            # buffering on start.
+                            if session['progress'] and session['duration'] and session['state'] != 'buffering':
                                 if helpers.get_percent(session['progress'],
                                                        session['duration']) > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
                                     # Push any notifications -
