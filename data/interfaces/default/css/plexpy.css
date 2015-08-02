@@ -85,7 +85,7 @@ img {
 	background-color: #111;
 	float: left;
 	width: 100%;
-	margin: 0 10px 5px 1px;
+	margin: 0 10px 5px 0;
 }
 .activity-progress .bar {
 	background-color: #faa732;

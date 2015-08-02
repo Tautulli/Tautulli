@@ -121,7 +121,7 @@ DOCUMENTATION :: END
                             <div class="col-md-3">
                                 <div class="summary-content-people-wrapper hidden-xs hidden-sm">
                                     <div class="summary-content-actors">
-                                        <h6><strong>Genres</strong></h6>
+                                        <strong>Genres</strong>
                                         <ul>
                                             % for genre in data['genres']:
                                             % if loop.index < 5:
@@ -134,7 +134,7 @@ DOCUMENTATION :: END
                                     </div>
                                     <div class="summary-content-people-wrapper hidden-xs hidden-sm">
                                         <div class="summary-content-actors">
-                                            <h6><strong>Starring</strong></h6>
+                                            <strong>Starring</strong>
                                             <ul>
                                                 % for actor in data['actors']:
                                                 % if loop.index < 5:
@@ -189,8 +189,7 @@ DOCUMENTATION :: END
                     </tbody>
                 </table>
             </div>
-            <div id="info-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="info-modal"
-                 aria-hidden="true">
+            <div id="info-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="info-modal">
             </div>
         </div>
     </div>
