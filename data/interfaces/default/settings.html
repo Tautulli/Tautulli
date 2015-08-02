@@ -804,7 +804,7 @@ $(document).ready(function() {
     }
 
     // Change hash for page-reload
-    $('.nav-settings a').on('shown', function (e) {
+    $('.nav-settings a').on('shown.bs.tab', function (e) {
         window.location.hash = e.target.hash.replace("#", "#" + prefix);
     });
 
