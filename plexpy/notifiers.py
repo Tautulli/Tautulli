@@ -800,7 +800,7 @@ class PUSHOVER(object):
         if plexpy.CONFIG.PUSHOVER_APITOKEN:
             self.application_token = plexpy.CONFIG.PUSHOVER_APITOKEN
         else:
-            self.application_token = "LdPCoy0dqC21ktsbEyAVCcwvQiVlsz"
+            self.application_token = "aVny3NZFwZaXC642c831b4wd7KUhQS"
 
     def conf(self, options):
         return cherrypy.config['config'].get('Pushover', options)
