@@ -209,6 +209,17 @@ class WebInterface(object):
         return serve_template(templatename="stream_data.html", title="Stream Data", data=stream_data, user=user)
 
     @cherrypy.expose
+    def get_ip_address_details(self, ip_address=None, **kwargs):
+        import socket
+
+        try:
+            socket.inet_aton(ip_address)
+        except socket.error:
+            ip_address = None
+
+        return serve_template(templatename="ip_address_modal.html", title="IP Address Details", data=ip_address)
+
+    @cherrypy.expose
     def get_user_list(self, **kwargs):
 
         data_factory = datafactory.DataFactory()

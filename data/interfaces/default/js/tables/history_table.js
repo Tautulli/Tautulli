@@ -32,7 +32,6 @@ history_table_options = {
             "data":"date",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (rowData['stopped'] === null) {
-                    $(td).addClass('currentlyWatching');
                     $(td).html('Currently watching...');
                 } else {
                     $(td).html(moment(cellData,"X").format(date_format));
@@ -71,11 +70,21 @@ history_table_options = {
             "targets": [3],
             "data":"ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if ((cellData == '') || (cellData == '0')) {
+                if (cellData) {
+                    if (isPrivateIP(cellData)) {
+                        if (cellData != '') {
+                            $(td).html(cellData);
+                        } else {
+                            $(td).html('n/a');
+                        }
+                    } else {
+                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal"><i class="fa fa-map-marker"></i>&nbsp' + cellData +'</a>');
+                    }
+                } else {
                     $(td).html('n/a');
                 }
             },
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap hidden-xs modal-control-ip"
         },
         {
             "targets": [4],
@@ -99,8 +108,12 @@ history_table_options = {
         {
             "targets": [5],
             "data":"started",
-            "render": function ( data, type, full ) {
-                return moment(data, "X").format(time_format);
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData === null) {
+                    $(td).html('n/a');
+                } else {
+                    $(td).html(moment(cellData,"X").format(time_format));
+                }
             },
             "searchable": false,
             "className": "no-wrap hidden-sm hidden-xs"
@@ -121,11 +134,11 @@ history_table_options = {
         {
             "targets": [7],
             "data":"stopped",
-            "render": function ( data, type, full ) {
-                if (data !== null) {
-                    return moment(data, "X").format(time_format);
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData === null) {
+                    $(td).html('n/a');
                 } else {
-                    return data;
+                    $(td).html(moment(cellData,"X").format(time_format));
                 }
             },
             "searchable": false,
@@ -193,4 +206,27 @@ $('#history_table').on('click', 'td.modal-control', function () {
         });
     }
     showStreamDetails();
+});
+
+$('#history_table').on('click', 'td.modal-control-ip', function () {
+    var tr = $(this).parents('tr');
+    var row = history_table.row( tr );
+    var rowData = row.data();
+
+    function getUserLocation(ip_address) {
+        if (isPrivateIP(ip_address)) {
+            return "n/a"
+        } else {
+            $.ajax({
+                url: 'get_ip_address_details',
+                data: {ip_address: ip_address},
+                async: true,
+                complete: function(xhr, status) {
+                    $("#ip-info-modal").html(xhr.responseText);
+                }
+            });
+        }
+    }
+
+    getUserLocation(rowData['ip_address']);
 });

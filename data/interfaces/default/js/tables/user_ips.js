@@ -92,22 +92,11 @@ $('#user_ip_table').on('click', 'td.modal-control', function () {
             return "n/a"
         } else {
             $.ajax({
-                url: 'http://ip-api.com/json/' + ip_address,
-                cache: true,
+                url: 'get_ip_address_details',
+                data: {ip_address: ip_address},
                 async: true,
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    $('#modal_header_ip_address').html(ip_address);
-                    $('#country').html(data.country);
-                    $('#city').html(data.city);
-                    $('#region').html(data.regionName);
-                    $('#timezone').html(data.timezone);
-                    $('#lat').html(data.lat);
-                    $('#lon').html(data.lon);
-                    $('#isp').html(data.isp);
-                    $('#org').html(data.org);
-                    $('#as').html(data.as);
+                complete: function(xhr, status) {
+                    $("#ip-info-modal").html(xhr.responseText);
                 }
             });
         }

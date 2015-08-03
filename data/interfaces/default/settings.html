@@ -64,7 +64,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="date_format">Date Format</label>
                             <div class="row">
-                                <div class="col-xs-4">
+                                <div class="col-md-4">
                                     <input type="text" class="form-control" id="date_format" name="date_format" value="${config['date_format']}" data-parsley-trigger="change" required>
                                 </div>
                             </div>
@@ -73,7 +73,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="date_format">Time Format</label>
                             <div class="row">
-                                <div class="col-xs-2">
+                                <div class="col-md-2">
                                     <input type="text" class="form-control" id="time_format" name="time_format" value="${config['time_format']}" data-parsley-trigger="change" required>
                                 </div>
                             </div>
@@ -89,7 +89,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="http_host">HTTP Host</label>
                             <div class="row">
-                                <div class="col-xs-6">
+                                <div class="col-md-6">
                                     <input type="text" class="form-control" id="http_host" name="http_host" value="${config['http_host']}" data-parsley-trigger="change" required>
                                 </div>
                             </div>
@@ -98,7 +98,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="http_port">HTTP Port</label>
                             <div class="row">
-                                <div class="col-xs-2">
+                                <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="http_port" name="http_port" value="${config['http_port']}" data-parsley-trigger="change" required>
                                 </div>
                             </div>
@@ -138,7 +138,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="http_username">HTTP Username</label>
                             <div class="row">
-                                <div class="col-xs-4">
+                                <div class="col-md-4">
                                     <input type="text" class="form-control" id="http_username" name="http_username" value="${config['http_username']}" size="30">
                                 </div>
                             </div>
@@ -147,7 +147,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="http_password">HTTP Password</label>
                             <div class="row">
-                                <div class="col-xs-4">
+                                <div class="col-md-4">
                                     <input type="password" class="form-control" id="http_password" name="http_password" value="${config['http_password']}" size="30">
                                 </div>
                             </div>
@@ -167,7 +167,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div id="apioptions" class="form-group">
                             <label for="api_key">API key</label>
                             <div class="row">
-                                <div class="col-xs-6">
+                                <div class="col-md-6">
                                     <div class="input-group">
                                         <input class="form-control" type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20">
                                         <span class="input-group-btn">
@@ -189,7 +189,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group has-feedback" id="pms-ip-group">
                             <label for="pms_ip">Plex IP or Hostname</label>
                             <div class="row">
-                                <div class="col-xs-6">
+                                <div class="col-md-6">
                                     <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" required>
                                     <span class="form-control-feedback" id="pms-verify" aria-hidden="true" style="display: none;"></span>
                                 </div>
@@ -199,7 +199,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="pms_port">Plex Port</label>
                             <div class="row">
-                                <div class="col-xs-2">
+                                <div class="col-md-2">
                                     <input data-parsley-type="integer" class="pms-settings form-control" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" required>
                                 </div>
                             </div>
@@ -229,7 +229,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="pms_token">PMS Token</label>
                             <div class="row">
-                                <div class="col-xs-6">
+                                <div class="col-md-6">
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="pms_token" name="pms_token" value="${config['pms_token']}" data-parsley-trigger="change" required>
                                         <span class="input-group-btn">
@@ -247,7 +247,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="refresh_users_interval">User list Refresh Interval</label>
                             <div class="row">
-                                <div class="col-xs-2">
+                                <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="refresh_users_interval" name="refresh_users_interval" value="${config['refresh_users_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" required>
                                 </div>
                             </div>
@@ -281,7 +281,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="pms_logs_folder">Logs Folder</label>
                             <div class="row">
-                                <div class="col-xs-6">
+                                <div class="col-md-6">
                                     <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change">
                                 </div>
                             </div>
@@ -304,7 +304,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="monitoring_interval">Monitoring Interval</label>
                             <div class="row">
-                                <div class="col-xs-2">
+                                <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="monitoring_interval" name="monitoring_interval" value="${config['monitoring_interval']}" size="5" data-parsley-min="30" data-parsley-trigger="change" required>
                                 </div>
                             </div>
@@ -323,7 +323,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="monitoring_interval">Ignore Interval</label>
                             <div class="row">
-                                <div class="col-xs-2">
+                                <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="logging_ignore_interval" name="logging_ignore_interval" value="${config['logging_ignore_interval']}" size="5" data-parsley-min="0" data-parsley-trigger="change" required>
                                 </div>
                             </div>
@@ -374,7 +374,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="notify_watched_percent">Watched Percent</label>
                             <div class="row">
-                                <div class="col-xs-2">
+                                <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="notify_watched_percent" name="notify_watched_percent" value="${config['notify_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" required>
                                 </div>
                             </div>
@@ -624,7 +624,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="pms_username">PMS Username</label>
                             <div class="row">
-                                <div class="col-xs-6">
+                                <div class="col-md-6">
                                     <input type="text" class="form-control" id="pms_username" name="pms_username" size="30">
                                 </div>
                             </div>
@@ -633,7 +633,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="pms_password">PMS Password</label>
                             <div class="row">
-                                <div class="col-xs-6">
+                                <div class="col-md-6">
                                     <input type="password" class="form-control" id="pms_password" name="pms_password" size="30">
                                 </div>
                             </div>

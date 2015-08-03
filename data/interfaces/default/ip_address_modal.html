@@ -1,0 +1,69 @@
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title" id="myModalLabel">
+                % if data:
+                <strong><span id="modal_header_ip_address">
+                    <i class="fa fa-spin fa-refresh"></i>&nbspLoading Details...
+                </span></strong>
+                % else:
+                <i class="fa fa-exclamation-circle"></i>&nbspInvalid IP Address</span></strong>
+                % endif
+            </h4>
+        </div>
+        <div class="modal-body" id="modal-text">
+            <div class="col-md-6">
+                <h4><strong>Location Details</strong></h4>
+                <ul>
+                    <li>Country: <strong><span id="country"></span></strong></li>
+                    <li>City: <strong><span id="city"></span></strong></li>
+                    <li>Region: <strong><span id="region"></span></strong></li>
+                    <li>Timezone: <strong><span id="timezone"></span></strong></li>
+                    <li>Latitude: <strong><span id="lat"></span></strong></li>
+                    <li>Longitude: <strong><span id="lon"></span></strong></li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h4><strong>Connection Details</strong></h4>
+                <ul>
+                    <li>ISP: <strong><span id="isp"></span></strong></li>
+                    <li>Organization: <strong><span id="org"></span></strong></li>
+                    <li>AS: <strong><span id="as"></span></strong></li>
+                </ul>
+            </div>
+        </div>
+        <div class="modal-footer"></div>
+    </div>
+</div>
+
+% if data:
+<script>
+    function getUserLocation(ip_address) {
+        $.ajax({
+            url: 'http://ip-api.com/json/' + ip_address,
+            cache: true,
+            async: true,
+            type: 'GET',
+            dataType: 'json',
+            error: function(){
+                $('#modal_header_ip_address').html("Request failed. Server may be too busy.");
+            },
+            success: function(data) {
+                $('#modal_header_ip_address').html("IP Address: " + ip_address);
+                $('#country').html(data.country);
+                $('#city').html(data.city);
+                $('#region').html(data.regionName);
+                $('#timezone').html(data.timezone);
+                $('#lat').html(data.lat);
+                $('#lon').html(data.lon);
+                $('#isp').html(data.isp);
+                $('#org').html(data.org);
+                $('#as').html(data.as);
+            },
+            timeout: 5000
+        });
+    }
+    getUserLocation('${data}');
+</script>
+% endif
