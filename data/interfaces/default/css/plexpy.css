@@ -111,13 +111,13 @@ img {
     color: #eee;
 }
 .btn-dark {
-    color: #e5e5e5;
+    color: #d7d7d7;
     background-color: #3B3B3B;
     border-color: transparent;
 }
 .btn-dark:focus,
 .btn-dark.focus {
-  color: #e5e5e5;
+  color: #d7d7d7;
   background-color: #3B3B3B;
 }
 .btn-dark:hover {
@@ -129,7 +129,8 @@ img {
 .btn-dark.active,
 .open > .dropdown-toggle.btn-dark {
   color: #fff;
-  background-color: #3B3B3B;
+  background-color: #333;
+  border-color: #444;
 }
 .btn-dark:active:hover,
 .btn-dark.active:hover,
@@ -141,7 +142,7 @@ img {
 .btn-dark.active.focus,
 .open > .dropdown-toggle.btn-dark.focus {
   color: #fff;
-  background-color: #3B3B3B;
+  background-color: #333;
 }
 .btn-dark:active,
 .btn-dark.active,
@@ -1232,11 +1233,11 @@ input[type="color"],
 	max-width: 350px;
 }
 .graphs-instance {
-	height: 340px;
+	height: 330px;
     padding: 20px;
-    background-color: #282828;
-    margin-right: 20px;
+    background-color: #333;
     margin-bottom: 20px;
+    border-radius: 8px;
 }
 .watch-chart {
 	margin-top: 10px;

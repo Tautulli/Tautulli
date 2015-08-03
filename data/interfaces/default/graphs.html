@@ -5,58 +5,75 @@
 
 <%def name="body()">
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <div class='card-back-full'>
-                <div class="header-bar">
-                    <span><i class="fa fa-bar-chart"></i> Graphs</span>
-                </div>
+    <div class='table-card-back'>
+        <div class="header-bar">
+            <span><i class="fa fa-bar-chart"></i> Graphs</span>
+        </div>
+        <div class="button-bar hidden-xs">
+            <div class="btn-group" data-toggle="buttons" id="days-selection">
+                <label class="btn btn-dark active">
+                    <input type="radio" name="date-options" id="graph-30" value="30" autocomplete="off" checked> 30 days
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" name="date-options" id="graph-90" value="90" autocomplete="off"> 90 days
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" name="date-options" id="graph-365" value="365" autocomplete="off"> 1 year
+                </label>
             </div>
         </div>
     </div>
-</div>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-8"><h4>Daily Watch History (Past <span class="days">30</span> days)</h4>
-        </div>
-        <div class="col-md-4" style="text-align: right; padding-right: 30px;">
-            <h5>
-                <a href="javascript:void(0)" id="graph-30"> 30 days</a> |
-                <a href="javascript:void(0)" id="graph-90"> 90 days</a> |
-                <a href="javascript:void(0)" id="graph-365"> 1 year</a>
-            </h5>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="graphs-instance">
-                <div class="watch-chart" id="chart_div_plays_by_day">
-                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
-                    <br>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
-            <h4>Watches by day of week (Past <span class="days">30</span> days)</h4>
-            <div class="graphs-instance">
-                <div class="watch-chart" id="chart_div_plays_by_dayofweek" style="float: left;">
-                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
+    <div class='table-card-back'>
+        <ul class="nav nav-pills" role="tablist">
+            <li role="presentation" class="active"><a id="time-based-graphs" href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Time Periods</a></li>
+            <!--<li role="presentation"><a id="all-time-graphs" href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">All Time</a></li>-->
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="tabs-1">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="padded-header">
+                            <h3><i class="fa fa-history"></i> Daily Watch History <small>Last <span class="days">30</span> days</small></h3>
+                        </div>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="chart_div_plays_by_day">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
+                                <br>
+                            </div>
+                        </div>
                     </div>
-                    <br>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <h4>Watches by hour of day (Past <span class="days">30</span> days)</h4>
-            <div class="graphs-instance">
-                <div class="watch-chart" id="chart_div_plays_by_hourofday">
-                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="padded-header">
+                            <h3><i class="fa fa-calendar"></i> Watches by day of week <small>Last <span class="days">30</span> days</small></h3>
+                        </div>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="chart_div_plays_by_dayofweek" style="float: left;">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
                     </div>
-                    <br>
+                    <div class="col-md-6">
+                        <div class="padded-header">
+                            <h3><i class="fa fa-clock-o"></i> Watches by hour of day <small>Last <span class="days">30</span> days</small></h3>
+                        </div>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="chart_div_plays_by_hourofday">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <div role="tabpanel" class="tab-pane" id="tabs-2">
+            </div>
+
         </div>
     </div>
 </div>
@@ -123,23 +140,12 @@
         // Set initial state
         loadGraphs(current_range);
 
-        $('#graph-30').click(function() {
-            current_range = 30;
+        $('#days-selection').on('change', function() {
+            current_range = $('input[name=date-options]:checked', '#days-selection').val();
+            loadGraphs(current_range);
             $('.days').html(current_range);
-            loadGraphs(30);
         });
 
-        $('#graph-90').click(function() {
-            current_range = 90;
-            $('.days').html(current_range);
-            loadGraphs(90);
-        });
-
-        $('#graph-365').click(function() {
-            current_range = 365;
-            $('.days').html(current_range);
-            loadGraphs(365);
-        });
 
     });
 </script>
