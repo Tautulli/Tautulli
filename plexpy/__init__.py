@@ -165,7 +165,7 @@ def initialize(config_file):
 
         # Refresh the users list on startup
         if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
-            threading.Thread(target=plextv.refresh_users).start()
+            plextv.refresh_users()
 
         # Store the original umask
         UMASK = os.umask(0)
