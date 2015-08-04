@@ -273,13 +273,17 @@ def build_notify_text(session, state):
         if on_start_subject and on_start_body:
             try:
                 subject_text = on_start_subject.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
             except:
-                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using default.")
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
 
             try:
                 body_text = on_start_body.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
             except:
-                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using default.")
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
 
             return [subject_text, body_text]
         else:
@@ -293,13 +297,17 @@ def build_notify_text(session, state):
         if on_stop_subject and on_stop_body:
             try:
                 subject_text = on_stop_subject.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
             except:
-                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using default.")
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
 
             try:
                 body_text = on_stop_body.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
             except:
-                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using default.")
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
 
             return [subject_text, body_text]
         else:
@@ -313,13 +321,17 @@ def build_notify_text(session, state):
         if on_watched_subject and on_watched_body:
             try:
                 subject_text = on_watched_subject.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
             except:
-                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using default.")
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
 
             try:
                 body_text = on_watched_body.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
             except:
-                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using default.")
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
 
             return [subject_text, body_text]
         else:
