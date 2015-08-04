@@ -308,6 +308,8 @@ class DataFactory(object):
         return None
 
     def get_user_details(self, user=None, user_id=None):
+        from plexpy import plextv
+
         monitor_db = database.MonitorDatabase()
 
         if user:
@@ -361,18 +363,75 @@ class DataFactory(object):
                                 }
             return user_details
         else:
-            # If there is no user data we must return something
-            # Use "Local" user to retain compatibility with PlexWatch database value
-            return {"user_id": None,
-                    "username": 'Local',
-                    "friendly_name": 'Local',
-                    "email": '',
-                    "thumb": '',
-                    "is_home_user": 0,
-                    "is_allow_sync": 0,
-                    "is_restricted": 0,
-                    "do_notify": 0
-                    }
+            logger.warn(u"PlexPy :: Unable to retrieve user from local database. Requesting user list refresh.")
+            # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
+            if user:
+                # Refresh users
+                plextv.refresh_users()
+                query = 'SELECT user_id, username, friendly_name, email, ' \
+                        'thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
+                        'FROM users ' \
+                        'WHERE username = ? ' \
+                        'UNION ALL ' \
+                        'SELECT null, user, null, null, null, null, null, null, null ' \
+                        'FROM session_history ' \
+                        'WHERE user = ? ' \
+                        'GROUP BY user ' \
+                        'LIMIT 1'
+                result = monitor_db.select(query, args=[user, user])
+            elif user_id:
+                # Refresh users
+                plextv.refresh_users()
+                query = 'SELECT user_id, username, friendly_name, email, ' \
+                        'thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
+                        'FROM users ' \
+                        'WHERE user_id = ? ' \
+                        'UNION ALL ' \
+                        'SELECT user_id, user, null, null, null, null, null, null, null ' \
+                        'FROM session_history ' \
+                        'WHERE user_id = ? ' \
+                        'GROUP BY user ' \
+                        'LIMIT 1'
+                result = monitor_db.select(query, args=[user_id, user_id])
+            else:
+                result = None
+
+            if result:
+                user_details = {}
+                for item in result:
+                    if not item['friendly_name']:
+                        friendly_name = item['username']
+                    else:
+                        friendly_name = item['friendly_name']
+                    if not item['thumb'] or item['thumb'] == '':
+                        user_thumb = common.DEFAULT_USER_THUMB
+                    else:
+                        user_thumb = item['thumb']
+
+                    user_details = {"user_id": item['user_id'],
+                                    "username": item['username'],
+                                    "friendly_name": friendly_name,
+                                    "email": item['email'],
+                                    "thumb": user_thumb,
+                                    "is_home_user": item['is_home_user'],
+                                    "is_allow_sync": item['is_allow_sync'],
+                                    "is_restricted": item['is_restricted'],
+                                    "do_notify": item['do_notify']
+                                    }
+                return user_details
+            else:
+                # If there is no user data we must return something
+                # Use "Local" user to retain compatibility with PlexWatch database value
+                return {"user_id": None,
+                        "username": 'Local',
+                        "friendly_name": 'Local',
+                        "email": '',
+                        "thumb": '',
+                        "is_home_user": 0,
+                        "is_allow_sync": 0,
+                        "is_restricted": 0,
+                        "do_notify": 0
+                        }
 
     def get_home_stats(self, time_range='30'):
         monitor_db = database.MonitorDatabase()
