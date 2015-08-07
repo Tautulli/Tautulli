@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory
+from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs
 from plexpy.helpers import checked, radio
 
 from mako.lookup import TemplateLookup
@@ -825,8 +825,8 @@ class WebInterface(object):
     @cherrypy.expose
     def get_plays_by_date(self, time_range='30', **kwargs):
 
-        data_factory = datafactory.DataFactory()
-        result = data_factory.get_total_plays_per_day(time_range=time_range)
+        graph = graphs.Graphs()
+        result = graph.get_total_plays_per_day(time_range=time_range)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -837,8 +837,8 @@ class WebInterface(object):
     @cherrypy.expose
     def get_plays_by_dayofweek(self, time_range='30', **kwargs):
 
-        data_factory = datafactory.DataFactory()
-        result = data_factory.get_total_plays_per_dayofweek(time_range=time_range)
+        graph = graphs.Graphs()
+        result = graph.get_total_plays_per_dayofweek(time_range=time_range)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -849,8 +849,44 @@ class WebInterface(object):
     @cherrypy.expose
     def get_plays_by_hourofday(self, time_range='30', **kwargs):
 
-        data_factory = datafactory.DataFactory()
-        result = data_factory.get_total_plays_per_hourofday(time_range=time_range)
+        graph = graphs.Graphs()
+        result = graph.get_total_plays_per_hourofday(time_range=time_range)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_plays_per_month(self, **kwargs):
+
+        graph = graphs.Graphs()
+        result = graph.get_total_plays_per_month()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_plays_by_top_10_platforms(self, time_range='30', **kwargs):
+
+        graph = graphs.Graphs()
+        result = graph.get_total_plays_by_top_10_platforms(time_range=time_range)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_plays_by_top_10_users(self, time_range='30', **kwargs):
+
+        graph = graphs.Graphs()
+        result = graph.get_total_plays_by_top_10_users(time_range=time_range)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

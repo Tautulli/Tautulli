@@ -1,8 +1,8 @@
-var hc_plays_by_day_options = {
+var hc_plays_by_month_options = {
     chart: {
-        type: 'line',
+        type: 'column',
         backgroundColor: 'rgba(0,0,0,0)',
-        renderTo: 'chart_div_plays_by_day'
+        renderTo: 'chart_div_plays_by_month'
     },
     title: {
         text: ''
@@ -28,7 +28,7 @@ var hc_plays_by_day_options = {
             type: 'datetime',
             labels: {
                 formatter: function() {
-                    return moment(this.value).format("MMM D");
+                    return moment(this.value).format("MMM YYYY");
                 },
                 style: {
                     color: '#aaa'
@@ -44,11 +44,29 @@ var hc_plays_by_day_options = {
                 style: {
                     color: '#aaa'
                 }
+            },
+            stackLabels: {
+                enabled: true,
+                style: {
+                    color: '#fff'
+                }
             }
+    },
+    plotOptions: {
+        column: {
+            stacking: 'normal',
+            borderWidth: '0',
+            dataLabels: {
+                enabled: false,
+                style: {
+                    color: '#000'
+                }
+            }
+        }
     },
     tooltip: {
         formatter: function() {
-            var monthStr = moment(this.x).format("ddd MMM D");
+            var monthStr = moment(this.x).format("MMM YYYY");
             var s = '<b>'+ monthStr +'</b>';
 
             $.each(this.points, function(i, point) {

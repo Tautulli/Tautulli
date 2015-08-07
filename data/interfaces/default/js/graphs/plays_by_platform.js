@@ -1,12 +1,18 @@
-var hc_plays_by_day_options = {
+var hc_plays_by_platform_options = {
     chart: {
-        type: 'line',
+        type: 'column',
         backgroundColor: 'rgba(0,0,0,0)',
-        renderTo: 'chart_div_plays_by_day'
+        renderTo: 'chart_div_plays_by_platform'
     },
     title: {
         text: ''
     },
+    plotOptions: {
+            column: {
+                pointPadding: 0.2,
+                borderWidth: 0
+            }
+        },
     legend: {
         enabled: true,
         itemStyle: {
@@ -25,16 +31,12 @@ var hc_plays_by_day_options = {
     },
     colors: ['#F9AA03', '#FFFFFF'],
     xAxis: {
-            type: 'datetime',
+            categories: [{}],
             labels: {
-                formatter: function() {
-                    return moment(this.value).format("MMM D");
-                },
                 style: {
                     color: '#aaa'
                 }
-            },
-            categories: [{}]
+            }
     },
     yAxis: {
             title: {
@@ -47,16 +49,7 @@ var hc_plays_by_day_options = {
             }
     },
     tooltip: {
-        formatter: function() {
-            var monthStr = moment(this.x).format("ddd MMM D");
-            var s = '<b>'+ monthStr +'</b>';
 
-            $.each(this.points, function(i, point) {
-                s += '<br/>'+point.series.name+': '+point.y;
-            });
-            return s;
-        },
-        shared: true
     },
     series: [{}]
 };

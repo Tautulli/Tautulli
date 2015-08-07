@@ -31,11 +31,21 @@ var hc_plays_by_hourofday_options = {
     },
     colors: ['#F9AA03', '#FFFFFF'],
     xAxis: {
-            categories: [{}]
+            categories: [{}],
+            labels: {
+                style: {
+                    color: '#aaa'
+                }
+            }
     },
     yAxis: {
             title: {
                 text: null
+            },
+            labels: {
+                style: {
+                    color: '#aaa'
+                }
             }
     },
     tooltip: {

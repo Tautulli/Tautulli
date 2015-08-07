@@ -25,15 +25,15 @@
     </div>
     <div class='table-card-back'>
         <ul class="nav nav-pills" role="tablist">
-            <li role="presentation" class="active"><a id="time-based-graphs" href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Time Periods</a></li>
-            <!--<li role="presentation"><a id="all-time-graphs" href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">All Time</a></li>-->
+            <li role="presentation" class="active"><a id="watch-count-graphs" href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Play Counts</a></li>
+            <li role="presentation"><a id="watch-totals-graphs" href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Play Totals</a></li>
         </ul>
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="tabs-1">
                 <div class="row">
                     <div class="col-md-12">
                         <div class="padded-header">
-                            <h3><i class="fa fa-history"></i> Daily Watch History <small>Last <span class="days">30</span> days</small></h3>
+                            <h3><i class="fa fa-history"></i> Daily Play Count <small>Last <span class="days">30</span> days</small></h3>
                         </div>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_day">
@@ -46,7 +46,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="padded-header">
-                            <h3><i class="fa fa-calendar"></i> Watches by day of week <small>Last <span class="days">30</span> days</small></h3>
+                            <h3><i class="fa fa-calendar"></i> Plays by day of week <small>Last <span class="days">30</span> days</small></h3>
                         </div>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_dayofweek" style="float: left;">
@@ -58,7 +58,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="padded-header">
-                            <h3><i class="fa fa-clock-o"></i> Watches by hour of day <small>Last <span class="days">30</span> days</small></h3>
+                            <h3><i class="fa fa-clock-o"></i> Plays by hour of day <small>Last <span class="days">30</span> days</small></h3>
                         </div>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_hourofday">
@@ -69,9 +69,49 @@
                         </div>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="padded-header">
+                            <h3><i class="fa fa-television"></i> Plays by top 10 platforms <small>Last <span class="days">30</span> days</small></h3>
+                        </div>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="chart_div_plays_by_platform" style="float: left;">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="padded-header">
+                            <h3><i class="fa fa-user"></i> Plays by top 10 users <small>Last <span class="days">30</span> days</small></h3>
+                        </div>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="chart_div_plays_by_user">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div role="tabpanel" class="tab-pane" id="tabs-2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="padded-header">
+                            <h3><i class="fa fa-calendar"></i> Plays by Month <small>Last 12 months</small></h3>
+                        </div>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="chart_div_plays_by_month">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -85,12 +125,15 @@
 <script src="interfaces/default/js/graphs/plays_by_day.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_dayofweek.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_hourofday.js"></script>
+<script src="interfaces/default/js/graphs/plays_by_platform.js"></script>
+<script src="interfaces/default/js/graphs/plays_by_user.js"></script>
+<script src="interfaces/default/js/graphs/plays_by_month.js"></script>
 <script>
     $(document).ready(function () {
 
         var current_range = 30;
 
-        function loadGraphs(time_range) {
+        function loadGraphsTab1(time_range) {
 
             $.ajax({
                 url: "get_plays_by_date",
@@ -135,14 +178,69 @@
                     var hc_plays_by_hourofday = new Highcharts.Chart(hc_plays_by_hourofday_options);
                 }
             });
+
+            $.ajax({
+                url: "get_plays_by_top_10_platforms",
+                type: 'get',
+                data: { time_range: time_range },
+                dataType: "json",
+                cache: false,
+                success: function(data) {
+                    hc_plays_by_platform_options.xAxis.categories = data.categories;
+                    hc_plays_by_platform_options.series = data.series;
+                    var hc_plays_by_platform = new Highcharts.Chart(hc_plays_by_platform_options);
+                }
+            });
+
+            $.ajax({
+                url: "get_plays_by_top_10_users",
+                type: 'get',
+                data: { time_range: time_range },
+                dataType: "json",
+                cache: false,
+                success: function(data) {
+                    hc_plays_by_user_options.xAxis.categories = data.categories;
+                    hc_plays_by_user_options.series = data.series;
+                    var hc_plays_by_user = new Highcharts.Chart(hc_plays_by_user_options);
+                }
+            });
+        }
+
+        function loadGraphsTab2() {
+            $.ajax({
+                url: "get_plays_per_month",
+                type: 'get',
+                dataType: "json",
+                cache: false,
+                success: function(data) {
+                    var dateArray = [];
+                    for (var i = 0; i < data.categories.length; i++) {
+                        dateArray.push(moment(data.categories[i]).valueOf());
+                    }
+                    hc_plays_by_month_options.yAxis.min = 0;
+                    hc_plays_by_month_options.xAxis.categories = dateArray;
+                    hc_plays_by_month_options.series = data.series;
+                    var hc_plays_by_month = new Highcharts.Chart(hc_plays_by_month_options);
+                }
+            });
         }
 
         // Set initial state
-        loadGraphs(current_range);
+        loadGraphsTab1(current_range);
+
+        $('#watch-count-graphs').click(function() {
+            loadGraphsTab1(current_range);
+            $('#days-selection').show();
+        });
+
+        $('#watch-totals-graphs').click(function() {
+            loadGraphsTab2();
+            $('#days-selection').hide();
+        });
 
         $('#days-selection').on('change', function() {
             current_range = $('input[name=date-options]:checked', '#days-selection').val();
-            loadGraphs(current_range);
+            loadGraphsTab1(current_range);
             $('.days').html(current_range);
         });
 

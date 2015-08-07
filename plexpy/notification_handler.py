@@ -18,6 +18,7 @@ from plexpy import logger, config, notifiers, database
 import plexpy
 import time
 
+
 def notify(stream_data=None, notify_action=None):
     from plexpy import datafactory
     
