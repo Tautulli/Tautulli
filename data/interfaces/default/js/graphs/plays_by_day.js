@@ -23,6 +23,18 @@ var hc_plays_by_day_options = {
     credits: {
         enabled: false
     },
+    plotOptions: {
+        series: {
+            cursor: 'pointer',
+            point: {
+                events: {
+                    click: function() {
+                        selectHandler(this.category);
+                    }
+                }
+            }
+        }
+    },
     colors: ['#F9AA03', '#FFFFFF'],
     xAxis: {
             type: 'datetime',

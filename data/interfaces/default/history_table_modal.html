@@ -1,0 +1,69 @@
+% if data:
+<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title" id="myModalLabel">
+                <strong><span id="modal_header_ip_address">
+                    <i class="fa fa-history"></i> History for ${data}
+                </span></strong>
+            </h4>
+        </div>
+        <div class="modal-body" id="modal-text">
+            <table class="display" id="history_table" width="100%">
+                <thead>
+                <tr>
+                    <th align='left' id="started">Started</th>
+                    <th align='left' id="stopped">Stopped</th>
+                    <th align='left' id="friendly_name">User</th>
+                    <th align='left' id="platform">Platform</th>
+                    <th align='left' id="title">Title</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer"></div>
+    </div>
+</div>
+
+<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
+<script src="interfaces/default/js/tables/history_table_modal.js"></script>
+
+<script>
+    $(document).ready(function() {
+        history_table_modal_options.ajax = {
+            "url": "get_history",
+            type: "post",
+            data: function ( d ) {
+                return { 'json_data': JSON.stringify( d ),
+                         'start_date': '${data}'
+                       };
+            }
+        }
+
+        history_table = $('#history_table').DataTable(history_table_modal_options);
+    });
+</script>
+% else:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title">
+                <strong><i class="fa fa-history"></i> History</strong>
+            </h4>
+        </div>
+        <div class="modal-body">
+            <h3>No data.</h3>
+        </div>
+        <div class="modal-footer"></div>
+    </div>
+</div>
+% endif

@@ -524,12 +524,20 @@ class WebInterface(object):
         if 'grandparent_rating_key' in kwargs:
             rating_key = kwargs.get('grandparent_rating_key', "")
             custom_where = [['grandparent_rating_key', rating_key]]
+        if 'start_date' in kwargs:
+            start_date = kwargs.get('start_date', "")
+            custom_where = [['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date]]
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)
+
+    @cherrypy.expose
+    def history_table_modal(self, start_date=None, **kwargs):
+
+        return serve_template(templatename="history_table_modal.html", title="History Data", data=start_date)
 
     @cherrypy.expose
     def shutdown(self):

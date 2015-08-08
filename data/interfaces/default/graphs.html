@@ -51,6 +51,8 @@
                         </div>
                     </div>
                 </div>
+                <div class="modal fade" id="history-modal" tabindex="-1" role="dialog" aria-labelledby="history-modal">
+                </div>
                 <div class="row">
                     <div class="col-md-6">
                         <div class="padded-header">
@@ -121,7 +123,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
@@ -131,6 +132,34 @@
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/moment-duration-format.js"></script>
 <script src="interfaces/default/js/highcharts/js/highcharts.js"></script>
+<script>
+    // Modal popup dialog
+    function selectHandler(selectedDate) {
+
+        try
+        {
+            var dateValue = new Date(selectedDate);
+            var d = dateValue.getDate();
+            var m = dateValue.getMonth() + 1;
+            var y = dateValue.getFullYear();
+            var dateString = '' + y + '-' + (m<=9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
+
+            $.ajax({
+                "url": "history_table_modal",
+                type: 'post',
+                data:  { 'start_date': dateString },
+                complete: function(xhr, status) {
+                    $("#history-modal").html(xhr.responseText);
+                    $('#history-modal').modal('show');
+                }
+            });
+        }
+        catch(err)
+        {
+          console.log("Failed to retrieve data");
+        }
+    }
+</script>
 <script src="interfaces/default/js/graphs/plays_by_day.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_dayofweek.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_hourofday.js"></script>
