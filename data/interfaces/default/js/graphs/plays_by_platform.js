@@ -49,7 +49,7 @@ var hc_plays_by_platform_options = {
             }
     },
     tooltip: {
-
+        shared: true
     },
     series: [{}]
 };

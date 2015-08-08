@@ -823,10 +823,10 @@ class WebInterface(object):
         return json.dumps(history)
 
     @cherrypy.expose
-    def get_plays_by_date(self, time_range='30', **kwargs):
+    def get_plays_by_date(self, time_range='30', y_axis='plays', **kwargs):
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_day(time_range=time_range)
+        result = graph.get_total_plays_per_day(time_range=time_range, y_axis=y_axis)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -835,10 +835,10 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_plays_by_dayofweek(self, time_range='30', **kwargs):
+    def get_plays_by_dayofweek(self, time_range='30', y_axis='plays', **kwargs):
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_dayofweek(time_range=time_range)
+        result = graph.get_total_plays_per_dayofweek(time_range=time_range, y_axis=y_axis)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -847,10 +847,10 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_plays_by_hourofday(self, time_range='30', **kwargs):
+    def get_plays_by_hourofday(self, time_range='30', y_axis='plays', **kwargs):
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_hourofday(time_range=time_range)
+        result = graph.get_total_plays_per_hourofday(time_range=time_range, y_axis=y_axis)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -859,10 +859,10 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_plays_per_month(self, **kwargs):
+    def get_plays_per_month(self, y_axis='plays', **kwargs):
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_month()
+        result = graph.get_total_plays_per_month(y_axis=y_axis)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -871,10 +871,10 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_plays_by_top_10_platforms(self, time_range='30', **kwargs):
+    def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', **kwargs):
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_top_10_platforms(time_range=time_range)
+        result = graph.get_total_plays_by_top_10_platforms(time_range=time_range, y_axis=y_axis)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -883,10 +883,10 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_plays_by_top_10_users(self, time_range='30', **kwargs):
+    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', **kwargs):
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_top_10_users(time_range=time_range)
+        result = graph.get_total_plays_by_top_10_users(time_range=time_range, y_axis=y_axis)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

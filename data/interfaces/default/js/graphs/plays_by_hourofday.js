@@ -49,7 +49,7 @@ var hc_plays_by_hourofday_options = {
             }
     },
     tooltip: {
-
+        shared: true
     },
     series: [{}]
 };

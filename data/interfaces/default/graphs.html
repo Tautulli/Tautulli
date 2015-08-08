@@ -10,6 +10,14 @@
             <span><i class="fa fa-bar-chart"></i> Graphs</span>
         </div>
         <div class="button-bar hidden-xs">
+            <div class="btn-group" data-toggle="buttons" id="yaxis-selection">
+                <label class="btn btn-dark active">
+                    <input type="radio" name="yaxis-options" id="yaxis-count" value="plays" autocomplete="off" checked> Play Count
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" name="yaxis-options" id="yaxis-duration" value="duration" autocomplete="off"> Play Duration
+                </label>
+            </div>
             <div class="btn-group" data-toggle="buttons" id="days-selection">
                 <label class="btn btn-dark active">
                     <input type="radio" name="date-options" id="graph-30" value="30" autocomplete="off" checked> 30 days
@@ -25,15 +33,15 @@
     </div>
     <div class='table-card-back'>
         <ul class="nav nav-pills" role="tablist">
-            <li role="presentation" class="active"><a id="watch-count-graphs" href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Play Counts</a></li>
-            <li role="presentation"><a id="watch-totals-graphs" href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Play Totals</a></li>
+            <li role="presentation" class="active"><a id="watch-count-graphs" href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Plays by period</a></li>
+            <li role="presentation"><a id="watch-totals-graphs" href="#tabs-3" aria-controls="tabs-2" role="tab" data-toggle="tab">Play Totals</a></li>
         </ul>
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="tabs-1">
                 <div class="row">
                     <div class="col-md-12">
                         <div class="padded-header">
-                            <h3><i class="fa fa-history"></i> Daily Play Count <small>Last <span class="days">30</span> days</small></h3>
+                            <h3><i class="fa fa-history"></i> Daily <span class="yaxis-text">Play count</span> <small>Last <span class="days">30</span> days</small></h3>
                         </div>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_day">
@@ -46,7 +54,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="padded-header">
-                            <h3><i class="fa fa-calendar"></i> Plays by day of week <small>Last <span class="days">30</span> days</small></h3>
+                            <h3><i class="fa fa-calendar"></i> <span class="yaxis-text">Play count</span> by day of week <small>Last <span class="days">30</span> days</small></h3>
                         </div>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_dayofweek" style="float: left;">
@@ -58,7 +66,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="padded-header">
-                            <h3><i class="fa fa-clock-o"></i> Plays by hour of day <small>Last <span class="days">30</span> days</small></h3>
+                            <h3><i class="fa fa-clock-o"></i> <span class="yaxis-text">Play count</span> by hour of day <small>Last <span class="days">30</span> days</small></h3>
                         </div>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_hourofday">
@@ -72,7 +80,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="padded-header">
-                            <h3><i class="fa fa-television"></i> Plays by top 10 platforms <small>Last <span class="days">30</span> days</small></h3>
+                            <h3><i class="fa fa-television"></i> <span class="yaxis-text">Play count</span> by top 10 platforms <small>Last <span class="days">30</span> days</small></h3>
                         </div>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_platform" style="float: left;">
@@ -84,7 +92,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="padded-header">
-                            <h3><i class="fa fa-user"></i> Plays by top 10 users <small>Last <span class="days">30</span> days</small></h3>
+                            <h3><i class="fa fa-user"></i> <span class="yaxis-text">Play count</span> by top 10 users <small>Last <span class="days">30</span> days</small></h3>
                         </div>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_user">
@@ -97,7 +105,7 @@
                 </div>
             </div>
 
-            <div role="tabpanel" class="tab-pane" id="tabs-2">
+            <div role="tabpanel" class="tab-pane" id="tabs-3">
                 <div class="row">
                     <div class="col-md-12">
                         <div class="padded-header">
@@ -121,6 +129,7 @@
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/moment-with-locale.js"></script>
+<script src="interfaces/default/js/moment-duration-format.js"></script>
 <script src="interfaces/default/js/highcharts/js/highcharts.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_day.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_dayofweek.js"></script>
@@ -132,13 +141,15 @@
     $(document).ready(function () {
 
         var current_range = 30;
+        var yaxis = 'plays';
 
-        function loadGraphsTab1(time_range) {
+        function loadGraphsTab1(time_range, yaxis) {
+            setGraphFormat(yaxis);
 
             $.ajax({
                 url: "get_plays_by_date",
                 type: 'get',
-                data: { time_range: time_range },
+                data: { time_range: time_range, y_axis: yaxis },
                 dataType: "json",
                 cache: false,
                 success: function(data) {
@@ -156,7 +167,7 @@
             $.ajax({
                 url: "get_plays_by_dayofweek",
                 type: 'get',
-                data: { time_range: time_range },
+                data: { time_range: time_range, y_axis: yaxis },
                 dataType: "json",
                 cache: false,
                 success: function(data) {
@@ -169,7 +180,7 @@
             $.ajax({
                 url: "get_plays_by_hourofday",
                 type: 'get',
-                data: { time_range: time_range },
+                data: { time_range: time_range, y_axis: yaxis },
                 dataType: "json",
                 cache: false,
                 success: function(data) {
@@ -182,7 +193,7 @@
             $.ajax({
                 url: "get_plays_by_top_10_platforms",
                 type: 'get',
-                data: { time_range: time_range },
+                data: { time_range: time_range, y_axis: yaxis },
                 dataType: "json",
                 cache: false,
                 success: function(data) {
@@ -195,7 +206,7 @@
             $.ajax({
                 url: "get_plays_by_top_10_users",
                 type: 'get',
-                data: { time_range: time_range },
+                data: { time_range: time_range, y_axis: yaxis },
                 dataType: "json",
                 cache: false,
                 success: function(data) {
@@ -206,10 +217,13 @@
             });
         }
 
-        function loadGraphsTab2() {
+        function loadGraphsTab3(yaxis) {
+            setGraphFormat(yaxis);
+
             $.ajax({
                 url: "get_plays_per_month",
                 type: 'get',
+                data: { y_axis: yaxis },
                 dataType: "json",
                 cache: false,
                 success: function(data) {
@@ -226,25 +240,106 @@
         }
 
         // Set initial state
-        loadGraphsTab1(current_range);
+        loadGraphsTab1(current_range, yaxis);
 
         $('#watch-count-graphs').click(function() {
-            loadGraphsTab1(current_range);
+            loadGraphsTab1(current_range, yaxis);
             $('#days-selection').show();
         });
 
         $('#watch-totals-graphs').click(function() {
-            loadGraphsTab2();
+            loadGraphsTab3(yaxis);
             $('#days-selection').hide();
         });
 
         $('#days-selection').on('change', function() {
             current_range = $('input[name=date-options]:checked', '#days-selection').val();
-            loadGraphsTab1(current_range);
+            loadGraphsTab1(current_range, yaxis);
             $('.days').html(current_range);
         });
 
+        $('#yaxis-selection').on('change', function() {
+            yaxis = $('input[name=yaxis-options]:checked', '#yaxis-selection').val();
+            loadGraphsTab1(current_range, yaxis);
+            loadGraphsTab3(yaxis);
+            $('.days').html(current_range);
+        });
 
+        function setGraphFormat(type) {
+            if (type === 'plays') {
+                yaxis_format = function() { return this.value; };
+                hc_plays_by_day_options.yAxis.labels.formatter = yaxis_format;
+                hc_plays_by_dayofweek_options.yAxis.labels.formatter = yaxis_format;
+                hc_plays_by_hourofday_options.yAxis.labels.formatter = yaxis_format;
+                hc_plays_by_platform_options.yAxis.labels.formatter = yaxis_format;
+                hc_plays_by_user_options.yAxis.labels.formatter = yaxis_format;
+                hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
+
+                tooltip_format = function() {
+                                    if (moment(this.x).isValid()) {
+                                        var s = '<b>'+ moment(this.x).format("ddd MMM D") +'</b>';
+                                    } else {
+                                        var s = '<b>'+ this.x +'</b>';
+                                    }
+
+                                    $.each(this.points, function(i, point) {
+                                        s += '<br/>'+point.series.name+': '+point.y;
+                                    });
+                                    return s;
+                                 }
+                stack_labels_format = function() {
+                                          return this.total;
+                                      }
+                hc_plays_by_day_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_dayofweek_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_hourofday_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_platform_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_user_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_month_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_month_options.yAxis.stackLabels.formatter = stack_labels_format;
+
+                $('.yaxis-text').html('Play count');
+            } else {
+                yaxis_format = function() { return moment.duration(this.value, 'seconds').format("m [mins]"); };
+                hc_plays_by_day_options.yAxis.labels.formatter = yaxis_format;
+                hc_plays_by_dayofweek_options.yAxis.labels.formatter = yaxis_format;
+                hc_plays_by_hourofday_options.yAxis.labels.formatter = yaxis_format;
+                hc_plays_by_platform_options.yAxis.labels.formatter = yaxis_format;
+                hc_plays_by_user_options.yAxis.labels.formatter = yaxis_format;
+                hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
+
+                tooltip_format = function() {
+                                    if (moment(this.x).isValid()) {
+                                        var s = '<b>'+ moment(this.x).format("ddd MMM D") +'</b>';
+                                    } else {
+                                        var s = '<b>'+ this.x +'</b>';
+                                    }
+
+                                    $.each(this.points, function(i, point) {
+                                        s += '<br/>'+point.series.name+': '+moment.duration(point.y, 'seconds').format('D [days] H [hrs] m [mins]');
+                                    });
+                                    return s;
+                                 }
+                stack_labels_format = function() {
+                                          if (moment(this.total).isValid()) {
+                                              console.log(this);
+                                              var s = moment.duration(this.total, 'seconds').format("H [hrs] m [mins]");
+                                          } else {
+                                              var s = this.total;
+                                          }
+                                          return s;
+                                      }
+                hc_plays_by_day_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_dayofweek_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_hourofday_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_platform_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_user_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_month_options.tooltip.formatter = tooltip_format;
+                hc_plays_by_month_options.yAxis.stackLabels.formatter = stack_labels_format;
+
+                $('.yaxis-text').html('Play duration');
+            }
+        }
     });
 </script>
 </%def>

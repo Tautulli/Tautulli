@@ -23,22 +23,33 @@ class Graphs(object):
     def __init__(self):
         pass
 
-    def get_total_plays_per_day(self, time_range='30'):
+    def get_total_plays_per_day(self, time_range='30', y_axis='plays'):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'
 
         try:
-            query = 'SELECT date(started, "unixepoch", "localtime") as date_played, ' \
-                    'SUM(case when media_type = "episode" then 1 else 0 end) as tv_count, ' \
-                    'SUM(case when media_type = "movie" then 1 else 0 end) as movie_count ' \
-                    'FROM session_history ' \
-                    'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                    'GROUP BY date_played ' \
-                    'ORDER BY started ASC' % time_range
+            if y_axis == 'plays':
+                query = 'SELECT date(started, "unixepoch", "localtime") as date_played, ' \
+                        'SUM(case when media_type = "episode" then 1 else 0 end) as tv_count, ' \
+                        'SUM(case when media_type = "movie" then 1 else 0 end) as movie_count ' \
+                        'FROM session_history ' \
+                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                        'GROUP BY date_played ' \
+                        'ORDER BY started ASC' % time_range
 
-            result = monitor_db.select(query)
+                result = monitor_db.select(query)
+            else:
+                query = 'SELECT date(started, "unixepoch", "localtime") as date_played, ' \
+                        'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) else 0 end) as tv_duration, ' \
+                        'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) else 0 end) as movie_duration ' \
+                        'FROM session_history ' \
+                        'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                        'GROUP BY date_played ' \
+                        'ORDER BY started ASC' % time_range
+
+                result = monitor_db.select(query)
         except:
             logger.warn("Unable to execute database query.")
             return None
@@ -78,29 +89,50 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output]}
         return output
 
-    def get_total_plays_per_dayofweek(self, time_range='30'):
+    def get_total_plays_per_dayofweek(self, time_range='30', y_axis='plays'):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'
 
-        query = 'SELECT strftime("%w", datetime(started, "unixepoch", "localtime")) as daynumber, ' \
-                'case cast (strftime("%w", datetime(started, "unixepoch", "localtime")) as integer) ' \
-                'when 0 then "Sunday" ' \
-                'when 1 then "Monday" ' \
-                'when 2 then "Tuesday" ' \
-                'when 3 then "Wednesday" ' \
-                'when 4 then "Thursday" ' \
-                'when 5 then "Friday" ' \
-                'else "Saturday" end as dayofweek, ' \
-                'COUNT(id) as total_plays ' \
-                'from session_history ' \
-                'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
-                'datetime("now", "-' + time_range + ' days", "localtime") ' \
-                'GROUP BY dayofweek ' \
-                'ORDER BY daynumber'
+        if y_axis == 'plays':
+            query = 'SELECT strftime("%w", datetime(started, "unixepoch", "localtime")) as daynumber, ' \
+                    'case cast (strftime("%w", datetime(started, "unixepoch", "localtime")) as integer) ' \
+                    'when 0 then "Sunday" ' \
+                    'when 1 then "Monday" ' \
+                    'when 2 then "Tuesday" ' \
+                    'when 3 then "Wednesday" ' \
+                    'when 4 then "Thursday" ' \
+                    'when 5 then "Friday" ' \
+                    'else "Saturday" end as dayofweek, ' \
+                    'COUNT(id) as total_plays ' \
+                    'from session_history ' \
+                    'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'GROUP BY dayofweek ' \
+                    'ORDER BY daynumber'
 
-        result = monitor_db.select(query)
+            result = monitor_db.select(query)
+            y_axis_label = 'Total plays'
+        else:
+            query = 'SELECT strftime("%w", datetime(started, "unixepoch", "localtime")) as daynumber, ' \
+                    'case cast (strftime("%w", datetime(started, "unixepoch", "localtime")) as integer) ' \
+                    'when 0 then "Sunday" ' \
+                    'when 1 then "Monday" ' \
+                    'when 2 then "Tuesday" ' \
+                    'when 3 then "Wednesday" ' \
+                    'when 4 then "Thursday" ' \
+                    'when 5 then "Friday" ' \
+                    'else "Saturday" end as dayofweek, ' \
+                    'SUM(case when media_type != "track" and stopped > 0 then (stopped - started) else 0 end) as duration ' \
+                    'from session_history ' \
+                    'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'GROUP BY dayofweek ' \
+                    'ORDER BY daynumber'
+
+            result = monitor_db.select(query)
+            y_axis_label = 'Total duration'
 
         days_list = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
                      'Thursday', 'Friday', 'Saturday']
@@ -120,28 +152,41 @@ class Graphs(object):
 
             series_1.append(series_1_value)
 
-        series_1_output = {'name': 'Total plays',
+        series_1_output = {'name': y_axis_label,
                            'data': series_1}
 
         output = {'categories': categories,
                   'series': [series_1_output]}
         return output
 
-    def get_total_plays_per_hourofday(self, time_range='30'):
+    def get_total_plays_per_hourofday(self, time_range='30', y_axis='plays'):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'
 
-        query = 'select strftime("%H", datetime(started, "unixepoch", "localtime")) as hourofday, ' \
-                'COUNT(id) ' \
-                'FROM session_history ' \
-                'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
-                'datetime("now", "-' + time_range + ' days", "localtime") ' \
-                'GROUP BY hourofday ' \
-                'ORDER BY hourofday'
+        if y_axis == 'plays':
+            query = 'select strftime("%H", datetime(started, "unixepoch", "localtime")) as hourofday, ' \
+                    'COUNT(id) ' \
+                    'FROM session_history ' \
+                    'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'GROUP BY hourofday ' \
+                    'ORDER BY hourofday'
 
-        result = monitor_db.select(query)
+            result = monitor_db.select(query)
+            y_axis_label = 'Total plays'
+        else:
+            query = 'select strftime("%H", datetime(started, "unixepoch", "localtime")) as hourofday, ' \
+                    'SUM(case when media_type != "track" and stopped > 0 then (stopped - started) else 0 end) as duration ' \
+                    'FROM session_history ' \
+                    'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'GROUP BY hourofday ' \
+                    'ORDER BY hourofday'
+
+            result = monitor_db.select(query)
+            y_axis_label = 'Total duration'
 
         hours_list = ['00','01','02','03','04','05',
                       '06','07','08','09','10','11',
@@ -163,27 +208,37 @@ class Graphs(object):
 
             series_1.append(series_1_value)
 
-        series_1_output = {'name': 'Total plays',
+        series_1_output = {'name': y_axis_label,
                            'data': series_1}
 
         output = {'categories': categories,
                   'series': [series_1_output]}
         return output
 
-    def get_total_plays_per_month(self):
+    def get_total_plays_per_month(self, y_axis='plays'):
         import time as time
 
         monitor_db = database.MonitorDatabase()
+        if y_axis == 'plays':
+            query = 'SELECT strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) as datestring, ' \
+                    'SUM(case when media_type = "episode" then 1 else 0 end) as tv_count, ' \
+                    'SUM(case when media_type = "movie" then 1 else 0 end) as movie_count ' \
+                    'FROM session_history ' \
+                    'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-12 months", "localtime") ' \
+                    'GROUP BY strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) ' \
+                    'ORDER BY datestring DESC LIMIT 12'
 
-        query = 'SELECT strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) as datestring, ' \
-                'SUM(case when media_type = "episode" then 1 else 0 end) as tv_count, ' \
-                'SUM(case when media_type = "movie" then 1 else 0 end) as movie_count ' \
-                'FROM session_history ' \
-                'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-12 months", "localtime") ' \
-                'GROUP BY strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) ' \
-                'ORDER BY datestring DESC LIMIT 12'
+            result = monitor_db.select(query)
+        else:
+            query = 'SELECT strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) as datestring, ' \
+                    'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) else 0 end) as tv_duration, ' \
+                    'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) else 0 end) as movie_duration ' \
+                    'FROM session_history ' \
+                    'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-12 months", "localtime") ' \
+                    'GROUP BY strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) ' \
+                    'ORDER BY datestring DESC LIMIT 12'
 
-        result = monitor_db.select(query)
+            result = monitor_db.select(query)
 
         # create our date range as some months may not have any data
         # but we still want to display them
@@ -224,23 +279,38 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output]}
         return output
 
-    def get_total_plays_by_top_10_platforms(self, time_range='30'):
+    def get_total_plays_by_top_10_platforms(self, time_range='30', y_axis='plays'):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'
 
-        query = 'SELECT platform, ' \
-                'count(id) as platform_count ' \
-                'FROM session_history ' \
-                'WHERE (datetime(stopped, "unixepoch", "localtime") >= ' \
-                'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
-                '(media_type = "episode" OR media_type = "movie") ' \
-                'GROUP BY platform ' \
-                'ORDER BY platform_count DESC ' \
-                'LIMIT 10'
+        if y_axis == 'plays':
+            query = 'SELECT platform, ' \
+                    'count(id) as platform_count ' \
+                    'FROM session_history ' \
+                    'WHERE (datetime(stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
+                    '(media_type = "episode" OR media_type = "movie") ' \
+                    'GROUP BY platform ' \
+                    'ORDER BY platform_count DESC ' \
+                    'LIMIT 10'
 
-        result = monitor_db.select(query)
+            result = monitor_db.select(query)
+            y_axis_label = 'Total plays'
+        else:
+            query = 'SELECT platform, ' \
+                    'SUM(case when stopped > 0 then (stopped - started) else 0 end) as duration ' \
+                    'FROM session_history ' \
+                    'WHERE (datetime(stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
+                    '(media_type = "episode" OR media_type = "movie") ' \
+                    'GROUP BY platform ' \
+                    'ORDER BY duration DESC ' \
+                    'LIMIT 10'
+
+            result = monitor_db.select(query)
+            y_axis_label = 'Total duration'
 
         categories = []
         series_1 = []
@@ -249,33 +319,51 @@ class Graphs(object):
             categories.append(item[0])
             series_1.append(item[1])
 
-        series_1_output = {'name': 'Total plays',
+        series_1_output = {'name': y_axis_label,
                            'data': series_1}
 
         output = {'categories': categories,
                   'series': [series_1_output]}
         return output
 
-    def get_total_plays_by_top_10_users(self, time_range='30'):
+    def get_total_plays_by_top_10_users(self, time_range='30', y_axis='plays'):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'
 
-        query = 'SELECT ' \
-                '(case when users.friendly_name is null then session_history.user else ' \
-                'users.friendly_name end) as friendly_name,' \
-                'count(session_history.id) as user_count ' \
-                'FROM session_history ' \
-                'JOIN users on session_history.user_id = users.user_id ' \
-                'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
-                'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
-                '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
-                'GROUP BY session_history.user_id ' \
-                'ORDER BY user_count DESC ' \
-                'LIMIT 10'
+        if y_axis == 'plays':
+            query = 'SELECT ' \
+                    '(case when users.friendly_name is null then session_history.user else ' \
+                    'users.friendly_name end) as friendly_name,' \
+                    'count(session_history.id) as user_count ' \
+                    'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
+                    'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
+                    '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'GROUP BY session_history.user_id ' \
+                    'ORDER BY user_count DESC ' \
+                    'LIMIT 10'
 
-        result = monitor_db.select(query)
+            result = monitor_db.select(query)
+            y_axis_label = 'Total plays'
+        else:
+            query = 'SELECT ' \
+                    '(case when users.friendly_name is null then session_history.user else ' \
+                    'users.friendly_name end) as friendly_name,' \
+                    'SUM(case when stopped > 0 then (stopped - started) else 0 end) as duration ' \
+                    'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
+                    'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
+                    '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'GROUP BY session_history.user_id ' \
+                    'ORDER BY duration DESC ' \
+                    'LIMIT 10'
+
+            result = monitor_db.select(query)
+            y_axis_label = 'Total duration'
 
         categories = []
         series_1 = []
@@ -284,7 +372,7 @@ class Graphs(object):
             categories.append(item[0])
             series_1.append(item[1])
 
-        series_1_output = {'name': 'Total plays',
+        series_1_output = {'name': y_axis_label,
                            'data': series_1}
 
         output = {'categories': categories,
