@@ -1,6 +1,8 @@
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
 </%def>
 
 <%def name="body()">
@@ -132,6 +134,10 @@
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/moment-duration-format.js"></script>
 <script src="interfaces/default/js/highcharts/js/highcharts.js"></script>
+<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
+
 <script>
     // Modal popup dialog
     function selectHandler(selectedDate) {
@@ -149,8 +155,8 @@
                 type: 'post',
                 data:  { 'start_date': dateString },
                 complete: function(xhr, status) {
-                    $("#history-modal").html(xhr.responseText);
                     $('#history-modal').modal('show');
+                    $("#history-modal").html(xhr.responseText);
                 }
             });
         }
