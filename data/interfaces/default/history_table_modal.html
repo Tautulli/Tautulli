@@ -5,7 +5,7 @@
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
             <h4 class="modal-title" id="myModalLabel">
                 <strong><span id="modal_header_ip_address">
-                    <i class="fa fa-history"></i> History for ${data}
+                    <i class="fa fa-history"></i> History for <span id="date-header">${data}</span>
                 </span></strong>
             </h4>
         </div>
@@ -31,6 +31,7 @@
 <script src="interfaces/default/js/tables/history_table_modal.js"></script>
 <script>
     $(document).ready(function() {
+        $('#date-header').html(moment('${data}','YYYY-MM-DD').format('ddd MMM Do YYYY'));
         history_table_modal_options.ajax = {
             "url": "get_history",
             type: "post",

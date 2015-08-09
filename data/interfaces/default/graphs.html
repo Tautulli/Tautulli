@@ -190,7 +190,7 @@
                 success: function(data) {
                     var dateArray = [];
                     for (var i = 0; i < data.categories.length; i++) {
-                        dateArray.push(moment(data.categories[i]).valueOf());
+                        dateArray.push(moment(data.categories[i], 'YYYY-MM-DD').valueOf());
                     }
                     hc_plays_by_day_options.yAxis.min = 0;
                     hc_plays_by_day_options.xAxis.categories = dateArray;
@@ -264,7 +264,7 @@
                 success: function(data) {
                     var dateArray = [];
                     for (var i = 0; i < data.categories.length; i++) {
-                        dateArray.push(moment(data.categories[i]).valueOf());
+                        dateArray.push(moment(data.categories[i], 'YYYY-MM').valueOf());
                     }
                     hc_plays_by_month_options.yAxis.min = 0;
                     hc_plays_by_month_options.xAxis.categories = dateArray;
@@ -311,8 +311,8 @@
                 hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
 
                 tooltip_format = function() {
-                                    if (moment(this.x).isValid()) {
-                                        var s = '<b>'+ moment(this.x).format("ddd MMM D") +'</b>';
+                                    if (moment(this.x, 'X').isValid() && (this.x > 946684800)) {
+                                        var s = '<b>'+ moment(this.x, 'X').format("ddd MMM D") +'</b>';
                                     } else {
                                         var s = '<b>'+ this.x +'</b>';
                                     }
@@ -344,8 +344,8 @@
                 hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
 
                 tooltip_format = function() {
-                                    if (moment(this.x).isValid()) {
-                                        var s = '<b>'+ moment(this.x).format("ddd MMM D") +'</b>';
+                                    if (moment(this.x, 'X').isValid() && (this.x > 946684800)) {
+                                        var s = '<b>'+ moment(this.x, 'X').format("ddd MMM D") +'</b>';
                                     } else {
                                         var s = '<b>'+ this.x +'</b>';
                                     }
@@ -356,12 +356,7 @@
                                     return s;
                                  }
                 stack_labels_format = function() {
-                                          if (moment(this.total).isValid()) {
-                                              console.log(this);
-                                              var s = moment.duration(this.total, 'seconds').format("H [hrs] m [mins]");
-                                          } else {
-                                              var s = this.total;
-                                          }
+                                          var s = moment.duration(this.total, 'seconds').format("H [hrs] m [mins]");
                                           return s;
                                       }
                 hc_plays_by_day_options.tooltip.formatter = tooltip_format;
