@@ -382,3 +382,210 @@ class Graphs(object):
         output = {'categories': categories,
                   'series': [series_1_output]}
         return output
+
+    def get_total_plays_per_stream_type(self, time_range='30', y_axis='plays'):
+        monitor_db = database.MonitorDatabase()
+
+        if not time_range.isdigit():
+            time_range = '30'
+
+        try:
+            if y_axis == 'plays':
+                query = 'SELECT date(session_history.started, "unixepoch", "localtime") as date_played, ' \
+                        'SUM(case when session_history_media_info.video_decision = "direct play" then 1 else 0 end) as dp_count, ' \
+                        'SUM(case when session_history_media_info.video_decision = "copy" then 1 else 0 end) as ds_count, ' \
+                        'SUM(case when session_history_media_info.video_decision = "transcode" then 1 else 0 end) as tc_count ' \
+                        'FROM session_history ' \
+                        'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
+                        'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                        'datetime("now", "-%s days", "localtime")) AND ' \
+                        '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                        'GROUP BY date_played ' \
+                        'ORDER BY started ASC' % time_range
+
+                result = monitor_db.select(query)
+            else:
+                query = 'SELECT date(session_history.started, "unixepoch", "localtime") as date_played, ' \
+                        'SUM(case when session_history_media_info.video_decision = "direct play" AND ' \
+                        'session_history.stopped > 0 then (stopped - started) else 0 end) as dp_duration, ' \
+                        'SUM(case when session_history_media_info.video_decision = "copy" AND ' \
+                        'session_history.stopped > 0 then (stopped - started) else 0 end) as ds_duration, ' \
+                        'SUM(case when session_history_media_info.video_decision = "transcode" ' \
+                        'AND session_history.stopped > 0 then (stopped - started) else 0 end) as tc_duration ' \
+                        'FROM session_history ' \
+                        'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
+                        'WHERE datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                        'datetime("now", "-%s days", "localtime") AND ' \
+                        '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                        'GROUP BY date_played ' \
+                        'ORDER BY started ASC' % time_range
+
+                result = monitor_db.select(query)
+        except:
+            logger.warn("Unable to execute database query.")
+            return None
+
+        # create our date range as some days may not have any data
+        # but we still want to display them
+        base = datetime.date.today()
+        date_list = [base - datetime.timedelta(days=x) for x in range(0, int(time_range))]
+
+        categories = []
+        series_1 = []
+        series_2 = []
+        series_3 = []
+
+        for date_item in sorted(date_list):
+            date_string = date_item.strftime('%Y-%m-%d')
+            categories.append(date_string)
+            series_1_value = 0
+            series_2_value = 0
+            series_3_value = 0
+            for item in result:
+                if date_string == item[0]:
+                    series_1_value = item[1]
+                    series_2_value = item[2]
+                    series_3_value = item[3]
+                    break
+                else:
+                    series_1_value = 0
+                    series_2_value = 0
+                    series_3_value = 0
+
+            series_1.append(series_1_value)
+            series_2.append(series_2_value)
+            series_3.append(series_3_value)
+
+        series_1_output = {'name': 'Direct Play',
+                           'data': series_1}
+        series_2_output = {'name': 'Direct Stream',
+                           'data': series_2}
+        series_3_output = {'name': 'Transcode',
+                           'data': series_3}
+
+        output = {'categories': categories,
+                  'series': [series_1_output, series_2_output, series_3_output]}
+
+        return output
+
+    def get_total_plays_by_source_resolution(self, time_range='30', y_axis='plays'):
+        monitor_db = database.MonitorDatabase()
+
+        if not time_range.isdigit():
+            time_range = '30'
+
+        if y_axis == 'plays':
+            query = 'SELECT ' \
+                    'count(session_history.id) as play_count, ' \
+                    'session_history_media_info.video_resolution AS resolution ' \
+                    'FROM session_history ' \
+                    'JOIN session_history_media_info on session_history.id = session_history_media_info.id ' \
+                    'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
+                    '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'GROUP BY resolution ' \
+                    'ORDER BY play_count DESC ' \
+                    'LIMIT 10'
+
+            result = monitor_db.select(query)
+            y_axis_label = 'Total plays'
+        else:
+            query = 'SELECT ' \
+                    'SUM(case when stopped > 0 then (stopped - started) else 0 end) as duration, ' \
+                    'session_history_media_info.video_resolution AS resolution ' \
+                    'FROM session_history ' \
+                    'JOIN session_history_media_info on session_history.id = session_history_media_info.id ' \
+                    'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
+                    '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'GROUP BY resolution ' \
+                    'ORDER BY duration DESC ' \
+                    'LIMIT 10'
+
+            result = monitor_db.select(query)
+            y_axis_label = 'Total duration'
+
+        categories = []
+        series_1 = []
+
+        for item in result:
+            categories.append(item[1])
+            series_1.append(item[0])
+
+        series_1_output = {'name': y_axis_label,
+                           'data': series_1}
+
+        output = {'categories': categories,
+                  'series': [series_1_output]}
+
+        return output
+
+    def get_total_plays_by_stream_resolution(self, time_range='30', y_axis='plays'):
+        monitor_db = database.MonitorDatabase()
+
+        if not time_range.isdigit():
+            time_range = '30'
+
+        if y_axis == 'plays':
+            query = 'SELECT ' \
+                    'count(session_history.id) as play_count, ' \
+                    '(case when session_history_media_info.video_decision = "transcode" then ' \
+                    '(case ' \
+                    'when session_history_media_info.transcode_height <= 360 then "sd" ' \
+                    'when session_history_media_info.transcode_height <= 480 then "480" ' \
+                    'when session_history_media_info.transcode_height <= 576 then "576" ' \
+                    'when session_history_media_info.transcode_height <= 720 then "720" ' \
+                    'when session_history_media_info.transcode_height <= 1080 then "1080" ' \
+                    'when session_history_media_info.transcode_height <= 1440 then "QHD" ' \
+                    'when session_history_media_info.transcode_height <= 2160 then "4K" ' \
+                    'else "unknown" end) else session_history_media_info.video_resolution end) as resolution ' \
+                    'FROM session_history ' \
+                    'JOIN session_history_media_info on session_history.id = session_history_media_info.id ' \
+                    'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
+                    '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'GROUP BY resolution ' \
+                    'ORDER BY play_count DESC ' \
+                    'LIMIT 10'
+
+            result = monitor_db.select(query)
+            y_axis_label = 'Total plays'
+        else:
+            query = 'SELECT ' \
+                    'SUM(case when stopped > 0 then (stopped - started) else 0 end) as duration, ' \
+                    '(case when session_history_media_info.video_decision = "transcode" then ' \
+                    '(case ' \
+                    'when session_history_media_info.transcode_height <= 360 then "sd" ' \
+                    'when session_history_media_info.transcode_height <= 480 then "480" ' \
+                    'when session_history_media_info.transcode_height <= 576 then "576" ' \
+                    'when session_history_media_info.transcode_height <= 720 then "720" ' \
+                    'when session_history_media_info.transcode_height <= 1080 then "1080" ' \
+                    'when session_history_media_info.transcode_height <= 1440 then "QHD" ' \
+                    'when session_history_media_info.transcode_height <= 2160 then "4K" ' \
+                    'else "unknown" end) else session_history_media_info.video_resolution end) as resolution ' \
+                    'FROM session_history ' \
+                    'JOIN session_history_media_info on session_history.id = session_history_media_info.id ' \
+                    'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
+                    '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'GROUP BY resolution ' \
+                    'ORDER BY duration DESC ' \
+                    'LIMIT 10'
+
+            result = monitor_db.select(query)
+            y_axis_label = 'Total duration'
+
+        categories = []
+        series_1 = []
+
+        for item in result:
+            categories.append(item[1])
+            series_1.append(item[0])
+
+        series_1_output = {'name': y_axis_label,
+                           'data': series_1}
+
+        output = {'categories': categories,
+                  'series': [series_1_output]}
+
+        return output

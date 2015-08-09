@@ -903,6 +903,42 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
+    def get_plays_by_stream_type(self, time_range='30', y_axis='plays', **kwargs):
+
+        graph = graphs.Graphs()
+        result = graph.get_total_plays_per_stream_type(time_range=time_range, y_axis=y_axis)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', **kwargs):
+
+        graph = graphs.Graphs()
+        result = graph.get_total_plays_by_source_resolution(time_range=time_range, y_axis=y_axis)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', **kwargs):
+
+        graph = graphs.Graphs()
+        result = graph.get_total_plays_by_stream_resolution(time_range=time_range, y_axis=y_axis)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
     def get_friends_list(self, **kwargs):
 
         plex_tv = plextv.PlexTV()

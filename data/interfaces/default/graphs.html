@@ -34,17 +34,19 @@
         </div>
     </div>
     <div class='table-card-back'>
-        <ul class="nav nav-pills" role="tablist">
-            <li role="presentation" class="active"><a id="watch-count-graphs" href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Plays by period</a></li>
-            <li role="presentation"><a id="watch-totals-graphs" href="#tabs-3" aria-controls="tabs-2" role="tab" data-toggle="tab">Play Totals</a></li>
+        <ul class="nav nav-pills" role="tablist" id="graph-tabs">
+            <li role="presentation" class="active"><a href="#tabs-1" aria-controls="tabs-1" data-toggle="tab" role="tab">Plays by period</a></li>
+            <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" data-toggle="tab" role="tab">Stream Info</a></li>
+            <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" data-toggle="tab" role="tab">Play Totals</a></li>
         </ul>
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="tabs-1">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="padded-header">
-                            <h3><i class="fa fa-history"></i> Daily <span class="yaxis-text">Play count</span> <small>Last <span class="days">30</span> days</small></h3>
-                        </div>
+                        <h4><i class="fa fa-history"></i> Daily <span class="yaxis-text">Play count</span> <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The total play count or duration of movies and tv played per day. Click a graph point to open up a list of items played for that specific date.
+                        </p>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_day">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
@@ -53,13 +55,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal fade" id="history-modal" tabindex="-1" role="dialog" aria-labelledby="history-modal">
-                </div>
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="padded-header">
-                            <h3><i class="fa fa-calendar"></i> <span class="yaxis-text">Play count</span> by day of week <small>Last <span class="days">30</span> days</small></h3>
-                        </div>
+                        <h4><i class="fa fa-calendar"></i> <span class="yaxis-text">Play count</span> by day of week <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of movies and tv played per day of the week.
+                        </p>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_dayofweek" style="float: left;">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
@@ -69,9 +70,10 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="padded-header">
-                            <h3><i class="fa fa-clock-o"></i> <span class="yaxis-text">Play count</span> by hour of day <small>Last <span class="days">30</span> days</small></h3>
-                        </div>
+                        <h4><i class="fa fa-clock-o"></i> <span class="yaxis-text">Play count</span> by hour of day <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of movies and tv played per hour of the day.
+                        </p>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_hourofday">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
@@ -83,9 +85,10 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="padded-header">
-                            <h3><i class="fa fa-television"></i> <span class="yaxis-text">Play count</span> by top 10 platforms <small>Last <span class="days">30</span> days</small></h3>
-                        </div>
+                        <h4><i class="fa fa-television"></i> <span class="yaxis-text">Play count</span> by top 10 platforms <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of movies and tv played by top 10 most active platforms.
+                        </p>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_platform" style="float: left;">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
@@ -95,11 +98,57 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="padded-header">
-                            <h3><i class="fa fa-user"></i> <span class="yaxis-text">Play count</span> by top 10 users <small>Last <span class="days">30</span> days</small></h3>
-                        </div>
+                        <h4><i class="fa fa-user"></i> <span class="yaxis-text">Play count</span> by top 10 users <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of movies and tv played by top 10 most active users.
+                        </p>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_user">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div role="tabpanel" class="tab-pane" id="tabs-2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4><i class="fa fa-video-camera"></i> Daily Stream type breakdown <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The total play count or duration of movies and tv by the transcode decision. Click a graph point to open up a list of items played for that specific date.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="chart_div_plays_by_stream_type">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4><i class="fa fa-expand"></i> <span class="yaxis-text">Play count</span> by source resolution <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of movies and tv by their original resolution (pre-transcoding).
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="chart_div_plays_by_source_resolution" style="float: left;">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4><i class="fa fa-expand"></i> <span class="yaxis-text">Play count</span> by stream resolution <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of movies and tv by their streamed resolution (post-transcoding).
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="chart_div_plays_by_stream_resolution">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
                                 </div>
                                 <br>
@@ -112,9 +161,10 @@
             <div role="tabpanel" class="tab-pane" id="tabs-3">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="padded-header">
-                            <h3><i class="fa fa-calendar"></i> Plays by Month <small>Last 12 months</small></h3>
-                        </div>
+                        <h4><i class="fa fa-calendar"></i> Plays by Month <small>Last 12 months</small></h4>
+                        <p class="help-block">
+                            The combined total of movies and tv by month.
+                        </p>
                         <div class="graphs-instance">
                             <div class="watch-chart" id="chart_div_plays_by_month">
                                 <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
@@ -124,6 +174,8 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="modal fade" id="history-modal" tabindex="-1" role="dialog" aria-labelledby="history-modal">
             </div>
         </div>
     </div>
@@ -171,12 +223,16 @@
 <script src="interfaces/default/js/graphs/plays_by_hourofday.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_platform.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_user.js"></script>
+<script src="interfaces/default/js/graphs/plays_by_stream_type.js"></script>
+<script src="interfaces/default/js/graphs/plays_by_source_resolution.js"></script>
+<script src="interfaces/default/js/graphs/plays_by_stream_resolution.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_month.js"></script>
 <script>
     $(document).ready(function () {
 
         var current_range = 30;
         var yaxis = 'plays';
+        var current_tab = '#tabs-1';
 
         function loadGraphsTab1(time_range, yaxis) {
             setGraphFormat(yaxis);
@@ -186,7 +242,6 @@
                 type: 'get',
                 data: { time_range: time_range, y_axis: yaxis },
                 dataType: "json",
-                cache: false,
                 success: function(data) {
                     var dateArray = [];
                     for (var i = 0; i < data.categories.length; i++) {
@@ -204,7 +259,6 @@
                 type: 'get',
                 data: { time_range: time_range, y_axis: yaxis },
                 dataType: "json",
-                cache: false,
                 success: function(data) {
                     hc_plays_by_dayofweek_options.xAxis.categories = data.categories;
                     hc_plays_by_dayofweek_options.series = data.series;
@@ -217,7 +271,6 @@
                 type: 'get',
                 data: { time_range: time_range, y_axis: yaxis },
                 dataType: "json",
-                cache: false,
                 success: function(data) {
                     hc_plays_by_hourofday_options.xAxis.categories = data.categories;
                     hc_plays_by_hourofday_options.series = data.series;
@@ -230,7 +283,6 @@
                 type: 'get',
                 data: { time_range: time_range, y_axis: yaxis },
                 dataType: "json",
-                cache: false,
                 success: function(data) {
                     hc_plays_by_platform_options.xAxis.categories = data.categories;
                     hc_plays_by_platform_options.series = data.series;
@@ -243,11 +295,55 @@
                 type: 'get',
                 data: { time_range: time_range, y_axis: yaxis },
                 dataType: "json",
-                cache: false,
                 success: function(data) {
                     hc_plays_by_user_options.xAxis.categories = data.categories;
                     hc_plays_by_user_options.series = data.series;
                     var hc_plays_by_user = new Highcharts.Chart(hc_plays_by_user_options);
+                }
+            });
+        }
+
+        function loadGraphsTab2(time_range, yaxis) {
+            setGraphFormat(yaxis);
+
+            $.ajax({
+                url: "get_plays_by_stream_type",
+                type: 'get',
+                data: { time_range: time_range, y_axis: yaxis },
+                dataType: "json",
+                success: function(data) {
+                    var dateArray = [];
+                    for (var i = 0; i < data.categories.length; i++) {
+                        dateArray.push(moment(data.categories[i], 'YYYY-MM-DD').valueOf());
+                    }
+                    hc_plays_by_stream_type_options.yAxis.min = 0;
+                    hc_plays_by_stream_type_options.xAxis.categories = dateArray;
+                    hc_plays_by_stream_type_options.series = data.series;
+                    var hc_plays_by_stream_type = new Highcharts.Chart(hc_plays_by_stream_type_options);
+                }
+            });
+
+            $.ajax({
+                url: "get_plays_by_source_resolution",
+                type: 'get',
+                data: { time_range: time_range, y_axis: yaxis },
+                dataType: "json",
+                success: function(data) {
+                    hc_plays_by_source_resolution_options.xAxis.categories = data.categories;
+                    hc_plays_by_source_resolution_options.series = data.series;
+                    var hc_plays_by_source_resolution = new Highcharts.Chart(hc_plays_by_source_resolution_options);
+                }
+            });
+
+            $.ajax({
+                url: "get_plays_by_stream_resolution",
+                type: 'get',
+                data: { time_range: time_range, y_axis: yaxis },
+                dataType: "json",
+                success: function(data) {
+                    hc_plays_by_stream_resolution_options.xAxis.categories = data.categories;
+                    hc_plays_by_stream_resolution_options.series = data.series;
+                    var hc_plays_by_stream_resolution = new Highcharts.Chart(hc_plays_by_stream_resolution_options);
                 }
             });
         }
@@ -260,7 +356,6 @@
                 type: 'get',
                 data: { y_axis: yaxis },
                 dataType: "json",
-                cache: false,
                 success: function(data) {
                     var dateArray = [];
                     for (var i = 0; i < data.categories.length; i++) {
@@ -277,42 +372,61 @@
         // Set initial state
         loadGraphsTab1(current_range, yaxis);
 
-        $('#watch-count-graphs').click(function() {
-            loadGraphsTab1(current_range, yaxis);
-            $('#days-selection').show();
-        });
+        // Tab1 opened
+        $('#graph-tabs a[href="#tabs-1"]').click(function (e) {
+            current_tab = $(this).attr('href');
+            e.preventDefault();
+            $(this).tab('show');
+            $(this).on('shown.bs.tab', function (e) {
+              $('#days-selection').show();
+              loadGraphsTab1(current_range, yaxis);
+            })
+        })
 
-        $('#watch-totals-graphs').click(function() {
-            loadGraphsTab3(yaxis);
-            $('#days-selection').hide();
-        });
+        // Tab2 opened
+        $('#graph-tabs a[href="#tabs-2"]').click(function (e) {
+            current_tab = $(this).attr('href');
+            e.preventDefault();
+            $(this).tab('show');
+            $(this).on('shown.bs.tab', function (e) {
+              $('#days-selection').show();
+              loadGraphsTab2(current_range, yaxis);
+            })
+        })
 
+        // Tab3 opened
+        $('#graph-tabs a[href="#tabs-3"]').click(function (e) {
+            current_tab = $(this).attr('href');
+            e.preventDefault();
+            $(this).tab('show');
+            $(this).on('shown.bs.tab', function (e) {
+              $('#days-selection').hide();
+              loadGraphsTab3(yaxis);
+            })
+        })
+
+        // Date range changed
         $('#days-selection').on('change', function() {
             current_range = $('input[name=date-options]:checked', '#days-selection').val();
-            loadGraphsTab1(current_range, yaxis);
+            if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
+            if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
             $('.days').html(current_range);
         });
 
+        // Y-axis changed
         $('#yaxis-selection').on('change', function() {
             yaxis = $('input[name=yaxis-options]:checked', '#yaxis-selection').val();
-            loadGraphsTab1(current_range, yaxis);
-            loadGraphsTab3(yaxis);
-            $('.days').html(current_range);
+            if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
+            if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
+            if (current_tab == '#tabs-3') { loadGraphsTab3(yaxis); }
         });
 
         function setGraphFormat(type) {
             if (type === 'plays') {
                 yaxis_format = function() { return this.value; };
-                hc_plays_by_day_options.yAxis.labels.formatter = yaxis_format;
-                hc_plays_by_dayofweek_options.yAxis.labels.formatter = yaxis_format;
-                hc_plays_by_hourofday_options.yAxis.labels.formatter = yaxis_format;
-                hc_plays_by_platform_options.yAxis.labels.formatter = yaxis_format;
-                hc_plays_by_user_options.yAxis.labels.formatter = yaxis_format;
-                hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
-
                 tooltip_format = function() {
                                     if (moment(this.x, 'X').isValid() && (this.x > 946684800)) {
-                                        var s = '<b>'+ moment(this.x, 'X').format("ddd MMM D") +'</b>';
+                                        var s = '<b>'+ moment(this.x).format("ddd MMM D") +'</b>';
                                     } else {
                                         var s = '<b>'+ this.x +'</b>';
                                     }
@@ -325,27 +439,13 @@
                 stack_labels_format = function() {
                                           return this.total;
                                       }
-                hc_plays_by_day_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_dayofweek_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_hourofday_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_platform_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_user_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_month_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_month_options.yAxis.stackLabels.formatter = stack_labels_format;
 
                 $('.yaxis-text').html('Play count');
             } else {
                 yaxis_format = function() { return moment.duration(this.value, 'seconds').format("m [mins]"); };
-                hc_plays_by_day_options.yAxis.labels.formatter = yaxis_format;
-                hc_plays_by_dayofweek_options.yAxis.labels.formatter = yaxis_format;
-                hc_plays_by_hourofday_options.yAxis.labels.formatter = yaxis_format;
-                hc_plays_by_platform_options.yAxis.labels.formatter = yaxis_format;
-                hc_plays_by_user_options.yAxis.labels.formatter = yaxis_format;
-                hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
-
                 tooltip_format = function() {
                                     if (moment(this.x, 'X').isValid() && (this.x > 946684800)) {
-                                        var s = '<b>'+ moment(this.x, 'X').format("ddd MMM D") +'</b>';
+                                        var s = '<b>'+ moment(this.x).format("ddd MMM D") +'</b>';
                                     } else {
                                         var s = '<b>'+ this.x +'</b>';
                                     }
@@ -359,16 +459,29 @@
                                           var s = moment.duration(this.total, 'seconds').format("H [hrs] m [mins]");
                                           return s;
                                       }
-                hc_plays_by_day_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_dayofweek_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_hourofday_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_platform_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_user_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_month_options.tooltip.formatter = tooltip_format;
-                hc_plays_by_month_options.yAxis.stackLabels.formatter = stack_labels_format;
-
                 $('.yaxis-text').html('Play duration');
             }
+
+            hc_plays_by_day_options.yAxis.labels.formatter = yaxis_format;
+            hc_plays_by_dayofweek_options.yAxis.labels.formatter = yaxis_format;
+            hc_plays_by_hourofday_options.yAxis.labels.formatter = yaxis_format;
+            hc_plays_by_platform_options.yAxis.labels.formatter = yaxis_format;
+            hc_plays_by_user_options.yAxis.labels.formatter = yaxis_format;
+            hc_plays_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
+            hc_plays_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
+            hc_plays_by_stream_resolution_options.yAxis.labels.formatter = yaxis_format;
+            hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
+
+            hc_plays_by_day_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_dayofweek_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_hourofday_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_platform_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_user_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_stream_type_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_source_resolution_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_stream_resolution_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_month_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_month_options.yAxis.stackLabels.formatter = stack_labels_format;
         }
     });
 </script>
