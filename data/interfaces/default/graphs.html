@@ -373,37 +373,30 @@
         loadGraphsTab1(current_range, yaxis);
 
         // Tab1 opened
-        $('#graph-tabs a[href="#tabs-1"]').click(function (e) {
-            current_tab = $(this).attr('href');
+        $('#graph-tabs a[href="#tabs-1"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
-            $(this).tab('show');
-            $(this).on('shown.bs.tab', function (e) {
-              $('#days-selection').show();
-              loadGraphsTab1(current_range, yaxis);
-            })
+            current_tab = $(this).attr('href');
+            $('#days-selection').show();
+            loadGraphsTab1(current_range, yaxis);
         })
 
         // Tab2 opened
-        $('#graph-tabs a[href="#tabs-2"]').click(function (e) {
-            current_tab = $(this).attr('href');
+        $('#graph-tabs a[href="#tabs-2"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
-            $(this).tab('show');
-            $(this).on('shown.bs.tab', function (e) {
-              $('#days-selection').show();
-              loadGraphsTab2(current_range, yaxis);
-            })
+            current_tab = $(this).attr('href');
+            $('#days-selection').show();
+            loadGraphsTab2(current_range, yaxis);
         })
 
         // Tab3 opened
-        $('#graph-tabs a[href="#tabs-3"]').click(function (e) {
-            current_tab = $(this).attr('href');
+        $('#graph-tabs a[href="#tabs-3"').on('shown.bs.tab', function (e) {
             e.preventDefault();
-            $(this).tab('show');
-            $(this).on('shown.bs.tab', function (e) {
-              $('#days-selection').hide();
-              loadGraphsTab3(yaxis);
-            })
+            current_tab = $(this).attr('href');
+            $('#days-selection').hide();
+            console.log('loading....');
+            loadGraphsTab3(yaxis);
         })
+
 
         // Date range changed
         $('#days-selection').on('change', function() {
