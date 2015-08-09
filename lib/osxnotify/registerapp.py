@@ -15,7 +15,7 @@ def registerapp(app):
     app_path = None
 
     # check app bundle doesn't already exist
-    app_path = subprocess.check_output(['/usr/bin/mdfind', 'kMDItemCFBundleIdentifier == "ade.headphones.osxnotify"']).strip()
+    app_path = subprocess.check_output(['/usr/bin/mdfind', 'kMDItemCFBundleIdentifier == "ade.plexpy.osxnotify"']).strip()
     if app_path:
         return app_path, 'App previously registered'
 
@@ -40,7 +40,7 @@ def registerapp(app):
 
         version = "1.0.0"
         bundleName = "OSXNotify"
-        bundleIdentifier = "ade.headphones.osxnotify"
+        bundleIdentifier = "ade.plexpy.osxnotify"
 
         f = open(app_path + "/Contents/Info.plist", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
@@ -117,10 +117,10 @@ def notify(title, subtitle=None, text=None, sound=True):
     del pool
 
 def swizzled_bundleIdentifier(self, original):
-    return 'ade.headphones.osxnotify'
+    return 'ade.plexpy.osxnotify'
 
 if __name__ == '__main__':
-    notify('Half Man Half Biscuit', 'Back in the DHSS', '99% Of Gargoyles Look Like Bob Todd')
+    notify('PlexPy', 'Test Subtitle', 'Test Body')
 """)
         f.close()
 

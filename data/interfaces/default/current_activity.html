@@ -72,7 +72,11 @@ DOCUMENTATION :: END
             % if a['type'] == 'track':
             <div class="dashboard-activity-poster-music-bg" style="background-image: url('pms_image_proxy?img=${a['thumb']}&width=300&height=300');"></div>
             % endif
+            % if a['type'] == 'clip':
+            <img src="${a['thumb']}"/>
+            % else:
             <img src="pms_image_proxy?img=${a['thumb']}&width=410&height=230&fallback=cover"/>
+            % endif
             % endif
             <div class="dashboard-activity-poster-info-bar">
                 <div class="dashboard-activity-poster-info-text">
