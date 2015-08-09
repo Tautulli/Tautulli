@@ -108,7 +108,8 @@ class Graphs(object):
                     'COUNT(id) as total_plays ' \
                     'from session_history ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
-                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") AND ' \
+                    '(media_type = "episode" OR media_type = "movie") ' \
                     'GROUP BY dayofweek ' \
                     'ORDER BY daynumber'
 
@@ -127,7 +128,8 @@ class Graphs(object):
                     'SUM(case when media_type != "track" and stopped > 0 then (stopped - started) else 0 end) as duration ' \
                     'from session_history ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
-                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") AND ' \
+                    '(media_type = "episode" OR media_type = "movie") ' \
                     'GROUP BY dayofweek ' \
                     'ORDER BY daynumber'
 
@@ -170,7 +172,8 @@ class Graphs(object):
                     'COUNT(id) ' \
                     'FROM session_history ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
-                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") AND ' \
+                    '(media_type = "episode" OR media_type = "movie") ' \
                     'GROUP BY hourofday ' \
                     'ORDER BY hourofday'
 
@@ -181,7 +184,8 @@ class Graphs(object):
                     'SUM(case when media_type != "track" and stopped > 0 then (stopped - started) else 0 end) as duration ' \
                     'FROM session_history ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
-                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") AND ' \
+                    '(media_type = "episode" OR media_type = "movie") ' \
                     'GROUP BY hourofday ' \
                     'ORDER BY hourofday'
 
