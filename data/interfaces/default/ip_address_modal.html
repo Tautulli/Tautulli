@@ -33,7 +33,9 @@
                 </ul>
             </div>
         </div>
-        <div class="modal-footer"></div>
+        <div class="modal-footer">
+            <span class="text-muted">Service provided by ip.api.com.</span>
+        </div>
     </div>
 </div>
 
@@ -50,7 +52,7 @@
                 $('#modal_header_ip_address').html("Request failed. Server may be too busy.");
             },
             success: function(data) {
-                $('#modal_header_ip_address').html("IP Address: " + ip_address);
+                $('#modal_header_ip_address').html('<i class="fa fa-map-marker"></i> IP Address: ' + ip_address);
                 $('#country').html(data.country);
                 $('#city').html(data.city);
                 $('#region').html(data.regionName);

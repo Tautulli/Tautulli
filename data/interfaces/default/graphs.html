@@ -7,7 +7,7 @@
 
 <%def name="body()">
 <div class="container-fluid">
-    <div class='table-card-back'>
+    <div class='table-card-header'>
         <div class="header-bar">
             <span><i class="fa fa-bar-chart"></i> Graphs</span>
         </div>
@@ -413,7 +413,7 @@
                 success: function(data) {
                     var dateArray = [];
                     for (var i = 0; i < data.categories.length; i++) {
-                        dateArray.push(moment(data.categories[i], 'YYYY-MM').valueOf());
+                        dateArray.push(moment(data.categories[i], 'YYYY-MM').format('MMM YYYY'));
                     }
                     hc_plays_by_month_options.yAxis.min = 0;
                     hc_plays_by_month_options.xAxis.categories = dateArray;

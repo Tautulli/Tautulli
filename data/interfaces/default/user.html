@@ -38,20 +38,22 @@ from plexpy import helpers
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
-            <div class="user-info-wrapper">
-                <div class="user-info-poster-face" id="user-gravatar">
-                    <img src="${data['thumb']}" height="80px" width="80px">
-                </div>
-                <div class="user-info-username">
-                    <span class="set-username">${data['friendly_name']}</span> <a href="#" data-toggle="modal" data-target="#edit-user-modal" id="toggle-edit-user-modal"><i class="fa fa-pencil"></i></a>
-                </div>
-                <div class="user-info-nav">
-                    <ul class="user-info-nav">
-                        <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
-                        <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
-                        <li><a id="history-tab-btn" href="#userHistory" data-toggle="tab">History</a></li>
-                        <li><a id="sync-tab-btn" href="#userSyncItems" data-toggle="tab">Synced Items</a></li>
-                    </ul>
+            <div class="table-card-back">
+                <div class="user-info-wrapper">
+                    <div class="user-info-poster-face" id="user-gravatar">
+                        <img src="${data['thumb']}" height="80px" width="80px">
+                    </div>
+                    <div class="user-info-username">
+                        <span class="set-username">${data['friendly_name']}</span> <span id="edit-user-tooltip" data-target="tooltip" title="Edit user details"><a href="#" data-toggle="modal" data-target="#edit-user-modal" id="toggle-edit-user-modal"><i class="fa fa-pencil"></i></a></span>
+                    </div>
+                    <div class="user-info-nav">
+                        <ul class="user-info-nav">
+                            <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
+                            <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
+                            <li><a id="history-tab-btn" href="#userHistory" data-toggle="tab">History</a></li>
+                            <li><a id="sync-tab-btn" href="#userSyncItems" data-toggle="tab">Synced Items</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -65,25 +67,16 @@ from plexpy import helpers
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
-                    <div class="padded-header">
-                        <h3>Global Stats</h3>
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span><i class="fa fa-line-chart"></i> Global Stats</span>
+                        </div>
                     </div>
-                    <div id="user-time-stats" class="user-overview-stats-wrapper">
-                        <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                        <br>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="padded-header">
-                        <h3>Platform Stats</h3>
-                    </div>
-                    <div id="user-platform-stats" class="user-platforms">
-                        <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                        <br>
+                    <div class="table-card-back">
+                        <div id="user-time-stats" class="user-overview-stats-wrapper">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,12 +84,33 @@ from plexpy import helpers
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
-                    <div class="padded-header">
-                        <h3>Recently watched</h3>
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span><i class="fa fa-television"></i> Platform Stats</span>
+                        </div>
                     </div>
-                    <div id="user-recently-watched">
-                        <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                        <br>
+                    <div class="table-card-back">
+                        <div id="user-platform-stats" class="user-platforms">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span><i class="fa fa-history"></i> Recently watched</span>
+                        </div>
+                    </div>
+                    <div class="table-card-back">
+                        <div id="user-recently-watched">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -106,9 +120,9 @@ from plexpy import helpers
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
-                    <div class="table-card-back">
+                    <div class="table-card-header">
                         <div class="header-bar">
-                            <span>IP Addresses for <strong>
+                            <span><i class="fa fa-map-marker"></i> IP Addresses for <strong>
                                 <span class="set-username">${data['friendly_name']}</span>
                             </strong></span>
                         </div>
@@ -136,9 +150,9 @@ from plexpy import helpers
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
-                    <div class='table-card-back'>
+                    <div class='table-card-header'>
                         <div class="header-bar">
-                            <span>Watch History for <strong>
+                            <span><i class="fa fa-history"></i> Watch History for <strong>
                                 <span class="set-username">${data['friendly_name']}</span>
                             </strong></span>
                         </div>
@@ -174,9 +188,9 @@ from plexpy import helpers
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
-                    <div class='table-card-back'>
+                    <div class='table-card-header'>
                         <div class="header-bar">
-                            <span>Synced Items for <strong>
+                            <span><i class="fa fa-cloud-download"></i> Synced Items for <strong>
                                 <span class="set-username">${data['friendly_name']}</span>
                             </strong></span>
                         </div>
@@ -229,6 +243,8 @@ from plexpy import helpers
         % else:
             var user_id = null;
         % endif
+
+        $("#edit-user-tooltip").tooltip();
 
         // Populate watch time stats
         $.ajax({
@@ -312,6 +328,7 @@ from plexpy import helpers
 
         // Load edit user modal
         $("#toggle-edit-user-modal").click(function() {
+            $("#edit-user-tooltip").tooltip('hide');
             $.ajax({
                 url: 'edit_user_dialog',
                 data: { user_id: user_id, user: '${data['username']}' },

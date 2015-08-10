@@ -1026,11 +1026,10 @@ input[type="color"],
 }
 .user-info-wrapper {
 	height: 113px;
-	margin-left: 15px;
-	margin-top: 30px;
 }
 .user-info-poster-face {
 	float: left;
+	margin-top: 15px;
 }
 .user-info-poster-face img {
 	bottom: 0;
@@ -1274,6 +1273,18 @@ input[type="color"],
     margin-right: auto;
     margin-top: 20px;
     margin-bottom: 20px;
+    width: 90%;
+    overflow: hidden;
+}
+.table-card-header {
+    padding: 16px 16px 16px 16px;
+    background-color: #2c2c2c;
+    border-bottom: 1px solid #3d3d3d;
+    border-top: 1px solid #282828;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: -20px;
     width: 90%;
     overflow: hidden;
 }
