@@ -939,6 +939,30 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
+    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', **kwargs):
+
+        graph = graphs.Graphs()
+        result = graph.get_stream_type_by_top_10_users(time_range=time_range, y_axis=y_axis)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', **kwargs):
+
+        graph = graphs.Graphs()
+        result = graph.get_stream_type_by_top_10_platforms(time_range=time_range, y_axis=y_axis)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
     def get_friends_list(self, **kwargs):
 
         plex_tv = plextv.PlexTV()

@@ -1,12 +1,18 @@
-var hc_plays_by_month_options = {
+var hc_plays_by_platform_by_stream_type_options = {
     chart: {
         type: 'column',
         backgroundColor: 'rgba(0,0,0,0)',
-        renderTo: 'chart_div_plays_by_month'
+        renderTo: 'chart_div_plays_by_platform_by_stream_type'
     },
     title: {
         text: ''
     },
+    plotOptions: {
+            column: {
+                pointPadding: 0.2,
+                borderWidth: 0
+            }
+        },
     legend: {
         enabled: true,
         itemStyle: {
@@ -23,18 +29,14 @@ var hc_plays_by_month_options = {
     credits: {
         enabled: false
     },
-    colors: ['#F9AA03', '#FFFFFF'],
+    colors: ['#F9AA03', '#FFFFFF', '#FF4747'],
     xAxis: {
-            type: 'datetime',
+            categories: [{}],
             labels: {
-                formatter: function() {
-                    return moment(this.value).format("MMM YYYY");
-                },
                 style: {
                     color: '#aaa'
                 }
-            },
-            categories: [{}]
+            }
     },
     yAxis: {
             title: {

@@ -156,6 +156,34 @@
                         </div>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4><i class="fa fa-television"></i> <span class="yaxis-text">Play count</span> by platform and stream type <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of movies and tv by platform and stream type.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="chart_div_plays_by_platform_by_stream_type" style="float: left;">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4><i class="fa fa-user"></i> <span class="yaxis-text">Play count</span> by user and stream type <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of movies and tv by user and stream type.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="chart_div_plays_by_user_by_stream_type" style="float: left;">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div role="tabpanel" class="tab-pane" id="tabs-3">
@@ -226,6 +254,8 @@
 <script src="interfaces/default/js/graphs/plays_by_stream_type.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_source_resolution.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_stream_resolution.js"></script>
+<script src="interfaces/default/js/graphs/plays_by_platform_by_stream_type.js"></script>
+<script src="interfaces/default/js/graphs/plays_by_user_by_stream_type.js"></script>
 <script src="interfaces/default/js/graphs/plays_by_month.js"></script>
 <script>
     $(document).ready(function () {
@@ -346,6 +376,30 @@
                     var hc_plays_by_stream_resolution = new Highcharts.Chart(hc_plays_by_stream_resolution_options);
                 }
             });
+
+            $.ajax({
+                url: "get_stream_type_by_top_10_platforms",
+                type: 'get',
+                data: { time_range: time_range, y_axis: yaxis },
+                dataType: "json",
+                success: function(data) {
+                    hc_plays_by_platform_by_stream_type_options.xAxis.categories = data.categories;
+                    hc_plays_by_platform_by_stream_type_options.series = data.series;
+                    var hc_plays_by_platform_by_stream_type = new Highcharts.Chart(hc_plays_by_platform_by_stream_type_options);
+                }
+            });
+
+            $.ajax({
+                url: "get_stream_type_by_top_10_users",
+                type: 'get',
+                data: { time_range: time_range, y_axis: yaxis },
+                dataType: "json",
+                success: function(data) {
+                    hc_plays_by_user_by_stream_type_options.xAxis.categories = data.categories;
+                    hc_plays_by_user_by_stream_type_options.series = data.series;
+                    var hc_plays_by_user_by_stream_type = new Highcharts.Chart(hc_plays_by_user_by_stream_type_options);
+                }
+            });
         }
 
         function loadGraphsTab3(yaxis) {
@@ -423,10 +477,18 @@
                                     } else {
                                         var s = '<b>'+ this.x +'</b>';
                                     }
-
-                                    $.each(this.points, function(i, point) {
-                                        s += '<br/>'+point.series.name+': '+point.y;
-                                    });
+                                    if (this.points.length > 1) {
+                                        var total = 0;
+                                        $.each(this.points, function(i, point) {
+                                            s += '<br/>'+point.series.name+': '+point.y;
+                                            total += point.y;
+                                        });
+                                        s += '<br><b>Total: '+total+'</b>';
+                                    } else {
+                                        $.each(this.points, function(i, point) {
+                                            s += '<br/>'+point.series.name+': '+point.y;
+                                        });
+                                    }
                                     return s;
                                  }
                 stack_labels_format = function() {
@@ -442,10 +504,18 @@
                                     } else {
                                         var s = '<b>'+ this.x +'</b>';
                                     }
-
-                                    $.each(this.points, function(i, point) {
-                                        s += '<br/>'+point.series.name+': '+moment.duration(point.y, 'seconds').format('D [days] H [hrs] m [mins]');
-                                    });
+                                    if (this.points.length > 1) {
+                                        var total = 0;
+                                        $.each(this.points, function(i, point) {
+                                            s += '<br/>'+point.series.name+': '+moment.duration(point.y, 'seconds').format('D [days] H [hrs] m [mins]');
+                                            total += point.y;
+                                        });
+                                        s += '<br/><b>Total: '+moment.duration(total, 'seconds').format('D [days] H [hrs] m [mins]')+'</b>';
+                                    } else {
+                                        $.each(this.points, function(i, point) {
+                                            s += '<br/>'+point.series.name+': '+moment.duration(point.y, 'seconds').format('D [days] H [hrs] m [mins]');
+                                        });
+                                    }
                                     return s;
                                  }
                 stack_labels_format = function() {
@@ -463,6 +533,8 @@
             hc_plays_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_stream_resolution_options.yAxis.labels.formatter = yaxis_format;
+            hc_plays_by_platform_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
+            hc_plays_by_user_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
 
             hc_plays_by_day_options.tooltip.formatter = tooltip_format;
@@ -473,6 +545,10 @@
             hc_plays_by_stream_type_options.tooltip.formatter = tooltip_format;
             hc_plays_by_source_resolution_options.tooltip.formatter = tooltip_format;
             hc_plays_by_stream_resolution_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_platform_by_stream_type_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_platform_by_stream_type_options.yAxis.stackLabels.formatter = stack_labels_format;
+            hc_plays_by_user_by_stream_type_options.tooltip.formatter = tooltip_format;
+            hc_plays_by_user_by_stream_type_options.yAxis.stackLabels.formatter = stack_labels_format;
             hc_plays_by_month_options.tooltip.formatter = tooltip_format;
             hc_plays_by_month_options.yAxis.stackLabels.formatter = stack_labels_format;
         }

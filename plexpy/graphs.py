@@ -589,3 +589,133 @@ class Graphs(object):
                   'series': [series_1_output]}
 
         return output
+
+    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays'):
+        monitor_db = database.MonitorDatabase()
+
+        if not time_range.isdigit():
+            time_range = '30'
+
+        if y_axis == 'plays':
+            query = 'SELECT ' \
+                    'CASE WHEN users.friendly_name != null then users.friendly_name else users.username end as username, ' \
+                    'SUM(case when session_history_media_info.video_decision = "direct play" then 1 else 0 end) as dp_count, ' \
+                    'SUM(case when session_history_media_info.video_decision = "copy" then 1 else 0 end) as ds_count, ' \
+                    'SUM(case when session_history_media_info.video_decision = "transcode" then 1 else 0 end) as tr_count, ' \
+                    'SUM(case when session_history.media_type != "track" then 1 else 0 end) as total_count ' \
+                    'FROM session_history ' \
+                    'JOIN users ON session_history.user_id = users.user_id ' \
+                    'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
+                    'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'GROUP BY username ' \
+                    'ORDER BY total_count DESC LIMIT 10'
+
+            result = monitor_db.select(query)
+        else:
+            query = 'SELECT ' \
+                    'CASE WHEN users.friendly_name != null then users.friendly_name else users.username end as username, ' \
+                    'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "direct play" ' \
+                    'then (session_history.stopped - session_history.started) else 0 end) as dp_count, ' \
+                    'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "copy" ' \
+                    'then (session_history.stopped - session_history.started) else 0 end) as ds_count, ' \
+                    'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "transcode" ' \
+                    'then (session_history.stopped - session_history.started) else 0 end) as tr_count, ' \
+                    'SUM(case when session_history.stopped > 0 AND session_history.media_type != "track" ' \
+                    'then (session_history.stopped - session_history.started) else 0 end) as total_count ' \
+                    'FROM session_history ' \
+                    'JOIN users ON session_history.user_id = users.user_id ' \
+                    'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
+                    'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'GROUP BY username ' \
+                    'ORDER BY total_count DESC LIMIT 10'
+
+            result = monitor_db.select(query)
+
+        categories = []
+        series_1 = []
+        series_2 = []
+        series_3 = []
+
+        for item in result:
+            categories.append(item[0])
+            series_1.append(item[1])
+            series_2.append(item[2])
+            series_3.append(item[3])
+
+        series_1_output = {'name': 'Direct Play',
+                           'data': series_1}
+        series_2_output = {'name': 'Direct Stream',
+                           'data': series_2}
+        series_3_output = {'name': 'Transcode',
+                           'data': series_3}
+
+        output = {'categories': categories,
+                  'series': [series_1_output, series_2_output, series_3_output]}
+
+        return output
+
+    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays'):
+        monitor_db = database.MonitorDatabase()
+
+        if not time_range.isdigit():
+            time_range = '30'
+
+        if y_axis == 'plays':
+            query = 'SELECT ' \
+                    'session_history.platform as platform, ' \
+                    'SUM(case when session_history_media_info.video_decision = "direct play" then 1 else 0 end) as dp_count, ' \
+                    'SUM(case when session_history_media_info.video_decision = "copy" then 1 else 0 end) as ds_count, ' \
+                    'SUM(case when session_history_media_info.video_decision = "transcode" then 1 else 0 end) as tr_count, ' \
+                    'SUM(case when session_history.media_type != "track" then 1 else 0 end) as total_count ' \
+                    'FROM session_history ' \
+                    'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
+                    'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'GROUP BY platform ' \
+                    'ORDER BY total_count DESC LIMIT 10'
+
+            result = monitor_db.select(query)
+        else:
+            query = 'SELECT ' \
+                    'session_history.platform as platform, ' \
+                    'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "direct play" ' \
+                    'then (session_history.stopped - session_history.started) else 0 end) as dp_count, ' \
+                    'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "copy" ' \
+                    'then (session_history.stopped - session_history.started) else 0 end) as ds_count, ' \
+                    'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "transcode" ' \
+                    'then (session_history.stopped - session_history.started) else 0 end) as tr_count, ' \
+                    'SUM(case when session_history.stopped > 0 AND session_history.media_type != "track" ' \
+                    'then (session_history.stopped - session_history.started) else 0 end) as total_count ' \
+                    'FROM session_history ' \
+                    'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
+                    'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
+                    'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'GROUP BY platform ' \
+                    'ORDER BY total_count DESC LIMIT 10'
+
+            result = monitor_db.select(query)
+
+        categories = []
+        series_1 = []
+        series_2 = []
+        series_3 = []
+
+        for item in result:
+            categories.append(item[0])
+            series_1.append(item[1])
+            series_2.append(item[2])
+            series_3.append(item[3])
+
+        series_1_output = {'name': 'Direct Play',
+                           'data': series_1}
+        series_2_output = {'name': 'Direct Stream',
+                           'data': series_2}
+        series_3_output = {'name': 'Transcode',
+                           'data': series_3}
+
+        output = {'categories': categories,
+                  'series': [series_1_output, series_2_output, series_3_output]}
+
+        return output
