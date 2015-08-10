@@ -598,7 +598,7 @@ class Graphs(object):
 
         if y_axis == 'plays':
             query = 'SELECT ' \
-                    'CASE WHEN users.friendly_name != null then users.friendly_name else users.username end as username, ' \
+                    'CASE WHEN users.friendly_name is null then users.username else users.friendly_name end as username, ' \
                     'SUM(case when session_history_media_info.video_decision = "direct play" then 1 else 0 end) as dp_count, ' \
                     'SUM(case when session_history_media_info.video_decision = "copy" then 1 else 0 end) as ds_count, ' \
                     'SUM(case when session_history_media_info.video_decision = "transcode" then 1 else 0 end) as tr_count, ' \
@@ -614,7 +614,7 @@ class Graphs(object):
             result = monitor_db.select(query)
         else:
             query = 'SELECT ' \
-                    'CASE WHEN users.friendly_name != null then users.friendly_name else users.username end as username, ' \
+                    'CASE WHEN users.friendly_name is null then users.username else users.friendly_name end as username, ' \
                     'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "direct play" ' \
                     'then (session_history.stopped - session_history.started) else 0 end) as dp_count, ' \
                     'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "copy" ' \
