@@ -167,8 +167,8 @@ fieldset[disabled] .btn-dark:active,
 .btn-dark.disabled.active,
 .btn-dark[disabled].active,
 fieldset[disabled] .btn-dark.active {
-  background-color: #5cb85c;
-  border-color: #4cae4c;
+  background-color: #333;
+  color: #aaa;
 }
 .btn-dark .badge {
   color: #e5e5e5;

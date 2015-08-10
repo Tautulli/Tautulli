@@ -834,6 +834,8 @@ $(document).ready(function() {
     });
 
     $("#menu_link_update_check").click(function() {
+        $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking</button>');
+        $(this).prop('disabled', true);
         window.location.href = "checkGithub";
     });
 
