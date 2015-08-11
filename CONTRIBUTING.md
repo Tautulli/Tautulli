@@ -12,7 +12,7 @@ In case you read this because you are posting an issue, please take a minute and
 If you think you can contribute code to the PlexPy repository, do not hesitate to submit a pull request.
 
 ### Branches
-All pull requests should be based on the `develop` branch, to minimize cross merges. When you want to develop a new feature, clone the repository with `git clone origin/develop -b FEATURE_NAME`. Use meaningful commit messages.
+All pull requests should be based on the `dev` branch, to minimize cross merges. When you want to develop a new feature, clone the repository with `git clone origin/dev -b FEATURE_NAME`. Use meaningful commit messages.
 
 ### Python Code
 
