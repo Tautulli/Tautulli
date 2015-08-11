@@ -1,10 +1,8 @@
 #PlexPy
 
-NB: This project is still very early in development.
+A python based web application for monitoring, analytics and notifications for Plex Media Server (www.plex.tv).
 
 This project is based on code from Headphones (https://github.com/rembo10/headphones) and PlexWatchWeb (https://github.com/ecleese/plexWatchWeb).
-
-A python based web application for monitoring and logging activity on your Plex Media Server.
 
 * plexPy forum thread: https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program
 
@@ -52,9 +50,9 @@ If you'd like to buy me a beer, hit the donate button below.
 	* duration length
 	* percentage completed
 
-* full user list with general information and comparison stats 
+* Full user list with general information and comparison stats 
 
-* individual user information
+* Individual user information
 	- username and gravatar (if available)
 	- daily, weekly, monthly, all time stats for play count and duration length
 	- individual platform stats for each user
@@ -63,19 +61,24 @@ If you'd like to buy me a beer, hit the donate button below.
 	- watching history
 	- synced items
 
-* charts **NOT YET IMPLEMENTED**
-	- top 10 all time viewed content
-	- top 10 viewed movies
-	- top 10 viewed tv shows
-	- top 10 viewed tv episodes
-
-* content information pages
+* Rich analytics presented using Highcharts graphing
+	- user-selectable time periods of 30, 90 or 365 days
+	- daily watch count and duration
+	- totals by day of week and hours of the day
+	- totals by top 10 platform
+	- totals by top 10 users
+	- detailed breakdown by transcode decision
+	- source and stream resolutions
+	- transcode decision counts by user and platform
+	- total monthly counts
+	
+* Content information pages
 	- movies (includes watching history)
 	- tv shows (includes watching history)
 	- tv seasons
 	- tv episodes (includes watching history)
 
-* full sync list data on all users syncing items from your library
+* Full sync list data on all users syncing items from your library
 
 ## Installation and Notes
 

@@ -171,7 +171,8 @@ history_table_options = {
             },
             "searchable": false,
             "orderable": false,
-            "className": "no-wrap hidden-md hidden-xs"
+            "className": "no-wrap hidden-md hidden-xs",
+            "width": "10px"
         }
     ],
     "drawCallback": function (settings) {
