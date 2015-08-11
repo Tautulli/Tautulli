@@ -261,7 +261,7 @@ def initialize_scheduler():
             minutes = 0
         schedule_job(versioncheck.checkGithub, 'Check GitHub for updates', hours=0, minutes=minutes)
 
-        # Start checking for new sessions every minute
+        # Start checking for new sessions at set interval
         if CONFIG.MONITORING_INTERVAL:
             # Our interval should never be less than 30 seconds
             if CONFIG.MONITORING_INTERVAL > 30:
@@ -271,7 +271,7 @@ def initialize_scheduler():
         else:
             seconds = 0
 
-        if CONFIG.PMS_IP:
+        if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex Server URLs', hours=12, minutes=0, seconds=0)
             schedule_job(monitor.check_active_sessions, 'Check for active sessions', hours=0, minutes=0, seconds=seconds)
 

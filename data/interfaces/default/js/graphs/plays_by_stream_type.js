@@ -46,7 +46,8 @@ var hc_plays_by_stream_type_options = {
                     color: '#aaa'
                 }
             },
-            categories: [{}]
+            categories: [{}],
+            plotBands: []
     },
     yAxis: {
             title: {

@@ -276,6 +276,15 @@
                     var dateArray = [];
                     for (var i = 0; i < data.categories.length; i++) {
                         dateArray.push(moment(data.categories[i], 'YYYY-MM-DD').valueOf());
+                        // Highlight the weekend
+                        if ((moment(data.categories[i], 'YYYY-MM-DD').format('ddd') == 'Sat') ||
+                            (moment(data.categories[i], 'YYYY-MM-DD').format('ddd') == 'Sun')) {
+                            hc_plays_by_day_options.xAxis.plotBands.push({
+                                from: i,
+                                to: i+1,
+                                color: 'rgba(80,80,80,0.3)'
+                            });
+                        }
                     }
                     hc_plays_by_day_options.yAxis.min = 0;
                     hc_plays_by_day_options.xAxis.categories = dateArray;
@@ -345,6 +354,15 @@
                     var dateArray = [];
                     for (var i = 0; i < data.categories.length; i++) {
                         dateArray.push(moment(data.categories[i], 'YYYY-MM-DD').valueOf());
+                        // Highlight the weekend
+                        if ((moment(data.categories[i], 'YYYY-MM-DD').format('ddd') == 'Sat') ||
+                            (moment(data.categories[i], 'YYYY-MM-DD').format('ddd') == 'Sun')) {
+                            hc_plays_by_stream_type_options.xAxis.plotBands.push({
+                                from: i,
+                                to: i+1,
+                                color: 'rgba(80,80,80,0.3)'
+                            });
+                        }
                     }
                     hc_plays_by_stream_type_options.yAxis.min = 0;
                     hc_plays_by_stream_type_options.xAxis.categories = dateArray;
@@ -524,6 +542,9 @@
                                       }
                 $('.yaxis-text').html('Play duration');
             }
+
+            hc_plays_by_day_options.xAxis.plotBands = [];
+            hc_plays_by_stream_type_options.xAxis.plotBands = [];
 
             hc_plays_by_day_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_dayofweek_options.yAxis.labels.formatter = yaxis_format;
