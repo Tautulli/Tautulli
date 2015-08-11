@@ -1,7 +1,7 @@
 # Contributing to PlexPy
 
 ## Issues
-In case you read this because you are posting an issue, please take a minute and conside the things below. The issue tracker is not a support forum. It is primarily intended to submit bugs, improvements or feature requests. However, we are glad to help you, and make sure the problem is not caused by PlexPy, but don't expect step-by-step answers.
+In case you read this because you are posting an issue, please take a minute and consider the things below. The issue tracker is not a support forum. It is primarily intended to submit bugs, improvements or feature requests. However, we are glad to help you, and make sure the problem is not caused by PlexPy, but don't expect step-by-step answers.
 
 * Use the search function. Chances are that your problem is already discussed. Do not append to (closed) issues if your problem does not fit the discussion.
 * Visit the [Troubleshooting](../../wiki/TroubleShooting) wiki first.
