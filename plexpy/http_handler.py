@@ -18,16 +18,18 @@ from plexpy import logger, helpers
 from httplib import HTTPSConnection
 from httplib import HTTPConnection
 
+import ssl
 
 class HTTPHandler(object):
     """
     Retrieve data from Plex Server
     """
 
-    def __init__(self, host, port, token):
+    def __init__(self, host, port, token, ssl_verify=True):
         self.host = host
         self.port = str(port)
         self.token = token
+        self.ssl_verify = ssl_verify
 
     """
     Handle the HTTP requests.
@@ -50,9 +52,14 @@ class HTTPHandler(object):
 
         if uri:
             if proto.upper() == 'HTTPS':
-                handler = HTTPSConnection(self.host, self.port, timeout=10)
+                if not self.ssl_verify:
+                    context = ssl._create_unverified_context()
+                    handler = HTTPSConnection(host=self.host, port=self.port, timeout=10, context=context)
+                    logger.warn(u"PlexPy HTTP Handler :: Unverified HTTPS request made. This connection is not secure.")
+                else:
+                    handler = HTTPSConnection(host=self.host, port=self.port, timeout=10)
             else:
-                handler = HTTPConnection(self.host, self.port, timeout=10)
+                handler = HTTPConnection(host=self.host, port=self.port, timeout=10)
 
             token_string = ''
             if not no_token:
