@@ -39,11 +39,11 @@ platform_type           Returns the platform name for the associated stat.
 DOCUMENTATION :: END
 </%doc>
 
-% if data != None:
-% if data[0]['rows']:
+% if data:
+% if data[0]['rows'] or data[2]['rows']:
 <ul class="list-unstyled">
     % for a in data:
-    % if a['stat_id'] == 'top_tv':
+    % if a['stat_id'] == 'top_tv' and a['rows']:
     <div class="home-platforms-instance">
         <li>
             <span>
@@ -68,7 +68,7 @@ DOCUMENTATION :: END
             </div>
         </li>
     </div>
-    % elif a['stat_id'] == 'popular_tv':
+    % elif a['stat_id'] == 'popular_tv' and a['rows']:
     <div class="home-platforms-instance">
         <li>
             <span>
@@ -93,7 +93,7 @@ DOCUMENTATION :: END
             </div>
         </li>
     </div>
-    % elif a['stat_id'] == 'top_users':
+    % elif a['stat_id'] == 'top_users' and a['rows']:
     <div class="home-platforms-instance">
         <li>
             <span>
@@ -129,7 +129,7 @@ DOCUMENTATION :: END
             </div>
         </li>
     </div>
-    % elif a['stat_id'] == 'top_platforms':
+    % elif a['stat_id'] == 'top_platforms' and a['rows']:
     <div class="home-platforms-instance">
         <li>
             <div id="platform-stat">
