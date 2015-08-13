@@ -29,26 +29,23 @@ class DataFactory(object):
     def get_user_list(self, kwargs=None):
         data_tables = datatables.DataTables()
 
-        columns = ['session_history.id',
+        columns = ['users.user_id as user_id',
                    'users.thumb as thumb',
-                   '(case when users.friendly_name is null then session_history.user else \
+                   '(case when users.friendly_name is null then users.username else \
                     users.friendly_name end) as friendly_name',
-                   'session_history.started',
-                   'session_history.ip_address',
+                   'MAX(session_history.started) as last_seen',
+                   'session_history.ip_address as ip_address',
                    'COUNT(session_history.id) as plays',
-                   'session_history.user',
-                   'session_history.user_id',
-                   '(case when typeof(session_history.user_id) = "integer" \
-                    then session_history.user_id else -1 end) as grp_id',
+                   'users.username as user'
                    ]
         try:
-            query = data_tables.ssp_query(table_name='session_history',
+            query = data_tables.ssp_query(table_name='users',
                                           columns=columns,
                                           custom_where=[],
-                                          group_by=['grp_id'],
+                                          group_by=['users.user_id'],
                                           join_types=['LEFT OUTER JOIN'],
-                                          join_tables=['users'],
-                                          join_evals=[['grp_id', 'users.user_id']],
+                                          join_tables=['session_history'],
+                                          join_evals=[['session_history.user_id', 'users.user_id']],
                                           kwargs=kwargs)
         except:
             logger.warn("Unable to execute database query.")
@@ -67,9 +64,8 @@ class DataFactory(object):
             else:
                 user_thumb = item['thumb']
 
-            row = {"id": item['id'],
-                   "plays": item['plays'],
-                   "started": item['started'],
+            row = {"plays": item['plays'],
+                   "last_seen": item['last_seen'],
                    "friendly_name": item["friendly_name"],
                    "ip_address": item["ip_address"],
                    "thumb": user_thumb,

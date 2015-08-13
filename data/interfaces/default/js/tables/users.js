@@ -27,6 +27,7 @@ users_list_table_options = {
                 }
             },
             "orderable": false,
+            "searchable": false,
             "className": "users-poster-face",
             "width": "40px"
         },
@@ -47,21 +48,33 @@ users_list_table_options = {
         },
         {
             "targets": [2],
-            "data": "started",
+            "data": "last_seen",
             "render": function ( data, type, full ) {
-                return moment(data, "X").fromNow();
+                if (data) {
+                    return moment(data, "X").fromNow();
+                } else {
+                    return "never";
+                }
             },
+            "searchable": false,
             "className": "hidden-xs",
         },
         {
             "targets": [3],
             "data": "ip_address",
-            "searchable": false,
+            "render": function ( data, type, full ) {
+                if (data) {
+                    return data;
+                } else {
+                    return "n/a";
+                }
+            },
             "className": "hidden-xs",
         },
         {
             "targets": [4],
-            "data": "plays"
+            "data": "plays",
+            "searchable": false
         }
 
     ],
