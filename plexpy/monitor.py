@@ -179,6 +179,10 @@ class MonitorProcessing(object):
             self.db.upsert('sessions', timestamp, keys)
 
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
+        from plexpy import datafactory
+
+        data_factory = datafactory.DataFactory()
+        user_details = data_factory.get_user_friendly_name(user=session['user'])
 
         if session:
             logging_enabled = False
@@ -217,6 +221,10 @@ class MonitorProcessing(object):
                                  u"seconds, so we're not logging it." %
                                  (session['rating_key'], str(int(stopped) - session['started']),
                                   import_ignore_interval))
+
+            if not user_details['keep_history']:
+                logging_enabled = False
+                logger.debug(u"PlexPy Monitor :: History logging for user '%s' is disabled." % session['user'])
 
             if logging_enabled:
                 # logger.debug(u"PlexPy Monitor :: Attempting to write to session_history table...")

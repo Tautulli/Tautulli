@@ -52,7 +52,7 @@ class HTTPHandler(object):
 
         if uri:
             if proto.upper() == 'HTTPS':
-                if not self.ssl_verify:
+                if not self.ssl_verify and hasattr(ssl, '_create_unverified_context'):
                     context = ssl._create_unverified_context()
                     handler = HTTPSConnection(host=self.host, port=self.port, timeout=10, context=context)
                     logger.warn(u"PlexPy HTTP Handler :: Unverified HTTPS request made. This connection is not secure.")

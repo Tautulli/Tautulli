@@ -222,7 +222,7 @@ class DataFactory(object):
         return dict
 
     # TODO: The getter and setter for this needs to become a config getter/setter for more than just friendlyname
-    def set_user_friendly_name(self, user=None, user_id=None, friendly_name=None, do_notify=0):
+    def set_user_friendly_name(self, user=None, user_id=None, friendly_name=None, do_notify=0, keep_history=1):
         if user_id:
             if friendly_name.strip() == '':
                 friendly_name = None
@@ -231,7 +231,8 @@ class DataFactory(object):
 
             control_value_dict = {"user_id": user_id}
             new_value_dict = {"friendly_name": friendly_name,
-                              "do_notify": do_notify}
+                              "do_notify": do_notify,
+                              "keep_history": keep_history}
             try:
                 monitor_db.upsert('users', new_value_dict, control_value_dict)
             except Exception, e:
@@ -244,7 +245,8 @@ class DataFactory(object):
 
             control_value_dict = {"username": user}
             new_value_dict = {"friendly_name": friendly_name,
-                              "do_notify": do_notify}
+                              "do_notify": do_notify,
+                              "keep_history": keep_history}
             try:
                 monitor_db.upsert('users', new_value_dict, control_value_dict)
             except Exception, e:
@@ -255,39 +257,44 @@ class DataFactory(object):
             monitor_db = database.MonitorDatabase()
             query = 'select username, ' \
                     '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END),' \
-                    'do_notify ' \
+                    'do_notify, keep_history ' \
                     'FROM users WHERE user_id = ?'
             result = monitor_db.select(query, args=[user_id])
             if result:
                 user_detail = {'user_id': user_id,
                                'user': result[0][0],
                                'friendly_name': result[0][1],
-                               'do_notify': helpers.checked(result[0][2])}
+                               'do_notify': helpers.checked(result[0][2]),
+                               'keep_history': helpers.checked(result[0][3])
+                               }
                 return user_detail
             else:
                 user_detail = {'user_id': user_id,
                                'user': '',
                                'friendly_name': '',
-                               'do_notify': ''}
+                               'do_notify': '',
+                               'keep_history': ''}
                 return user_detail
         elif user:
             monitor_db = database.MonitorDatabase()
             query = 'select user_id, ' \
                     '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END),' \
-                    'do_notify  ' \
+                    'do_notify, keep_history  ' \
                     'FROM users WHERE username = ?'
             result = monitor_db.select(query, args=[user])
             if result:
                 user_detail = {'user_id': result[0][0],
                                'user': user,
                                'friendly_name': result[0][1],
-                               'do_notify': helpers.checked(result[0][2])}
+                               'do_notify': helpers.checked(result[0][2]),
+                               'keep_history': helpers.checked(result[0][3])}
                 return user_detail
             else:
                 user_detail = {'user_id': None,
                                'user': user,
                                'friendly_name': '',
-                               'do_notify': ''}
+                               'do_notify': '',
+                               'keep_history': ''}
                 return user_detail
 
         return None

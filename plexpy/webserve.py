@@ -179,10 +179,17 @@ class WebInterface(object):
             do_notify = kwargs.get('do_notify')
         else:
             do_notify = 0
+        if 'keep_history' in kwargs:
+            keep_history = kwargs.get('keep_history')
+        else:
+            keep_history = 0
         if user_id:
             try:
                 data_factory = datafactory.DataFactory()
-                data_factory.set_user_friendly_name(user_id=user_id, friendly_name=friendly_name, do_notify=do_notify)
+                data_factory.set_user_friendly_name(user_id=user_id,
+                                                    friendly_name=friendly_name,
+                                                    do_notify=do_notify,
+                                                    keep_history=keep_history)
 
                 status_message = "Successfully updated user."
                 return status_message
@@ -192,7 +199,10 @@ class WebInterface(object):
         if user:
             try:
                 data_factory = datafactory.DataFactory()
-                data_factory.set_user_friendly_name(user=user, friendly_name=friendly_name, do_notify=do_notify)
+                data_factory.set_user_friendly_name(user=user,
+                                                    friendly_name=friendly_name,
+                                                    do_notify=do_notify,
+                                                    keep_history=keep_history)
 
                 status_message = "Successfully updated user."
                 return status_message
