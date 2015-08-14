@@ -222,7 +222,7 @@ class MonitorProcessing(object):
                                  (session['rating_key'], str(int(stopped) - session['started']),
                                   import_ignore_interval))
 
-            if not user_details['keep_history']:
+            if not user_details['keep_history'] and not is_import:
                 logging_enabled = False
                 logger.debug(u"PlexPy Monitor :: History logging for user '%s' is disabled." % session['user'])
 

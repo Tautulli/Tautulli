@@ -1501,7 +1501,7 @@ input[type="color"],
     z-index: 9999;
 }
 #updatebar {
-    background-color: rgba(255,255,255,0.075);
+    background-color: #444;
     color: #999999;
     display: none;
     font-size: 14px;

@@ -30,16 +30,16 @@ from plexpy import version
 <div class="container">
     <div id="ajaxMsg" class="ajaxMsg"></div>
     % if plexpy.CONFIG.CHECK_GITHUB and not plexpy.CURRENT_VERSION:
-    <div id="updatebar">
+    <div id="updatebar" style="display: none;">
         You're running an unknown version of PlexPy. <a href="update">Update</a> or
-        <a href="#" onclick="$('#updatebar').slideUp('slow');">Close</a>
+        <a href="#" id="updateDismiss">Close</a>
     </div>
     % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
-    <div id="updatebar">
+    <div id="updatebar" style="display: none;">
         A <a
             href="https://github.com/${plexpy.CONFIG.GIT_USER}/plexpy/compare/${plexpy.CURRENT_VERSION}...${plexpy.LATEST_VERSION}">
         newer version</a> is available. You're ${plexpy.COMMITS_BEHIND} commits behind. <a href="update">Update</a> or
-        <a href="#" onclick="$('#updatebar').slideUp('slow');">Close</a>
+        <a href="#" id="updateDismiss">Close</a>
     </div>
     % endif
     <nav class="navbar navbar-fixed-top">
@@ -104,6 +104,17 @@ ${next.body()}
 <script src="interfaces/default/js/jquery-2.1.4.min.js"></script>
 <script src="interfaces/default/js/bootstrap3/bootstrap.min.js"></script>
 <script src="interfaces/default/js/script.js"></script>
+<script>
+    $('#updateDismiss').click(function() {
+        $('#updatebar').slideUp('slow');
+        // Set cookie to remember dismiss decision for 1 hour.
+        setCookie('updateDismiss', 'true', 1/24);
+    });
+
+    if (!getCookie('updateDismiss')) {
+        $('#updatebar').show();
+    }
+</script>
 ${next.javascriptIncludes()}
 </body>
 </html>
