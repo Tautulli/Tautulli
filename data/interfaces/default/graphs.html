@@ -283,8 +283,8 @@
                         if ((moment(data.categories[i], 'YYYY-MM-DD').format('ddd') == 'Sat') ||
                             (moment(data.categories[i], 'YYYY-MM-DD').format('ddd') == 'Sun')) {
                             hc_plays_by_day_options.xAxis.plotBands.push({
-                                from: i,
-                                to: i+1,
+                                from: i-0.5,
+                                to: i+0.5,
                                 color: 'rgba(80,80,80,0.3)'
                             });
                         }
@@ -361,8 +361,8 @@
                         if ((moment(data.categories[i], 'YYYY-MM-DD').format('ddd') == 'Sat') ||
                             (moment(data.categories[i], 'YYYY-MM-DD').format('ddd') == 'Sun')) {
                             hc_plays_by_stream_type_options.xAxis.plotBands.push({
-                                from: i,
-                                to: i+1,
+                                from: i-0.5,
+                                to: i+0.5,
                                 color: 'rgba(80,80,80,0.3)'
                             });
                         }
