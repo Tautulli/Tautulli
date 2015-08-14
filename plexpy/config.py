@@ -71,6 +71,7 @@ _CONFIG_DEFINITIONS = {
     'GROWL_ON_PLAY': (int, 'Growl', 0),
     'GROWL_ON_STOP': (int, 'Growl', 0),
     'GROWL_ON_WATCHED': (int, 'Growl', 0),
+    'HOME_STATS_LENGTH': (int, 'General', 30),
     'HTTPS_CERT': (str, 'General', ''),
     'HTTPS_KEY': (str, 'General', ''),
     'HTTP_HOST': (str, 'General', '0.0.0.0'),

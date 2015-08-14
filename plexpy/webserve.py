@@ -64,7 +64,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     def home(self):
-        return serve_template(templatename="index.html", title="Home")
+        config = {
+            "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH
+        }
+        return serve_template(templatename="index.html", title="Home", config=config)
 
     @cherrypy.expose
     def welcome(self, **kwargs):
@@ -434,7 +437,8 @@ class WebInterface(object):
             "notify_on_stop_subject_text": plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT,
             "notify_on_stop_body_text": plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT,
             "notify_on_watched_subject_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT,
-            "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT
+            "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT,
+            "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)
