@@ -248,6 +248,32 @@ class DataFactory(object):
             except Exception, e:
                 logger.debug(u"Uncaught exception %s" % e)
 
+    def set_user_profile_url(self, user=None, user_id=None, profile_url=None):
+        if user_id:
+            if profile_url.strip() == '':
+                profile_url = None
+
+            monitor_db = database.MonitorDatabase()
+
+            control_value_dict = {"user_id": user_id}
+            new_value_dict = {"thumb": profile_url}
+            try:
+                monitor_db.upsert('users', new_value_dict, control_value_dict)
+            except Exception, e:
+                logger.debug(u"Uncaught exception %s" % e)
+        if user:
+            if profile_url.strip() == '':
+                profile_url = None
+
+            monitor_db = database.MonitorDatabase()
+
+            control_value_dict = {"user_id": user_id}
+            new_value_dict = {"thumb": profile_url}
+            try:
+                monitor_db.upsert('users', new_value_dict, control_value_dict)
+            except Exception, e:
+                logger.debug(u"Uncaught exception %s" % e)
+
     def get_user_friendly_name(self, user=None, user_id=None):
         if user_id:
             monitor_db = database.MonitorDatabase()

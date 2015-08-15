@@ -93,6 +93,7 @@ DOCUMENTATION :: END
                     if ($.trim(friendly_name) !== '') {
                         $(".set-username").html(friendly_name);
                     }
+                    $("#user-profile-thumb").attr('src', thumb);
                 }
             });
         % else:
@@ -106,6 +107,7 @@ DOCUMENTATION :: END
                     if ($.trim(friendly_name) !== '') {
                         $(".set-username").html(friendly_name);
                     }
+                    $("#user-profile-thumb").attr('src', thumb);
                 }
             });
         % endif

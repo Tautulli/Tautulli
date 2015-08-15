@@ -193,6 +193,8 @@ class WebInterface(object):
                                                     friendly_name=friendly_name,
                                                     do_notify=do_notify,
                                                     keep_history=keep_history)
+                data_factory.set_user_profile_url(user_id=user_id,
+                                                  profile_url=kwargs['thumb'])
 
                 status_message = "Successfully updated user."
                 return status_message
@@ -206,6 +208,8 @@ class WebInterface(object):
                                                     friendly_name=friendly_name,
                                                     do_notify=do_notify,
                                                     keep_history=keep_history)
+                data_factory.set_user_profile_url(user=user,
+                                                  profile_url=kwargs['thumb'])
 
                 status_message = "Successfully updated user."
                 return status_message
