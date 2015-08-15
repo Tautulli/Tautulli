@@ -52,6 +52,33 @@ def notify(stream_data=None, notify_action=None):
 
                         set_notify_state(session=stream_data, state='stop', agent_info=agent)
 
+                    elif agent['on_pause'] and notify_action == 'pause':
+                        # Build and send notification
+                        notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                        notifiers.send_notification(config_id=agent['id'],
+                                                    subject=notify_strings[0],
+                                                    body=notify_strings[1])
+
+                        set_notify_state(session=stream_data, state='pause', agent_info=agent)
+
+                    elif agent['on_resume'] and notify_action == 'resume':
+                        # Build and send notification
+                        notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                        notifiers.send_notification(config_id=agent['id'],
+                                                    subject=notify_strings[0],
+                                                    body=notify_strings[1])
+
+                        set_notify_state(session=stream_data, state='resume', agent_info=agent)
+
+                    elif agent['on_buffer'] and notify_action == 'buffer':
+                        # Build and send notification
+                        notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                        notifiers.send_notification(config_id=agent['id'],
+                                                    subject=notify_strings[0],
+                                                    body=notify_strings[1])
+
+                        set_notify_state(session=stream_data, state='buffer', agent_info=agent)
+
                     elif agent['on_watched'] and notify_action == 'watched':
                         # Get the current states for notifications from our db
                         notify_states = get_notify_state(session=stream_data)
@@ -100,6 +127,33 @@ def notify(stream_data=None, notify_action=None):
                         # Set the notification state in the db
                         set_notify_state(session=stream_data, state='stop', agent_info=agent)
 
+                    elif agent['on_pause'] and notify_action == 'pause':
+                        # Build and send notification
+                        notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                        notifiers.send_notification(config_id=agent['id'],
+                                                    subject=notify_strings[0],
+                                                    body=notify_strings[1])
+                        # Set the notification state in the db
+                        set_notify_state(session=stream_data, state='pause', agent_info=agent)
+
+                    elif agent['on_resume'] and notify_action == 'resume':
+                        # Build and send notification
+                        notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                        notifiers.send_notification(config_id=agent['id'],
+                                                    subject=notify_strings[0],
+                                                    body=notify_strings[1])
+                        # Set the notification state in the db
+                        set_notify_state(session=stream_data, state='resume', agent_info=agent)
+
+                    elif agent['on_buffer'] and notify_action == 'buffer':
+                        # Build and send notification
+                        notify_strings = build_notify_text(session=stream_data, state=notify_action)
+                        notifiers.send_notification(config_id=agent['id'],
+                                                    subject=notify_strings[0],
+                                                    body=notify_strings[1])
+                        # Set the notification state in the db
+                        set_notify_state(session=stream_data, state='buffer', agent_info=agent)
+
         elif stream_data['media_type'] == 'clip':
             pass
         else:
@@ -110,7 +164,7 @@ def notify(stream_data=None, notify_action=None):
 
 def get_notify_state(session):
     monitor_db = database.MonitorDatabase()
-    result = monitor_db.select('SELECT on_play, on_stop, on_watched, agent_id '
+    result = monitor_db.select('SELECT on_play, on_stop, on_pause, on_resume, on_buffer, on_watched, agent_id '
                                'FROM notify_log '
                                'WHERE session_key = ? '
                                'AND rating_key = ? '
@@ -121,8 +175,11 @@ def get_notify_state(session):
     for item in result:
         notify_state = {'on_play': item[0],
                         'on_stop': item[1],
-                        'on_watched': item[2],
-                        'agent_id': item[3]}
+                        'on_pause': item[2],
+                        'on_resume': item[3],
+                        'on_buffer': item[4],
+                        'on_watched': item[5],
+                        'agent_id': item[6]}
         notify_states.append(notify_state)
 
     return notify_states
@@ -136,6 +193,12 @@ def set_notify_state(session, state, agent_info):
             values = {'on_play': int(time.time())}
         elif state == 'stop':
             values = {'on_stop': int(time.time())}
+        elif state == 'pause':
+            values = {'on_pause': int(time.time())}
+        elif state == 'resume':
+            values = {'on_resume': int(time.time())}
+        elif state == 'buffer':
+            values = {'on_buffer': int(time.time())}
         elif state == 'watched':
             values = {'on_watched': int(time.time())}
         else:
@@ -173,34 +236,28 @@ def build_notify_text(session, state):
     if session['media_type'] == 'episode':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<movie>[^>]+.</movie>|<music>[^>]+.</music>', re.IGNORECASE)
-
-        # Remove the unwanted tags and strip any unmatch tags too.
-        on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
-        on_start_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
-        on_stop_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
-        on_stop_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
-        on_watched_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
-        on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
     elif session['media_type'] == 'movie':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<tv>[^>]+.</tv>|<music>[^>]+.</music>', re.IGNORECASE)
-
-        # Remove the unwanted tags and strip any unmatch tags too.
-        on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
-        on_start_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
-        on_stop_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
-        on_stop_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
-        on_watched_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
-        on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
     elif session['media_type'] == 'track':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', re.IGNORECASE)
+    else:
+        pattern = None
 
+    if session['media_type'] == 'episode' or session['media_type'] == 'movie' or session['media_type'] == 'track' \
+            and pattern:
         # Remove the unwanted tags and strip any unmatch tags too.
         on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
         on_start_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
         on_stop_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
         on_stop_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
+        on_pause_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_PAUSE_SUBJECT_TEXT))
+        on_pause_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_PAUSE_BODY_TEXT))
+        on_resume_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_RESUME_SUBJECT_TEXT))
+        on_resume_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_RESUME_BODY_TEXT))
+        on_buffer_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_BUFFER_SUBJECT_TEXT))
+        on_buffer_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT))
         on_watched_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
         on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
     else:
@@ -208,6 +265,12 @@ def build_notify_text(session, state):
         on_start_body = plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT
         on_stop_subject = plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT
         on_stop_body = plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT
+        on_pause_subject = plexpy.CONFIG.NOTIFY_ON_PAUSE_SUBJECT_TEXT
+        on_pause_body = plexpy.CONFIG.NOTIFY_ON_PAUSE_BODY_TEXT
+        on_resume_subject = plexpy.CONFIG.NOTIFY_ON_RESUME_SUBJECT_TEXT
+        on_resume_body = plexpy.CONFIG.NOTIFY_ON_RESUME_BODY_TEXT
+        on_buffer_subject = plexpy.CONFIG.NOTIFY_ON_BUFFER_SUBJECT_TEXT
+        on_buffer_body = plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT
         on_watched_subject = plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT
         on_watched_body = plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT
 
@@ -305,6 +368,78 @@ def build_notify_text(session, state):
 
             try:
                 body_text = on_stop_body.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    elif state == 'pause':
+        # Default body text
+        body_text = '%s (%s) has paused %s' % (session['friendly_name'],
+                                               session['player'],
+                                               full_title)
+
+        if on_pause_subject and on_pause_body:
+            try:
+                subject_text = on_pause_subject.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = on_pause_body.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    elif state == 'resume':
+        # Default body text
+        body_text = '%s (%s) has resumed %s' % (session['friendly_name'],
+                                                session['player'],
+                                                full_title)
+
+        if on_resume_subject and on_resume_body:
+            try:
+                subject_text = on_resume_subject.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = on_resume_body.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    elif state == 'buffer':
+        # Default body text
+        body_text = '%s (%s) is buffering %s' % (session['friendly_name'],
+                                                 session['player'],
+                                                 full_title)
+
+        if on_buffer_subject and on_buffer_body:
+            try:
+                subject_text = on_buffer_subject.format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = on_buffer_body.format(**available_params)
             except LookupError, e:
                 logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
             except:

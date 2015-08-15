@@ -1368,7 +1368,7 @@ input[type="color"],
 }
 .stacked-configs > li > span > a.toggle-left {
 	color: #444;
-	padding-right: 2px;
+	padding-right: 8px;
 }
 .stacked-configs > li > span > a:hover {
 	color: #eee;

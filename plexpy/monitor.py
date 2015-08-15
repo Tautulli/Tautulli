@@ -59,6 +59,11 @@ def check_active_sessions():
                                     # Push it on it's own thread so we don't hold up our db actions
                                     threading.Thread(target=notification_handler.notify,
                                                      kwargs=dict(stream_data=stream, notify_action='pause')).start()
+                                if session['state'] == 'playing' and stream['state'] == 'paused':
+                                    # Push any notifications -
+                                    # Push it on it's own thread so we don't hold up our db actions
+                                    threading.Thread(target=notification_handler.notify,
+                                                     kwargs=dict(stream_data=stream, notify_action='resume')).start()
                             if stream['state'] == 'paused':
                                 # The stream is still paused so we need to increment the paused_counter
                                 # Using the set config parameter as the interval, probably not the most accurate but
@@ -67,6 +72,47 @@ def check_active_sessions():
                                 monitor_db.action('UPDATE sessions SET paused_counter = ? '
                                                   'WHERE session_key = ? AND rating_key = ?',
                                                   [paused_counter, stream['session_key'], stream['rating_key']])
+                            if session['state'] == 'buffering':
+                                # The stream is buffering so we need to increment the buffer_count
+                                # We're going just increment on every monitor ping,
+                                # would be difficult to keep track otherwise
+                                monitor_db.action('UPDATE sessions SET buffer_count = buffer_count + 1 '
+                                                  'WHERE session_key = ? AND rating_key = ?',
+                                                  [stream['session_key'], stream['rating_key']])
+
+                                # Check the current buffer count and last buffer to determine if we should notify
+                                buffer_values = monitor_db.select('SELECT buffer_count, buffer_last_triggered '
+                                                                  'FROM sessions '
+                                                                  'WHERE session_key = ? AND rating_key = ?',
+                                                                  [stream['session_key'], stream['rating_key']])
+
+                                if buffer_values[0]['buffer_count'] >= plexpy.CONFIG.BUFFER_THRESHOLD:
+                                    # Push any notifications -
+                                    # Push it on it's own thread so we don't hold up our db actions
+                                    # Our first buffer notification
+                                    if buffer_values[0]['buffer_count'] == plexpy.CONFIG.BUFFER_THRESHOLD:
+                                        logger.info(u"PlexPy Monitor :: User '%s' has triggered a buffer warning."
+                                                    % stream['user'])
+                                        # Set the buffer trigger time
+                                        monitor_db.action('UPDATE sessions '
+                                                          'SET buffer_last_triggered = strftime("%s","now") '
+                                                          'WHERE session_key = ? AND rating_key = ?',
+                                                          [stream['session_key'], stream['rating_key']])
+
+                                        threading.Thread(target=notification_handler.notify,
+                                                         kwargs=dict(stream_data=stream, notify_action='buffer')).start()
+                                    else:
+                                        # Subsequent buffer notifications after wait time
+                                        if int(time.time()) > buffer_values[0]['buffer_last_triggered'] + \
+                                                plexpy.CONFIG.BUFFER_WAIT:
+                                            logger.info(u"PlexPy Monitor :: User '%s' has triggered multiple buffer warnings."
+                                                    % stream['user'])
+                                            threading.Thread(target=notification_handler.notify,
+                                                             kwargs=dict(stream_data=stream, notify_action='buffer')).start()
+
+                                logger.debug(u"PlexPy Monitor :: Stream buffering. Count is now %s. Last triggered %s."
+                                             % (buffer_values[0][0], buffer_values[0][1]))
+
                             # Check if the user has reached the offset in the media we defined as the "watched" percent
                             # Don't trigger if state is buffer as some clients push the progress to the end when
                             # buffering on start.

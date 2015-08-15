@@ -348,7 +348,8 @@ def dbcheck():
         'bitrate INTEGER, video_resolution TEXT, video_framerate TEXT, aspect_ratio TEXT, '
         'audio_channels INTEGER, transcode_protocol TEXT, transcode_container TEXT, '
         'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
-        'transcode_width INTEGER, transcode_height INTEGER)'
+        'transcode_width INTEGER, transcode_height INTEGER, buffer_count INTEGER DEFAULT 0, '
+        'buffer_last_triggered INTEGER)'
     )
 
     # session_history table :: This is a history table which logs essential stream details
@@ -529,7 +530,8 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
-        'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER)'
+        'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER, '
+        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -548,6 +550,33 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
             'ALTER TABLE users ADD COLUMN keep_history INTEGER DEFAULT 1'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT on_pause from notify_log')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN on_pause INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN on_resume INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN on_buffer INTEGER'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT buffer_count from sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN buffer_count INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN buffer_last_triggered INTEGER'
         )
 
     conn_db.commit()

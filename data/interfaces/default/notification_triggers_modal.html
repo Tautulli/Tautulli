@@ -1,0 +1,98 @@
+<%!
+from plexpy import helpers
+%>
+% if data:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title" id="notification-triggers-modal-header">${data['name']} Notification Triggers</h4>
+        </div>
+        <div class="modal-body">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="help-block">
+                            Watched notifications are only applicable for video items.
+                        </p>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_play" ${helpers.checked(data['on_play'])} class="toggle-switches">
+                                Notify on playback start
+                            </label>
+                            <p class="help-block">Trigger notification when a new media item is started.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_stop" ${helpers.checked(data['on_stop'])} class="toggle-switches">
+                                Notify on playback stop
+                            </label>
+                            <p class="help-block">Trigger notification when a media item is stopped.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_pause" ${helpers.checked(data['on_pause'])} class="toggle-switches">
+                                Notify on playback pause
+                            </label>
+                            <p class="help-block">Trigger notification when a media item is paused.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_resume" ${helpers.checked(data['on_resume'])} class="toggle-switches">
+                                Notify on playback resume
+                            </label>
+                            <p class="help-block">Trigger notification when a media item is resumed from a paused state.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_watched" ${helpers.checked(data['on_watched'])} class="toggle-switches">
+                                Notify on watched
+                            </label>
+                            <p class="help-block">Trigger notification when a video item reaches the defined watch percentage.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_buffer" ${helpers.checked(data['on_buffer'])} class="toggle-switches">
+                                Notify on buffer warning
+                            </label>
+                            <p class="help-block">Trigger notification when a media item triggers the defined buffer threshold.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
+        </div>
+    </div>
+</div>
+<script>
+    $('.toggle-switches').click(function() {
+        var configToggle = $(this).data('id');
+        var toggle = $(this);
+        if ($(this).is(":checked")) {
+            var data = {};
+            data[$(this).data('config-name')] = 1;
+            $.ajax({
+                url: 'set_notification_config',
+                data: data,
+                async: true,
+                success: function(data) {
+                    console.log('success');
+                }
+            });
+        } else {
+            var data = {};
+            data[$(this).data('config-name')] = 0;
+            $.ajax({
+                url: 'set_notification_config',
+                data: data,
+                async: true,
+                success: function(data) {
+                    console.log('success');
+                }
+            });
+        }
+    });
+</script>
+% endif

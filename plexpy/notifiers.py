@@ -59,6 +59,9 @@ def available_notification_agents():
                'state': checked(plexpy.CONFIG.GROWL_ENABLED),
                'on_play': plexpy.CONFIG.GROWL_ON_PLAY,
                'on_stop': plexpy.CONFIG.GROWL_ON_STOP,
+               'on_pause': plexpy.CONFIG.GROWL_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.GROWL_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.GROWL_ON_BUFFER,
                'on_watched': plexpy.CONFIG.GROWL_ON_WATCHED
                },
               {'name': 'Prowl',
@@ -68,6 +71,9 @@ def available_notification_agents():
                'state': checked(plexpy.CONFIG.PROWL_ENABLED),
                'on_play': plexpy.CONFIG.PROWL_ON_PLAY,
                'on_stop': plexpy.CONFIG.PROWL_ON_STOP,
+               'on_pause': plexpy.CONFIG.PROWL_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.PROWL_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.PROWL_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PROWL_ON_WATCHED
                },
               {'name': 'XBMC',
@@ -77,6 +83,9 @@ def available_notification_agents():
                'state': checked(plexpy.CONFIG.XBMC_ENABLED),
                'on_play': plexpy.CONFIG.XBMC_ON_PLAY,
                'on_stop': plexpy.CONFIG.XBMC_ON_STOP,
+               'on_pause': plexpy.CONFIG.XBMC_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.XBMC_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.XBMC_ON_BUFFER,
                'on_watched': plexpy.CONFIG.XBMC_ON_WATCHED
                },
               {'name': 'Plex',
@@ -86,6 +95,9 @@ def available_notification_agents():
                'state': checked(plexpy.CONFIG.PLEX_ENABLED),
                'on_play': plexpy.CONFIG.PLEX_ON_PLAY,
                'on_stop': plexpy.CONFIG.PLEX_ON_STOP,
+               'on_pause': plexpy.CONFIG.PLEX_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.PLEX_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.PLEX_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED
                },
               {'name': 'NotifyMyAndroid',
@@ -95,6 +107,9 @@ def available_notification_agents():
                'state': checked(plexpy.CONFIG.NMA_ENABLED),
                'on_play': plexpy.CONFIG.NMA_ON_PLAY,
                'on_stop': plexpy.CONFIG.NMA_ON_STOP,
+               'on_pause': plexpy.CONFIG.NMA_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.NMA_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.NMA_ON_BUFFER,
                'on_watched': plexpy.CONFIG.NMA_ON_WATCHED
                },
               {'name': 'Pushalot',
@@ -104,6 +119,9 @@ def available_notification_agents():
                'state': checked(plexpy.CONFIG.PUSHALOT_ENABLED),
                'on_play': plexpy.CONFIG.PUSHALOT_ON_PLAY,
                'on_stop': plexpy.CONFIG.PUSHALOT_ON_STOP,
+               'on_pause': plexpy.CONFIG.PUSHALOT_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.PUSHALOT_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.PUSHALOT_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PUSHALOT_ON_WATCHED
                },
               {'name': 'Pushbullet',
@@ -113,6 +131,9 @@ def available_notification_agents():
                'state': checked(plexpy.CONFIG.PUSHBULLET_ENABLED),
                'on_play': plexpy.CONFIG.PUSHBULLET_ON_PLAY,
                'on_stop': plexpy.CONFIG.PUSHBULLET_ON_STOP,
+               'on_pause': plexpy.CONFIG.PUSHBULLET_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.PUSHBULLET_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.PUSHBULLET_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PUSHBULLET_ON_WATCHED
                },
               {'name': 'Pushover',
@@ -122,6 +143,9 @@ def available_notification_agents():
                'state': checked(plexpy.CONFIG.PUSHOVER_ENABLED),
                'on_play': plexpy.CONFIG.PUSHOVER_ON_PLAY,
                'on_stop': plexpy.CONFIG.PUSHOVER_ON_STOP,
+               'on_pause': plexpy.CONFIG.PUSHOVER_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.PUSHOVER_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.PUSHOVER_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PUSHOVER_ON_WATCHED
                },
               {'name': 'Boxcar2',
@@ -131,6 +155,9 @@ def available_notification_agents():
                'state': checked(plexpy.CONFIG.BOXCAR_ENABLED),
                'on_play': plexpy.CONFIG.BOXCAR_ON_PLAY,
                'on_stop': plexpy.CONFIG.BOXCAR_ON_STOP,
+               'on_pause': plexpy.CONFIG.BOXCAR_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.BOXCAR_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.BOXCAR_ON_BUFFER,
                'on_watched': plexpy.CONFIG.BOXCAR_ON_WATCHED
                },
               {'name': 'E-mail',
@@ -140,6 +167,9 @@ def available_notification_agents():
                'state': checked(plexpy.CONFIG.EMAIL_ENABLED),
                'on_play': plexpy.CONFIG.EMAIL_ON_PLAY,
                'on_stop': plexpy.CONFIG.EMAIL_ON_STOP,
+               'on_pause': plexpy.CONFIG.EMAIL_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.EMAIL_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.EMAIL_ON_BUFFER,
                'on_watched': plexpy.CONFIG.EMAIL_ON_WATCHED
                }
               ]
@@ -154,6 +184,9 @@ def available_notification_agents():
                        'state': checked(plexpy.CONFIG.OSX_NOTIFY_ENABLED),
                        'on_play': plexpy.CONFIG.OSX_NOTIFY_ON_PLAY,
                        'on_stop': plexpy.CONFIG.OSX_NOTIFY_ON_STOP,
+                       'on_pause': plexpy.CONFIG.OSX_NOTIFY_ON_PAUSE,
+                       'on_resume': plexpy.CONFIG.OSX_NOTIFY_ON_RESUME,
+                       'on_buffer': plexpy.CONFIG.OSX_NOTIFY_ON_BUFFER,
                        'on_watched': plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED
                        })
 

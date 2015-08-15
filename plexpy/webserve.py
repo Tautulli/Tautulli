@@ -436,9 +436,17 @@ class WebInterface(object):
             "notify_on_start_body_text": plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT,
             "notify_on_stop_subject_text": plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT,
             "notify_on_stop_body_text": plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT,
+            "notify_on_pause_subject_text": plexpy.CONFIG.NOTIFY_ON_PAUSE_SUBJECT_TEXT,
+            "notify_on_pause_body_text": plexpy.CONFIG.NOTIFY_ON_PAUSE_BODY_TEXT,
+            "notify_on_resume_subject_text": plexpy.CONFIG.NOTIFY_ON_RESUME_SUBJECT_TEXT,
+            "notify_on_resume_body_text": plexpy.CONFIG.NOTIFY_ON_RESUME_BODY_TEXT,
+            "notify_on_buffer_subject_text": plexpy.CONFIG.NOTIFY_ON_BUFFER_SUBJECT_TEXT,
+            "notify_on_buffer_body_text": plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT,
             "notify_on_watched_subject_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT,
             "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT,
-            "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH
+            "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
+            "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
+            "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)
@@ -1226,3 +1234,19 @@ class WebInterface(object):
 
         return serve_template(templatename="notification_config.html", title="Notification Configuration",
                               data=config, checkboxes=checkboxes)
+
+    @cherrypy.expose
+    def get_notification_agent_triggers(self, config_id, **kwargs):
+        if config_id.isdigit():
+            agents = notifiers.available_notification_agents()
+            for agent in agents:
+                if int(config_id) == agent['id']:
+                    this_agent = agent
+                    break
+                else:
+                    this_agent = None
+        else:
+            return None
+
+        return serve_template(templatename="notification_triggers_modal.html", title="Notification Triggers",
+                              data=this_agent)
