@@ -42,7 +42,9 @@ DOCUMENTATION :: END
                     % endif
                 </div>
                 <div class="dashboard-recent-media-metacontainer">
-                    % if item['type'] == 'season' or item['type'] == 'album':
+                    % if item['type'] == 'season':
+                    <h3>${item['parent_title']} - ${item['title']}</h3>
+                    % elif item['type'] == 'album':
                     <h3>${item['title']}</h3>
                     % elif item['type'] == 'movie':
                     <h3>${item['title']} (${item['year']})</h3>
