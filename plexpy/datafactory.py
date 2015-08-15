@@ -248,18 +248,45 @@ class DataFactory(object):
             except Exception, e:
                 logger.debug(u"Uncaught exception %s" % e)
 
+    def set_user_profile_url(self, user=None, user_id=None, profile_url=None):
+        if user_id:
+            if profile_url.strip() == '':
+                profile_url = None
+
+            monitor_db = database.MonitorDatabase()
+
+            control_value_dict = {"user_id": user_id}
+            new_value_dict = {"thumb": profile_url}
+            try:
+                monitor_db.upsert('users', new_value_dict, control_value_dict)
+            except Exception, e:
+                logger.debug(u"Uncaught exception %s" % e)
+        if user:
+            if profile_url.strip() == '':
+                profile_url = None
+
+            monitor_db = database.MonitorDatabase()
+
+            control_value_dict = {"user_id": user_id}
+            new_value_dict = {"thumb": profile_url}
+            try:
+                monitor_db.upsert('users', new_value_dict, control_value_dict)
+            except Exception, e:
+                logger.debug(u"Uncaught exception %s" % e)
+
     def get_user_friendly_name(self, user=None, user_id=None):
         if user_id:
             monitor_db = database.MonitorDatabase()
             query = 'select username, ' \
                     '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END),' \
-                    'do_notify, keep_history ' \
+                    'do_notify, keep_history, thumb ' \
                     'FROM users WHERE user_id = ?'
             result = monitor_db.select(query, args=[user_id])
             if result:
                 user_detail = {'user_id': user_id,
                                'user': result[0][0],
                                'friendly_name': result[0][1],
+                               'thumb': result[0][4],
                                'do_notify': helpers.checked(result[0][2]),
                                'keep_history': helpers.checked(result[0][3])
                                }
@@ -269,19 +296,21 @@ class DataFactory(object):
                                'user': '',
                                'friendly_name': '',
                                'do_notify': '',
+                               'thumb': '',
                                'keep_history': ''}
                 return user_detail
         elif user:
             monitor_db = database.MonitorDatabase()
             query = 'select user_id, ' \
                     '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END),' \
-                    'do_notify, keep_history  ' \
+                    'do_notify, keep_history, thumb  ' \
                     'FROM users WHERE username = ?'
             result = monitor_db.select(query, args=[user])
             if result:
                 user_detail = {'user_id': result[0][0],
                                'user': user,
                                'friendly_name': result[0][1],
+                               'thumb': result[0][4],
                                'do_notify': helpers.checked(result[0][2]),
                                'keep_history': helpers.checked(result[0][3])}
                 return user_detail
@@ -290,6 +319,7 @@ class DataFactory(object):
                                'user': user,
                                'friendly_name': '',
                                'do_notify': '',
+                               'thumb': '',
                                'keep_history': ''}
                 return user_detail
 
