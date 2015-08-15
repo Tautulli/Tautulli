@@ -218,6 +218,7 @@ class PmsConnect(object):
                     recent_items = {'type': recent_type,
                                     'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
                                     'title': helpers.get_xml_attr(item, 'title'),
+                                    'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
                                     'thumb': helpers.get_xml_attr(item, 'thumb'),
                                     'added_at': helpers.get_xml_attr(item, 'addedAt')
                                     }
@@ -232,6 +233,7 @@ class PmsConnect(object):
                         recent_items = {'type': recent_type,
                                         'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
                                         'title': helpers.get_xml_attr(item, 'title'),
+                                        'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
                                         'year': helpers.get_xml_attr(item, 'year'),
                                         'thumb': helpers.get_xml_attr(item, 'thumb'),
                                         'added_at': helpers.get_xml_attr(item, 'addedAt')
