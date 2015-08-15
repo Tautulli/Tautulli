@@ -267,7 +267,7 @@ class DataFactory(object):
 
             monitor_db = database.MonitorDatabase()
 
-            control_value_dict = {"user_id": user_id}
+            control_value_dict = {"username": user}
             new_value_dict = {"thumb": profile_url}
             try:
                 monitor_db.upsert('users', new_value_dict, control_value_dict)
