@@ -173,7 +173,7 @@ class WebInterface(object):
         else:
             result = None
             status_message = 'An error occured.'
-
+        print result
         return serve_template(templatename="edit_user.html", title="Edit User", data=result, status_message=status_message)
 
     @cherrypy.expose
