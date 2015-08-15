@@ -23,3 +23,10 @@
 * Fix alignment of bands on daily graphs which highlight weekends.
 * Fix behaviour of close button on update popup, will now stay closed for an hour after clicking close.
 * Fix some styling niggles.
+
+## v1.1.1 (2015-08-15)
+
+* Added Most watched movie for home stats. Thanks @jroyal.
+* Added TV show title to recently added text. Thanks @jroyal.
+* Fix bug with buffer warnings where notification would trigger continuously after first trigger.
+* Fix bug where custom avatar URL would get reset on every user refresh.
