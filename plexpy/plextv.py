@@ -37,6 +37,15 @@ def refresh_users():
                               "is_restricted": item['is_restricted']
                               }
 
+            # Check if we've set a custom avatar if so don't overwrite it.
+            avatar_urls = monitor_db.select('SELECT thumb, custom_avatar_url '
+                                            'FROM users WHERE user_id = ?',
+                                            [item['user_id']])
+
+            if not avatar_urls[0]['custom_avatar_url'] or \
+                    avatar_urls[0]['custom_avatar_url'] == avatar_urls[0]['thumb']:
+                new_value_dict['custom_avatar_url'] = item['thumb']
+
             monitor_db.upsert('users', new_value_dict, control_value_dict)
 
         logger.info("Users list refreshed.")

@@ -186,6 +186,11 @@ class WebInterface(object):
             keep_history = kwargs.get('keep_history')
         else:
             keep_history = 0
+        if 'thumb' in kwargs:
+            custom_avatar = kwargs['thumb']
+        else:
+            custom_avatar = ''
+
         if user_id:
             try:
                 data_factory = datafactory.DataFactory()
@@ -194,7 +199,7 @@ class WebInterface(object):
                                                     do_notify=do_notify,
                                                     keep_history=keep_history)
                 data_factory.set_user_profile_url(user_id=user_id,
-                                                  profile_url=kwargs['thumb'])
+                                                  profile_url=custom_avatar)
 
                 status_message = "Successfully updated user."
                 return status_message
@@ -209,7 +214,7 @@ class WebInterface(object):
                                                     do_notify=do_notify,
                                                     keep_history=keep_history)
                 data_factory.set_user_profile_url(user=user,
-                                                  profile_url=kwargs['thumb'])
+                                                  profile_url=custom_avatar)
 
                 status_message = "Successfully updated user."
                 return status_message

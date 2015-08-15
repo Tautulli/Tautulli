@@ -72,7 +72,7 @@ def check_active_sessions():
                                 monitor_db.action('UPDATE sessions SET paused_counter = ? '
                                                   'WHERE session_key = ? AND rating_key = ?',
                                                   [paused_counter, stream['session_key'], stream['rating_key']])
-                            if session['state'] == 'buffering':
+                            if session['state'] == 'buffering' and plexpy.CONFIG.BUFFER_THRESHOLD > 0:
                                 # The stream is buffering so we need to increment the buffer_count
                                 # We're going just increment on every monitor ping,
                                 # would be difficult to keep track otherwise
@@ -107,6 +107,12 @@ def check_active_sessions():
                                                 plexpy.CONFIG.BUFFER_WAIT:
                                             logger.info(u"PlexPy Monitor :: User '%s' has triggered multiple buffer warnings."
                                                     % stream['user'])
+                                            # Set the buffer trigger time
+                                            monitor_db.action('UPDATE sessions '
+                                                              'SET buffer_last_triggered = strftime("%s","now") '
+                                                              'WHERE session_key = ? AND rating_key = ?',
+                                                              [stream['session_key'], stream['rating_key']])
+
                                             threading.Thread(target=notification_handler.notify,
                                                              kwargs=dict(stream_data=stream, notify_action='buffer')).start()
 

@@ -30,7 +30,7 @@ class DataFactory(object):
         data_tables = datatables.DataTables()
 
         columns = ['users.user_id as user_id',
-                   'users.thumb as thumb',
+                   'users.custom_avatar_url as thumb',
                    '(case when users.friendly_name is null then users.username else \
                     users.friendly_name end) as friendly_name',
                    'MAX(session_history.started) as last_seen',
@@ -256,7 +256,7 @@ class DataFactory(object):
             monitor_db = database.MonitorDatabase()
 
             control_value_dict = {"user_id": user_id}
-            new_value_dict = {"thumb": profile_url}
+            new_value_dict = {"custom_avatar_url": profile_url}
             try:
                 monitor_db.upsert('users', new_value_dict, control_value_dict)
             except Exception, e:
@@ -268,7 +268,7 @@ class DataFactory(object):
             monitor_db = database.MonitorDatabase()
 
             control_value_dict = {"username": user}
-            new_value_dict = {"thumb": profile_url}
+            new_value_dict = {"custom_avatar_url": profile_url}
             try:
                 monitor_db.upsert('users', new_value_dict, control_value_dict)
             except Exception, e:
@@ -279,7 +279,7 @@ class DataFactory(object):
             monitor_db = database.MonitorDatabase()
             query = 'select username, ' \
                     '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END),' \
-                    'do_notify, keep_history, thumb ' \
+                    'do_notify, keep_history, custom_avatar_url as thumb ' \
                     'FROM users WHERE user_id = ?'
             result = monitor_db.select(query, args=[user_id])
             if result:
@@ -303,7 +303,7 @@ class DataFactory(object):
             monitor_db = database.MonitorDatabase()
             query = 'select user_id, ' \
                     '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END),' \
-                    'do_notify, keep_history, thumb  ' \
+                    'do_notify, keep_history, custom_avatar_url as thumb  ' \
                     'FROM users WHERE username = ?'
             result = monitor_db.select(query, args=[user])
             if result:
@@ -347,7 +347,7 @@ class DataFactory(object):
 
         if user:
             query = 'SELECT user_id, username, friendly_name, email, ' \
-                    'thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
+                    'custom_avatar_url as thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
                     'FROM users ' \
                     'WHERE username = ? ' \
                     'UNION ALL ' \
@@ -359,7 +359,7 @@ class DataFactory(object):
             result = monitor_db.select(query, args=[user, user])
         elif user_id:
             query = 'SELECT user_id, username, friendly_name, email, ' \
-                    'thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
+                    'custom_avatar_url as thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
                     'FROM users ' \
                     'WHERE user_id = ? ' \
                     'UNION ALL ' \
@@ -402,7 +402,7 @@ class DataFactory(object):
                 # Refresh users
                 plextv.refresh_users()
                 query = 'SELECT user_id, username, friendly_name, email, ' \
-                        'thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
+                        'custom_avatar_url as thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
                         'FROM users ' \
                         'WHERE username = ? ' \
                         'UNION ALL ' \
@@ -416,7 +416,7 @@ class DataFactory(object):
                 # Refresh users
                 plextv.refresh_users()
                 query = 'SELECT user_id, username, friendly_name, email, ' \
-                        'thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
+                        'custom_avatar_url as thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
                         'FROM users ' \
                         'WHERE user_id = ? ' \
                         'UNION ALL ' \
@@ -566,7 +566,7 @@ class DataFactory(object):
                             'users.friendly_name end) as friendly_name,' \
                             'COUNT(session_history.id) as total_plays, ' \
                             'MAX(session_history.started) as last_watch, ' \
-                            'users.thumb, ' \
+                            'users.custom_avatar_url as thumb, ' \
                             'users.user_id ' \
                             'FROM session_history ' \
                             'JOIN session_history_metadata ON session_history.id = session_history_metadata.id ' \

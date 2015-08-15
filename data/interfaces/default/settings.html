@@ -369,10 +369,10 @@ available_notification_agents = notifiers.available_notification_agents()
                             <label for="buffer_threshold">Buffer Threshold</label>
                             <div class="row">
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="buffer_threshold" name="buffer_threshold" value="${config['buffer_threshold']}" data-parsley-range="[1,50]" data-parsley-trigger="change" required>
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="buffer_threshold" name="buffer_threshold" value="${config['buffer_threshold']}" data-parsley-range="[0,50]" data-parsley-trigger="change" required>
                                 </div>
                             </div>
-                            <p class="help-block">How many buffer events should we wait before triggering the first warning. Buffer events increment on each monitor ping if play state is buffering.</p>
+                            <p class="help-block">How many buffer events should we wait before triggering the first warning. Buffer events increment on each monitor ping if play state is buffering. 0 to disable buffer warnings.</p>
                         </div>
                         <div class="form-group">
                             <label for="buffer_wait">Buffer Wait</label>
