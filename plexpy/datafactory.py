@@ -472,7 +472,8 @@ class DataFactory(object):
         if not time_range.isdigit():
             time_range = '30'
 
-        stats_queries = ["top_tv", "popular_tv", "top_users", "top_platforms"]
+        # This actually determines the output order in the home page
+        stats_queries = ["top_tv", "popular_tv", "top_movies", "top_users", "top_platforms"]
         home_stats = []
 
         for stat in stats_queries:
@@ -515,6 +516,46 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'rows': top_tv})
+
+            elif 'top_movies' in stat:
+                top_movies = []
+                try:
+                    query = 'SELECT session_history_metadata.id, ' \
+                            'session_history_metadata.full_title, ' \
+                            'COUNT(session_history_metadata.full_title) as total_plays, ' \
+                            'session_history_metadata.rating_key, ' \
+                            'MAX(session_history.started) as last_watch,' \
+                            'session_history_metadata.thumb ' \
+                            'FROM session_history_metadata ' \
+                            'JOIN session_history on session_history_metadata.id = session_history.id ' \
+                            'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
+                            '>= datetime("now", "-%s days", "localtime") ' \
+                            'AND session_history_metadata.media_type = "movie" ' \
+                            'GROUP BY session_history_metadata.full_title ' \
+                            'ORDER BY total_plays DESC LIMIT 10' % time_range
+                    result = monitor_db.select(query)
+                except:
+                    logger.warn("Unable to execute database query.")
+                    return None
+
+                for item in result:
+                    row = {'title': item[1],
+                           'total_plays': item[2],
+                           'users_watched': '',
+                           'rating_key': item[3],
+                           'last_play': item[4],
+                           'grandparent_thumb': '',
+                           'thumb': item[5],
+                           'user': '',
+                           'friendly_name': '',
+                           'platform_type': '',
+                           'platform': '',
+                           'row_id': item[0]
+                           }
+                    top_movies.append(row)
+
+                home_stats.append({'stat_id': stat,
+                                   'rows': top_movies})
 
             elif 'popular_tv' in stat:
                 popular_tv = []

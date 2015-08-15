@@ -93,6 +93,31 @@ DOCUMENTATION :: END
             </div>
         </li>
     </div>
+    % elif a['stat_id'] == 'top_movies' and a['rows']:
+    <div class="home-platforms-instance">
+        <li>
+            <span>
+                <a href="info?item_id=${a['rows'][0]['rating_key']}">
+                    % if a['rows'][0]['thumb']:
+                    <img class="home-platforms-instance-poster"
+                         src="pms_image_proxy?img=${a['rows'][0]['thumb']}&width=162&height=240&fallback=poster">
+                    % else:
+                    <img class="home-platforms-instance-poster" src="interfaces/default/images/poster.png">
+                    % endif
+                </a>
+            </span>
+            <div class="home-platforms-instance-name">
+                <h4>Most Watched Movie</h4>
+                <h5><a href="info?item_id=${a['rows'][0]['rating_key']}">
+                    ${a['rows'][0]['title']}
+                </a></h5>
+            </div>
+            <div class="user-platforms-instance-playcount">
+                <h3>${a['rows'][0]['total_plays']}</h3>
+                <p> plays</p>
+            </div>
+        </li>
+    </div>
     % elif a['stat_id'] == 'top_users' and a['rows']:
     <div class="home-platforms-instance">
         <li>
