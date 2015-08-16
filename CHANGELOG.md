@@ -30,3 +30,7 @@
 * Added TV show title to recently added text. Thanks @jroyal.
 * Fix bug with buffer warnings where notification would trigger continuously after first trigger.
 * Fix bug where custom avatar URL would get reset on every user refresh.
+
+## v1.1.2 (2015-08-16)
+
+* Fix bug where user refresh would fail under certain circumstances.
