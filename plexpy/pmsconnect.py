@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, datafactory, http_handler
+from plexpy import logger, helpers, users, http_handler
 from urlparse import urlparse
 
 import plexpy
@@ -507,7 +507,7 @@ class PmsConnect(object):
     """
     def get_session_each(self, stream_type='', session=None):
         session_output = None
-        data_factory = datafactory.DataFactory()
+        user_data = users.Users()
         if stream_type == 'track':
 
             media_info = session.getElementsByTagName('Media')[0]
@@ -533,7 +533,7 @@ class PmsConnect(object):
                 transcode_container = ''
                 transcode_protocol = ''
 
-            user_details = data_factory.get_user_details(
+            user_details = user_data.get_user_details(
                 user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
 
             if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Track'):
@@ -641,7 +641,7 @@ class PmsConnect(object):
             else:
                 use_indexes = 0
 
-            user_details = data_factory.get_user_details(
+            user_details = user_data.get_user_details(
                 user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
 
             if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Video'):

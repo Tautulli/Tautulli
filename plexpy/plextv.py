@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, datafactory, http_handler, database
+from plexpy import logger, helpers, users, http_handler, database
 
 from xml.dom import minidom
 
@@ -38,13 +38,16 @@ def refresh_users():
                               }
 
             # Check if we've set a custom avatar if so don't overwrite it.
-            avatar_urls = monitor_db.select('SELECT thumb, custom_avatar_url '
-                                            'FROM users WHERE user_id = ?',
-                                            [item['user_id']])
-
-            if not avatar_urls[0]['custom_avatar_url'] or \
-                    avatar_urls[0]['custom_avatar_url'] == avatar_urls[0]['thumb']:
-                new_value_dict['custom_avatar_url'] = item['thumb']
+            if item['user_id']:
+                avatar_urls = monitor_db.select('SELECT thumb, custom_avatar_url '
+                                                'FROM users WHERE user_id = ?',
+                                                [item['user_id']])
+                if avatar_urls:
+                    if not avatar_urls[0]['custom_avatar_url'] or \
+                            avatar_urls[0]['custom_avatar_url'] == avatar_urls[0]['thumb']:
+                        new_value_dict['custom_avatar_url'] = item['thumb']
+                else:
+                    new_value_dict['custom_avatar_url'] = item['thumb']
 
             monitor_db.upsert('users', new_value_dict, control_value_dict)
 
@@ -253,7 +256,7 @@ class PlexTV(object):
 
     def get_synced_items(self, machine_id=None, user_id=None):
         sync_list = self.get_plextv_sync_lists(machine_id)
-        data_factory = datafactory.DataFactory()
+        user_data = users.Users()
 
         synced_items = []
 
@@ -277,8 +280,8 @@ class PlexTV(object):
                 for device in sync_device:
                     device_user_id = helpers.get_xml_attr(device, 'userID')
                     try:
-                        device_username = data_factory.get_user_details(user_id=device_user_id)['username']
-                        device_friendly_name = data_factory.get_user_details(user_id=device_user_id)['friendly_name']
+                        device_username = user_data.get_user_details(user_id=device_user_id)['username']
+                        device_friendly_name = user_data.get_user_details(user_id=device_user_id)['friendly_name']
                     except:
                         device_username = ''
                         device_friendly_name = ''

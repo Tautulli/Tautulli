@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs
+from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users
 from plexpy.helpers import checked, radio
 
 from mako.lookup import TemplateLookup
@@ -142,16 +142,15 @@ class WebInterface(object):
 
     @cherrypy.expose
     def user(self, user=None, user_id=None):
+        user_data = users.Users()
         if user_id:
             try:
-                data_factory = datafactory.DataFactory()
-                user_details = data_factory.get_user_details(user_id=user_id)
+                user_details = user_data.get_user_details(user_id=user_id)
             except:
                 logger.warn("Unable to retrieve friendly name for user_id %s " % user_id)
         elif user:
             try:
-                data_factory = datafactory.DataFactory()
-                user_details = data_factory.get_user_details(user=user)
+                user_details = user_data.get_user_details(user=user)
             except:
                 logger.warn("Unable to retrieve friendly name for user %s " % user)
         else:
@@ -162,13 +161,12 @@ class WebInterface(object):
 
     @cherrypy.expose
     def edit_user_dialog(self, user=None, user_id=None, **kwargs):
+        user_data = users.Users()
         if user_id:
-            data_factory = datafactory.DataFactory()
-            result = data_factory.get_user_friendly_name(user_id=user_id)
+            result = user_data.get_user_friendly_name(user_id=user_id)
             status_message = ''
         elif user:
-            data_factory = datafactory.DataFactory()
-            result = data_factory.get_user_friendly_name(user=user)
+            result = user_data.get_user_friendly_name(user=user)
             status_message = ''
         else:
             result = None
@@ -191,15 +189,15 @@ class WebInterface(object):
         else:
             custom_avatar = ''
 
+        user_data = users.Users()
         if user_id:
             try:
-                data_factory = datafactory.DataFactory()
-                data_factory.set_user_friendly_name(user_id=user_id,
-                                                    friendly_name=friendly_name,
-                                                    do_notify=do_notify,
-                                                    keep_history=keep_history)
-                data_factory.set_user_profile_url(user_id=user_id,
-                                                  profile_url=custom_avatar)
+                user_data.set_user_friendly_name(user_id=user_id,
+                                                 friendly_name=friendly_name,
+                                                 do_notify=do_notify,
+                                                 keep_history=keep_history)
+                user_data.set_user_profile_url(user_id=user_id,
+                                               profile_url=custom_avatar)
 
                 status_message = "Successfully updated user."
                 return status_message
@@ -208,13 +206,12 @@ class WebInterface(object):
                 return status_message
         if user:
             try:
-                data_factory = datafactory.DataFactory()
-                data_factory.set_user_friendly_name(user=user,
-                                                    friendly_name=friendly_name,
-                                                    do_notify=do_notify,
-                                                    keep_history=keep_history)
-                data_factory.set_user_profile_url(user=user,
-                                                  profile_url=custom_avatar)
+                user_data.set_user_friendly_name(user=user,
+                                                 friendly_name=friendly_name,
+                                                 do_notify=do_notify,
+                                                 keep_history=keep_history)
+                user_data.set_user_profile_url(user=user,
+                                               profile_url=custom_avatar)
 
                 status_message = "Successfully updated user."
                 return status_message
@@ -244,11 +241,11 @@ class WebInterface(object):
     @cherrypy.expose
     def get_user_list(self, **kwargs):
 
-        data_factory = datafactory.DataFactory()
-        users = data_factory.get_user_list(kwargs=kwargs)
+        user_data = users.Users()
+        user_list = user_data.get_user_list(kwargs=kwargs)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(users)
+        return json.dumps(user_list)
 
     @cherrypy.expose
     def checkGithub(self):
@@ -763,8 +760,8 @@ class WebInterface(object):
     @cherrypy.expose
     def get_user_watch_time_stats(self, user=None, user_id=None, **kwargs):
 
-        data_factory = datafactory.DataFactory()
-        result = data_factory.get_user_watch_time_stats(user_id=user_id, user=user)
+        user_data = users.Users()
+        result = user_data.get_user_watch_time_stats(user_id=user_id, user=user)
 
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
@@ -775,8 +772,8 @@ class WebInterface(object):
     @cherrypy.expose
     def get_user_platform_stats(self, user=None, user_id=None, **kwargs):
 
-        data_factory = datafactory.DataFactory()
-        result = data_factory.get_user_platform_stats(user_id=user_id, user=user)
+        user_data = users.Users()
+        result = user_data.get_user_platform_stats(user_id=user_id, user=user)
 
         if result:
             return serve_template(templatename="user_platform_stats.html", data=result,
@@ -854,9 +851,9 @@ class WebInterface(object):
         elif user:
             custom_where = [['user', user]]
 
-        data_factory = datafactory.DataFactory()
-        history = data_factory.get_user_unique_ips(kwargs=kwargs,
-                                                   custom_where=custom_where)
+        user_data = users.Users()
+        history = user_data.get_user_unique_ips(kwargs=kwargs,
+                                                custom_where=custom_where)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)

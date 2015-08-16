@@ -20,12 +20,12 @@ import time
 
 
 def notify(stream_data=None, notify_action=None):
-    from plexpy import datafactory
+    from plexpy import users
     
     if stream_data and notify_action:
         # Check if notifications enabled for user
-        data_factory = datafactory.DataFactory()
-        user_details = data_factory.get_user_friendly_name(user=stream_data['user'])
+        user_data = users.Users()
+        user_details = user_data.get_user_friendly_name(user=stream_data['user'])
 
         if not user_details['do_notify']:
             return

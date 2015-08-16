@@ -231,10 +231,10 @@ class MonitorProcessing(object):
             self.db.upsert('sessions', timestamp, keys)
 
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
-        from plexpy import datafactory
+        from plexpy import users
 
-        data_factory = datafactory.DataFactory()
-        user_details = data_factory.get_user_friendly_name(user=session['user'])
+        user_data = users.Users()
+        user_details = user_data.get_user_friendly_name(user=session['user'])
 
         if session:
             logging_enabled = False
