@@ -260,7 +260,7 @@ $('#history_table').on('click', 'td.delete-control', function () {
         data: {row_id: rowData['id']},
         async: true,
         success: function(data) {
-            history_table.ajax.reload();
+            history_table.ajax.reload(null, false);
         }
     });
 
