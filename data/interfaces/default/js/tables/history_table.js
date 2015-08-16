@@ -25,10 +25,11 @@ history_table_options = {
     "processing": false,
     "serverSide": true,
     "pageLength": 25,
-    "order": [ 0, 'desc'],
+    "order": [ 1, 'desc'],
+    "autoWidth": false,
     "columnDefs": [
         {
-            "targets": [0],
+            "targets": [1],
             "data":"date",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (rowData['stopped'] === null) {
@@ -41,7 +42,7 @@ history_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [1],
+            "targets": [2],
             "data":"friendly_name",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -57,7 +58,7 @@ history_table_options = {
             "className": "no-wrap hidden-xs"
         },
         {
-            "targets": [2],
+            "targets": [3],
             "data":"player",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -67,7 +68,7 @@ history_table_options = {
             "className": "modal-control no-wrap hidden-sm hidden-xs"
         },
         {
-            "targets": [3],
+            "targets": [4],
             "data":"ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
@@ -87,7 +88,7 @@ history_table_options = {
             "className": "no-wrap hidden-xs modal-control-ip"
         },
         {
-            "targets": [4],
+            "targets": [5],
             "data":"full_title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -106,7 +107,7 @@ history_table_options = {
             }
         },
         {
-            "targets": [5],
+            "targets": [6],
             "data":"started",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === null) {
@@ -119,7 +120,7 @@ history_table_options = {
             "className": "no-wrap hidden-sm hidden-xs"
         },
         {
-            "targets": [6],
+            "targets": [7],
             "data":"paused_counter",
             "render": function ( data, type, full ) {
                 if (data !== null) {
@@ -132,7 +133,7 @@ history_table_options = {
             "className": "no-wrap hidden-xs"
         },
         {
-            "targets": [7],
+            "targets": [8],
             "data":"stopped",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === null) {
@@ -145,7 +146,7 @@ history_table_options = {
             "className": "no-wrap hidden-md hidden-xs"
         },
         {
-            "targets": [8],
+            "targets": [9],
             "data":"duration",
             "render": function ( data, type, full ) {
                 if (data !== null) {
@@ -158,7 +159,7 @@ history_table_options = {
             "className": "no-wrap hidden-xs"
         },
         {
-            "targets": [9],
+            "targets": [10],
             "data":"percent_complete",
             "render": function ( data, type, full ) {
                 if (data > 80) {
@@ -173,7 +174,17 @@ history_table_options = {
             "orderable": false,
             "className": "no-wrap hidden-md hidden-xs",
             "width": "10px"
-        }
+        },
+        {
+            "targets": [0],
+            "data": null,
+            "createdCell": function (td, cellData, rowData, row, col) {
+                $(td).html('<button class="btn btn-xs btn-danger" data-id="' + rowData['id'] + '"><i class="fa fa-trash-o"></i> Delete</button>');
+            },
+            "className": "delete-control no-wrap hidden",
+            "searchable": false,
+            "orderable": false
+        },
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
@@ -183,6 +194,11 @@ history_table_options = {
         $('.info-modal').each(function() {
             $(this).tooltip();
         });
+        if ($('#row-edit-mode').hasClass('active')) {
+            $('.delete-control').each(function() {
+                $(this).removeClass('hidden');
+            });
+        }
     },
     "preDrawCallback": function(settings) {
         var msg = "<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...</div>";
@@ -228,6 +244,24 @@ $('#history_table').on('click', 'td.modal-control-ip', function () {
             });
         }
     }
-
     getUserLocation(rowData['ip_address']);
+});
+
+$('#history_table').on('click', 'td.delete-control', function () {
+    var tr = $(this).parents('tr');
+    var row = history_table.row( tr );
+    var rowData = row.data();
+
+    $(this).children("button").prop('disabled', true);
+    $(this).children("button").html('<i class="fa fa-spin fa-refresh"></i> Delete');
+
+    $.ajax({
+        url: 'delete_history_rows',
+        data: {row_id: rowData['id']},
+        async: true,
+        success: function(data) {
+            history_table.ajax.reload();
+        }
+    });
+
 });

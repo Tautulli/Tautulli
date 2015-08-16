@@ -475,3 +475,47 @@ class DataFactory(object):
                         }
 
         return metadata
+
+    def delete_session_history_rows(self, row_id=None):
+        monitor_db = database.MonitorDatabase()
+
+        if row_id.isdigit():
+            logger.info(u"PlexPy DataFactory :: Deleting row id %s from the session history database." % row_id)
+            session_history_del = \
+                monitor_db.action('DELETE FROM session_history WHERE id = ?', [row_id])
+            session_history_media_info_del = \
+                monitor_db.action('DELETE FROM session_history_media_info WHERE id = ?', [row_id])
+            session_history_metadata_del = \
+                monitor_db.action('DELETE FROM session_history_metadata WHERE id = ?', [row_id])
+
+            return 'Deleted rows %s.' % row_id
+        else:
+            return 'Unable to delete rows. Input row not valid.'
+
+    def delete_all_user_history(self, user_id=None):
+        monitor_db = database.MonitorDatabase()
+
+        if user_id.isdigit():
+            logger.info(u"PlexPy DataFactory :: Deleting all history for user id %s from database." % user_id)
+            session_history_media_info_del = \
+                monitor_db.action('DELETE FROM '
+                                  'session_history_media_info '
+                                  'WHERE session_history_media_info.id IN (SELECT session_history_media_info.id '
+                                  'FROM session_history_media_info '
+                                  'JOIN session_history ON session_history_media_info.id = session_history.id '
+                                  'WHERE session_history.user_id = ?)', [user_id])
+            session_history_metadata_del = \
+                monitor_db.action('DELETE FROM '
+                                  'session_history_metadata '
+                                  'WHERE session_history_metadata.id IN (SELECT session_history_metadata.id '
+                                  'FROM session_history_metadata '
+                                  'JOIN session_history ON session_history_metadata.id = session_history.id '
+                                  'WHERE session_history.user_id = ?)', [user_id])
+            session_history_del = \
+                monitor_db.action('DELETE FROM '
+                                  'session_history '
+                                  'WHERE session_history.user_id = ?', [user_id])
+
+            return 'Deleted all items for user_id %s.' % user_id
+        else:
+            return 'Unable to delete items. Input user_id not valid.'

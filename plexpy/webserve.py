@@ -1256,3 +1256,32 @@ class WebInterface(object):
 
         return serve_template(templatename="notification_triggers_modal.html", title="Notification Triggers",
                               data=this_agent)
+
+    @cherrypy.expose
+    def delete_history_rows(self, row_id, **kwargs):
+        data_factory = datafactory.DataFactory()
+
+        if row_id:
+            delete_row = data_factory.delete_session_history_rows(row_id=row_id)
+
+            if delete_row:
+                cherrypy.response.headers['Content-type'] = 'application/json'
+                return json.dumps({'message': delete_row})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
+
+    @cherrypy.expose
+    def delete_all_user_history(self, user_id, **kwargs):
+        data_factory = datafactory.DataFactory()
+
+        if user_id:
+            delete_row = data_factory.delete_all_user_history(user_id=user_id)
+
+            if delete_row:
+                cherrypy.response.headers['Content-type'] = 'application/json'
+                return json.dumps({'message': delete_row})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
+
