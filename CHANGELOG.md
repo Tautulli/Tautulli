@@ -1,13 +1,15 @@
 # Changelog
 
-## v1.0 (2015-08-11)
+## v1.1.2 (2015-08-16)
 
-* First release
+* Fix bug where user refresh would fail under certain circumstances.
 
-## v1.0.1 (2015-08-13)
+## v1.1.1 (2015-08-15)
 
-* Allow SSL certificate check override for certain systems with bad CA stores.
-* Fix typo on graphs page causing date selection to break on Safari.
+* Added Most watched movie for home stats. Thanks @jroyal.
+* Added TV show title to recently added text. Thanks @jroyal.
+* Fix bug with buffer warnings where notification would trigger continuously after first trigger.
+* Fix bug where custom avatar URL would get reset on every user refresh.
 
 ## v1.1.0 (2015-08-15)
 
@@ -24,13 +26,11 @@
 * Fix behaviour of close button on update popup, will now stay closed for an hour after clicking close.
 * Fix some styling niggles.
 
-## v1.1.1 (2015-08-15)
+## v1.0.1 (2015-08-13)
 
-* Added Most watched movie for home stats. Thanks @jroyal.
-* Added TV show title to recently added text. Thanks @jroyal.
-* Fix bug with buffer warnings where notification would trigger continuously after first trigger.
-* Fix bug where custom avatar URL would get reset on every user refresh.
+* Allow SSL certificate check override for certain systems with bad CA stores.
+* Fix typo on graphs page causing date selection to break on Safari.
 
-## v1.1.2 (2015-08-16)
+## v1.0 (2015-08-11)
 
-* Fix bug where user refresh would fail under certain circumstances.
+* First release

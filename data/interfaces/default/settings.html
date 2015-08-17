@@ -1,7 +1,7 @@
 <%inherit file="base.html"/>
 <%!
 import plexpy
-from plexpy import notifiers, common
+from plexpy import notifiers, common, versioncheck
 
 available_notification_agents = notifiers.available_notification_agents()
 %>
@@ -51,6 +51,10 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="padded-header">
                             <h3>Software Updates</h3>
                         </div>
+                        % if common.VERSION_NUMBER:
+                        <h5>Version ${common.VERSION_NUMBER} <a href="#changelog-modal" data-toggle="modal"><i class="fa fa-info-circle"></i> Changelog</a></h5>
+                        <br/>
+                        % endif
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
@@ -58,7 +62,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             <p class="help-block">If you have Git installed, allow periodic checks for updates.</p>
                         </div>
                         % if plexpy.CURRENT_VERSION:
-                        <p>Current version: ${plexpy.CURRENT_VERSION}</p>
+                        <p class="help-block">Git hash: ${plexpy.CURRENT_VERSION}</p>
                         % endif
                         <div class="padded-header">
                             <h3>Display Settings</h3>
@@ -877,6 +881,21 @@ available_notification_agents = notifiers.available_notification_agents()
                             <pre>Example: {user} has started playing {title} &lt;music&gt;(Track {episode_num})&lt;/music&gt;</pre>
                         </div>
                     </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="changelog-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Changelog</h4>
+                </div>
+                <div class="modal-body">
+                    ${versioncheck.read_changelog()}
                 </div>
                 <div class="modal-footer">
                 </div>

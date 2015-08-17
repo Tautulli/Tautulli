@@ -253,13 +253,7 @@ fieldset[disabled] .btn-bright.active {
 .modal-body table {
 	color: #999;
 }
-.modal-body ul {
-	list-style: none;
-    -webkit-padding-start: 0px;
-    margin: 0;
-}
 .modal-body li {
-	list-style: none;
 	margin-top: 7px;
 	margin-left: 4px;
 	color: #aaa;
