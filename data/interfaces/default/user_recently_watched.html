@@ -33,21 +33,21 @@ DOCUMENTATION :: END
         % for item in data:
         <div class="dashboard-recent-media-instance">
             <li>
-                <div class="poster">
-                    <div class="poster-face">
-                        <a href="info?source=history&item_id=${item['row_id']}">
-                            <img src="pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster" class="poster-face">
-                        </a>
+				<a href="info?source=history&item_id=${item['row_id']}">
+					<div class="poster">
+						<div class="poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);"></div>
                     </div>
-                </div>
-                <div class="dashboard-recent-media-metacontainer">
-                    % if item['type'] == 'episode':
-                    <h3>Season ${item['parentIndex']}, Episode ${item['index']}</h3>
-                    % elif item['type'] == 'movie':
-                    <h3>${item['title']} (${item['year']})</h3>
-                    % endif
-                    <div class="text-muted" id="time-${item['time']}">${item['time']}</div>
-                </div>
+					<div class="dashboard-recent-media-metacontainer">
+						% if item['type'] == 'episode':
+						<h3>${item['title']}</h3>
+						<h3>(Season ${item['parentIndex']}, Episode ${item['index']})</h3>
+						% elif item['type'] == 'movie':
+						<h3>${item['title']}</h3>
+						<h3>(${item['year']})</h3>
+						% endif
+						<div class="text-muted" id="time-${item['time']}">${item['time']}</div>
+					</div>
+				</a>
             </li>
         </div>
         <script>
