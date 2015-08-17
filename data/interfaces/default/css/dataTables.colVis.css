@@ -75,6 +75,7 @@ ul.ColVis_collection {
 	background-color: #444;
 	overflow: hidden;
 	z-index: 2002;
+	border-radius: 4px;
 }
 
 ul.ColVis_collection li {
