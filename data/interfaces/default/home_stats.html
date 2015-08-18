@@ -9,7 +9,8 @@ Variable names:     data [array]
 
 data[array_index] :: Usable parameters
 
-data['stat_id']     Returns the name of the stat. Either 'top_tv', 'popular_tv', 'top_user' or 'top_platform'
+data['stat_id']     Returns the name of the stat. Either 'top_tv', 'top_movies', 'popular_tv', 'popular_movies', 'top_user' or 'top_platform'
+data['stat_type']   Returns the type of the stat. Either 'total_plays' or 'total_duration'
 data['rows']        Returns an array containing stat data
 
 data[array_index]['rows'] :: Usable parameters
@@ -21,10 +22,11 @@ grandparent_thumb       Returns location of the item's thumbnail. Use with pms_i
 rating_key              Returns the unique identifier for the media item.
 title                   Returns the title for the associated stat.
 
-== Only if 'stat_id' is 'top_tv' or 'top_user' or 'top_platform' ==
+== Only if 'stat_id' is 'top_tv' or 'top_movies' or 'top_user' or 'top_platform' ==
 total_plays             Returns the count for the associated stat.
+total_duration          Returns the total duration for the associated stat.
 
-== Only of 'stat_id' is 'popular_tv' ==
+== Only of 'stat_id' is 'popular_tv' or 'popular_movies' ==
 users_watched           Returns the count for the associated stat.
 
 == Only if 'stat_id' is 'top_user' ==
@@ -63,8 +65,13 @@ DOCUMENTATION :: END
                 </a></h5>
             </div>
             <div class="user-platforms-instance-playcount">
+                % if a['stat_type'] == 'total_plays':
                 <h3>${a['rows'][0]['total_plays']}</h3>
                 <p> plays</p>
+                % else:
+                <h3>${a['rows'][0]['total_duration']}</h3>
+                <p> mins</p>  
+                % endif                
             </div>
         </li>
     </div>
@@ -113,8 +120,38 @@ DOCUMENTATION :: END
                 </a></h5>
             </div>
             <div class="user-platforms-instance-playcount">
+                % if a['stat_type'] == 'total_plays':
                 <h3>${a['rows'][0]['total_plays']}</h3>
                 <p> plays</p>
+                % else:
+                <h3>${a['rows'][0]['total_duration']}</h3>
+                <p> mins</p>  
+                % endif                
+            </div>
+        </li>
+    </div>
+    % elif a['stat_id'] == 'popular_movies' and a['rows']:
+    <div class="home-platforms-instance">
+        <li>
+            <span>
+                <a href="info?item_id=${a['rows'][0]['rating_key']}">
+                    % if a['rows'][0]['thumb']:
+                    <img class="home-platforms-instance-poster"
+                         src="pms_image_proxy?img=${a['rows'][0]['thumb']}&width=162&height=240&fallback=poster">
+                    % else:
+                    <img class="home-platforms-instance-poster" src="interfaces/default/images/poster.png">
+                    % endif
+                </a>
+            </span>
+            <div class="home-platforms-instance-name">
+                <h4>Most Popular Movie</h4>
+                <h5><a href="info?item_id=${a['rows'][0]['rating_key']}">
+                    ${a['rows'][0]['title']}
+                </a></h5>
+            </div>
+            <div class="user-platforms-instance-playcount">
+                <h3>${a['rows'][0]['users_watched']}</h3>
+                <p> users</p>
             </div>
         </li>
     </div>
@@ -149,8 +186,13 @@ DOCUMENTATION :: END
                 </h5>
             </div>
             <div class="user-platforms-instance-playcount">
+                % if a['stat_type'] == 'total_plays':
                 <h3>${a['rows'][0]['total_plays']}</h3>
                 <p> plays</p>
+                % else:
+                <h3>${a['rows'][0]['total_duration']}</h3>
+                <p> mins</p>  
+                % endif                
             </div>
         </li>
     </div>
@@ -165,8 +207,13 @@ DOCUMENTATION :: END
                 <h5>${a['rows'][0]['platform_type']}</h5>
             </div>
             <div class="user-platforms-instance-playcount">
+                % if a['stat_type'] == 'total_plays':
                 <h3>${a['rows'][0]['total_plays']}</h3>
                 <p> plays</p>
+                % else:
+                <h3>${a['rows'][0]['total_duration']}</h3>
+                <p> mins</p>  
+                % endif                
             </div>
         </li>
     </div>
