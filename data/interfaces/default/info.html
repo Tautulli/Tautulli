@@ -54,9 +54,9 @@ DOCUMENTATION :: END
                             <div class="col-md-9">
                                 <div class="summary-content-poster hidden-xs hidden-sm">
                                     % if data['type'] == 'episode':
-                                    <img src="pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster">
+                                    <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster);"></div>
                                     % else:
-                                    <img src="pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster">
+                                    <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
                                     % endif
                                 </div>
                                 <div class="summary-content">
