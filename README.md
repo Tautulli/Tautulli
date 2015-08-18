@@ -6,7 +6,7 @@ This project is based on code from Headphones (https://github.com/rembo10/headph
 
 * plexPy forum thread: https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program
 
-If you'd like to buy me a beer, hit the donate button below.
+If you'd like to buy me a beer, hit the donate button below. All donations go to the project maintainer (primarily for the procurement of liquid refreshment).
 
 [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=G9HZK9BDJLKT6)
 
@@ -34,6 +34,14 @@ If you'd like to buy me a beer, hit the donate button below.
 	* stream type (direct, transcoded)
 	* video type & resolution
 	* audio type & channel count.
+	
+* Top statistics on home page with configurable duration and measurement metric:
+	* Most watched TV
+	* Most popular TV
+	* Most watched Movie
+	* Most popular Movie
+	* Most active user
+	* Most active platform
 
 * Recently added media and how long ago it was added
 
@@ -41,42 +49,49 @@ If you'd like to buy me a beer, hit the donate button below.
 	* date
 	* user
 	* platform
-	* ip address (if enabled in plexWatch)
+	* ip address
 	* title
 	* stream information details
 	* start time
 	* paused duration length
 	* stop time
 	* duration length
-	* percentage completed
+	* watched progress
+	* show/hide columns
+	* delete mode - allows deletion of specific history items
 
 * Full user list with general information and comparison stats 
 
 * Individual user information
-	- username and gravatar (if available)
-	- daily, weekly, monthly, all time stats for play count and duration length
-	- individual platform stats for each user
-	- public ip address history with last seen date and geo tag location
-	- recently watched content
-	- watching history
-	- synced items
+	* username and gravatar (if available)
+	* daily, weekly, monthly, all time stats for play count and duration length
+	* individual platform stats for each user
+	* public ip address history with last seen date and geo tag location
+	* recently watched content
+	* watching history
+	* synced items
+	* assign users custom friendly names within PlexPy
+	* assign users custom avatar URL within PlexPy
+	* disable history logging per user
+	* disable notifications per user
+	* option to purge all history per user.
 
 * Rich analytics presented using Highcharts graphing
-	- user-selectable time periods of 30, 90 or 365 days
-	- daily watch count and duration
-	- totals by day of week and hours of the day
-	- totals by top 10 platform
-	- totals by top 10 users
-	- detailed breakdown by transcode decision
-	- source and stream resolutions
-	- transcode decision counts by user and platform
-	- total monthly counts
+	* user-selectable time periods of 30, 90 or 365 days
+	* daily watch count and duration
+	* totals by day of week and hours of the day
+	* totals by top 10 platform
+	* totals by top 10 users
+	* detailed breakdown by transcode decision
+	* source and stream resolutions
+	* transcode decision counts by user and platform
+	* total monthly counts
 	
 * Content information pages
-	- movies (includes watching history)
-	- tv shows (includes watching history)
-	- tv seasons
-	- tv episodes (includes watching history)
+	* movies (includes watching history)
+	* tv shows (includes watching history)
+	* tv seasons
+	* tv episodes (includes watching history)
 
 * Full sync list data on all users syncing items from your library
 
