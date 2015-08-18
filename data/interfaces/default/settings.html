@@ -48,12 +48,10 @@ available_notification_agents = notifiers.available_notification_agents()
             <form action="configUpdate" method="post" class="form" id="configUpdate" data-parsley-validate>
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="tabs-1">
-                        <div class="padded-header">
-                            <h3>Software Updates</h3>
-                        </div>
                         % if common.VERSION_NUMBER:
-                        <h5>Version ${common.VERSION_NUMBER} <a href="#changelog-modal" data-toggle="modal"><i class="fa fa-info-circle"></i> Changelog</a></h5>
-                        <br/>
+                        <div class="padded-header">
+                            <h3>Version ${common.VERSION_NUMBER} <small><a href="#changelog-modal" data-toggle="modal"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
+                        </div>
                         % endif
                         <div class="checkbox">
                             <label>
