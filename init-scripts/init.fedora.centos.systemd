@@ -1,4 +1,4 @@
-# PlexPy - Automatic music downloader for SABnzbd
+# PlexPy
 #
 # Service Unit file for systemd system manager
 #
@@ -53,7 +53,7 @@
 #        graphical.target  equates to runlevel 5 (multi-user X11 graphical mode)
 
 [Unit]
-Description=PlexPy - Automatic music downloader for SABnzbd
+Description=PlexPy
 
 [Service]
 ExecStart=/home/sabnzbd/plexpy/PlexPy.py --daemon --config /etc/plexpy/plexpy.ini --datadir /home/sabnzbd/.plexpy --nolaunch --quiet

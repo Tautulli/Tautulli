@@ -1,4 +1,4 @@
-# plexpy - Automatic music downloader
+# plexpy
 #
 # This is a session/user job. Install this file into /usr/share/upstart/sessions
 # if plexpy is installed system wide, and into $XDG_CONFIG_HOME/upstart if
