@@ -14,7 +14,7 @@
             <span><i class="fa fa-history"></i> History</span>
         </div>
         <div class="button-bar">
-            <button class="btn btn-danger" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode"><i class="fa fa-trash-o"></i> Delete Mode</button>&nbsp
+            <button class="btn btn-danger" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode"><i class="fa fa-trash-o"></i> Delete mode</button>&nbsp
             <div class="colvis-button-bar hidden-xs"></div>
         </div>
     </div>
@@ -63,7 +63,7 @@
             }
         }
         history_table = $('#history_table').DataTable(history_table_options);
-        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"> Select columns</i>', buttonClass: 'btn btn-dark', exclude: [0, 10] });
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
         $(colvis.button()).appendTo('div.colvis-button-bar');
 
         $('#row-edit-mode').click(function() {
