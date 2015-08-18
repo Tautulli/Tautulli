@@ -65,7 +65,8 @@ class WebInterface(object):
     @cherrypy.expose
     def home(self):
         config = {
-            "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH
+            "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
+            "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 
@@ -118,9 +119,9 @@ class WebInterface(object):
         return json.dumps(formats)
 
     @cherrypy.expose
-    def home_stats(self, time_range='30', **kwargs):
+    def home_stats(self, time_range='30', stat_type='0', **kwargs):
         data_factory = datafactory.DataFactory()
-        stats_data = data_factory.get_home_stats(time_range=time_range)
+        stats_data = data_factory.get_home_stats(time_range=time_range, stat_type=stat_type)
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
 
@@ -451,6 +452,7 @@ class WebInterface(object):
             "notify_on_watched_subject_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT,
             "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
+            "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
         }
@@ -473,7 +475,7 @@ class WebInterface(object):
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
-            "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote"
+            "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
