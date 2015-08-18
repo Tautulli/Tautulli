@@ -18,6 +18,7 @@ time                    Returns the last watched time of the media.
 title                   Returns the name of the movie or episode.
 
 == Only if 'type' is 'episode ==
+parent_title            Returns the name of the TV Show a season belongs too.
 parent_index            Returns the season number.
 index                   Returns the episode number.
 
@@ -39,8 +40,9 @@ DOCUMENTATION :: END
                     </div>
 					<div class="dashboard-recent-media-metacontainer">
 						% if item['type'] == 'episode':
+						<h3>${item['parent_title']}</h3>
 						<h3>${item['title']}</h3>
-						<h3>(Season ${item['parentIndex']}, Episode ${item['index']})</h3>
+						<h3>(Season ${item['parent_index']}, Episode ${item['index']})</h3>
 						% elif item['type'] == 'movie':
 						<h3>${item['title']}</h3>
 						<h3>(${item['year']})</h3>

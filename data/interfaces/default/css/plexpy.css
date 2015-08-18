@@ -264,6 +264,9 @@ fieldset[disabled] .btn-bright.active {
 .modal-body i {
 	color: #F9AA03;
 }
+.modal-body i.fa {
+	color: #fff;
+}
 .modal-body strong {
 	color: #F9AA03;
 }
@@ -641,13 +644,14 @@ input[type="color"],
 	font-size: 13px;
 	margin: 0;
 	line-height: 15px;
-	font-weight: bold;
+	font-weight: normal;
 	width: 153px;
 	white-space: nowrap;
 	text-align: center;
 	clear: both;
 }
-.dashboard-recent-media-metacontainer text-muted {
+.dashboard-recent-media-metacontainer .text-muted {
+	padding-top: 5px;
 	text-overflow: ellipsis;
 	overflow: hidden;
 	position: relative;
@@ -1151,7 +1155,7 @@ input[type="color"],
 	position: relative;
 	font-size: 13px;
 	line-height: 15px;
-	font-weight: bold;
+	font-weight: normal;
 	width: 140px;
 	margin-left: 10px;
 }

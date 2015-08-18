@@ -381,21 +381,21 @@ class DataFactory(object):
         try:
             if user_id:
                 query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, title, ' \
-                        'thumb, parent_thumb, media_index, parent_media_index, year, started, user ' \
+                        'grandparent_title, thumb, parent_thumb, media_index, parent_media_index, year, started, user ' \
                         'FROM session_history_metadata ' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                         'WHERE user_id = ? AND session_history.media_type != "track" ORDER BY started DESC LIMIT ?'
                 result = monitor_db.select(query, args=[user_id, limit])
             elif user:
                 query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, title, ' \
-                        'thumb, parent_thumb, media_index, parent_media_index, year, started, user ' \
+                        'grandparent_title, thumb, parent_thumb, media_index, parent_media_index, year, started, user ' \
                         'FROM session_history_metadata ' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                         'WHERE user = ? AND session_history.media_type != "track" ORDER BY started DESC LIMIT ?'
                 result = monitor_db.select(query, args=[user, limit])
             else:
                 query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, title, ' \
-                        'thumb, parent_thumb, media_index, parent_media_index, year, started, user ' \
+                        'grandparent_title, thumb, parent_thumb, media_index, parent_media_index, year, started, user ' \
                         'FROM session_history_metadata WHERE session_history.media_type != "track"' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                         'ORDER BY started DESC LIMIT ?'
@@ -406,20 +406,21 @@ class DataFactory(object):
 
         for row in result:
                 if row[1] == 'episode':
-                    thumb = row[5]
+                    thumb = row[6]
                 else:
-                    thumb = row[4]
+                    thumb = row[5]
 
                 recent_output = {'row_id': row[0],
                                  'type': row[1],
                                  'rating_key': row[2],
                                  'title': row[3],
+                                 'parent_title': row[4],
                                  'thumb': thumb,
-                                 'index': row[6],
-                                 'parentIndex': row[7],
-                                 'year': row[8],
-                                 'time': row[9],
-                                 'user': row[10]
+                                 'index': row[7],
+                                 'parent_index': row[8],
+                                 'year': row[9],
+                                 'time': row[10],
+                                 'user': row[11]
                                  }
                 recently_watched.append(recent_output)
 
