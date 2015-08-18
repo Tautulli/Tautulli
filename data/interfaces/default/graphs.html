@@ -458,12 +458,8 @@
                 data: { y_axis: yaxis },
                 dataType: "json",
                 success: function(data) {
-                    var dateArray = [];
-                    for (var i = 0; i < data.categories.length; i++) {
-                        dateArray.push(moment(data.categories[i], 'YYYY-MM').format('MMM YYYY'));
-                    }
                     hc_plays_by_month_options.yAxis.min = 0;
-                    hc_plays_by_month_options.xAxis.categories = dateArray;
+                    hc_plays_by_month_options.xAxis.categories = data.categories;
                     hc_plays_by_month_options.series = data.series;
                     var hc_plays_by_month = new Highcharts.Chart(hc_plays_by_month_options);
                 }
