@@ -1275,23 +1275,34 @@ input[type="color"],
     top: 14px;
     left: 0px;
 }
+.home-platforms {
+    max-width: 1600px;
+}
+.home-platforms ul {
+    list-style: none;
+    margin: 0;
+}
 .home-platforms-instance-poster {
-    margin-left: 10px;
+    margin-left: 0px;
+}
+.home-platforms-instance-poster .poster-face {
+    height: 120px;
+    width: 80px;
 }
 .home-platforms-instance-box {
     background-size: contain;
-    position: relative;
-    border-radius: 3px;
-    top: 25px;
-    left: 25px;
+    position: absolute;
+    left: 10px;
+    bottom: 35px;
     height: 80px;
     width: 80px;
+    border-radius: 3px;
 }
 .home-platforms-instance-oval {
     background-size: contain;
-    position: relative;
-    margin-top: 25px;
-    margin-left: 25px;
+    position: absolute;
+    left: 10px;
+    bottom: 35px;
     height: 80px;
     width: 80px;
     -webkit-border-radius: 50%;
@@ -1339,24 +1350,25 @@ input[type="color"],
     float: left;
     background-color: #282828;
     position: absolute;
-    bottom: 0;
+    top: 5px;
     left: 0;
-    padding-left: 170px;
+    padding-left: 100px;
     width: 100%;
-    height: 130px;
+    height: 120px;
 }
 .home-platforms-instance {
+    background-color: #282828;
     position: relative;
     float: left;
-    width: 375px;
+    width: 300px;
     height: 120px;
-    padding-bottom: 10px;
-    margin-right: 25px;
-    margin-bottom: 25px;
+    padding: 10px;
+    margin-right: 20px;
+    margin-bottom: 20px;
     webkit-box-sizing: content-box;
     box-sizing: content-box;
 }
-.home-platforms-instance-media a:hover .poster-face {
+.home-platforms-instance a:hover .poster-face {
     webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
@@ -1633,9 +1645,6 @@ input[type="color"],
     min-height: 32px;
     width: 250px;
     z-index: 9999;
-}
-#home-stats {
-    max-width: 1600px;
 }
 #updatebar {
     background-color: #444;
