@@ -628,6 +628,7 @@ input[type="color"],
     margin-right: 27px;
     position: relative;
     float: left;
+    min-height: 340px;
 }
 .dashboard-recent-media-metacontainer{
     width: 153px;
@@ -857,6 +858,25 @@ input[type="color"],
 }
 .summary-content-director strong {
     color: #fff;
+    margin-left: 2px;
+}
+.summary-content-studio {
+    float: left;
+    margin-right: 10px;
+    line-height: 24px;
+}
+.summary-content-studio strong {
+    color: #fff;
+    margin-left: 2px;
+}
+.summary-content-airdate {
+    float: left;
+    margin-right: 10px;
+    line-height: 24px;
+}
+.summary-content-airdate strong {
+    color: #fff;
+    margin-left: 2px;
 }
 .summary-content-duration {
     float: left;
@@ -865,6 +885,7 @@ input[type="color"],
 }
 .summary-content-duration strong {
     color: #fff;
+    margin-left: 2px;
 }
 .summary-content-content-rating {
     float: left;
@@ -873,6 +894,7 @@ input[type="color"],
 }
 .summary-content-content-rating strong {
     color: #fff;
+    margin-left: 2px;
 }
 .summary-content-summary {
     overflow: hidden;
@@ -885,6 +907,9 @@ input[type="color"],
     max-height: 160px;
     padding-bottom: 0px;
 }
+.summary-content-people-wrapper {
+    margin-top: 25px;
+}
 .summary-content-people-wrapper hidden-phone hidden-tablet {
     overflow: hidden;
     height: auto;
@@ -892,12 +917,15 @@ input[type="color"],
 }
 .summary-content-actors {
     margin-top: 0px;
-    margin-left: 35px;
-    margin-right: 35px;
+    margin-left: 0px;
+    margin-right: 15px;
     font-size: 12px;
     line-height: 18px;
     color: #999;
     overflow: hidden;
+}
+.summary-content-actors ul {
+    padding-left:20px;
 }
 .summary-content-actors li {
     list-style: none;
@@ -907,14 +935,37 @@ input[type="color"],
     line-height: 18px;
     color: #fff;
 }
-.summary-content-writers {
-    margin-top: 10px;
-    margin-left: 35px;
-    margin-right: 35px;
+.summary-content-genres {
+    margin-top: 0px;
+    margin-left: 0px;
+    margin-right: 15px;
     font-size: 12px;
     line-height: 18px;
     color: #999;
     overflow: hidden;
+}
+.summary-content-genres ul {
+    padding-left:20px;
+}
+.summary-content-genres li {
+    list-style: none;
+    list-style-image: none;
+    display: block;
+    font-size: 12px;
+    line-height: 18px;
+    color: #fff;
+}
+.summary-content-writers {
+    margin-top: 0px;
+    margin-left: 0px;
+    margin-right: 15px;
+    font-size: 12px;
+    line-height: 18px;
+    color: #999;
+    overflow: hidden;
+}
+.summary-content-writers ul {
+    padding-left: 20px;
 }
 .summary-content-writers li {
     list-style: none;
@@ -1111,6 +1162,10 @@ input[type="color"],
     margin: 0px 0px 0px 0px;
 }
 .user-overview-stats-instance {
+    float: left;
+    width: 350px;
+    height: 80px;
+    margin-bottom: 25px;
 }
 .user-overview-stats-instance-device_icon {
     float: left;
@@ -1172,7 +1227,7 @@ input[type="color"],
 .user-platforms-instance {
     float: left;
     width: 240px;
-    height: 90px;
+    height: 80px;
     margin-bottom: 25px;
 }
 .user-platforms-instance li {

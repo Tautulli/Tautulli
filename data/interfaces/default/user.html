@@ -343,7 +343,7 @@ from plexpy import helpers
             sync_table = $('#sync_table').DataTable(sync_table_options);
             history_table.column(1).visible(false);
 
-            var colvis_sync = new $.fn.dataTable.ColVis( sync_table, { buttonText: '<i class="fa fa-columns"> Select columns</i>', buttonClass: 'btn btn-dark' } );
+            var colvis_sync = new $.fn.dataTable.ColVis( sync_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' } );
             $( colvis_sync.button() ).appendTo('#button-bar-sync');
         });
 

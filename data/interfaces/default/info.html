@@ -30,6 +30,7 @@ genres                  Returns an array of genres.
 actors                  Returns an array of actors.
 directors               Returns an array of directors.
 studio                  Returns the name of the studio.
+originally_available_at Returns the air date of the item.
 
 DOCUMENTATION :: END
 </%doc>
@@ -53,8 +54,10 @@ DOCUMENTATION :: END
                         <div class="row">
                             <div class="col-md-9">
                                 <div class="summary-content-poster hidden-xs hidden-sm">
-                                    % if data['type'] == 'episode':
+                                    % if data['type'] == 'episode' and data['parent_thumb']:
                                     <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster);"></div>
+                                    % elif data['type'] == 'episode':
+                                    <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
                                     % else:
                                     <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
                                     % endif
@@ -62,37 +65,47 @@ DOCUMENTATION :: END
                                 <div class="summary-content">
                                     <div class="summary-content-title">
                                         % if data['type'] == 'movie':
-                                        <h1>${data['title']} (${data['year']})</h1>
+                                        <h1>${data['title']}</h1>
                                         % elif data['type'] == 'season':
                                         <h1>${data['parent_title']} (${data['title']})</h1>
                                         % elif data['type'] == 'episode':
-                                        <h1>${data['grandparent_title']} (Season ${data['parent_index']}, Episode
-                                            ${data['index']}) "${data['title']}"</h1>
+                                        <h1>${data['grandparent_title']} - ${data['title']} 
+                                            (Season ${data['parent_index']}, Episode ${data['index']})</h1>
                                         % else:
                                         <h1>${data['title']}</h1>
                                         % endif
                                     </div>
-                                    % if data['type'] == 'movie':
+                                    % if (data['type'] == 'movie' or data['type'] == 'show' or data['type'] == 'episode') and data['rating']:
                                     <div id="stars" class="rateit hidden-xs hidden-sm" data-rateit-value=""
                                          data-rateit-ispreset="true" data-rateit-readonly="true"></div>
                                     % endif
                                     <div class="summary-content-details-wrapper">
                                         <div class="summary-content-director">
-                                            % if data['type'] == 'episode' or data['type'] == 'movie':
-                                            % if data['directors']:
+                                            % if (data['type'] == 'episode' or data['type'] == 'movie') and data['directors']:
                                             Directed by <strong> ${data['directors'][0]}</strong>
-                                            % else:
-                                            Directed by <strong> unknown</strong>
                                             % endif
-                                            % elif data['type'] == 'show' or data['type'] == 'season':
+                                        </div>
+                                        <div class="summary-content-studio">
+                                            % if (data['type'] == 'show' or data['type'] == 'movie') and data['studio']:
                                             Studio <strong> ${data['studio']}</strong>
+                                            % endif
+                                        </div>
+                                        <div class="summary-content-airdate">
+                                            % if data['type'] == 'movie':
+                                            Year <strong> ${data['year']}</strong>
+                                            % elif data['type'] == 'show':
+                                            Aired <strong> ${data['year']}</strong>
+                                            % elif data['type'] == 'episode':
+                                            Aired <strong> <span id="airdate">${data['originally_available_at']}</span></strong>
                                             % endif
                                         </div>
                                         <div class="summary-content-duration">
                                             Runtime <strong> <span id="runtime">${data['duration']}</span> mins</strong>
                                         </div>
                                         <div class="summary-content-content-rating">
+                                            % if (data['type'] == 'episode' or data['type'] == 'movie' or data['type'] == 'show') and data['content_rating']:
                                             Rated <strong> ${data['content_rating']} </strong>
+                                            % endif
                                         </div>
                                     </div>
                                     <div class="summary-content-summary">
@@ -100,9 +113,23 @@ DOCUMENTATION :: END
                                     </div>
                                 </div>
                             </div>
-                            % if data['type'] == 'episode':
                             <div class="col-md-3">
                                 <div class="summary-content-people-wrapper hidden-xs hidden-sm">
+                                    % if (data['type'] == 'movie' or data['type'] == 'show') and data['genres']:
+                                    <div class="summary-content-genres">
+                                        <strong>Genres</strong>
+                                        <ul>
+                                            % for genre in data['genres']:
+                                            % if loop.index < 5:
+                                            <li>
+                                                ${genre}
+                                            </li>
+                                            % endif
+                                            % endfor
+                                        </ul>
+                                    </div>
+                                    % endif
+                                    % if (data['type'] == 'episode' or data['type'] == 'movie') and data['writers']:
                                     <div class="summary-content-writers">
                                         <strong>Written by</strong>
                                         <ul>
@@ -115,42 +142,23 @@ DOCUMENTATION :: END
                                             % endfor
                                         </ul>
                                     </div>
-                                </div>
-                            </div>
-                            % elif data['type'] == 'movie' or data['type'] == 'show':
-                            <div class="col-md-3">
-                                <div class="summary-content-people-wrapper hidden-xs hidden-sm">
+                                    % endif
+                                    % if (data['type'] == 'movie' or data['type'] == 'show') and data['actors']:
                                     <div class="summary-content-actors">
-                                        <strong>Genres</strong>
+                                        <strong>Starring</strong>
                                         <ul>
-                                            % for genre in data['genres']:
+                                            % for actor in data['actors']:
                                             % if loop.index < 5:
                                             <li>
-                                                ${genre}
+                                                ${actor}
                                             </li>
                                             % endif
                                             % endfor
                                         </ul>
                                     </div>
-                                    <div class="summary-content-people-wrapper hidden-xs hidden-sm">
-                                        <div class="summary-content-actors">
-                                            <strong>Starring</strong>
-                                            <ul>
-                                                % for actor in data['actors']:
-                                                % if loop.index < 5:
-                                                <li>
-                                                    ${actor}
-                                                </li>
-                                                % endif
-                                                % endfor
-                                            </ul>
-                                        </div>
-                                    </div>
+                                    % endif
                                 </div>
                             </div>
-                            % elif data['type'] == 'season':
-                            <div class="col-md-3"></div>
-                            % endif
                         </div>
                     </div>
                 </div>
@@ -228,13 +236,14 @@ DOCUMENTATION :: END
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/jquery.rateit.min.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/jquery-ui.min.js"></script>
 <script src="interfaces/default/js/dataTables.colVis.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 
 % if data:
-% if data['type'] == 'movie':
+% if data['type'] == 'movie' or data['type'] == 'show' or data['type'] == 'episode':
 <script>
     // Convert rating to 5 star rating type
     var starRating = Math.round(${data['rating']} / 2)
@@ -294,6 +303,7 @@ DOCUMENTATION :: END
 </script>
 % endif
 <script>
+    $("#airdate").html($.datepicker.formatDate('M dd, yy', new Date($("#airdate").html())));
     $("#runtime").html(millisecondsToMinutes($("#runtime").html(), true));
 </script>
 % endif
