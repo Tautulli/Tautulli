@@ -287,6 +287,7 @@
         if(getCookie('graphDate')) {
             var current_range = getCookie('graphDate');
             $('input[name=date-options][value=' + current_range + ']').prop('checked', true).trigger('click');
+            $('.days').html(current_range);
         }
         if(getCookie('graphTab')) {
             var current_tab = getCookie('graphTab');
