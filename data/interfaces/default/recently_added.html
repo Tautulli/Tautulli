@@ -29,29 +29,32 @@ DOCUMENTATION :: END
         % for item in data:
         <div class="dashboard-recent-media-instance">
             <li>
-                <div class="poster">
-                    % if item['type'] == 'season' or item['type'] == 'movie':
-                    <div class="poster-face">
-                        <a href="info?item_id=${item['rating_key']}">
-                            <img src="pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster" class="poster-face">
-                        </a>
+                % if item['type'] == 'season' or item['type'] == 'movie':
+				<a href="info?item_id=${item['rating_key']}">
+					<div class="poster">
+						<div class="poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);"></div>
                     </div>
-                    % elif item['type'] == 'album':
-                    <div class="cover-face">
-                        <img src="pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover" class="cover-face">
-                    </div>
-                    % endif
-                </div>
-                <div class="dashboard-recent-media-metacontainer">
-                    % if item['type'] == 'season':
-                    <h3>${item['parent_title']} - ${item['title']}</h3>
-                    % elif item['type'] == 'album':
-                    <h3>${item['title']}</h3>
-                    % elif item['type'] == 'movie':
-                    <h3>${item['title']} (${item['year']})</h3>
-                    % endif
-                    <div class="text-muted" id="added_at-${item['rating_key']}">${item['added_at']}</div>
-                </div>
+					<div class="dashboard-recent-media-metacontainer">
+						% if item['type'] == 'season':
+						<h3>${item['parent_title']}</h3>
+						<h3>(${item['title']})</h3>
+						% elif item['type'] == 'movie':
+						<h3>${item['title']}</h3>
+						<h3>(${item['year']})</h3>
+						% endif
+						<div class="text-muted" id="added_at-${item['rating_key']}">${item['added_at']}</div>
+					</div>
+				</a>
+				% elif item['type'] == 'album':
+				<div class="poster">
+					<div class="cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);"></div>					
+				</div>
+				<div class="dashboard-recent-media-metacontainer">
+                    <h3>${item['parent_title']}</h3>
+					<h3>${item['title']}</h3>
+					<div class="text-muted" id="added_at-${item['rating_key']}">${item['added_at']}</div>
+				</div>
+				% endif
             </li>
         </div>
         <script>

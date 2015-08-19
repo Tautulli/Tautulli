@@ -55,7 +55,7 @@ DOCUMENTATION :: END
                     <div class="col-md-4">
                         <h4><strong>Stream Details</strong></h4>
                         <h5>Video</h5>
-                        <ul>
+                        <ul class="list-unstyled">
                             % if data['transcode_video_dec'] != 'direct play':
                             <li>Stream Type: <strong>${data['transcode_video_dec']}</strong></li>
                             <li>Video Resolution: <strong>${data['transcode_height']}p</strong></li>
@@ -75,7 +75,7 @@ DOCUMENTATION :: END
                             % endif
                         </ul>
                         <h5>Audio</h5>
-                        <ul>
+                        <ul class="list-unstyled">
                             % if data['transcode_audio_dec'] != 'direct play':
                             <li>Stream Type: <strong>${data['transcode_audio_dec']}</strong></li>
                             <li>Audio Codec: <strong>${data['transcode_audio_codec']}</strong></li>
@@ -89,7 +89,7 @@ DOCUMENTATION :: END
                     </div>
                     <div class="col-md-4">
                         <h4><strong>Media Source Details</strong></h4>
-                        <ul>
+                        <ul class="list-unstyled">
                             <li>Container: <strong>${data['container']}</strong></li>
                             <li>Resolution: <strong>${data['height']}p</strong></li>
                             <li>Bitrate: <strong>${data['bitrate']} kbps</strong></li>
@@ -97,7 +97,7 @@ DOCUMENTATION :: END
                     </div>
                     <div class="col-md-4">
                         <h4><strong>Video Source Details</strong></h4>
-                        <ul>
+                        <ul class="list-unstyled">
                             <li>Width: <strong>${data['width']}</strong></li>
                             <li>Height: <strong>${data['height']}</strong></li>
                             <li>Aspect Ratio: <strong>${data['aspect_ratio']}</strong></li>
@@ -105,7 +105,7 @@ DOCUMENTATION :: END
                             <li>Video Codec: <strong>${data['video_codec']}</strong></li>
                         </ul>
                         <h4><strong>Audio Source Details</strong></h4>
-                        <ul>
+                        <ul class="list-unstyled">
                             <li>Audio Codec: <strong>${data['audio_codec']}</strong></li>
                             <li>Audio Channels: <strong>${data['audio_channels']}</strong></li>
                         </ul>

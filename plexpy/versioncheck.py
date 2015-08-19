@@ -241,3 +241,37 @@ def update():
                 e
             )
             return
+
+def read_changelog():
+
+    changelog_file = os.path.join(plexpy.PROG_DIR, 'CHANGELOG.md')
+
+    try:
+        logfile = open(changelog_file, "r")
+    except IOError, e:
+        logger.error('PlexPy Version Checker :: Unable to open changelog file. %s' % e)
+        return None
+
+    if logfile:
+        output = ''
+        lines = logfile.readlines()
+        previous_line = ''
+        for line in lines:
+            if line[:2] == '# ':
+                output += '<h3>' + line[2:] + '</h3>'
+            elif line[:3] == '## ':
+                output += '<h4>' + line[3:] + '</h4>'
+            elif line[:2] == '* ' and previous_line.strip() == '':
+                output += '<ul><li>' + line[2:] + '</li>'
+            elif line[:2] == '* ':
+                output += '<li>' + line[2:] + '</li>'
+            elif line.strip() == '' and previous_line[:2] == '* ':
+                output += '</ul></br>'
+            else:
+                output += line + '</br>'
+
+            previous_line = line
+
+        return output
+    else:
+        return '<h4>No changelog data</h4>'

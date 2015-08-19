@@ -13,13 +13,16 @@
         <div class="header-bar">
             <span><i class="fa fa-history"></i> History</span>
         </div>
-        <div class="colvis-button-bar hidden-xs">
+        <div class="button-bar">
+            <button class="btn btn-danger" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode"><i class="fa fa-trash-o"></i> Delete mode</button>&nbsp
+            <div class="colvis-button-bar hidden-xs"></div>
         </div>
     </div>
     <div class='table-card-back'>
         <table class="display" id="history_table" width="100%">
             <thead>
             <tr>
+                <th align='left' id="delete_row">Delete</th>
                 <th align='left' id="time">Time</th>
                 <th align='left' id="friendly_name">User</th>
                 <th align='left' id="platform">Platform</th>
@@ -29,7 +32,7 @@
                 <th align='left' id="paused_counter">Paused</th>
                 <th align='left' id="stopped">Stopped</th>
                 <th align='left' id="duration">Duration</th>
-                <th align='left' id="percent_complete">Watched</th>
+                <th align='left' id="percent_complete"></th>
             </tr>
             </thead>
             <tbody>
@@ -60,8 +63,21 @@
             }
         }
         history_table = $('#history_table').DataTable(history_table_options);
-        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: 'Select columns', buttonClass: 'btn btn-dark' });
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
         $(colvis.button()).appendTo('div.colvis-button-bar');
+
+        $('#row-edit-mode').click(function() {
+            if ($(this).hasClass('active')) {
+                $('.delete-control').each(function() {
+                    $(this).addClass('hidden');
+                });
+            } else {
+                $('.delete-control').each(function() {
+                    $(this).removeClass('hidden');
+                });
+            }
+        });
+
     });
 
 </script>

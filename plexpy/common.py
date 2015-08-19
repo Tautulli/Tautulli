@@ -19,14 +19,17 @@ Created on Aug 1, 2011
 @author: Michael
 '''
 import platform
-import operator
-import os
-import re
 
 from plexpy import version
 
 # Identify Our Application
-USER_AGENT = 'PlexPy/-' + version.PLEXPY_VERSION + ' (' + platform.system() + ' ' + platform.release() + ')'
+USER_AGENT = 'PlexPy/-' + version.PLEXPY_VERSION + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \
+             ' ' + platform.release() + ')'
+
+PLATFORM = platform.system()
+PLATFORM_VERSION = platform.release()
+BRANCH = version.PLEXPY_VERSION
+VERSION_NUMBER = version.PLEXPY_RELEASE_VERSION
 
 # Notification Types
 NOTIFY_STARTED = 1

@@ -263,9 +263,35 @@
 <script>
     $(document).ready(function () {
 
-        var current_range = 30;
+        // Save graph state to cookies
+        $('input[name=yaxis-options]').change(function() {
+            setCookie('graphType', $(this).val(), 365, '/');
+        });
+        $('input[name=date-options]').change(function() {
+            setCookie('graphDate', $(this).val(), 365, '/');
+        });
+        $('a[data-toggle=tab]').click(function() {
+            setCookie('graphTab', $(this).attr('href'), 365, '/');
+        });
+        
+        // Initial values for graph if no saved state
         var yaxis = 'plays';
+        var current_range = 30;
         var current_tab = '#tabs-1';
+            
+        // Read saved graph state from cookies and set initial values
+        if(getCookie('graphType')) {
+            var yaxis = getCookie('graphType');
+            $('input[name=yaxis-options][value=' + yaxis + ']').prop('checked', true).trigger('click');
+        }
+        if(getCookie('graphDate')) {
+            var current_range = getCookie('graphDate');
+            $('input[name=date-options][value=' + current_range + ']').prop('checked', true).trigger('click');
+        }
+        if(getCookie('graphTab')) {
+            var current_tab = getCookie('graphTab');
+            $('a[data-toggle=tab][href=' + current_tab + ']').trigger('click');
+        }
 
         function loadGraphsTab1(time_range, yaxis) {
             setGraphFormat(yaxis);
@@ -432,12 +458,8 @@
                 data: { y_axis: yaxis },
                 dataType: "json",
                 success: function(data) {
-                    var dateArray = [];
-                    for (var i = 0; i < data.categories.length; i++) {
-                        dateArray.push(moment(data.categories[i], 'YYYY-MM').format('MMM YYYY'));
-                    }
                     hc_plays_by_month_options.yAxis.min = 0;
-                    hc_plays_by_month_options.xAxis.categories = dateArray;
+                    hc_plays_by_month_options.xAxis.categories = data.categories;
                     hc_plays_by_month_options.series = data.series;
                     var hc_plays_by_month = new Highcharts.Chart(hc_plays_by_month_options);
                 }

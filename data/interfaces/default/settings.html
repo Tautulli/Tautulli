@@ -1,7 +1,7 @@
 <%inherit file="base.html"/>
 <%!
 import plexpy
-from plexpy import notifiers
+from plexpy import notifiers, common, versioncheck
 
 available_notification_agents = notifiers.available_notification_agents()
 %>
@@ -48,9 +48,11 @@ available_notification_agents = notifiers.available_notification_agents()
             <form action="configUpdate" method="post" class="form" id="configUpdate" data-parsley-validate>
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="tabs-1">
+                        % if common.VERSION_NUMBER:
                         <div class="padded-header">
-                            <h3>Software Updates</h3>
+                            <h3>Version ${common.VERSION_NUMBER} <small><a href="#changelog-modal" data-toggle="modal"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
                         </div>
+                        % endif
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
@@ -58,7 +60,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             <p class="help-block">If you have Git installed, allow periodic checks for updates.</p>
                         </div>
                         % if plexpy.CURRENT_VERSION:
-                        <p>Current version: ${plexpy.CURRENT_VERSION}</p>
+                        <p class="help-block">Git hash: ${plexpy.CURRENT_VERSION}</p>
                         % endif
                         <div class="padded-header">
                             <h3>Display Settings</h3>
@@ -276,14 +278,24 @@ available_notification_agents = notifiers.available_notification_agents()
                             <p class="help-block">If you have media indexing enabled on your server, use these on the activity pane.</p>
                         </div>
 
+                        <div class="padded-header">
+                            <h3>Homepage Statistics</h3>
+                        </div>
+
                         <div class="form-group">
-                            <label for="home_stats_length">Homepage Statistics Time Frame</label>
+                            <label for="home_stats_length">Time Frame</label>
                             <div class="row">
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="home_stats_length" name="home_stats_length" value="${config['home_stats_length']}" size="3" data-parsley-min="0" data-parsley-trigger="change" required>
                                 </div>
                             </div>
                             <p class="help-block">Specify the number of days for the statistics on the home page. Default is 30 days.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="home_stats_type" name="home_stats_type" value="1" ${config['home_stats_type']}> Use play duration
+                            </label>
+                            <p class="help-block">Use play duration instead of play count to generate statistics.</p>
                         </div>
 
                         <div class="padded-header">
@@ -811,8 +823,16 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <td>The season number for the media item if item is episode.</td>
                             </tr>
                             <tr>
+                                <td width="150"><strong>{season_num00}</strong></td>
+                                <td>The two digit season number.</td>
+                            </tr>
+                            <tr>
                                 <td width="150"><strong>{episode_num}</strong></td>
                                 <td>The episode number for the media item if item is episode.</td>
+                            </tr>
+                            <tr>
+                                <td width="150"><strong>{episode_num00}</strong></td>
+                                <td>The two digit episode number.</td>
                             </tr>
                             <tr>
                                 <td width="150"><strong>{rating}</strong></td>
@@ -869,6 +889,21 @@ available_notification_agents = notifiers.available_notification_agents()
                             <pre>Example: {user} has started playing {title} &lt;music&gt;(Track {episode_num})&lt;/music&gt;</pre>
                         </div>
                     </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="changelog-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Changelog</h4>
+                </div>
+                <div class="modal-body">
+                    ${versioncheck.read_changelog()}
                 </div>
                 <div class="modal-footer">
                 </div>
@@ -1023,7 +1058,9 @@ $(document).ready(function() {
                 headers: {'Content-Type': 'application/xml; charset=utf-8',
                           'X-Plex-Device-Name': 'PlexPy',
                           'X-Plex-Product': 'PlexPy',
-                          'X-Plex-Version': 'v0.1 dev',
+                          'X-Plex-Version': '${common.VERSION_NUMBER}',
+                          'X-Plex-Platform': '${common.PLATFORM}',
+                          'X-Plex-Platform-Version': '${common.PLATFORM_VERSION}',
                           'X-Plex-Client-Identifier': '${config['pms_uuid']}',
                           'Authorization': 'Basic ' + btoa($("#pms_username").val() + ':' + $("#pms_password").val())
                 },

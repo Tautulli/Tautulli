@@ -58,6 +58,12 @@ DOCUMENTATION :: END
                     </label>
                     <p class="help-block">Uncheck this if you do not want this keep any history on this user's activity.</p>
                 </div>
+                % if data['user_id']:
+                <div class="form-group">
+                    <button class="btn btn-danger" id="delete-all-history">Purge</button>
+                    <p class="help-block">DANGER ZONE! Click the purge button to remove all history logged for this user. This is permanent!</p>
+                </div>
+                % endif
             </fieldset>
         </div>
         <div class="modal-footer">
@@ -111,6 +117,21 @@ DOCUMENTATION :: END
                 }
             });
         % endif
+    });
+
+    $("#delete-all-history").click(function() {
+        var r = confirm("Are you REALLY REALLY REALLY sure you want to delete all history for this user?");
+        if (r == true) {
+            $.ajax({
+                url: 'delete_all_user_history',
+                data: {user_id: '${data['user_id']}'},
+                cache: false,
+                async: true,
+                success: function(data) {
+                    location.reload();
+                }
+            });
+        }
     });
 </script>
 
