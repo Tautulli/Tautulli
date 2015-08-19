@@ -240,6 +240,33 @@ from plexpy import helpers
 <script src="interfaces/default/js/tables/user_ips.js"></script>
 <script src="interfaces/default/js/tables/sync_table.js"></script>
 <script>
+    function recentlyWatched() {
+        var widthVal = $('body').find("#user-recently-watched").width();
+        var tmp = (widthVal-32) / 180;
+
+        if (tmp > 0) {
+            containerSize = parseInt(tmp);
+        } else {
+            containerSize = 1;
+        }
+        
+        % if data['user_id']:
+            var user_id = ${data['user_id']};
+        % else:
+            var user_id = null;
+        % endif
+
+        // Populate recently watched
+        $.ajax({
+            url: 'get_user_recently_watched',
+            async: true,
+            data: { user_id: user_id, user: '${data['username']}', limit: containerSize },
+            complete: function(xhr, status) {
+                $("#user-recently-watched").html(xhr.responseText);
+            }
+        });        
+    }
+    
     $(document).ready(function () {
 
         % if data['user_id']:
@@ -267,16 +294,6 @@ from plexpy import helpers
             data: { user_id: user_id, user: '${data['username']}' },
             complete: function(xhr, status) {
                 $("#user-platform-stats").html(xhr.responseText);
-            }
-        });
-
-        // Populate recently watched
-        $.ajax({
-            url: 'get_user_recently_watched',
-            async: true,
-            data: { user_id: user_id, user: '${data['username']}' },
-            complete: function(xhr, status) {
-                $("#user-recently-watched").html(xhr.responseText);
             }
         });
 
@@ -355,6 +372,11 @@ from plexpy import helpers
                     $(this).removeClass('hidden');
                 });
             }
+        });
+        
+        recentlyWatched();
+        $(window).resize(function() {
+            recentlyWatched();
         });
     });
 </script>
