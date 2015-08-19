@@ -513,7 +513,7 @@ input[type="color"],
     left: 0;
     float: left;
     text-align: left;
-    padding: 2px 2px 6px 2px;
+    padding: 5px 8px;
     font-size: 12px;
     color: #eee;
     text-overflow: ellipsis;
@@ -527,7 +527,7 @@ input[type="color"],
     right: 0;
     float: right;
     text-align: right;
-    padding: 2px 2px 6px 2px;
+    padding: 5px 8px;
     font-size: 12px;
     color: #eee;
 }
@@ -636,7 +636,7 @@ input[type="color"],
     clear: both;
 }
 .dashboard-recent-media-metacontainer h3 {
-    padding-top: 5px;
+    padding: 5px 3px 0 3px;
     color: #fff;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -647,16 +647,16 @@ input[type="color"],
     font-weight: normal;
     width: 153px;
     white-space: nowrap;
-    text-align: center;
+    text-align: left;
     clear: both;
 }
 .dashboard-recent-media-metacontainer .text-muted {
-    padding-top: 5px;
+    padding: 5px 3px 0 3px;
     text-overflow: ellipsis;
     overflow: hidden;
     position: relative;
     white-space: nowrap;
-    text-align: center;
+    text-align: left;
 }
 .art-face {
     background-repeat: no-repeat;
@@ -954,17 +954,31 @@ input[type="color"],
     list-style: none;
     margin: 0 0 0px 0px;
 }
-.season-episodes-instance>li {
+.season-episodes-instance li {
     float: left;
-    height: 200px;
-    width: 250px;
     position: relative;
     left: 0px;
+    margin-right: 25px;
+}
+.season-episodes-instance a:hover .season-episodes-card-overlay {
+    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -moz-box-shadow: inset 0 0 0 2px #e9a049;
+    box-shadow: inset 0 0 0 2px #e9a049;
 }
 .season-episodes-poster {
     float: left;
     position: relative;
     left: 0px;
+}
+.season-episodes-poster-face {
+    background-position: center;
+    background-size: cover;
+    height: 140px;
+    width: 250px;
+    position: relative;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .season-episodes-poster-face img {
     bottom: 0;
@@ -982,11 +996,14 @@ input[type="color"],
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 4px 8px;
     text-align: left;
-    background-color: #000;
-    background-color: rgba(0,0,0,0.7);
-    border-top: 1px solid #000;
+    background: -moz-linear-gradient(top,  rgba(0,0,0,0) 30%, rgba(0,0,0,1) 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(30%,rgba(0,0,0,0)), color-stop(100%,rgba(0,0,0,1)));
+    background: -webkit-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
+    background: -o-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
+    background: -ms-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
+    background: linear-gradient(to bottom,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
+    height: 140px;
 }
 .season-episodes-card-overlay-index {
     color: #fff;
@@ -994,10 +1011,27 @@ input[type="color"],
     text-shadow: 0 1px 5px rgba(0,0,0,0.2);
 }
 .season-episodes-instance-text-wrapper {
+    width: 250px;
+    font-size: 13px;
+    margin-bottom: 20px;
     clear: both;
-    width: 205px;
 }
-.season-episodes-title, .season-episodes-title a {
+.season-episodes-instance-text-wrapper h3 {
+    padding: 5px 3px 0 3px;
+    color: #fff;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    position: relative;
+    font-size: 13px;
+    margin: 0;
+    line-height: 15px;
+    font-weight: normal;
+    width: 250px;
+    white-space: nowrap;
+    text-align: left;
+    clear: both;
+}
+.season-episodes-title a {
     text-decoration: none;
     font-size: 14px;
     font-weight: normal;
@@ -1010,6 +1044,7 @@ input[type="color"],
     width: 205px;
     margin-top: 2px;
     margin-left: 0px;
+    margin-bottom: 20px;
 }
 .season-episodes a:hover {
     color: #F9AA03;
@@ -1018,6 +1053,9 @@ input[type="color"],
     color: #aaa;
     font-size: 12px;
     float: left;
+    position: absolute;
+    left: 8px;
+    bottom: 5px;
 }
 .user-info-wrapper {
     height: 113px;
@@ -1146,6 +1184,10 @@ input[type="color"],
     -webkit-box-shadow: 0 0 5px rgba(0,0,0,0.5);
     -moz-box-shadow: 0 0 5px rgba(0,0,0,0.5);
     box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    background-size: contain;
+    position: relative;
+    height: 80px;
+    width: 80px;
 }
 .user-platforms-instance-name {
     float: left;
@@ -1184,6 +1226,7 @@ input[type="color"],
 .home-platforms-instance-box {
     background-size: contain;
     position: relative;
+    border-radius: 3px;
     top: 25px;
     left: 25px;
     height: 80px;

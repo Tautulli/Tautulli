@@ -30,25 +30,20 @@ DOCUMENTATION :: END
     <ul class="season-episodes-instance list-unstyled">
         % for a in data['episode_list']:
         <li>
-            <div class="season-episodes-poster">
-                <div class="season-episodes-poster-face">
-                    <a href="info?item_id=${a['rating_key']}">
-                        <img src="pms_image_proxy?img=${a['thumb']}&width=410&height=230" class="season-episodes-poster-face">
-                    </a>
-                </div>
-                <div class="season-episodes-card-overlay">
-                    <div class="season-episodes-season">
-                        Episode ${a['index']}
+            <a href="info?item_id=${a['rating_key']}">
+                <div class="season-episodes-poster">
+                    <div class="season-episodes-poster-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=410&height=230);">
+                        <div class="season-episodes-card-overlay">
+                            <div class="season-episodes-season">
+                                Episode ${a['index']}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="season-episodes-instance-text-wrapper">
-                <div class="season-episodes-title">
-                    <a href="info?item_id=${a['rating_key']}">
-                        "${a['title']}"
-                    </a>
+                <div class="season-episodes-instance-text-wrapper">
+                    <h3>${a['title']}</h3>
                 </div>
-            </div>
+            </a>
         </li>
         % endfor
     </ul>
