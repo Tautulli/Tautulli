@@ -66,6 +66,8 @@
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
         $(colvis.button()).appendTo('div.colvis-button-bar');
 
+        clearSearchButton('history_table', history_table);
+
         $('#row-edit-mode').click(function() {
             if ($(this).hasClass('active')) {
                 $('.delete-control').each(function() {

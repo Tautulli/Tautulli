@@ -348,3 +348,12 @@ Accordion.prototype.dropdown = function(e) {
 		$el.find('.submenu').not($next).slideUp().parent().removeClass('open');
 	};
 }
+
+function clearSearchButton(tableName, table) {
+    $('#' + tableName + '_filter').find('input[type=search]')
+     .wrap('<div class="input-group" role="group" aria-label="Search"></div>')
+     .after('<span class="input-group-btn"><button class="btn btn-form" data-toggle="button" aria-pressed="false" autocomplete="off" id="clear-search-' + tableName + '"><i class="fa fa-remove"></i></button></span>')
+    $('#clear-search-' + tableName).click(function() {
+        table.search('').draw();
+    });
+}
