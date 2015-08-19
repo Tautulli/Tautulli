@@ -86,8 +86,9 @@ from plexpy import helpers
 
         $(document).ready(function() {
             LoadPlexPyLogs();
+            clearSearchButton('log_table', log_table);
         });
-
+        
         function LoadPlexPyLogs() {
             log_table_options.ajax = {
                 "url": "getLog"
@@ -105,11 +106,13 @@ from plexpy import helpers
         $("#plexpy-logs-btn").click(function() {
             $("#clear-logs").show();
             LoadPlexPyLogs();
+            clearSearchButton('log_table', log_table);
         });
 
         $("#plex-logs-btn").click(function() {
             $("#clear-logs").hide();
             LoadPlexLogs();
+            clearSearchButton('plex_log_table', plex_log_table);
         });
 
         $("#clear-logs").click(function() {
