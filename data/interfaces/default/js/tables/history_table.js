@@ -59,17 +59,7 @@ history_table_options = {
         },
         {
             "targets": [3],
-            "data":"player",
-            "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
-                    $(td).html('<a href="#" data-target="#info-modal" data-toggle="modal"><i class="fa fa-lg fa-info-circle"></i></a>&nbsp'+cellData);
-                }
-            },
-            "className": "modal-control no-wrap hidden-sm hidden-xs"
-        },
-        {
-            "targets": [4],
-            "data":"ip_address",
+            "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
                     if (isPrivateIP(cellData)) {
@@ -79,13 +69,23 @@ history_table_options = {
                             $(td).html('n/a');
                         }
                     } else {
-                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal"><i class="fa fa-map-marker"></i>&nbsp' + cellData +'</a>');
+                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal"><i class="fa fa-map-marker"></i>&nbsp' + cellData + '</a>');
                     }
                 } else {
                     $(td).html('n/a');
                 }
             },
-            "className": "no-wrap hidden-xs modal-control-ip"
+            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control-ip"
+        },
+        {
+            "targets": [4],
+            "data":"player",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html('<a href="#" data-target="#info-modal" data-toggle="modal"><i class="fa fa-lg fa-info-circle"></i>&nbsp' + cellData + '</a>');
+                }
+            },
+            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
         },
         {
             "targets": [5],
@@ -130,7 +130,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap hidden-md hidden-sm hidden-xs"
         },
         {
             "targets": [8],
@@ -143,7 +143,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
-            "className": "no-wrap hidden-md hidden-xs"
+            "className": "no-wrap hidden-sm hidden-xs"
         },
         {
             "targets": [9],
@@ -172,7 +172,7 @@ history_table_options = {
             },
             "searchable": false,
             "orderable": false,
-            "className": "no-wrap hidden-md hidden-xs",
+            "className": "no-wrap hidden-md hidden-sm hidden-xs",
             "width": "10px"
         },
         {
