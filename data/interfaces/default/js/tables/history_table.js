@@ -29,6 +29,16 @@ history_table_options = {
     "autoWidth": false,
     "columnDefs": [
         {
+            "targets": [0],
+            "data": null,
+            "createdCell": function (td, cellData, rowData, row, col) {
+                $(td).html('<button class="btn btn-xs btn-danger" data-id="' + rowData['id'] + '"><i class="fa fa-trash-o"></i> Delete</button>');
+            },
+            "className": "delete-control no-wrap hidden",
+            "searchable": false,
+            "orderable": false
+        },
+        {
             "targets": [1],
             "data":"date",
             "createdCell": function (td, cellData, rowData, row, col) {
@@ -175,16 +185,6 @@ history_table_options = {
             "className": "no-wrap hidden-md hidden-sm hidden-xs",
             "width": "10px"
         },
-        {
-            "targets": [0],
-            "data": null,
-            "createdCell": function (td, cellData, rowData, row, col) {
-                $(td).html('<button class="btn btn-xs btn-danger" data-id="' + rowData['id'] + '"><i class="fa fa-trash-o"></i> Delete</button>');
-            },
-            "className": "delete-control no-wrap hidden",
-            "searchable": false,
-            "orderable": false
-        },
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
@@ -247,13 +247,13 @@ $('#history_table').on('click', 'td.modal-control-ip', function () {
     getUserLocation(rowData['ip_address']);
 });
 
-$('#history_table').on('click', 'td.delete-control', function () {
+$('#history_table').on('click', 'td.delete-control > button', function () {
     var tr = $(this).parents('tr');
     var row = history_table.row( tr );
     var rowData = row.data();
 
-    $(this).children("button").prop('disabled', true);
-    $(this).children("button").html('<i class="fa fa-spin fa-refresh"></i> Delete');
+    $(this).prop('disabled', true);
+    $(this).html('<i class="fa fa-spin fa-refresh"></i> Delete');
 
     $.ajax({
         url: 'delete_history_rows',
