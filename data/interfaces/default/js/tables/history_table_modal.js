@@ -74,7 +74,7 @@ history_table_modal_options = {
         {
             "targets": [3],
             "data":"player",
-            "className": "modal-control no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap hidden-sm hidden-xs modal-control"
         },
         {
             "targets": [4],

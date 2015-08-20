@@ -131,11 +131,11 @@ from plexpy import helpers
                         <table id="user_ip_table" class="display" width="100%">
                             <thead>
                             <tr>
-                                <th align="left">Last seen</th>
+                                <th align="left">Last Seen</th>
                                 <th align="left">IP Address</th>
-                                <th align="left">Play Count</th>
-                                <th align="left">Platform (Last Seen)</th>
+                                <th align="left">Last Platform</th>
                                 <th align="left">Last Watched</th>
+                                <th align="left">Play Count</th>
                             </tr>
                             </thead>
                         </table>
@@ -181,7 +181,6 @@ from plexpy import helpers
                             </tbody>
                         </table>
                     </div>
-                    <div id="info-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="info-modal"></div>
                 </div>
             </div>
         </div>
@@ -224,7 +223,9 @@ from plexpy import helpers
             </div>
         </div>
     </div>
-    <div id="ip-info-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
+    <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
+    </div>
+    <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
     </div>
 </div>
 <footer></footer>

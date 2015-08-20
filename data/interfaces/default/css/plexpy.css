@@ -251,7 +251,7 @@ fieldset[disabled] .btn-bright.active {
     background-color: #222222;
 }
 .modal-body table {
-    color: #999;
+    color: #fff;
 }
 .modal-body li {
     margin-top: 7px;
