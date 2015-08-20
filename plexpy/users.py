@@ -24,13 +24,19 @@ class Users(object):
     def get_user_list(self, kwargs=None):
         data_tables = datatables.DataTables()
 
-        columns = ['users.user_id as user_id',
+        columns = ['session_history.id',
+                   'users.user_id as user_id',
                    'users.custom_avatar_url as thumb',
                    '(case when users.friendly_name is null then users.username else \
                     users.friendly_name end) as friendly_name',
                    'MAX(session_history.started) as last_seen',
                    'session_history.ip_address as ip_address',
                    'COUNT(session_history.id) as plays',
+                   'session_history.player as platform',
+                   'session_history_metadata.full_title as last_watched',
+                   'session_history_metadata.media_type',
+                   'session_history.rating_key as rating_key',
+                   'session_history_media_info.video_decision',
                    'users.username as user'
                    ]
         try:
@@ -38,9 +44,15 @@ class Users(object):
                                           columns=columns,
                                           custom_where=[],
                                           group_by=['users.user_id'],
-                                          join_types=['LEFT OUTER JOIN'],
-                                          join_tables=['session_history'],
-                                          join_evals=[['session_history.user_id', 'users.user_id']],
+                                          join_types=['LEFT OUTER JOIN',
+                                                      'LEFT OUTER JOIN',
+                                                      'LEFT OUTER JOIN'],
+                                          join_tables=['session_history',
+                                                       'session_history_metadata',
+                                                       'session_history_media_info'],
+                                          join_evals=[['session_history.user_id', 'users.user_id'],
+                                                      ['session_history.id', 'session_history_metadata.id'],
+                                                      ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
         except:
             logger.warn("Unable to execute database query.")
@@ -59,10 +71,16 @@ class Users(object):
             else:
                 user_thumb = item['thumb']
 
-            row = {"plays": item['plays'],
+            row = {"id": item['id'],
+                   "plays": item['plays'],
                    "last_seen": item['last_seen'],
-                   "friendly_name": item["friendly_name"],
-                   "ip_address": item["ip_address"],
+                   "friendly_name": item['friendly_name'],
+                   "ip_address": item['ip_address'],
+                   "platform": item['platform'],
+                   "last_watched": item['last_watched'],
+                   "media_type": item['media_type'],
+                   "rating_key": item['rating_key'],
+                   "video_decision": item['video_decision'],
                    "thumb": user_thumb,
                    "user": item["user"],
                    "user_id": item['user_id']
@@ -81,13 +99,22 @@ class Users(object):
     def get_user_unique_ips(self, kwargs=None, custom_where=None):
         data_tables = datatables.DataTables()
 
-        columns = ['session_history.started as last_seen',
+        # Change custom_where column name due to ambiguous column name after JOIN
+        custom_where[0][0] = 'custom_user_id' if custom_where[0][0] == 'user_id' else custom_where[0][0]
+
+        columns = ['session_history.id',
+                   'session_history.started as last_seen',
                    'session_history.ip_address as ip_address',
                    'COUNT(session_history.id) as play_count',
                    'session_history.player as platform',
                    'session_history_metadata.full_title as last_watched',
+                   'session_history_metadata.media_type',
+                   'session_history.rating_key as rating_key',
+                   'session_history_media_info.video_decision',
                    'session_history.user as user',
-                   'session_history.user_id as user_id'
+                   'session_history.user_id as custom_user_id',
+                   '(case when users.friendly_name is null then users.username else \
+                    users.friendly_name end) as friendly_name'
                    ]
 
         try:
@@ -95,9 +122,15 @@ class Users(object):
                                           columns=columns,
                                           custom_where=custom_where,
                                           group_by=['ip_address'],
-                                          join_types=['JOIN'],
-                                          join_tables=['session_history_metadata'],
-                                          join_evals=[['session_history.id', 'session_history_metadata.id']],
+                                          join_types=['JOIN',
+                                                      'JOIN',
+                                                      'JOIN'],
+                                          join_tables=['users',
+                                                       'session_history_metadata',
+                                                       'session_history_media_info'],
+                                          join_evals=[['session_history.user_id', 'users.user_id'],
+                                                      ['session_history.id', 'session_history_metadata.id'],
+                                                      ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
         except:
             logger.warn("Unable to execute database query.")
@@ -111,11 +144,16 @@ class Users(object):
 
         rows = []
         for item in results:
-            row = {"last_seen": item['last_seen'],
+            row = {"id": item['id'],
+                   "last_seen": item['last_seen'],
                    "ip_address": item['ip_address'],
                    "play_count": item['play_count'],
                    "platform": item['platform'],
-                   "last_watched": item['last_watched']
+                   "last_watched": item['last_watched'],
+                   "media_type": item['media_type'],
+                   "rating_key": item['rating_key'],
+                   "video_decision": item['video_decision'],
+                   "friendly_name": item['friendly_name']
                    }
 
             rows.append(row)

@@ -24,13 +24,11 @@ user_ip_table_options = {
             },
             "searchable": false,
             "width": "15%",
-            "className": "no-wrap"
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [1],
-            "data":"ip_address",
-            "width": "15%",
-            "className": "modal-control no-wrap",
+            "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
                     if (isPrivateIP(cellData)) {
@@ -46,31 +44,59 @@ user_ip_table_options = {
                     $(td).html('n/a');
                 }
             },
-            "width": "15%"
+            "width": "15%",
+            "className": "no-wrap modal-control-ip"
         },
         {
             "targets": [2],
-            "data":"play_count",
-            "width": "10%",
-            "className": "hidden-xs"
+            "data":"platform",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData) {
+                    $(td).html('<a href="#" data-target="#info-modal" data-toggle="modal"><i class="fa fa-lg fa-info-circle"></i>&nbsp' + cellData + '</a>');
+                } else {
+                    $(td).html('n/a');
+                }
+            },
+            "width": "15%",
+            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
         },
         {
             "targets": [3],
-            "data":"platform",
-            "width": "15%",
-            "className": "hidden-xs"
+            "data":"last_watched",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    if (rowData['media_type'] === 'movie' || rowData['media_type'] === 'episode') {
+                        var transcode_dec = '';
+                        if (rowData['video_decision'] === 'transcode') {
+                            transcode_dec = '<i class="fa fa-server"></i>&nbsp';
+                        }
+                        $(td).html('<div><div style="float: left;"><a href="info?source=history&item_id=' + rowData['id'] + '">' + cellData + '</a></div><div style="float: right; text-align: right; padding-right: 5px;">' + transcode_dec + '<i class="fa fa-video-camera"></i></div></div>');
+                    } else if (rowData['media_type'] === 'track') {
+                        $(td).html('<div><div style="float: left;">' + cellData + '</div><div style="float: right; text-align: right; padding-right: 5px;"><i class="fa fa-music"></i></div></div>');
+                    } else if (rowData['media_type']) {
+                        $(td).html('<a href="info?item_id=' + rowData['id'] + '">' + cellData + '</a>');
+                    } else {
+                        $(td).html('n/a');
+                    }
+                }
+            },
+            "className": "hidden-sm hidden-xs"
         },
         {
             "targets": [4],
-            "data":"last_watched",
-            "width": "30%",
-            "className": "hidden-sm hidden-xs"
-        }
+            "data":"play_count",
+            "searchable": false,
+            "width": "10%"
+            }
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
         // $('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
+        // Create the tooltips.
+        $('.info-modal').each(function () {
+            $(this).tooltip();
+        });
     },
     "preDrawCallback": function(settings) {
         var msg = "<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...</div>";
@@ -83,6 +109,25 @@ $('#user_ip_table').on('mouseenter', 'td.modal-control span', function () {
 });
 
 $('#user_ip_table').on('click', 'td.modal-control', function () {
+    var tr = $(this).parents('tr');
+    var row = user_ip_table.row(tr);
+    var rowData = row.data();
+
+    function showStreamDetails() {
+        $.ajax({
+            url: 'get_stream_data',
+            data: { row_id: rowData['id'], user: rowData['friendly_name'] },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#info-modal").html(xhr.responseText);
+            }
+        });
+    }
+    showStreamDetails();
+});
+
+$('#user_ip_table').on('click', 'td.modal-control-ip', function () {
     var tr = $(this).parents('tr');
     var row = user_ip_table.row( tr );
     var rowData = row.data();
