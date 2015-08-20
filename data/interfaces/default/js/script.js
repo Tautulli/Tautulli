@@ -251,6 +251,9 @@ function humanTime(seconds) {
     } else if (seconds >= 60) {
         text = '<h3>' + Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
         return text;
+    } else {
+        text = '<h3>0</h3><p> mins</p>';
+        return text;
     }
 }
 
