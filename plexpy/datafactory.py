@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -36,6 +36,9 @@ class DataFactory(object):
                    'session_history.player',
                    'session_history.ip_address',
                    'session_history_metadata.full_title as full_title',
+                   'session_history_metadata.thumb',
+                   'session_history_metadata.parent_thumb',
+                   'session_history_metadata.grandparent_thumb',
                    'session_history.started',
                    'session_history.paused_counter',
                    'session_history.stopped',
@@ -81,12 +84,20 @@ class DataFactory(object):
 
         rows = []
         for item in history:
+            if item["media_type"] == 'episode' and item["parent_thumb"]:
+                thumb = item["parent_thumb"]
+            elif item["media_type"] == 'episode':
+                thumb = item["grandparent_thumb"]
+            else:
+                thumb = item["thumb"]
+
             row = {"id": item['id'],
                    "date": item['date'],
                    "friendly_name": item['friendly_name'],
                    "player": item["player"],
                    "ip_address": item["ip_address"],
                    "full_title": item["full_title"],
+                   "thumb": thumb,
                    "started": item["started"],
                    "paused_counter": item["paused_counter"],
                    "stopped": item["stopped"],
@@ -411,7 +422,6 @@ class DataFactory(object):
         else:
             return None
 
-        print result
         stream_output = {}
 
         for item in result:
@@ -512,13 +522,15 @@ class DataFactory(object):
 
         metadata = {}
         for item in result:
-            directors = item['directors'].split(';')
-            writers = item['writers'].split(';')
-            actors = item['actors'].split(';')
-            genres = item['genres'].split(';')
+            directors = item['directors'].split(';') if item['directors'] else []
+            writers = item['writers'].split(';') if item['writers'] else []
+            actors = item['actors'].split(';') if item['actors'] else []
+            genres = item['genres'].split(';') if item['genres'] else []
 
             metadata = {'type': item['media_type'],
                         'rating_key': item['rating_key'],
+                        'parent_rating_key': item['parent_rating_key'],
+                        'grandparent_rating_key': item['grandparent_rating_key'],
                         'grandparent_title': item['grandparent_title'],
                         'parent_index': item['parent_media_index'],
                         'parent_title': item['parent_title'],
