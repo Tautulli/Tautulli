@@ -54,10 +54,18 @@ DOCUMENTATION :: END
                         <div class="row">
                             <div class="col-md-9">
                                 <div class="summary-content-poster hidden-xs hidden-sm">
-                                    % if data['type'] == 'episode' and data['parent_thumb']:
-                                    <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster);"></div>
-                                    % elif data['type'] == 'episode':
-                                    <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
+                                    % if data['type'] == 'episode':
+                                    <a href="info?item_id=${data['parent_rating_key']}">
+                                        % if data['parent_thumb']:
+                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster);"></div>
+                                        % else:
+                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
+                                        %endif
+                                    </a>
+                                    % elif data['type'] == 'season':
+                                    <a href="info?item_id=${data['parent_rating_key']}">
+                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
+                                    </a>
                                     % else:
                                     <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
                                     % endif
@@ -67,10 +75,10 @@ DOCUMENTATION :: END
                                         % if data['type'] == 'movie':
                                         <h1>${data['title']}</h1>
                                         % elif data['type'] == 'season':
-                                        <h1>${data['parent_title']} (${data['title']})</h1>
+                                        <h1><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a> (${data['title']})</h1>
                                         % elif data['type'] == 'episode':
-                                        <h1>${data['grandparent_title']} - ${data['title']} 
-                                            (Season ${data['parent_index']}, Episode ${data['index']})</h1>
+                                        <h1><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a> - ${data['title']} 
+                                            (<a href="info?item_id=${data['parent_rating_key']}">Season ${data['parent_index']}</a>, Episode ${data['index']})</h1>
                                         % else:
                                         <h1>${data['title']}</h1>
                                         % endif
@@ -115,20 +123,6 @@ DOCUMENTATION :: END
                             </div>
                             <div class="col-md-3">
                                 <div class="summary-content-people-wrapper hidden-xs hidden-sm">
-                                    % if (data['type'] == 'movie' or data['type'] == 'show') and data['genres']:
-                                    <div class="summary-content-genres">
-                                        <strong>Genres</strong>
-                                        <ul>
-                                            % for genre in data['genres']:
-                                            % if loop.index < 5:
-                                            <li>
-                                                ${genre}
-                                            </li>
-                                            % endif
-                                            % endfor
-                                        </ul>
-                                    </div>
-                                    % endif
                                     % if (data['type'] == 'episode' or data['type'] == 'movie') and data['writers']:
                                     <div class="summary-content-writers">
                                         <strong>Written by</strong>
@@ -151,6 +145,22 @@ DOCUMENTATION :: END
                                             % if loop.index < 5:
                                             <li>
                                                 ${actor}
+                                            </li>
+                                            % endif
+                                            % endfor
+                                        </ul>
+                                    </div>
+                                    % endif
+                                </div>
+                                <div class="summary-content-people-wrapper hidden-xs hidden-sm">
+                                    % if (data['type'] == 'movie' or data['type'] == 'show') and data['genres']:
+                                    <div class="summary-content-genres">
+                                        <strong>Genres</strong>
+                                        <ul>
+                                            % for genre in data['genres']:
+                                            % if loop.index < 5:
+                                            <li>
+                                                ${genre}
                                             </li>
                                             % endif
                                             % endfor
