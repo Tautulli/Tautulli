@@ -92,7 +92,12 @@ history_table_options = {
             "data":"player",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="#" data-target="#info-modal" data-toggle="modal"><i class="fa fa-lg fa-info-circle"></i>&nbsp' + cellData + '</a>');
+                    var transcode_dec = '';
+                    if (rowData['video_decision'] === 'transcode') {
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server"></i></span>&nbsp';
+                    }
+                    $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;"><i class="fa fa-lg fa-info-circle"></i>&nbsp' + cellData + '</div> \
+                        <div style="float: right; text-align: right; padding-right: 5px;">' + transcode_dec + '</div></a></div>');
                 }
             },
             "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
@@ -103,13 +108,12 @@ history_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['media_type'] === 'movie' || rowData['media_type'] === 'episode') {
-                        var transcode_dec = '';
-                        if (rowData['video_decision'] === 'transcode') {
-                            transcode_dec = '<i class="fa fa-server"></i>&nbsp';
-                        }
-                        $(td).html('<div><div style="float: left;"><a href="info?source=history&item_id=' + rowData['id'] + '">' + cellData + '</a></div><div style="float: right; text-align: right; padding-right: 5px;">' + transcode_dec + '<i class="fa fa-video-camera"></i></div></div>');
+                        var media_type = rowData['media_type'][0].toUpperCase() + rowData['media_type'].substring(1);
+                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;" class="thumb-tooltip" data-toggle="tooltip" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=80&height=120&fallback=poster">' + cellData + '</div> \
+                            <div style="float: right; text-align: right; padding-right: 5px;"><span class="media-type-tooltip" data-toggle="tooltip" title="' + media_type + '"><i class="fa fa-video-camera"></i></span></div></a></div>');
                     } else if (rowData['media_type'] === 'track') {
-                        $(td).html('<div><div style="float: left;">' + cellData + '</div><div style="float: right; text-align: right; padding-right: 5px;"><i class="fa fa-music"></i></div></div>');
+                        $(td).html('<div class="history-title"><div style="float: left;" class="thumb-tooltip" data-toggle="tooltip" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=80&height=120&fallback=poster">' + cellData + '</div> \
+                            <div style="float: right; text-align: right; padding-right: 5px;"><span class="media-type-tooltip" data-toggle="tooltip" title="' + media_type + '"><i class="fa fa-music"></i></span></div></div>');
                     } else {
                         $(td).html('<a href="info?item_id=' + rowData['id'] + '">' + cellData + '</a>');
                     }
@@ -190,10 +194,19 @@ history_table_options = {
         // Jump to top of page
         // $('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
+
         // Create the tooltips.
-        $('.info-modal').each(function() {
-            $(this).tooltip();
+        $('.transcode-tooltip').tooltip();
+        $('.media-type-tooltip').tooltip();
+        $('.thumb-tooltip').popover({
+            html: true,
+            trigger: 'hover',
+            placement: 'right',
+            content: function () {
+                return '<div style="background-image: url(' + $(this).data('img') + '); width: 80px; height: 120px;" />';
+            }
         });
+
         if ($('#row-edit-mode').hasClass('active')) {
             $('.delete-control').each(function() {
                 $(this).removeClass('hidden');
