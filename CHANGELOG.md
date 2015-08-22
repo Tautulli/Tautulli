@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.1.3 (2015-08-22)
+
+* Show human readable version info and this cool changelog in Settings -> General.
+* Add a "delete" mode to the history tables. Toggle it to show a delete button next to each history item.
+* Two digit season and episode numbers for custom notification messages. Thanks @JohnnyWong.
+* New FreeNAS init script. Thanks @JohnnyWong.
+* Lots of styling improvements! Thanks @JohnnyWong.
+* Graph page remembers last selected options. Thanks @JohnnyWong.
+* New Popular movie homepage stats. Thanks @JohnnyWong.
+* Add option for duration vs play count on home stats. (Settings -> Extra Settings). Thanks @JohnnyWong.
+* Clean up media info pages. Don't show metadata that is missing. Thanks @JohnnyWong.
+* Add clear button to search inputs. Thanks @JohnnyWong.
+* New columns on Users list. Thanks @JohnnyWong.
+* New stream duration option for custom notification messages. Thanks @JohnnyWong.
+* Rad new tooltips on the history pages. Thanks @JohnnyWong.
+* And a lot of small visual changes and fixes. Thanks @JohnnyWong.
+* Fixed IP address modal on user history page.
+* Fixed "invalid date" showing on monthly plays graph.
+
 ## v1.1.2 (2015-08-16)
 
 * Fix bug where user refresh would fail under certain circumstances.
