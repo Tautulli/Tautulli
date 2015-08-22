@@ -300,7 +300,11 @@ def build_notify_text(session, state):
 
     duration = helpers.convert_milliseconds_to_minutes(item_metadata['duration'])
     view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
-    stream_duration = 0 if state == 'play' else int((time.time() - helpers.cast_to_float(session['started']) - helpers.cast_to_float(session['paused_counter'])) / 60)
+    if session['paused_counter']:
+        stream_duration = int((time.time() - helpers.cast_to_float(session['started']) -
+                               helpers.cast_to_float(session['paused_counter'])) / 60)
+    else:
+        stream_duration = int((time.time() - helpers.cast_to_float(session['started'])) / 60)
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
