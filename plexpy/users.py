@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ class Users(object):
 
         columns = ['session_history.id',
                    'users.user_id as user_id',
-                   'users.custom_avatar_url as thumb',
+                   'users.custom_avatar_url as user_thumb',
                    '(case when users.friendly_name is null then users.username else \
                     users.friendly_name end) as friendly_name',
                    'MAX(session_history.started) as last_seen',
@@ -34,6 +34,9 @@ class Users(object):
                    'COUNT(session_history.id) as plays',
                    'session_history.player as platform',
                    'session_history_metadata.full_title as last_watched',
+                   'session_history_metadata.thumb',
+                   'session_history_metadata.parent_thumb',
+                   'session_history_metadata.grandparent_thumb',
                    'session_history_metadata.media_type',
                    'session_history.rating_key as rating_key',
                    'session_history_media_info.video_decision',
@@ -66,10 +69,17 @@ class Users(object):
 
         rows = []
         for item in users:
-            if not item['thumb'] or item['thumb'] == '':
+            if item["media_type"] == 'episode' and item["parent_thumb"]:
+                thumb = item["parent_thumb"]
+            elif item["media_type"] == 'episode':
+                thumb = item["grandparent_thumb"]
+            else:
+                thumb = item["thumb"]
+
+            if not item['user_thumb'] or item['user_thumb'] == '':
                 user_thumb = common.DEFAULT_USER_THUMB
             else:
-                user_thumb = item['thumb']
+                user_thumb = item['user_thumb']
 
             row = {"id": item['id'],
                    "plays": item['plays'],
@@ -78,10 +88,11 @@ class Users(object):
                    "ip_address": item['ip_address'],
                    "platform": item['platform'],
                    "last_watched": item['last_watched'],
+                   "thumb": thumb,
                    "media_type": item['media_type'],
                    "rating_key": item['rating_key'],
                    "video_decision": item['video_decision'],
-                   "thumb": user_thumb,
+                   "user_thumb": user_thumb,
                    "user": item["user"],
                    "user_id": item['user_id']
                    }
@@ -108,6 +119,9 @@ class Users(object):
                    'COUNT(session_history.id) as play_count',
                    'session_history.player as platform',
                    'session_history_metadata.full_title as last_watched',
+                   'session_history_metadata.thumb',
+                   'session_history_metadata.parent_thumb',
+                   'session_history_metadata.grandparent_thumb',
                    'session_history_metadata.media_type',
                    'session_history.rating_key as rating_key',
                    'session_history_media_info.video_decision',
@@ -144,12 +158,20 @@ class Users(object):
 
         rows = []
         for item in results:
+            if item["media_type"] == 'episode' and item["parent_thumb"]:
+                thumb = item["parent_thumb"]
+            elif item["media_type"] == 'episode':
+                thumb = item["grandparent_thumb"]
+            else:
+                thumb = item["thumb"]
+
             row = {"id": item['id'],
                    "last_seen": item['last_seen'],
                    "ip_address": item['ip_address'],
                    "play_count": item['play_count'],
                    "platform": item['platform'],
                    "last_watched": item['last_watched'],
+                   "thumb": thumb,
                    "media_type": item['media_type'],
                    "rating_key": item['rating_key'],
                    "video_decision": item['video_decision'],

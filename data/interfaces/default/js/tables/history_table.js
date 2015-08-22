@@ -34,6 +34,7 @@ history_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 $(td).html('<button class="btn btn-xs btn-danger" data-id="' + rowData['id'] + '"><i class="fa fa-trash-o"></i> Delete</button>');
             },
+            "width": "5%",
             "className": "delete-control no-wrap hidden",
             "searchable": false,
             "orderable": false
@@ -49,6 +50,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
+            "width": "8%",
             "className": "no-wrap"
         },
         {
@@ -65,6 +67,7 @@ history_table_options = {
                     $(td).html(cellData);
                 }
             },
+            "width": "8%",
             "className": "no-wrap hidden-xs"
         },
         {
@@ -85,6 +88,7 @@ history_table_options = {
                     $(td).html('n/a');
                 }
             },
+            "width": "8%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control-ip"
         },
         {
@@ -92,9 +96,18 @@ history_table_options = {
             "data":"player",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<a href="#" data-target="#info-modal" data-toggle="modal"><i class="fa fa-lg fa-info-circle"></i>&nbsp' + cellData + '</a>');
+                    var transcode_dec = '';
+                    if (rowData['video_decision'] === 'transcode') {
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server fa-fw"></i></span>&nbsp';
+                    } else if (rowData['video_decision'] === 'copy') {
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Stream"><i class="fa fa-video-camera fa-fw"></i></span>&nbsp';
+                    } else if (rowData['video_decision'] === 'direct play' || rowData['video_decision'] === '') {
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>&nbsp';
+                    }
+                    $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp' + cellData + '</div></a></div>');
                 }
             },
+            "width": "15%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
         },
         {
@@ -102,19 +115,27 @@ history_table_options = {
             "data":"full_title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    if (rowData['media_type'] === 'movie' || rowData['media_type'] === 'episode') {
-                        var transcode_dec = '';
-                        if (rowData['video_decision'] === 'transcode') {
-                            transcode_dec = '<i class="fa fa-server"></i>&nbsp';
-                        }
-                        $(td).html('<div><div style="float: left;"><a href="info?source=history&item_id=' + rowData['id'] + '">' + cellData + '</a></div><div style="float: right; text-align: right; padding-right: 5px;">' + transcode_dec + '<i class="fa fa-video-camera"></i></div></div>');
+                    var media_type = '';
+                    var thumb_popover = '';
+                    if (rowData['media_type'] === 'movie') {
+                        media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Movie"><i class="fa fa-film fa-fw"></i></span>';
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=80&height=120&fallback=poster" data-height="120">' + cellData + ' (' + rowData['year'] + ')</span>'
+                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
+                    } else if (rowData['media_type'] === 'episode') {
+                        media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>';
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=80&height=120&fallback=poster" data-height="120">' + cellData + ' \
+                            (S' + ('00' + rowData['parent_media_index']).slice(-2) + 'E' + ('00' + rowData['media_index']).slice(-2) + ')</span>'
+                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;" >' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'track') {
-                        $(td).html('<div><div style="float: left;">' + cellData + '</div><div style="float: right; text-align: right; padding-right: 5px;"><i class="fa fa-music"></i></div></div>');
+                        media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=80&height=80&fallback=poster" data-height="80">' + cellData + ' (' + rowData['parent_title'] + ')</span>'
+                        $(td).html('<div class="history-title"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></div>');
                     } else {
                         $(td).html('<a href="info?item_id=' + rowData['id'] + '">' + cellData + '</a>');
                     }
                 }
-            }
+            },
+            "width": "35%"
         },
         {
             "targets": [6],
@@ -127,6 +148,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
+            "width": "5%",
             "className": "no-wrap hidden-sm hidden-xs"
         },
         {
@@ -140,6 +162,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
+            "width": "5%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs"
         },
         {
@@ -153,6 +176,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
+            "width": "5%",
             "className": "no-wrap hidden-sm hidden-xs"
         },
         {
@@ -166,6 +190,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
+            "width": "5%",
             "className": "no-wrap hidden-xs"
         },
         {
@@ -173,27 +198,37 @@ history_table_options = {
             "data":"percent_complete",
             "render": function ( data, type, full ) {
                 if (data > 80) {
-                    return '<i class="fa fa-lg fa-circle"></i>'
+                    return '<span class="watched-tooltip" data-toggle="tooltip" title="Watched"><i class="fa fa-lg fa-circle"></i></span>'
                 } else if (data > 40) {
-                    return '<i class="fa fa-lg fa-adjust fa-rotate-180"></i>'
+                    return '<span class="watched-tooltip" data-toggle="tooltip" title="Partial"><i class="fa fa-lg fa-adjust fa-rotate-180"></i></span>'
                 } else {
-                    return '<i class="fa fa-lg fa-circle-o"></i>'
+                    return '<span class="watched-tooltip" data-toggle="tooltip" title="Unwatched"><i class="fa fa-lg fa-circle-o"></i></span>'
                 }
             },
             "searchable": false,
             "orderable": false,
             "className": "no-wrap hidden-md hidden-sm hidden-xs",
-            "width": "10px"
+            "width": "1%"
         },
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
         // $('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
+
         // Create the tooltips.
-        $('.info-modal').each(function() {
-            $(this).tooltip();
+        $('.transcode-tooltip').tooltip();
+        $('.media-type-tooltip').tooltip();
+        $('.watched-tooltip').tooltip();
+        $('.thumb-tooltip').popover({
+            html: true,
+            trigger: 'hover',
+            placement: 'right',
+            content: function () {
+                return '<div style="background-image: url(' + $(this).data('img') + '); width: 80px; height: ' + $(this).data('height') + 'px;" />';
+            }
         });
+
         if ($('#row-edit-mode').hasClass('active')) {
             $('.delete-control').each(function() {
                 $(this).removeClass('hidden');

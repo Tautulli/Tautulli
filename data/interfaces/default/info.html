@@ -174,7 +174,9 @@ DOCUMENTATION :: END
                 <div class="header-bar">
                     <span>Watch History for <strong>${data['title']}</strong></span>
                 </div>
-                <div class="colvis-button-bar hidden-xs">
+                <div class="button-bar">
+                    <button class="btn btn-danger" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode"><i class="fa fa-trash-o"></i> Delete mode</button>&nbsp
+                    <div class="colvis-button-bar hidden-xs"></div>
                 </div>
             </div>
             <div class="table-card-back">
@@ -184,8 +186,8 @@ DOCUMENTATION :: END
                         <th align='left' id="delete">Delete</th>
                         <th align='left' id="time">Time</th>
                         <th align='left' id="friendly_name">User</th>
-                        <th align='left' id="platform">Platform</th>
                         <th align='left' id="ip_address">IP Address</th>
+                        <th align='left' id="platform">Platform</th>
                         <th align='left' id="title">Title</th>
                         <th align='left' id="started">Started</th>
                         <th align='left' id="paused_counter">Paused</th>
@@ -236,7 +238,6 @@ DOCUMENTATION :: END
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/jquery.rateit.min.js"></script>
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/jquery-ui.min.js"></script>
 <script src="interfaces/default/js/dataTables.colVis.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
@@ -269,6 +270,18 @@ DOCUMENTATION :: END
         $(colvis.button()).appendTo('div.colvis-button-bar');
         
         clearSearchButton('history_table', history_table);
+
+        $('#row-edit-mode').click(function() {
+            if ($(this).hasClass('active')) {
+                $('.delete-control').each(function() {
+                    $(this).addClass('hidden');
+                });
+            } else {
+                $('.delete-control').each(function() {
+                    $(this).removeClass('hidden');
+                });
+            }
+        });
     });
 </script>
 % elif data['type'] == 'show':
@@ -289,6 +302,18 @@ DOCUMENTATION :: END
         $(colvis.button()).appendTo('div.colvis-button-bar');
 
         clearSearchButton('history_table', history_table);
+
+        $('#row-edit-mode').click(function() {
+            if ($(this).hasClass('active')) {
+                $('.delete-control').each(function() {
+                    $(this).addClass('hidden');
+                });
+            } else {
+                $('.delete-control').each(function() {
+                    $(this).removeClass('hidden');
+                });
+            }
+        });
     });
 </script>
 % endif

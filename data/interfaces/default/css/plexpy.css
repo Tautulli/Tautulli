@@ -1646,6 +1646,30 @@ input[type="color"],
     width: 250px;
     z-index: 9999;
 }
+.tooltip.top .tooltip-arrow {
+    border-top-color: #fff;
+}
+.tooltip.right .tooltip-arrow {
+    border-right-color: #fff;
+}
+.tooltip.bottom .tooltip-arrow {
+    border-bottom-color: #fff;
+}
+.tooltip.left .tooltip-arrow {
+    border-left-color: #fff;
+}
+.tooltip-inner {
+    color: #000;
+    background: #fff;
+    border: 0;
+    font-weight: bold;
+}
+.history-title .popover.right {
+    margin-left: 12px;
+}
+.history-title .popover.right .popover-content {
+    padding: 5px 8px;
+}
 #updatebar {
     background-color: #444;
     color: #999999;
