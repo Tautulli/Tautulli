@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -334,6 +334,8 @@ class PmsConnect(object):
         elif metadata_type == 'episode':
             metadata = {'type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
+                        'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
+                        'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
@@ -394,6 +396,7 @@ class PmsConnect(object):
             show_details = self.get_metadata_details(parent_rating_key)
             metadata = {'type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
+                        'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
