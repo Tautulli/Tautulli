@@ -342,8 +342,8 @@ DOCUMENTATION :: END
 </script>
 % endif
 <script>
-    $("#airdate").html(moment($("#airdate")).format('MMM DD, YYYY'));
-    $("#runtime").html(millisecondsToMinutes($("#runtime").html(), true));
+    $("#airdate").html(moment($("#airdate").text()).format('MMM DD, YYYY'));
+    $("#runtime").html(millisecondsToMinutes($("#runtime").text(), true));
 </script>
 % endif
 </%def>
