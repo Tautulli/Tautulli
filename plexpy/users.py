@@ -40,7 +40,9 @@ class Users(object):
                    'session_history_metadata.media_type',
                    'session_history.rating_key as rating_key',
                    'session_history_media_info.video_decision',
-                   'users.username as user'
+                   'users.username as user',
+                   'users.do_notify as do_notify',
+                   'users.keep_history as keep_history'
                    ]
         try:
             query = data_tables.ssp_query(table_name='users',
@@ -94,7 +96,9 @@ class Users(object):
                    "video_decision": item['video_decision'],
                    "user_thumb": user_thumb,
                    "user": item["user"],
-                   "user_id": item['user_id']
+                   "user_id": item['user_id'],
+                   "do_notify": helpers.checked(item['do_notify']),
+                   "keep_history": helpers.checked(item['keep_history'])
                    }
 
             rows.append(row)
