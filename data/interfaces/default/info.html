@@ -57,17 +57,17 @@ DOCUMENTATION :: END
                                     % if data['type'] == 'episode':
                                     <a href="info?item_id=${data['parent_rating_key']}">
                                         % if data['parent_thumb']:
-                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster);"></div>
+                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=150&height=225&fallback=poster);"></div>
                                         % else:
-                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
+                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=150&height=225&fallback=poster);"></div>
                                         %endif
                                     </a>
                                     % elif data['type'] == 'season':
                                     <a href="info?item_id=${data['parent_rating_key']}">
-                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
+                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=150&height=225&fallback=poster);"></div>
                                     </a>
                                     % else:
-                                    <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
+                                    <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=150&height=225&fallback=poster);"></div>
                                     % endif
                                 </div>
                                 <div class="summary-content">
