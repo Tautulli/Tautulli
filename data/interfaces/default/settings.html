@@ -767,12 +767,16 @@ available_notification_agents = notifiers.available_notification_agents()
                         <table>
                             <tbody>
                             <tr>
+                                <td width="150"><strong>{server_name}</strong></td>
+                                <td>The name of your Plex Server.</td>
+                            </tr>
+                            <tr>
                                 <td width="150"><strong>{user}</strong></td>
                                 <td>The username of the person streaming.</td>
                             </tr>
                             <tr>
-                                <td width="150"><strong>{server_name}</strong></td>
-                                <td>The name of your Plex Server.</td>
+                                <td width="150"><strong>{ip_address}</strong></td>
+                                <td>The IP address of the person streaming.</td>
                             </tr>
                             <tr>
                                 <td width="150"><strong>{player}</strong></td>
@@ -781,6 +785,10 @@ available_notification_agents = notifiers.available_notification_agents()
                             <tr>
                                 <td width="150"><strong>{platform}</strong></td>
                                 <td>The type of client being used for playback.</td>
+                            </tr>
+                            <tr>
+                                <td width="150"><strong>{transcode_decision}</strong></td>
+                                <td>The transcode decisions for the media item.</td>
                             </tr>
                             <tr>
                                 <td width="150"><strong>{title}</strong></td>
@@ -797,10 +805,6 @@ available_notification_agents = notifiers.available_notification_agents()
                             <tr>
                                 <td width="150"><strong>{album_name}</strong></td>
                                 <td>The title of the album being played back if item is track.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{transcode_decision}</strong></td>
-                                <td>The transcode decisions for the media item.</td>
                             </tr>
                             <tr>
                                 <td width="150"><strong>{year}</strong></td>
