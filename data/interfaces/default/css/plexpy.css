@@ -418,6 +418,7 @@ input[type="color"],
     webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
 }
 .cover-face {
     background-position: center;
@@ -826,8 +827,6 @@ input[type="color"],
     -ms-backface-visibility: hidden;
     -o-backface-visibility: hidden;
     backface-visibility: hidden;
-    width: auto;
-    height: 260px;
     border: 1px solid rgba(128, 128, 128, 0.3);
 }
 .summary-content {
@@ -1683,6 +1682,26 @@ input[type="color"],
 }
 .history-title .popover.right .popover-content {
     padding: 5px 8px;
+}
+.edit-user-toggles {
+    padding-right: 10px;
+}
+.edit-user-toggles > input[type='checkbox'] {
+    display: none;
+}
+.edit-user-toggles > input[type='checkbox'] + label {
+    color: #444;
+    cursor: pointer;
+}
+.edit-user-toggles > input[type='checkbox']:checked + label {
+    color: #fff;
+    cursor: pointer;
+}
+.popover .popover-content {
+    color: #000;
+}
+#users-to-delete > li {
+    color: #e9a049;
 }
 #updatebar {
     background-color: #444;
