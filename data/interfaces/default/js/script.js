@@ -360,3 +360,32 @@ function clearSearchButton(tableName, table) {
         table.search('').draw();
     });
 }
+
+function HCTest(idval) {
+    var objDiv, objImage, strColor, strWidth, strReady;
+    var strImageID = idval; // ID of image on the page
+
+    // Create a test div
+    objDiv = document.createElement('div');
+
+    //Set its color style to something unusual
+    objDiv.style.color = 'rgb(31, 41, 59)';
+
+    // Attach to body so we can inspect it
+    document.body.appendChild(objDiv);
+
+    // Read computed color value
+    strColor = document.defaultView ? document.defaultView.getComputedStyle(objDiv, null).color : objDiv.currentStyle.color;
+    strColor = strColor.replace(/ /g, '');
+
+    // Delete the test DIV
+    document.body.removeChild(objDiv);
+
+    // Check if we get the color back that we set. If not, we're in 
+    // high contrast mode. 
+    if (strColor !== 'rgb(31,41,59)') {
+        return true;
+    } else {
+        return false;
+    }
+}

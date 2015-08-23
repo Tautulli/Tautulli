@@ -37,6 +37,16 @@ DOCUMENTATION :: END
     $("#user-platform-image-${a['result_id']}").html("<div class='user-platforms-instance-poster' style='background-image: url(" + getPlatformImagePath('${a['platform_type']}') + ");'>");
 </script>
 % endfor
+<script>
+    $(function () {
+        if (HCTest() == true) {
+            $('.user-platforms-instance-poster').each(function () {
+                background_img = $(this).attr('style').split('(')[1].split(')')[0];
+                $(this).html('<img src="' + background_img + '" width="80" height="80"/>');
+            })
+        }
+    })
+</script>
 % else:
 <div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
 </div><br>

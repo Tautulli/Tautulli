@@ -345,5 +345,15 @@ DOCUMENTATION :: END
     $("#airdate").html(moment($("#airdate").text()).format('MMM DD, YYYY'));
     $("#runtime").html(millisecondsToMinutes($("#runtime").text(), true));
 </script>
+<script>
+    $(function () {
+        if (HCTest() == true) {
+            $('.poster-face').each(function () {
+                background_img = $(this).attr('style').split('(')[1].split(')')[0];
+                $(this).html('<img src="' + background_img + '" width="150" height="225"/>');
+            })
+        }
+    })
+</script>
 % endif
 </%def>
