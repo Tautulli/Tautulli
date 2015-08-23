@@ -32,7 +32,7 @@ history_table_options = {
             "targets": [0],
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
-                $(td).html('<button class="btn btn-xs btn-danger" data-id="' + rowData['id'] + '"><i class="fa fa-trash-o"></i> Delete</button>');
+                $(td).html('<button class="btn btn-xs btn-warning" data-id="' + rowData['id'] + '"><i class="fa fa-trash-o fa-fw"></i> Delete</button>');
             },
             "width": "5%",
             "className": "delete-control no-wrap hidden",
@@ -98,11 +98,11 @@ history_table_options = {
                 if (cellData !== '') {
                     var transcode_dec = '';
                     if (rowData['video_decision'] === 'transcode') {
-                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server fa-fw"></i></span>&nbsp';
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server fa-fw"></i></span>';
                     } else if (rowData['video_decision'] === 'copy') {
-                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Stream"><i class="fa fa-video-camera fa-fw"></i></span>&nbsp';
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Stream"><i class="fa fa-video-camera fa-fw"></i></span>';
                     } else if (rowData['video_decision'] === 'direct play' || rowData['video_decision'] === '') {
-                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>&nbsp';
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>';
                     }
                     $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp' + cellData + '</div></a></div>');
                 }
@@ -287,16 +287,9 @@ $('#history_table').on('click', 'td.delete-control > button', function () {
     var row = history_table.row( tr );
     var rowData = row.data();
 
-    $(this).prop('disabled', true);
-    $(this).html('<i class="fa fa-spin fa-refresh"></i> Delete');
-
-    $.ajax({
-        url: 'delete_history_rows',
-        data: {row_id: rowData['id']},
-        async: true,
-        success: function(data) {
-            history_table.ajax.reload(null, false);
-        }
-    });
-
+    if ($(this).hasClass('active')) {
+        $(this).toggleClass('btn-warning').toggleClass('btn-danger');
+    } else {
+        $(this).toggleClass('btn-danger').toggleClass('btn-warning');
+    }
 });

@@ -271,7 +271,6 @@ $('#users_list_table').on('click', 'td.edit-control > .edit-user-toggles > butto
     var row = users_list_table.row(tr);
     var rowData = row.data();
 
-    //$(this).prop('disabled', true);
     if ($(this).hasClass('active')) {
         $(this).toggleClass('btn-warning').toggleClass('btn-danger');
     } else {
