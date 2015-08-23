@@ -74,6 +74,24 @@ DOCUMENTATION :: END
         </div>
     </div>
 </div>
+<div id="confirm-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title" id="myModalLabel">Confirm Purge</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p>Are you REALLY sure you want to purge all history for this user?</p>
+                <p>This is permanent and cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-purge">Purge</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     // Set new friendly name
     $("#save_user_name").click(function() {
@@ -119,9 +137,9 @@ DOCUMENTATION :: END
         % endif
     });
 
-    $("#delete-all-history").click(function() {
-        var r = confirm("Are you REALLY REALLY REALLY sure you want to delete all history for this user?");
-        if (r == true) {
+    $("#delete-all-history").on('click', function() {
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-purge', function () {
             $.ajax({
                 url: 'delete_all_user_history',
                 data: {user_id: '${data['user_id']}'},
@@ -131,7 +149,34 @@ DOCUMENTATION :: END
                     location.reload();
                 }
             });
-        }
+        });
+    });
+        
+    $(document).ready(function() {
+        // Move #confirm-modal to parent container
+        if(!($('#edit-user-modal').next().is('#confirm-modal'))) {
+            $('#confirm-modal').appendTo($('#edit-user-modal').parent()); }
+        $('#edit-user-modal > #confirm-modal').remove();
+
+        $('#edit-user-modal').css('z-index', '1050');
+        $('.modal-backdrop').not('.modal-backdrop-stack').css('z-index', '1049');
+        $('.modal-backdrop').not('.modal-backdrop-stack').addClass('modal-backdrop-stack');
+
+        $('#confirm-modal').on('show.bs.modal', function () {
+            // Fix position to match parent modal
+            var currentPadding = parseInt($('body').css('padding-right'));
+            $(this).children('.modal-dialog').css('left', -currentPadding/2);
+            $('#edit-user-modal').css('overflow-y', 'hidden');
+        });
+        $('#confirm-modal').on('shown.bs.modal', function () {
+            $(this).css('z-index', '1060');
+            $('.modal-backdrop').not('.modal-backdrop-stack').css('z-index', '1059');
+            $('.modal-backdrop').not('.modal-backdrop-stack').addClass('modal-backdrop-stack'); 
+        });
+        $('#confirm-modal').on('hidden.bs.modal', function() {
+            $('body').addClass('modal-open');
+            $('#edit-user-modal').css('overflow-y', 'auto');
+        });
     });
 </script>
 
