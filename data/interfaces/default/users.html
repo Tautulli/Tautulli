@@ -87,7 +87,7 @@
 
         var users_to_purge = [];
         $('#row-edit-mode').on('click', function () {
-            $(this).parents('span#purge-message').popover('toggle');
+            $('#purge-message').popover();
 
             if ($(this).hasClass('active')) {
                 users_to_purge = [];
@@ -139,6 +139,15 @@
                     $(this).children('input').removeClass('hidden');
                 });
 
+            }
+        });
+
+        $(window).resize(function () {
+            if ($('.popover').popover().is(':visible')) {
+                var popover = $('.popover');
+                popover.addClass("noTransition");
+                $('#purge-message').popover('show');
+                popover.removeClass("noTransition");
             }
         });
     });
