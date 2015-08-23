@@ -58,6 +58,16 @@ DOCUMENTATION :: END
         % endfor
     </ul>
 </div>
+<script>
+    $(function () {
+        if (HCTest() == true) {
+            $('.poster-face').each(function () {
+                background_img = $(this).attr('style').split('(')[1].split(')')[0];
+                $(this).html('<img src="' + background_img + '" width="150" height="225"/>');
+            })
+        }
+    })
+</script>
 % else:
 <div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
 </div><br>

@@ -63,6 +63,20 @@ DOCUMENTATION :: END
         % endfor
     </ul>
 </div>
+<script>
+    $(function () {
+        if (HCTest() == true) {
+            $('#recentlyAdded .poster-face').each(function () {
+                background_img = $(this).attr('style').split('(')[1].split(')')[0];
+                $(this).html('<img src="' + background_img + '" width="150" height="225"/>');
+            })
+            $('#recentlyAdded .cover-face').each(function () {
+                background_img = $(this).attr('style').split('(')[1].split(')')[0];
+                $(this).html('<img src="' + background_img + '" width="150" height="150"/>');
+            })
+        }
+    })
+</script>
 % else:
 <div class="text-muted">There was an error communicating with your Plex Server. Please check your <a href="settings">settings</a>.
 </div><br>

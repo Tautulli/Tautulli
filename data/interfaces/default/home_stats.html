@@ -254,6 +254,20 @@ DOCUMENTATION :: END
 % else:
 <div class="text-muted">No stats for selected period.</div><br>
 % endif
+<script>
+        $(function () {
+            if (HCTest() == true) {
+                $('#home-stats .poster-face').each(function () {
+                    background_img = $(this).attr('style').split('(')[1].split(')')[0];
+                    $(this).html('<img src="' + background_img + '" width="80" height="120"/>');
+                })
+                $('#home-stats .home-platforms-instance-oval, #home-stats .home-platforms-instance-box').each(function () {
+                    background_img = $(this).attr('style').split('(')[1].split(')')[0];
+                    $(this).html('<img src="' + background_img + '" width="80" height="80"/>');
+                })
+            }
+        })
+</script>
 % else:
 <div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
 </div><br>
