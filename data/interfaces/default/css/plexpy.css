@@ -1697,8 +1697,18 @@ input[type="color"],
     color: #fff;
     cursor: pointer;
 }
+.popover {
+    z-index: 2;
+}
 .popover .popover-content {
     color: #000;
+}
+.noTransition
+{
+    -moz-transition: none !important;
+    -webkit-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
 }
 #users-to-delete > li {
     color: #e9a049;
