@@ -1350,40 +1350,27 @@ a .season-episodes-card-overlay:hover {
     list-style: none;
     margin: 0;
 }
-.home-platforms-instance-poster {
-    margin-left: 0px;
+.home-platforms-instance {
+    background-color: #282828;
+    position: relative;
+    float: left;
+    width: 300px;
+    padding: 10px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    webkit-box-sizing: content-box;
+    box-sizing: content-box;
+    z-index: 0;
 }
-.home-platforms-instance-poster .poster-face {
+.home-platforms-instance li {
+    position: relative;
+}
+.home-platforms-instance-info {
+    float: left;
+    position: relative;
+    padding-left: 80px;
+    width: 100%;
     height: 120px;
-    width: 80px;
-}
-.home-platforms-instance-box {
-    background-size: contain;
-    position: absolute;
-    left: 10px;
-    bottom: 35px;
-    height: 80px;
-    width: 80px;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-}
-.home-platforms-instance-oval {
-    background-size: contain;
-    position: absolute;
-    left: 10px;
-    bottom: 35px;
-    height: 80px;
-    width: 80px;
-    -webkit-border-radius: 50%;
-    -moz-border-radius: 50%;
-    border-radius: 50%;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .home-platforms-instance-name {
     float: left;
@@ -1395,64 +1382,214 @@ a .season-episodes-card-overlay:hover {
     line-height: 15px;
     font-weight: bold;
     width: 100%;
-    padding: 10px 0 0 10px;
+    padding: 0 0 0 20px;
+}
+.home-platforms-instance-name h5 {
+    font-size: 16px;
+    margin: 20px 0 2px 0;
 }
 .home-platforms-instance-playcount {
     float: left;
-    width: 180px;
-}
-.home-platforms-instance-mediainfo {
-    float: left;
-    background-color: #282828;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    padding-left: 170px;
-    width: 100%;
-    height: 175px;
-}
-.home-platforms-instance-media {
     position: relative;
-    float: left;
-    width: 375px;
-    height: 225px;
-    padding-bottom: 10px;
-    margin-right: 25px;
-    margin-bottom: 25px;
-    webkit-box-sizing: content-box;
-    box-sizing: content-box;
+    padding: 6px 0 0 20px;
+    width: 100%;
 }
-.home-platforms-instance-info {
-    float: left;
-    background-color: #282828;
-    position: absolute;
+.home-platforms-instance-playcount h3 {
+    font-size: 30px;
+    font-weight: bold;
+    color: #F9AA03;
+    line-height: 22px;
+    position: relative;
     top: 5px;
-    left: 0;
-    padding-left: 100px;
-    width: 100%;
-    height: 120px;
-}
-.home-platforms-instance {
-    background-color: #282828;
-    position: relative;
+    margin: 0 5px 0 0;
     float: left;
-    width: 300px;
+}
+.home-platforms-instance-playcount p {
+    color: #aaa;
+    font-size: 12px;
+    float: left;
+    position: relative;
+    top: 14px;
+    left: 0px;
+    margin-right: 5px;
+}
+.home-platforms-instance-poster {
+    margin-left: 0px;
+    position: absolute;
+}
+.home-platforms-instance-poster .home-platforms-poster-face {
+    background-position: center;
+    background-size: cover;
     height: 120px;
-    padding: 10px;
-    margin-right: 20px;
-    margin-bottom: 20px;
-    webkit-box-sizing: content-box;
-    box-sizing: content-box;
+    width: 80px;
 }
-a .home-platforms-instance-oval:hover {
+.home-platforms-instance-box {
+    background-position: center;
+    background-size: cover;
+    margin: 20px 0 0 0px;
+    height: 80px;
+    width: 80px;
+    position: relative;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+}
+.home-platforms-instance-oval {
+    background-position: center;
+    background-size: cover;
+    margin: 20px 0 0 0px;
+    height: 80px;
+    width: 80px;
+    position: relative;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+}
+.home-platforms-instance-list {
+    float: left;
+    position: relative;
+    width: 100%;
+    padding: 0 10px 20px 10px;
+}
+.home-platforms-instance-list li {
+    margin-top: 25px;
+    position: relative;
+    height: 60px;
+}
+.home-platforms-instance-list-number {
+    background-color: #e9a049;
+    float: left;
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    height: 20px;
+    width: 20px;
+    display: block;
+    text-align: center;
+    padding-top: 1px;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+}
+.home-platforms-instance-list-number h4 {
+    color: #000;
+    font-size: 15px;
+    font-weight: bold;
+    margin: 0;
+}
+.home-platforms-instance-list-info {
+    float: left;
+    position: relative;
+    padding-left: 75px;
+    width: 100%;
+    height: 60px;
+}
+.home-platforms-instance-list-name {
+    float: left;
+    color: #fff;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    position: relative;
+    font-size: 13px;
+    line-height: 15px;
+    font-weight: bold;
+    width: 100%;
+    padding: 2px 0 0 10px;
+}
+.home-platforms-instance-list-name h5 {
+    margin: 5px 0px;
+}
+.home-platforms-instance-list-playcount {
+    float: left;
+    position: relative;
+    padding: 4px 0 0 10px;
+    width: 100%;
+}
+.home-platforms-instance-list-playcount h3 {
+    font-size: 20px;
+    font-weight: bold;
+    color: #F9AA03;
+    line-height: 22px;
+    position: relative;
+    margin: 0 5px 0 0;
+    float: left;
+}
+.home-platforms-instance-list-playcount p {
+    color: #aaa;
+    font-size: 12px;
+    float: left;
+    position: relative;
+    top: 5px;
+    left: 0px;
+    margin-right: 5px;
+}
+.home-platforms-instance-list-poster {
+    position: absolute;
+    left: 20px;
+}
+.home-platforms-instance-list-poster .home-platforms-list-poster-face {
+    background-position: center;
+    background-size: cover;
+    height: 60px;
+    width: 40px;
+}
+.home-platforms-instance-list-box {
+    background-position: center;
+    background-size: cover;
+    margin: 10px 0 0 20px;
+    height: 40px;
+    width: 40px;
+    position: relative;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+}
+.home-platforms-instance-list-oval {
+    background-position: center;
+    background-size: cover;
+    margin: 10px 0 0 20px;
+    height: 40px;
+    width: 40px;
+    position: relative;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+}
+a .home-platforms-instance-box:hover,
+a .home-platforms-instance-oval:hover,
+a .home-platforms-instance-list-box:hover,
+a .home-platforms-instance-list-oval:hover,
+.home-platforms-poster-face:hover,
+.home-platforms-list-poster-face:hover
+ {
     webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
 }
-a .home-platforms-instance-box:hover {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
-    -moz-box-shadow: inset 0 0 0 2px #e9a049;
-    box-shadow: inset 0 0 0 2px #e9a049;
+.home-platforms-instance .slider {
+    background-color: #282828;
+    width: 320px;
+    display: none;
+    position: absolute;
+    top: 130px;
+    left: -10px;
+    z-index: 2;
 }
 .history-table-title {
     text-overflow: ellipsis;

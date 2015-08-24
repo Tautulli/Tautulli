@@ -45,12 +45,12 @@
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script>
 
-    function getHomeStats(days, plays) {
+    function getHomeStats(days, stat_type, stat_count) {
         $.ajax({
             url: 'home_stats',
             cache: false,
             async: true,
-            data: {time_range: days, stat_type: plays},
+            data: {time_range: days, stat_type: stat_type, stat_count: stat_count},
             complete: function(xhr, status) {
                 $("#home-stats").html(xhr.responseText);
             }
@@ -110,7 +110,7 @@
         });
     });
 
-    getHomeStats(${config['home_stats_length']}, ${config['home_stats_type']});
+    getHomeStats(${config['home_stats_length']}, ${config['home_stats_type']}, ${config['home_stats_count']});
 
 
 </script>
