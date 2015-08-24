@@ -185,7 +185,7 @@ DOCUMENTATION :: END
                     <span>Watch History for <strong>${data['title']}</strong></span>
                 </div>
                 <div class="button-bar">
-                    <span data-toggle="popover" data-placement="left" data-content="Data deleting does not occur until after exiting delete mode." id="delete-message">
+                    <span data-toggle="popover" data-placement="left" data-content="Select rows to delete. Data is deleted upon exiting delete mode." id="delete-message">
                         <button class="btn btn-danger" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
                             <i class="fa fa-trash-o"></i> Delete mode
                         </button>&nbsp
@@ -226,7 +226,7 @@ DOCUMENTATION :: END
                             <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
                         </div>
                         <div class="modal-body" style="text-align: center;">
-                            <p>Are you REALLY sure you want to delete this history?</p>
+                            <p>Are you REALLY sure you want to delete <strong><span id="deleteCount"></span></strong> history item(s)?</p>
                             <p>This is permanent and cannot be undone!</p>
                         </div>
                         <div class="modal-footer">
@@ -303,22 +303,18 @@ DOCUMENTATION :: END
         
         clearSearchButton('history_table', history_table);
 
-        var history_to_purge = [];
         $('#row-edit-mode').on('click', function() {
             $('#delete-message').popover();
 
             if ($(this).hasClass('active')) {
-                history_to_purge = [];
-                $('.delete-control button.btn-danger').map(function () {
-                    history_to_purge.push($(this).attr('data-id'));
-                });
-                if (history_to_purge.length > 0) {
+                if (history_to_delete.length > 0) {
+                    $('#deleteCount').text(history_to_delete.length);
                     $('#confirm-modal').modal();
                     $('#confirm-modal').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < history_to_purge.length; i++) {
+                        for (var i = 0; i < history_to_delete.length; i++) {
                             $.ajax({
                                 url: 'delete_history_rows',
-                                data: { row_id: history_to_purge[i] },
+                                data: { row_id: history_to_delete[i] },
                                 async: true,
                                 success: function (data) {
                                     var msg = "User history purged";
@@ -336,6 +332,7 @@ DOCUMENTATION :: END
                 });
 
             } else {
+                history_to_delete = [];
                 $('.delete-control').each(function() {
                     $(this).removeClass('hidden');
                 });
