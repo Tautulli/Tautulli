@@ -36,14 +36,15 @@ users_list_table_options = {
             "data": "user_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === '') {
-                    $(td).html('<div class="users-poster-face" style="background-image: url(interfaces/default/images/gravatar-default-80x80.png);"></div>');
+                    $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(interfaces/default/images/gravatar-default-80x80.png);"></div></a>');
                 } else {
-                    $(td).html('<div class="users-poster-face" style="background-image: url(' + cellData + ');"></div>');
+                    $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(' + cellData + ');"></div></a>');
                 }
             },
             "orderable": false,
             "searchable": false,
             "width": "5%",
+            "className": "users-thumbs"
         },
         {
             "targets": [2],
