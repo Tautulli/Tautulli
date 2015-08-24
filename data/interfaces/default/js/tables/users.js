@@ -36,15 +36,14 @@ users_list_table_options = {
             "data": "user_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === '') {
-                    $(td).html('<img src="interfaces/default/images/gravatar-default-80x80.png" alt="User Logo"/>');
+                    $(td).html('<div class="users-poster-face" style="background-image: url(interfaces/default/images/gravatar-default-80x80.png);"></div>');
                 } else {
-                    $(td).html('<img src="' + cellData + '" alt="User Logo"/>');
+                    $(td).html('<div class="users-poster-face" style="background-image: url(' + cellData + ');"></div>');
                 }
             },
             "orderable": false,
             "searchable": false,
             "width": "5%",
-            "className": "users-poster-face"
         },
         {
             "targets": [2],
