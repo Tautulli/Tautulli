@@ -454,7 +454,7 @@ class WebInterface(object):
             "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
-            "home_stats_count": checked(plexpy.CONFIG.HOME_STATS_COUNT),
+            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
         }

@@ -96,6 +96,15 @@ available_notification_agents = notifiers.available_notification_agents()
                             </div>
                             <p class="help-block">Specify the number of days for the statistics on the home page. Default is 30 days.</p>
                         </div>
+                        <div class="form-group">
+                            <label for="home_stats_count">Top Lists</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="home_stats_count" name="home_stats_count" value="${config['home_stats_count']}" size="3" data-parsley-min="0" data-parsley-max="10" data-parsley-trigger="change" required>
+                                </div>
+                            </div>
+                            <p class="help-block">Specify the number of items to show in the top lists for the statistics on the home page. Max is 10 items.</p>
+                        </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="home_stats_type" name="home_stats_type" value="1" ${config['home_stats_type']}> Use play duration
