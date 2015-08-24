@@ -32,7 +32,7 @@ DOCUMENTATION :: END
                 % if item['type'] == 'season' or item['type'] == 'movie':
 				<a href="info?item_id=${item['rating_key']}">
 					<div class="poster">
-						<div class="poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=150&height=225&fallback=poster);"></div>
+						<div class="poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);"></div>
                     </div>
 					<div class="dashboard-recent-media-metacontainer">
 						% if item['type'] == 'season':
@@ -47,7 +47,7 @@ DOCUMENTATION :: END
 				</a>
 				% elif item['type'] == 'album':
 				<div class="poster">
-					<div class="cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=150&height=150&fallback=cover);"></div>					
+					<div class="cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);"></div>					
 				</div>
 				<div class="dashboard-recent-media-metacontainer">
                     <h3>${item['parent_title']}</h3>
