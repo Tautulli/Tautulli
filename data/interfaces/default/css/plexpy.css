@@ -802,9 +802,9 @@ input[type="color"],
     position: relative;
     top: -10px;
     float: left;
-    margin-left: 20px;
-    width: 174px;
-    height: 260px;
+    margin-left: 25px;
+    width: 150px;
+    height: 225px;
 }
 .summary-content-poster a:hover .poster-face {
     webkit-box-shadow: inset 0 0 0 2px #e9a049;
@@ -840,7 +840,6 @@ input[type="color"],
     -ms-backface-visibility: hidden;
     -o-backface-visibility: hidden;
     backface-visibility: hidden;
-    border: 1px solid rgba(128, 128, 128, 0.3);
 }
 .summary-content {
     position: relative;
@@ -1060,10 +1059,10 @@ input[type="color"],
 .season-episodes-poster-face img {
     bottom: 0;
     overflow: hidden;
-    width: 205px;
-    height: 115px;
+    width: 250px;
+    height: 140px;
 }
-.season-episodes-poster-face    img:hover {
+.season-episodes-poster-face img:hover {
     webkit-box-shadow: 0 0 0 2px #F9AA03;
     -moz-box-shadow: 0 0 0 2px #F9AA03;
     box-shadow: 0 0 0 2px #F9AA03;
