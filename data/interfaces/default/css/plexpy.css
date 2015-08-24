@@ -420,6 +420,11 @@ input[type="color"],
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     overflow: hidden;
 }
+a .poster-face:hover {
+    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -moz-box-shadow: inset 0 0 0 2px #e9a049;
+    box-shadow: inset 0 0 0 2px #e9a049;
+}
 .cover-face {
     background-position: center;
     background-size: cover;
@@ -430,6 +435,16 @@ input[type="color"],
     webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+}
+a .cover-face:hover {
+    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -moz-box-shadow: inset 0 0 0 2px #e9a049;
+    box-shadow: inset 0 0 0 2px #e9a049;
+}
+a .users-poster-face:hover {
+    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -moz-box-shadow: inset 0 0 0 2px #e9a049;
+    box-shadow: inset 0 0 0 2px #e9a049;
 }
 .users-poster-face {
     overflow: hidden;
@@ -633,11 +648,6 @@ input[type="color"],
 }
 .dashboard-recent-media-instance {
 }
-.dashboard-recent-media-instance a:hover .poster-face {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
-    -moz-box-shadow: inset 0 0 0 2px #e9a049;
-    box-shadow: inset 0 0 0 2px #e9a049;
-}
 .dashboard-recent-media li {
     margin-right: 27px;
     position: relative;
@@ -805,11 +815,6 @@ input[type="color"],
     margin-left: 25px;
     width: 150px;
     height: 225px;
-}
-.summary-content-poster a:hover .poster-face {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
-    -moz-box-shadow: inset 0 0 0 2px #e9a049;
-    box-shadow: inset 0 0 0 2px #e9a049;
 }
 .summary-content-poster img {
     bottom: 0;
@@ -1036,7 +1041,7 @@ input[type="color"],
     left: 0px;
     margin-right: 25px;
 }
-.season-episodes-instance a:hover .season-episodes-card-overlay {
+a .season-episodes-card-overlay:hover {
     webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
@@ -1410,7 +1415,12 @@ input[type="color"],
     webkit-box-sizing: content-box;
     box-sizing: content-box;
 }
-.home-platforms-instance a:hover .poster-face {
+a .home-platforms-instance-oval:hover {
+    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -moz-box-shadow: inset 0 0 0 2px #e9a049;
+    box-shadow: inset 0 0 0 2px #e9a049;
+}
+a .home-platforms-instance-box:hover {
     webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
