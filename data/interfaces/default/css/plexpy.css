@@ -1245,7 +1245,7 @@ input[type="color"],
 }
 .user-platforms-instance li {
 }
-.user-platforms-instance-poster {
+.user-platforms-instance-box {
     float: left;
     width: 75px;
     border-radius: 3px;
