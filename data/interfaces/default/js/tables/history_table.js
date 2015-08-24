@@ -1,5 +1,6 @@
 var date_format = 'YYYY-MM-DD';
 var time_format = 'hh:mm a';
+var history_to_delete = [];
 
 $.ajax({
     url: 'get_date_formats',
@@ -18,7 +19,7 @@ history_table_options = {
         "info":"Showing _START_ to _END_ of _TOTAL_ history items",
         "infoEmpty":"Showing 0 to 0 of 0 entries",
         "infoFiltered":"(filtered from _MAX_ total entries)",
-        "emptyTable": "No data in table",
+        "emptyTable": "No data in table"
     },
     "pagingType": "bootstrap",
     "stateSave": true,
@@ -238,6 +239,11 @@ history_table_options = {
     "preDrawCallback": function(settings) {
         var msg = "<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...</div>";
         showMsg(msg, false, false, 0)
+    },
+    "rowCallback": function (row, rowData) {
+        if ($.inArray(rowData['id'], history_to_delete) !== -1) {
+            $(row).find('button[data-id="' + rowData['id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+        }
     }
 }
 
@@ -287,9 +293,11 @@ $('#history_table').on('click', 'td.delete-control > button', function () {
     var row = history_table.row( tr );
     var rowData = row.data();
 
-    if ($(this).hasClass('active')) {
-        $(this).toggleClass('btn-warning').toggleClass('btn-danger');
+    var index = $.inArray(rowData['id'], history_to_delete);
+    if (index === -1) {
+        history_to_delete.push(rowData['id']);
     } else {
-        $(this).toggleClass('btn-danger').toggleClass('btn-warning');
+        history_to_delete.splice(index, 1);
     }
+    $(this).toggleClass('btn-warning').toggleClass('btn-danger');
 });
