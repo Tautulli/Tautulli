@@ -237,6 +237,35 @@ fieldset[disabled] .btn-bright.active {
   color: #fff;
   background-color: #eb8600;
 }
+.btn-danger.btn-edit {
+    color: #d7d7d7;
+    background-color: #3B3B3B;
+    border-color: transparent;
+    float: right;
+    margin-right: 5px;
+}
+.btn-danger.btn-edit:hover {
+    color: #fff;
+    background-color: #c9302c;
+    border-color: #ac2925;
+}
+.btn-danger.btn-edit.active {
+  color: #fff;
+  background-color: #c9302c;
+  border-color: #ac2925;
+}
+.btn-danger.btn-edit.active:hover {
+  color: #fff;
+  background-color: #ac2925;
+  border-color: #761c19;
+}
+.alert-edit {
+    display: none;
+    float: right;
+    margin-bottom: 0;
+    margin-right: 5px;
+    padding: 6px 15px;
+}
 .modal-header {
     padding: 15px 20px;
     background-color: #323232;
