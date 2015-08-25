@@ -25,11 +25,7 @@ var hc_plays_by_month_options = {
     },
     colors: ['#F9AA03', '#FFFFFF'],
     xAxis: {
-            type: 'datetime',
             labels: {
-                formatter: function() {
-                    return moment(this.value).format("MMM YYYY");
-                },
                 style: {
                     color: '#aaa'
                 }
