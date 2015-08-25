@@ -94,6 +94,7 @@ DOCUMENTATION :: END
                 % endif
             </a>
             %if len(top_stat['rows']) > 1:
+            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
                 <div class="slider">
                     <div class="home-platforms-instance-list">
@@ -169,6 +170,7 @@ DOCUMENTATION :: END
                 % endif
             </a>
             %if len(top_stat['rows']) > 1:
+            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
                 <div class="slider">
                     <div class="home-platforms-instance-list">
@@ -244,6 +246,7 @@ DOCUMENTATION :: END
                 % endif
             </a>
             %if len(top_stat['rows']) > 1:
+            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
                 <div class="slider">
                     <div class="home-platforms-instance-list">
@@ -319,6 +322,7 @@ DOCUMENTATION :: END
                 % endif
             </a>
             %if len(top_stat['rows']) > 1:
+            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
                 <div class="slider">
                     <div class="home-platforms-instance-list">
@@ -402,6 +406,7 @@ DOCUMENTATION :: END
                 % endif
             </a>
             %if len(top_stat['rows']) > 1:
+            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
                 <div class="slider">
                     <div class="home-platforms-instance-list">
@@ -477,6 +482,7 @@ DOCUMENTATION :: END
                 <div class="home-platforms-instance-box" style="background-image: url(interfaces/default/images/platforms/default.png);"></div>
             </div>
             %if len(top_stat['rows']) > 1:
+            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
                 <div class="slider">
                     <div class="home-platforms-instance-list">
@@ -522,14 +528,37 @@ DOCUMENTATION :: END
     % endfor
 </ul>
 <script>
-    $('.home-platforms-instance').hover(function() {
-        $(this).css('z-index', 1);
-        $(this).find('.slider').stop().slideDown(500);
-    }, function() {
-        $(this).find('.slider').stop().slideUp(500, function() {
-            $(this).parents('.home-platforms-instance').css('z-index', 0);
+    var inProgress;
+    $('.home-platforms-instance-list-chevron i.fa').on('click',
+        function() {
+                inProgress = true;
+                console.log($(this));
+                instanceBoxChevron = $(this);
+                instanceBox = $(this).parents('.home-platforms-instance');
+                instanceBoxSlider = instanceBox.find('.slider');
+                instanceBoxSlider.stop().slideToggle(500, function() { inProgress = false; });
         });
-    });
+    $('.home-platforms-instance').on({
+        mouseenter: function() {
+            if (inProgress) {
+                return;
+            } else {
+                instanceBox = $(this);
+                instanceBoxChevron = instanceBox.find('.home-platforms-instance-list-chevron i.fa');
+                instanceBoxSlider = instanceBox.find('.slider');
+                instanceBoxSlider.css('z-index', 2);
+                instanceBoxSlider.stop().slideDown(500);
+            }
+        },
+        mouseleave: function() {
+            if (inProgress) {
+                return;
+            } else {
+                instanceBoxSlider.css('z-index', 1);
+                instanceBoxSlider.stop().slideUp(500);
+            }
+        }
+        });
 </script>
 % else:
 <div class="text-muted">No stats for selected period.</div><br>

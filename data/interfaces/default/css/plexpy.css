@@ -1360,7 +1360,9 @@ a .season-episodes-card-overlay:hover {
     margin-bottom: 20px;
     webkit-box-sizing: content-box;
     box-sizing: content-box;
-    z-index: 0;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .home-platforms-instance li {
     position: relative;
@@ -1422,6 +1424,9 @@ a .season-episodes-card-overlay:hover {
     background-size: cover;
     height: 120px;
     width: 80px;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .home-platforms-instance-box {
     background-position: center;
@@ -1465,7 +1470,7 @@ a .season-episodes-card-overlay:hover {
     height: 60px;
 }
 .home-platforms-instance-list-number {
-    background-color: #e9a049;
+    background-color: #eb8600;
     float: left;
     position: absolute;
     top: -10px;
@@ -1478,6 +1483,9 @@ a .season-episodes-card-overlay:hover {
     -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
     border-radius: 50%;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .home-platforms-instance-list-number h4 {
     color: #000;
@@ -1540,6 +1548,9 @@ a .season-episodes-card-overlay:hover {
     background-size: cover;
     height: 60px;
     width: 40px;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .home-platforms-instance-list-box {
     background-position: center;
@@ -1571,6 +1582,26 @@ a .season-episodes-card-overlay:hover {
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     overflow: hidden;
 }
+.home-platforms-instance:hover .home-platforms-instance-list-chevron i.fa-chevron-down{
+    color: #eb8600;
+    -webkit-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+.home-platforms-instance-list-chevron {
+    position: absolute;
+    top: 100px;
+    right: 0;
+    cursor: pointer;
+}
+.home-platforms-instance-list-chevron i {
+    color: #999;
+    font-size: 16px;
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
 a .home-platforms-instance-box:hover,
 a .home-platforms-instance-oval:hover,
 a .home-platforms-instance-list-box:hover,
@@ -1583,13 +1614,16 @@ a .home-platforms-instance-list-oval:hover,
     box-shadow: inset 0 0 0 2px #e9a049;
 }
 .home-platforms-instance .slider {
-    background-color: #282828;
+    background-color: #2d2d2d;
     width: 320px;
     display: none;
     position: absolute;
-    top: 130px;
+    top: 129px;
     left: -10px;
-    z-index: 2;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    z-index: 1;
 }
 .history-table-title {
     text-overflow: ellipsis;
