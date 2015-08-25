@@ -1682,6 +1682,11 @@ input[type="color"],
 .history-title .popover.right .popover-content {
     padding: 5px 8px;
 }
+.history-thumbnail {
+    background-position: center;
+    background-size: cover;
+    width: 80px;
+}
 .edit-user-toggles {
     padding-right: 10px;
 }
