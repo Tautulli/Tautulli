@@ -14,12 +14,11 @@
             <span><i class="fa fa-history"></i> History</span>
         </div>
         <div class="button-bar">
-            <span data-toggle="popover" data-placement="left" data-content="Select rows to delete. Data is deleted upon exiting delete mode." id="delete-message">
-                <button class="btn btn-danger" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                    <i class="fa fa-trash-o"></i> Delete mode
-                </button>&nbsp
-            </span>
             <div class="colvis-button-bar hidden-xs"></div>
+            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                <i class="fa fa-trash-o"></i> Delete mode
+            </button>
+            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -91,7 +90,7 @@
         clearSearchButton('history_table', history_table);
 
         $('#row-edit-mode').on('click', function() {
-            $('#delete-message').popover();
+            $('#row-edit-mode-alert').fadeIn(200);
 
             if ($(this).hasClass('active')) {
                 if (history_to_delete.length > 0) {
@@ -116,6 +115,7 @@
                 $('.delete-control').each(function () {
                     $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).addClass('hidden');
+                    $('#row-edit-mode-alert').fadeOut(200);
                 });
 
             } else {
@@ -123,15 +123,6 @@
                 $('.delete-control').each(function() {
                     $(this).removeClass('hidden');
                 });
-            }
-        });
-
-        $(window).resize(function () {
-            if ($('.popover').popover().is(':visible')) {
-                var popover = $('.popover');
-                popover.addClass("noTransition");
-                $('#delete-message').popover('show');
-                popover.removeClass("noTransition");
             }
         });
     });
