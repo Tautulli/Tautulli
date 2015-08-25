@@ -97,7 +97,6 @@
                     users_to_purge.push($(this).attr('data-id'));
                     ul.append('<li>' + $('div[data-id=' + $(this).attr('data-id') + '] > input').val() + '</li>')
                 });
-                console.log(users_to_purge);
                 if (users_to_purge.length > 0) {
                     $('#users-to-delete').append
                     $('#confirm-modal').modal();
