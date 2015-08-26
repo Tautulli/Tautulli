@@ -1748,3 +1748,26 @@ a .home-platforms-instance-box:hover {
 #updatebar a:hover {
     color: #F9AA03;
 }
+.body-container {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    
+}
+::-webkit-scrollbar {
+    width: 15px;
+}
+::-webkit-scrollbar-track {
+    background-color: rgba(0,0,0,.2);
+}
+::-webkit-scrollbar-thumb {
+    min-height: 50px;
+    background-color: rgba(255,255,255,.15);
+    border: 3px solid transparent;
+    border-radius: 8px;
+    background-clip: padding-box;
+}
