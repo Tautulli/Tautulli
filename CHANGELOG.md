@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1.5 (2015-08-27)
+
+* Fix git tag being one release behind.
+
+
 ## v1.1.4 (2015-08-26)
 
 * User info is now editable from the users table. Thanks @JonnyWong.
