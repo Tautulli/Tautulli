@@ -1574,13 +1574,6 @@ a .season-episodes-card-overlay:hover {
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     overflow: hidden;
 }
-.home-platforms-instance:hover .home-platforms-instance-list-chevron i.fa-chevron-down{
-    color: #eb8600;
-    -webkit-transform: rotate(180deg);
-    -ms-transform: rotate(180deg);
-    -o-transform: rotate(180deg);
-    transform: rotate(180deg);
-}
 .home-platforms-instance-list-chevron {
     position: absolute;
     top: 100px;
@@ -1593,6 +1586,16 @@ a .season-episodes-card-overlay:hover {
     -webkit-transition: all 0.3s ease;
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
+}
+.home-platforms-instance-list-chevron i:hover {
+    color: #eb8600;
+}
+.home-platforms-instance-list-chevron.active i.fa-chevron-down{
+    color: #eb8600;
+    -webkit-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
 }
 a .home-platforms-instance-box:hover,
 a .home-platforms-instance-oval:hover,
@@ -1612,9 +1615,9 @@ a .home-platforms-instance-list-oval:hover,
     position: absolute;
     top: 129px;
     left: -10px;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    border-right: 1px solid rgba(255,255,255,.1);
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    border-left: 1px solid rgba(255,255,255,.1);
     z-index: 1;
 }
 .history-table-title {

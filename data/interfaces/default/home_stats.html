@@ -528,36 +528,18 @@ DOCUMENTATION :: END
     % endfor
 </ul>
 <script>
-    var inProgress;
-    $('.home-platforms-instance-list-chevron i.fa').on('click',
-        function() {
-                inProgress = true;
-                instanceBoxChevron = $(this);
-                instanceBox = $(this).parents('.home-platforms-instance');
-                instanceBoxSlider = instanceBox.find('.slider');
-                instanceBoxSlider.stop().slideToggle(500, function() { inProgress = false; });
-        });
-    $('.home-platforms-instance').on({
-        mouseenter: function() {
-            if (inProgress) {
-                return;
-            } else {
-                instanceBox = $(this);
-                instanceBoxChevron = instanceBox.find('.home-platforms-instance-list-chevron i.fa');
-                instanceBoxSlider = instanceBox.find('.slider');
-                instanceBoxSlider.css('z-index', 2);
-                instanceBoxSlider.stop().slideDown(500);
-            }
-        },
-        mouseleave: function() {
-            if (inProgress) {
-                return;
-            } else {
-                instanceBoxSlider.css('z-index', 1);
-                instanceBoxSlider.stop().slideUp(500);
-            }
-        }
-        });
+    var topZIndex = 2;
+    $('.home-platforms-instance-list-chevron').on('click', function() {
+        var instanceBoxChevron = $(this);
+        var instanceBox = $(this).parents('.home-platforms-instance');
+        var instanceBoxSlider = instanceBox.find('.slider');
+        
+        topZIndex++;
+        instanceBoxChevron.toggleClass('active');
+        instanceBoxSlider.toggleClass('slider-open');
+        instanceBoxSlider.css('z-index', topZIndex);
+        instanceBoxSlider.stop().slideToggle(500);
+    });
 </script>
 % else:
 <div class="text-muted">No stats for selected period.</div><br>
