@@ -259,7 +259,7 @@ class Graphs(object):
             dt = datetime.datetime(*month_item[:6])
             date_string = dt.strftime('%Y-%m')
 
-            categories.append(date_string)
+            categories.append(dt.strftime('%b %Y'))
             series_1_value = 0
             series_2_value = 0
             for item in result:

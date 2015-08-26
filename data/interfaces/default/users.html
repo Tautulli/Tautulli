@@ -12,6 +12,11 @@
             <span><i class="fa fa-group"></i> All Users</span>
         </div>
         <div class="button-bar">
+            <span data-toggle="popover" data-placement="left" data-content="Data purging does not occur until after exiting edit mode." id="purge-message">
+                <button class="btn btn-dark" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                    <i class="fa fa-pencil"></i> Edit mode
+                </button>&nbsp
+            </span>
             <button class="btn btn-dark" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
         </div>
     </div>
@@ -19,6 +24,7 @@
         <table id="users_list_table" class="display" width="100%">
             <thead>
             <tr>
+                <th align="left" id="edit_row">Edit</th>
                 <th align="right" id="avatar"></th>
                 <th align="left" id="friendly_name">User</th>
                 <th align="left" id="last_seen">Last Seen</th>
@@ -35,6 +41,25 @@
         </div>
         <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
         </div>
+        <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                        <h4 class="modal-title" id="myModalLabel">Confirm Purge</h4>
+                    </div>
+                    <div class="modal-body" style="text-align: center;">
+                        <p>Are you REALLY sure you want to purge all history for the following users:</p>
+                        <ul id="users-to-delete" class="list-unstyled"></ul>
+                        <p>This is permanent and cannot be undone!</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-purge">Purge</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -47,7 +72,7 @@
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/users.js"></script>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         users_list_table_options.ajax = {
             "url": "get_user_list",
             type: "post",
@@ -59,8 +84,72 @@
         users_list_table = $('#users_list_table').DataTable(users_list_table_options);
 
         clearSearchButton('users_list_table', users_list_table);
-    });
 
+        var users_to_purge = [];
+        $('#row-edit-mode').on('click', function () {
+            $('#purge-message').popover();
+
+            if ($(this).hasClass('active')) {
+                users_to_purge = [];
+                ul = $('#users-to-delete');
+                ul.html('');
+                $('.edit-control button.btn-danger').map(function () {
+                    users_to_purge.push($(this).attr('data-id'));
+                    ul.append('<li>' + $('div[data-id=' + $(this).attr('data-id') + '] > input').val() + '</li>')
+                });
+                if (users_to_purge.length > 0) {
+                    $('#users-to-delete').append
+                    $('#confirm-modal').modal();
+                    $('#confirm-modal').one('click', '#confirm-purge', function () {
+                        for (var i = 0; i < users_to_purge.length; i++) {
+                            $.ajax({
+                                url: 'delete_all_user_history',
+                                data: { user_id: users_to_purge[i] },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    var msg = "User history purged";
+                                    showMsg(msg, false, true, 2000);
+                                }
+                            });
+                        }
+                        users_list_table.draw();
+                    });
+                }
+
+                $('.edit-control').each(function () {
+                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                    $(this).addClass('hidden');
+                });
+                $('.edit-user-control > .edit-user-name').each(function () {
+                    a = $(this).children('a');
+                    input = $(this).children('input');
+                    a.text(input.val());
+                    a.removeClass('hidden');
+                    input.addClass('hidden');
+                });
+
+            } else {
+                $('.edit-control').each(function () {
+                    $(this).removeClass('hidden');
+                });
+                $('.edit-user-control > .edit-user-name').each(function () {
+                    $(this).children('a').addClass('hidden');
+                    $(this).children('input').removeClass('hidden');
+                });
+
+            }
+        });
+
+        $(window).resize(function () {
+            if ($('.popover').popover().is(':visible')) {
+                var popover = $('.popover');
+                popover.addClass("noTransition");
+                $('#purge-message').popover('show');
+                popover.removeClass("noTransition");
+            }
+        });
+    });
 
     $("#refresh-users-list").click(function() {
         $.ajax({

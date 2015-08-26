@@ -1,0 +1,66 @@
+# PlexPy - Stats for Plex Media Server usage
+#
+# Service Unit file for systemd system manager
+#
+# INSTALLATION NOTES
+#
+#   1. Rename this file as you want, ensuring that it ends in .service
+#       e.g. 'plexpy.service'
+#
+#   2. Adjust configuration settings as required.  More details in the
+#      "CONFIGURATION NOTES" section shown below.
+#
+#   3. Copy this file into your systemd service unit directory, which is
+#      often '/lib/systemd/system'.
+#
+#   4. Create any files/directories that you specified back in step #2.
+#       e.g. '/etc/plexpy/plexpy.ini'
+#            '/home/sabnzbd/.plexpy'
+#
+#   5. Enable boot-time autostart with the following commands:
+#       systemctl daemon-reload
+#       systemctl enable plexpy.service
+#
+#   6. Start now with the following command:
+#       systemctl start plexpy.service
+#
+#   7. If troubleshooting startup-errors, start by checking permissions
+#      and ownership on the files/directories that you created in step #4.
+#
+#
+# CONFIGURATION NOTES
+#
+#    - The example settings in this file assume that:
+#       1. You will run PlexPy as user/group: sabnzbd.sabnzbd
+#       2. You will either have PlexPy installed as a subdirectory
+#          under '~sabnzbd', or that you will have a symlink under
+#          '~/sabnzbd' pointing to your PlexPy install dir.
+#       3. Your PlexPy data directory and configuration file will be
+#          in separate locations from your PlexPy install dir, to
+#          simplify updates.
+#
+#    - Option names (e.g. ExecStart=, Type=) appear to be case-sensitive)
+#
+#    - Adjust ExecStart= to point to:
+#       1. Your PlexPy executable,
+#       2. Your config file (recommended is to put it somewhere in /etc)
+#       3. Your datadir (recommended is to NOT put it in your PlexPy exec dir)
+#
+#    - Adjust User= and Group= to the user/group you want PlexPy to run as.
+#
+#    - WantedBy= specifies which target (i.e. runlevel) to start PlexPy for.
+#        multi-user.target equates to runlevel 3 (multi-user text mode)
+#        graphical.target  equates to runlevel 5 (multi-user X11 graphical mode)
+
+[Unit]
+Description=PlexPy - Stats for Plex Media Server usage
+
+[Service]
+ExecStart=/opt/plexpy/PlexPy.py --quiet --daemon --nolaunch --config /opt/plexpy/config.ini --datadir /opt/plexpy
+GuessMainPID=no
+Type=forking
+User=plexpy
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target

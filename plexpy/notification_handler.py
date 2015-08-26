@@ -162,6 +162,7 @@ def notify(stream_data=None, notify_action=None):
     else:
         logger.debug(u"PlexPy Notifier :: Notify called but incomplete data received.")
 
+
 def get_notify_state(session):
     monitor_db = database.MonitorDatabase()
     result = monitor_db.select('SELECT on_play, on_stop, on_pause, on_resume, on_buffer, on_watched, agent_id '
@@ -183,6 +184,7 @@ def get_notify_state(session):
         notify_states.append(notify_state)
 
     return notify_states
+
 
 def set_notify_state(session, state, agent_info):
 
@@ -214,6 +216,7 @@ def set_notify_state(session, state, agent_info):
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
     else:
         logger.error('PlexPy Notifier :: Unable to set notify state.')
+
 
 def build_notify_text(session, state):
     from plexpy import pmsconnect, helpers
@@ -300,7 +303,13 @@ def build_notify_text(session, state):
 
     duration = helpers.convert_milliseconds_to_minutes(item_metadata['duration'])
     view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
-    stream_duration = 0 if state == 'play' else int((time.time() - helpers.cast_to_float(session['started']) - helpers.cast_to_float(session['paused_counter'])) / 60)
+    stream_duration = 0
+    if state != 'play':
+        if session['paused_counter']:
+            stream_duration = int((time.time() - helpers.cast_to_float(session['started']) -
+                                   helpers.cast_to_float(session['paused_counter'])) / 60)
+        else:
+            stream_duration = int((time.time() - helpers.cast_to_float(session['started'])) / 60)
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
@@ -478,6 +487,7 @@ def build_notify_text(session, state):
             return [subject_text, body_text]
     else:
         return None
+
 
 def strip_tag(data):
     import re

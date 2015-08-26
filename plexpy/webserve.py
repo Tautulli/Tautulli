@@ -492,18 +492,34 @@ class WebInterface(object):
             kwargs[plain_config] = kwargs[use_config]
             del kwargs[use_config]
 
+        # Check if we should refresh our data
+        refresh_users = False
+        reschedule = False
+
+        if 'monitoring_interval' in kwargs and 'refresh_users_interval' in kwargs:
+            if (kwargs['monitoring_interval'] != str(plexpy.CONFIG.MONITORING_INTERVAL)) or \
+                    (kwargs['refresh_users_interval'] != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL)):
+                reschedule = True
+
+        if 'pms_ip' in kwargs:
+            if kwargs['pms_ip'] != plexpy.CONFIG.PMS_IP:
+                refresh_users = True
+
         plexpy.CONFIG.process_kwargs(kwargs)
 
         # Write the config
         plexpy.CONFIG.write()
 
-        # Reconfigure scheduler
-        plexpy.initialize_scheduler()
-
+        # Get new server URLs for SSL communications.
         plextv.get_real_pms_url()
 
-        # Refresh users table. Probably shouldn't do this on every config save, will improve this later.
-        threading.Thread(target=plextv.refresh_users).start()
+        # Reconfigure scheduler if intervals changed
+        if reschedule:
+            plexpy.initialize_scheduler()
+
+        # Refresh users table if our server IP changes.
+        if refresh_users:
+            threading.Thread(target=plextv.refresh_users).start()
 
         raise cherrypy.HTTPRedirect("settings")
 

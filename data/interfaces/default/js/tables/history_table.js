@@ -1,5 +1,6 @@
 var date_format = 'YYYY-MM-DD';
 var time_format = 'hh:mm a';
+var history_to_delete = [];
 
 $.ajax({
     url: 'get_date_formats',
@@ -18,7 +19,7 @@ history_table_options = {
         "info":"Showing _START_ to _END_ of _TOTAL_ history items",
         "infoEmpty":"Showing 0 to 0 of 0 entries",
         "infoFiltered":"(filtered from _MAX_ total entries)",
-        "emptyTable": "No data in table",
+        "emptyTable": "No data in table"
     },
     "pagingType": "bootstrap",
     "stateSave": true,
@@ -32,7 +33,7 @@ history_table_options = {
             "targets": [0],
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
-                $(td).html('<button class="btn btn-xs btn-danger" data-id="' + rowData['id'] + '"><i class="fa fa-trash-o"></i> Delete</button>');
+                $(td).html('<button class="btn btn-xs btn-warning" data-id="' + rowData['id'] + '"><i class="fa fa-trash-o fa-fw"></i> Delete</button>');
             },
             "width": "5%",
             "className": "delete-control no-wrap hidden",
@@ -98,11 +99,11 @@ history_table_options = {
                 if (cellData !== '') {
                     var transcode_dec = '';
                     if (rowData['video_decision'] === 'transcode') {
-                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server fa-fw"></i></span>&nbsp';
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server fa-fw"></i></span>';
                     } else if (rowData['video_decision'] === 'copy') {
-                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Stream"><i class="fa fa-video-camera fa-fw"></i></span>&nbsp';
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Stream"><i class="fa fa-video-camera fa-fw"></i></span>';
                     } else if (rowData['video_decision'] === 'direct play' || rowData['video_decision'] === '') {
-                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>&nbsp';
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>';
                     }
                     $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp' + cellData + '</div></a></div>');
                 }
@@ -119,16 +120,16 @@ history_table_options = {
                     var thumb_popover = '';
                     if (rowData['media_type'] === 'movie') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Movie"><i class="fa fa-film fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=80&height=120&fallback=poster" data-height="120">' + cellData + ' (' + rowData['year'] + ')</span>'
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120">' + cellData + ' (' + rowData['year'] + ')</span>'
                         $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'episode') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=80&height=120&fallback=poster" data-height="120">' + cellData + ' \
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120">' + cellData + ' \
                             (S' + ('00' + rowData['parent_media_index']).slice(-2) + 'E' + ('00' + rowData['media_index']).slice(-2) + ')</span>'
                         $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;" >' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'track') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=80&height=80&fallback=poster" data-height="80">' + cellData + ' (' + rowData['parent_title'] + ')</span>'
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80">' + cellData + ' (' + rowData['parent_title'] + ')</span>'
                         $(td).html('<div class="history-title"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></div>');
                     } else {
                         $(td).html('<a href="info?item_id=' + rowData['id'] + '">' + cellData + '</a>');
@@ -225,7 +226,7 @@ history_table_options = {
             trigger: 'hover',
             placement: 'right',
             content: function () {
-                return '<div style="background-image: url(' + $(this).data('img') + '); width: 80px; height: ' + $(this).data('height') + 'px;" />';
+                return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px;" />';
             }
         });
 
@@ -238,6 +239,11 @@ history_table_options = {
     "preDrawCallback": function(settings) {
         var msg = "<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...</div>";
         showMsg(msg, false, false, 0)
+    },
+    "rowCallback": function (row, rowData) {
+        if ($.inArray(rowData['id'], history_to_delete) !== -1) {
+            $(row).find('button[data-id="' + rowData['id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+        }
     }
 }
 
@@ -287,16 +293,11 @@ $('#history_table').on('click', 'td.delete-control > button', function () {
     var row = history_table.row( tr );
     var rowData = row.data();
 
-    $(this).prop('disabled', true);
-    $(this).html('<i class="fa fa-spin fa-refresh"></i> Delete');
-
-    $.ajax({
-        url: 'delete_history_rows',
-        data: {row_id: rowData['id']},
-        async: true,
-        success: function(data) {
-            history_table.ajax.reload(null, false);
-        }
-    });
-
+    var index = $.inArray(rowData['id'], history_to_delete);
+    if (index === -1) {
+        history_to_delete.push(rowData['id']);
+    } else {
+        history_to_delete.splice(index, 1);
+    }
+    $(this).toggleClass('btn-warning').toggleClass('btn-danger');
 });
