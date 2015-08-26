@@ -747,16 +747,19 @@ class WebInterface(object):
 
     @cherrypy.expose
     def info(self, item_id=None, source=None, **kwargs):
+        metadata = None
 
         if source == 'history':
             data_factory = datafactory.DataFactory()
-            result = data_factory.get_metadata_details(row_id=item_id)
+            metadata = data_factory.get_metadata_details(row_id=item_id)
         else:
             pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_metadata_details(rating_key=item_id)['metadata']
+            result = pms_connect.get_metadata_details(rating_key=item_id)
+            if result:
+                metadata = result['metadata']
 
-        if result:
-            return serve_template(templatename="info.html", data=result, title="Info")
+        if metadata:
+            return serve_template(templatename="info.html", data=metadata, title="Info")
         else:
             logger.warn('Unable to retrieve data.')
             return serve_template(templatename="info.html", data=None, title="Info")
