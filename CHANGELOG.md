@@ -1,21 +1,33 @@
 # Changelog
 
+## v1.1.4 (2015-08-26)
+
+* User info is now editable from the users table. Thanks @JonnyWong.
+* Improved delete mode for history pages - able to multi-select now. Thanks @JonnyWong.
+* Improved image quality on tooltip images.
+* More styling improvements and fixes on user and info pages. Thanks @JonnyWong.
+* Added some user submitted systemd init scripts. Thanks @malle-pietje and @artbird309.
+* Fixed some background operations when saving settings.
+* Fix max width restricting home stats to 1600px.
+* Fix stream duration parameter for notifications when paused counter is null.
+
+
 ## v1.1.3 (2015-08-22)
 
 * Show human readable version info and this cool changelog in Settings -> General.
 * Add a "delete" mode to the history tables. Toggle it to show a delete button next to each history item.
-* Two digit season and episode numbers for custom notification messages. Thanks @JohnnyWong.
-* New FreeNAS init script. Thanks @JohnnyWong.
-* Lots of styling improvements! Thanks @JohnnyWong.
-* Graph page remembers last selected options. Thanks @JohnnyWong.
-* New Popular movie homepage stats. Thanks @JohnnyWong.
-* Add option for duration vs play count on home stats. (Settings -> Extra Settings). Thanks @JohnnyWong.
-* Clean up media info pages. Don't show metadata that is missing. Thanks @JohnnyWong.
-* Add clear button to search inputs. Thanks @JohnnyWong.
-* New columns on Users list. Thanks @JohnnyWong.
-* New stream duration option for custom notification messages. Thanks @JohnnyWong.
-* Rad new tooltips on the history pages. Thanks @JohnnyWong.
-* And a lot of small visual changes and fixes. Thanks @JohnnyWong.
+* Two digit season and episode numbers for custom notification messages. Thanks @JonnyWong.
+* New FreeNAS init script. Thanks @JonnyWong.
+* Lots of styling improvements! Thanks @JonnyWong.
+* Graph page remembers last selected options. Thanks @JonnyWong.
+* New Popular movie homepage stats. Thanks @JonnyWong.
+* Add option for duration vs play count on home stats. (Settings -> Extra Settings). Thanks @JonnyWong.
+* Clean up media info pages. Don't show metadata that is missing. Thanks @JonnyWong.
+* Add clear button to search inputs. Thanks @JonnyWong.
+* New columns on Users list. Thanks @JonnyWong.
+* New stream duration option for custom notification messages. Thanks @JonnyWong.
+* Rad new tooltips on the history pages. Thanks @JonnyWong.
+* And a lot of small visual changes and fixes. Thanks @JonnyWong.
 * Fixed IP address modal on user history page.
 * Fixed "invalid date" showing on monthly plays graph.
 
