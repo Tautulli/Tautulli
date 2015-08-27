@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -66,7 +66,8 @@ class WebInterface(object):
     def home(self):
         config = {
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
-            "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE
+            "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE,
+            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 
@@ -119,9 +120,9 @@ class WebInterface(object):
         return json.dumps(formats)
 
     @cherrypy.expose
-    def home_stats(self, time_range='30', stat_type='0', **kwargs):
+    def home_stats(self, time_range='30', stat_type='0', stat_count='5', **kwargs):
         data_factory = datafactory.DataFactory()
-        stats_data = data_factory.get_home_stats(time_range=time_range, stat_type=stat_type)
+        stats_data = data_factory.get_home_stats(time_range=time_range, stat_type=stat_type, stat_count=stat_count)
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
 
@@ -453,6 +454,7 @@ class WebInterface(object):
             "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
+            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
         }

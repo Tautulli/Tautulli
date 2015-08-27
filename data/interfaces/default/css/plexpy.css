@@ -83,24 +83,6 @@ img {
 .padded-header h3 {
     font-size: 20px;
 }
-.activity-progress {
-    overflow: hidden;
-    height: 4px;
-    background-color: #111;
-    float: left;
-    width: 100%;
-    margin: 0 10px 5px 0;
-}
-.activity-progress .bar {
-    background-color: #faa732;
-    background-image: -moz-linear-gradient(top, #fbb450, #f89406);
-    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fbb450), to(#f89406));
-    background-image: -webkit-linear-gradient(top, #fbb450, #f89406);
-    background-image: -o-linear-gradient(top, #fbb450, #f89406);
-    background-image: linear-gradient(to bottom, #fbb450, #f89406);
-    background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffbb450', endColorstr='#fff89406', GradientType=0);
-}
 .btn {
     outline:0px !important;
     -webkit-appearance:none;
@@ -434,28 +416,16 @@ input[type="color"],
     text-align: center;
     pointer-events: none;
 }
-.poster {
-    float: left;
-    min-height: 225px;
-    min-width: 150px;
-    margin-bottom: 8px;
-    position: relative;
-}
 .poster-face {
     background-position: center;
     background-size: cover;
     height: 225px;
     width: 150px;
     position: relative;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     overflow: hidden;
-}
-a .poster-face:hover {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
-    -moz-box-shadow: inset 0 0 0 2px #e9a049;
-    box-shadow: inset 0 0 0 2px #e9a049;
 }
 .cover-face {
     background-position: center;
@@ -464,19 +434,9 @@ a .poster-face:hover {
     width: 150px;
     position: absolute;
     bottom: 0;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-}
-a .cover-face:hover {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
-    -moz-box-shadow: inset 0 0 0 2px #e9a049;
-    box-shadow: inset 0 0 0 2px #e9a049;
-}
-a .users-poster-face:hover {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
-    -moz-box-shadow: inset 0 0 0 2px #e9a049;
-    box-shadow: inset 0 0 0 2px #e9a049;
 }
 .users-poster-face {
     overflow: hidden;
@@ -487,9 +447,16 @@ a .users-poster-face:hover {
     -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
     border-radius: 50%;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+}
+a .poster-face:hover,
+a .cover-face:hover,
+a .users-poster-face:hover {
+    -webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -moz-box-shadow: inset 0 0 0 2px #e9a049;
+    box-shadow: inset 0 0 0 2px #e9a049;
 }
 .users-poster-face img {
     bottom: 0;
@@ -519,19 +486,19 @@ a .users-poster-face:hover {
     margin-left: 5px;
     float: left;
 }
-.dashboard-activity-metadata-wrapper {
+.dashboard-instance {
+    padding-bottom: 15px;
+    float: left;
     position: relative;
-    left: 0px;
-    width: 250px;
-    font-size: 13px;
+    margin-right: 27px;
 }
-.dashboard-activity-button-info {
-    position: absolute;
-    top: 3px;
-    left: 5px;
-    z-index: 1;
+.dashboard-poster {
+    float: left;
+    min-width: 150px;
+    margin-bottom: 8px;
+    position: relative;
 }
-.dashboard-activity-poster-face {
+.dashboard-activity-poster {
     height: 141px;
     width: 250px;
     position: relative;
@@ -539,21 +506,85 @@ a .users-poster-face:hover {
     background-color: rgba(255,255,255,.03);
     margin-bottom: 11px;
     text-align: center;
-}
-.dashboard-activity-poster-face img {
-    bottom: 0;
     overflow: hidden;
-    height: 140px;
-    min-width: 140px;
-    max-width: 250px;
 }
-.dashboard-activity-poster-music-bg {
+.dashboard-activity-poster-face {
     background-position: center;
-    position:absolute;
-    width:100%;
-    height:100%;
-    opacity: 0.7;
-    z-index: -999;
+    background-size: cover;
+    height: 140px;
+    width: 250px;
+    position: relative;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    margin-bottom: 11px;
+    text-align: center;
+}
+.dashboard-activity-cover-face-bg {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 140px;
+    width: 250px;
+    position: relative;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    margin-bottom: 11px;
+    text-align: center;
+    -webkit-filter: blur(5px);
+    -moz-filter: blur(5px);
+    filter: blur(5px);
+    opacity: 0.75;
+}
+.dashboard-activity-cover-face {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 140px;
+    width: 140px;
+    position: relative;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    margin-bottom: 11px;
+    text-align: center;
+    position: absolute;
+    top: 0;
+    left: 55px;
+}
+.dashboard-activity-clip-face-bg {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 140px;
+    width: 250px;
+    position: relative;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    margin-bottom: 11px;
+    text-align: center;
+    -webkit-filter: blur(5px);
+    -moz-filter: blur(5px);
+    filter: blur(5px);
+    opacity: 0.75;
+}
+.dashboard-activity-clip-face {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 140px;
+    width: 94px;
+    position: relative;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    margin-bottom: 11px;
+    text-align: center;
+    position: absolute;
+    top: 0;
+    left: 78px;
 }
 .dashboard-activity-poster-info-bar {
     position:absolute;
@@ -592,6 +623,36 @@ a .users-poster-face:hover {
     font-size: 12px;
     color: #eee;
 }
+.dashboard-activity-progress {
+    overflow: hidden;
+    height: 4px;
+    background-color: #111;
+    float: left;
+    width: 100%;
+    margin: 0 10px 5px 0;
+}
+.dashboard-activity-progress .bar {
+    background-color: #faa732;
+    background-image: -moz-linear-gradient(top, #fbb450, #f89406);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fbb450), to(#f89406));
+    background-image: -webkit-linear-gradient(top, #fbb450, #f89406);
+    background-image: -o-linear-gradient(top, #fbb450, #f89406);
+    background-image: linear-gradient(to bottom, #fbb450, #f89406);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffbb450', endColorstr='#fff89406', GradientType=0);
+}
+.dashboard-activity-button-info {
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    z-index: 1;
+}
+.dashboard-activity-metadata-wrapper {
+    position: relative;
+    left: 0px;
+    width: 250px;
+    font-size: 13px;
+}
 .dashboard-activity-metadata-user {
     text-overflow: ellipsis;
     overflow: hidden;
@@ -622,7 +683,9 @@ a .users-poster-face:hover {
 .dashboard-activity-metadata-platform {
     float: right;
 }
-.dashboard-activity-metadata-platform img {
+.dashboard-activity-metadata-platform-box {
+    background-position: center;
+    background-size: cover;
     width: 40px;
     height: 40px;
 }
@@ -661,12 +724,6 @@ a .users-poster-face:hover {
 .dashboard-activity-info-details-content strong {
     color: #fff;
     font-weight: normal;
-}
-.instance {
-    padding-bottom: 15px;
-    float: left;
-    position: relative;
-    margin-right: 27px;
 }
 .dashboard-recent-media-row {
     width: 100%;
@@ -1074,7 +1131,7 @@ a .users-poster-face:hover {
     margin-right: 25px;
 }
 a .season-episodes-card-overlay:hover {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
 }
@@ -1089,7 +1146,7 @@ a .season-episodes-card-overlay:hover {
     height: 140px;
     width: 250px;
     position: relative;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
@@ -1100,7 +1157,7 @@ a .season-episodes-card-overlay:hover {
     height: 140px;
 }
 .season-episodes-poster-face img:hover {
-    webkit-box-shadow: 0 0 0 2px #F9AA03;
+    -webkit-box-shadow: 0 0 0 2px #F9AA03;
     -moz-box-shadow: 0 0 0 2px #F9AA03;
     box-shadow: 0 0 0 2px #F9AA03;
 }
@@ -1211,7 +1268,7 @@ a .season-episodes-card-overlay:hover {
     -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
     border-radius: 50%;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
@@ -1336,7 +1393,7 @@ a .season-episodes-card-overlay:hover {
     float: left;
     width: 75px;
     border-radius: 3px;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     background-size: contain;
@@ -1381,40 +1438,29 @@ a .season-episodes-card-overlay:hover {
     list-style: none;
     margin: 0;
 }
-.home-platforms-instance-poster {
-    margin-left: 0px;
+.home-platforms-instance {
+    background-color: #282828;
+    position: relative;
+    float: left;
+    width: 300px;
+    padding: 10px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
-.home-platforms-instance-poster .poster-face {
+.home-platforms-instance li {
+    position: relative;
+}
+.home-platforms-instance-info {
+    float: left;
+    position: relative;
+    padding-left: 80px;
+    width: 100%;
     height: 120px;
-    width: 80px;
-}
-.home-platforms-instance-box {
-    background-size: contain;
-    position: absolute;
-    left: 10px;
-    bottom: 35px;
-    height: 80px;
-    width: 80px;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-}
-.home-platforms-instance-oval {
-    background-size: contain;
-    position: absolute;
-    left: 10px;
-    bottom: 35px;
-    height: 80px;
-    width: 80px;
-    -webkit-border-radius: 50%;
-    -moz-border-radius: 50%;
-    border-radius: 50%;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .home-platforms-instance-name {
     float: left;
@@ -1426,64 +1472,260 @@ a .season-episodes-card-overlay:hover {
     line-height: 15px;
     font-weight: bold;
     width: 100%;
-    padding: 10px 0 0 10px;
+    padding: 0 0 0 20px;
+}
+.home-platforms-instance-name h4 {
+    margin: 10px 0 20px 0;
+}
+.home-platforms-instance-name h5 {
+    font-size: 14px;
+    line-height: 16px;
+    margin: 15px 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .home-platforms-instance-playcount {
     float: left;
-    width: 180px;
-}
-.home-platforms-instance-mediainfo {
-    float: left;
-    background-color: #282828;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    padding-left: 170px;
-    width: 100%;
-    height: 175px;
-}
-.home-platforms-instance-media {
     position: relative;
-    float: left;
-    width: 375px;
-    height: 225px;
-    padding-bottom: 10px;
-    margin-right: 25px;
-    margin-bottom: 25px;
-    webkit-box-sizing: content-box;
-    box-sizing: content-box;
+    padding: 6px 0 0 20px;
+    width: 100%;
 }
-.home-platforms-instance-info {
-    float: left;
-    background-color: #282828;
-    position: absolute;
+.home-platforms-instance-playcount h3 {
+    font-size: 30px;
+    font-weight: bold;
+    color: #F9AA03;
+    line-height: 22px;
+    position: relative;
     top: 5px;
-    left: 0;
-    padding-left: 100px;
-    width: 100%;
-    height: 120px;
-}
-.home-platforms-instance {
-    background-color: #282828;
-    position: relative;
+    margin: 0 5px 0 0;
     float: left;
-    width: 300px;
+}
+.home-platforms-instance-playcount p {
+    color: #aaa;
+    font-size: 12px;
+    float: left;
+    position: relative;
+    top: 14px;
+    left: 0px;
+    margin-right: 5px;
+}
+.home-platforms-instance-poster {
+    margin-left: 0px;
+    position: absolute;
+}
+.home-platforms-instance-poster .home-platforms-poster-face {
+    background-position: center;
+    background-size: cover;
     height: 120px;
-    padding: 10px;
-    margin-right: 20px;
-    margin-bottom: 20px;
-    webkit-box-sizing: content-box;
-    box-sizing: content-box;
+    width: 80px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
-a .home-platforms-instance-oval:hover {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+.home-platforms-instance-box {
+    background-position: center;
+    background-size: cover;
+    margin: 20px 0 0 0px;
+    height: 80px;
+    width: 80px;
+    position: relative;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+}
+.home-platforms-instance-oval {
+    background-position: center;
+    background-size: cover;
+    margin: 20px 0 0 0px;
+    height: 80px;
+    width: 80px;
+    position: relative;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+}
+.home-platforms-instance-list {
+    float: left;
+    position: relative;
+    width: 100%;
+    padding: 0 10px 25px 10px;
+}
+.home-platforms-instance-list li {
+    margin-top: 25px;
+    position: relative;
+    height: 60px;
+}
+.home-platforms-instance-list-number {
+    background-color: #eb8600;
+    float: left;
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    height: 20px;
+    width: 20px;
+    display: block;
+    text-align: center;
+    padding-top: 1px;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+}
+.home-platforms-instance-list-number h4 {
+    color: #000;
+    font-size: 15px;
+    font-weight: bold;
+    margin: 0;
+}
+.home-platforms-instance-list-info {
+    float: left;
+    position: relative;
+    padding-left: 75px;
+    width: 100%;
+    height: 60px;
+}
+.home-platforms-instance-list-name {
+    float: left;
+    color: #fff;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    position: relative;
+    font-size: 13px;
+    line-height: 15px;
+    font-weight: bold;
+    width: 100%;
+    padding: 2px 0 0 10px;
+}
+.home-platforms-instance-list-name h5 {
+    margin: 5px 0px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.home-platforms-instance-list-playcount {
+    float: left;
+    position: relative;
+    padding: 4px 0 0 10px;
+    width: 100%;
+}
+.home-platforms-instance-list-playcount h3 {
+    font-size: 20px;
+    font-weight: bold;
+    color: #F9AA03;
+    line-height: 22px;
+    position: relative;
+    margin: 0 5px 0 0;
+    float: left;
+}
+.home-platforms-instance-list-playcount p {
+    color: #aaa;
+    font-size: 12px;
+    float: left;
+    position: relative;
+    top: 5px;
+    left: 0px;
+    margin-right: 5px;
+}
+.home-platforms-instance-list-poster {
+    position: absolute;
+    left: 20px;
+}
+.home-platforms-instance-list-poster .home-platforms-list-poster-face {
+    background-position: center;
+    background-size: cover;
+    height: 60px;
+    width: 40px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+}
+.home-platforms-instance-list-box {
+    background-position: center;
+    background-size: cover;
+    margin: 10px 0 0 20px;
+    height: 40px;
+    width: 40px;
+    position: relative;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+}
+.home-platforms-instance-list-oval {
+    background-position: center;
+    background-size: cover;
+    margin: 10px 0 0 20px;
+    height: 40px;
+    width: 40px;
+    position: relative;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+}
+.home-platforms-instance-list-chevron {
+    position: absolute;
+    top: 100px;
+    right: 0;
+    cursor: pointer;
+}
+.home-platforms-instance-list-chevron i {
+    color: #999;
+    font-size: 16px;
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+.home-platforms-instance-list-chevron i:hover {
+    color: #eb8600;
+}
+.home-platforms-instance-list-chevron.active i.fa-chevron-down{
+    color: #eb8600;
+    -webkit-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+a .home-platforms-instance-box:hover,
+a .home-platforms-instance-oval:hover,
+a .home-platforms-instance-list-box:hover,
+a .home-platforms-instance-list-oval:hover,
+.home-platforms-poster-face:hover,
+.home-platforms-list-poster-face:hover
+ {
+    -webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
 }
-a .home-platforms-instance-box:hover {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
-    -moz-box-shadow: inset 0 0 0 2px #e9a049;
-    box-shadow: inset 0 0 0 2px #e9a049;
+.home-platforms-instance .slider {
+    background-color: #2d2d2d;
+    width: 320px;
+    display: none;
+    position: absolute;
+    top: 128px;
+    left: -10px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    z-index: 1;
+    clip: rect(1px, 324px, 1000px, -2px);
 }
 .history-table-title {
     text-overflow: ellipsis;
@@ -1813,6 +2055,34 @@ a .home-platforms-instance-box:hover {
     -webkit-transition: none !important;
     -o-transition: none !important;
     transition: none !important;
+}
+.settings-alert {
+    float: left;
+    padding: 0;
+    margin: 5px 0;
+    border: 0;
+    position: relative;
+}
+.settings-alert ul {
+    padding: 0;
+}
+.settings-alert ul li {
+    list-style: none;
+    padding: 5px 12px 5px 35px;
+    margin: 0;
+    border: 1px solid #ebccd1;
+    border-radius: 4px;
+}
+.settings-alert ul li:before {
+    content: "\f071";
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+    font-size: 18px;
+    position: absolute;
+    top: 5px;
+    left: 12px;
 }
 #users-to-delete > li {
     color: #e9a049;

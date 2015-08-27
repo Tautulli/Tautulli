@@ -129,13 +129,16 @@ class DataFactory(object):
 
         return dict
 
-    def get_home_stats(self, time_range='30', stat_type='0'):
+    def get_home_stats(self, time_range='30', stat_type='0', stat_count='5'):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'
 
         sort_type = 'total_plays' if stat_type == '0' else 'total_duration'
+
+        if not time_range.isdigit():
+            stat_count = '5'
 
         # This actually determines the output order in the home page
         stats_queries = ["top_tv", "popular_tv", "top_movies", "popular_movies", "top_users", "top_platforms"]
@@ -161,7 +164,7 @@ class DataFactory(object):
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "episode" ' \
                             'GROUP BY session_history_metadata.grandparent_title ' \
-                            'ORDER BY %s DESC LIMIT 10' % (time_range, sort_type)
+                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -207,7 +210,7 @@ class DataFactory(object):
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "movie" ' \
                             'GROUP BY session_history_metadata.full_title ' \
-                            'ORDER BY %s DESC LIMIT 10' % (time_range, sort_type)
+                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -251,7 +254,7 @@ class DataFactory(object):
                             'AND session_history_metadata.media_type = "episode" ' \
                             'GROUP BY session_history_metadata.grandparent_title ' \
                             'ORDER BY users_watched DESC, total_plays DESC ' \
-                            'LIMIT 10' % time_range
+                            'LIMIT %s' % (time_range, stat_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -293,7 +296,7 @@ class DataFactory(object):
                             'AND session_history_metadata.media_type = "movie" ' \
                             'GROUP BY session_history_metadata.full_title ' \
                             'ORDER BY users_watched DESC, total_plays DESC ' \
-                            'LIMIT 10' % time_range
+                            'LIMIT %s' % (time_range, stat_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -338,7 +341,7 @@ class DataFactory(object):
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                             'datetime("now", "-%s days", "localtime") '\
                             'GROUP BY session_history.user_id ' \
-                            'ORDER BY %s DESC LIMIT 10' % (time_range, sort_type)
+                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -386,7 +389,7 @@ class DataFactory(object):
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'GROUP BY session_history.platform ' \
-                            'ORDER BY total_plays DESC' % time_range
+                            'ORDER BY total_plays DESC LIMIT %s' % (time_range, stat_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")

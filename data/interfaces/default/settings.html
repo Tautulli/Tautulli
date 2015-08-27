@@ -93,9 +93,19 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="home_stats_length" name="home_stats_length" value="${config['home_stats_length']}" size="3" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#home_stats_length_error" required>
                                 </div>
-                                <div id="home_stats_length_error" class="alert alert-danger settings-alert"></div>
+                                <div id="home_stats_length_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">Specify the number of days for the statistics on the home page. Default is 30 days.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="home_stats_count">Top Lists</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="home_stats_count" name="home_stats_count" value="${config['home_stats_count']}" size="3" data-parsley-range="[0,10]" data-parsley-trigger="change" data-parsley-errors-container="#home_stats_count_error" required>
+                                </div>
+                                <div id="home_stats_count_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Specify the number of items to show in the top lists for the statistics on the home page. Max is 10 items, default is 5 items, 0 to disable.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -125,7 +135,7 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="http_port" name="http_port" value="${config['http_port']}" data-parsley-trigger="change" data-parsley-errors-container="#http_port_error" required>
                                 </div>
-                                <div id="http_port_error" class="alert alert-danger settings-alert"></div>
+                                <div id="http_port_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">Port to bind web server to. Note that ports below 1024 may require root.</p>
                         </div>
@@ -227,7 +237,7 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <div class="col-md-2">
                                     <input data-parsley-type="integer" class="pms-settings form-control" type="text" id="pms_port" name="pms_port" value="${config['pms_port']}" size="30" data-parsley-trigger="change" data-parsley-errors-container="#pms_port_error" required>
                                 </div>
-                                <div id="pms_port_error" class="alert alert-danger settings-alert"></div>
+                                <div id="pms_port_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">Port that Plex Media Server is listening on.</p>
                         </div>
@@ -291,7 +301,7 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="refresh_users_interval" name="refresh_users_interval" value="${config['refresh_users_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_users_interval_error" required>
                                 </div>
-                                <div id="refresh_users_interval_error" class="alert alert-danger settings-alert"></div>
+                                <div id="refresh_users_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">The interval (in hours) PlexPy will request an updated friends list from Plex.tv. 1 minimum, 24 maximum.</p>
                         </div>
@@ -334,9 +344,9 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="monitoring_interval" name="monitoring_interval" value="${config['monitoring_interval']}" size="5" data-parsley-min="30" data-parsley-trigger="change" data-parsley-errors-container="#monitoring_interval_error" required>
                                 </div>
-                                <div id="monitoring_interval_error" class="alert alert-danger settings-alert"></div>
+                                <div id="monitoring_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Min 30 seconds, Recommended 60 seconds.</p>
+                            <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Min 30 seconds, recommended 60 seconds.</p>
                         </div>
 
                         <div class="padded-header">
@@ -354,7 +364,7 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="logging_ignore_interval" name="logging_ignore_interval" value="${config['logging_ignore_interval']}" size="5" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#logging_ignore_interval_error" required>
                                 </div>
-                                <div id="logging_ignore_interval_error" class="alert alert-danger settings-alert"></div>
+                                <div id="logging_ignore_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">The interval (in seconds) PlexPy will wait for a video item to be active before logging it. 0 to disable.</p>
                         </div>
@@ -388,7 +398,7 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="buffer_threshold" name="buffer_threshold" value="${config['buffer_threshold']}" data-parsley-range="[0,50]" data-parsley-trigger="change" data-parsley-errors-container="#buffer_threshold_error" required>
                                 </div>
-                                <div id="buffer_threshold_error" class="alert alert-danger settings-alert"></div>
+                                <div id="buffer_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">How many buffer events should we wait before triggering the first warning. Buffer events increment on each monitor ping if play state is buffering. 0 to disable buffer warnings.</p>
                         </div>
@@ -398,7 +408,7 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="buffer_wait" name="buffer_wait" value="${config['buffer_wait']}" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#buffer_wait_error" required>
                                 </div>
-                                <div id="buffer_wait_error" class="alert alert-danger settings-alert"></div>
+                                <div id="buffer_wait_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">The value (in seconds) PlexPy should wait before triggering the next buffer warning. 0 to always trigger.</p>
                         </div>
@@ -431,7 +441,7 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="notify_watched_percent" name="notify_watched_percent" value="${config['notify_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" data-parsley-errors-container="#notify_watched_percent_error" required>
                                 </div>
-                                <div id="notify_watched_percent_error" class="alert alert-danger settings-alert"></div>
+                                <div id="notify_watched_percent_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">Set the progress percentage of when a watched notification should be triggered. Minimum 50, Maximum 95.</p>
                         </div>
@@ -561,7 +571,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             <h3>Notification Agents</h3>
                         </div>
                         <p class="help-block">
-                            Toggle the desired notification options by clicking the bolt icon and configure it by selecting the settings icon to the right.
+                            Toggle the desired notification options by clicking the bell icon and configure it by clicking the settings icon to the right.
                         </p>
                         <br/>
                         <ul class="stacked-configs list-unstyled">
@@ -569,9 +579,9 @@ available_notification_agents = notifiers.available_notification_agents()
                             <li>
                                 <span>
                                     % if agent['on_play'] or agent['on_stop'] or agent['on_pause'] or agent['on_resume'] or agent['on_buffer'] or agent['on_watched']:
-                                    <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left active" data-toggle="modal"><i class="fa fa-lg fa-flash"></i></a>
+                                    <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left active" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
                                     % else:
-                                    <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-flash"></i></a>
+                                    <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
                                     % endif
                                     ${agent['name']}
                                     % if agent['has_config']:

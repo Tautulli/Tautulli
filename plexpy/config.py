@@ -1,4 +1,4 @@
-import plexpy.logger
+﻿import plexpy.logger
 import itertools
 import os
 import re
@@ -84,6 +84,7 @@ _CONFIG_DEFINITIONS = {
     'GROWL_ON_WATCHED': (int, 'Growl', 0),
     'HOME_STATS_LENGTH': (int, 'General', 30),
     'HOME_STATS_TYPE': (int, 'General', 0),
+    'HOME_STATS_COUNT': (int, 'General', 5),
     'HTTPS_CERT': (str, 'General', ''),
     'HTTPS_KEY': (str, 'General', ''),
     'HTTP_HOST': (str, 'General', '0.0.0.0'),
