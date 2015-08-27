@@ -1513,6 +1513,9 @@ a .season-episodes-card-overlay:hover {
 }
 .home-platforms-instance-list-name h5 {
     margin: 5px 0px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .home-platforms-instance-list-playcount {
     float: left;
