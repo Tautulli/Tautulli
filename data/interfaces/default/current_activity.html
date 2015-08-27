@@ -68,21 +68,22 @@ DOCUMENTATION :: END
     <a href="info?item_id=${a['rating_key']}">
     % endif
         <div class="dashboard-activity-poster">
+            <script>console.log('${a['indexes']}');</script>
             % if a['type'] == 'movie' and not a['indexes']:
             <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
+            % elif a['type'] == 'episode' and not a['indexes']:
+            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
             % elif a['indexes']:
-            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['bif_thumb']}&width=300&height=280); display: none;" onload="fadeIn(this)"></div>
+            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['bif_thumb']}&width=500&height=280); display: none;" onload="fadeIn(this)"></div>
             % else:
-                % if a['type'] == 'episode':
-                <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=280&fallback=cover);"></div>
-                % elif a['type'] == 'track':
+                % if a['type'] == 'track':
                 <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
                 <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
                 % elif a['type'] == 'clip':
                 <div class="dashboard-activity-clip-face-bg" style="background-image: url(${a['thumb']});"></div>
                 <div class="dashboard-activity-clip-face" style="background-image: url(${a['thumb']});"></div>
                 % else:
-                <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=280&fallback=cover);"></div>
+                <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300&fallback=cover);"></div>
                 % endif
             % endif
             <div class="dashboard-activity-button-info">
@@ -206,11 +207,6 @@ DOCUMENTATION :: END
     // Convert timestamps to readable times
     $('.progress_time').each(function(index) {
         $(this).html(millisecondsToMinutes($(this).text(), false));
-    });
-
-    // Tooltips
-    $('.dashboard-activity-metadata-platform').each(function() {
-        $(this).tooltip();
     });
 
     // Show/Hide activity info
