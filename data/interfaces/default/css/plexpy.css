@@ -1823,7 +1823,8 @@ a .home-platforms-instance-list-oval:hover,
 .button-bar {
     float: right;
 }
-.colvis-button-bar {
+.colvis-button-bar,
+.refresh-users-button {
     float: right;
 }
 .nav-settings,
