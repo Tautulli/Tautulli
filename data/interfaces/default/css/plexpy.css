@@ -1472,7 +1472,7 @@ a .season-episodes-card-overlay:hover {
     background-color: #282828;
     position: relative;
     float: left;
-    width: 300px;
+    width: 330px;
     padding: 10px;
     margin-right: 20px;
     margin-bottom: 20px;
@@ -1746,7 +1746,7 @@ a .home-platforms-instance-list-oval:hover,
 }
 .home-platforms-instance .slider {
     background-color: #2d2d2d;
-    width: 320px;
+    width: 350px;
     display: none;
     position: absolute;
     top: 128px;
@@ -1755,7 +1755,7 @@ a .home-platforms-instance-list-oval:hover,
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     z-index: 1;
-    clip: rect(1px, 324px, 1000px, -2px);
+    clip: rect(1px, 354px, 1000px, -2px);
 }
 .history-table-title {
     text-overflow: ellipsis;
