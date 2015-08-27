@@ -84,14 +84,6 @@ img {
     outline:0px !important;
     -webkit-appearance:none;
 }
-.btn-activity-info,
-.btn-activity-info:focus {
-    color: #aaa;
-    background-color: rgba(0,0,0,0.5);
-}
-.btn-activity-info:hover {
-    color: #eee;
-}
 .btn-dark {
     color: #d7d7d7;
     background-color: #3B3B3B;
@@ -484,117 +476,183 @@ a .users-poster-face:hover {
     float: left;
 }
 .dashboard-instance {
-    padding-bottom: 15px;
     float: left;
     position: relative;
-    margin-right: 27px;
-}
-.dashboard-poster {
-    float: left;
-    min-width: 150px;
-    margin-bottom: 8px;
-    position: relative;
+    height: 260px;
+    width: 350px;
+    margin-right: 25px;
+    margin-bottom: 25px;
 }
 .dashboard-activity-poster {
-    height: 141px;
-    width: 250px;
+    height: 200px;
+    width: 350px;
     position: relative;
-    top: 0px;
-    background-color: rgba(255,255,255,.03);
-    margin-bottom: 11px;
-    text-align: center;
     overflow: hidden;
+}
+a:hover .dashboard-activity-poster {
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 2px #e9a049;
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 2px #e9a049;
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 2px #e9a049;
 }
 .dashboard-activity-poster-face {
     background-position: center;
     background-size: cover;
-    height: 140px;
-    width: 250px;
-    position: relative;
+    height: 200px;
+    width: 350px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    margin-bottom: 11px;
-    text-align: center;
+    z-index: -3;
 }
 .dashboard-activity-cover-face-bg {
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    height: 140px;
-    width: 250px;
-    position: relative;
+    height: 200px;
+    width: 350px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    margin-bottom: 11px;
-    text-align: center;
     -webkit-filter: blur(5px);
     -moz-filter: blur(5px);
     filter: blur(5px);
     opacity: 0.75;
+    z-index: -3;
 }
 .dashboard-activity-cover-face {
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    height: 140px;
-    width: 140px;
-    position: relative;
+    height: 200px;
+    width: 200px;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    margin-bottom: 11px;
-    text-align: center;
     position: absolute;
     top: 0;
-    left: 55px;
+    left: 77px;
+    z-index: -3;
 }
 .dashboard-activity-clip-face-bg {
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    height: 140px;
-    width: 250px;
-    position: relative;
+    height: 200px;
+    width: 350px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    margin-bottom: 11px;
-    text-align: center;
     -webkit-filter: blur(5px);
     -moz-filter: blur(5px);
     filter: blur(5px);
     opacity: 0.75;
+    z-index: -3;
 }
 .dashboard-activity-clip-face {
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    height: 140px;
-    width: 94px;
+    height: 200px;
+    width: 130px;
     position: relative;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    margin-bottom: 11px;
-    text-align: center;
     position: absolute;
     top: 0;
-    left: 78px;
+    left: 110px;
+    z-index: -3;
+}
+.dashboard-activity-info-details-overlay {
+    text-align: left;
+    background-image: -webkit-gradient(linear,left 0,left 100%,from(rgba(0,0,0,.6)),to(rgba(0,0,0,.8)));
+    background-image: -webkit-linear-gradient(top,rgba(0,0,0,.6),0,rgba(0,0,0,.8),100%);
+    background-image: -moz-linear-gradient(top,rgba(0,0,0,.6) 0,rgba(0,0,0,.8) 100%);
+    background-image: linear-gradient(to bottom,rgba(0,0,0,.6) 0,rgba(0,0,0,.8) 100%);
+    background-repeat: repeat-x;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    z-index: -1;
+}
+.dashboard-activity-button-info {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+}
+.btn-activity-info,
+.btn-activity-info:focus {
+    color: #999;
+    background-color: rgba(0,0,0,0.5);
+}
+.btn-activity-info:hover {
+    color: #fff;
+}
+.dashboard-activity-info-details-content {
+    height: 200px;
+    width: 350px;
+    line-height: 25px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    color: #aaa;
+    padding: 10px;
+}
+.dashboard-activity-info-details-content strong {
+    color: #fff;
+    font-weight: normal;
+}
+.dashboard-activity-info-platform {
+    width: 100%;
+    height: 50px;
+    margin-bottom: 10px;
+}
+.dashboard-activity-info-platform-box {
+    float: left;
+    background-position: center;
+    background-size: cover;
+    width: 50px;
+    height: 50px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    margin-right: 10px;
 }
 .dashboard-activity-poster-info-bar {
     position:absolute;
-    color: #F9AA03;
-    bottom: 0;
-    width:100%;
-    height: 100px;
-    background: -moz-linear-gradient(top,  rgba(0,0,0,0) 30%, rgba(0,0,0,1) 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(30%,rgba(0,0,0,0)), color-stop(100%,rgba(0,0,0,1)));
-    background: -webkit-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
-    background: -o-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
-    background: -ms-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
-    background: linear-gradient(to bottom,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
+    width: 100%;
+    height: 100%;
+    background-image: -webkit-gradient(linear,left 30%,left 100%,from(rgba(0,0,0,0)),to(rgba(0,0,0,0.75)));
+    background-image: -webkit-linear-gradient(top,rgba(0,0,0,0),30%,rgba(0,0,0,0.75),100%);
+    background-image: -moz-linear-gradient(top,rgba(0,0,0,0) 30%,rgba(0,0,0,0.75) 100%);
+    background-image: linear-gradient(to bottom,rgba(0,0,0,0) 30%,rgba(0,0,0,0.75) 100%);
+    opacity: 0;
+    -webkit-transition: all .2s;
+    transition: all .2s;
+    z-index: -2;
+}
+.dashboard-activity-poster:hover .dashboard-activity-poster-info-bar {
+    opacity: 1;
 }
 .dashboard-activity-poster-info-text {
     position: absolute;
@@ -612,23 +670,28 @@ a .users-poster-face:hover {
 }
 .dashboard-activity-poster-info-time {
     position: absolute;
-    bottom: 0;
-    right: 0;
-    float: right;
+    bottom: 5px;
+    right: 10px;
     text-align: right;
-    padding: 5px 8px;
     font-size: 12px;
     color: #eee;
 }
 .dashboard-activity-progress {
-    overflow: hidden;
-    height: 4px;
-    background-color: #111;
-    float: left;
     width: 100%;
-    margin: 0 10px 5px 0;
+    height: 5px;
+    margin-bottom: 5px;
+}
+.dashboard-activity-progress-bar {
+    overflow: hidden;
+    height: 5px;
+    background-color: #111;
+    width: 100%;
+    z-index: -1;
+    -webkit-transition: all 0s;
+    transition: all 0s;
 }
 .dashboard-activity-progress .bar {
+    padding-top: 6px;
     background-color: #faa732;
     background-image: -moz-linear-gradient(top, #fbb450, #f89406);
     background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fbb450), to(#f89406));
@@ -638,53 +701,73 @@ a .users-poster-face:hover {
     background-repeat: repeat-x;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffbb450', endColorstr='#fff89406', GradientType=0);
 }
-.dashboard-activity-button-info {
-    position: absolute;
-    top: 3px;
-    left: 5px;
-    z-index: 1;
-}
 .dashboard-activity-metadata-wrapper {
     position: relative;
-    left: 0px;
-    width: 250px;
+    width: 350px;
+    height: 50px;
     font-size: 13px;
-}
-.dashboard-activity-metadata-user {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    width: 80%;
-    margin-right: 5px;
-    float: left;
-}
-.dashboard-activity-metadata-user a {
-    color: #F9AA03;
-}
-.dashboard-activity-metadata-user a:hover {
-    color: #FFCD62;
+    padding: 0 3px;
 }
 .dashboard-activity-metadata-title {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
     font-size: 14px;
-    width: 80%;
-    margin-right: 5px;
+    line-height: 25px;
     color: #fff;
+    max-width: 300px;
+}
+.dashboard-activity-metadata-subtitle {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 14px;
+    line-height: 25px;
+    color: #999;
+    max-width: 172px;
     float: left;
+}
+.dashboard-activity-metadata-user {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 14px;
+    line-height: 25px;
+    color: #999;
+    text-align: right;
+    max-width: 122px;
+    float: right;
+}
+.dashboard-activity-metadata-user-thumb {
+    background-position: center;
+    background-size: cover;
+    margin-top: 5px;
+    margin-left: 10px;
+    height: 40px;
+    width: 40px;
+    position: relative;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+    float: right;
+}
+a .dashboard-activity-metadata-user-thumb:hover {
+    -webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -moz-box-shadow: inset 0 0 0 2px #e9a049;
+    box-shadow: inset 0 0 0 2px #e9a049;
+}
+.dashboard-activity-metadata-user a {
+    color: #999;
+}
+.dashboard-activity-metadata-user a:hover {
+    color: #F9AA03;
 }
 .dashboard-activity-metadata-title a:hover {
     color: #F9AA03;
-}
-.dashboard-activity-metadata-platform {
-    float: right;
-}
-.dashboard-activity-metadata-platform-box {
-    background-position: center;
-    background-size: cover;
-    width: 40px;
-    height: 40px;
 }
 .dashboard-activity-metadata-progress-wrapper {
     margin-bottom: 20px;
@@ -692,36 +775,14 @@ a .users-poster-face:hover {
     font-weight: bold;
     color: #F9AA03;
 }
-.dashboard-activity-metadata-progress-minutes {
-    width: 100%;
-}
-.dashboard-activity-instance-overlay {
+/*.dashboard-activity-instance-overlay {
     position: relative;
     top: -12px;
     text-align: left;
     height: 53px;
     width: 250px;
     border-radius: 0 0 3px 3px;
-}
-.dashboard-activity-info-details-overlay {
-    text-align: left;
-    background-color: rgba(0,0,0,0.5);
-    width: 250px;
-    padding: 5px 0px 5px 0px;
-}
-.dashboard-activity-info-details-content {
-    margin-left: 5px;
-    margin-right: 5px;
-    width: 245px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    color: #999;
-}
-.dashboard-activity-info-details-content strong {
-    color: #fff;
-    font-weight: normal;
-}
+}*/
 .dashboard-recent-media-row {
     width: 100%;
     margin:0 auto;
