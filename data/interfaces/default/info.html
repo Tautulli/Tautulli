@@ -197,7 +197,30 @@ DOCUMENTATION :: END
                         % endif
                     </div>
                 </div>
-                % if data['type'] == 'movie' or data['type'] == 'episode' or data['type'] == 'show':
+                % if data['type'] == 'show':
+                <div class='col-md-12'>
+                    <div class='table-card-header'>
+                        <div class="header-bar">
+                            <span>Season List for <strong>${data['title']}</strong></span>
+                        </div>
+                    </div>
+                    <div class='table-card-back'>
+                        <div id="season-list"></div>
+                    </div>
+                </div>
+                % elif data['type'] == 'season':
+                <div class='col-md-12'>
+                    <div class='table-card-header'>
+                        <div class="header-bar">
+                            <span>Episode List for <strong>${data['title']}</strong></span>
+                        </div>
+                    </div>
+                    <div class='table-card-back'>
+                        <div id="episode-list"></div>
+                    </div>
+                </div>
+                % endif
+                % if data['type'] == 'movie' or data['type'] == 'episode' or data['type'] == 'show' or data['type'] == 'season':
                 <div class='col-md-12'>
                     <div class='table-card-header'>
                         <div class="header-bar">
@@ -233,18 +256,7 @@ DOCUMENTATION :: END
                     <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
                     </div>
                 </div>
-                % elif data['type'] == 'season':
-                <div class='col-md-12'>
-                    <div class='table-card-header'>
-                        <div class="header-bar">
-                            <span>Episode List for <strong>${data['title']}</strong></span>
-                        </div>
-                    </div>
-                    <div class='table-card-back'>
-                        <div id="episode-list"></div>
-                    </div>
-                    % endif
-                </div>
+                % endif
             </div>
         </div>
     </div>
@@ -288,28 +300,27 @@ DOCUMENTATION :: END
             type: 'post',
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ),
-                    'rating_key': ${data['rating_key']}
-        };
-    }
-    }
+                    'rating_key': ${data['rating_key']} };
+            }
+        }
         history_table = $('#history_table').DataTable(history_table_options);
 
-    var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
-    $(colvis.button()).appendTo('div.colvis-button-bar');
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
+        $(colvis.button()).appendTo('div.colvis-button-bar');
 
-    clearSearchButton('history_table', history_table);
+        clearSearchButton('history_table', history_table);
 
-    $('#row-edit-mode').click(function() {
-        if ($(this).hasClass('active')) {
-            $('.delete-control').each(function() {
-                $(this).addClass('hidden');
-            });
-        } else {
-            $('.delete-control').each(function() {
-                $(this).removeClass('hidden');
-            });
-        }
-    });
+        $('#row-edit-mode').click(function() {
+            if ($(this).hasClass('active')) {
+                $('.delete-control').each(function() {
+                    $(this).addClass('hidden');
+                });
+            } else {
+                $('.delete-control').each(function() {
+                    $(this).removeClass('hidden');
+                });
+            }
+        });
     });
 </script>
 % elif data['type'] == 'show':
@@ -321,40 +332,75 @@ DOCUMENTATION :: END
             type: 'post',
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ),
-                    'grandparent_rating_key': ${data['rating_key']}
-        };
-    }
-    }
-        history_table = $('#history_table').DataTable(history_table_options);
-    var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
-    $(colvis.button()).appendTo('div.colvis-button-bar');
-
-    clearSearchButton('history_table', history_table);
-
-    $('#row-edit-mode').click(function() {
-        if ($(this).hasClass('active')) {
-            $('.delete-control').each(function() {
-                $(this).addClass('hidden');
-            });
-        } else {
-            $('.delete-control').each(function() {
-                $(this).removeClass('hidden');
-            });
+                    'grandparent_rating_key': ${data['rating_key']} };
+            }
         }
+        history_table = $('#history_table').DataTable(history_table_options);
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
+        $(colvis.button()).appendTo('div.colvis-button-bar');
+
+        clearSearchButton('history_table', history_table);
+
+        $('#row-edit-mode').click(function() {
+            if ($(this).hasClass('active')) {
+                $('.delete-control').each(function() {
+                    $(this).addClass('hidden');
+                });
+            } else {
+                $('.delete-control').each(function() {
+                    $(this).removeClass('hidden');
+                });
+            }
+        });
     });
+    $.ajax({
+        url: 'get_show_children',
+        type: "GET",
+        async: true,
+        data: { rating_key : ${data['rating_key']} },
+        complete: function(xhr, status) {
+        $("#season-list").html(xhr.responseText); }
     });
 </script>
 % endif
 % if data['type'] == 'season':
+<script src="interfaces/default/js/tables/history_table.js"></script>
 <script>
+    $(document).ready(function () {
+        history_table_options.ajax = {
+            "url": "get_history",
+            type: 'post',
+            data: function ( d ) {
+                return { 'json_data': JSON.stringify( d ),
+                    'parent_rating_key': ${data['rating_key']} };
+            }
+        }
+        history_table = $('#history_table').DataTable(history_table_options);
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
+        $(colvis.button()).appendTo('div.colvis-button-bar');
+
+        clearSearchButton('history_table', history_table);
+
+        $('#row-edit-mode').click(function() {
+            if ($(this).hasClass('active')) {
+                $('.delete-control').each(function() {
+                    $(this).addClass('hidden');
+                });
+            } else {
+                $('.delete-control').each(function() {
+                    $(this).removeClass('hidden');
+                });
+            }
+        });
+    });
+
     $.ajax({
-        url: 'get_children',
+        url: 'get_season_children',
         type: "GET",
         async: true,
         data: { rating_key : ${data['rating_key']} },
-    complete: function(xhr, status) {
-        $("#episode-list").html(xhr.responseText);
-    }
+        complete: function(xhr, status) {
+        $("#episode-list").html(xhr.responseText); }
     });
 </script>
 % endif

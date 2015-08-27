@@ -90,6 +90,23 @@ class PmsConnect(object):
         return request
 
     """
+    Return list of seasons in requested show.
+
+    Parameters required:    rating_key { ratingKey of parent }
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_season_list(self, rating_key='', output_format=''):
+        uri = '/library/metadata/' + rating_key + '/children'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+        
+        return request
+
+    """
     Return list of episodes in requested season.
 
     Parameters required:    rating_key { ratingKey of parent }
@@ -103,7 +120,7 @@ class PmsConnect(object):
                                                     proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
-
+        
         return request
 
     """
@@ -797,6 +814,49 @@ class PmsConnect(object):
             logger.warn(u"No known stream types found in session list.")
 
         return session_output
+
+    """
+    Return processed and validated season list.
+
+    Output: array
+    """
+    def get_show_children(self, rating_key=''):
+        season_data = self.get_season_list(rating_key, output_format='xml')
+
+        try:
+            xml_head = season_data.getElementsByTagName('MediaContainer')
+        except:
+            logger.warn("Unable to parse XML for get_season_list.")
+            return []
+
+        season_list = []
+
+        for a in xml_head:
+            if a.getAttribute('size'):
+                if a.getAttribute('size') == '0':
+                    logger.debug(u"No season data.")
+                    episode_list = {'season_count': '0',
+                                    'season_list': []
+                                    }
+                    return season_list
+
+            if a.getElementsByTagName('Directory'):
+                result_data = a.getElementsByTagName('Directory')
+                for result in result_data:
+                    season_output = {'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
+                                      'index': helpers.get_xml_attr(result, 'index'),
+                                      'title': helpers.get_xml_attr(result, 'title'),
+                                      'thumb': helpers.get_xml_attr(result, 'thumb'),
+                                      'parent_thumb': helpers.get_xml_attr(a, 'thumb')
+                                      }
+                    season_list.append(season_output)
+
+        output = {'season_count': helpers.get_xml_attr(xml_head[0], 'size'),
+                  'title': helpers.get_xml_attr(xml_head[0], 'title2'),
+                  'season_list': season_list
+                  }
+
+        return output
 
     """
     Return processed and validated episode list.

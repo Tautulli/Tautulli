@@ -55,6 +55,7 @@ class DataFactory(object):
                    (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 ELSE \
                     session_history_metadata.duration * 1.0 END) * 100) as percent_complete',
                    'session_history.grandparent_rating_key as grandparent_rating_key',
+                   'session_history.parent_rating_key as parent_rating_key',
                    'session_history.rating_key as rating_key',
                    'session_history.user',
                    'session_history_metadata.media_type',
@@ -112,6 +113,7 @@ class DataFactory(object):
                    "duration": item["duration"],
                    "percent_complete": item["percent_complete"],
                    "grandparent_rating_key": item["grandparent_rating_key"],
+                   "parent_rating_key": item["parent_rating_key"],
                    "rating_key": item["rating_key"],
                    "user": item["user"],
                    "media_type": item["media_type"],
