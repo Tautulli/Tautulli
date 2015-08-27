@@ -113,7 +113,6 @@
                 }
 
                 $('.delete-control').each(function () {
-                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).addClass('hidden');
                     $('#row-edit-mode-alert').fadeOut(200);
                 });
@@ -121,6 +120,7 @@
             } else {
                 history_to_delete = [];
                 $('.delete-control').each(function() {
+                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).removeClass('hidden');
                 });
             }
