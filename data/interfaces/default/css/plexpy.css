@@ -282,6 +282,10 @@ fieldset[disabled] .btn-bright.active {
 .modal-body i.fa {
     color: #fff;
 }
+.modal-body td:hover a .fa,
+.modal-body a:focus i.fa {
+    color: #f9aa03;
+}
 .modal-body strong {
     color: #F9AA03;
 }
@@ -2043,6 +2047,7 @@ a .home-platforms-instance-list-oval:hover,
 }
 .history-title .popover.right {
     margin-left: 12px;
+    z-index: 5;
 }
 .history-title .popover.right .popover-content {
     padding: 5px 8px;
