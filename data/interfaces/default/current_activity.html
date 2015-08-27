@@ -28,8 +28,10 @@ user                        Returns the name of the user owning the session.
 user_id                     Returns the Plex user id if available.
 machine_id                  Returns the machine id of the players being used.
 friendly_name               Returns the friendlly name of the user owning the session.
+user_thumb                  Returns the profile picture of the user owning the session.
 state                       Returns the state of the current session. Either 'playing', 'paused' or 'buffering'.
 title                       Returns the name of the episode, movie or music track.
+year                        Returns the year of the episode, movie, or clip.
 player                      Returns the name of the platform used to play the stream.
 platform                    Returns the type of platform used to play the stream.
 audio_decision              Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
@@ -62,132 +64,137 @@ DOCUMENTATION :: END
 % if data['stream_count'] != '0':
 % for a in data['sessions']:
 <div class="dashboard-instance" id="instance-${a['session_key']}">
-    <div class="dashboard-poster">
+    % if a['type'] == 'movie' or a['type'] == 'episode':
+    <a href="info?item_id=${a['rating_key']}">
+    % endif
         <div class="dashboard-activity-poster">
             % if a['type'] == 'movie' and not a['indexes']:
             <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
             % elif a['indexes']:
             <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['bif_thumb']}&width=300&height=280); display: none;" onload="fadeIn(this)"></div>
             % else:
-                % if a['type'] == 'track':
+                % if a['type'] == 'episode':
+                <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=280&fallback=cover);"></div>
+                % elif a['type'] == 'track':
                 <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
                 <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
                 % elif a['type'] == 'clip':
                 <div class="dashboard-activity-clip-face-bg" style="background-image: url(${a['thumb']});"></div>
                 <div class="dashboard-activity-clip-face" style="background-image: url(${a['thumb']});"></div>
                 % else:
-                <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300&fallback=cover);"></div>
+                <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=280&fallback=cover);"></div>
                 % endif
             % endif
-            <div class="dashboard-activity-poster-info-bar">
-                <div class="dashboard-activity-poster-info-text">
+            <div class="dashboard-activity-button-info">
+                <button type="button" class="btn btn-activity-info btn-lg" data-target="#stream-${a['session_key']}">
+                    <i class="fa fa-info-circle"></i>
+                </button>
+            </div>
+            <div id="stream-${a['session_key']}" class="dashboard-activity-info-details-overlay">
+                <div class="dashboard-activity-info-details-content">
+                    <div class="dashboard-activity-info-platform" id="platform-${a['session_key']}">
+                        <strong>${a['player']}</strong><br />
+                        % if a['state'] == 'playing':
+                        State &nbsp;<strong>Playing</strong>
+                        % elif a['state'] == 'paused':
+                        State &nbsp;<strong>Paused</strong>
+                        % elif a['state'] == 'buffering':
+                        State &nbsp;<strong>Buffering</strong>
+                        % endif
+                    </div>
                     % if a['type'] == 'track':
-                    Track ${a['media_index']}
-                    % elif a['type'] == 'episode':
-                    Season ${a['parent_media_index']}, Episode ${a['media_index']}
-                    % else:
-                    ${a['title']}
+                        % if a['audio_decision'] == 'direct play':
+                        Stream &nbsp;<strong>Direct Play</strong>
+                        % else:
+                        Stream &nbsp;<strong>Transcoding</strong>
+                        % endif
+                        <br />
+                        % if a['audio_decision'] == 'direct play':
+                        Audio &nbsp;<strong>Direct Play (${a['audio_codec']}) (${a['audio_channels']}ch)</strong>
+                        % elif a['audio_decision'] == 'Copy':
+                        Audio &nbsp;<strong>Direct Stream (${a['transcode_audio_codec']}) (${a['transcode_audio_channels']}ch)</strong>
+                        % elif a['audio_decision'] != 'transcode':
+                        Audio &nbsp;<strong>Transcode (${a['transcode_audio_codec']}) (${a['transcode_audio_channels']}ch)</strong>
+                        % endif
+                    % elif a['type'] == 'episode' or a['type'] == 'movie' or a['type'] == 'clip':
+                        % if a['video_decision'] == 'direct play':
+                        Stream &nbsp;<strong>Direct Play</strong>
+                        % else:
+                        Stream &nbsp;<strong>Transcoding</strong>
+                        % endif
+                        <br />
+                        % if a['video_decision'] == 'direct play':
+                        Video &nbsp;<strong>Direct Play (${a['video_codec']}) (${a['width']}x${a['height']})</strong>
+                        % elif a['video_decision'] == 'copy':
+                        Video &nbsp;<strong>Direct Stream (${a['transcode_video_codec']}) (${a['width']}x${a['height']})</strong>
+                        % elif a['video_decision'] == 'transcode':
+                        Video &nbsp;<strong>Transcode (${a['transcode_video_codec']}) (${a['width']}x${a['height']})</strong>
+                        % endif
+                        <br />
+                        % if a['audio_decision'] == 'direct play':
+                        Audio &nbsp;<strong>Direct Play (${a['audio_codec']}) (${a['audio_channels']}ch)</strong>
+                        % elif a['audio_decision'] == 'copy':
+                        Audio &nbsp;<strong>Direct Stream (${a['transcode_audio_codec']}) (${a['transcode_audio_channels']}ch)</strong>
+                        % elif a['audio_decision'] == 'transcode':
+                        Audio &nbsp;<strong>Transcode (${a['transcode_audio_codec']}) (${a['transcode_audio_channels']}ch)</strong>
+                        % endif
                     % endif
+                    <br>
                 </div>
+            </div>
+            <div class="dashboard-activity-poster-info-bar">
                 <div class="dashboard-activity-poster-info-time">
                     <span class="progress_time">${a['progress']}</span>/<span class="progress_time">${a['duration']}</span>
                 </div>
             </div>
         </div>
-        <div class='dashboard-activity-metadata-wrapper'>
-            <div class='dashboard-activity-instance-overlay'>
-                <div class='dashboard-activity-metadata-progress-minutes'>
-                    <div class='dashboard-activity-progress'>
-                        <div class="bar" style="width: ${a['progress_percent']}%">${a['progress_percent']}%</div>
-                    </div>
-                </div>
-                <div class="dashboard-activity-metadata-platform" data-toggle="tooltip" data-placement="right" title data-title="${a['player']}" id="platform-${a['session_key']}">
-                </div>
-                <div class="dashboard-activity-metadata-user">
-                    % if a['user_id']:
-                    <a href="user?user_id=${a['user_id']}">${a['friendly_name']}</a> is ${a['state']}
-                    % else:
-                    <a href="user?user=${a['user']}">${a['friendly_name']}</a> is ${a['state']}
-                    % endif
-                </div>
-                <div class="dashboard-activity-metadata-title">
-                    % if a['type'] == 'episode':
-                    <a href="info?item_id=${a['rating_key']}">${a['grandparent_title']} - ${a['title']}</a>
-                    % elif a['type'] == 'movie':
-                    <a href="info?item_id=${a['rating_key']}">${a['title']}</a>
-                    % elif a['type'] == 'clip':
-                    ${a['title']}
-                    % elif a['type'] == 'track':
-                    ${a['grandparent_title']} - ${a['title']}
-                    % else:
-                    ${a['grandparent_title']} - ${a['title']}
-                    % endif
-                </div>
-            </div>
-            <div id="stream-${a['session_key']}" class="collapse out">
-                <div class='dashboard-activity-info-details-overlay'>
-                    <div class='dashboard-activity-info-details-content'>
-                        % if a['type'] == 'track':
-                        Artist: <strong>${a['grandparent_title']}</strong>
-                        <br>
-                        Album: <strong>${a['parent_title']}</strong>
-                        <br>
-                        % endif
-                        % if a['state'] == 'playing':
-                        State: <strong>Playing</strong>
-                        % elif a['state'] == 'paused':
-                        State: <strong>Paused</strong>
-                        % elif a['state'] == 'buffering':
-                        State: <strong>Buffering</strong>
-                        % endif
-                        <br>
-                        % if a['type'] == 'track':
-                        % if a['audio_decision'] == 'direct play':
-                        Stream: <strong>Direct Play</strong>
-                        % else:
-                        Stream: <strong>Transcoding</strong>
-                        % endif
-                        <br/>
-                        % if a['audio_decision'] != 'direct play':
-                        Audio: <strong>${a['transcode_audio_codec']} (${a['transcode_audio_channels']}ch)</strong>
-                        % elif a['audio_decision'] == 'direct play':
-                        Audio: <strong>${a['audio_codec']} (${a['audio_channels']}ch)</strong>
-                        % endif
-                        % elif a['type'] == 'episode' or a['type'] == 'movie' or a['type'] == 'clip':
-                        % if a['video_decision'] == 'direct play':
-                        Stream: <strong>Direct Play</strong>
-                        % else:
-                        Stream: <strong>Transcoding</strong>
-                        % endif
-                        <br/>
-                        % if a['video_decision'] != 'direct play':
-                        Video: <strong>${a['video_decision']} (${a['transcode_video_codec']})
-                        (${a['transcode_width']}x${a['transcode_height']})</strong>
-                        % elif a['audio_decision'] == 'direct play':
-                        Video: <strong>${a['video_decision']} (${a['video_codec']})
-                        (${a['width']}x${a['height']})</strong>
-                        % endif
-                        <br/>
-                        % if a['audio_decision'] != 'direct play':
-                        Audio: <strong>${a['audio_decision']} ${a['transcode_audio_codec']} (${a['transcode_audio_channels']}ch)</strong>
-                        % elif a['audio_decision'] == 'direct play':
-                        Audio: <strong>${a['audio_codec']} (${a['audio_channels']}ch)</strong>
-                        % endif
-                        % endif
-                        <br>
-                    </div>
-                </div>
-            </div>
+    % if a['type'] == 'movie' or a['type'] == 'episode':
+    </a>
+    % endif
+    <div class="dashboard-activity-progress">
+        <div class="dashboard-activity-progress-bar">
+            <div class="bar" style="width: ${a['progress_percent']}%">${a['progress_percent']}%</div>
         </div>
     </div>
-    <div class="dashboard-activity-button-info">
-        <button type="button" class="btn btn-activity-info btn-sm" data-toggle="collapse" data-target="#stream-${a['session_key']}">
-            <i class='fa fa-info-circle'></i>
-        </button>
-    </div>
+    <div class="dashboard-activity-metadata-wrapper">
+        <a href="user?user_id=${a['user_id']}">
+            <div class="dashboard-activity-metadata-user-thumb" style="background-image: url(${a['user_thumb']});"></div>
+        </a>
+        <div class="dashboard-activity-metadata-title">
+            % if a['type'] == 'episode':
+            <a href="info?item_id=${a['rating_key']}">${a['grandparent_title']} - ${a['title']}</a>
+            % elif a['type'] == 'movie':
+            <a href="info?item_id=${a['rating_key']}">${a['title']}</a>
+            % elif a['type'] == 'clip':
+            ${a['title']}
+            % elif a['type'] == 'track':
+            ${a['grandparent_title']} - ${a['title']}
+            % else:
+            ${a['grandparent_title']} - ${a['title']}
+            % endif
+        </div>
+        <div class="dashboard-activity-metadata-subtitle">
+            % if a['type'] == 'episode':
+            S${a['parent_media_index']} &middot; E${a['media_index']}
+            % elif a['type'] == 'movie':
+            ${a['year']}
+            % elif a['type'] == 'track':
+            ${a['parent_title']}
+            % else:
+            ${a['year']}
+            % endif
+        </div>
+        <div class="dashboard-activity-metadata-user">
+            % if a['user_id']:
+            <a href="user?user_id=${a['user_id']}">${a['friendly_name']}</a>
+            % else:
+            <a href="user?user=${a['user']}">${a['friendly_name']}</a>
+            % endif
+        </div>
+</div>
 </div>
 <script>
-    $("#platform-${a['session_key']}").html("<div class='dashboard-activity-metadata-platform-box' style='background-image: url(" + getPlatformImagePath('${a['platform']}') + ");'>");
+    $("#platform-${a['session_key']}").prepend("<div class='dashboard-activity-info-platform-box' style='background-image: url(" + getPlatformImagePath('${a['platform']}') + ");'>");
 </script>
 
 % endfor
@@ -201,19 +208,15 @@ DOCUMENTATION :: END
         $(this).html(millisecondsToMinutes($(this).text(), false));
     });
 
-    // Hide the info bar on page load
-    $('.dashboard-activity-poster-info-bar').hide();
-
-    // When mouse over the activity pane, show an info bar with extra info.
-    $('.dashboard-activity-poster').hover(function() {
-        $('.dashboard-activity-poster-info-bar', this).stop().slideDown('fast');
-    }, function() {
-        $('.dashboard-activity-poster-info-bar', this).stop().slideUp('fast');
-    });
-
     // Tooltips
     $('.dashboard-activity-metadata-platform').each(function() {
         $(this).tooltip();
+    });
+
+    // Show/Hide activity info
+    $('.btn-activity-info').on('click', function(e) {
+        e.preventDefault();
+        $($(this).attr('data-target')).toggle();
     });
 </script>
 % else:
