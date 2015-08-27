@@ -1378,9 +1378,16 @@ a .season-episodes-card-overlay:hover {
     width: 100%;
     padding: 0 0 0 20px;
 }
+.home-platforms-instance-name h4 {
+    margin: 10px 0 20px 0;
+}
 .home-platforms-instance-name h5 {
-    font-size: 16px;
-    margin: 20px 0 2px 0;
+    font-size: 14px;
+    line-height: 16px;
+    margin: 15px 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .home-platforms-instance-playcount {
     float: left;
