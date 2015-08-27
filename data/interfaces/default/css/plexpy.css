@@ -1,7 +1,8 @@
 body {
     font-family: 'Open Sans', sans-serif;
     color: #fff;
-    padding-top: 50px;
+    margin-top: 50px;
+    overflow: hidden;
 }
 a {
     color: #eee;
@@ -454,28 +455,9 @@ input[type="color"],
 a .poster-face:hover,
 a .cover-face:hover,
 a .users-poster-face:hover {
-    -webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
-}
-.users-poster-face img {
-    bottom: 0;
-    overflow: hidden;
-    float: left;
-    background-color: #323232;
-    background-position: center;
-    background-size: cover;
-    -webkit-border-radius: 1000px;
-    -moz-border-radius: 1000px;
-    border-radius: 1000px;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    width: 40px;
-    height: 40px;
-}
-.users-poster-face img:hover{
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 2px #F9AA03;
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 2px #F9AA03;
 }
 .users-name {
     position: relative;
@@ -521,6 +503,8 @@ a .users-poster-face:hover {
     text-align: center;
 }
 .dashboard-activity-cover-face-bg {
+}
+.dashboard-activity-poster-music-bg {
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -743,8 +727,8 @@ a .users-poster-face:hover {
     float: left;
     min-height: 340px;
 }
-.dashboard-recent-media-metacontainer{
-    width: 153px;
+.dashboard-recent-media-metacontainer {
+    width: 150px;
     font-size: 13px;
     margin-bottom: 20px;
     clear: both;
@@ -759,7 +743,7 @@ a .users-poster-face:hover {
     margin: 0;
     line-height: 15px;
     font-weight: normal;
-    width: 153px;
+    width: 150px;
     white-space: nowrap;
     text-align: left;
     clear: both;
@@ -774,244 +758,212 @@ a .users-poster-face:hover {
 }
 .art-face {
     background-repeat: no-repeat;
-    background-position: 50% 0%;
-    background-size: 100%;
-    height: 540px;
-    overflow: hidden;
-    min-width: 280px;
-    position: relative;
-    -webkit-border-radius: 2px;
-    -moz-border-radius: 2px;
-    border-radius: 2px;
-    -webkit-box-shadow: 0 0 0px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0 0 0px rgba(0,0,0,0.75);
-    box-shadow: 0 0 0px rgba(0,0,0,0.75);
-    -webkit-transform: translateZ(0);
-    -moz-transform: translateZ(0);
-    -ms-transform: translateZ(0);
-    -o-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-transform-style: preserve-3d;
-    -moz-transform-style: preserve-3d;
-    -ms-transform-style: preserve-3d;
-    -o-transform-style: preserve-3d;
-    transform-style: preserve-3d;
-    -webkit-perspective: 1000;
-    -moz-perspective: 1000;
-    -ms-perspective: 1000;
-    -o-perspective: 1000;
-    perspective: 1000;
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    -ms-backface-visibility: hidden;
-    -o-backface-visibility: hidden;
-    backface-visibility: hidden;
-    clear: both;
-}
-.art-face img {
-    -webkit-border-radius: 2px;
-    -moz-border-radius: 2px;
-    border-radius: 2px;
-    border-color: #1d1d1d;
-    -webkit-border-radius: 2px;
-    -moz-border-radius: 2px;
-    border-radius: 2px;
-    -webkit-box-shadow: 0 0 10px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0 0 10px rgba(0,0,0,0.75);
-    box-shadow: 0 0 10px rgba(0,0,0,0.75);
-    -webkit-transform: translateZ(0);
-    -moz-transform: translateZ(0);
-    -ms-transform: translateZ(0);
-    -o-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-transform-style: preserve-3d;
-    -moz-transform-style: preserve-3d;
-    -ms-transform-style: preserve-3d;
-    -o-transform-style: preserve-3d;
-    transform-style: preserve-3d;
-    -webkit-perspective: 1000;
-    -moz-perspective: 1000;
-    -ms-perspective: 1000;
-    -o-perspective: 1000;
-    perspective: 1000;
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    -ms-backface-visibility: hidden;
-    -o-backface-visibility: hidden;
-    backface-visibility: hidden;
+    background-position: center center;
+    background-attachment: scroll;
+    background-size: cover;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
 }
 .art-music-face {
     background-repeat: no-repeat;
-    background-position: 50% 50%;
-    background-size: 100%;
+    background-position: center;
+    background-size: cover;
     width: 250px;
-    height: 141px;
-    overflow: hidden;
     position: relative;
-    -webkit-border-radius: 2px;
-    -moz-border-radius: 2px;
-    border-radius: 2px;
-    -webkit-box-shadow: 0 0 0px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0 0 0px rgba(0,0,0,0.75);
-    box-shadow: 0 0 0px rgba(0,0,0,0.75);
-    -webkit-transform: translateZ(0);
-    -moz-transform: translateZ(0);
-    -ms-transform: translateZ(0);
-    -o-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-transform-style: preserve-3d;
-    -moz-transform-style: preserve-3d;
-    -ms-transform-style: preserve-3d;
-    -o-transform-style: preserve-3d;
-    transform-style: preserve-3d;
-    -webkit-perspective: 1000;
-    -moz-perspective: 1000;
-    -ms-perspective: 1000;
-    -o-perspective: 1000;
-    perspective: 1000;
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    -ms-backface-visibility: hidden;
-    -o-backface-visibility: hidden;
-    backface-visibility: hidden;
-    clear: both;
+    top: 0;
+    bottom: 0;
 }
-.summary-wrapper {
-    height: auto;
-    width: 100%;
+.summary-container {
     position: absolute;
+    top: 0;
+    right: 0;
     bottom: 0;
+    left: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
-.summary-overlay {
-    background-color: rgba(0,0,0,0.85);
-    color: #fff;
-    font-size: 14px;
-    height: auto;
-    position: relative;
-    top: 0px;
-    border-color: #1d1d1d;
-    border: 2px solid #191919;
+.summary-container .table-card-header,
+.summary-container .table-card-back {
+    opacity: 0.90;
 }
-.summary-content-wrapper {
-    margin-left: auto;
-    margin-right: auto;
-    width: 960px;
-}
-.summary-content-poster {
-    position: relative;
-    top: -10px;
-    float: left;
-    margin-left: 25px;
-    width: 150px;
-    height: 225px;
-}
-.summary-content-poster img {
-    bottom: 0;
+.summary-navbar {
+    background-color: rgba(255,255,255,.03);
+    height: 50px;
+    line-height: 50px;
+    max-height: 50px;
     overflow: hidden;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    -webkit-box-shadow: 0 0 10px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0 0 10px rgba(0,0,0,0.75);
-    box-shadow: 0 0 10px rgba(0,0,0,0.75);
-    -webkit-transform: translateZ(0);
-    -moz-transform: translateZ(0);
-    -ms-transform: translateZ(0);
-    -o-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-transform-style: preserve-3d;
-    -moz-transform-style: preserve-3d;
-    -ms-transform-style: preserve-3d;
-    -o-transform-style: preserve-3d;
-    transform-style: preserve-3d;
-    -webkit-perspective: 1000;
-    -moz-perspective: 1000;
-    -ms-perspective: 1000;
-    -o-perspective: 1000;
-    perspective: 1000;
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    -ms-backface-visibility: hidden;
-    -o-backface-visibility: hidden;
-    backface-visibility: hidden;
 }
-.summary-content {
-    position: relative;
-    top: 0px;
-    left: 20px;
+.summary-navbar-list {
+    padding: 0 25px;
     color: #999;
-    height: auto;
-    overflow: hidden;
-    margin-right: 20px;
-    margin-bottom: 20px;
 }
-.summary-content-title h1{
-    margin-top: 15px;
-    margin-bottom: 15px;
-    color: #F9AA03;
-    font-size: 24px;
-    line-height: 32px;
+.summary-navbar-list span {
     float: left;
+    margin-right: 20px;
 }
-.summary-content-title h1 a{
+.summary-navbar-list span a {
+    color: #999;
+}
+.summary-navbar-list span a:hover {
     color: #F9AA03;
 }
-.summary-content-title h1 a:hover{
+.summary-content-title-wrapper {
+    height: 150px;
+    padding-top: 50px;
+}
+.summary-content-title {
+    overflow: hidden;
+    position: relative;
+    max-height: 100px;
+}
+.summary-content-title h1 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #F9AA03;
+    font-size: 28px;
+    line-height: 40px;
+    float: left;
+    clear: left;
+}
+.summary-content-title h1 a {
+    color: #F9AA03;
+}
+.summary-content-title h1 a:hover {
     color: #F9AA03;
     text-decoration: underline;
 }
+.summary-content-title h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #fff;
+    font-size: 28px;
+    line-height: 40px;
+    float: left;
+    clear: left;
+}
+.summary-content-title h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #999;
+    font-size: 28px;
+    line-height: 40px;
+    float: right;
+}
+.summary-content-title h3 a:hover {
+    text-decoration: underline;
+}
+.summary-content-title h3 a {
+    color: #999;
+}
+.summary-content-wrapper {
+    background-image: linear-gradient(rgba(0,0,0,.4),rgba(19,19,19,.4) 50%,rgba(26,26,26,.4));
+    background-clip: content-box;
+    min-height: calc(100% - 200px);
+    position: inherit;
+}
+.summary-content-poster {
+    float: left;
+    width: 250px;
+    margin: 0 40px 0 25px;
+    height: 100px;
+    overflow: visible;
+}
+.summary-poster-face {
+    background-position: center;
+    background-size: cover;
+    height: 375px;
+    width: 250px;
+    position: relative;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+    z-index: 1;
+}
+.summary-poster-face-episode {
+    background-position: center;
+    background-size: cover;
+    height: 140px;
+    width: 250px;
+    position: relative;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+    z-index: 1;
+}
+a .summary-poster-face:hover,
+a .summary-poster-face-episode:hover {
+    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -moz-box-shadow: inset 0 0 0 2px #e9a049;
+    box-shadow: inset 0 0 0 2px #e9a049;
+}
+.summary-content-padding {
+    float: left;
+    width: 250px;
+    height: 1px;
+    margin: 0 40px 20px 25px;
+}
+.summary-content {
+    position: relative;
+    color: #999;
+    overflow: hidden;
+    padding-right: 10px;
+    margin-bottom: 20px;
+}
 .summary-content-details-wrapper {
     width: 100%;
-    padding-bottom: 15px;
-    margin-top: -10px;
-    clear: both;
+    padding: 10px 0 15px 0;
     position: relative;
-    top: -15px;
+    float: left;
 }
 .summary-content-director {
     float: left;
-    margin-right: 10px;
     line-height: 24px;
 }
 .summary-content-director strong {
     color: #fff;
     margin-left: 2px;
+    margin-right: 10px;
 }
 .summary-content-studio {
     float: left;
-    margin-right: 10px;
     line-height: 24px;
 }
 .summary-content-studio strong {
     color: #fff;
     margin-left: 2px;
+    margin-right: 10px;
 }
 .summary-content-airdate {
     float: left;
-    margin-right: 10px;
     line-height: 24px;
 }
 .summary-content-airdate strong {
     color: #fff;
     margin-left: 2px;
+    margin-right: 10px;
 }
 .summary-content-duration {
     float: left;
-    margin-right: 10px;
     line-height: 24px;
 }
 .summary-content-duration strong {
     color: #fff;
     margin-left: 2px;
+    margin-right: 10px;
 }
 .summary-content-content-rating {
     float: left;
     line-height: 24px;
-    margin-right: 10px;
 }
 .summary-content-content-rating strong {
     color: #fff;
     margin-left: 2px;
+    margin-right: 10px;
 }
 .summary-content-summary {
     overflow: hidden;
@@ -1019,14 +971,12 @@ a .users-poster-face:hover {
     float: left;
     position: relative;
     clear: both;
-    padding-right: 10px;
     height: auto;
     max-height: 160px;
     padding-bottom: 0px;
 }
 .summary-content-people-wrapper {
-    margin-top: 25px;
-    margin-right: 25px;
+    margin-right: 20px;
     float: left;
 }
 .summary-content-people-wrapper hidden-phone hidden-tablet {
@@ -1035,9 +985,7 @@ a .users-poster-face:hover {
     min-height: 0px;
 }
 .summary-content-actors {
-    margin-top: 0px;
-    margin-left: 0px;
-    margin-right: 15px;
+    margin-top: 13px;
     font-size: 12px;
     line-height: 18px;
     color: #999;
@@ -1045,6 +993,7 @@ a .users-poster-face:hover {
 }
 .summary-content-actors ul {
     padding-left:20px;
+    margin-bottom: 0;
 }
 .summary-content-actors li {
     list-style: none;
@@ -1055,9 +1004,7 @@ a .users-poster-face:hover {
     color: #fff;
 }
 .summary-content-genres {
-    margin-top: 0px;
-    margin-left: 0px;
-    margin-right: 15px;
+    margin-top: 13px;
     font-size: 12px;
     line-height: 18px;
     color: #999;
@@ -1065,6 +1012,7 @@ a .users-poster-face:hover {
 }
 .summary-content-genres ul {
     padding-left:20px;
+    margin-bottom: 0;
 }
 .summary-content-genres li {
     list-style: none;
@@ -1075,9 +1023,7 @@ a .users-poster-face:hover {
     color: #fff;
 }
 .summary-content-writers {
-    margin-top: 0px;
-    margin-left: 0px;
-    margin-right: 15px;
+    margin-top: 13px;
     font-size: 12px;
     line-height: 18px;
     color: #999;
@@ -1085,6 +1031,7 @@ a .users-poster-face:hover {
 }
 .summary-content-writers ul {
     padding-left: 20px;
+    margin-bottom: 0;
 }
 .summary-content-writers li {
     list-style: none;
@@ -1097,7 +1044,6 @@ a .users-poster-face:hover {
 .rateit {
     display: -moz-inline-box;
     display: inline-block;
-    position: relative;
     -webkit-user-select: none;
     -khtml-user-select: none;
     -moz-user-select: none;
@@ -1105,30 +1051,118 @@ a .users-poster-face:hover {
     -ms-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
-    float: right;
-    margin-top: 23px;
-    margin-right: 20px;
     overflow: hidden;
     white-space: nowrap;
+    float: right;
+    margin-top: 3px;
+    height: 21px;
 }
 .rateit .rateit-range {
-    background: url(../images/star-gray-16.png);
+    background: url(../images/star-gray-32.png);
+    background-size: contain;
     height: 16px;
 }
 .rateit .rateit-selected {
-    background: url(../images/star-16.png);
+    background: url(../images/star-32.png);
+    background-size: contain;
+    height: 16px;
+}
+.show-seasons-wrapper {
+}
+.show-seasons-instance {
+    list-style: none;
+    margin: 0;
+}
+.show-seasons-instance li {
+    float: left;
+    position: relative;
+    left: 0px;
+    margin-right: 25px;
+    margin-bottom: 25px;
+}
+a .show-seasons-card-overlay:hover {
+    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -moz-box-shadow: inset 0 0 0 2px #e9a049;
+    box-shadow: inset 0 0 0 2px #e9a049;
+}
+.show-seasons-poster {
+    float: left;
+    position: relative;
+    left: 0px;
+}
+.show-seasons-card-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    text-align: left;
+    background: -moz-linear-gradient(top,  rgba(0,0,0,0) 30%, rgba(0,0,0,1) 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(30%,rgba(0,0,0,0)), color-stop(100%,rgba(0,0,0,1)));
+    background: -webkit-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
+    background: -o-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
+    background: -ms-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
+    background: linear-gradient(to bottom,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
+    height: 225px;
+}
+.show-seasons-overlay-text {
+    color: #aaa;
+    font-size: 12px;
+    float: left;
+    position: absolute;
+    left: 8px;
+    bottom: 5px;
+}
+.show-seasons-instance-text-wrapper {
+    width: 150px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    clear: both;
+}
+.show-seasons-instance-text-wrapper h3 {
+    padding: 5px 3px 0 3px;
+    color: #fff;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    position: relative;
+    font-size: 13px;
+    margin: 0;
+    line-height: 15px;
+    font-weight: normal;
+    width: 250px;
+    white-space: nowrap;
+    text-align: left;
+    clear: both;
+}
+.show-seasons-title a {
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: normal;
+    color: #fff;
+    float: left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    position: relative;
+    white-space: nowrap;
+    width: 205px;
+    margin-top: 2px;
+    margin-left: 0px;
+    margin-bottom: 20px;
+}
+.show-seasons a:hover {
+    color: #F9AA03;
 }
 .season-episodes-wrapper {
 }
 .season-episodes-instance {
     list-style: none;
-    margin: 0 0 0px 0px;
+    margin: 0;
 }
 .season-episodes-instance li {
     float: left;
     position: relative;
     left: 0px;
     margin-right: 25px;
+    margin-bottom: 25px;
 }
 a .season-episodes-card-overlay:hover {
     -webkit-box-shadow: inset 0 0 0 2px #e9a049;
@@ -1180,11 +1214,13 @@ a .season-episodes-card-overlay:hover {
     font-size: 11px;
     text-shadow: 0 1px 5px rgba(0,0,0,0.2);
 }
-.season-episodes-instance-text-wrapper {
-    width: 250px;
-    font-size: 13px;
-    margin-bottom: 20px;
-    clear: both;
+.season-episodes-overlay-text {
+    color: #aaa;
+    font-size: 12px;
+    float: left;
+    position: absolute;
+    left: 8px;
+    bottom: 5px;
 }
 .season-episodes-instance-text-wrapper h3 {
     padding: 5px 3px 0 3px;
@@ -1270,20 +1306,6 @@ a .season-episodes-card-overlay:hover {
     border-radius: 50%;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-}
-.user-info-poster-face img {
-    bottom: 0;
-    margin-right: 15px;
-    overflow: hidden;
-    float: left;
-    background-color: #323232;
-    background-position: center;
-    background-size: cover;
-    -webkit-border-radius: 1000px;
-    -moz-border-radius: 1000px;
-    border-radius: 1000px;
-    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .user-info-username {

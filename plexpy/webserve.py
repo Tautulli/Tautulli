@@ -569,6 +569,9 @@ class WebInterface(object):
         if 'rating_key' in kwargs:
             rating_key = kwargs.get('rating_key', "")
             custom_where = [['rating_key', rating_key]]
+        if 'parent_rating_key' in kwargs:
+            rating_key = kwargs.get('parent_rating_key', "")
+            custom_where = [['parent_rating_key', rating_key]]
         if 'grandparent_rating_key' in kwargs:
             rating_key = kwargs.get('grandparent_rating_key', "")
             custom_where = [['grandparent_rating_key', rating_key]]
@@ -806,7 +809,19 @@ class WebInterface(object):
             return serve_template(templatename="user_platform_stats.html", data=None, title="Platform Stats")
 
     @cherrypy.expose
-    def get_children(self, rating_key='', **kwargs):
+    def get_show_children(self, rating_key='', **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_show_children(rating_key)
+
+        if result:
+            return serve_template(templatename="info_season_list.html", data=result, title="Season List")
+        else:
+            logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="info_season_list.html", data=None, title="Season List")
+
+    @cherrypy.expose
+    def get_season_children(self, rating_key='', **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_season_children(rating_key)

@@ -47,211 +47,217 @@ DOCUMENTATION :: END
 % if data:
 <div class="container-fluid">
     <div class="row">
-        <div>
-            <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['art']}&width=1920&height=1080)">
-                <div class="summary-wrapper">
-                    <div class="summary-overlay">
-                        <div class="row">
-                            <div class="col-md-9">
-                                <div class="summary-content-poster hidden-xs hidden-sm">
-                                    % if data['type'] == 'episode':
-                                    <a href="info?item_id=${data['parent_rating_key']}">
-                                        % if data['parent_thumb']:
-                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['parent_thumb']}&width=300&height=450&fallback=poster);"></div>
-                                        % else:
-                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
-                                        %endif
-                                    </a>
-                                    % elif data['type'] == 'season':
-                                    <a href="info?item_id=${data['parent_rating_key']}">
-                                        <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
-                                    </a>
-                                    % else:
-                                    <div class="poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
-                                    % endif
-                                </div>
-                                <div class="summary-content">
-                                    <div class="summary-content-title">
-                                        % if data['type'] == 'movie':
-                                        <h1>${data['title']}</h1>
-                                        % elif data['type'] == 'season':
-                                        <h1><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a> (${data['title']})</h1>
-                                        % elif data['type'] == 'episode':
-                                        <h1><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a> - ${data['title']} 
-                                            (<a href="info?item_id=${data['parent_rating_key']}">Season ${data['parent_index']}</a>, Episode ${data['index']})</h1>
-                                        % else:
-                                        <h1>${data['title']}</h1>
-                                        % endif
-                                    </div>
-                                    % if (data['type'] == 'movie' or data['type'] == 'show' or data['type'] == 'episode') and data['rating']:
-                                    <div id="stars" class="rateit hidden-xs hidden-sm" data-rateit-value=""
-                                         data-rateit-ispreset="true" data-rateit-readonly="true"></div>
-                                    % endif
-                                    <div class="summary-content-details-wrapper">
-                                        <div class="summary-content-director">
-                                            % if (data['type'] == 'episode' or data['type'] == 'movie') and data['directors']:
-                                            Directed by <strong> ${data['directors'][0]}</strong>
-                                            % endif
-                                        </div>
-                                        <div class="summary-content-studio">
-                                            % if (data['type'] == 'show' or data['type'] == 'movie') and data['studio']:
-                                            Studio <strong> ${data['studio']}</strong>
-                                            % endif
-                                        </div>
-                                        <div class="summary-content-airdate">
-                                            % if data['type'] == 'movie':
-                                            Year <strong> ${data['year']}</strong>
-                                            % elif data['type'] == 'show':
-                                            Aired <strong> ${data['year']}</strong>
-                                            % elif data['type'] == 'episode':
-                                            Aired <strong> <span id="airdate">${data['originally_available_at']}</span></strong>
-                                            % endif
-                                        </div>
-                                        <div class="summary-content-duration">
-                                            Runtime <strong> <span id="runtime">${data['duration']}</span> mins</strong>
-                                        </div>
-                                        <div class="summary-content-content-rating">
-                                            % if (data['type'] == 'episode' or data['type'] == 'movie' or data['type'] == 'show') and data['content_rating']:
-                                            Rated <strong> ${data['content_rating']} </strong>
-                                            % endif
-                                        </div>
-                                    </div>
-                                    <div class="summary-content-summary">
-                                        <p> ${data['summary']} </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="summary-content-people-wrapper hidden-xs hidden-sm">
-                                    % if (data['type'] == 'episode' or data['type'] == 'movie') and data['writers']:
-                                    <div class="summary-content-writers">
-                                        <strong>Written by</strong>
-                                        <ul>
-                                            % for writer in data['writers']:
-                                            % if loop.index < 5:
-                                            <li>
-                                                ${writer}
-                                            </li>
-                                            % endif
-                                            % endfor
-                                        </ul>
-                                    </div>
-                                    % endif
-                                    % if (data['type'] == 'movie' or data['type'] == 'show') and data['actors']:
-                                    <div class="summary-content-actors">
-                                        <strong>Starring</strong>
-                                        <ul>
-                                            % for actor in data['actors']:
-                                            % if loop.index < 5:
-                                            <li>
-                                                ${actor}
-                                            </li>
-                                            % endif
-                                            % endfor
-                                        </ul>
-                                    </div>
-                                    % endif
-                                </div>
-                                <div class="summary-content-people-wrapper hidden-xs hidden-sm">
-                                    % if (data['type'] == 'movie' or data['type'] == 'show') and data['genres']:
-                                    <div class="summary-content-genres">
-                                        <strong>Genres</strong>
-                                        <ul>
-                                            % for genre in data['genres']:
-                                            % if loop.index < 5:
-                                            <li>
-                                                ${genre}
-                                            </li>
-                                            % endif
-                                            % endfor
-                                        </ul>
-                                    </div>
-                                    % endif
-                                </div>
-                            </div>
-                        </div>
+        <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['art']}&width=1920&height=1080)"></div>
+        <div class="summary-container">
+            <div class="summary-navbar">
+                <div class="col-md-12">
+                    <div class="summary-navbar-list">
+                        % if data['type'] == 'movie':
+                        <span>Movies</span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="#">${data['title']}</a></span>
+                        % elif data['type'] == 'show':
+                        <span>TV Shows</span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="#">${data['title']}</a></span>
+                        % elif data['type'] == 'season':
+                        <span>TV Shows</span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="#">Season ${data['index']}</a></span>
+                        % elif data['type'] == 'episode':
+                        <span>TV Shows</span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="info?item_id=${data['parent_rating_key']}">Season ${data['parent_index']}</a></span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="#">${data['title']}</a></span>
+                        % endif
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-% if data['type'] == 'movie' or data['type'] == 'episode' or data['type'] == 'show':
-<div class='container-fluid'>
-    <div class='row'>
-        <div class='col-md-12'>
-            <div class='table-card-header'>
-                <div class="header-bar">
-                    <span>Watch History for <strong>${data['title']}</strong></span>
-                </div>
-                <div class="button-bar">
-                    <span data-toggle="popover" data-placement="left" data-content="Select rows to delete. Data is deleted upon exiting delete mode." id="delete-message">
-                        <button class="btn btn-danger" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                            <i class="fa fa-trash-o"></i> Delete mode
-                        </button>&nbsp
-                    </span>
-                    <div class="colvis-button-bar hidden-xs"></div>
-                </div>
-            </div>
-            <div class="table-card-back">
-                <table class="display" id="history_table" width="100%">
-                    <thead>
-                    <tr>
-                        <th align='left' id="delete">Delete</th>
-                        <th align='left' id="time">Time</th>
-                        <th align='left' id="friendly_name">User</th>
-                        <th align='left' id="ip_address">IP Address</th>
-                        <th align='left' id="platform">Platform</th>
-                        <th align='left' id="title">Title</th>
-                        <th align='left' id="started">Started</th>
-                        <th align='left' id="paused_counter">Paused</th>
-                        <th align='left' id="stopped">Stopped</th>
-                        <th align='left' id="duration">Duration</th>
-                        <th align='left' id="percent_complete"></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-            <div id="info-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="info-modal">
-            </div>
-            <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
-            </div>
-            <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                            <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
-                        </div>
-                        <div class="modal-body" style="text-align: center;">
-                            <p>Are you REALLY sure you want to delete <strong><span id="deleteCount"></span></strong> history item(s)?</p>
-                            <p>This is permanent and cannot be undone!</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Delete</button>
-                        </div>
+            <div class="summary-content-title-wrapper">
+                <div class="col-md-9">
+                    <div class="summary-content-poster hidden-xs hidden-sm">
+                        % if data['type'] == 'episode':
+                        <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=poster);"></div>
+                        % elif data['type'] == 'season':
+                        <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
+                        % else:
+                        <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
+                        % endif
+                    </div>
+                    <div class="summary-content-title">
+                        % if data['type'] == 'movie' or data['type'] == 'show':
+                        <h1>&nbsp;</h1><h1>${data['title']}</h1>
+                        % elif data['type'] == 'season':
+                        <h1>&nbsp;</h1><h1><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></h1>
+                        <h3 class="hidden-xs">S${data['index']}</h3>
+                        % elif data['type'] == 'episode':
+                        <h1><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></h1>
+                        <h2>${data['title']}</h2>
+                        <h3 class="hidden-xs">S${data['parent_index']} &middot; E${data['index']}</h3>
+                        % endif
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-% elif data['type'] == 'season':
-<div class='container-fluid'>
-    <div class='row'>
-        <div class='col-md-12'>
-            <div class='table-card-header'>
-                <div class="header-bar">
-                    <span>Episode List for <strong>${data['title']}</strong></span>
+            <div class="summary-content-wrapper">
+                <div class="col-md-9">
+                    % if data['type'] == 'movie' or data['type'] == 'show' or data['type'] == 'season':
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 275px;"></div>
+                    % else:
+                    <div class="summary-content-padding hidden-xs hidden-sm"></div>
+                    % endif
+                    <div class="summary-content">
+                        <div class="summary-content-details-wrapper">
+                            % if (data['type'] == 'movie' or data['type'] == 'show' or data['type'] == 'episode') and data['rating']:
+                            <div id="stars" class="rateit hidden-xs hidden-sm" data-rateit-value=""
+                                 data-rateit-ispreset="true" data-rateit-readonly="true"></div>
+                            % endif
+                            <div class="summary-content-director">
+                                % if (data['type'] == 'episode' or data['type'] == 'movie') and data['directors']:
+                                Directed by <strong> ${data['directors'][0]}</strong>
+                                % endif
+                            </div>
+                            <div class="summary-content-studio">
+                                % if (data['type'] == 'show' or data['type'] == 'movie') and data['studio']:
+                                Studio <strong> ${data['studio']}</strong>
+                                % endif
+                            </div>
+                            <div class="summary-content-airdate">
+                                % if data['type'] == 'movie':
+                                Year <strong> ${data['year']}</strong>
+                                % elif data['type'] == 'show':
+                                Aired <strong> ${data['year']}</strong>
+                                % elif data['type'] == 'episode':
+                                Aired <strong> <span id="airdate">${data['originally_available_at']}</span></strong>
+                                % endif
+                            </div>
+                            <div class="summary-content-duration">
+                                Runtime <strong> <span id="runtime">${data['duration']}</span> mins</strong>
+                            </div>
+                            <div class="summary-content-content-rating">
+                                % if (data['type'] == 'episode' or data['type'] == 'movie' or data['type'] == 'show') and data['content_rating']:
+                                Rated <strong> ${data['content_rating']} </strong>
+                                % endif
+                            </div>
+                        </div>
+                        <div class="summary-content-summary">
+                            <p> ${data['summary']} </p>
+                        </div>
+                    </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="summary-content-people-wrapper hidden-xs hidden-sm">
+                        % if (data['type'] == 'episode' or data['type'] == 'movie') and data['writers']:
+                        <div class="summary-content-writers">
+                            <strong>Written by</strong>
+                            <ul>
+                                % for writer in data['writers']:
+                                % if loop.index < 5:
+                                <li>
+                                    ${writer}
+                                </li>
+                                % endif
+                                % endfor
+                            </ul>
+                        </div>
+                        % endif
+                        % if (data['type'] == 'movie' or data['type'] == 'show') and data['actors']:
+                        <div class="summary-content-actors">
+                            <strong>Starring</strong>
+                            <ul>
+                                % for actor in data['actors']:
+                                % if loop.index < 5:
+                                <li>
+                                    ${actor}
+                                </li>
+                                % endif
+                                % endfor
+                            </ul>
+                        </div>
+                        % endif
+                    </div>
+                    <div class="summary-content-people-wrapper hidden-xs hidden-sm">
+                        % if (data['type'] == 'movie' or data['type'] == 'show') and data['genres']:
+                        <div class="summary-content-genres">
+                            <strong>Genres</strong>
+                            <ul>
+                                % for genre in data['genres']:
+                                % if loop.index < 5:
+                                <li>
+                                    ${genre}
+                                </li>
+                                % endif
+                                % endfor
+                            </ul>
+                        </div>
+                        % endif
+                    </div>
+                </div>
+                % if data['type'] == 'show':
+                <div class='col-md-12'>
+                    <div class='table-card-header'>
+                        <div class="header-bar">
+                            <span>Season List for <strong>${data['title']}</strong></span>
+                        </div>
+                    </div>
+                    <div class='table-card-back'>
+                        <div id="season-list"></div>
+                    </div>
+                </div>
+                % elif data['type'] == 'season':
+                <div class='col-md-12'>
+                    <div class='table-card-header'>
+                        <div class="header-bar">
+                            <span>Episode List for <strong>${data['title']}</strong></span>
+                        </div>
+                    </div>
+                    <div class='table-card-back'>
+                        <div id="episode-list"></div>
+                    </div>
+                </div>
+                % endif
+                % if data['type'] == 'movie' or data['type'] == 'episode' or data['type'] == 'show' or data['type'] == 'season':
+                <div class='col-md-12'>
+                    <div class='table-card-header'>
+                        <div class="header-bar">
+                            <span>Watch History for <strong>${data['title']}</strong></span>
+                        </div>
+                        <div class="button-bar">
+                            <button class="btn btn-danger" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode"><i class="fa fa-trash-o"></i> Delete mode</button>&nbsp
+                            <div class="colvis-button-bar hidden-xs"></div>
+                        </div>
+                    </div>
+                    <div class="table-card-back">
+                        <table class="display" id="history_table" width="100%">
+                            <thead>
+                                <tr>
+                                    <th align='left' id="delete">Delete</th>
+                                    <th align='left' id="time">Time</th>
+                                    <th align='left' id="friendly_name">User</th>
+                                    <th align='left' id="ip_address">IP Address</th>
+                                    <th align='left' id="platform">Platform</th>
+                                    <th align='left' id="title">Title</th>
+                                    <th align='left' id="started">Started</th>
+                                    <th align='left' id="paused_counter">Paused</th>
+                                    <th align='left' id="stopped">Stopped</th>
+                                    <th align='left' id="duration">Duration</th>
+                                    <th align='left' id="percent_complete"></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div id="info-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="info-modal">
+                    </div>
+                    <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
+                    </div>
+                </div>
+                % endif
             </div>
-            <div class='table-card-back'>
-                <div id="episode-list"></div>
-            </div>
-            % endif
         </div>
     </div>
 </div>
@@ -259,8 +265,10 @@ DOCUMENTATION :: END
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-10">
-            <h3>Error retrieving item data. This media may not be available in the Plex Media Server database
-                anymore.</h3>
+            <h3>
+                Error retrieving item data. This media may not be available in the Plex Media Server database
+                anymore.
+            </h3>
         </div>
     </div>
 </div>
@@ -292,47 +300,22 @@ DOCUMENTATION :: END
             type: 'post',
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ),
-                         'rating_key': ${data['rating_key']}
-                };
+                    'rating_key': ${data['rating_key']} };
             }
         }
         history_table = $('#history_table').DataTable(history_table_options);
 
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
         $(colvis.button()).appendTo('div.colvis-button-bar');
-        
+
         clearSearchButton('history_table', history_table);
 
-        $('#row-edit-mode').on('click', function() {
-            $('#delete-message').popover();
-
+        $('#row-edit-mode').click(function() {
             if ($(this).hasClass('active')) {
-                if (history_to_delete.length > 0) {
-                    $('#deleteCount').text(history_to_delete.length);
-                    $('#confirm-modal').modal();
-                    $('#confirm-modal').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < history_to_delete.length; i++) {
-                            $.ajax({
-                                url: 'delete_history_rows',
-                                data: { row_id: history_to_delete[i] },
-                                async: true,
-                                success: function (data) {
-                                    var msg = "User history purged";
-                                    showMsg(msg, false, true, 2000);
-                                }
-                            });
-                        }
-                        history_table.draw();
-                    });
-                }
-
-                $('.delete-control').each(function () {
-                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                $('.delete-control').each(function() {
                     $(this).addClass('hidden');
                 });
-
             } else {
-                history_to_delete = [];
                 $('.delete-control').each(function() {
                     $(this).removeClass('hidden');
                 });
@@ -349,8 +332,7 @@ DOCUMENTATION :: END
             type: 'post',
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ),
-                         'grandparent_rating_key': ${data['rating_key']}
-                };
+                    'grandparent_rating_key': ${data['rating_key']} };
             }
         }
         history_table = $('#history_table').DataTable(history_table_options);
@@ -371,19 +353,54 @@ DOCUMENTATION :: END
             }
         });
     });
-</script>
-% endif
-
-% if data['type'] == 'season':
-<script>
     $.ajax({
-        url: 'get_children',
+        url: 'get_show_children',
         type: "GET",
         async: true,
         data: { rating_key : ${data['rating_key']} },
         complete: function(xhr, status) {
-            $("#episode-list").html(xhr.responseText);
+        $("#season-list").html(xhr.responseText); }
+    });
+</script>
+% endif
+% if data['type'] == 'season':
+<script src="interfaces/default/js/tables/history_table.js"></script>
+<script>
+    $(document).ready(function () {
+        history_table_options.ajax = {
+            "url": "get_history",
+            type: 'post',
+            data: function ( d ) {
+                return { 'json_data': JSON.stringify( d ),
+                    'parent_rating_key': ${data['rating_key']} };
+            }
         }
+        history_table = $('#history_table').DataTable(history_table_options);
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
+        $(colvis.button()).appendTo('div.colvis-button-bar');
+
+        clearSearchButton('history_table', history_table);
+
+        $('#row-edit-mode').click(function() {
+            if ($(this).hasClass('active')) {
+                $('.delete-control').each(function() {
+                    $(this).addClass('hidden');
+                });
+            } else {
+                $('.delete-control').each(function() {
+                    $(this).removeClass('hidden');
+                });
+            }
+        });
+    });
+
+    $.ajax({
+        url: 'get_season_children',
+        type: "GET",
+        async: true,
+        data: { rating_key : ${data['rating_key']} },
+        complete: function(xhr, status) {
+        $("#episode-list").html(xhr.responseText); }
     });
 </script>
 % endif
@@ -392,4 +409,7 @@ DOCUMENTATION :: END
     $("#runtime").html(millisecondsToMinutes($("#runtime").text(), true));
 </script>
 % endif
+<script>
+    $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
+</script>
 </%def>
