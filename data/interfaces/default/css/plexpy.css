@@ -1528,7 +1528,8 @@ a .home-platforms-instance-box:hover {
 .button-bar {
     float: right;
 }
-.colvis-button-bar {
+.colvis-button-bar,
+.refresh-users-button {
     float: right;
 }
 .nav-settings,
