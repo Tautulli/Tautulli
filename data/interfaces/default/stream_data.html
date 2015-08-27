@@ -54,6 +54,7 @@ DOCUMENTATION :: END
                 <div class="row">
                     <div class="col-md-4">
                         <h4><strong>Stream Details</strong></h4>
+                        % if data['media_type'] != 'track':
                         <h5>Video</h5>
                         <ul class="list-unstyled">
                             % if data['transcode_video_dec'] != 'direct play':
@@ -74,6 +75,7 @@ DOCUMENTATION :: END
                             <li>Video Height: <strong>${data['height']}</strong></li>
                             % endif
                         </ul>
+                        % endif
                         <h5>Audio</h5>
                         <ul class="list-unstyled">
                             % if data['transcode_audio_dec'] != 'direct play':
@@ -91,11 +93,14 @@ DOCUMENTATION :: END
                         <h4><strong>Media Source Details</strong></h4>
                         <ul class="list-unstyled">
                             <li>Container: <strong>${data['container']}</strong></li>
+                            % if data['media_type'] != 'track':
                             <li>Resolution: <strong>${data['height']}p</strong></li>
+                            % endif
                             <li>Bitrate: <strong>${data['bitrate']} kbps</strong></li>
                         </ul>
                     </div>
                     <div class="col-md-4">
+                        % if data['media_type'] != 'track':
                         <h4><strong>Video Source Details</strong></h4>
                         <ul class="list-unstyled">
                             <li>Width: <strong>${data['width']}</strong></li>
@@ -104,6 +109,7 @@ DOCUMENTATION :: END
                             <li>Video Frame Rate: <strong>${data['video_framerate']}</strong></li>
                             <li>Video Codec: <strong>${data['video_codec']}</strong></li>
                         </ul>
+                        % endif
                         <h4><strong>Audio Source Details</strong></h4>
                         <ul class="list-unstyled">
                             <li>Audio Codec: <strong>${data['audio_codec']}</strong></li>
