@@ -227,8 +227,11 @@ DOCUMENTATION :: END
                             <span>Watch History for <strong>${data['title']}</strong></span>
                         </div>
                         <div class="button-bar">
-                            <button class="btn btn-danger" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode"><i class="fa fa-trash-o"></i> Delete mode</button>&nbsp
                             <div class="colvis-button-bar hidden-xs"></div>
+                            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                                <i class="fa fa-trash-o"></i> Delete mode
+                            </button>
+                            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
                         </div>
                     </div>
                     <div class="table-card-back">
@@ -341,12 +344,37 @@ DOCUMENTATION :: END
 
         clearSearchButton('history_table', history_table);
 
-        $('#row-edit-mode').click(function() {
+        $('#row-edit-mode').on('click', function() {
+            $('#row-edit-mode-alert').fadeIn(200);
+
             if ($(this).hasClass('active')) {
-                $('.delete-control').each(function() {
+                if (history_to_delete.length > 0) {
+                    $('#deleteCount').text(history_to_delete.length);
+                    $('#confirm-modal').modal();
+                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                        for (var i = 0; i < history_to_delete.length; i++) {
+                            $.ajax({
+                                url: 'delete_history_rows',
+                                data: { row_id: history_to_delete[i] },
+                                async: true,
+                                success: function (data) {
+                                    var msg = "History deleted";
+                                    showMsg(msg, false, true, 2000);
+                                }
+                            });
+                        }
+                        history_table.draw();
+                    });
+                }
+
+                $('.delete-control').each(function () {
+                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).addClass('hidden');
+                    $('#row-edit-mode-alert').fadeOut(200);
                 });
+
             } else {
+                history_to_delete = [];
                 $('.delete-control').each(function() {
                     $(this).removeClass('hidden');
                 });
