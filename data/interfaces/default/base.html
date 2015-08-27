@@ -1,4 +1,4 @@
-<%
+﻿<%
 import plexpy
 from plexpy import version
 %>
@@ -52,7 +52,7 @@ from plexpy import version
                     <span class="icon-bar"></span>
                 </button>
                 <a class="navbar-brand" href="home">
-                    <img alt="PlexPy" src="interfaces/default/images/logo-plexpy@2x.png" height="40px">
+                    <img alt="PlexPy" src="interfaces/default/images/logo-plexpy@2x.png" height="40">
                 </a>
             </div>
             <div class="collapse navbar-collapse navbar-right" id="navbar-collapse-1">
@@ -99,7 +99,9 @@ from plexpy import version
 </div>
 
 ${next.headerIncludes()}
-${next.body()}
+<div class="body-container">
+    ${next.body()}
+</div>
 
 <script src="interfaces/default/js/jquery-2.1.4.min.js"></script>
 <script src="interfaces/default/js/bootstrap3/bootstrap.min.js"></script>
