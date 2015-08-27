@@ -732,9 +732,8 @@ a .users-poster-face:hover {
 }
 .summary-navbar {
     background-color: rgba(255,255,255,.03);
-    height: 100px;
+    height: 50px;
     line-height: 50px;
-    padding-top: 50px;
 }
 .summary-navbar-list {
     padding: 0 25px;
@@ -801,7 +800,8 @@ a .users-poster-face:hover {
 .summary-content-wrapper {
     background-image: linear-gradient(rgba(0,0,0,.4),rgba(19,19,19,.4) 50%,rgba(26,26,26,.4));
     background-clip: content-box;
-    min-height: 100%;
+    min-height: calc(100% - 200px);
+    position: inherit;
 }
 .summary-content-poster {
     float: left;
@@ -820,6 +820,7 @@ a .users-poster-face:hover {
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     overflow: hidden;
+    z-index: 1;
 }
 .summary-poster-face-episode {
     background-position: center;
@@ -831,6 +832,7 @@ a .users-poster-face:hover {
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     overflow: hidden;
+    z-index: 1;
 }
 a .summary-poster-face:hover,
 a .summary-poster-face-episode:hover {
