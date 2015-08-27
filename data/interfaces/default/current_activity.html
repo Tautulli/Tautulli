@@ -61,22 +61,23 @@ DOCUMENTATION :: END
 % if data is not None:
 % if data['stream_count'] != '0':
 % for a in data['sessions']:
-<div class="instance" id="instance-${a['session_key']}">
-    <div class="poster">
-        <div class="dashboard-activity-poster-face">
+<div class="dashboard-instance" id="instance-${a['session_key']}">
+    <div class="dashboard-poster">
+        <div class="dashboard-activity-poster">
             % if a['type'] == 'movie' and not a['indexes']:
-            <img src="pms_image_proxy?img=${a['art']}&width=410&height=230"/>
+            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
             % elif a['indexes']:
-            <img onload="fadeIn(this)" src="pms_image_proxy?img=${a['bif_thumb']}&width=300&height=169" style="display: none;"/>
+            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['bif_thumb']}&width=300&height=280); display: none;" onload="fadeIn(this)"></div>
             % else:
-            % if a['type'] == 'track':
-            <div class="dashboard-activity-poster-music-bg" style="background-image: url('pms_image_proxy?img=${a['thumb']}&width=300&height=300');"></div>
-            % endif
-            % if a['type'] == 'clip':
-            <img src="${a['thumb']}"/>
-            % else:
-            <img src="pms_image_proxy?img=${a['thumb']}&width=410&height=230&fallback=cover"/>
-            % endif
+                % if a['type'] == 'track':
+                <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
+                <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
+                % elif a['type'] == 'clip':
+                <div class="dashboard-activity-clip-face-bg" style="background-image: url(${a['thumb']});"></div>
+                <div class="dashboard-activity-clip-face" style="background-image: url(${a['thumb']});"></div>
+                % else:
+                <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300&fallback=cover);"></div>
+                % endif
             % endif
             <div class="dashboard-activity-poster-info-bar">
                 <div class="dashboard-activity-poster-info-text">
@@ -96,7 +97,7 @@ DOCUMENTATION :: END
         <div class='dashboard-activity-metadata-wrapper'>
             <div class='dashboard-activity-instance-overlay'>
                 <div class='dashboard-activity-metadata-progress-minutes'>
-                    <div class='activity-progress'>
+                    <div class='dashboard-activity-progress'>
                         <div class="bar" style="width: ${a['progress_percent']}%">${a['progress_percent']}%</div>
                     </div>
                 </div>
@@ -186,7 +187,7 @@ DOCUMENTATION :: END
     </div>
 </div>
 <script>
-    $("#platform-${a['session_key']}").html("<img src='" + getPlatformImagePath('${a['platform']}') + "'>");
+    $("#platform-${a['session_key']}").html("<div class='dashboard-activity-metadata-platform-box' style='background-image: url(" + getPlatformImagePath('${a['platform']}') + ");'>");
 </script>
 
 % endfor
@@ -204,11 +205,10 @@ DOCUMENTATION :: END
     $('.dashboard-activity-poster-info-bar').hide();
 
     // When mouse over the activity pane, show an info bar with extra info.
-    $('.dashboard-activity-poster-face').mouseenter(function() {
-        $('.dashboard-activity-poster-info-bar', this).slideDown('fast');
-    });
-    $('.dashboard-activity-poster-face').mouseleave(function() {
-        $('.dashboard-activity-poster-info-bar', this).slideUp('fast');
+    $('.dashboard-activity-poster').hover(function() {
+        $('.dashboard-activity-poster-info-bar', this).stop().slideDown('fast');
+    }, function() {
+        $('.dashboard-activity-poster-info-bar', this).stop().slideUp('fast');
     });
 
     // Tooltips

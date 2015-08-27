@@ -80,24 +80,6 @@ img {
 .padded-header h3 {
     font-size: 20px;
 }
-.activity-progress {
-    overflow: hidden;
-    height: 4px;
-    background-color: #111;
-    float: left;
-    width: 100%;
-    margin: 0 10px 5px 0;
-}
-.activity-progress .bar {
-    background-color: #faa732;
-    background-image: -moz-linear-gradient(top, #fbb450, #f89406);
-    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fbb450), to(#f89406));
-    background-image: -webkit-linear-gradient(top, #fbb450, #f89406);
-    background-image: -o-linear-gradient(top, #fbb450, #f89406);
-    background-image: linear-gradient(to bottom, #fbb450, #f89406);
-    background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffbb450', endColorstr='#fff89406', GradientType=0);
-}
 .btn {
     outline:0px !important;
     -webkit-appearance:none;
@@ -431,20 +413,13 @@ input[type="color"],
     text-align: center;
     pointer-events: none;
 }
-.poster {
-    float: left;
-    min-height: 225px;
-    min-width: 150px;
-    margin-bottom: 8px;
-    position: relative;
-}
 .poster-face {
     background-position: center;
     background-size: cover;
     height: 225px;
     width: 150px;
     position: relative;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     overflow: hidden;
@@ -456,7 +431,7 @@ input[type="color"],
     width: 150px;
     position: absolute;
     bottom: 0;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
@@ -469,14 +444,14 @@ input[type="color"],
     -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
     border-radius: 50%;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
 a .poster-face:hover,
 a .cover-face:hover,
 a .users-poster-face:hover {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
 }
@@ -508,19 +483,19 @@ a .users-poster-face:hover {
     margin-left: 5px;
     float: left;
 }
-.dashboard-activity-metadata-wrapper {
+.dashboard-instance {
+    padding-bottom: 15px;
+    float: left;
     position: relative;
-    left: 0px;
-    width: 250px;
-    font-size: 13px;
+    margin-right: 27px;
 }
-.dashboard-activity-button-info {
-    position: absolute;
-    top: 3px;
-    left: 5px;
-    z-index: 1;
+.dashboard-poster {
+    float: left;
+    min-width: 150px;
+    margin-bottom: 8px;
+    position: relative;
 }
-.dashboard-activity-poster-face {
+.dashboard-activity-poster {
     height: 141px;
     width: 250px;
     position: relative;
@@ -528,21 +503,85 @@ a .users-poster-face:hover {
     background-color: rgba(255,255,255,.03);
     margin-bottom: 11px;
     text-align: center;
-}
-.dashboard-activity-poster-face img {
-    bottom: 0;
     overflow: hidden;
-    height: 140px;
-    min-width: 140px;
-    max-width: 250px;
 }
-.dashboard-activity-poster-music-bg {
+.dashboard-activity-poster-face {
     background-position: center;
-    position:absolute;
-    width:100%;
-    height:100%;
-    opacity: 0.7;
-    z-index: -999;
+    background-size: cover;
+    height: 140px;
+    width: 250px;
+    position: relative;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    margin-bottom: 11px;
+    text-align: center;
+}
+.dashboard-activity-cover-face-bg {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 140px;
+    width: 250px;
+    position: relative;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    margin-bottom: 11px;
+    text-align: center;
+    -webkit-filter: blur(5px);
+    -moz-filter: blur(5px);
+    filter: blur(5px);
+    opacity: 0.75;
+}
+.dashboard-activity-cover-face {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 140px;
+    width: 140px;
+    position: relative;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    margin-bottom: 11px;
+    text-align: center;
+    position: absolute;
+    top: 0;
+    left: 55px;
+}
+.dashboard-activity-clip-face-bg {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 140px;
+    width: 250px;
+    position: relative;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    margin-bottom: 11px;
+    text-align: center;
+    -webkit-filter: blur(5px);
+    -moz-filter: blur(5px);
+    filter: blur(5px);
+    opacity: 0.75;
+}
+.dashboard-activity-clip-face {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 140px;
+    width: 94px;
+    position: relative;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    margin-bottom: 11px;
+    text-align: center;
+    position: absolute;
+    top: 0;
+    left: 78px;
 }
 .dashboard-activity-poster-info-bar {
     position:absolute;
@@ -581,6 +620,36 @@ a .users-poster-face:hover {
     font-size: 12px;
     color: #eee;
 }
+.dashboard-activity-progress {
+    overflow: hidden;
+    height: 4px;
+    background-color: #111;
+    float: left;
+    width: 100%;
+    margin: 0 10px 5px 0;
+}
+.dashboard-activity-progress .bar {
+    background-color: #faa732;
+    background-image: -moz-linear-gradient(top, #fbb450, #f89406);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fbb450), to(#f89406));
+    background-image: -webkit-linear-gradient(top, #fbb450, #f89406);
+    background-image: -o-linear-gradient(top, #fbb450, #f89406);
+    background-image: linear-gradient(to bottom, #fbb450, #f89406);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffbb450', endColorstr='#fff89406', GradientType=0);
+}
+.dashboard-activity-button-info {
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    z-index: 1;
+}
+.dashboard-activity-metadata-wrapper {
+    position: relative;
+    left: 0px;
+    width: 250px;
+    font-size: 13px;
+}
 .dashboard-activity-metadata-user {
     text-overflow: ellipsis;
     overflow: hidden;
@@ -611,7 +680,9 @@ a .users-poster-face:hover {
 .dashboard-activity-metadata-platform {
     float: right;
 }
-.dashboard-activity-metadata-platform img {
+.dashboard-activity-metadata-platform-box {
+    background-position: center;
+    background-size: cover;
     width: 40px;
     height: 40px;
 }
@@ -650,12 +721,6 @@ a .users-poster-face:hover {
 .dashboard-activity-info-details-content strong {
     color: #fff;
     font-weight: normal;
-}
-.instance {
-    padding-bottom: 15px;
-    float: left;
-    position: relative;
-    margin-right: 27px;
 }
 .dashboard-recent-media-row {
     width: 100%;
@@ -1063,7 +1128,7 @@ a .users-poster-face:hover {
     margin-right: 25px;
 }
 a .season-episodes-card-overlay:hover {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
 }
@@ -1078,7 +1143,7 @@ a .season-episodes-card-overlay:hover {
     height: 140px;
     width: 250px;
     position: relative;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
@@ -1089,7 +1154,7 @@ a .season-episodes-card-overlay:hover {
     height: 140px;
 }
 .season-episodes-poster-face img:hover {
-    webkit-box-shadow: 0 0 0 2px #F9AA03;
+    -webkit-box-shadow: 0 0 0 2px #F9AA03;
     -moz-box-shadow: 0 0 0 2px #F9AA03;
     box-shadow: 0 0 0 2px #F9AA03;
 }
@@ -1172,7 +1237,7 @@ a .season-episodes-card-overlay:hover {
     -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
     border-radius: 50%;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
@@ -1297,7 +1362,7 @@ a .season-episodes-card-overlay:hover {
     float: left;
     width: 75px;
     border-radius: 3px;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     background-size: contain;
@@ -1350,9 +1415,9 @@ a .season-episodes-card-overlay:hover {
     padding: 10px;
     margin-right: 20px;
     margin-bottom: 20px;
-    webkit-box-sizing: content-box;
+    -webkit-box-sizing: content-box;
     box-sizing: content-box;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
@@ -1423,7 +1488,7 @@ a .season-episodes-card-overlay:hover {
     background-size: cover;
     height: 120px;
     width: 80px;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
@@ -1437,7 +1502,7 @@ a .season-episodes-card-overlay:hover {
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     overflow: hidden;
@@ -1452,7 +1517,7 @@ a .season-episodes-card-overlay:hover {
     -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
     border-radius: 50%;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     overflow: hidden;
@@ -1482,7 +1547,7 @@ a .season-episodes-card-overlay:hover {
     -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
     border-radius: 50%;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
@@ -1550,7 +1615,7 @@ a .season-episodes-card-overlay:hover {
     background-size: cover;
     height: 60px;
     width: 40px;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
@@ -1564,7 +1629,7 @@ a .season-episodes-card-overlay:hover {
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     overflow: hidden;
@@ -1579,7 +1644,7 @@ a .season-episodes-card-overlay:hover {
     -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
     border-radius: 50%;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     overflow: hidden;
@@ -1614,7 +1679,7 @@ a .home-platforms-instance-list-oval:hover,
 .home-platforms-poster-face:hover,
 .home-platforms-list-poster-face:hover
  {
-    webkit-box-shadow: inset 0 0 0 2px #e9a049;
+    -webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
 }
@@ -1625,7 +1690,7 @@ a .home-platforms-instance-list-oval:hover,
     position: absolute;
     top: 128px;
     left: -10px;
-    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     z-index: 1;
