@@ -842,9 +842,9 @@ class PmsConnect(object):
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
                     logger.debug(u"No season data.")
-                    episode_list = {'season_count': '0',
-                                    'season_list': []
-                                    }
+                    season_list = {'season_count': '0',
+                                   'season_list': []
+                                   }
                     return season_list
 
             if a.getElementsByTagName('Directory'):
