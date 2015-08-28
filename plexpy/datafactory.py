@@ -464,7 +464,7 @@ class DataFactory(object):
                            'thumb': thumb,
                            'grandparent_thumb': item[8],
                            'last_watch': item[9],
-                           'platform': item[10],
+                           'platform_type': item[10],
                            }
                     last_watched.append(row)
 
