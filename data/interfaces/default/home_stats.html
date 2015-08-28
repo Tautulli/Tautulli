@@ -17,6 +17,9 @@ data[array_index]['rows'] :: Usable parameters
 
 row_id                  Return the db row id for a metadata item if one exists
 
+== Only if 'stat_id' is 'top_tv' or 'popular_tv' or 'top_movies' or 'popular_movies' or 'last_watched' ==
+thumb                   Return the thumb for the media item.
+
 == Only if 'stat_id' is 'top_tv' or 'popular_tv' ==
 grandparent_thumb       Returns location of the item's thumbnail. Use with pms_image_proxy.
 rating_key              Returns the unique identifier for the media item.
@@ -29,14 +32,17 @@ total_duration          Returns the total duration for the associated stat.
 == Only of 'stat_id' is 'popular_tv' or 'popular_movies' ==
 users_watched           Returns the count for the associated stat.
 
-== Only if 'stat_id' is 'top_user' ==
-thumb                   Returns url of the user's gravatar. Returns '' if none exists.
+== Only if 'stat_id' is 'top_user' or 'last_watched' ==
+user_thumb              Returns url of the user's gravatar. Returns '' if none exists.
 user                    Returns the username for the associated stat.
 user_id                 Returns the user id for the associated stat.
 friendly_name           Returns the friendly name of the user for the associated stat.
 
-== Only if 'stat_id' is 'top_platform' ==
+== Only if 'stat_id' is 'top_platform' or 'last_watched' ==
 platform_type           Returns the platform name for the associated stat.
+
+== Only if 'stat_id' is 'last_watched' ==
+last_watch              Returns the time the media item was last watched.
 
 DOCUMENTATION :: END
 </%doc>
@@ -395,9 +401,9 @@ DOCUMENTATION :: END
             % else:
             <a href="user?user=${top_stat['rows'][0]['user']}">
             % endif
-                % if top_stat['rows'][0]['thumb'] != '':
+                % if top_stat['rows'][0]['user_thumb'] != '':
                 <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-instance-oval" style="background-image: url(${top_stat['rows'][0]['thumb']});"></div>
+                    <div class="home-platforms-instance-oval" style="background-image: url(${top_stat['rows'][0]['user_thumb']});"></div>
                 </div>
                 % else:
                 <div class="home-platforms-instance-poster">
@@ -439,9 +445,9 @@ DOCUMENTATION :: END
                             % else:
                             <a href="user?user=${top_stat['rows'][loop.index]['user']}">
                             % endif
-                                % if top_stat['rows'][loop.index]['thumb'] != '':
+                                % if top_stat['rows'][loop.index]['user_thumb'] != '':
                                 <div class="home-platforms-instance-poster">
-                                    <div class="home-platforms-instance-list-oval" style="background-image: url(${top_stat['rows'][loop.index]['thumb']});"></div>
+                                    <div class="home-platforms-instance-list-oval" style="background-image: url(${top_stat['rows'][loop.index]['user_thumb']});"></div>
                                 </div>
                                 % else:
                                 <div class="home-platforms-instance-poster">
@@ -479,7 +485,9 @@ DOCUMENTATION :: END
                 </div>
             </div>
             <div id="platform-stat" class="home-platforms-instance-poster">
-                <div class="home-platforms-instance-box" style="background-image: url(interfaces/default/images/platforms/default.png);"></div>
+                <script>
+                    $("#platform-stat").html("<div class='home-platforms-instance-box' style='background-image: url(" + getPlatformImagePath('${top_stat['rows'][0]['platform_type']}') + ");'>");
+                </script>
             </div>
             %if len(top_stat['rows']) > 1:
             <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
@@ -521,9 +529,106 @@ DOCUMENTATION :: END
             % endif
         </li>
     </div>
-    <script>
-        $("#platform-stat").html("<div class='home-platforms-instance-box' style='background-image: url(" + getPlatformImagePath('${top_stat['rows'][0]['platform_type']}') + ");'>");
-    </script>
+    % elif top_stat['stat_id'] == 'last_watched' and top_stat['rows']:
+    <div class="home-platforms-instance">
+        <li>
+            <div class="home-platforms-instance-info">
+                <div class="home-platforms-instance-name">
+                    <h4>Last Watched</h4>
+                    <h5>
+                        <a href="info?source=history&item_id=${top_stat['rows'][0]['row_id']}">
+                            ${top_stat['rows'][0]['title']}
+                        </a>
+                    </h5>
+                </div>
+                <div class="home-platforms-instance-last-user">
+                    <h5>
+                        % if top_stat['rows'][0]['user_id']:
+                        <a href="user?user_id=${top_stat['rows'][0]['user_id']}">
+                        % else:
+                        <a href="user?user=${top_stat['rows'][0]['user']}">
+                            % endif
+                            ${top_stat['rows'][0]['friendly_name']}
+                        </a>
+                    </h5>
+                    <p>
+                        <span id="last-watch-stat">
+                            <script>
+                                $('#last-watch-stat').text(moment(${top_stat['rows'][0]['last_watch']},"X").format(date_format));
+                            </script>
+                        </span> - ${top_stat['rows'][0]['platform_type']}
+                    </p>
+                </div>
+            </div>
+            <a href="info?source=history&item_id=${top_stat['rows'][0]['row_id']}">
+                % if top_stat['rows'][0]['thumb']:
+                <div class="home-platforms-instance-poster">
+                    <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=450&fallback=poster);"></div>
+                </div>
+                % else:
+                <div class="home-platforms-instance-poster">
+                    <div class="home-platforms-poster-face" style="background-image: url(interfaces/default/images/poster.png);"></div>
+                </div>
+                % endif
+            </a>
+            %if len(top_stat['rows']) > 1:
+            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
+            <ul class="list-unstyled">
+                <div class="slider">
+                    <div class="home-platforms-instance-list">
+                        % for row in top_stat['rows']:
+                        %if loop.index > 0:
+                        <li>
+                            <div class="home-platforms-instance-list-info">
+                                <div class="home-platforms-instance-list-name">
+                                    <h5>
+                                        <a href="info?source=history&item_id=${top_stat['rows'][loop.index]['row_id']}">
+                                            ${top_stat['rows'][loop.index]['title']}
+                                        </a>
+                                    </h5>
+                                </div>
+                                <div class="home-platforms-instance-list-last-user">
+                                    <h5>
+                                        % if top_stat['rows'][loop.index]['user_id']:
+                                        <a href="user?user_id=${top_stat['rows'][loop.index]['user_id']}">
+                                            % else:
+                                        <a href="user?user=${top_stat['rows'][loop.index]['user']}">
+                                            % endif
+                                            ${top_stat['rows'][loop.index]['friendly_name']}
+                                        </a>
+                                    </h5>
+                                    <p>
+                                        <span id="home-platforms-instance-list-last-watch-${loop.index + 1}">
+                                            <script>
+                                                $('#home-platforms-instance-list-last-watch-${loop.index + 1}').text(moment(${top_stat['rows'][loop.index]['last_watch']},"X").format(date_format));
+                                            </script>
+                                        </span> - ${top_stat['rows'][loop.index]['platform_type']}
+                                    </p>
+                                </div>
+                            </div>
+                            <a href="info?source=history&item_id=${top_stat['rows'][loop.index]['row_id']}">
+                                % if top_stat['rows'][loop.index]['thumb']:
+                                <div class="home-platforms-instance-list-poster">
+                                    <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['thumb']}&width=300&height=450&fallback=poster);"></div>
+                                </div>
+                                % else:
+                                <div class="home-platforms-instance-poster2">
+                                    <div class="home-platforms-list-poster-face" style="background-image: url(interfaces/default/images/poster.png);"></div>
+                                </div>
+                                % endif
+                            </a>
+                            <div class="home-platforms-instance-list-number">
+                                <h4>${loop.index + 1}</h4>
+                            </div>
+                        </li>
+                        % endif
+                        % endfor
+                    </div>
+                </div>
+            </ul>
+            % endif
+        </li>
+    </div>
     % endif
     % endfor
 </ul>

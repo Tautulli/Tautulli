@@ -110,6 +110,17 @@
         });
     });
 
+    var date_format = 'YYYY-MM-DD';
+    var time_format = 'hh:mm a';
+    $.ajax({
+        url: 'get_date_formats',
+        type: 'GET',
+        success: function(data) {
+            date_format = data.date_format;
+            time_format = data.time_format;
+        }
+    });
+
     getHomeStats(${config['home_stats_length']}, ${config['home_stats_type']}, ${config['home_stats_count']});
 
 
