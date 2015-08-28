@@ -1597,6 +1597,29 @@ a .season-episodes-card-overlay:hover {
     left: 0px;
     margin-right: 5px;
 }
+.home-platforms-instance-last-user {
+    float: left;
+    position: relative;
+    padding: 6px 0 0 20px;
+    width: 100%;
+}
+.home-platforms-instance-last-user h5 {
+    font-size: 12px;
+    position: relative;
+    margin: 0 0 3px 0;
+    float: left;
+}
+.home-platforms-instance-last-user p {
+    color: #aaa;
+    font-size: 12px;
+    float: left;
+    clear: left;
+    position: relative;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .home-platforms-instance-poster {
     margin-left: 0px;
     position: absolute;
@@ -1724,6 +1747,29 @@ a .season-episodes-card-overlay:hover {
     left: 0px;
     margin-right: 5px;
 }
+.home-platforms-instance-list-last-user {
+    float: left;
+    position: relative;
+    padding: 0 0 0 10px;
+    width: 100%;
+}
+.home-platforms-instance-list-last-user h5 {
+    font-size: 12px;
+    position: relative;
+    margin: 0 0 2px 0;
+    float: left;
+}
+.home-platforms-instance-list-last-user p {
+    color: #aaa;
+    font-size: 12px;
+    float: left;
+    clear: left;
+    position: relative;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .home-platforms-instance-list-poster {
     position: absolute;
     left: 20px;
@@ -1769,7 +1815,7 @@ a .season-episodes-card-overlay:hover {
 }
 .home-platforms-instance-list-chevron {
     position: absolute;
-    top: 100px;
+    top: 105px;
     right: 0;
     cursor: pointer;
 }
