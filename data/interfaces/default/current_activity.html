@@ -71,7 +71,7 @@ DOCUMENTATION :: END
             % if a['type'] == 'movie' and not a['indexes']:
             <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
             % elif a['indexes']:
-            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['bif_thumb']}&width=300&height=280); display: none;" onload="fadeIn(this)"></div>
+            <div class="dashboard-activity-poster-face bif" style="background-image: url(pms_image_proxy?img=${a['bif_thumb']}&width=300&height=280); display: none;"></div>
             % else:
                 % if a['type'] == 'episode':
                 <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=280&fallback=cover);"></div>
@@ -128,7 +128,7 @@ DOCUMENTATION :: END
                         % elif a['video_decision'] == 'copy':
                         Video &nbsp;<strong>Direct Stream (${a['transcode_video_codec']}) (${a['width']}x${a['height']})</strong>
                         % elif a['video_decision'] == 'transcode':
-                        Video &nbsp;<strong>Transcode (${a['transcode_video_codec']}) (${a['width']}x${a['height']})</strong>
+                        Video &nbsp;<strong>Transcode (${a['transcode_video_codec']}) (${a['transcode_width']}x${a['transcode_height']})</strong>
                         % endif
                         <br />
                         % if a['audio_decision'] == 'direct play':
@@ -200,9 +200,10 @@ DOCUMENTATION :: END
 % endfor
 <script>
     // When using bif indexes make the image transition a little smoother.
-    function fadeIn(obj) {
-        $(obj).fadeIn(450);
-    }
+    $('.bif').each(function() {
+        $(this).fadeIn(1000);
+    });
+
     // Convert timestamps to readable times
     $('.progress_time').each(function(index) {
         $(this).html(millisecondsToMinutes($(this).text(), false));
