@@ -1572,6 +1572,30 @@ a .season-episodes-card-overlay:hover {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.home-platforms-instance-name2 {
+    position: absolute;
+    top: 34px;
+    left: 210px;
+}
+.home-platforms-instance-name2 h5 {
+    font-size: 14px;
+    line-height: 16px;
+    margin: 15px 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.home-platforms-instance-name2 h3 {
+    font-size: 30px;
+    font-weight: bold;
+    color: #F9AA03;
+    line-height: 22px;
+    position: relative;
+    top: 5px;
+    margin: 0 5px 0 0;
+    padding-top: 6px;
+    float: left;
+}
 .home-platforms-instance-playcount {
     float: left;
     position: relative;
@@ -1632,6 +1656,13 @@ a .season-episodes-card-overlay:hover {
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+}
+.home-platforms-instance-poster .home-platforms-server-thumb {
+    background-position: center;
+    background-size: cover;
+    height: 80px;
+    width: 80px;
+    margin-top: 20px;
 }
 .home-platforms-instance-box {
     background-position: center;
