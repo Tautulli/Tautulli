@@ -1596,6 +1596,14 @@ a .season-episodes-card-overlay:hover {
     padding-top: 6px;
     float: left;
 }
+.home-platforms-instance-name2 p {
+    color: #aaa;
+    font-size: 12px;
+    float: left;
+    position: relative;
+    top: 21px;
+    left: 0px;
+}
 .home-platforms-instance-playcount {
     float: left;
     position: relative;
