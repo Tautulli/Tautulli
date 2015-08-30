@@ -1669,7 +1669,7 @@ a .season-episodes-card-overlay:hover {
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
-.home-platforms-instance-poster .home-platforms-server-thumb {
+.home-platforms-instance-poster .home-platforms-library-thumb {
     background-position: center;
     background-size: cover;
     height: 80px;

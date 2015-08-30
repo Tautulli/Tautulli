@@ -29,10 +29,10 @@
     </div>
     <div class="row">
         <div class="col-md-12">
-            <div class="padded-header" id="server-statistics-header">
-                <h3>Server Statistics</h3>
+            <div class="padded-header" id="library-statistics-header">
+                <h3>Library Statistics</h3>
             </div>
-            <div id="server-stats" class="server-platforms">
+            <div id="library-stats" class="library-platforms">
                 <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
                 <br>
             </div>
@@ -94,7 +94,7 @@
         });
     }
 
-    function getServerStatsHeader() { 
+    function getLibraryStatsHeader() { 
         $.ajax({
             "url": "get_servers_info",
             type: "post",
@@ -110,19 +110,19 @@
                         break;
                     }
                 }
-                $('#server-statistics-header h3').append(' <small>' + server_name + '</small>')
+                $('#library-statistics-header h3').append(' <small>' + server_name + '</small>')
             }
         });
     }
 
-    function getServerStats() {
+    function getLibraryStats() {
         $.ajax({
-            url: 'server_stats',
+            url: 'library_stats',
             cache: false,
             async: true,
             data: { },
             complete: function(xhr, status) {
-                $("#server-stats").html(xhr.responseText);
+                $("#library-stats").html(xhr.responseText);
             }
         });
     }
@@ -166,8 +166,8 @@
     });
 
     getHomeStats(${config['home_stats_length']}, ${config['home_stats_type']}, ${config['home_stats_count']});
-    getServerStatsHeader();
-    getServerStats();
+    getLibraryStatsHeader();
+    getLibraryStats();
 
 
 </script>

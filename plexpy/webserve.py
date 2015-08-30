@@ -128,11 +128,11 @@ class WebInterface(object):
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
 
     @cherrypy.expose
-    def server_stats(self, **kwargs):
+    def library_stats(self, **kwargs):
         pms_connect = pmsconnect.PmsConnect()
-        stats_data = pms_connect.get_server_stats()
+        stats_data = pms_connect.get_library_stats()
 
-        return serve_template(templatename="server_stats.html", title="Server Stats", data=stats_data)
+        return serve_template(templatename="library_stats.html", title="Library Stats", data=stats_data)
 
     @cherrypy.expose
     def history(self):

@@ -3,7 +3,7 @@ USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
 
 For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
 
-Filename:           server_stats.html
+Filename:           library_stats.html
 Version:            0.1
 Variable names:     data [array]
 
@@ -61,11 +61,11 @@ DOCUMENTATION :: END
             </div>
             % if library['rows']['thumb']:
             <div class="home-platforms-instance-poster">
-                <div class="home-platforms-server-thumb" style="background-image: url(pms_image_proxy?img=${library['rows']['thumb']}&width=300&height=300&fallback=poster);"></div>
+                <div class="home-platforms-library-thumb" style="background-image: url(pms_image_proxy?img=${library['rows']['thumb']}&width=300&height=300&fallback=poster);"></div>
             </div>
             % else:
             <div class="home-platforms-instance-poster">
-                <div class="home-platforms-server-thumb" style="background-image: url(interfaces/default/images/poster.png);"></div>
+                <div class="home-platforms-library-thumb" style="background-image: url(interfaces/default/images/poster.png);"></div>
             </div>
             % endif
         </li>
