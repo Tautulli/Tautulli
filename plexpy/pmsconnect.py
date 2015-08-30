@@ -1121,11 +1121,10 @@ class PmsConnect(object):
 
     Output: array
     """
-    def get_server_stats(self):
-        server_info = self.get_servers_info()
+    def get_library_stats(self):
         server_libraries = self.get_server_children()
 
-        server_stats = []
+        server_library_stats = []
 
         if server_libraries['libraries_count'] != '0':
             libraries_list = server_libraries['libraries_list']
@@ -1152,14 +1151,14 @@ class PmsConnect(object):
                     if library_type == 'artist':
                         album_list = self.get_library_children(library_type='album', section_key=section_key)
                         album_stats = {'album_count': album_list['library_count'],
-                                         'album_count_type': 'All Albums'
-                                         }
+                                       'album_count_type': 'All Albums'
+                                       }
                         library_stats.update(album_stats)
 
-                    server_stats.append({'type': library_type,
-                                         'rows': library_stats})
+                    server_library_stats.append({'type': library_type,
+                                                 'rows': library_stats})
 
-        return server_stats
+        return server_library_stats
 
     """
     Return image data as array.
