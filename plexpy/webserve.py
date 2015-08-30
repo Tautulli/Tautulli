@@ -67,7 +67,8 @@ class WebInterface(object):
         config = {
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE,
-            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT
+            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 
@@ -125,6 +126,13 @@ class WebInterface(object):
         stats_data = data_factory.get_home_stats(time_range=time_range, stat_type=stat_type, stat_count=stat_count)
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
+
+    @cherrypy.expose
+    def server_stats(self, **kwargs):
+        pms_connect = pmsconnect.PmsConnect()
+        stats_data = pms_connect.get_server_stats()
+
+        return serve_template(templatename="server_stats.html", title="Server Stats", data=stats_data)
 
     @cherrypy.expose
     def history(self):

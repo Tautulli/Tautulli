@@ -1,0 +1,78 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           server_stats.html
+Version:            0.1
+Variable names:     data [array]
+
+data[array_index] :: Usable parameters
+
+data['type']            Returns the type of the library. Either 'movie', 'show', 'photo', or 'artist'.
+data['rows']            Returns an array containing stat data
+
+data[array_index]['rows'] :: Usable parameters
+
+title                   Returns the title of the library.
+thumb                   Returns the thumb of the library.
+count                   Returns the number of items in the library.
+count_type              Returns the sorting type for the library
+
+== Only if 'type' is 'show'
+episode_count           Return the number of episodes in the library.
+episode_count_type      Return the sorting type for the episodes.
+
+== Only if 'type' is 'artist'
+album_count             Return the number of episodes in the library.
+album_count_type        Return the sorting type for the episodes.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data:
+<ul class="list-unstyled">
+    % for library in data:
+    <div class="home-platforms-instance">
+        <li>
+            <div class="home-platforms-instance-info">
+                <div class="home-platforms-instance-name">
+                    <h4>${library['rows']['title']}</h4>
+                    <h5>${library['rows']['count_type']}</h5>
+                </div>
+                <div class="home-platforms-instance-playcount">
+                    <h3>${library['rows']['count']}</h3>
+                    <p> items</p>
+                </div>
+                % if library['type'] == 'show':
+                <div class="home-platforms-instance-name2">
+                    <h5>${library['rows']['episode_count_type']}</h5>
+                    <h3>${library['rows']['episode_count']}</h3>
+                    <p> items</p>
+                </div>
+                % endif
+                % if library['type'] == 'artist':
+                <div class="home-platforms-instance-name2">
+                    <h5>${library['rows']['album_count_type']}</h5>
+                    <h3>${library['rows']['album_count']}</h3>
+                    <p> items</p>
+                </div>
+                % endif
+            </div>
+            % if library['rows']['thumb']:
+            <div class="home-platforms-instance-poster">
+                <div class="home-platforms-server-thumb" style="background-image: url(pms_image_proxy?img=${library['rows']['thumb']}&width=300&height=300&fallback=poster);"></div>
+            </div>
+            % else:
+            <div class="home-platforms-instance-poster">
+                <div class="home-platforms-server-thumb" style="background-image: url(interfaces/default/images/poster.png);"></div>
+            </div>
+            % endif
+        </li>
+    </div>
+    % endfor
+</ul>
+% else:
+<div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
+</div><br>
+% endif

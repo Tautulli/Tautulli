@@ -19,9 +19,20 @@
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header">
-                <h3>Statistics <small>Last ${config['home_stats_length']} days</small></h3>
+                <h3>Watch Statistics <small>Last ${config['home_stats_length']} days</small></h3>
             </div>
             <div id="home-stats" class="home-platforms">
+                <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
+                <br>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="padded-header" id="server-statistics-header">
+                <h3>Server Statistics</h3>
+            </div>
+            <div id="server-stats" class="server-platforms">
                 <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
                 <br>
             </div>
@@ -45,17 +56,18 @@
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script>
 
-    function getHomeStats(days, stat_type, stat_count) {
+    function currentActivityHeader() {
         $.ajax({
-            url: 'home_stats',
+            url: 'get_current_activity_header',
             cache: false,
             async: true,
-            data: {time_range: days, stat_type: stat_type, stat_count: stat_count},
             complete: function(xhr, status) {
-                $("#home-stats").html(xhr.responseText);
+                $("#current-activity-header").html(xhr.responseText);
             }
         });
     }
+    currentActivityHeader();
+    setInterval(currentActivityHeader, 15000);
 
     function currentActivity() {
         $.ajax({
@@ -70,18 +82,50 @@
     currentActivity();
     setInterval(currentActivity, 15000);
 
-    function currentActivityHeader() {
+    function getHomeStats(days, stat_type, stat_count) {
         $.ajax({
-            url: 'get_current_activity_header',
+            url: 'home_stats',
             cache: false,
             async: true,
+            data: {time_range: days, stat_type: stat_type, stat_count: stat_count},
             complete: function(xhr, status) {
-                $("#current-activity-header").html(xhr.responseText);
+                $("#home-stats").html(xhr.responseText);
             }
         });
     }
-    currentActivityHeader();
-    setInterval(currentActivityHeader, 15000);
+
+    function getServerStatsHeader() { 
+        $.ajax({
+            "url": "get_servers_info",
+            type: "post",
+            cache: false,
+            async: true,
+            data: { },
+            complete: function (xhr, status) {
+                server_info = $.parseJSON(xhr.responseText);
+                var server_name = 'Server name not found';
+                for (var i in server_info) {
+                    if (server_info[i].machine_identifier == '${config['pms_identifier']}') { 
+                        server_name = server_info[i].name
+                        break;
+                    }
+                }
+                $('#server-statistics-header h3').append(' <small>' + server_name + '</small>')
+            }
+        });
+    }
+
+    function getServerStats() {
+        $.ajax({
+            url: 'server_stats',
+            cache: false,
+            async: true,
+            data: { },
+            complete: function(xhr, status) {
+                $("#server-stats").html(xhr.responseText);
+            }
+        });
+    }
 
     function recentlyAdded() {
         var widthVal = $('body').find(".container-fluid").width();
@@ -122,6 +166,8 @@
     });
 
     getHomeStats(${config['home_stats_length']}, ${config['home_stats_type']}, ${config['home_stats_count']});
+    getServerStatsHeader();
+    getServerStats();
 
 
 </script>
