@@ -413,6 +413,10 @@ input[type="color"],
     text-align: center;
     pointer-events: none;
 }
+.poster {
+    position: relative;
+    height: 225px;
+}
 .poster-face {
     background-position: center;
     background-size: cover;
