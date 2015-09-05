@@ -391,7 +391,7 @@ class DataFactory(object):
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'GROUP BY session_history.platform ' \
-                            'ORDER BY total_plays DESC LIMIT %s' % (time_range, stat_count)
+                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
