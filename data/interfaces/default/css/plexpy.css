@@ -2196,6 +2196,9 @@ a .home-platforms-instance-list-oval:hover,
     color: #fff;
     cursor: pointer;
 }
+.edit-user-name > input[type='text'] {
+    margin: 0;
+}
 .popover {
     z-index: 2;
 }

@@ -16,7 +16,7 @@
             <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
                 <i class="fa fa-pencil"></i> Edit mode
             </button>&nbsp
-            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect users to purge. Data is purged upon exiting edit mode.</div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -119,12 +119,23 @@
                     $(this).addClass('hidden');
                     $('#row-edit-mode-alert').fadeOut(200);
                 });
+                $('.edit-user-control > .edit-user-name').each(function () {
+                    a = $(this).children('a');
+                    input = $(this).children('input');
+                    a.text(input.val());
+                    a.removeClass('hidden');
+                    input.addClass('hidden');
+                });
 
             } else {
                 users_to_purge = [];
                 $('.edit-control').each(function () {
                     $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).removeClass('hidden');
+                });
+                $('.edit-user-control > .edit-user-name').each(function () {
+                    $(this).children('a').addClass('hidden');
+                    $(this).children('input').removeClass('hidden');
                 });
             }
         });
