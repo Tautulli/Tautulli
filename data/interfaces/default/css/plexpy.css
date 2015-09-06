@@ -932,6 +932,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
     background-clip: content-box;
     min-height: calc(100% - 200px);
     position: inherit;
+    width: 100%;
 }
 .summary-content-poster {
     float: left;
