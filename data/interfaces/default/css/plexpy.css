@@ -1542,7 +1542,6 @@ a .season-episodes-card-overlay:hover {
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     white-space: nowrap;
-    overflow: hidden;
 }
 .home-platforms-instance li {
     position: relative;
