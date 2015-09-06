@@ -473,8 +473,8 @@ a .users-poster-face:hover {
     position: relative;
     height: 260px;
     width: 350px;
-    margin-right: 25px;
-    margin-bottom: 25px;
+    margin-right: 20px;
+    margin-bottom: 20px;
 }
 .dashboard-activity-poster {
     height: 200px;
@@ -1891,7 +1891,7 @@ a .home-platforms-instance-list-oval:hover,
 }
 .home-platforms-instance .slider {
     background-color: #2d2d2d;
-    width: 350px;
+    width: calc(100% + 20px);
     display: none;
     position: absolute;
     top: 128px;
@@ -2334,9 +2334,6 @@ a .home-platforms-instance-list-oval:hover,
   and (max-device-width: 375px) {
     .home-platforms-instance {
         width: calc(100% - 20px);
-    }
-    .home-platforms-instance .slider {
-        width: calc(100% + 20px);
     }
     .dashboard-instance {
         width: 100%;
