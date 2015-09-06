@@ -68,7 +68,6 @@ DOCUMENTATION :: END
     <a href="info?item_id=${a['rating_key']}">
     % endif
         <div class="dashboard-activity-poster">
-            <script>console.log('${a['indexes']}');</script>
             % if a['type'] == 'movie' and not a['indexes']:
             <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
             % elif a['type'] == 'episode' and not a['indexes']:
