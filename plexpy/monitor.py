@@ -345,7 +345,7 @@ class MonitorProcessing(object):
                         'originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, ' \
                         'tagline, rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
                         '(last_insert_rowid(), ' \
-                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
                 args = [session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
                         session['title'], session['parent_title'], session['grandparent_title'], full_title,
