@@ -27,9 +27,8 @@ def refresh_users():
 
     if len(result) > 0:
         for item in result:
-            control_value_dict = {"username": item['username']}
-            new_value_dict = {"user_id": item['user_id'],
-                              "username": item['username'],
+            control_value_dict = {"user_id": item['user_id']}
+            new_value_dict = {"username": item['username'],
                               "thumb": item['thumb'],
                               "email": item['email'],
                               "is_home_user": item['is_home_user'],

@@ -588,6 +588,12 @@ def dbcheck():
             'ALTER TABLE users ADD COLUMN custom_avatar_url TEXT'
         )
 
+    # Add "Local" user to database as default unauthenticated user.
+    result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
+    if not result.fetchone():
+        logger.debug(u'User "Local" does not exist. Adding user.')
+        c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
+
     conn_db.commit()
     c_db.close()
 

@@ -12,12 +12,11 @@
             <span><i class="fa fa-group"></i> All Users</span>
         </div>
         <div class="button-bar">
-            <span data-toggle="popover" data-placement="left" data-content="Data purging does not occur until after exiting edit mode." id="purge-message">
-                <button class="btn btn-dark" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                    <i class="fa fa-pencil"></i> Edit mode
-                </button>&nbsp
-            </span>
-            <button class="btn btn-dark" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
+            <button class="btn btn-dark refresh-users-button" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
+            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                <i class="fa fa-pencil"></i> Edit mode
+            </button>&nbsp
+            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -85,20 +84,19 @@
 
         clearSearchButton('users_list_table', users_list_table);
 
-        var users_to_purge = [];
         $('#row-edit-mode').on('click', function () {
-            $('#purge-message').popover();
+            $('#row-edit-mode-alert').fadeIn(200);
+            $('#users-to-delete').html('');
 
             if ($(this).hasClass('active')) {
-                users_to_purge = [];
-                ul = $('#users-to-delete');
-                ul.html('');
-                $('.edit-control button.btn-danger').map(function () {
-                    users_to_purge.push($(this).attr('data-id'));
-                    ul.append('<li>' + $('div[data-id=' + $(this).attr('data-id') + '] > input').val() + '</li>')
-                });
                 if (users_to_purge.length > 0) {
-                    $('#users-to-delete').append
+                    $('.edit-control').each(function () {
+                        $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                    });
+
+                    for (var i = 0; i < users_to_purge.length; i++) {
+                        $('#users-to-delete').append('<li>' + $('div[data-id=' + users_to_purge[i] + '] > input').val() + '</li>');
+                    }
                     $('#confirm-modal').modal();
                     $('#confirm-modal').one('click', '#confirm-purge', function () {
                         for (var i = 0; i < users_to_purge.length; i++) {
@@ -118,35 +116,16 @@
                 }
 
                 $('.edit-control').each(function () {
-                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).addClass('hidden');
-                });
-                $('.edit-user-control > .edit-user-name').each(function () {
-                    a = $(this).children('a');
-                    input = $(this).children('input');
-                    a.text(input.val());
-                    a.removeClass('hidden');
-                    input.addClass('hidden');
+                    $('#row-edit-mode-alert').fadeOut(200);
                 });
 
             } else {
+                users_to_purge = [];
                 $('.edit-control').each(function () {
+                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).removeClass('hidden');
                 });
-                $('.edit-user-control > .edit-user-name').each(function () {
-                    $(this).children('a').addClass('hidden');
-                    $(this).children('input').removeClass('hidden');
-                });
-
-            }
-        });
-
-        $(window).resize(function () {
-            if ($('.popover').popover().is(':visible')) {
-                var popover = $('.popover');
-                popover.addClass("noTransition");
-                $('#purge-message').popover('show');
-                popover.removeClass("noTransition");
             }
         });
     });

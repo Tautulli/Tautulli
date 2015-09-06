@@ -74,6 +74,19 @@ history_table_modal_options = {
         {
             "targets": [3],
             "data":"player",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    var transcode_dec = '';
+                    if (rowData['video_decision'] === 'transcode') {
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server fa-fw"></i></span>';
+                    } else if (rowData['video_decision'] === 'copy') {
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Stream"><i class="fa fa-video-camera fa-fw"></i></span>';
+                    } else if (rowData['video_decision'] === 'direct play' || rowData['video_decision'] === '') {
+                        transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>';
+                    }
+                    $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp' + cellData + '</div></a></div>');
+                }
+            },
             "className": "no-wrap hidden-sm hidden-xs modal-control"
         },
         {
@@ -81,14 +94,21 @@ history_table_modal_options = {
             "data":"full_title",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    if (rowData['media_type'] === 'movie' || rowData['media_type'] === 'episode') {
-                        var transcode_dec = '';
-                        if (rowData['video_decision'] === 'transcode') {
-                            transcode_dec = '<i class="fa fa-server"></i>&nbsp';
-                        }
-                        $(td).html('<div><div style="float: left;"><a href="info?source=history&item_id=' + rowData['id'] + '">' + cellData + '</a></div><div style="float: right; text-align: right; padding-right: 5px;">' + transcode_dec + '<i class="fa fa-video-camera"></i></div></div>');
+                    var media_type = '';
+                    var thumb_popover = '';
+                    if (rowData['media_type'] === 'movie') {
+                        media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Movie"><i class="fa fa-film fa-fw"></i></span>';
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120">' + cellData + ' (' + rowData['year'] + ')</span>'
+                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
+                    } else if (rowData['media_type'] === 'episode') {
+                        media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>';
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120">' + cellData + ' \
+                            (S' + ('00' + rowData['parent_media_index']).slice(-2) + 'E' + ('00' + rowData['media_index']).slice(-2) + ')</span>'
+                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;" >' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'track') {
-                        $(td).html('<div><div style="float: left;">' + cellData + '</div><div style="float: right; text-align: right; padding-right: 5px;"><i class="fa fa-music"></i></div></div>');
+                        media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80">' + cellData + ' (' + rowData['parent_title'] + ')</span>'
+                        $(td).html('<div class="history-title"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></div>');
                     } else {
                         $(td).html('<a href="info?item_id=' + rowData['id'] + '">' + cellData + '</a>');
                     }
@@ -100,9 +120,40 @@ history_table_modal_options = {
         // Jump to top of page
         // $('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
+
+        // Create the tooltips.
+        $('.transcode-tooltip').tooltip();
+        $('.media-type-tooltip').tooltip();
+        $('.thumb-tooltip').popover({
+            html: true,
+            trigger: 'hover',
+            placement: 'right',
+            content: function () {
+                return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px;" />';
+            }
+        });
     },
     "preDrawCallback": function(settings) {
         var msg = "<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...</div>";
         showMsg(msg, false, false, 0)
     }
 }
+
+$('#history_table').on('click', 'td.modal-control', function () {
+    var tr = $(this).parents('tr');
+    var row = history_table.row(tr);
+    var rowData = row.data();
+
+    function showStreamDetails() {
+        $.ajax({
+            url: 'get_stream_data',
+            data: { row_id: rowData['id'], user: rowData['friendly_name'] },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#info-modal").html(xhr.responseText);
+            }
+        });
+    }
+    showStreamDetails();
+});

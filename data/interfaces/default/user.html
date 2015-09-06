@@ -154,13 +154,11 @@ from plexpy import helpers
                             </strong></span>
                         </div>
                         <div class="button-bar">
-                            <span data-toggle="popover" data-placement="left" data-content="Select rows to delete. Data is deleted upon exiting delete mode." id="delete-message">
-                                <button class="btn btn-danger" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                                    <i class="fa fa-trash-o"></i> Delete mode
-                                </button>&nbsp
-                            </span>
-                            <div class="colvis-button-bar hidden-xs" id="button-bar-history">
-                        </div>
+                            <div class="colvis-button-bar hidden-xs" id="button-bar-history"></div>
+                            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                                <i class="fa fa-trash-o"></i> Delete mode
+                            </button>
+                            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
                         </div>
                     </div>
                     <div class="table-card-back">
@@ -170,8 +168,8 @@ from plexpy import helpers
                                 <th align='left' id="delete">Delete</th>
                                 <th align='left' id="time">Time</th>
                                 <th align='left' id="friendly_name">User</th>
-                                <th align='left' id="platform">Platform</th>
                                 <th align='left' id="ip_address">IP Address</th>
+                                <th align='left' id="platform">Platform</th>
                                 <th align='left' id="title">Title</th>
                                 <th align='left' id="started">Started</th>
                                 <th align='left' id="paused_counter">Paused</th>
@@ -390,7 +388,7 @@ from plexpy import helpers
         });
 
         $('#row-edit-mode').on('click', function() {
-            $('#delete-message').popover();
+            $('#row-edit-mode-alert').fadeIn(200);
 
             if ($(this).hasClass('active')) {
                 if (history_to_delete.length > 0) {
@@ -403,7 +401,7 @@ from plexpy import helpers
                                 data: { row_id: history_to_delete[i] },
                                 async: true,
                                 success: function (data) {
-                                    var msg = "User history purged";
+                                    var msg = "History deleted";
                                     showMsg(msg, false, true, 2000);
                                 }
                             });
@@ -413,13 +411,14 @@ from plexpy import helpers
                 }
 
                 $('.delete-control').each(function () {
-                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).addClass('hidden');
+                    $('#row-edit-mode-alert').fadeOut(200);
                 });
 
             } else {
                 history_to_delete = [];
                 $('.delete-control').each(function() {
+                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).removeClass('hidden');
                 });
             }

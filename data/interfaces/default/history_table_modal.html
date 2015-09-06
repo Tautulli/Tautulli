@@ -27,7 +27,8 @@
         <div class="modal-footer"></div>
     </div>
 </div>
-
+<div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
+</div>
 <script src="interfaces/default/js/tables/history_table_modal.js"></script>
 <script>
     $(document).ready(function() {
@@ -45,6 +46,32 @@
         history_table = $('#history_table').DataTable(history_table_modal_options);
         
         clearSearchButton('history_table', history_table);
+
+        // Move #info-modal to parent container
+        if (!($('#history-modal').next().is('#info-modal'))) {
+            $('#info-modal').appendTo($('#history-modal').parent());
+        }
+        $('#history-modal > #info-modal').remove();
+
+        $('#history-modal').css('z-index', '1050');
+        $('.modal-backdrop').not('.modal-backdrop-stack').css('z-index', '1049');
+        $('.modal-backdrop').not('.modal-backdrop-stack').addClass('modal-backdrop-stack');
+
+        $('#info-modal').on('show.bs.modal', function () {
+            // Fix position to match parent modal
+            var currentPadding = parseInt($('body').css('padding-right'));
+            $(this).children('.modal-dialog').css('left', -currentPadding / 2);
+            $('#history-modal').css('overflow-y', 'hidden');
+            setTimeout(function () {
+                $('#info-modal').css('z-index', '1060');
+                $('.modal-backdrop').not('.modal-backdrop-stack').css('z-index', '1059');
+                $('.modal-backdrop').not('.modal-backdrop-stack').addClass('modal-backdrop-stack');
+            }, 0);
+        });
+        $('#info-modal').on('hidden.bs.modal', function () {
+            $('body').addClass('modal-open');
+            $('#history-modal').css('overflow-y', 'auto');
+        });
     });
 </script>
 % else:

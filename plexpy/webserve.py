@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -66,7 +66,9 @@ class WebInterface(object):
     def home(self):
         config = {
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
-            "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE
+            "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE,
+            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 
@@ -119,11 +121,18 @@ class WebInterface(object):
         return json.dumps(formats)
 
     @cherrypy.expose
-    def home_stats(self, time_range='30', stat_type='0', **kwargs):
+    def home_stats(self, time_range='30', stat_type='0', stat_count='5', **kwargs):
         data_factory = datafactory.DataFactory()
-        stats_data = data_factory.get_home_stats(time_range=time_range, stat_type=stat_type)
+        stats_data = data_factory.get_home_stats(time_range=time_range, stat_type=stat_type, stat_count=stat_count)
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
+
+    @cherrypy.expose
+    def library_stats(self, **kwargs):
+        pms_connect = pmsconnect.PmsConnect()
+        stats_data = pms_connect.get_library_stats()
+
+        return serve_template(templatename="library_stats.html", title="Library Stats", data=stats_data)
 
     @cherrypy.expose
     def history(self):
@@ -453,6 +462,7 @@ class WebInterface(object):
             "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
+            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
         }
@@ -567,6 +577,9 @@ class WebInterface(object):
         if 'rating_key' in kwargs:
             rating_key = kwargs.get('rating_key', "")
             custom_where = [['rating_key', rating_key]]
+        if 'parent_rating_key' in kwargs:
+            rating_key = kwargs.get('parent_rating_key', "")
+            custom_where = [['parent_rating_key', rating_key]]
         if 'grandparent_rating_key' in kwargs:
             rating_key = kwargs.get('grandparent_rating_key', "")
             custom_where = [['grandparent_rating_key', rating_key]]
@@ -747,16 +760,19 @@ class WebInterface(object):
 
     @cherrypy.expose
     def info(self, item_id=None, source=None, **kwargs):
+        metadata = None
 
         if source == 'history':
             data_factory = datafactory.DataFactory()
-            result = data_factory.get_metadata_details(row_id=item_id)
+            metadata = data_factory.get_metadata_details(row_id=item_id)
         else:
             pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_metadata_details(rating_key=item_id)['metadata']
+            result = pms_connect.get_metadata_details(rating_key=item_id)
+            if result:
+                metadata = result['metadata']
 
-        if result:
-            return serve_template(templatename="info.html", data=result, title="Info")
+        if metadata:
+            return serve_template(templatename="info.html", data=metadata, title="Info")
         else:
             logger.warn('Unable to retrieve data.')
             return serve_template(templatename="info.html", data=None, title="Info")
@@ -801,7 +817,19 @@ class WebInterface(object):
             return serve_template(templatename="user_platform_stats.html", data=None, title="Platform Stats")
 
     @cherrypy.expose
-    def get_children(self, rating_key='', **kwargs):
+    def get_show_children(self, rating_key='', **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_show_children(rating_key)
+
+        if result:
+            return serve_template(templatename="info_season_list.html", data=result, title="Season List")
+        else:
+            logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="info_season_list.html", data=None, title="Season List")
+
+    @cherrypy.expose
+    def get_season_children(self, rating_key='', **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_season_children(rating_key)

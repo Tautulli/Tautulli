@@ -1,3 +1,5 @@
+var users_to_purge = [];
+
 users_list_table_options = {
     "language": {
         "search": "Search: ",
@@ -187,6 +189,11 @@ users_list_table_options = {
     "preDrawCallback": function(settings) {
         var msg = "<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...</div>";
         showMsg(msg, false, false, 0)
+    },
+    "rowCallback": function (row, rowData) {
+        if ($.inArray(rowData['user_id'], users_to_purge) !== -1) {
+            $(row).find('button[data-id="' + rowData['user_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+        }
     }
 }
 
@@ -271,9 +278,11 @@ $('#users_list_table').on('click', 'td.edit-control > .edit-user-toggles > butto
     var row = users_list_table.row(tr);
     var rowData = row.data();
 
-    if ($(this).hasClass('active')) {
-        $(this).toggleClass('btn-warning').toggleClass('btn-danger');
+    var index = $.inArray(rowData['user_id'], users_to_purge);
+    if (index === -1) {
+        users_to_purge.push(rowData['user_id']);
     } else {
-        $(this).toggleClass('btn-danger').toggleClass('btn-warning');
+        users_to_purge.splice(index, 1);
     }
+    $(this).toggleClass('btn-warning').toggleClass('btn-danger');
 });
