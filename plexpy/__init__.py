@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -377,7 +377,7 @@ def dbcheck():
         'title TEXT, parent_title TEXT, grandparent_title TEXT, full_title TEXT, media_index INTEGER, '
         'parent_media_index INTEGER, thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, art TEXT, media_type TEXT, '
         'year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, last_viewed_at INTEGER, '
-        'content_rating TEXT, summary TEXT, rating TEXT, duration INTEGER DEFAULT 0, guid TEXT, '
+        'content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, duration INTEGER DEFAULT 0, guid TEXT, '
         'directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT)'
         ''
     )
@@ -517,13 +517,22 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN transcode_height INTEGER'
         )
 
-    # Upgrade sessions table from earlier versions
+    # Upgrade session_history_metadata table from earlier versions
     try:
         c_db.execute('SELECT full_title from session_history_metadata')
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.debug(u"Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN full_title TEXT'
+        )
+
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute('SELECT tagline from session_history_metadata')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_metadata.")
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN tagline TEXT'
         )
 
     # notify_log table :: This is a table which logs notifications sent

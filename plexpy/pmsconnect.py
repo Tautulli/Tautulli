@@ -422,6 +422,7 @@ class PmsConnect(object):
                         'title': helpers.get_xml_attr(metadata_main, 'title'),
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': helpers.get_xml_attr(metadata_main, 'summary'),
+                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'duration': helpers.get_xml_attr(metadata_main, 'duration'),
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
