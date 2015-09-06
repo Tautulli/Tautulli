@@ -748,9 +748,13 @@ class PmsConnect(object):
                                   'duration': duration,
                                   'progress': progress,
                                   'progress_percent': str(helpers.get_percent(progress, duration)),
-                                  'type': helpers.get_xml_attr(session, 'type'),
                                   'indexes': use_indexes
                                   }
+                if helpers.get_xml_attr(session, 'ratingKey').isdigit():
+                    session_output['type'] = helpers.get_xml_attr(session, 'type')
+                else:
+                    session_output['type'] = 'clip'
+
             elif helpers.get_xml_attr(session, 'type') == 'movie':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                                   'media_index': helpers.get_xml_attr(session, 'index'),
@@ -797,9 +801,13 @@ class PmsConnect(object):
                                   'duration': duration,
                                   'progress': progress,
                                   'progress_percent': str(helpers.get_percent(progress, duration)),
-                                  'type': helpers.get_xml_attr(session, 'type'),
                                   'indexes': use_indexes
                                   }
+                if helpers.get_xml_attr(session, 'ratingKey').isdigit():
+                    session_output['type'] = helpers.get_xml_attr(session, 'type')
+                else:
+                    session_output['type'] = 'clip'
+
             elif helpers.get_xml_attr(session, 'type') == 'clip':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                                   'media_index': helpers.get_xml_attr(session, 'index'),

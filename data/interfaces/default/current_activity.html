@@ -80,8 +80,17 @@ DOCUMENTATION :: END
                 <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
                 <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
                 % elif a['type'] == 'clip':
-                <div class="dashboard-activity-clip-face-bg" style="background-image: url(${a['thumb']});"></div>
-                <div class="dashboard-activity-clip-face" style="background-image: url(${a['thumb']});"></div>
+                    % if a['art'][:4] == 'http':
+                    <div class="dashboard-activity-poster-face" style="background-image: url(${a['art']});"></div>
+                    % elif a['thumb'][:4] == 'http':
+                    <div class="dashboard-activity-poster-face" style="background-image: url(${a['thumb']});"></div>
+                    % else:
+                        % if a['art']:
+                        <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
+                        % else:
+                        <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=280);"></div>
+                        % endif
+                    % endif
                 % else:
                 <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300&fallback=cover);"></div>
                 % endif
