@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.1.6 (2015-09-06)
+
+* Home stats cards are now expandable to show multiple items. Configurable in settings. Thanks @JonnyWong.
+* Completely redesigned media info pages. Thanks @JonnyWong.
+* Redesigned activity pane to match Plex Web more closely. Thanks @JonnyWong.
+* New Library stats on home page, shows total item counts per library. Thanks @JonnyWong.
+* New last watched card in home stats. Shows last watched items. Thanks @JonnyWong.
+* Improved some layout issues on mobile devices. Thanks @JonnyWong.
+* Fixed issue where some clip/channel items are reported as episodes and causing exceptions.
+* Many styling improvements and fixes. Thanks @JonnyWong.
+* Fixed incorrect sort on home stats platform count by duration. Thanks @JonnyWong.
+* Fix issue where user refresh would continually be called as "Local" user didn't exist in database.
+* Fixed styling on graph stream modal. Thanks @JonnyWong.
+* Fixed some issues with users page editing. Thanks @JonnyWong.
+* Fix error page when clicking through to an item that no longer exists.
+
+
 ## v1.1.5 (2015-08-27)
 
 * Fix git tag being one release behind.
