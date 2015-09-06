@@ -578,6 +578,7 @@ class PmsConnect(object):
 
             if session.getElementsByTagName('TranscodeSession'):
                 transcode_session = session.getElementsByTagName('TranscodeSession')[0]
+                throttled = helpers.get_xml_attr(transcode_session, 'throttled')
                 audio_decision = helpers.get_xml_attr(transcode_session, 'audioDecision')
                 transcode_audio_channels = helpers.get_xml_attr(transcode_session, 'audioChannels')
                 transcode_audio_codec = helpers.get_xml_attr(transcode_session, 'audioCodec')
@@ -620,6 +621,7 @@ class PmsConnect(object):
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                               'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                               'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                              'throttled': throttled,
                               'audio_decision': audio_decision,
                               'audio_channels': audio_channels,
                               'audio_codec': audio_codec,
@@ -664,6 +666,7 @@ class PmsConnect(object):
 
             if session.getElementsByTagName('TranscodeSession'):
                 transcode_session = session.getElementsByTagName('TranscodeSession')[0]
+                throttled = helpers.get_xml_attr(transcode_session, 'throttled')
                 audio_decision = helpers.get_xml_attr(transcode_session, 'audioDecision')
                 transcode_audio_channels = helpers.get_xml_attr(transcode_session, 'audioChannels')
                 transcode_audio_codec = helpers.get_xml_attr(transcode_session, 'audioCodec')
@@ -731,6 +734,7 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'throttled': throttled,
                                   'audio_decision': audio_decision,
                                   'audio_channels': audio_channels,
                                   'audio_codec': audio_codec,
@@ -784,6 +788,7 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'throttled': throttled,
                                   'audio_decision': audio_decision,
                                   'audio_channels': audio_channels,
                                   'audio_codec': audio_codec,
@@ -837,6 +842,7 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'throttled': throttled,
                                   'audio_decision': audio_decision,
                                   'audio_channels': audio_channels,
                                   'audio_codec': audio_codec,

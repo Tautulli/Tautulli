@@ -34,6 +34,7 @@ title                       Returns the name of the episode, movie or music trac
 year                        Returns the year of the episode, movie, or clip.
 player                      Returns the name of the platform used to play the stream.
 platform                    Returns the type of platform used to play the stream.
+throttled                   Returns true if the transcode session is throttled.
 audio_decision              Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
 audio_codec                 Returns the name of the audio codec.
 audio_channels              Returns the number of audio channels.
@@ -115,7 +116,11 @@ DOCUMENTATION :: END
                         % if a['audio_decision'] == 'direct play':
                         Stream &nbsp;<strong>Direct Play</strong>
                         % else:
-                        Stream &nbsp;<strong>Transcoding</strong>
+                        Stream &nbsp;<strong>Transcoding
+                            % if a['throttled'] == 1:
+                            (Throttled)
+                            % endif
+                        </strong>
                         % endif
                         <br />
                         % if a['audio_decision'] == 'direct play':
@@ -129,7 +134,11 @@ DOCUMENTATION :: END
                         % if a['video_decision'] == 'direct play':
                         Stream &nbsp;<strong>Direct Play</strong>
                         % else:
-                        Stream &nbsp;<strong>Transcoding</strong>
+                        Stream &nbsp;<strong>Transcoding
+                            % if a['throttled']:
+                            (Throttled)
+                            % endif
+                        </strong>
                         % endif
                         <br />
                         % if a['video_decision'] == 'direct play':
