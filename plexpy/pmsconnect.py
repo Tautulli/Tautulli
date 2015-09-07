@@ -362,6 +362,7 @@ class PmsConnect(object):
                         'title': helpers.get_xml_attr(metadata_main, 'title'),
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': helpers.get_xml_attr(metadata_main, 'summary'),
+                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'duration': helpers.get_xml_attr(metadata_main, 'duration'),
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
@@ -393,6 +394,7 @@ class PmsConnect(object):
                         'title': helpers.get_xml_attr(metadata_main, 'title'),
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': helpers.get_xml_attr(metadata_main, 'summary'),
+                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'duration': helpers.get_xml_attr(metadata_main, 'duration'),
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
@@ -422,6 +424,7 @@ class PmsConnect(object):
                         'title': helpers.get_xml_attr(metadata_main, 'title'),
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': helpers.get_xml_attr(metadata_main, 'summary'),
+                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'duration': helpers.get_xml_attr(metadata_main, 'duration'),
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
@@ -454,6 +457,7 @@ class PmsConnect(object):
                         'title': helpers.get_xml_attr(metadata_main, 'title'),
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': show_details['metadata']['summary'],
+                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'duration': show_details['metadata']['duration'],
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
@@ -483,6 +487,7 @@ class PmsConnect(object):
                         'title': helpers.get_xml_attr(metadata_main, 'title'),
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': helpers.get_xml_attr(metadata_main, 'summary'),
+                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'duration': helpers.get_xml_attr(metadata_main, 'duration'),
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
@@ -573,6 +578,9 @@ class PmsConnect(object):
 
             if session.getElementsByTagName('TranscodeSession'):
                 transcode_session = session.getElementsByTagName('TranscodeSession')[0]
+                throttled = helpers.get_xml_attr(transcode_session, 'throttled')
+                transcode_progress = helpers.get_xml_attr(transcode_session, 'progress')
+                transcode_speed = helpers.get_xml_attr(transcode_session, 'speed')
                 audio_decision = helpers.get_xml_attr(transcode_session, 'audioDecision')
                 transcode_audio_channels = helpers.get_xml_attr(transcode_session, 'audioChannels')
                 transcode_audio_codec = helpers.get_xml_attr(transcode_session, 'audioCodec')
@@ -580,6 +588,9 @@ class PmsConnect(object):
                 transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
                 duration = helpers.get_xml_attr(transcode_session, 'duration')
             else:
+                throttled = '0'
+                transcode_progress = '0'
+                transcode_speed = ''
                 transcode_audio_channels = ''
                 transcode_audio_codec = ''
                 transcode_container = ''
@@ -615,6 +626,9 @@ class PmsConnect(object):
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                               'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                               'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                              'throttled': throttled,
+                              'transcode_progress': transcode_progress,
+                              'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
                               'audio_decision': audio_decision,
                               'audio_channels': audio_channels,
                               'audio_codec': audio_codec,
@@ -659,6 +673,9 @@ class PmsConnect(object):
 
             if session.getElementsByTagName('TranscodeSession'):
                 transcode_session = session.getElementsByTagName('TranscodeSession')[0]
+                throttled = helpers.get_xml_attr(transcode_session, 'throttled')
+                transcode_progress = helpers.get_xml_attr(transcode_session, 'progress')
+                transcode_speed = helpers.get_xml_attr(transcode_session, 'speed')
                 audio_decision = helpers.get_xml_attr(transcode_session, 'audioDecision')
                 transcode_audio_channels = helpers.get_xml_attr(transcode_session, 'audioChannels')
                 transcode_audio_codec = helpers.get_xml_attr(transcode_session, 'audioCodec')
@@ -669,6 +686,9 @@ class PmsConnect(object):
                 transcode_container = helpers.get_xml_attr(transcode_session, 'container')
                 transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
             else:
+                throttled = '0'
+                transcode_progress = '0'
+                transcode_speed = ''
                 transcode_audio_channels = ''
                 transcode_audio_codec = ''
                 transcode_video_codec = ''
@@ -726,6 +746,9 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'throttled': throttled,
+                                  'transcode_progress': transcode_progress,
+                                  'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
                                   'audio_decision': audio_decision,
                                   'audio_channels': audio_channels,
                                   'audio_codec': audio_codec,
@@ -779,6 +802,9 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'throttled': throttled,
+                                  'transcode_progress': transcode_progress,
+                                  'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
                                   'audio_decision': audio_decision,
                                   'audio_channels': audio_channels,
                                   'audio_codec': audio_codec,
@@ -832,6 +858,9 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'throttled': throttled,
+                                  'transcode_progress': transcode_progress,
+                                  'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
                                   'audio_decision': audio_decision,
                                   'audio_channels': audio_channels,
                                   'audio_codec': audio_codec,

@@ -73,13 +73,13 @@ DOCUMENTATION :: END
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
                     <h4>Most Watched TV</h4>
-                    <h5>
+                </div>
+                <div class="home-platforms-instance-playcount">
+                    <h4>
                         <a href="info?item_id=${top_stat['rows'][0]['rating_key']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
-                    </h5>
-                </div>
-                <div class="home-platforms-instance-playcount">
+                    </h4>
                     % if top_stat['stat_type'] == 'total_plays':
                     <h3>${top_stat['rows'][0]['total_plays']}</h3>
                     <p> plays</p>
@@ -153,13 +153,13 @@ DOCUMENTATION :: END
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
                     <h4>Most Popular TV</h4>
-                    <h5>
+                </div>
+                <div class="home-platforms-instance-playcount">
+                    <h4>
                         <a href="info?item_id=${top_stat['rows'][0]['rating_key']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
-                    </h5>
-                </div>
-                <div class="home-platforms-instance-playcount">
+                    </h4>
                     <h3>${top_stat['rows'][0]['users_watched']}</h3>
                     <p> users</p>
                 </div>
@@ -225,13 +225,13 @@ DOCUMENTATION :: END
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
                     <h4>Most Watched Movie</h4>
-                    <h5>
+                </div>
+                <div class="home-platforms-instance-playcount">
+                    <h4>
                         <a href="info?item_id=${top_stat['rows'][0]['rating_key']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
-                    </h5>
-                </div>
-                <div class="home-platforms-instance-playcount">
+                    </h4>
                     % if top_stat['stat_type'] == 'total_plays':
                     <h3>${top_stat['rows'][0]['total_plays']}</h3>
                     <p> plays</p>
@@ -305,13 +305,13 @@ DOCUMENTATION :: END
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
                     <h4>Most Popular Movie</h4>
-                    <h5>
+                </div>
+                <div class="home-platforms-instance-playcount">
+                    <h4>
                         <a href="info?item_id=${top_stat['rows'][0]['rating_key']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
-                    </h5>
-                </div>
-                <div class="home-platforms-instance-playcount">
+                    </h4>
                     <h3>${top_stat['rows'][0]['users_watched']}</h3>
                     <p> users</p>
                 </div>
@@ -377,17 +377,17 @@ DOCUMENTATION :: END
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
                     <h4>Most Active User</h4>
-                    <h5>
-                        % if top_stat['rows'][0]['user_id']:
-                        <a href="user?user_id=${top_stat['rows'][0]['user_id']}">
-                        % else:
-                        <a href="user?user=${top_stat['rows'][0]['user']}">
-                        % endif
-                            ${top_stat['rows'][0]['friendly_name']}
-                        </a>
-                    </h5>
                 </div>
                 <div class="home-platforms-instance-playcount">
+                    <h4>
+                        % if top_stat['rows'][0]['user_id']:
+                        <a href="user?user_id=${top_stat['rows'][0]['user_id']}">
+                            % else:
+                            <a href="user?user=${top_stat['rows'][0]['user']}">
+                                % endif
+                                ${top_stat['rows'][0]['friendly_name']}
+                            </a>
+                    </h4>
                     % if top_stat['stat_type'] == 'total_plays':
                     <h3>${top_stat['rows'][0]['total_plays']}</h3>
                     <p> plays</p>
@@ -473,9 +473,9 @@ DOCUMENTATION :: END
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
                     <h4>Most Active Platform</h4>
-                    <h5>${top_stat['rows'][0]['platform_type']}</h5>
                 </div>
                 <div class="home-platforms-instance-playcount">
+                    <h4>${top_stat['rows'][0]['platform_type']}</h4>
                     % if top_stat['stat_type'] == 'total_plays':
                     <h3>${top_stat['rows'][0]['total_plays']}</h3>
                     <p> plays</p>
@@ -535,13 +535,13 @@ DOCUMENTATION :: END
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
                     <h4>Last Watched</h4>
-                    <h5>
+                </div>
+                <div class="home-platforms-instance-last-user">
+                    <h4>
                         <a href="info?source=history&item_id=${top_stat['rows'][0]['row_id']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
-                    </h5>
-                </div>
-                <div class="home-platforms-instance-last-user">
+                    </h4>
                     <h5>
                         % if top_stat['rows'][0]['user_id']:
                         <a href="user?user_id=${top_stat['rows'][0]['user_id']}">
