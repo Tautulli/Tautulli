@@ -194,6 +194,10 @@ class WebInterface(object):
             keep_history = kwargs.get('keep_history')
         else:
             keep_history = 0
+        if 'show_user' in kwargs:
+            show_user = kwargs.get('show_user')
+        else:
+            show_user = 0
         if 'thumb' in kwargs:
             custom_avatar = kwargs['thumb']
         else:
@@ -205,7 +209,8 @@ class WebInterface(object):
                 user_data.set_user_friendly_name(user_id=user_id,
                                                  friendly_name=friendly_name,
                                                  do_notify=do_notify,
-                                                 keep_history=keep_history)
+                                                 keep_history=keep_history,
+                                                 show_user=show_user)
                 user_data.set_user_profile_url(user_id=user_id,
                                                profile_url=custom_avatar)
 
@@ -219,7 +224,8 @@ class WebInterface(object):
                 user_data.set_user_friendly_name(user=user,
                                                  friendly_name=friendly_name,
                                                  do_notify=do_notify,
-                                                 keep_history=keep_history)
+                                                 keep_history=keep_history,
+                                                 show_user=show_user)
                 user_data.set_user_profile_url(user=user,
                                                profile_url=custom_avatar)
 

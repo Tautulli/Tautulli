@@ -42,7 +42,8 @@ class Users(object):
                    'session_history_media_info.video_decision',
                    'users.username as user',
                    'users.do_notify as do_notify',
-                   'users.keep_history as keep_history'
+                   'users.keep_history as keep_history',
+                   'users.show_user as show_user'
                    ]
         try:
             query = data_tables.ssp_query(table_name='users',
@@ -98,7 +99,8 @@ class Users(object):
                    "user": item["user"],
                    "user_id": item['user_id'],
                    "do_notify": helpers.checked(item['do_notify']),
-                   "keep_history": helpers.checked(item['keep_history'])
+                   "keep_history": helpers.checked(item['keep_history']),
+                   "show_user": helpers.checked(item['show_user'])
                    }
 
             rows.append(row)
@@ -193,7 +195,7 @@ class Users(object):
         return dict
 
     # TODO: The getter and setter for this needs to become a config getter/setter for more than just friendlyname
-    def set_user_friendly_name(self, user=None, user_id=None, friendly_name=None, do_notify=0, keep_history=1):
+    def set_user_friendly_name(self, user=None, user_id=None, friendly_name=None, do_notify=0, keep_history=1, show_user=1):
         if user_id:
             if friendly_name.strip() == '':
                 friendly_name = None
@@ -203,7 +205,8 @@ class Users(object):
             control_value_dict = {"user_id": user_id}
             new_value_dict = {"friendly_name": friendly_name,
                               "do_notify": do_notify,
-                              "keep_history": keep_history}
+                              "keep_history": keep_history,
+                              "show_user": show_user}
             try:
                 monitor_db.upsert('users', new_value_dict, control_value_dict)
             except Exception, e:
@@ -217,7 +220,8 @@ class Users(object):
             control_value_dict = {"username": user}
             new_value_dict = {"friendly_name": friendly_name,
                               "do_notify": do_notify,
-                              "keep_history": keep_history}
+                              "keep_history": keep_history,
+                              "show_user": show_user}
             try:
                 monitor_db.upsert('users', new_value_dict, control_value_dict)
             except Exception, e:
