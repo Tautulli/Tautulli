@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.1.7 (2015-09-07)
+
+* Show tagline in info screens for movies. Thanks @JonnyWong.
+* Add play/pause/buffer icon to activity pane. Thanks @JonnyWong.
+* Add transcoder info in activity pane info. Thanks @JonnyWong.
+* Show transcoder progress on activity progress bar. Thanks @JonnyWong.
+* Fix bug where custom notification strings would be ignored if unicode characters were present.
+* Fix text overflow issue on home stats cards. Thanks @JonnyWong.
+* Fix regression with user friendly name change input in edit screen. Thanks @JonnyWong.
+
+
 ## v1.1.6 (2015-09-06)
 
 * Home stats cards are now expandable to show multiple items. Configurable in settings. Thanks @JonnyWong.

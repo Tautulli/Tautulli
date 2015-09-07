@@ -144,6 +144,11 @@ DOCUMENTATION :: END
                                 % endif
                             </div>
                         </div>
+                        % if data['type'] == 'movie' and data['tagline']:
+                        <div class="summary-content-summary">
+                            <p><strong> ${data['tagline']} </strong></p>
+                        </div>
+                        % endif
                         <div class="summary-content-summary">
                             <p> ${data['summary']} </p>
                         </div>

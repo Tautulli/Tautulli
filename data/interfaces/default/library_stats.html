@@ -38,21 +38,21 @@ DOCUMENTATION :: END
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
                     <h4>${library['rows']['title']}</h4>
-                    <h5>${library['rows']['count_type']}</h5>
                 </div>
                 <div class="home-platforms-instance-playcount">
+                    <h5>${library['rows']['count_type']}</h5>
                     <h3>${library['rows']['count']}</h3>
                     <p> items</p>
                 </div>
                 % if library['type'] == 'show':
-                <div class="home-platforms-instance-name2">
+                <div class="home-platforms-instance-playcount" style="padding-left: 10px;">
                     <h5>${library['rows']['episode_count_type']}</h5>
                     <h3>${library['rows']['episode_count']}</h3>
                     <p> items</p>
                 </div>
                 % endif
                 % if library['type'] == 'artist':
-                <div class="home-platforms-instance-name2">
+                <div class="home-platforms-instance-playcount" style="padding-left: 10px;">
                     <h5>${library['rows']['album_count_type']}</h5>
                     <h3>${library['rows']['album_count']}</h3>
                     <p> items</p>

@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -343,17 +343,17 @@ class MonitorProcessing(object):
                         'grandparent_rating_key, title, parent_title, grandparent_title, full_title, media_index, ' \
                         'parent_media_index, thumb, parent_thumb, grandparent_thumb, art, media_type, year, ' \
                         'originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, ' \
-                        'rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
+                        'tagline, rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
                         '(last_insert_rowid(), ' \
-                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
                 args = [session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
                         session['title'], session['parent_title'], session['grandparent_title'], full_title,
                         metadata['index'], metadata['parent_index'], metadata['thumb'], metadata['parent_thumb'],
                         metadata['grandparent_thumb'], metadata['art'], session['media_type'], metadata['year'],
                         metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
-                        metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['rating'],
-                        metadata['duration'], metadata['guid'], directors, writers, actors, genres, metadata['studio']]
+                        metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['tagline'], 
+                        metadata['rating'], metadata['duration'], metadata['guid'], directors, writers, actors, genres, metadata['studio']]
 
                 # logger.debug(u"PlexPy Monitor :: Writing session_history_metadata transaction...")
                 self.db.action(query=query, args=args)
