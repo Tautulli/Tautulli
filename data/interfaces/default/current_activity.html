@@ -117,7 +117,8 @@ DOCUMENTATION :: END
                         Stream &nbsp;<strong>Direct Play</strong>
                         % else:
                         Stream &nbsp;<strong>Transcoding
-                            % if a['throttled'] == 1:
+                            (Speed: ${a['transcode_speed']})
+                            % if a['throttled'] == '1':
                             (Throttled)
                             % endif
                         </strong>
@@ -135,7 +136,8 @@ DOCUMENTATION :: END
                         Stream &nbsp;<strong>Direct Play</strong>
                         % else:
                         Stream &nbsp;<strong>Transcoding
-                            % if a['throttled']:
+                            (Speed: ${a['transcode_speed']})
+                            % if a['throttled'] == '1':
                             (Throttled)
                             % endif
                         </strong>
@@ -171,6 +173,7 @@ DOCUMENTATION :: END
     % endif
     <div class="dashboard-activity-progress">
         <div class="dashboard-activity-progress-bar">
+            <div class="bufferbar" style="width: ${a['transcode_progress']}%">${a['transcode_progress']}%</div>
             <div class="bar" style="width: ${a['progress_percent']}%">${a['progress_percent']}%</div>
         </div>
     </div>

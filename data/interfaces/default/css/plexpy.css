@@ -683,6 +683,13 @@ a:hover .dashboard-activity-poster {
     -webkit-transition: all 0s;
     transition: all 0s;
 }
+.dashboard-activity-progress .bufferbar {
+    padding-top: 6px;
+    background-color: #444;
+    position: absolute;
+    height: 6px;
+    overflow: hidden;
+}
 .dashboard-activity-progress .bar {
     padding-top: 6px;
     background-color: #faa732;
@@ -693,6 +700,9 @@ a:hover .dashboard-activity-poster {
     background-image: linear-gradient(to bottom, #fbb450, #f89406);
     background-repeat: repeat-x;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffbb450', endColorstr='#fff89406', GradientType=0);
+    position: absolute;
+    height: 6px;
+    overflow: hidden;
 }
 .dashboard-activity-metadata-wrapper {
     position: relative;
