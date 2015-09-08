@@ -255,11 +255,14 @@ class WebInterface(object):
         return serve_template(templatename="ip_address_modal.html", title="IP Address Details", data=ip_address)
 
     @cherrypy.expose
-    def get_user_list(self, filtered_users=False, **kwargs):
-        filtered_users = filtered_users == 'true'
+    def get_user_list(self, filtered_users=None, **kwargs):
+        
+        custom_where=[]
+        if filtered_users == 'true':
+            custom_where = [['show_user', 1]]
         
         user_data = users.Users()
-        user_list = user_data.get_user_list(filtered_users=filtered_users, kwargs=kwargs)
+        user_list = user_data.get_user_list(kwargs=kwargs, custom_where=custom_where)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(user_list)
