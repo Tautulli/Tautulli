@@ -203,6 +203,10 @@ class DataFactory(object):
                             'session_history_metadata.grandparent_rating_key, ' \
                             'MAX(session_history.started) as last_watch, ' \
                             'COUNT(session_history.id) as total_plays, ' \
+                            'cast(round(SUM(round((julianday(datetime(session_history.stopped, "unixepoch", "localtime")) - ' \
+                            'julianday(datetime(session_history.started, "unixepoch", "localtime"))) * 86400) - ' \
+                            '(CASE WHEN session_history.paused_counter IS NULL THEN 0 ' \
+                            'ELSE session_history.paused_counter END))/60) as integer) as total_duration,' \
                             'session_history_metadata.grandparent_thumb ' \
                             'FROM session_history_metadata ' \
                             'JOIN session_history ON session_history_metadata.id = session_history.id ' \
@@ -210,8 +214,8 @@ class DataFactory(object):
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "episode" ' \
                             'GROUP BY session_history_metadata.grandparent_title ' \
-                            'ORDER BY users_watched DESC, total_plays DESC ' \
-                            'LIMIT %s' % (time_range, stat_count)
+                            'ORDER BY users_watched DESC, %s DESC ' \
+                            'LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -223,7 +227,7 @@ class DataFactory(object):
                            'rating_key': item[3],
                            'last_play': item[4],
                            'total_plays': item[5],
-                           'grandparent_thumb': item[6],
+                           'grandparent_thumb': item[7],
                            'thumb': '',
                            'user': '',
                            'friendly_name': '',
@@ -291,6 +295,10 @@ class DataFactory(object):
                             'session_history_metadata.rating_key, ' \
                             'MAX(session_history.started) as last_watch, ' \
                             'COUNT(session_history.id) as total_plays, ' \
+                            'cast(round(SUM(round((julianday(datetime(session_history.stopped, "unixepoch", "localtime")) - ' \
+                            'julianday(datetime(session_history.started, "unixepoch", "localtime"))) * 86400) - ' \
+                            '(CASE WHEN session_history.paused_counter IS NULL THEN 0 ' \
+                            'ELSE session_history.paused_counter END))/60) as integer) as total_duration,' \
                             'session_history_metadata.thumb ' \
                             'FROM session_history_metadata ' \
                             'JOIN session_history ON session_history_metadata.id = session_history.id ' \
@@ -298,8 +306,8 @@ class DataFactory(object):
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "movie" ' \
                             'GROUP BY session_history_metadata.full_title ' \
-                            'ORDER BY users_watched DESC, total_plays DESC ' \
-                            'LIMIT %s' % (time_range, stat_count)
+                            'ORDER BY users_watched DESC, %s DESC ' \
+                            'LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -312,7 +320,7 @@ class DataFactory(object):
                            'last_play': item[4],
                            'total_plays': item[5],
                            'grandparent_thumb': '',
-                           'thumb': item[6],
+                           'thumb': item[7],
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
