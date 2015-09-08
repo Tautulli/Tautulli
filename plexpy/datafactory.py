@@ -162,10 +162,12 @@ class DataFactory(object):
                             'MAX(session_history.started) as last_watch,' \
                             'session_history_metadata.grandparent_thumb ' \
                             'FROM session_history_metadata ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'JOIN session_history on session_history_metadata.id = session_history.id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "episode" ' \
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history_metadata.grandparent_title ' \
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
@@ -209,10 +211,12 @@ class DataFactory(object):
                             'ELSE session_history.paused_counter END))/60) as integer) as total_duration,' \
                             'session_history_metadata.grandparent_thumb ' \
                             'FROM session_history_metadata ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "episode" ' \
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history_metadata.grandparent_title ' \
                             'ORDER BY users_watched DESC, %s DESC ' \
                             'LIMIT %s' % (time_range, sort_type, stat_count)
@@ -254,10 +258,12 @@ class DataFactory(object):
                             'MAX(session_history.started) as last_watch,' \
                             'session_history_metadata.thumb ' \
                             'FROM session_history_metadata ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'JOIN session_history on session_history_metadata.id = session_history.id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "movie" ' \
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history_metadata.full_title ' \
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
@@ -301,10 +307,12 @@ class DataFactory(object):
                             'ELSE session_history.paused_counter END))/60) as integer) as total_duration,' \
                             'session_history_metadata.thumb ' \
                             'FROM session_history_metadata ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "movie" ' \
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history_metadata.full_title ' \
                             'ORDER BY users_watched DESC, %s DESC ' \
                             'LIMIT %s' % (time_range, sort_type, stat_count)
@@ -348,9 +356,10 @@ class DataFactory(object):
                             'users.user_id ' \
                             'FROM session_history ' \
                             'JOIN session_history_metadata ON session_history.id = session_history_metadata.id ' \
-                            'LEFT OUTER JOIN users ON session_history.user_id = users.user_id ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                             'datetime("now", "-%s days", "localtime") '\
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history.user_id ' \
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
@@ -397,8 +406,10 @@ class DataFactory(object):
                             'ELSE session_history.paused_counter END))/60) as integer) as total_duration,' \
                             'MAX(session_history.started) as last_watch ' \
                             'FROM session_history ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history.platform ' \
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
@@ -444,11 +455,12 @@ class DataFactory(object):
                             'session_history.player as platform ' \
                             'FROM session_history_metadata ' \
                             'JOIN session_history ON session_history_metadata.id = session_history.id ' \
-                            'LEFT OUTER JOIN users ON session_history.user_id = users.user_id ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND (session_history_metadata.media_type = "movie" ' \
                             'OR session_history_metadata.media_type = "episode") ' \
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history_metadata.full_title ' \
                             'ORDER BY last_watch DESC ' \
                             'LIMIT %s' % (time_range, stat_count)
