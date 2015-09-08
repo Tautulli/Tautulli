@@ -184,6 +184,13 @@ users_list_table_options = {
             $('.edit-control').each(function () {
                 $(this).removeClass('hidden');
             });
+            $('.edit-control > .edit-user-toggles').each(function () {
+                $(this).children('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+            });
+            $('.edit-user-control > .edit-user-name').each(function () {
+                $(this).children('a').addClass('hidden');
+                $(this).children('input').removeClass('hidden');
+            });
         }
     },
     "preDrawCallback": function(settings) {

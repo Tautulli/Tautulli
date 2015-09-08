@@ -255,10 +255,11 @@ class WebInterface(object):
         return serve_template(templatename="ip_address_modal.html", title="IP Address Details", data=ip_address)
 
     @cherrypy.expose
-    def get_user_list(self, **kwargs):
-
+    def get_user_list(self, filtered_users=False, **kwargs):
+        filtered_users = filtered_users == 'true'
+        
         user_data = users.Users()
-        user_list = user_data.get_user_list(kwargs=kwargs)
+        user_list = user_data.get_user_list(filtered_users=filtered_users, kwargs=kwargs)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(user_list)

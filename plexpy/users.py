@@ -21,7 +21,7 @@ class Users(object):
     def __init__(self):
         pass
 
-    def get_user_list(self, kwargs=None):
+    def get_user_list(self, filtered_users=False, kwargs=None):
         data_tables = datatables.DataTables()
 
         columns = ['session_history.id',
@@ -72,6 +72,9 @@ class Users(object):
 
         rows = []
         for item in users:
+            if filtered_users and item["show_user"] == 0:
+                continue
+
             if item["media_type"] == 'episode' and item["parent_thumb"]:
                 thumb = item["parent_thumb"]
             elif item["media_type"] == 'episode':

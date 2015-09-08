@@ -72,11 +72,15 @@
 <script src="interfaces/default/js/tables/users.js"></script>
 <script>
     $(document).ready(function () {
+        filtered_users = true;
         users_list_table_options.ajax = {
             "url": "get_user_list",
             type: "post",
             data: function ( d ) {
-                return { 'json_data': JSON.stringify( d ) };
+                return {
+                    'filtered_users': filtered_users,
+                    'json_data': JSON.stringify(d)
+                };
             }
         }
 
@@ -89,6 +93,8 @@
             $('#users-to-delete').html('');
 
             if ($(this).hasClass('active')) {
+                filtered_users = true;
+                users_list_table.ajax.reload();
                 if (users_to_purge.length > 0) {
                     $('.edit-control').each(function () {
                         $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
@@ -129,14 +135,8 @@
 
             } else {
                 users_to_purge = [];
-                $('.edit-control').each(function () {
-                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
-                    $(this).removeClass('hidden');
-                });
-                $('.edit-user-control > .edit-user-name').each(function () {
-                    $(this).children('a').addClass('hidden');
-                    $(this).children('input').removeClass('hidden');
-                });
+                filtered_users = false;
+                users_list_table.ajax.reload();
             }
         });
     });
