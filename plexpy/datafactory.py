@@ -60,7 +60,8 @@ class DataFactory(object):
                    'session_history.user',
                    'session_history_metadata.media_type',
                    'session_history_media_info.video_decision',
-                   'session_history.user_id as user_id'
+                   'session_history.user_id as user_id',
+                   'users.show_user as show_user'
                    ]
         try:
             query = data_tables.ssp_query(table_name='session_history',

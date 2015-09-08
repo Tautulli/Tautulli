@@ -596,6 +596,7 @@ class WebInterface(object):
         if 'start_date' in kwargs:
             start_date = kwargs.get('start_date', "")
             custom_where = [['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date]]
+        custom_where.append(['show_user', 1])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where)
