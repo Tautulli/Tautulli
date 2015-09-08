@@ -194,6 +194,48 @@ class DataFactory(object):
                                    'stat_type': sort_type,
                                    'rows': top_tv})
 
+            elif 'popular_tv' in stat:
+                popular_tv = []
+                try:
+                    query = 'SELECT session_history_metadata.id, ' \
+                            'session_history_metadata.grandparent_title, ' \
+                            'COUNT(DISTINCT session_history.user_id) as users_watched, ' \
+                            'session_history_metadata.grandparent_rating_key, ' \
+                            'MAX(session_history.started) as last_watch, ' \
+                            'COUNT(session_history.id) as total_plays, ' \
+                            'session_history_metadata.grandparent_thumb ' \
+                            'FROM session_history_metadata ' \
+                            'JOIN session_history ON session_history_metadata.id = session_history.id ' \
+                            'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
+                            '>= datetime("now", "-%s days", "localtime") ' \
+                            'AND session_history_metadata.media_type = "episode" ' \
+                            'GROUP BY session_history_metadata.grandparent_title ' \
+                            'ORDER BY users_watched DESC, total_plays DESC ' \
+                            'LIMIT %s' % (time_range, stat_count)
+                    result = monitor_db.select(query)
+                except:
+                    logger.warn("Unable to execute database query.")
+                    return None
+
+                for item in result:
+                    row = {'title': item[1],
+                           'users_watched': item[2],
+                           'rating_key': item[3],
+                           'last_play': item[4],
+                           'total_plays': item[5],
+                           'grandparent_thumb': item[6],
+                           'thumb': '',
+                           'user': '',
+                           'friendly_name': '',
+                           'platform_type': '',
+                           'platform': '',
+                           'row_id': item[0]
+                           }
+                    popular_tv.append(row)
+
+                home_stats.append({'stat_id': stat,
+                                   'rows': popular_tv})
+
             elif 'top_movies' in stat:
                 top_movies = []
                 try:
@@ -239,48 +281,6 @@ class DataFactory(object):
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
                                    'rows': top_movies})
-
-            elif 'popular_tv' in stat:
-                popular_tv = []
-                try:
-                    query = 'SELECT session_history_metadata.id, ' \
-                            'session_history_metadata.grandparent_title, ' \
-                            'COUNT(DISTINCT session_history.user_id) as users_watched, ' \
-                            'session_history_metadata.grandparent_rating_key, ' \
-                            'MAX(session_history.started) as last_watch, ' \
-                            'COUNT(session_history.id) as total_plays, ' \
-                            'session_history_metadata.grandparent_thumb ' \
-                            'FROM session_history_metadata ' \
-                            'JOIN session_history ON session_history_metadata.id = session_history.id ' \
-                            'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
-                            '>= datetime("now", "-%s days", "localtime") ' \
-                            'AND session_history_metadata.media_type = "episode" ' \
-                            'GROUP BY session_history_metadata.grandparent_title ' \
-                            'ORDER BY users_watched DESC, total_plays DESC ' \
-                            'LIMIT %s' % (time_range, stat_count)
-                    result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query.")
-                    return None
-
-                for item in result:
-                    row = {'title': item[1],
-                           'users_watched': item[2],
-                           'rating_key': item[3],
-                           'last_play': item[4],
-                           'total_plays': item[5],
-                           'grandparent_thumb': item[6],
-                           'thumb': '',
-                           'user': '',
-                           'friendly_name': '',
-                           'platform_type': '',
-                           'platform': '',
-                           'row_id': item[0]
-                           }
-                    popular_tv.append(row)
-
-                home_stats.append({'stat_id': stat,
-                                   'rows': popular_tv})
 
             elif 'popular_movies' in stat:
                 popular_movies = []
