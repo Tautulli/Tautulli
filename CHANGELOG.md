@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.1.8 (2015-09-09)
+
+* Add platform images for Windows devices. Thanks @JonnyWong.
+* Add click-through to PlexWeb preplay page from info page. Thanks @JonnyWong. 
+* Fix broken delete option on info pages. Thanks @JonnyWong.
+* Fix tagline bug in PlexWatch db import tool.
+* Fix home stats text overflow bug. Thanks @JonnyWong.
+
+
 ## v1.1.7 (2015-09-07)
 
 * Show tagline in info screens for movies. Thanks @JonnyWong.
