@@ -763,7 +763,6 @@ class WebInterface(object):
         metadata = None
 
         config = {
-            "pms_url": plexpy.CONFIG.PMS_URL,
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
         }
 
