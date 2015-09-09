@@ -60,7 +60,8 @@ class DataFactory(object):
                    'session_history.user',
                    'session_history_metadata.media_type',
                    'session_history_media_info.video_decision',
-                   'session_history.user_id as user_id'
+                   'session_history.user_id as user_id',
+                   'users.show_user as show_user'
                    ]
         try:
             query = data_tables.ssp_query(table_name='session_history',
@@ -161,10 +162,12 @@ class DataFactory(object):
                             'MAX(session_history.started) as last_watch,' \
                             'session_history_metadata.grandparent_thumb ' \
                             'FROM session_history_metadata ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'JOIN session_history on session_history_metadata.id = session_history.id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "episode" ' \
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history_metadata.grandparent_title ' \
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
@@ -193,6 +196,54 @@ class DataFactory(object):
                                    'stat_type': sort_type,
                                    'rows': top_tv})
 
+            elif 'popular_tv' in stat:
+                popular_tv = []
+                try:
+                    query = 'SELECT session_history_metadata.id, ' \
+                            'session_history_metadata.grandparent_title, ' \
+                            'COUNT(DISTINCT session_history.user_id) as users_watched, ' \
+                            'session_history_metadata.grandparent_rating_key, ' \
+                            'MAX(session_history.started) as last_watch, ' \
+                            'COUNT(session_history.id) as total_plays, ' \
+                            'cast(round(SUM(round((julianday(datetime(session_history.stopped, "unixepoch", "localtime")) - ' \
+                            'julianday(datetime(session_history.started, "unixepoch", "localtime"))) * 86400) - ' \
+                            '(CASE WHEN session_history.paused_counter IS NULL THEN 0 ' \
+                            'ELSE session_history.paused_counter END))/60) as integer) as total_duration,' \
+                            'session_history_metadata.grandparent_thumb ' \
+                            'FROM session_history_metadata ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
+                            'JOIN session_history ON session_history_metadata.id = session_history.id ' \
+                            'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
+                            '>= datetime("now", "-%s days", "localtime") ' \
+                            'AND session_history_metadata.media_type = "episode" ' \
+                            'AND users.show_user = 1 ' \
+                            'GROUP BY session_history_metadata.grandparent_title ' \
+                            'ORDER BY users_watched DESC, %s DESC ' \
+                            'LIMIT %s' % (time_range, sort_type, stat_count)
+                    result = monitor_db.select(query)
+                except:
+                    logger.warn("Unable to execute database query.")
+                    return None
+
+                for item in result:
+                    row = {'title': item[1],
+                           'users_watched': item[2],
+                           'rating_key': item[3],
+                           'last_play': item[4],
+                           'total_plays': item[5],
+                           'grandparent_thumb': item[7],
+                           'thumb': '',
+                           'user': '',
+                           'friendly_name': '',
+                           'platform_type': '',
+                           'platform': '',
+                           'row_id': item[0]
+                           }
+                    popular_tv.append(row)
+
+                home_stats.append({'stat_id': stat,
+                                   'rows': popular_tv})
+
             elif 'top_movies' in stat:
                 top_movies = []
                 try:
@@ -207,10 +258,12 @@ class DataFactory(object):
                             'MAX(session_history.started) as last_watch,' \
                             'session_history_metadata.thumb ' \
                             'FROM session_history_metadata ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'JOIN session_history on session_history_metadata.id = session_history.id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "movie" ' \
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history_metadata.full_title ' \
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
@@ -239,48 +292,6 @@ class DataFactory(object):
                                    'stat_type': sort_type,
                                    'rows': top_movies})
 
-            elif 'popular_tv' in stat:
-                popular_tv = []
-                try:
-                    query = 'SELECT session_history_metadata.id, ' \
-                            'session_history_metadata.grandparent_title, ' \
-                            'COUNT(DISTINCT session_history.user_id) as users_watched, ' \
-                            'session_history_metadata.grandparent_rating_key, ' \
-                            'MAX(session_history.started) as last_watch, ' \
-                            'COUNT(session_history.id) as total_plays, ' \
-                            'session_history_metadata.grandparent_thumb ' \
-                            'FROM session_history_metadata ' \
-                            'JOIN session_history ON session_history_metadata.id = session_history.id ' \
-                            'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
-                            '>= datetime("now", "-%s days", "localtime") ' \
-                            'AND session_history_metadata.media_type = "episode" ' \
-                            'GROUP BY session_history_metadata.grandparent_title ' \
-                            'ORDER BY users_watched DESC, total_plays DESC ' \
-                            'LIMIT %s' % (time_range, stat_count)
-                    result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query.")
-                    return None
-
-                for item in result:
-                    row = {'title': item[1],
-                           'users_watched': item[2],
-                           'rating_key': item[3],
-                           'last_play': item[4],
-                           'total_plays': item[5],
-                           'grandparent_thumb': item[6],
-                           'thumb': '',
-                           'user': '',
-                           'friendly_name': '',
-                           'platform_type': '',
-                           'platform': '',
-                           'row_id': item[0]
-                           }
-                    popular_tv.append(row)
-
-                home_stats.append({'stat_id': stat,
-                                   'rows': popular_tv})
-
             elif 'popular_movies' in stat:
                 popular_movies = []
                 try:
@@ -290,15 +301,21 @@ class DataFactory(object):
                             'session_history_metadata.rating_key, ' \
                             'MAX(session_history.started) as last_watch, ' \
                             'COUNT(session_history.id) as total_plays, ' \
+                            'cast(round(SUM(round((julianday(datetime(session_history.stopped, "unixepoch", "localtime")) - ' \
+                            'julianday(datetime(session_history.started, "unixepoch", "localtime"))) * 86400) - ' \
+                            '(CASE WHEN session_history.paused_counter IS NULL THEN 0 ' \
+                            'ELSE session_history.paused_counter END))/60) as integer) as total_duration,' \
                             'session_history_metadata.thumb ' \
                             'FROM session_history_metadata ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "movie" ' \
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history_metadata.full_title ' \
-                            'ORDER BY users_watched DESC, total_plays DESC ' \
-                            'LIMIT %s' % (time_range, stat_count)
+                            'ORDER BY users_watched DESC, %s DESC ' \
+                            'LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -311,7 +328,7 @@ class DataFactory(object):
                            'last_play': item[4],
                            'total_plays': item[5],
                            'grandparent_thumb': '',
-                           'thumb': item[6],
+                           'thumb': item[7],
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -339,9 +356,10 @@ class DataFactory(object):
                             'users.user_id ' \
                             'FROM session_history ' \
                             'JOIN session_history_metadata ON session_history.id = session_history_metadata.id ' \
-                            'LEFT OUTER JOIN users ON session_history.user_id = users.user_id ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                             'datetime("now", "-%s days", "localtime") '\
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history.user_id ' \
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
@@ -388,8 +406,10 @@ class DataFactory(object):
                             'ELSE session_history.paused_counter END))/60) as integer) as total_duration,' \
                             'MAX(session_history.started) as last_watch ' \
                             'FROM session_history ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history.platform ' \
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
                     result = monitor_db.select(query)
@@ -435,11 +455,12 @@ class DataFactory(object):
                             'session_history.player as platform ' \
                             'FROM session_history_metadata ' \
                             'JOIN session_history ON session_history_metadata.id = session_history.id ' \
-                            'LEFT OUTER JOIN users ON session_history.user_id = users.user_id ' \
+                            'JOIN users on session_history.user_id = users.user_id ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND (session_history_metadata.media_type = "movie" ' \
                             'OR session_history_metadata.media_type = "episode") ' \
+                            'AND users.show_user = 1 ' \
                             'GROUP BY session_history_metadata.full_title ' \
                             'ORDER BY last_watch DESC ' \
                             'LIMIT %s' % (time_range, stat_count)

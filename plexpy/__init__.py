@@ -388,7 +388,15 @@ def dbcheck():
         'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL UNIQUE, '
         'friendly_name TEXT, thumb TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
-        'keep_history INTEGER DEFAULT 1, custom_avatar_url TEXT)'
+        'keep_history INTEGER DEFAULT 1, custom_avatar_url TEXT, show_user INTEGER DEFAULT 1)'
+    )
+
+    # notify_log table :: This is a table which logs notifications sent
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
+        'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER, '
+        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -517,6 +525,18 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN transcode_height INTEGER'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT buffer_count from sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN buffer_count INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN buffer_last_triggered INTEGER'
+        )
+
     # Upgrade session_history_metadata table from earlier versions
     try:
         c_db.execute('SELECT full_title from session_history_metadata')
@@ -534,14 +554,6 @@ def dbcheck():
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN tagline TEXT'
         )
-
-    # notify_log table :: This is a table which logs notifications sent
-    c_db.execute(
-        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
-        'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER, '
-        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER)'
-    )
 
     # Upgrade users table from earlier versions
     try:
@@ -561,6 +573,24 @@ def dbcheck():
             'ALTER TABLE users ADD COLUMN keep_history INTEGER DEFAULT 1'
         )
 
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT custom_avatar_url from users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN custom_avatar_url TEXT'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT show_user from users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN show_user INTEGER DEFAULT 1'
+        )
+
     # Upgrade notify_log table from earlier versions
     try:
         c_db.execute('SELECT on_pause from notify_log')
@@ -574,27 +604,6 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE notify_log ADD COLUMN on_buffer INTEGER'
-        )
-
-    # Upgrade sessions table from earlier versions
-    try:
-        c_db.execute('SELECT buffer_count from sessions')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
-        c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN buffer_count INTEGER DEFAULT 0'
-        )
-        c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN buffer_last_triggered INTEGER'
-        )
-
-    # Upgrade users table from earlier versions
-    try:
-        c_db.execute('SELECT custom_avatar_url from users')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table users.")
-        c_db.execute(
-            'ALTER TABLE users ADD COLUMN custom_avatar_url TEXT'
         )
 
     # Add "Local" user to database as default unauthenticated user.

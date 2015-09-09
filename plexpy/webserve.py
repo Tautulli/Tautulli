@@ -194,6 +194,10 @@ class WebInterface(object):
             keep_history = kwargs.get('keep_history')
         else:
             keep_history = 0
+        if 'show_user' in kwargs:
+            show_user = kwargs.get('show_user')
+        else:
+            show_user = 0
         if 'thumb' in kwargs:
             custom_avatar = kwargs['thumb']
         else:
@@ -205,7 +209,8 @@ class WebInterface(object):
                 user_data.set_user_friendly_name(user_id=user_id,
                                                  friendly_name=friendly_name,
                                                  do_notify=do_notify,
-                                                 keep_history=keep_history)
+                                                 keep_history=keep_history,
+                                                 show_user=show_user)
                 user_data.set_user_profile_url(user_id=user_id,
                                                profile_url=custom_avatar)
 
@@ -219,7 +224,8 @@ class WebInterface(object):
                 user_data.set_user_friendly_name(user=user,
                                                  friendly_name=friendly_name,
                                                  do_notify=do_notify,
-                                                 keep_history=keep_history)
+                                                 keep_history=keep_history,
+                                                 show_user=show_user)
                 user_data.set_user_profile_url(user=user,
                                                profile_url=custom_avatar)
 
@@ -249,10 +255,14 @@ class WebInterface(object):
         return serve_template(templatename="ip_address_modal.html", title="IP Address Details", data=ip_address)
 
     @cherrypy.expose
-    def get_user_list(self, **kwargs):
-
+    def get_user_list(self, filtered_users=None, **kwargs):
+        
+        custom_where=[]
+        if filtered_users == 'true':
+            custom_where = [['show_user', 1]]
+        
         user_data = users.Users()
-        user_list = user_data.get_user_list(kwargs=kwargs)
+        user_list = user_data.get_user_list(kwargs=kwargs, custom_where=custom_where)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(user_list)
@@ -586,6 +596,7 @@ class WebInterface(object):
         if 'start_date' in kwargs:
             start_date = kwargs.get('start_date', "")
             custom_where = [['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date]]
+        custom_where.append(['show_user', 1])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where)

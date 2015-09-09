@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,9 @@ class Graphs(object):
                         'SUM(case when media_type = "episode" then 1 else 0 end) as tv_count, ' \
                         'SUM(case when media_type = "movie" then 1 else 0 end) as movie_count ' \
                         'FROM session_history ' \
+                        'JOIN users on session_history.user_id = users.user_id ' \
                         'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                        'AND users.show_user = 1 ' \
                         'GROUP BY date_played ' \
                         'ORDER BY started ASC' % time_range
 
@@ -45,7 +47,9 @@ class Graphs(object):
                         'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) else 0 end) as tv_duration, ' \
                         'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) else 0 end) as movie_duration ' \
                         'FROM session_history ' \
+                        'JOIN users on session_history.user_id = users.user_id ' \
                         'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
+                        'AND users.show_user = 1 ' \
                         'GROUP BY date_played ' \
                         'ORDER BY started ASC' % time_range
 
@@ -105,11 +109,13 @@ class Graphs(object):
                     'when 4 then "Thursday" ' \
                     'when 5 then "Friday" ' \
                     'else "Saturday" end as dayofweek, ' \
-                    'COUNT(id) as total_plays ' \
+                    'COUNT(session_history.id) as total_plays ' \
                     'from session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") AND ' \
                     '(media_type = "episode" OR media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY dayofweek ' \
                     'ORDER BY daynumber'
 
@@ -127,9 +133,11 @@ class Graphs(object):
                     'else "Saturday" end as dayofweek, ' \
                     'SUM(case when media_type != "track" and stopped > 0 then (stopped - started) else 0 end) as duration ' \
                     'from session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") AND ' \
                     '(media_type = "episode" OR media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY dayofweek ' \
                     'ORDER BY daynumber'
 
@@ -169,11 +177,13 @@ class Graphs(object):
 
         if y_axis == 'plays':
             query = 'select strftime("%H", datetime(started, "unixepoch", "localtime")) as hourofday, ' \
-                    'COUNT(id) ' \
+                    'COUNT(session_history.id) ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") AND ' \
                     '(media_type = "episode" OR media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY hourofday ' \
                     'ORDER BY hourofday'
 
@@ -183,9 +193,11 @@ class Graphs(object):
             query = 'select strftime("%H", datetime(started, "unixepoch", "localtime")) as hourofday, ' \
                     'SUM(case when media_type != "track" and stopped > 0 then (stopped - started) else 0 end) as duration ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") AND ' \
                     '(media_type = "episode" OR media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY hourofday ' \
                     'ORDER BY hourofday'
 
@@ -228,7 +240,9 @@ class Graphs(object):
                     'SUM(case when media_type = "episode" then 1 else 0 end) as tv_count, ' \
                     'SUM(case when media_type = "movie" then 1 else 0 end) as movie_count ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-12 months", "localtime") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) ' \
                     'ORDER BY datestring DESC LIMIT 12'
 
@@ -238,7 +252,9 @@ class Graphs(object):
                     'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) else 0 end) as tv_duration, ' \
                     'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) else 0 end) as movie_duration ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-12 months", "localtime") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) ' \
                     'ORDER BY datestring DESC LIMIT 12'
 
@@ -291,11 +307,13 @@ class Graphs(object):
 
         if y_axis == 'plays':
             query = 'SELECT platform, ' \
-                    'count(id) as platform_count ' \
+                    'count(session_history.id) as platform_count ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'WHERE (datetime(stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
                     '(media_type = "episode" OR media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY platform ' \
                     'ORDER BY platform_count DESC ' \
                     'LIMIT 10'
@@ -306,9 +324,11 @@ class Graphs(object):
             query = 'SELECT platform, ' \
                     'SUM(case when stopped > 0 then (stopped - started) else 0 end) as duration ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'WHERE (datetime(stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
                     '(media_type = "episode" OR media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY platform ' \
                     'ORDER BY duration DESC ' \
                     'LIMIT 10'
@@ -346,6 +366,7 @@ class Graphs(object):
                     'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
                     '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY session_history.user_id ' \
                     'ORDER BY user_count DESC ' \
                     'LIMIT 10'
@@ -362,6 +383,7 @@ class Graphs(object):
                     'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
                     '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY session_history.user_id ' \
                     'ORDER BY duration DESC ' \
                     'LIMIT 10'
@@ -396,10 +418,12 @@ class Graphs(object):
                         'SUM(case when session_history_media_info.video_decision = "copy" then 1 else 0 end) as ds_count, ' \
                         'SUM(case when session_history_media_info.video_decision = "transcode" then 1 else 0 end) as tc_count ' \
                         'FROM session_history ' \
+                        'JOIN users on session_history.user_id = users.user_id ' \
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
                         'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime")) AND ' \
                         '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                        'AND users.show_user = 1 ' \
                         'GROUP BY date_played ' \
                         'ORDER BY started ASC' % time_range
 
@@ -413,10 +437,12 @@ class Graphs(object):
                         'SUM(case when session_history_media_info.video_decision = "transcode" ' \
                         'AND session_history.stopped > 0 then (stopped - started) else 0 end) as tc_duration ' \
                         'FROM session_history ' \
+                        'JOIN users on session_history.user_id = users.user_id ' \
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
                         'WHERE datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime") AND ' \
                         '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                        'AND users.show_user = 1 ' \
                         'GROUP BY date_played ' \
                         'ORDER BY started ASC' % time_range
 
@@ -479,10 +505,12 @@ class Graphs(object):
                     'count(session_history.id) as play_count, ' \
                     'session_history_media_info.video_resolution AS resolution ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'JOIN session_history_media_info on session_history.id = session_history_media_info.id ' \
                     'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
                     '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY resolution ' \
                     'ORDER BY play_count DESC ' \
                     'LIMIT 10'
@@ -494,10 +522,12 @@ class Graphs(object):
                     'SUM(case when stopped > 0 then (stopped - started) else 0 end) as duration, ' \
                     'session_history_media_info.video_resolution AS resolution ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'JOIN session_history_media_info on session_history.id = session_history_media_info.id ' \
                     'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
                     '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY resolution ' \
                     'ORDER BY duration DESC ' \
                     'LIMIT 10'
@@ -540,10 +570,12 @@ class Graphs(object):
                     'when session_history_media_info.transcode_height <= 2160 then "4K" ' \
                     'else "unknown" end) else session_history_media_info.video_resolution end) as resolution ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'JOIN session_history_media_info on session_history.id = session_history_media_info.id ' \
                     'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
                     '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY resolution ' \
                     'ORDER BY play_count DESC ' \
                     'LIMIT 10'
@@ -564,10 +596,12 @@ class Graphs(object):
                     'when session_history_media_info.transcode_height <= 2160 then "4K" ' \
                     'else "unknown" end) else session_history_media_info.video_resolution end) as resolution ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'JOIN session_history_media_info on session_history.id = session_history_media_info.id ' \
                     'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
                     '(session_history.media_type = "episode" OR session_history.media_type = "movie") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY resolution ' \
                     'ORDER BY duration DESC ' \
                     'LIMIT 10'
@@ -608,6 +642,7 @@ class Graphs(object):
                     'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
                     'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY username ' \
                     'ORDER BY total_count DESC LIMIT 10'
 
@@ -628,6 +663,7 @@ class Graphs(object):
                     'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
                     'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY username ' \
                     'ORDER BY total_count DESC LIMIT 10'
 
@@ -670,9 +706,11 @@ class Graphs(object):
                     'SUM(case when session_history_media_info.video_decision = "transcode" then 1 else 0 end) as tr_count, ' \
                     'SUM(case when session_history.media_type != "track" then 1 else 0 end) as total_count ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
                     'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY platform ' \
                     'ORDER BY total_count DESC LIMIT 10'
 
@@ -689,9 +727,11 @@ class Graphs(object):
                     'SUM(case when session_history.stopped > 0 AND session_history.media_type != "track" ' \
                     'then (session_history.stopped - session_history.started) else 0 end) as total_count ' \
                     'FROM session_history ' \
+                    'JOIN users on session_history.user_id = users.user_id ' \
                     'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
                     'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") ' \
+                    'AND users.show_user = 1 ' \
                     'GROUP BY platform ' \
                     'ORDER BY total_count DESC LIMIT 10'
 

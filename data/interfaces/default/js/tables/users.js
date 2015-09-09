@@ -24,9 +24,8 @@ users_list_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 $(td).html('<div class="edit-user-toggles"><button class="btn btn-xs btn-warning" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
                     '<input type="checkbox" id="do_notify-' + rowData['user_id'] + '" name="do_notify" value="1" ' + rowData['do_notify'] + '><label class="edit-tooltip" for="do_notify-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Notifications"><i class="fa fa-bell fa-lg fa-fw"></i></label>&nbsp' +
-                    '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp');
-                    // Show/hide user currently doesn't work
-                    //'<input type="checkbox" id="show_hide-' + rowData['user_id'] + '" name="show_hide" value="1" checked><label class="edit-tooltip" for="show_hide-' + rowData['user_id'] + '" data-toggle="tooltip" title="Show/Hide User"><i class="fa fa-eye fa-lg fa-fw"></i></label>');
+                    '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="show_user-' + rowData['user_id'] + '" name="show_user" value="1" ' + rowData['show_user'] + '><label class="edit-tooltip" for="show_user-' + rowData['user_id'] + '" data-toggle="tooltip" title="Show/Hide User"><i class="fa fa-eye fa-lg fa-fw"></i></label>');
             },
             "width": "7%",
             "className": "edit-control no-wrap hidden",
@@ -184,6 +183,13 @@ users_list_table_options = {
             $('.edit-control').each(function () {
                 $(this).removeClass('hidden');
             });
+            $('.edit-control > .edit-user-toggles').each(function () {
+                $(this).children('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+            });
+            $('.edit-user-control > .edit-user-name').each(function () {
+                $(this).children('a').addClass('hidden');
+                $(this).children('input').removeClass('hidden');
+            });
         }
     },
     "preDrawCallback": function(settings) {
@@ -246,11 +252,15 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
 
     var do_notify = 0;
     var keep_history = 0;
+    var show_user = 0;
     if ($('#do_notify-' + rowData['user_id']).is(':checked')) {
         do_notify = 1;
     }
     if ($('#keep_history-' + rowData['user_id']).is(':checked')) {
         keep_history = 1;
+    }
+    if ($('#show_user-' + rowData['user_id']).is(':checked')) {
+        show_user = 1;
     }
 
     friendly_name = tr.find('td.edit-user-control > .edit-user-name > input').val();
@@ -262,6 +272,7 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
             friendly_name: friendly_name,
             do_notify: do_notify,
             keep_history: keep_history,
+            show_user: show_user,
             thumb: rowData['user_thumb']
         },
         cache: false,
