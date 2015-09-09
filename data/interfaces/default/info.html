@@ -81,13 +81,21 @@ DOCUMENTATION :: END
             <div class="summary-content-title-wrapper">
                 <div class="col-md-9">
                     <div class="summary-content-poster hidden-xs hidden-sm">
-                        % if data['type'] == 'episode':
-                        <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=poster);"></div>
-                        % elif data['type'] == 'season':
-                        <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
-                        % else:
-                        <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
-                        % endif
+                        <a href="${config['pms_url']}/web/index.html#!/server/${config['pms_identifier']}/details/%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="Plex/Web" title="View in Plex/Web">
+                            % if data['type'] == 'episode':
+                            <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=poster);">
+                                <div class="summary-poster-face-overlay">
+                                    <span></span>
+                                </div>
+                            </div>
+                            % else:
+                            <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);">
+                                <div class="summary-poster-face-overlay">
+                                    <span></span>
+                                </div>
+                            </div>
+                            % endif
+                        </a>
                     </div>
                     <div class="summary-content-title">
                         % if data['type'] == 'movie' or data['type'] == 'show':
@@ -508,9 +516,7 @@ DOCUMENTATION :: END
 <script>
     $("#airdate").html(moment($("#airdate").text()).format('MMM DD, YYYY'));
     $("#runtime").html(millisecondsToMinutes($("#runtime").text(), true));
-</script>
-% endif
-<script>
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
 </script>
+% endif
 </%def>
