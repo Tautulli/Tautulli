@@ -81,13 +81,21 @@ DOCUMENTATION :: END
             <div class="summary-content-title-wrapper">
                 <div class="col-md-9">
                     <div class="summary-content-poster hidden-xs hidden-sm">
-                        % if data['type'] == 'episode':
-                        <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=poster);"></div>
-                        % elif data['type'] == 'season':
-                        <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
-                        % else:
-                        <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);"></div>
-                        % endif
+                        <a href="http://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details/%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="Plex/Web" title="View in Plex/Web">
+                            % if data['type'] == 'episode':
+                            <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=poster);">
+                                <div class="summary-poster-face-overlay">
+                                    <span></span>
+                                </div>
+                            </div>
+                            % else:
+                            <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);">
+                                <div class="summary-poster-face-overlay">
+                                    <span></span>
+                                </div>
+                            </div>
+                            % endif
+                        </a>
                     </div>
                     <div class="summary-content-title">
                         % if data['type'] == 'movie' or data['type'] == 'show':
@@ -263,6 +271,24 @@ DOCUMENTATION :: END
                     </div>
                     <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
                     </div>
+                    <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+                                </div>
+                                <div class="modal-body" style="text-align: center;">
+                                    <p>Are you REALLY sure you want to delete <strong><span id="deleteCount"></span></strong> history item(s)?</p>
+                                    <p>This is permanent and cannot be undone!</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 % endif
             </div>
@@ -312,19 +338,43 @@ DOCUMENTATION :: END
             }
         }
         history_table = $('#history_table').DataTable(history_table_options);
-
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
         $(colvis.button()).appendTo('div.colvis-button-bar');
 
         clearSearchButton('history_table', history_table);
 
-        $('#row-edit-mode').click(function() {
+        $('#row-edit-mode').on('click', function() {
+            $('#row-edit-mode-alert').fadeIn(200);
+
             if ($(this).hasClass('active')) {
-                $('.delete-control').each(function() {
+                if (history_to_delete.length > 0) {
+                    $('#deleteCount').text(history_to_delete.length);
+                    $('#confirm-modal').modal();
+                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                        for (var i = 0; i < history_to_delete.length; i++) {
+                            $.ajax({
+                                url: 'delete_history_rows',
+                                data: { row_id: history_to_delete[i] },
+                                async: true,
+                                success: function (data) {
+                                    var msg = "History deleted";
+                                    showMsg(msg, false, true, 2000);
+                                }
+                            });
+                        }
+                        history_table.draw();
+                    });
+                }
+
+                $('.delete-control').each(function () {
                     $(this).addClass('hidden');
+                    $('#row-edit-mode-alert').fadeOut(200);
                 });
+
             } else {
+                history_to_delete = [];
                 $('.delete-control').each(function() {
+                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).removeClass('hidden');
                 });
             }
@@ -386,6 +436,7 @@ DOCUMENTATION :: END
             }
         });
     });
+
     $.ajax({
         url: 'get_show_children',
         type: "GET",
@@ -465,9 +516,7 @@ DOCUMENTATION :: END
 <script>
     $("#airdate").html(moment($("#airdate").text()).format('MMM DD, YYYY'));
     $("#runtime").html(millisecondsToMinutes($("#runtime").text(), true));
-</script>
-% endif
-<script>
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
 </script>
+% endif
 </%def>

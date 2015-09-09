@@ -973,11 +973,40 @@ a .dashboard-activity-metadata-user-thumb:hover {
     overflow: hidden;
     z-index: 1;
 }
-a .summary-poster-face:hover,
-a .summary-poster-face-episode:hover {
+.summary-poster-face-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-image: -webkit-gradient(linear,left 0,left 100%,from(rgba(0,0,0,.7)),to(rgba(0,0,0,.9)));
+    background-image: -webkit-linear-gradient(top,rgba(0,0,0,.7),0,rgba(0,0,0,.9),100%);
+    background-image: -moz-linear-gradient(top,rgba(0,0,0,.7) 0,rgba(0,0,0,.9) 100%);
+    background-image: linear-gradient(to bottom,rgba(0,0,0,.7) 0,rgba(0,0,0,.9) 100%);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#b3000000', endColorstr='#e6000000', GradientType=0);
     webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
+    opacity: 0;
+    transition: opacity .2s;
+}
+.summary-poster-face-overlay span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-image: url(/interfaces/default/images/plex-logo-light.svg);
+    background-size: 100px;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0;
+    transition: opacity .3s;
+}
+a:hover .summary-poster-face .summary-poster-face-overlay,
+a:hover .summary-poster-face-episode .summary-poster-face-overlay,
+a:hover .summary-poster-face .summary-poster-face-overlay span,
+a:hover .summary-poster-face-episode .summary-poster-face-overlay span {
+    opacity: 1;
 }
 .summary-content-padding {
     float: left;
@@ -1581,6 +1610,7 @@ a .season-episodes-card-overlay:hover {
     display: inline-block;
     position: relative;
     padding: 6px 0 0 20px;
+    max-width: 100%;
 }
 .home-platforms-instance-playcount h4 {
     font-size: 14px;

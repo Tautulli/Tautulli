@@ -762,6 +762,10 @@ class WebInterface(object):
     def info(self, item_id=None, source=None, **kwargs):
         metadata = None
 
+        config = {
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
+        }
+
         if source == 'history':
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(row_id=item_id)
@@ -772,7 +776,7 @@ class WebInterface(object):
                 metadata = result['metadata']
 
         if metadata:
-            return serve_template(templatename="info.html", data=metadata, title="Info")
+            return serve_template(templatename="info.html", data=metadata, title="Info", config=config)
         else:
             logger.warn('Unable to retrieve data.')
             return serve_template(templatename="info.html", data=None, title="Info")

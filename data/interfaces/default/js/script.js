@@ -219,7 +219,11 @@ function getPlatformImagePath(platformName) {
         return 'interfaces/default/images/platforms/playstation.png';
 	} else if (platformName.indexOf("Mystery 5") > -1) {
         return 'interfaces/default/images/platforms/xbox.png';
-    } else {
+	} else if (platformName.indexOf("Windows") > -1) {
+	    return 'interfaces/default/images/platforms/win8.png';
+	} else if (platformName.indexOf("Windows phone") > -1) {
+	    return 'interfaces/default/images/platforms/wp.png';
+	} else {
         return 'interfaces/default/images/platforms/default.png';
     }
 }

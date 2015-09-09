@@ -55,6 +55,7 @@ def extract_plexwatch_xml(xml=None):
         parent_title = helpers.get_xml_attr(a, 'parentTitle')
         studio = helpers.get_xml_attr(a, 'studio')
         title = helpers.get_xml_attr(a, 'title')
+        tagline = helpers.get_xml_attr(a, 'tagline')
 
         directors = []
         if a.getElementsByTagName('Director'):
@@ -153,6 +154,7 @@ def extract_plexwatch_xml(xml=None):
                   'grandparent_title': grandparent_title,
                   'parent_title': parent_title,
                   'title': title,
+                  'tagline': tagline,
                   'guid': guid,
                   'media_index': media_index,
                   'originally_available_at': originally_available_at,
@@ -356,6 +358,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                                     'last_viewed_at': extracted_xml['last_viewed_at'],
                                     'content_rating': row['content_rating'],
                                     'summary': row['summary'],
+                                    'tagline': extracted_xml['tagline'],
                                     'rating': extracted_xml['rating'],
                                     'duration': extracted_xml['duration'],
                                     'guid': extracted_xml['guid'],
