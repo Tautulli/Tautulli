@@ -995,7 +995,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
     display: block;
     width: 100%;
     height: 100%;
-    background-image: url(/interfaces/default/images/plex-logo-light.svg);
+    background-image: url(../images/plex-logo-light.svg);
     background-size: 100px;
     background-repeat: no-repeat;
     background-position: center;
