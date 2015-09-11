@@ -151,7 +151,9 @@ def check_active_sessions():
                                      kwargs=dict(stream_data=stream, notify_action='stop')).start()
 
                     # Write the item history on playback stop
-                    monitor_process.write_session_history(session=stream)
+                    # Just make sure that the ratingKey is indeed an integer
+                    if stream['rating_key'].isdigit():
+                        monitor_process.write_session_history(session=stream)
 
             # Process the newly received session data
             for session in media_container:
