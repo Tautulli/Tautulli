@@ -155,7 +155,8 @@ class DataFactory(object):
                             'COUNT(session_history_metadata.grandparent_title) as total_plays, ' \
                             'SUM(case when session_history.stopped > 0 ' \
                             'then (session_history.stopped - session_history.started) ' \
-                            ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as total_duration, ' \
+                            ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) ' \
+                            'else 0 end) as total_duration, ' \
                             'session_history_metadata.grandparent_rating_key, ' \
                             'MAX(session_history.started) as last_watch,' \
                             'session_history_metadata.grandparent_thumb ' \
@@ -242,7 +243,8 @@ class DataFactory(object):
                             'COUNT(session_history_metadata.full_title) as total_plays, ' \
                             'SUM(case when session_history.stopped > 0 ' \
                             'then (session_history.stopped - session_history.started) ' \
-                            ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as total_duration, ' \
+                            ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) ' \
+                            'else 0 end) as total_duration, ' \
                             'session_history_metadata.rating_key, ' \
                             'MAX(session_history.started) as last_watch,' \
                             'session_history_metadata.thumb ' \
@@ -330,7 +332,8 @@ class DataFactory(object):
                             'COUNT(session_history.id) as total_plays, ' \
                             'SUM(case when session_history.stopped > 0 ' \
                             'then (session_history.stopped - session_history.started) ' \
-                            ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as total_duration, ' \
+                            ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) ' \
+                            'else 0 end) as total_duration, ' \
                             'MAX(session_history.started) as last_watch, ' \
                             'users.custom_avatar_url as thumb, ' \
                             'users.user_id ' \
@@ -381,7 +384,8 @@ class DataFactory(object):
                             'COUNT(session_history.id) as total_plays, ' \
                             'SUM(case when session_history.stopped > 0 ' \
                             'then (session_history.stopped - session_history.started) ' \
-                            ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as total_duration, ' \
+                            ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) ' \
+                            'else 0 end) as total_duration, ' \
                             'MAX(session_history.started) as last_watch ' \
                             'FROM session_history ' \
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
