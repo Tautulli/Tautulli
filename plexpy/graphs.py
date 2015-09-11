@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -42,8 +42,10 @@ class Graphs(object):
                 result = monitor_db.select(query)
             else:
                 query = 'SELECT date(started, "unixepoch", "localtime") as date_played, ' \
-                        'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) else 0 end) as tv_duration, ' \
-                        'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) else 0 end) as movie_duration ' \
+                        'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) ' \
+                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_duration, ' \
+                        'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) ' \
+                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_duration ' \
                         'FROM session_history ' \
                         'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
                         'GROUP BY date_played ' \
@@ -125,7 +127,8 @@ class Graphs(object):
                     'when 4 then "Thursday" ' \
                     'when 5 then "Friday" ' \
                     'else "Saturday" end as dayofweek, ' \
-                    'SUM(case when media_type != "track" and stopped > 0 then (stopped - started) else 0 end) as duration ' \
+                    'SUM(case when stopped > 0 then (stopped - started) ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as duration ' \
                     'from session_history ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") AND ' \
@@ -181,7 +184,8 @@ class Graphs(object):
             y_axis_label = 'Total plays'
         else:
             query = 'select strftime("%H", datetime(started, "unixepoch", "localtime")) as hourofday, ' \
-                    'SUM(case when media_type != "track" and stopped > 0 then (stopped - started) else 0 end) as duration ' \
+                    'SUM(case when stopped > 0 then (stopped - started) ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as duration ' \
                     'FROM session_history ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") AND ' \
@@ -235,8 +239,10 @@ class Graphs(object):
             result = monitor_db.select(query)
         else:
             query = 'SELECT strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) as datestring, ' \
-                    'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) else 0 end) as tv_duration, ' \
-                    'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) else 0 end) as movie_duration ' \
+                    'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_duration, ' \
+                    'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_duration ' \
                     'FROM session_history ' \
                     'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-12 months", "localtime") ' \
                     'GROUP BY strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) ' \
@@ -304,7 +310,8 @@ class Graphs(object):
             y_axis_label = 'Total plays'
         else:
             query = 'SELECT platform, ' \
-                    'SUM(case when stopped > 0 then (stopped - started) else 0 end) as duration ' \
+                    'SUM(case when stopped > 0 then (stopped - started) ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as duration ' \
                     'FROM session_history ' \
                     'WHERE (datetime(stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime")) AND ' \
@@ -356,7 +363,8 @@ class Graphs(object):
             query = 'SELECT ' \
                     '(case when users.friendly_name is null then session_history.user else ' \
                     'users.friendly_name end) as friendly_name,' \
-                    'SUM(case when stopped > 0 then (stopped - started) else 0 end) as duration ' \
+                    'SUM(case when stopped > 0 then (stopped - started) ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as duration ' \
                     'FROM session_history ' \
                     'JOIN users on session_history.user_id = users.user_id ' \
                     'WHERE (datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
@@ -407,11 +415,14 @@ class Graphs(object):
             else:
                 query = 'SELECT date(session_history.started, "unixepoch", "localtime") as date_played, ' \
                         'SUM(case when session_history_media_info.video_decision = "direct play" AND ' \
-                        'session_history.stopped > 0 then (stopped - started) else 0 end) as dp_duration, ' \
+                        'session_history.stopped > 0 then (stopped - started) ' \
+                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_duration, ' \
                         'SUM(case when session_history_media_info.video_decision = "copy" AND ' \
-                        'session_history.stopped > 0 then (stopped - started) else 0 end) as ds_duration, ' \
+                        'session_history.stopped > 0 then (stopped - started) ' \
+                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_duration, ' \
                         'SUM(case when session_history_media_info.video_decision = "transcode" ' \
-                        'AND session_history.stopped > 0 then (stopped - started) else 0 end) as tc_duration ' \
+                        'AND session_history.stopped > 0 then (stopped - started) ' \
+                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_duration ' \
                         'FROM session_history ' \
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
                         'WHERE datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
@@ -491,7 +502,8 @@ class Graphs(object):
             y_axis_label = 'Total plays'
         else:
             query = 'SELECT ' \
-                    'SUM(case when stopped > 0 then (stopped - started) else 0 end) as duration, ' \
+                    'SUM(case when stopped > 0 then (stopped - started) ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as duration, ' \
                     'session_history_media_info.video_resolution AS resolution ' \
                     'FROM session_history ' \
                     'JOIN session_history_media_info on session_history.id = session_history_media_info.id ' \
@@ -552,7 +564,8 @@ class Graphs(object):
             y_axis_label = 'Total plays'
         else:
             query = 'SELECT ' \
-                    'SUM(case when stopped > 0 then (stopped - started) else 0 end) as duration, ' \
+                    'SUM(case when stopped > 0 then (stopped - started) ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as duration, ' \
                     '(case when session_history_media_info.video_decision = "transcode" then ' \
                     '(case ' \
                     'when session_history_media_info.transcode_height <= 360 then "sd" ' \
@@ -616,11 +629,14 @@ class Graphs(object):
             query = 'SELECT ' \
                     'CASE WHEN users.friendly_name is null then users.username else users.friendly_name end as username, ' \
                     'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "direct play" ' \
-                    'then (session_history.stopped - session_history.started) else 0 end) as dp_count, ' \
+                    'then (session_history.stopped - session_history.started) ' \
+                    ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) else 0 end) as dp_count, ' \
                     'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "copy" ' \
-                    'then (session_history.stopped - session_history.started) else 0 end) as ds_count, ' \
+                    'then (session_history.stopped - session_history.started) ' \
+                    ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) else 0 end) as ds_count, ' \
                     'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "transcode" ' \
-                    'then (session_history.stopped - session_history.started) else 0 end) as tr_count, ' \
+                    'then (session_history.stopped - session_history.started) ' \
+                    ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) else 0 end) as tr_count, ' \
                     'SUM(case when session_history.stopped > 0 AND session_history.media_type != "track" ' \
                     'then (session_history.stopped - session_history.started) else 0 end) as total_count ' \
                     'FROM session_history ' \
@@ -681,11 +697,14 @@ class Graphs(object):
             query = 'SELECT ' \
                     'session_history.platform as platform, ' \
                     'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "direct play" ' \
-                    'then (session_history.stopped - session_history.started) else 0 end) as dp_count, ' \
+                    'then (session_history.stopped - session_history.started) ' \
+                    ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) else 0 end) as dp_count, ' \
                     'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "copy" ' \
-                    'then (session_history.stopped - session_history.started) else 0 end) as ds_count, ' \
+                    'then (session_history.stopped - session_history.started) ' \
+                    ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) else 0 end) as ds_count, ' \
                     'SUM(case when session_history.stopped > 0 AND session_history_media_info.video_decision = "transcode" ' \
-                    'then (session_history.stopped - session_history.started) else 0 end) as tr_count, ' \
+                    'then (session_history.stopped - session_history.started) ' \
+                    ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) else 0 end) as tr_count, ' \
                     'SUM(case when session_history.stopped > 0 AND session_history.media_type != "track" ' \
                     'then (session_history.stopped - session_history.started) else 0 end) as total_count ' \
                     'FROM session_history ' \
