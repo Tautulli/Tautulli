@@ -51,16 +51,17 @@ DOCUMENTATION :: END
     from plexpy import helpers
 
     # Human readable duration
-    def hd(minutes):
-        if int(minutes) > 60:
-            hours = int(helpers.cast_to_float(minutes) / 60)
-            minutes = int(helpers.cast_to_float(minutes) % 60 )
+    def hd(seconds):
+        minutes = helpers.cast_to_float(seconds) / 60
+        if minutes > 60:
+            hours = int(minutes / 60)
+            minutes = int(minutes % 60)
             if minutes > 0:
                 return "<h3>" + str(hours) + "</h3><p>hrs</p><h3>" + str(minutes) + "</h3><p>mins</p>"
             else:
                 return "<h3>" + str(hours) + "</h3><p>hrs</p>"
         else:
-            return "<h3>" + minutes + "</h3><p>mins</p>"
+            return "<h3>" + str(int(minutes)) + "</h3><p>mins</p>"
 %>
 
 % if data:

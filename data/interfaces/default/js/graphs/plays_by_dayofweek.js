@@ -29,7 +29,7 @@ var hc_plays_by_dayofweek_options = {
     credits: {
         enabled: false
     },
-    colors: ['#F9AA03', '#FFFFFF'],
+    colors: ['#F9AA03', '#FFFFFF', '#FF4747'],
     xAxis: {
             categories: [{}],
             labels: {
@@ -46,7 +46,25 @@ var hc_plays_by_dayofweek_options = {
                 style: {
                     color: '#aaa'
                 }
+            },
+            stackLabels: {
+                enabled: false,
+                style: {
+                    color: '#fff'
+                }
             }
+    },
+    plotOptions: {
+        column: {
+            stacking: 'normal',
+            borderWidth: '0',
+            dataLabels: {
+                enabled: false,
+                style: {
+                    color: '#000'
+                }
+            }
+        }
     },
     tooltip: {
         shared: true
