@@ -391,6 +391,13 @@ class Graphs(object):
             series_2.append(item[2])
             series_3.append(item[3])
 
+        # Rename Mystery platform names
+        platform_names = [('Mystery 3', 'Playstation 3'),
+                          ('Mystery 4', 'Playstation 4'),
+                          ('Mystery 5', 'Xbox 360')]
+        for old_name, new_name in platform_names:
+            categories = [item.replace(old_name, new_name) for item in categories]
+
         series_1_output = {'name': 'TV',
                            'data': series_1}
         series_2_output = {'name': 'Movies',
@@ -805,6 +812,13 @@ class Graphs(object):
             series_1.append(item[1])
             series_2.append(item[2])
             series_3.append(item[3])
+
+        # Rename Mystery platform names
+        platform_names = [('Mystery 3', 'Playstation 3'),
+                          ('Mystery 4', 'Playstation 4'),
+                          ('Mystery 5', 'Xbox 360')]
+        for old_name, new_name in platform_names:
+            categories = [item.replace(old_name, new_name) for item in categories]
 
         series_1_output = {'name': 'Direct Play',
                            'data': series_1}
