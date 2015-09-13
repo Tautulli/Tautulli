@@ -821,28 +821,16 @@ class WebInterface(object):
             return serve_template(templatename="user_platform_stats.html", data=None, title="Platform Stats")
 
     @cherrypy.expose
-    def get_show_children(self, rating_key='', **kwargs):
+    def get_item_children(self, rating_key='', **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_show_children(rating_key)
+        result = pms_connect.get_item_children(rating_key)
 
         if result:
-            return serve_template(templatename="info_season_list.html", data=result, title="Season List")
+            return serve_template(templatename="info_children_list.html", data=result, title="Children List")
         else:
             logger.warn('Unable to retrieve data.')
-            return serve_template(templatename="info_season_list.html", data=None, title="Season List")
-
-    @cherrypy.expose
-    def get_season_children(self, rating_key='', **kwargs):
-
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_season_children(rating_key)
-
-        if result:
-            return serve_template(templatename="info_episode_list.html", data=result, title="Episode List")
-        else:
-            logger.warn('Unable to retrieve data.')
-            return serve_template(templatename="info_episode_list.html", data=None, title="Episode List")
+            return serve_template(templatename="info_children_list.html", data=None, title="Children List")
 
     @cherrypy.expose
     def get_metadata_json(self, rating_key='', **kwargs):

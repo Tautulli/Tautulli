@@ -90,31 +90,14 @@ class PmsConnect(object):
         return request
 
     """
-    Return list of seasons in requested show.
+    Return list of children in requested library item.
 
     Parameters required:    rating_key { ratingKey of parent }
     Optional parameters:    output_format { dict, json }
 
     Output: array
     """
-    def get_season_list(self, rating_key='', output_format=''):
-        uri = '/library/metadata/' + rating_key + '/children'
-        request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
-                                                    request_type='GET',
-                                                    output_format=output_format)
-        
-        return request
-
-    """
-    Return list of episodes in requested season.
-
-    Parameters required:    rating_key { ratingKey of parent }
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
-    def get_episode_list(self, rating_key='', output_format=''):
+    def get_children_list(self, rating_key='', output_format=''):
         uri = '/library/metadata/' + rating_key + '/children'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -1056,86 +1039,55 @@ class PmsConnect(object):
         return session_output
 
     """
-    Return processed and validated season list.
+    Return processed and validated children list.
 
     Output: array
     """
-    def get_show_children(self, rating_key=''):
-        season_data = self.get_season_list(rating_key, output_format='xml')
+    def get_item_children(self, rating_key=''):
+        children_data = self.get_children_list(rating_key, output_format='xml')
 
         try:
-            xml_head = season_data.getElementsByTagName('MediaContainer')
+            xml_head = children_data.getElementsByTagName('MediaContainer')
         except:
-            logger.warn("Unable to parse XML for get_season_list.")
+            logger.warn("Unable to parse XML for get_children_list.")
             return []
 
-        season_list = []
+        children_list = []
 
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    logger.debug(u"No season data.")
-                    season_list = {'season_count': '0',
-                                   'season_list': []
-                                   }
-                    return season_list
+                    logger.debug(u"No children data.")
+                    children_list = {'children_count': '0',
+                                     'children_list': []
+                                     }
+                    return parent_list
+
+            result_data = []
 
             if a.getElementsByTagName('Directory'):
                 result_data = a.getElementsByTagName('Directory')
-                for result in result_data:
-                    season_output = {'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
-                                      'index': helpers.get_xml_attr(result, 'index'),
-                                      'title': helpers.get_xml_attr(result, 'title'),
-                                      'thumb': helpers.get_xml_attr(result, 'thumb'),
-                                      'parent_thumb': helpers.get_xml_attr(a, 'thumb')
-                                      }
-                    season_list.append(season_output)
-
-        output = {'season_count': helpers.get_xml_attr(xml_head[0], 'size'),
-                  'title': helpers.get_xml_attr(xml_head[0], 'title2'),
-                  'season_list': season_list
-                  }
-
-        return output
-
-    """
-    Return processed and validated episode list.
-
-    Output: array
-    """
-    def get_season_children(self, rating_key=''):
-        episode_data = self.get_episode_list(rating_key, output_format='xml')
-
-        try:
-            xml_head = episode_data.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_episode_list.")
-            return []
-
-        episode_list = []
-
-        for a in xml_head:
-            if a.getAttribute('size'):
-                if a.getAttribute('size') == '0':
-                    logger.debug(u"No episode data.")
-                    episode_list = {'episode_count': '0',
-                                    'episode_list': []
-                                    }
-                    return episode_list
-
             if a.getElementsByTagName('Video'):
                 result_data = a.getElementsByTagName('Video')
-                for result in result_data:
-                    episode_output = {'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
-                                      'index': helpers.get_xml_attr(result, 'index'),
-                                      'title': helpers.get_xml_attr(result, 'title'),
-                                      'thumb': helpers.get_xml_attr(result, 'thumb')
-                                      }
-                    episode_list.append(episode_output)
+            if a.getElementsByTagName('Track'):
+                result_data = a.getElementsByTagName('Track')
 
-        output = {'episode_count': helpers.get_xml_attr(xml_head[0], 'size'),
+            if result_data:
+                for result in result_data:
+                    children_output = {'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
+                                       'index': helpers.get_xml_attr(result, 'index'),
+                                       'title': helpers.get_xml_attr(result, 'title'),
+                                       'thumb': helpers.get_xml_attr(result, 'thumb'),
+                                       'parent_thumb': helpers.get_xml_attr(a, 'thumb'),
+                                       'duration': helpers.get_xml_attr(result, 'duration')
+                                      }
+                    children_list.append(children_output)
+
+
+        output = {'children_count': helpers.get_xml_attr(xml_head[0], 'size'),
+                  'children_type': helpers.get_xml_attr(xml_head[0], 'viewGroup'),
                   'title': helpers.get_xml_attr(xml_head[0], 'title2'),
-                  'episode_list': episode_list
+                  'children_list': children_list
                   }
 
         return output
