@@ -547,6 +547,12 @@ class PmsConnect(object):
                 for session in session_data:
                     session_output = self.get_session_each(session_type, session)
                     session_list.append(session_output)
+            if a.getElementsByTagName('Photo'):
+                session_data = a.getElementsByTagName('Photo')
+                session_type = 'photo'
+                for session in session_data:
+                    session_output = self.get_session_each(session_type, session)
+                    session_list.append(session_output)
 
         output = {'stream_count': helpers.get_xml_attr(xml_head[0], 'size'),
                   'sessions': session_list
@@ -565,8 +571,8 @@ class PmsConnect(object):
     def get_session_each(self, stream_type='', session=None):
         session_output = None
         user_data = users.Users()
-        if stream_type == 'track':
 
+        if stream_type == 'track':
             media_info = session.getElementsByTagName('Media')[0]
             audio_decision = 'direct play'
             audio_channels = helpers.get_xml_attr(media_info, 'audioChannels')
@@ -654,6 +660,7 @@ class PmsConnect(object):
                               'type': 'track',
                               'indexes': 0
                               }
+
         elif stream_type == 'video':
             media_info = session.getElementsByTagName('Media')[0]
             audio_decision = 'direct play'
@@ -886,6 +893,96 @@ class PmsConnect(object):
                                   'type': helpers.get_xml_attr(session, 'type'),
                                   'indexes': 0
                                   }
+
+        elif stream_type == 'photo':
+            media_info = session.getElementsByTagName('Media')[0]
+            video_decision = 'direct play'
+            container = helpers.get_xml_attr(media_info, 'container')
+            aspect_ratio = helpers.get_xml_attr(media_info, 'aspectRatio')
+            width = helpers.get_xml_attr(media_info, 'width')
+            height = helpers.get_xml_attr(media_info, 'height')
+
+            if session.getElementsByTagName('TranscodeSession'):
+                transcode_session = session.getElementsByTagName('TranscodeSession')[0]
+                throttled = helpers.get_xml_attr(transcode_session, 'throttled')
+                transcode_progress = helpers.get_xml_attr(transcode_session, 'progress')
+                transcode_speed = helpers.get_xml_attr(transcode_session, 'speed')
+                video_decision = helpers.get_xml_attr(transcode_session, 'videoDecision')
+                transcode_video_codec = helpers.get_xml_attr(transcode_session, 'videoCodec')
+                transcode_width = helpers.get_xml_attr(transcode_session, 'width')
+                transcode_height = helpers.get_xml_attr(transcode_session, 'height')
+                transcode_container = helpers.get_xml_attr(transcode_session, 'container')
+                transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
+            else:
+                throttled = '0'
+                transcode_progress = '0'
+                transcode_speed = ''
+                transcode_video_codec = ''
+                transcode_width = ''
+                transcode_height = ''
+                transcode_container = ''
+                transcode_protocol = ''
+
+            user_details = user_data.get_user_details(
+                user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
+
+            if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Photo'):
+                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')[:-6]
+            else:
+                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
+
+            session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                              'media_index': helpers.get_xml_attr(session, 'index'),
+                              'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
+                              'art': helpers.get_xml_attr(session, 'art'),
+                              'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
+                              'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
+                              'thumb': helpers.get_xml_attr(session, 'thumb'),
+                              'bif_thumb': '',
+                              'user': user_details['username'],
+                              'user_id': user_details['user_id'],
+                              'friendly_name': user_details['friendly_name'],
+                              'user_thumb': user_details['thumb'],
+                              'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
+                              'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
+                              'machine_id': machine_id,
+                              'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
+                              'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
+                              'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
+                              'title': helpers.get_xml_attr(session, 'title'),
+                              'year': helpers.get_xml_attr(session, 'year'),
+                              'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
+                              'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
+                              'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                              'throttled': throttled,
+                              'transcode_progress': transcode_progress,
+                              'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
+                              'audio_decision': '',
+                              'audio_channels': '',
+                              'audio_codec': '',
+                              'video_decision': video_decision,
+                              'video_codec': '',
+                              'height': height,
+                              'width': width,
+                              'container': container,
+                              'bitrate': '',
+                              'video_resolution': '',
+                              'video_framerate': '',
+                              'aspect_ratio': aspect_ratio,
+                              'transcode_audio_channels': '',
+                              'transcode_audio_codec': '',
+                              'transcode_video_codec': transcode_video_codec,
+                              'transcode_width': transcode_width,
+                              'transcode_height': transcode_height,
+                              'transcode_container': transcode_container,
+                              'transcode_protocol': transcode_protocol,
+                              'duration': '',
+                              'progress': '',
+                              'progress_percent': '100',
+                              'type': 'photo',
+                              'indexes': 0
+                              }
+
         else:
             logger.warn(u"No known stream types found in session list.")
 
