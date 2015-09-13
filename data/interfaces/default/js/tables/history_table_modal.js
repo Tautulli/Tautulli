@@ -108,7 +108,7 @@ history_table_modal_options = {
                     } else if (rowData['media_type'] === 'track') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80">' + cellData + ' (' + rowData['parent_title'] + ')</span>'
-                        $(td).html('<div class="history-title"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></div>');
+                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
                     } else {
                         $(td).html('<a href="info?item_id=' + rowData['id'] + '">' + cellData + '</a>');
                     }
