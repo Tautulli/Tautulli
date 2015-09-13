@@ -876,10 +876,12 @@ a .dashboard-activity-metadata-user-thumb:hover {
 .summary-navbar-list {
     padding: 0 25px;
     color: #999;
+    white-space: nowrap;
+    overflow: hidden;
 }
 .summary-navbar-list span {
-    float: left;
-    margin-right: 20px;
+    display: inline-block;
+    margin-right: 15px;
 }
 .summary-navbar-list span a {
     color: #999;
@@ -904,6 +906,10 @@ a .dashboard-activity-metadata-user-thumb:hover {
     line-height: 40px;
     float: left;
     clear: left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
 }
 .summary-content-title h1 a {
     color: #F9AA03;
@@ -920,6 +926,10 @@ a .dashboard-activity-metadata-user-thumb:hover {
     line-height: 40px;
     float: left;
     clear: left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
 }
 .summary-content-title h3 {
     margin-top: 0;
@@ -927,7 +937,9 @@ a .dashboard-activity-metadata-user-thumb:hover {
     color: #999;
     font-size: 28px;
     line-height: 40px;
-    float: right;
+    position: absolute;
+    bottom: 0;
+    right: 0;
 }
 .summary-content-title h3 a:hover {
     text-decoration: underline;
@@ -973,6 +985,18 @@ a .dashboard-activity-metadata-user-thumb:hover {
     overflow: hidden;
     z-index: 1;
 }
+.summary-poster-face-track {
+    background-position: center;
+    background-size: cover;
+    height: 250px;
+    width: 250px;
+    position: relative;
+    webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    overflow: hidden;
+    z-index: 1;
+}
 .summary-poster-face-overlay {
     position: absolute;
     left: 0;
@@ -1004,8 +1028,10 @@ a .dashboard-activity-metadata-user-thumb:hover {
 }
 a:hover .summary-poster-face .summary-poster-face-overlay,
 a:hover .summary-poster-face-episode .summary-poster-face-overlay,
+a:hover .summary-poster-face-track .summary-poster-face-overlay,
 a:hover .summary-poster-face .summary-poster-face-overlay span,
-a:hover .summary-poster-face-episode .summary-poster-face-overlay span {
+a:hover .summary-poster-face-episode .summary-poster-face-overlay span,
+a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     opacity: 1;
 }
 .summary-content-padding {
@@ -1027,47 +1053,11 @@ a:hover .summary-poster-face-episode .summary-poster-face-overlay span {
     position: relative;
     float: left;
 }
-.summary-content-director {
+.summary-content-details-tag {
     float: left;
     line-height: 24px;
 }
-.summary-content-director strong {
-    color: #fff;
-    margin-left: 2px;
-    margin-right: 10px;
-}
-.summary-content-studio {
-    float: left;
-    line-height: 24px;
-}
-.summary-content-studio strong {
-    color: #fff;
-    margin-left: 2px;
-    margin-right: 10px;
-}
-.summary-content-airdate {
-    float: left;
-    line-height: 24px;
-}
-.summary-content-airdate strong {
-    color: #fff;
-    margin-left: 2px;
-    margin-right: 10px;
-}
-.summary-content-duration {
-    float: left;
-    line-height: 24px;
-}
-.summary-content-duration strong {
-    color: #fff;
-    margin-left: 2px;
-    margin-right: 10px;
-}
-.summary-content-content-rating {
-    float: left;
-    line-height: 24px;
-}
-.summary-content-content-rating strong {
+.summary-content-details-tag strong {
     color: #fff;
     margin-left: 2px;
     margin-right: 10px;
@@ -1174,135 +1164,57 @@ a:hover .summary-poster-face-episode .summary-poster-face-overlay span {
     background-size: contain;
     height: 16px;
 }
-.show-seasons-wrapper {
+.item-children-wrapper {
 }
-.show-seasons-instance {
+.item-children-instance {
     list-style: none;
     margin: 0;
 }
-.show-seasons-instance li {
+.item-children-instance li {
     float: left;
     position: relative;
     left: 0px;
     margin-right: 25px;
     margin-bottom: 25px;
 }
-a .show-seasons-card-overlay:hover {
+.item-children-instance li.item-children-list-item {
+    width: 100%;
+    height: 35px;
+    margin-right: 0;
+    margin-bottom: 0;
+}
+.item-children-poster {
+    float: left;
+    position: relative;
+    left: 0px;
+}
+a:hover .item-children-poster {
     webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
 }
-.show-seasons-poster {
-    float: left;
-    position: relative;
-    left: 0px;
-}
-.show-seasons-card-overlay {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    text-align: left;
-    background: -moz-linear-gradient(top,  rgba(0,0,0,0) 30%, rgba(0,0,0,1) 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(30%,rgba(0,0,0,0)), color-stop(100%,rgba(0,0,0,1)));
-    background: -webkit-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
-    background: -o-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
-    background: -ms-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
-    background: linear-gradient(to bottom,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
-    height: 225px;
-}
-.show-seasons-overlay-text {
-    color: #aaa;
-    font-size: 12px;
-    float: left;
-    position: absolute;
-    left: 8px;
-    bottom: 5px;
-}
-.show-seasons-instance-text-wrapper {
-    width: 150px;
-    font-size: 13px;
-    margin-bottom: 20px;
-    clear: both;
-}
-.show-seasons-instance-text-wrapper h3 {
-    padding: 5px 3px 0 3px;
-    color: #fff;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    position: relative;
-    font-size: 13px;
-    margin: 0;
-    line-height: 15px;
-    font-weight: normal;
-    width: 250px;
-    white-space: nowrap;
-    text-align: left;
-    clear: both;
-}
-.show-seasons-title a {
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: normal;
-    color: #fff;
-    float: left;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    position: relative;
-    white-space: nowrap;
-    width: 205px;
-    margin-top: 2px;
-    margin-left: 0px;
-    margin-bottom: 20px;
-}
-.show-seasons a:hover {
-    color: #F9AA03;
-}
-.season-episodes-wrapper {
-}
-.season-episodes-instance {
-    list-style: none;
-    margin: 0;
-}
-.season-episodes-instance li {
-    float: left;
-    position: relative;
-    left: 0px;
-    margin-right: 25px;
-    margin-bottom: 25px;
-}
-a .season-episodes-card-overlay:hover {
-    -webkit-box-shadow: inset 0 0 0 2px #e9a049;
-    -moz-box-shadow: inset 0 0 0 2px #e9a049;
-    box-shadow: inset 0 0 0 2px #e9a049;
-}
-.season-episodes-poster {
-    float: left;
-    position: relative;
-    left: 0px;
-}
-.season-episodes-poster-face {
+.item-children-poster-face {
     background-position: center;
     background-size: cover;
-    height: 140px;
-    width: 250px;
     position: relative;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    z-index: -2;
 }
-.season-episodes-poster-face img {
-    bottom: 0;
-    overflow: hidden;
+.item-children-poster-face.season-poster {
+    width: 150px;
+    height: 225px;
+}
+.item-children-poster-face.episode-poster {
     width: 250px;
     height: 140px;
 }
-.season-episodes-poster-face img:hover {
-    -webkit-box-shadow: 0 0 0 2px #F9AA03;
-    -moz-box-shadow: 0 0 0 2px #F9AA03;
-    box-shadow: 0 0 0 2px #F9AA03;
+.item-children-poster-face.album-poster {
+    width: 150px;
+    height: 150px;
 }
-.season-episodes-card-overlay {
+.item-children-card-overlay {
     position: absolute;
     left: 0;
     right: 0;
@@ -1314,14 +1226,10 @@ a .season-episodes-card-overlay:hover {
     background: -o-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
     background: -ms-linear-gradient(top,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
     background: linear-gradient(to bottom,  rgba(0,0,0,0) 30%,rgba(0,0,0,1) 100%);
-    height: 140px;
+    height: 100%;
+    z-index: -1;
 }
-.season-episodes-card-overlay-index {
-    color: #fff;
-    font-size: 11px;
-    text-shadow: 0 1px 5px rgba(0,0,0,0.2);
-}
-.season-episodes-overlay-text {
+.item-children-overlay-text {
     color: #aaa;
     font-size: 12px;
     float: left;
@@ -1329,7 +1237,22 @@ a .season-episodes-card-overlay:hover {
     left: 8px;
     bottom: 5px;
 }
-.season-episodes-instance-text-wrapper h3 {
+.item-children-instance-text-wrapper {
+    font-size: 13px;
+    margin-bottom: 20px;
+    clear: both;
+}
+.item-children-instance-text-wrapper.season-item {
+    width: 150px;
+}
+.item-children-instance-text-wrapper.episode-item {
+    width: 250px;
+}
+.item-children-instance-text-wrapper.album-item {
+    width: 150px;
+}
+.item-children-instance-text-wrapper h3 {
+    width: 100%;
     padding: 5px 3px 0 3px;
     color: #fff;
     text-overflow: ellipsis;
@@ -1339,36 +1262,52 @@ a .season-episodes-card-overlay:hover {
     margin: 0;
     line-height: 15px;
     font-weight: normal;
-    width: 250px;
     white-space: nowrap;
     text-align: left;
     clear: both;
 }
-.season-episodes-title a {
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: normal;
-    color: #fff;
+.item-children-list-item-odd {
+    border-top: 0px solid #343434;
+    border-bottom: 0px solid #343434;
+    background-color: rgba(255,255,255,0.010);
+    height: 100%;
+    font-size: 13px;
+    padding-top: 10px;
+}
+.item-children-list-item-even {
+    border-top: 0px solid #343434;
+    border-bottom: 0px solid #343434;
+    background-color: rgba(255,255,255,0.035);
+    height: 100%;
+    font-size: 13px;
+    padding-top: 10px;
+}
+.item-children-list-item-odd:hover,
+.item-children-list-item-even:hover {
+    background-color: rgba(255,255,255,0.075);
+}
+.item-children-list-item-index {
     float: left;
+    color: #777;
+    text-align: right;
+    display: inline-block;
+    width: 35px;
+    margin-right: 10px;
+}
+.item-children-list-item-title {
+    display: inline-block;
+    width: calc(100% - 110px);
     text-overflow: ellipsis;
     overflow: hidden;
-    position: relative;
     white-space: nowrap;
-    width: 205px;
-    margin-top: 2px;
-    margin-left: 0px;
-    margin-bottom: 20px;
 }
-.season-episodes a:hover {
-    color: #F9AA03;
-}
-.season-episodes-season {
-    color: #aaa;
-    font-size: 12px;
-    float: left;
-    position: absolute;
-    left: 8px;
-    bottom: 5px;
+.item-children-list-item-duration {
+    float: right;
+    color: #777;
+    text-align: right;
+    display: inline-block;
+    width: 40px;
+    margin-right: 20px;
 }
 .settings-alert {
     float: left;

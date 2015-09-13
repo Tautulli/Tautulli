@@ -61,19 +61,37 @@ DOCUMENTATION :: END
                         <span><i class="fa fa-chevron-right"></i></span>
                         <span><a href="#">${data['title']}</a></span>
                         % elif data['type'] == 'season':
-                        <span>TV Shows</span>
-                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span class="hidden-xs hidden-sm">TV Shows</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
                         <span><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></span>
                         <span><i class="fa fa-chevron-right"></i></span>
                         <span><a href="#">Season ${data['index']}</a></span>
                         % elif data['type'] == 'episode':
-                        <span>TV Shows</span>
-                        <span><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></span>
-                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span class="hidden-xs hidden-sm">TV Shows</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
                         <span><a href="info?item_id=${data['parent_rating_key']}">Season ${data['parent_index']}</a></span>
                         <span><i class="fa fa-chevron-right"></i></span>
                         <span><a href="#">Episode ${data['index']} - ${data['title']}</a></span>
+                        % elif data['type'] == 'artist':
+                        <span>Music</span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="#">${data['title']}</a></span>
+                        % elif data['type'] == 'album':
+                        <span class="hidden-xs hidden-sm">Music</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="#">${data['title']}</a></span>
+                        % elif data['type'] == 'track':
+                        <span class="hidden-xs hidden-sm">Music</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span><a href="#">Track ${data['index']} - ${data['title']}</a></span>
                         % endif
                     </div>
                 </div>
@@ -81,9 +99,19 @@ DOCUMENTATION :: END
             <div class="summary-content-title-wrapper">
                 <div class="col-md-9">
                     <div class="summary-content-poster hidden-xs hidden-sm">
+                        % if data['type'] == 'track':
+                        <a href="http://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details/%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}" target="Plex/Web" title="View in Plex/Web">
+                        % else:
                         <a href="http://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details/%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="Plex/Web" title="View in Plex/Web">
+                        % endif
                             % if data['type'] == 'episode':
                             <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=poster);">
+                                <div class="summary-poster-face-overlay">
+                                    <span></span>
+                                </div>
+                            </div>
+                            % elif data['type'] == 'artist' or data['type'] == 'album' or data['type'] == 'track':
+                            <div class="summary-poster-face-track" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=poster);">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
@@ -98,7 +126,7 @@ DOCUMENTATION :: END
                         </a>
                     </div>
                     <div class="summary-content-title">
-                        % if data['type'] == 'movie' or data['type'] == 'show':
+                        % if data['type'] == 'movie' or data['type'] == 'show' or data['type'] == 'artist':
                         <h1>&nbsp;</h1><h1>${data['title']}</h1>
                         % elif data['type'] == 'season':
                         <h1>&nbsp;</h1><h1><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></h1>
@@ -107,6 +135,13 @@ DOCUMENTATION :: END
                         <h1><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         <h3 class="hidden-xs">S${data['parent_index']} &middot; E${data['index']}</h3>
+                        % elif data['type'] == 'album':
+                        <h1><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></h1>
+                        <h2>${data['title']}</h2>
+                        % elif data['type'] == 'track':
+                        <h1><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></h1>
+                        <h2><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a> - ${data['title']}</h2>
+                        <h3 class="hidden-xs">T${data['index']}</h3>
                         % endif
                     </div>
                 </div>
@@ -115,44 +150,52 @@ DOCUMENTATION :: END
                 <div class="col-md-9">
                     % if data['type'] == 'movie' or data['type'] == 'show' or data['type'] == 'season':
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 275px;"></div>
+                    % elif data['type'] == 'episode':
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 40px;"></div>
+                    % elif data['type'] == 'artist' or data['type'] == 'album' or data['type'] == 'track':
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 150px;"></div>
                     % else:
                     <div class="summary-content-padding hidden-xs hidden-sm"></div>
                     % endif
                     <div class="summary-content">
                         <div class="summary-content-details-wrapper">
-                            % if (data['type'] == 'movie' or data['type'] == 'show' or data['type'] == 'episode') and data['rating']:
+                            % if data['rating']:
                             <div id="stars" class="rateit hidden-xs hidden-sm" data-rateit-value=""
                                  data-rateit-ispreset="true" data-rateit-readonly="true"></div>
                             % endif
-                            <div class="summary-content-director">
-                                % if (data['type'] == 'episode' or data['type'] == 'movie') and data['directors']:
+                            <div class="summary-content-details-tag">
+                                % if data['directors']:
                                 Directed by <strong> ${data['directors'][0]}</strong>
                                 % endif
                             </div>
-                            <div class="summary-content-studio">
-                                % if (data['type'] == 'show' or data['type'] == 'movie') and data['studio']:
+                            <div class="summary-content-details-tag">
+                                % if data['studio']:
                                 Studio <strong> ${data['studio']}</strong>
                                 % endif
                             </div>
-                            <div class="summary-content-airdate">
+                            <div class="summary-content-details-tag">
                                 % if data['type'] == 'movie':
                                 Year <strong> ${data['year']}</strong>
                                 % elif data['type'] == 'show':
                                 Aired <strong> ${data['year']}</strong>
                                 % elif data['type'] == 'episode':
                                 Aired <strong> <span id="airdate">${data['originally_available_at']}</span></strong>
+                                % elif data['type'] == 'album' or data['type'] == 'track':
+                                Released <strong> ${data['year']}</strong>
                                 % endif
                             </div>
-                            <div class="summary-content-duration">
+                            <div class="summary-content-details-tag">
+                                % if data['duration']:
                                 Runtime <strong> <span id="runtime">${data['duration']}</span> mins</strong>
+                                % endif
                             </div>
-                            <div class="summary-content-content-rating">
-                                % if (data['type'] == 'episode' or data['type'] == 'movie' or data['type'] == 'show') and data['content_rating']:
+                            <div class="summary-content-details-tag">
+                                % if data['content_rating']:
                                 Rated <strong> ${data['content_rating']} </strong>
                                 % endif
                             </div>
                         </div>
-                        % if data['type'] == 'movie' and data['tagline']:
+                        % if data['tagline']:
                         <div class="summary-content-summary">
                             <p><strong> ${data['tagline']} </strong></p>
                         </div>
@@ -164,7 +207,7 @@ DOCUMENTATION :: END
                 </div>
                 <div class="col-md-3">
                     <div class="summary-content-people-wrapper hidden-xs hidden-sm">
-                        % if (data['type'] == 'episode' or data['type'] == 'movie') and data['writers']:
+                        % if data['writers']:
                         <div class="summary-content-writers">
                             <strong>Written by</strong>
                             <ul>
@@ -178,7 +221,7 @@ DOCUMENTATION :: END
                             </ul>
                         </div>
                         % endif
-                        % if (data['type'] == 'movie' or data['type'] == 'show') and data['actors']:
+                        % if data['actors']:
                         <div class="summary-content-actors">
                             <strong>Starring</strong>
                             <ul>
@@ -194,7 +237,7 @@ DOCUMENTATION :: END
                         % endif
                     </div>
                     <div class="summary-content-people-wrapper hidden-xs hidden-sm">
-                        % if (data['type'] == 'movie' or data['type'] == 'show') and data['genres']:
+                        % if data['genres']:
                         <div class="summary-content-genres">
                             <strong>Genres</strong>
                             <ul>
@@ -218,7 +261,7 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     <div class='table-card-back'>
-                        <div id="season-list"></div>
+                        <div id="children-list"></div>
                     </div>
                 </div>
                 % elif data['type'] == 'season':
@@ -229,11 +272,32 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     <div class='table-card-back'>
-                        <div id="episode-list"></div>
+                        <div id="children-list"></div>
+                    </div>
+                </div>
+                % elif data['type'] == 'artist':
+                <div class='col-md-12'>
+                    <div class='table-card-header'>
+                        <div class="header-bar">
+                            <span>Album List for <strong>${data['title']}</strong></span>
+                        </div>
+                    </div>
+                    <div class='table-card-back'>
+                        <div id="children-list"></div>
+                    </div>
+                </div>
+                % elif data['type'] == 'album':
+                <div class='col-md-12'>
+                    <div class='table-card-header'>
+                        <div class="header-bar">
+                            <span>Track List for <strong>${data['title']}</strong></span>
+                        </div>
+                    </div>
+                    <div class='table-card-back'>
+                        <div id="children-list"></div>
                     </div>
                 </div>
                 % endif
-                % if data['type'] == 'movie' or data['type'] == 'episode' or data['type'] == 'show' or data['type'] == 'season':
                 <div class='col-md-12'>
                     <div class='table-card-header'>
                         <div class="header-bar">
@@ -290,7 +354,6 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                 </div>
-                % endif
             </div>
         </div>
     </div>
@@ -321,70 +384,14 @@ DOCUMENTATION :: END
 % if data['type'] == 'movie' or data['type'] == 'show' or data['type'] == 'episode':
 <script>
     // Convert rating to 5 star rating type
-    var starRating = Math.round(${data['rating']} / 2)
-    $('#stars').attr('data-rateit-value', starRating)
+    var starRating = Math.round(${data['rating']} / 2);
+    $('#stars').attr('data-rateit-value', starRating);
 </script>
 % endif
-% if data['type'] == 'movie' or data['type'] == 'episode':
 <script src="interfaces/default/js/tables/history_table.js"></script>
+% if data['type'] == 'show' or data['type'] == 'artist':
 <script>
-    $(document).ready(function () {
-        history_table_options.ajax = {
-            "url": "get_history",
-            type: 'post',
-            data: function ( d ) {
-                return { 'json_data': JSON.stringify( d ),
-                    'rating_key': ${data['rating_key']} };
-            }
-        }
-        history_table = $('#history_table').DataTable(history_table_options);
-        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
-        $(colvis.button()).appendTo('div.colvis-button-bar');
-
-        clearSearchButton('history_table', history_table);
-
-        $('#row-edit-mode').on('click', function() {
-            $('#row-edit-mode-alert').fadeIn(200);
-
-            if ($(this).hasClass('active')) {
-                if (history_to_delete.length > 0) {
-                    $('#deleteCount').text(history_to_delete.length);
-                    $('#confirm-modal').modal();
-                    $('#confirm-modal').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < history_to_delete.length; i++) {
-                            $.ajax({
-                                url: 'delete_history_rows',
-                                data: { row_id: history_to_delete[i] },
-                                async: true,
-                                success: function (data) {
-                                    var msg = "History deleted";
-                                    showMsg(msg, false, true, 2000);
-                                }
-                            });
-                        }
-                        history_table.draw();
-                    });
-                }
-
-                $('.delete-control').each(function () {
-                    $(this).addClass('hidden');
-                    $('#row-edit-mode-alert').fadeOut(200);
-                });
-
-            } else {
-                history_to_delete = [];
-                $('.delete-control').each(function() {
-                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
-                    $(this).removeClass('hidden');
-                });
-            }
-        });
-    });
-</script>
-% elif data['type'] == 'show':
-<script src="interfaces/default/js/tables/history_table.js"></script>
-<script>
-    $(document).ready(function () {
+    function get_history() {
         history_table_options.ajax = {
             "url": "get_history",
             type: 'post',
@@ -393,64 +400,11 @@ DOCUMENTATION :: END
                     'grandparent_rating_key': ${data['rating_key']} };
             }
         }
-        history_table = $('#history_table').DataTable(history_table_options);
-        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
-        $(colvis.button()).appendTo('div.colvis-button-bar');
-
-        clearSearchButton('history_table', history_table);
-
-        $('#row-edit-mode').on('click', function() {
-            $('#row-edit-mode-alert').fadeIn(200);
-
-            if ($(this).hasClass('active')) {
-                if (history_to_delete.length > 0) {
-                    $('#deleteCount').text(history_to_delete.length);
-                    $('#confirm-modal').modal();
-                    $('#confirm-modal').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < history_to_delete.length; i++) {
-                            $.ajax({
-                                url: 'delete_history_rows',
-                                data: { row_id: history_to_delete[i] },
-                                async: true,
-                                success: function (data) {
-                                    var msg = "History deleted";
-                                    showMsg(msg, false, true, 2000);
-                                }
-                            });
-                        }
-                        history_table.draw();
-                    });
-                }
-
-                $('.delete-control').each(function () {
-                    $(this).addClass('hidden');
-                    $('#row-edit-mode-alert').fadeOut(200);
-                });
-
-            } else {
-                history_to_delete = [];
-                $('.delete-control').each(function() {
-                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
-                    $(this).removeClass('hidden');
-                });
-            }
-        });
-    });
-
-    $.ajax({
-        url: 'get_show_children',
-        type: "GET",
-        async: true,
-        data: { rating_key : ${data['rating_key']} },
-        complete: function(xhr, status) {
-        $("#season-list").html(xhr.responseText); }
-    });
+    }
 </script>
-% endif
-% if data['type'] == 'season':
-<script src="interfaces/default/js/tables/history_table.js"></script>
+% elif data['type'] == 'season' or data['type'] == 'album':
 <script>
-    $(document).ready(function () {
+    function get_history() {
         history_table_options.ajax = {
             "url": "get_history",
             type: 'post',
@@ -459,6 +413,25 @@ DOCUMENTATION :: END
                     'parent_rating_key': ${data['rating_key']} };
             }
         }
+    }
+</script>
+% elif data['type'] == 'episode' or data['type'] == 'track' or data['type'] == 'movie':
+<script>
+    function get_history() {
+        history_table_options.ajax = {
+            "url": "get_history",
+            type: 'post',
+            data: function ( d ) {
+                return { 'json_data': JSON.stringify( d ),
+                    'rating_key': ${data['rating_key']} };
+            }
+        }
+    }
+</script>
+% endif
+<script>
+    $(document).ready(function () {
+        get_history();
         history_table = $('#history_table').DataTable(history_table_options);
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
         $(colvis.button()).appendTo('div.colvis-button-bar');
@@ -502,14 +475,16 @@ DOCUMENTATION :: END
             }
         });
     });
-
+</script>
+% if data['type'] == 'show' or data['type'] == 'season' or data['type'] == 'artist' or data['type'] == 'album':
+<script>
     $.ajax({
-        url: 'get_season_children',
+        url: 'get_item_children',
         type: "GET",
         async: true,
         data: { rating_key : ${data['rating_key']} },
         complete: function(xhr, status) {
-        $("#episode-list").html(xhr.responseText); }
+        $("#children-list").html(xhr.responseText); }
     });
 </script>
 % endif
