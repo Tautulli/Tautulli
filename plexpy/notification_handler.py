@@ -316,6 +316,7 @@ def build_notify_text(session, state):
     available_params = {'server_name': server_name,
                         'user': session['friendly_name'],
                         'player': session['player'],
+                        'ip_address': session['ip_address'],
                         'title': full_title,
                         'show_name': item_metadata['grandparent_title'],
                         'episode_name': item_metadata['title'],
