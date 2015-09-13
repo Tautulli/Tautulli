@@ -46,14 +46,16 @@ DOCUMENTATION :: END
 					</div>
 				</a>
 				% elif item['type'] == 'album':
-				<div class="poster">
-					<div class="cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);"></div>					
-				</div>
-				<div class="dashboard-recent-media-metacontainer">
-                    <h3>${item['parent_title']}</h3>
-					<h3>${item['title']}</h3>
-					<div class="text-muted" id="added_at-${item['rating_key']}">${item['added_at']}</div>
-				</div>
+                <a href="info?item_id=${item['rating_key']}">
+                    <div class="poster">
+                        <div class="cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);"></div>
+                    </div>
+                    <div class="dashboard-recent-media-metacontainer">
+                        <h3>${item['parent_title']}</h3>
+                        <h3>${item['title']}</h3>
+                        <div class="text-muted" id="added_at-${item['rating_key']}">${item['added_at']}</div>
+                    </div>
+                </a>
 				% endif
             </li>
         </div>
