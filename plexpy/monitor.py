@@ -151,9 +151,7 @@ def check_active_sessions():
                                      kwargs=dict(stream_data=stream, notify_action='stop')).start()
 
                     # Write the item history on playback stop
-                    # Just make sure that the ratingKey is indeed an integer
-                    if stream['rating_key'].isdigit():
-                        monitor_process.write_session_history(session=stream)
+                    monitor_process.write_session_history(session=stream)
 
             # Process the newly received session data
             for session in media_container:
@@ -249,10 +247,10 @@ class MonitorProcessing(object):
             else:
                 stopped = int(time.time())
 
-            if plexpy.CONFIG.VIDEO_LOGGING_ENABLE and \
+            if plexpy.CONFIG.VIDEO_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
                     (session['media_type'] == 'movie' or session['media_type'] == 'episode'):
                 logging_enabled = True
-            elif plexpy.CONFIG.MUSIC_LOGGING_ENABLE and \
+            elif plexpy.CONFIG.MUSIC_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
                     session['media_type'] == 'track':
                 logging_enabled = True
             else:
