@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.1.9 (2015-09-14)
+
+* Another JonnyWong release. I'm going to stop thanking you now ;)
+* Add music plays to graphs.
+* Add info pages for music items.
+* Add music to user recently watched items.
+* Add photo views to Activity pane (photos are not logged).
+* Fix token validation message on Settings page.
+* Fix some "Mystery" platform names.
+* Fix paused time be counted for graph data.
+* Other small bug fixes.
+
+
 ## v1.1.8 (2015-09-09)
 
 * Add platform images for Windows devices. Thanks @JonnyWong.

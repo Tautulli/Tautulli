@@ -90,31 +90,14 @@ class PmsConnect(object):
         return request
 
     """
-    Return list of seasons in requested show.
+    Return list of children in requested library item.
 
     Parameters required:    rating_key { ratingKey of parent }
     Optional parameters:    output_format { dict, json }
 
     Output: array
     """
-    def get_season_list(self, rating_key='', output_format=''):
-        uri = '/library/metadata/' + rating_key + '/children'
-        request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
-                                                    request_type='GET',
-                                                    output_format=output_format)
-        
-        return request
-
-    """
-    Return list of episodes in requested season.
-
-    Parameters required:    rating_key { ratingKey of parent }
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
-    def get_episode_list(self, rating_key='', output_format=''):
+    def get_children_list(self, rating_key='', output_format=''):
         uri = '/library/metadata/' + rating_key + '/children'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -381,6 +364,39 @@ class PmsConnect(object):
                         'actors': actors
                         }
             metadata_list = {'metadata': metadata}
+        elif metadata_type == 'season':
+            parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
+            show_details = self.get_metadata_details(parent_rating_key)
+            metadata = {'type': metadata_type,
+                        'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
+                        'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
+                        'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
+                        'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
+                        'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                        'index': helpers.get_xml_attr(metadata_main, 'index'),
+                        'studio': helpers.get_xml_attr(metadata_main, 'studio'),
+                        'title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
+                        'summary': show_details['metadata']['summary'],
+                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
+                        'rating': helpers.get_xml_attr(metadata_main, 'rating'),
+                        'duration': show_details['metadata']['duration'],
+                        'year': helpers.get_xml_attr(metadata_main, 'year'),
+                        'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
+                        'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
+                        'art': helpers.get_xml_attr(metadata_main, 'art'),
+                        'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
+                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
+                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
+                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
+                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
+                        'genres': genres,
+                        'actors': actors,
+                        'writers': writers,
+                        'directors': directors
+                        }
+            metadata_list = {'metadata': metadata}
         elif metadata_type == 'episode':
             metadata = {'type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
@@ -443,9 +459,39 @@ class PmsConnect(object):
                         'directors': directors
                         }
             metadata_list = {'metadata': metadata}
-        elif metadata_type == 'season':
+        elif metadata_type == 'artist':
+            metadata = {'type': metadata_type,
+                        'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
+                        'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
+                        'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
+                        'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                        'index': helpers.get_xml_attr(metadata_main, 'index'),
+                        'studio': helpers.get_xml_attr(metadata_main, 'studio'),
+                        'title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
+                        'summary': helpers.get_xml_attr(metadata_main, 'summary'),
+                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
+                        'rating': helpers.get_xml_attr(metadata_main, 'rating'),
+                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
+                        'year': helpers.get_xml_attr(metadata_main, 'year'),
+                        'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
+                        'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
+                        'art': helpers.get_xml_attr(metadata_main, 'art'),
+                        'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
+                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
+                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
+                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
+                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
+                        'writers': writers,
+                        'directors': directors,
+                        'genres': genres,
+                        'actors': actors
+                        }
+            metadata_list = {'metadata': metadata}
+        elif metadata_type == 'album':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
-            show_details = self.get_metadata_details(parent_rating_key)
+            artist_details = self.get_metadata_details(parent_rating_key)
             metadata = {'type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
@@ -456,10 +502,10 @@ class PmsConnect(object):
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
                         'title': helpers.get_xml_attr(metadata_main, 'title'),
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
-                        'summary': show_details['metadata']['summary'],
+                        'summary': artist_details['metadata']['summary'],
                         'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
-                        'duration': show_details['metadata']['duration'],
+                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
                         'year': helpers.get_xml_attr(metadata_main, 'year'),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
@@ -477,8 +523,12 @@ class PmsConnect(object):
                         }
             metadata_list = {'metadata': metadata}
         elif metadata_type == 'track':
+            parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
+            album_details = self.get_metadata_details(parent_rating_key)
             metadata = {'type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
+                        'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
+                        'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
@@ -490,7 +540,7 @@ class PmsConnect(object):
                         'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
                         'duration': helpers.get_xml_attr(metadata_main, 'duration'),
-                        'year': helpers.get_xml_attr(metadata_main, 'year'),
+                        'year': album_details['metadata']['year'],
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
                         'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
@@ -547,6 +597,12 @@ class PmsConnect(object):
                 for session in session_data:
                     session_output = self.get_session_each(session_type, session)
                     session_list.append(session_output)
+            if a.getElementsByTagName('Photo'):
+                session_data = a.getElementsByTagName('Photo')
+                session_type = 'photo'
+                for session in session_data:
+                    session_output = self.get_session_each(session_type, session)
+                    session_list.append(session_output)
 
         output = {'stream_count': helpers.get_xml_attr(xml_head[0], 'size'),
                   'sessions': session_list
@@ -565,8 +621,8 @@ class PmsConnect(object):
     def get_session_each(self, stream_type='', session=None):
         session_output = None
         user_data = users.Users()
-        if stream_type == 'track':
 
+        if stream_type == 'track':
             media_info = session.getElementsByTagName('Media')[0]
             audio_decision = 'direct play'
             audio_channels = helpers.get_xml_attr(media_info, 'audioChannels')
@@ -654,6 +710,7 @@ class PmsConnect(object):
                               'type': 'track',
                               'indexes': 0
                               }
+
         elif stream_type == 'video':
             media_info = session.getElementsByTagName('Media')[0]
             audio_decision = 'direct play'
@@ -886,92 +943,151 @@ class PmsConnect(object):
                                   'type': helpers.get_xml_attr(session, 'type'),
                                   'indexes': 0
                                   }
+
+        elif stream_type == 'photo':
+            media_info = session.getElementsByTagName('Media')[0]
+            video_decision = 'direct play'
+            container = helpers.get_xml_attr(media_info, 'container')
+            aspect_ratio = helpers.get_xml_attr(media_info, 'aspectRatio')
+            width = helpers.get_xml_attr(media_info, 'width')
+            height = helpers.get_xml_attr(media_info, 'height')
+
+            if session.getElementsByTagName('TranscodeSession'):
+                transcode_session = session.getElementsByTagName('TranscodeSession')[0]
+                throttled = helpers.get_xml_attr(transcode_session, 'throttled')
+                transcode_progress = helpers.get_xml_attr(transcode_session, 'progress')
+                transcode_speed = helpers.get_xml_attr(transcode_session, 'speed')
+                video_decision = helpers.get_xml_attr(transcode_session, 'videoDecision')
+                transcode_video_codec = helpers.get_xml_attr(transcode_session, 'videoCodec')
+                transcode_width = helpers.get_xml_attr(transcode_session, 'width')
+                transcode_height = helpers.get_xml_attr(transcode_session, 'height')
+                transcode_container = helpers.get_xml_attr(transcode_session, 'container')
+                transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
+            else:
+                throttled = '0'
+                transcode_progress = '0'
+                transcode_speed = ''
+                transcode_video_codec = ''
+                transcode_width = ''
+                transcode_height = ''
+                transcode_container = ''
+                transcode_protocol = ''
+
+            user_details = user_data.get_user_details(
+                user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
+
+            if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Photo'):
+                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')[:-6]
+            else:
+                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
+
+            session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                              'media_index': helpers.get_xml_attr(session, 'index'),
+                              'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
+                              'art': helpers.get_xml_attr(session, 'art'),
+                              'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
+                              'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
+                              'thumb': helpers.get_xml_attr(session, 'thumb'),
+                              'bif_thumb': '',
+                              'user': user_details['username'],
+                              'user_id': user_details['user_id'],
+                              'friendly_name': user_details['friendly_name'],
+                              'user_thumb': user_details['thumb'],
+                              'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
+                              'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
+                              'machine_id': machine_id,
+                              'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
+                              'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
+                              'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
+                              'title': helpers.get_xml_attr(session, 'title'),
+                              'year': helpers.get_xml_attr(session, 'year'),
+                              'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
+                              'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
+                              'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                              'throttled': throttled,
+                              'transcode_progress': transcode_progress,
+                              'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
+                              'audio_decision': '',
+                              'audio_channels': '',
+                              'audio_codec': '',
+                              'video_decision': video_decision,
+                              'video_codec': '',
+                              'height': height,
+                              'width': width,
+                              'container': container,
+                              'bitrate': '',
+                              'video_resolution': '',
+                              'video_framerate': '',
+                              'aspect_ratio': aspect_ratio,
+                              'transcode_audio_channels': '',
+                              'transcode_audio_codec': '',
+                              'transcode_video_codec': transcode_video_codec,
+                              'transcode_width': transcode_width,
+                              'transcode_height': transcode_height,
+                              'transcode_container': transcode_container,
+                              'transcode_protocol': transcode_protocol,
+                              'duration': '',
+                              'progress': '',
+                              'progress_percent': '100',
+                              'type': 'photo',
+                              'indexes': 0
+                              }
+
         else:
             logger.warn(u"No known stream types found in session list.")
 
         return session_output
 
     """
-    Return processed and validated season list.
+    Return processed and validated children list.
 
     Output: array
     """
-    def get_show_children(self, rating_key=''):
-        season_data = self.get_season_list(rating_key, output_format='xml')
+    def get_item_children(self, rating_key=''):
+        children_data = self.get_children_list(rating_key, output_format='xml')
 
         try:
-            xml_head = season_data.getElementsByTagName('MediaContainer')
+            xml_head = children_data.getElementsByTagName('MediaContainer')
         except:
-            logger.warn("Unable to parse XML for get_season_list.")
+            logger.warn("Unable to parse XML for get_children_list.")
             return []
 
-        season_list = []
+        children_list = []
 
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    logger.debug(u"No season data.")
-                    season_list = {'season_count': '0',
-                                   'season_list': []
-                                   }
-                    return season_list
+                    logger.debug(u"No children data.")
+                    children_list = {'children_count': '0',
+                                     'children_list': []
+                                     }
+                    return parent_list
+
+            result_data = []
 
             if a.getElementsByTagName('Directory'):
                 result_data = a.getElementsByTagName('Directory')
-                for result in result_data:
-                    season_output = {'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
-                                      'index': helpers.get_xml_attr(result, 'index'),
-                                      'title': helpers.get_xml_attr(result, 'title'),
-                                      'thumb': helpers.get_xml_attr(result, 'thumb'),
-                                      'parent_thumb': helpers.get_xml_attr(a, 'thumb')
-                                      }
-                    season_list.append(season_output)
-
-        output = {'season_count': helpers.get_xml_attr(xml_head[0], 'size'),
-                  'title': helpers.get_xml_attr(xml_head[0], 'title2'),
-                  'season_list': season_list
-                  }
-
-        return output
-
-    """
-    Return processed and validated episode list.
-
-    Output: array
-    """
-    def get_season_children(self, rating_key=''):
-        episode_data = self.get_episode_list(rating_key, output_format='xml')
-
-        try:
-            xml_head = episode_data.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_episode_list.")
-            return []
-
-        episode_list = []
-
-        for a in xml_head:
-            if a.getAttribute('size'):
-                if a.getAttribute('size') == '0':
-                    logger.debug(u"No episode data.")
-                    episode_list = {'episode_count': '0',
-                                    'episode_list': []
-                                    }
-                    return episode_list
-
             if a.getElementsByTagName('Video'):
                 result_data = a.getElementsByTagName('Video')
-                for result in result_data:
-                    episode_output = {'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
-                                      'index': helpers.get_xml_attr(result, 'index'),
-                                      'title': helpers.get_xml_attr(result, 'title'),
-                                      'thumb': helpers.get_xml_attr(result, 'thumb')
-                                      }
-                    episode_list.append(episode_output)
+            if a.getElementsByTagName('Track'):
+                result_data = a.getElementsByTagName('Track')
 
-        output = {'episode_count': helpers.get_xml_attr(xml_head[0], 'size'),
+            if result_data:
+                for result in result_data:
+                    children_output = {'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
+                                       'index': helpers.get_xml_attr(result, 'index'),
+                                       'title': helpers.get_xml_attr(result, 'title'),
+                                       'thumb': helpers.get_xml_attr(result, 'thumb'),
+                                       'parent_thumb': helpers.get_xml_attr(a, 'thumb'),
+                                       'duration': helpers.get_xml_attr(result, 'duration')
+                                      }
+                    children_list.append(children_output)
+
+
+        output = {'children_count': helpers.get_xml_attr(xml_head[0], 'size'),
+                  'children_type': helpers.get_xml_attr(xml_head[0], 'viewGroup'),
                   'title': helpers.get_xml_attr(xml_head[0], 'title2'),
-                  'episode_list': episode_list
+                  'children_list': children_list
                   }
 
         return output

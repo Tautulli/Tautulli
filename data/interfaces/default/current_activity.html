@@ -67,7 +67,7 @@ DOCUMENTATION :: END
 % if data['stream_count'] != '0':
 % for a in data['sessions']:
 <div class="dashboard-instance" id="instance-${a['session_key']}">
-    % if a['type'] == 'movie' or a['type'] == 'episode':
+    % if a['type'] == 'movie' or a['type'] == 'episode' or a['type'] == 'track':
     <a href="info?item_id=${a['rating_key']}">
     % endif
         <div class="dashboard-activity-poster">
@@ -93,6 +93,8 @@ DOCUMENTATION :: END
                         <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=280);"></div>
                         % endif
                     % endif
+                % elif a['type'] == 'photo':
+                <div class="dashboard-activity-poster-face bif" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=500);"></div>
                 % else:
                 <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300&fallback=cover);"></div>
                 % endif
@@ -160,17 +162,31 @@ DOCUMENTATION :: END
                         % elif a['audio_decision'] == 'transcode':
                         Audio &nbsp;<strong>Transcode (${a['transcode_audio_codec']}) (${a['transcode_audio_channels']}ch)</strong>
                         % endif
+                    % elif a['type'] == 'photo':
+                        % if a['video_decision'] == 'direct play':
+                        Stream &nbsp;<strong>Direct Play</strong>
+                        % else:
+                        Stream &nbsp;<strong>
+                            Transcoding
+                            (Speed: ${a['transcode_speed']})
+                            % if a['throttled'] == '1':
+                            (Throttled)
+                            % endif
+                        </strong>
+                        % endif
                     % endif
                     <br>
                 </div>
             </div>
+            % if a['type'] != 'photo':
             <div class="dashboard-activity-poster-info-bar">
                 <div class="dashboard-activity-poster-info-time">
                     <span class="progress_time">${a['progress']}</span>/<span class="progress_time">${a['duration']}</span>
                 </div>
             </div>
+            % endif
         </div>
-    % if a['type'] == 'movie' or a['type'] == 'episode':
+    % if a['type'] == 'movie' or a['type'] == 'episode' or a['type'] == 'track':
     </a>
     % endif
     <div class="dashboard-activity-progress">
@@ -198,9 +214,11 @@ DOCUMENTATION :: END
             % elif a['type'] == 'clip':
             ${a['title']}
             % elif a['type'] == 'track':
-            ${a['grandparent_title']} - ${a['title']}
+            <a href="info?item_id=${a['rating_key']}">${a['grandparent_title']} - ${a['title']}</a>
+            % elif a['type'] == 'photo':
+            ${a['parent_title']}
             % else:
-            ${a['grandparent_title']} - ${a['title']}
+            ${a['title']}
             % endif
         </div>
         <div class="dashboard-activity-metadata-subtitle">
@@ -209,7 +227,9 @@ DOCUMENTATION :: END
             % elif a['type'] == 'movie':
             ${a['year']}
             % elif a['type'] == 'track':
-            ${a['parent_title']}
+            <a href="info?item_id=${a['parent_rating_key']}">${a['parent_title']}</a>
+            % elif a['type'] == 'photo':
+            ${a['title']}
             % else:
             ${a['year']}
             % endif
@@ -231,7 +251,7 @@ DOCUMENTATION :: END
 <script>
     // When using bif indexes make the image transition a little smoother.
     $('.bif').each(function() {
-        $(this).fadeIn(1000);
+        $(this).hide().fadeIn(1000);
     });
 
     // Convert timestamps to readable times

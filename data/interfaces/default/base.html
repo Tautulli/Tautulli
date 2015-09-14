@@ -62,15 +62,15 @@ from plexpy import version
                     % else:
                         <li><a href="home"><i class="fa fa-lg fa-home"></i></a></li>
                     % endif
-                    % if title=="History":
-                        <li class="active"><a href="history">History</a></li>
-                    % else:
-                        <li><a href="history">History</a></li>
-                    % endif
                     % if title=="Users" or title=="User":
                         <li class="active"><a href="users">Users</a></li>
                     % else:
                         <li><a href="users">Users</a></li>
+                    % endif
+                    % if title=="History":
+                    <li class="active"><a href="history">History</a></li>
+                    % else:
+                    <li><a href="history">History</a></li>
                     % endif
                     % if title=="Graphs":
                         <li class="active"><a href="graphs">Graphs</a></li>

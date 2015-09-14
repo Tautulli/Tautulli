@@ -31,35 +31,48 @@ DOCUMENTATION :: END
             <li>
                 % if item['type'] == 'season' or item['type'] == 'movie':
 				<a href="info?item_id=${item['rating_key']}">
-					<div class="poster">
-						<div class="poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);"></div>
+					<div class="dashboard-recent-media-poster">
+						<div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
+                            <div class="dashboard-recent-media-overlay">
+                                <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
+                                    <script>
+                                        $('#added_at-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 					<div class="dashboard-recent-media-metacontainer">
 						% if item['type'] == 'season':
 						<h3>${item['parent_title']}</h3>
-						<h3>(${item['title']})</h3>
+						<h3 class="text-muted">${item['title']}</h3>
 						% elif item['type'] == 'movie':
 						<h3>${item['title']}</h3>
-						<h3>(${item['year']})</h3>
+						<h3 class="text-muted">${item['year']}</h3>
 						% endif
-						<div class="text-muted" id="added_at-${item['rating_key']}">${item['added_at']}</div>
 					</div>
 				</a>
 				% elif item['type'] == 'album':
-				<div class="poster">
-					<div class="cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);"></div>					
-				</div>
-				<div class="dashboard-recent-media-metacontainer">
-                    <h3>${item['parent_title']}</h3>
-					<h3>${item['title']}</h3>
-					<div class="text-muted" id="added_at-${item['rating_key']}">${item['added_at']}</div>
-				</div>
+                <a href="info?item_id=${item['rating_key']}">
+                    <div class="dashboard-recent-media-cover">
+                        <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">
+                            <div class="dashboard-recent-media-overlay">
+                                <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
+                                    <script>
+                                        $('#added_at-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-recent-media-metacontainer">
+                        <h3>${item['parent_title']}</h3>
+                        <h3 class="text-muted">${item['title']}</h3>
+                    </div>
+                </a>
 				% endif
             </li>
         </div>
-        <script>
-            $('#added_at-${item['rating_key']}').html('Added ' + moment(${item['added_at']}, "X").fromNow())
-        </script>
         % endfor
     </ul>
 </div>
