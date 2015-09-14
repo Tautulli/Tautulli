@@ -64,7 +64,7 @@ def main():
 
     # Set up and gather command line arguments
     parser = argparse.ArgumentParser(
-        description='Python frontend for PlexWatch.')
+        description='A Python based monitoring and tracking tool for Plex Media Server.')
 
     parser.add_argument(
         '-v', '--verbose', action='store_true', help='Increase console logging verbosity')
