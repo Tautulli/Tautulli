@@ -144,7 +144,12 @@ class WebInterface(object):
 
     @cherrypy.expose
     def graphs(self):
-        return serve_template(templatename="graphs.html", title="Graphs")
+
+        config = {
+            "music_logging_enable": plexpy.CONFIG.MUSIC_LOGGING_ENABLE
+        }
+
+        return serve_template(templatename="graphs.html", title="Graphs", config=config)
 
     @cherrypy.expose
     def sync(self):
