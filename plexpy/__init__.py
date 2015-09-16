@@ -611,13 +611,13 @@ def dbcheck():
         c_db.execute(
             'ALTER TABLE session_history ADD COLUMN reference_id INTEGER DEFAULT 0'
         )
-        # SET reference_id to the first row where (rating_key != previous row OR user != previous row)
+        # Set reference_id to the first row where (rating_key != previous row OR user_id != previous row)
         c_db.execute(
             'UPDATE session_history ' \
             'SET reference_id = (SELECT (CASE WHEN (SELECT MIN(id) FROM session_history WHERE id > ( \
-             SELECT MAX(id) FROM session_history WHERE (rating_key <> t1.rating_key OR user <> t1.user) AND id < t1.id)) IS NULL \
+             SELECT MAX(id) FROM session_history WHERE (rating_key <> t1.rating_key OR user_id <> t1.user_id) AND id < t1.id)) IS NULL \
 			 THEN (SELECT MIN(id) FROM session_history) ELSE (SELECT MIN(id) FROM session_history WHERE id > ( \
-             SELECT MAX(id) FROM session_history WHERE (rating_key <> t1.rating_key OR user <> t1.user) AND id < t1.id)) END) ' \
+             SELECT MAX(id) FROM session_history WHERE (rating_key <> t1.rating_key OR user_id <> t1.user_id) AND id < t1.id)) END) ' \
 			'FROM session_history AS t1 ' \
 			'WHERE t1.id = session_history.id) '
         )
