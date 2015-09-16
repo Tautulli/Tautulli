@@ -580,9 +580,9 @@ class WebInterface(object):
 
         custom_where=[]
         if user_id:
-            custom_where = [['user_id', user_id]]
+            custom_where = [['session_history.user_id', user_id]]
         elif user:
-            custom_where = [['user', user]]
+            custom_where = [['session_history.user', user]]
         if 'rating_key' in kwargs:
             rating_key = kwargs.get('rating_key', "")
             custom_where = [['session_history.rating_key', rating_key]]

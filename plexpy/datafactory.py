@@ -40,7 +40,7 @@ class DataFactory(object):
 		            SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration', 
                    'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter', 
                    'session_history.user_id',
-                   'user',
+                   'session_history.user',
                    '(CASE WHEN users.friendly_name IS NULL THEN user ELSE users.friendly_name END) as friendly_name',
                    'player',
                    'ip_address',
