@@ -593,9 +593,9 @@ class WebInterface(object):
         if 'start_date' in kwargs:
             start_date = kwargs.get('start_date', "")
             custom_where = [['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date]]
-        if 'group_start_id' in kwargs:
-            group_start_id = kwargs.get('group_start_id', "")
-            custom_where = [['group_start_id', int(group_start_id)]]
+        if 'reference_id' in kwargs:
+            reference_id = kwargs.get('reference_id', "")
+            custom_where = [['reference_id', reference_id]]
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping)

@@ -29,101 +29,52 @@ class DataFactory(object):
     def get_history(self, kwargs=None, custom_where=None, grouping=0):
         data_tables = datatables.DataTables()
         
-        group_by = 'group_start_id' if grouping else 'id'
-        
-        from_table = '(SELECT ' \
-                    '	/* Session info */ ' \
-                    '	(CASE ' \
-                    '		/* IF rating_key AND user are NOT EQUAL to previous row */ ' \
-                    '		WHEN t1.rating_key <> ( ' \
-                    '				SELECT rating_key FROM session_history WHERE id = ( ' \
-                    '					SELECT MAX(id) FROM session_history WHERE id < t1.id)) ' \
-                    '			AND t1.user <> ( ' \
-                    '				SELECT user FROM session_history WHERE id = ( ' \
-                    '					SELECT MAX(id) FROM session_history WHERE id < t1.id)) ' \
-                    '			/* THEN select the row */ ' \
-                    '			THEN t1.id ' \
-                    '		/* IF rating_key OR user are NOT EQUAL to previous row */ ' \
-                    '		WHEN ( ' \
-                    '				SELECT MIN(id) FROM session_history WHERE id > ( ' \
-                    '					SELECT MAX(id) FROM session_history ' \
-                    '						WHERE (rating_key <> t1.rating_key OR user <> t1.user) AND id < t1.id)) IS NULL /* First row */ ' \
-                    '			/* THEN select the first row */ ' \
-                    '			THEN (SELECT MIN(id) FROM session_history) ' \
-                    '			/* ELSE select the row where the rating key or user changed */ ' \
-                    '			ELSE (SELECT MIN(id) FROM session_history ' \
-                    '				WHERE id > (SELECT MAX(id) FROM session_history ' \
-                    '					WHERE (rating_key <> t1.rating_key OR user <> t1.user) AND id < t1.id)) ' \
-                    '		END) AS group_start_id, ' \
-                    '	t1.id, ' \
-                    '	t1.started as date, ' \
-                    '	t1.started, ' \
-                    '	t1.stopped, ' \
-                    '	(CASE WHEN t1.stopped > 0 THEN (t1.stopped - t1.started) ELSE 0 END) AS duration, ' \
-                    '	(CASE WHEN t1.paused_counter IS NULL THEN 0 ELSE t1.paused_counter END) AS paused_counter, ' \
-                    '	/* User and player info */ ' \
-                    '	t1.user_id, ' \
-                    '	t1.user, ' \
-                    '	(CASE WHEN t2.friendly_name IS NULL THEN t1.user ELSE t2.friendly_name END) as friendly_name, ' \
-                    '	t1.player, ' \
-                    '	t1.ip_address, ' \
-                    '	/* Metadata info */ ' \
-                    '	t3.media_type, ' \
-                    '	t3.rating_key, ' \
-                    '	t3.parent_rating_key, ' \
-                    '	t3.grandparent_rating_key, ' \
-                    '	t3.full_title, ' \
-                    '	t3.parent_title, ' \
-                    '	t3.year, ' \
-                    '	t3.media_index, ' \
-                    '	t3.parent_media_index, ' \
-                    '	t3.thumb, ' \
-                    '	t3.parent_thumb, ' \
-                    '	t3.grandparent_thumb, ' \
-                    '	/* Stream info */ ' \
-                    '	((CASE WHEN t1.view_offset IS NULL THEN 0.1 ELSE t1.view_offset * 1.0 END) / ' \
-                    '		(CASE WHEN t3.duration IS NULL THEN 1.0 ELSE t3.duration * 1.0 END) * 100) as percent_complete, ' \
-                    '	t4.video_decision ' \
-                    'FROM session_history AS t1 ' \
-                    '	LEFT OUTER JOIN users AS t2 ON t1.user_id = t2.user_id ' \
-                    '	JOIN session_history_metadata AS t3 ON t1.id = t3.id ' \
-                    '	JOIN session_history_media_info AS t4 ON t1.id = t4.id) '
+        group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
-        columns = ['group_start_id',
-                   'id',
-                   'date',
+        columns = ['reference_id',
+                   'session_history.id',
+                   'started AS date',
                    'MIN(started) AS started',
                    'MAX(stopped) AS stopped',
-                   'SUM(duration) - SUM(paused_counter) AS duration', 
-                   'SUM(paused_counter) AS paused_counter', 
-                   'user_id',
+                   'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - \
+		            SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration', 
+                   'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter', 
+                   'session_history.user_id',
                    'user',
-                   'friendly_name',
+                   '(CASE WHEN users.friendly_name IS NULL THEN user ELSE users.friendly_name END) as friendly_name',
                    'player',
                    'ip_address',
-                   'media_type',
-                   'rating_key',
-                   'parent_rating_key',
-                   'grandparent_rating_key',
-                   'full_title',
-                   'parent_title',
-                   'year',
-                   'media_index',
-                   'parent_media_index',
-                   'thumb',
-                   'parent_thumb',
-                   'grandparent_thumb',
-                   'percent_complete',
-                   'video_decision',
+                   'session_history_metadata.media_type',
+                   'session_history_metadata.rating_key',
+                   'session_history_metadata.parent_rating_key',
+                   'session_history_metadata.grandparent_rating_key',
+                   'session_history_metadata.full_title',
+                   'session_history_metadata.parent_title',
+                   'session_history_metadata.year',
+                   'session_history_metadata.media_index',
+                   'session_history_metadata.parent_media_index',
+                   'session_history_metadata.thumb',
+                   'session_history_metadata.parent_thumb',
+                   'session_history_metadata.grandparent_thumb',
+                   '((CASE WHEN view_offset IS NULL THEN 0.1 ELSE view_offset * 1.0 END) / \
+		            (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
+                   'session_history_media_info.video_decision',
                    'COUNT(*) AS group_count'
                    ]
         try:
-            query = data_tables.ssp_query(table_name=from_table,
+            query = data_tables.ssp_query(table_name='session_history',
                                           columns=columns,
                                           custom_where=custom_where,
-                                          group_by=[group_by],
-                                          join_types=[],
-                                          join_tables=[],
+                                          group_by=group_by,
+                                          join_types=['LEFT OUTER JOIN',
+                                                      'JOIN',
+                                                      'JOIN'],
+                                          join_tables=['users',
+                                                       'session_history_metadata',
+                                                       'session_history_media_info'],
+                                          join_evals=[['session_history.user_id', 'users.user_id'],
+                                                      ['session_history.id', 'session_history_metadata.id'],
+                                                      ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
         except:
             logger.warn("Unable to execute database query.")
@@ -144,7 +95,7 @@ class DataFactory(object):
             else:
                 thumb = item["thumb"]
 
-            row = {"group_start_id": item["group_start_id"],
+            row = {"reference_id": item["reference_id"],
                    "id": item["id"],
                    "date": item["date"],
                    "started": item["started"],

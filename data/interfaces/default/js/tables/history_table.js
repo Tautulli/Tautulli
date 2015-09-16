@@ -245,7 +245,7 @@ history_table_options = {
 
         history_table.rows().every(function () {
             var rowData = this.data();
-            if (rowData['group_count'] != 1 && rowData['group_start_id'] in history_child_table) {
+            if (rowData['group_count'] != 1 && rowData['reference_id'] in history_child_table) {
                 // if grouped row and a child table was already created
                 this.child(childTableFormat(rowData)).show();
                 createChildTable(this, rowData)
@@ -267,7 +267,7 @@ history_table_options = {
             // toggle the parent button to danger
             $(row).find('button[data-id="' + rowData['id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
             // check if any child rows are not selected
-            for (var i = rowData['group_start_id']; i <= rowData['id']; i++) {
+            for (var i = rowData['reference_id']; i <= rowData['id']; i++) {
                 var index = $.inArray(i, history_to_delete);
                 if (index == -1) {
                     // if any child row is not selected, toggle parent button to warning
@@ -277,7 +277,7 @@ history_table_options = {
             }
         }
 
-        if (rowData['group_count'] != 1 && rowData['group_start_id'] in history_child_table) {
+        if (rowData['group_count'] != 1 && rowData['reference_id'] in history_child_table) {
             // if grouped row and a child table was already created
             $(row).addClass('shown')
             history_table.row(row).child(childTableFormat(rowData)).show();
@@ -348,7 +348,7 @@ $('#history_table').on('click', '> tbody > tr > td.delete-control > button', fun
         // if grouped rows
         if ($(this).hasClass('btn-warning')) {
             // add all grouped rows to history_to_delete
-            for (var i = rowData['group_start_id']; i <= rowData['id']; i++) {
+            for (var i = rowData['reference_id']; i <= rowData['id']; i++) {
                 var index = $.inArray(i, history_to_delete);
                 if (index == -1) {
                     history_to_delete.push(i);
@@ -361,7 +361,7 @@ $('#history_table').on('click', '> tbody > tr > td.delete-control > button', fun
             }
         } else {
             // remove all grouped rows to history_to_delete
-            for (var i = rowData['group_start_id']; i <= rowData['id']; i++) {
+            for (var i = rowData['reference_id']; i <= rowData['id']; i++) {
                 var index = $.inArray(i, history_to_delete);
                 if (index != -1) {
                     history_to_delete.splice(index, 1);
@@ -386,7 +386,7 @@ $('#history_table').on('click', '> tbody > tr > td.expand-history a', function (
         $('div.slider', row.child()).slideUp(function () {
             row.child.hide();
             tr.removeClass('shown');
-            delete history_child_table[rowData['group_start_id']];
+            delete history_child_table[rowData['reference_id']];
         });
     } else {
         tr.addClass('shown');
@@ -412,7 +412,7 @@ function childTableOptions(rowData) {
             return {
                 'json_data': JSON.stringify(d),
                 'grouping': false,
-                'group_start_id': rowData['group_start_id']
+                'reference_id': rowData['reference_id']
             };
         }
     }
@@ -449,7 +449,7 @@ function childTableOptions(rowData) {
 // Format the detailed history child table
 function childTableFormat(rowData) {
     return '<div class="slider">' +
-            '<table id="history_child-' + rowData['group_start_id'] + '">' +
+            '<table id="history_child-' + rowData['reference_id'] + '">' +
             '<thead>' +
             '<tr>' +
                 '<th align="left" id="delete_row">Delete</th>' +
@@ -476,23 +476,23 @@ history_child_table = {};
 function createChildTable(row, rowData) {
     history_child_options = childTableOptions(rowData);
     // initialize the child table
-    history_child_table[rowData['group_start_id']] = $('#history_child-' + rowData['group_start_id']).DataTable(history_child_options);
+    history_child_table[rowData['reference_id']] = $('#history_child-' + rowData['reference_id']).DataTable(history_child_options);
 
     // Set child table column visibility to match parent table
     var visibility = history_table.columns().visible();
     for (var i = 0; i < visibility.length; i++) {
-        if (!(visibility[i])) { history_child_table[rowData['group_start_id']].column(i).visible(visibility[i]); }
+        if (!(visibility[i])) { history_child_table[rowData['reference_id']].column(i).visible(visibility[i]); }
     }
     history_table.on('column-visibility', function (e, settings, colIdx, visibility) {
         if (row.child.isShown()) {
-            history_child_table[rowData['group_start_id']].column(colIdx).visible(visibility);
+            history_child_table[rowData['reference_id']].column(colIdx).visible(visibility);
         }
     });
 
     // Child table platform modal
-    $('#history_child-' + rowData['group_start_id']).on('click', 'td.modal-control', function () {
+    $('#history_child-' + rowData['reference_id']).on('click', 'td.modal-control', function () {
         var tr = $(this).closest('tr');
-        var childRow = history_child_table[rowData['group_start_id']].row(tr);
+        var childRow = history_child_table[rowData['reference_id']].row(tr);
         var childRowData = childRow.data();
 
         function showStreamDetails() {
@@ -510,9 +510,9 @@ function createChildTable(row, rowData) {
     });
 
     // Child table ip address modal
-    $('#history_child-' + rowData['group_start_id']).on('click', 'td.modal-control-ip', function () {
+    $('#history_child-' + rowData['reference_id']).on('click', 'td.modal-control-ip', function () {
         var tr = $(this).closest('tr');
-        var childRow = history_child_table[rowData['group_start_id']].row(tr);
+        var childRow = history_child_table[rowData['reference_id']].row(tr);
         var childRowData = childRow.data();
 
         function getUserLocation(ip_address) {
@@ -533,9 +533,9 @@ function createChildTable(row, rowData) {
     });
 
     // Child table delete mode
-    $('#history_child-' + rowData['group_start_id']).on('click', 'td.delete-control > button', function () {
+    $('#history_child-' + rowData['reference_id']).on('click', 'td.delete-control > button', function () {
         var tr = $(this).closest('tr');
-        var childRow = history_child_table[rowData['group_start_id']].row(tr);
+        var childRow = history_child_table[rowData['reference_id']].row(tr);
         var childRowData = childRow.data();
 
         // add or remove row from history_to_delete
@@ -549,7 +549,7 @@ function createChildTable(row, rowData) {
 
         tr.parents('tr').prev().find('td.delete-control > button.btn-warning').toggleClass('btn-warning').toggleClass('btn-danger');
         // check if any child rows are not selected
-        for (var i = rowData['group_start_id']; i <= rowData['id']; i++) {
+        for (var i = rowData['reference_id']; i <= rowData['id']; i++) {
             var index = $.inArray(i, history_to_delete);
             if (index == -1) {
                 // if any child row is not selected, toggle parent button to warning
