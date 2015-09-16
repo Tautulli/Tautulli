@@ -293,6 +293,29 @@ class MonitorProcessing(object):
                 # logger.debug(u"PlexPy Monitor :: Writing session_history transaction...")
                 self.db.action(query=query, args=args)
 
+                # Check if we should group the session
+                query = 'SELECT id, rating_key, user_id, reference_id FROM session_history ORDER BY id DESC LIMIT 2 '
+                result = self.db.select(query)
+                
+                if len(result) == 2:
+                    new_session = {'id': result[0][0],
+                                   'rating_key': result[0][1],
+                                   'user_id': result[0][2],
+                                   'reference_id': result[0][3]}
+                    prev_session = {'id': result[1][0],
+                                    'rating_key': result[1][1],
+                                    'user_id': result[1][2],
+                                    'reference_id': result[1][3]}
+
+                    query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
+                    # If rating_key and user are the same in the previous session, then set the reference_id to the previous row
+                    if prev_session['rating_key'] == new_session['rating_key'] and prev_session['user_id'] == new_session['user_id']:
+                        args = [prev_session['reference_id'], new_session['id']]
+                    else:
+                        args = [new_session['id'], new_session['id']]
+
+                    self.db.action(query=query, args=args)
+                
                 # logger.debug(u"PlexPy Monitor :: Successfully written history item, last id for session_history is %s"
                 #              % last_id)
 
