@@ -576,6 +576,8 @@ class WebInterface(object):
         else:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
+        watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
+
         custom_where=[]
         if user_id:
             custom_where = [['user_id', user_id]]
@@ -598,7 +600,7 @@ class WebInterface(object):
             custom_where = [['session_history.reference_id', reference_id]]
 
         data_factory = datafactory.DataFactory()
-        history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping)
+        history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)

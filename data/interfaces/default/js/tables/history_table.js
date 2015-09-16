@@ -201,11 +201,11 @@ history_table_options = {
         },
         {
             "targets": [10],
-            "data":"percent_complete",
+            "data": "watched_status",
             "render": function (data, type, full) {
-                if (data > 80) {
+                if (data == 1) {
                     return '<span class="watched-tooltip" data-toggle="tooltip" title="Watched"><i class="fa fa-lg fa-circle"></i></span>'
-                } else if (data > 40) {
+                } else if (data == 0.5) {
                     return '<span class="watched-tooltip" data-toggle="tooltip" title="Partial"><i class="fa fa-lg fa-adjust fa-rotate-180"></i></span>'
                 } else {
                     return '<span class="watched-tooltip" data-toggle="tooltip" title="Unwatched"><i class="fa fa-lg fa-circle-o"></i></span>'

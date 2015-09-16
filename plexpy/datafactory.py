@@ -26,7 +26,7 @@ class DataFactory(object):
     def __init__(self):
         pass
 
-    def get_history(self, kwargs=None, custom_where=None, grouping=0):
+    def get_history(self, kwargs=None, custom_where=None, grouping=0, watched_percent=85):
         data_tables = datatables.DataTables()
         
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
@@ -95,6 +95,13 @@ class DataFactory(object):
             else:
                 thumb = item["thumb"]
 
+            if item['percent_complete'] >= watched_percent:
+                watched_status = 1
+            elif item['percent_complete'] >= watched_percent/2:
+                watched_status = 0.5
+            else:
+                watched_status = 0
+
             row = {"reference_id": item["reference_id"],
                    "id": item["id"],
                    "date": item["date"],
@@ -118,7 +125,7 @@ class DataFactory(object):
                    "parent_media_index": item["parent_media_index"],
                    "thumb": thumb,
                    "video_decision": item["video_decision"],
-                   "percent_complete": item["percent_complete"],
+                   "watched_status": watched_status,
                    "group_count": item["group_count"]
                    }
 
