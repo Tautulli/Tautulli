@@ -354,7 +354,7 @@ def dbcheck():
 
     # session_history table :: This is a history table which logs essential stream details
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS session_history (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'CREATE TABLE IF NOT EXISTS session_history (id INTEGER PRIMARY KEY AUTOINCREMENT, reference_id INTEGER, '
         'started INTEGER, stopped INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
         'ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, platform TEXT, machine_id TEXT, '
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, view_offset INTEGER DEFAULT 0)'
@@ -602,6 +602,25 @@ def dbcheck():
     if not result.fetchone():
         logger.debug(u'User "Local" does not exist. Adding user.')
         c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
+
+    # Upgrade session_history table from earlier versions
+    try:
+        c_db.execute('SELECT reference_id from session_history')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history.")
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN reference_id INTEGER DEFAULT 0'
+        )
+        # SET reference_id to the first row where (rating_key != previous row OR user != previous row)
+        c_db.execute(
+            'UPDATE session_history ' \
+            'SET reference_id = (SELECT (CASE WHEN (SELECT MIN(id) FROM session_history WHERE id > ( \
+             SELECT MAX(id) FROM session_history WHERE (rating_key <> t1.rating_key OR user <> t1.user) AND id < t1.id)) IS NULL \
+			 THEN (SELECT MIN(id) FROM session_history) ELSE (SELECT MIN(id) FROM session_history WHERE id > ( \
+             SELECT MAX(id) FROM session_history WHERE (rating_key <> t1.rating_key OR user <> t1.user) AND id < t1.id)) END) ' \
+			'FROM session_history AS t1 ' \
+			'WHERE t1.id = session_history.id) '
+        )
 
     conn_db.commit()
     c_db.close()
