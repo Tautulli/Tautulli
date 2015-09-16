@@ -34,14 +34,15 @@ available_notification_agents = notifiers.available_notification_agents()
         <div class="col-md-4">
             <ul class="nav-settings list-unstyled" role="tablist">
                 <li role="presentation" class="active"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">General</a></li>
-                <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Web Interface</a></li>
-                <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Access Control</a></li>
-                <li role="presentation"><a href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Plex Media Server</a></li>
-                <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Plex.tv Account</a></li>
-                <li role="presentation"><a href="#tabs-6" aria-controls="tabs-6" role="tab" data-toggle="tab">Extra Settings</a></li>
-                <li role="presentation"><a href="#tabs-7" aria-controls="tabs-7" role="tab" data-toggle="tab">Monitoring</a></li>
-                <li role="presentation"><a href="#tabs-8" aria-controls="tabs-8" role="tab" data-toggle="tab">Notifications</a></li>
-                <li role="presentation"><a href="#tabs-9" aria-controls="tabs-9" role="tab" data-toggle="tab">Notification Agents</a></li>
+                <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Homepage</a></li>
+                <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Web Interface</a></li>
+                <li role="presentation"><a href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Access Control</a></li>
+                <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Plex Media Server</a></li>
+                <li role="presentation"><a href="#tabs-6" aria-controls="tabs-6" role="tab" data-toggle="tab">Plex.tv Account</a></li>
+                <li role="presentation"><a href="#tabs-7" aria-controls="tabs-7" role="tab" data-toggle="tab">Extra Settings</a></li>
+                <li role="presentation"><a href="#tabs-8" aria-controls="tabs-8" role="tab" data-toggle="tab">Monitoring</a></li>
+                <li role="presentation"><a href="#tabs-9" aria-controls="tabs-9" role="tab" data-toggle="tab">Notifications</a></li>
+                <li role="presentation"><a href="#tabs-10" aria-controls="tabs-10" role="tab" data-toggle="tab">Notification Agents</a></li>
             </ul>
         </div>
         <div class="col-md-8">
@@ -83,6 +84,15 @@ available_notification_agents = notifiers.available_notification_agents()
                             </div>
                             <p class="help-block">Set your preferred time format. <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group table history
+                            </label>
+                            <p class="help-block">Group successive play history as a single entry in tables.</p>
+                        </div>
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-2">
                         <div class="padded-header">
                             <h3>Homepage Statistics</h3>
                         </div>
@@ -115,7 +125,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         </div>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-2">
+                    <div role="tabpanel" class="tab-pane" id="tabs-3">
                         <div class="padded-header">
                             <h3>Web Interface</h3>
                         </div>
@@ -164,7 +174,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-3">
+                    <div role="tabpanel" class="tab-pane" id="tabs-4">
 
                         <div class="padded-header">
                             <h3>Authentication</h3>
@@ -216,7 +226,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-4">
+                    <div role="tabpanel" class="tab-pane" id="tabs-5">
 
                         <div class="padded-header">
                             <h3>Plex Media Server</h3>
@@ -272,7 +282,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
 
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-5">
+                    <div role="tabpanel" class="tab-pane" id="tabs-6">
 
                         <div class="padded-header">
                             <h3>Plex.tv Authentication</h3>
@@ -315,7 +325,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-6">
+                    <div role="tabpanel" class="tab-pane" id="tabs-7">
                         <div class="padded-header">
                             <h3>Extra Settings</h3>
                         </div>
@@ -334,7 +344,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-7">
+                    <div role="tabpanel" class="tab-pane" id="tabs-8">
 
                         <div class="padded-header">
                             <h3>Monitoring Settings</h3>
@@ -416,7 +426,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-8">
+                    <div role="tabpanel" class="tab-pane" id="tabs-9">
 
                         <div class="padded-header">
                             <h3>Global Notification Toggles</h3>
@@ -566,7 +576,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-9">
+                    <div role="tabpanel" class="tab-pane" id="tabs-10">
 
                         <div class="padded-header">
                             <h3>Notification Agents</h3>

@@ -464,7 +464,8 @@ class WebInterface(object):
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
-            "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
+            "buffer_wait": plexpy.CONFIG.BUFFER_WAIT,
+            "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)
@@ -485,7 +486,8 @@ class WebInterface(object):
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
-            "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type"
+            "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type",
+            "group_history_tables"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:

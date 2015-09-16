@@ -73,6 +73,7 @@ _CONFIG_DEFINITIONS = {
     'GIT_BRANCH': (str, 'General', 'master'),
     'GIT_PATH': (str, 'General', ''),
     'GIT_USER': (str, 'General', 'drzoidberg33'),
+    'GROUP_HISTORY_TABLES': (int, 'General', 0),
     'GROWL_ENABLED': (int, 'Growl', 0),
     'GROWL_HOST': (str, 'Growl', ''),
     'GROWL_PASSWORD': (str, 'Growl', ''),
