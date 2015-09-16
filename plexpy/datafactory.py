@@ -31,7 +31,7 @@ class DataFactory(object):
         
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
-        columns = ['reference_id',
+        columns = ['session_history.reference_id',
                    'session_history.id',
                    'started AS date',
                    'MIN(started) AS started',
