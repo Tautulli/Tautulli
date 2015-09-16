@@ -569,7 +569,12 @@ class WebInterface(object):
                               message=message, timer=timer, quote=quote)
 
     @cherrypy.expose
-    def get_history(self, user=None, user_id=None, **kwargs):
+    def get_history(self, user=None, user_id=None, grouping=0, **kwargs):
+
+        if grouping == 'false':
+            grouping = 0
+        else:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
         custom_where=[]
         if user_id:
@@ -588,9 +593,12 @@ class WebInterface(object):
         if 'start_date' in kwargs:
             start_date = kwargs.get('start_date', "")
             custom_where = [['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date]]
+        if 'group_start_id' in kwargs:
+            group_start_id = kwargs.get('group_start_id', "")
+            custom_where = [['group_start_id', int(group_start_id)]]
 
         data_factory = datafactory.DataFactory()
-        history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where)
+        history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)
