@@ -119,6 +119,8 @@ DOCUMENTATION :: END
                     % if a['type'] == 'track':
                         % if a['audio_decision'] == 'direct play':
                         Stream &nbsp;<strong>Direct Play</strong>
+                        % elif a['audio_decision'] == 'copy':
+                        Stream &nbsp;<strong>Direct Stream</strong>
                         % else:
                         Stream &nbsp;<strong>Transcoding
                             (Speed: ${a['transcode_speed']})
@@ -136,8 +138,10 @@ DOCUMENTATION :: END
                         Audio &nbsp;<strong>Transcode (${a['transcode_audio_codec']}) (${a['transcode_audio_channels']}ch)</strong>
                         % endif
                     % elif a['type'] == 'episode' or a['type'] == 'movie' or a['type'] == 'clip':
-                        % if a['video_decision'] == 'direct play':
+                        % if a['video_decision'] == 'direct play' and a['audio_decision'] == 'direct play':
                         Stream &nbsp;<strong>Direct Play</strong>
+                        % elif a['video_decision'] == 'copy' and a['audio_decision'] == 'copy':
+                        Stream &nbsp;<strong>Direct Stream</strong>
                         % else:
                         Stream &nbsp;<strong>Transcoding
                             (Speed: ${a['transcode_speed']})
@@ -165,6 +169,8 @@ DOCUMENTATION :: END
                     % elif a['type'] == 'photo':
                         % if a['video_decision'] == 'direct play':
                         Stream &nbsp;<strong>Direct Play</strong>
+                        % elif a['video_decision'] == 'copy':
+                        Stream &nbsp;<strong>Direct Stream</strong>
                         % else:
                         Stream &nbsp;<strong>
                             Transcoding
