@@ -294,6 +294,8 @@
             $('a[data-toggle=tab][href=' + current_tab + ']').trigger('click');
         }
 
+        var music_visible = (${config['music_logging_enable']} == 1 ? true : false);
+
         function loadGraphsTab1(time_range, yaxis) {
             setGraphFormat(yaxis);
 
@@ -319,6 +321,7 @@
                     hc_plays_by_day_options.yAxis.min = 0;
                     hc_plays_by_day_options.xAxis.categories = dateArray;
                     hc_plays_by_day_options.series = data.series;
+                    hc_plays_by_day_options.series[2].visible = music_visible;
                     var hc_plays_by_day = new Highcharts.Chart(hc_plays_by_day_options);
                 }
             });
@@ -331,6 +334,7 @@
                 success: function(data) {
                     hc_plays_by_dayofweek_options.xAxis.categories = data.categories;
                     hc_plays_by_dayofweek_options.series = data.series;
+                    hc_plays_by_dayofweek_options.series[2].visible = music_visible;
                     var hc_plays_by_dayofweek = new Highcharts.Chart(hc_plays_by_dayofweek_options);
                 }
             });
@@ -343,6 +347,7 @@
                 success: function(data) {
                     hc_plays_by_hourofday_options.xAxis.categories = data.categories;
                     hc_plays_by_hourofday_options.series = data.series;
+                    hc_plays_by_hourofday_options.series[2].visible = music_visible;
                     var hc_plays_by_hourofday = new Highcharts.Chart(hc_plays_by_hourofday_options);
                 }
             });
@@ -355,6 +360,7 @@
                 success: function(data) {
                     hc_plays_by_platform_options.xAxis.categories = data.categories;
                     hc_plays_by_platform_options.series = data.series;
+                    hc_plays_by_platform_options.series[2].visible = music_visible;
                     var hc_plays_by_platform = new Highcharts.Chart(hc_plays_by_platform_options);
                 }
             });
@@ -367,6 +373,7 @@
                 success: function(data) {
                     hc_plays_by_user_options.xAxis.categories = data.categories;
                     hc_plays_by_user_options.series = data.series;
+                    hc_plays_by_user_options.series[2].visible = music_visible;
                     var hc_plays_by_user = new Highcharts.Chart(hc_plays_by_user_options);
                 }
             });
@@ -462,6 +469,7 @@
                     hc_plays_by_month_options.yAxis.min = 0;
                     hc_plays_by_month_options.xAxis.categories = data.categories;
                     hc_plays_by_month_options.series = data.series;
+                    hc_plays_by_month_options.series[2].visible = music_visible;
                     var hc_plays_by_month = new Highcharts.Chart(hc_plays_by_month_options);
                 }
             });

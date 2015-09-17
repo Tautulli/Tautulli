@@ -131,7 +131,7 @@ class DataFactory(object):
 
         return dict
 
-    def get_home_stats(self, time_range='30', stat_type='0', stat_count='5'):
+    def get_home_stats(self, time_range='30', stat_type='0', stat_count='5', notify_watched_percent='85'):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
@@ -432,7 +432,11 @@ class DataFactory(object):
                             'session_history_metadata.thumb, ' \
                             'session_history_metadata.grandparent_thumb, ' \
                             'MAX(session_history.started) as last_watch, ' \
-                            'session_history.player as platform ' \
+                            'session_history.player as platform, ' \
+                            '((CASE WHEN session_history.view_offset IS NULL THEN 0.1 ELSE \
+                             session_history.view_offset * 1.0 END) / \
+                             (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 ELSE \
+                             session_history_metadata.duration * 1.0 END) * 100) as percent_complete ' \
                             'FROM session_history_metadata ' \
                             'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                             'LEFT OUTER JOIN users ON session_history.user_id = users.user_id ' \
@@ -440,9 +444,10 @@ class DataFactory(object):
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND (session_history_metadata.media_type = "movie" ' \
                             'OR session_history_metadata.media_type = "episode") ' \
+                            'AND percent_complete >= %s ' \
                             'GROUP BY session_history_metadata.full_title ' \
                             'ORDER BY last_watch DESC ' \
-                            'LIMIT %s' % (time_range, stat_count)
+                            'LIMIT %s' % (time_range, notify_watched_percent, stat_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
