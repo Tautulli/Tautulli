@@ -17,11 +17,16 @@ import os
 import sys
 import subprocess
 import threading
-import webbrowser
 import sqlite3
 import cherrypy
 import datetime
 import uuid
+# Some cut down versions of Python may not include this module and it's not critical for us
+try:
+    import webbrowser
+    no_browser = False
+except ImportError:
+    no_browser = True
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -228,18 +233,19 @@ def daemonize():
 
 
 def launch_browser(host, port, root):
-    if host == '0.0.0.0':
-        host = 'localhost'
+    if not no_browser:
+        if host == '0.0.0.0':
+            host = 'localhost'
 
-    if CONFIG.ENABLE_HTTPS:
-        protocol = 'https'
-    else:
-        protocol = 'http'
+        if CONFIG.ENABLE_HTTPS:
+            protocol = 'https'
+        else:
+            protocol = 'http'
 
-    try:
-        webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
-    except Exception as e:
-        logger.error('Could not launch browser: %s', e)
+        try:
+            webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
+        except Exception as e:
+            logger.error('Could not launch browser: %s', e)
 
 
 def initialize_scheduler():
