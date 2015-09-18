@@ -9,9 +9,9 @@
             <div class="container-fluid">
                 <div class="row">
                     <form action="set_notification_config" method="post" class="form" id="set_notification_config" data-parsley-validate>
-                    <div class="col-md-6">
+                    <div class="col-md-8">
                     % for item in data:
-                        % if item['input_type'] != 'checkbox':
+                        % if item['input_type'] == 'text' or item['input_type'] == 'number' or item['input_type'] == 'password':
                         <div class="form-group">
                             <label for="${item['name']}">${item['label']}</label>
                             <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30">
@@ -20,6 +20,11 @@
                             % endif
                             <p class="help-block">${item['description']}</p>
                         </div>
+                        % elif item['input_type'] == 'button':
+                        <div class="form-group">
+                            <input type="${item['input_type']}" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
+                        </div>
+                        <p class="help-block">${item['description']}</p>
                         % elif item['input_type'] == 'checkbox':
                         <div class="checkbox">
                             <label>
@@ -35,7 +40,14 @@
             </div>
         </div>
         <div class="modal-footer">
-            <input type="button" id="save-notification-item" class="btn btn-bright" value="Save">
+            <%
+                nosave = any(d['input_type'] == 'nosave' for d in data)
+            %>
+            % if not nosave:
+                <input type="button" id="save-notification-item" class="btn btn-bright" value="Save">
+            % else:
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
+            % endif
         </div>
     </div>
 </div>
@@ -52,5 +64,21 @@
     $('#save-notification-item').click(function() {
         doAjaxCall('set_notification_config',$(this),'tabs',true);
         return false;
+    });
+
+    $('#twitterStep1').click(function () {
+        $.get("/twitterStep1", function (data) {window.open(data); })
+        .done(function () { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>Confirm Authorization. Check pop-up blocker if no response.</div>"); });
+        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
+    });
+    $('#twitterStep2').click(function () {
+        var twitter_key = $("#twitter_key").val();
+        $.get("/twitterStep2", {'key': twitter_key}, function (data) { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>"+data+"</div>"); });
+        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
+    });
+    $('#testTwitter').click(function () {
+        $.get("/testTwitter",
+            function (data) { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>"+data+"</div>"); });
+        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
     });
 </script>
