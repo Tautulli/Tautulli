@@ -33,6 +33,33 @@ select.input-sm {
     color: #999;
     outline: none;
 }
+select[multiple] {
+    height: 125px;
+    margin: 5px 0 5px 0;
+    color: #fff;
+    border: 0px solid #444;
+    background: #555;
+    padding: 2px 2px;
+    background-color: #555;
+    border-radius: 3px;
+    transition: background-color .3s;
+}
+select[multiple]:focus {
+    outline: 0;
+    outline: thin dotted \9;
+    color: #555;
+    background-color: #fff;
+    transition: background-color .3s;
+}
+select[multiple]:focus::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,.15);
+}
+select[multiple] option {
+    padding: 6px 10px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+}
 img {
     -webkit-box-sizing: content-box;
     -moz-box-sizing: content-box;

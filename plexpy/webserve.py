@@ -66,10 +66,9 @@ class WebInterface(object):
     def home(self):
         config = {
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
-            "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE,
-            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
-            "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
+            "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
+            "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 
@@ -122,11 +121,19 @@ class WebInterface(object):
         return json.dumps(formats)
 
     @cherrypy.expose
-    def home_stats(self, time_range='30', stat_type='0', stat_count='5', notify_watched_percent='85', **kwargs):
+    def home_stats(self, **kwargs):
         data_factory = datafactory.DataFactory()
+
+        time_range = plexpy.CONFIG.HOME_STATS_LENGTH
+        stats_type = plexpy.CONFIG.HOME_STATS_TYPE
+        stats_count = plexpy.CONFIG.HOME_STATS_COUNT
+        stats_cards = plexpy.CONFIG.HOME_STATS_CARDS.split(', ')
+        notify_watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
+
         stats_data = data_factory.get_home_stats(time_range=time_range,
-                                                 stat_type=stat_type,
-                                                 stat_count=stat_count,
+                                                 stats_type=stats_type,
+                                                 stats_count=stats_count,
+                                                 stats_cards=stats_cards,
                                                  notify_watched_percent=notify_watched_percent)
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
@@ -134,7 +141,21 @@ class WebInterface(object):
     @cherrypy.expose
     def library_stats(self, **kwargs):
         pms_connect = pmsconnect.PmsConnect()
-        stats_data = pms_connect.get_library_stats()
+
+        library_cards = plexpy.CONFIG.HOME_LIBRARY_CARDS.split(', ')
+
+        if library_cards == ['library_statistics_first']:
+            library_cards = ['library_statistics']
+            server_children = pms_connect.get_server_children()
+            server_libraries = server_children['libraries_list']
+
+            for library in server_libraries:
+                library_cards.append(library['key'])
+
+            plexpy.CONFIG.HOME_LIBRARY_CARDS = ', '.join(library_cards)
+            plexpy.CONFIG.write()
+
+        stats_data = pms_connect.get_library_stats(library_cards=library_cards)
 
         return serve_template(templatename="library_stats.html", title="Library Stats", data=stats_data)
 
@@ -472,6 +493,8 @@ class WebInterface(object):
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
+            "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
+            "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
         }
@@ -523,6 +546,14 @@ class WebInterface(object):
         if 'pms_ip' in kwargs:
             if kwargs['pms_ip'] != plexpy.CONFIG.PMS_IP:
                 refresh_users = True
+
+        if 'home_stats_cards' in kwargs:
+            if kwargs['home_stats_cards'] != 'watch_statistics':
+                kwargs['home_stats_cards'] = ', '.join(kwargs['home_stats_cards'])
+
+        if 'home_library_cards' in kwargs:
+            if kwargs['home_library_cards'] != 'library_statistics':
+                kwargs['home_library_cards'] = ', '.join(kwargs['home_library_cards'])
 
         plexpy.CONFIG.process_kwargs(kwargs)
 
@@ -1118,6 +1149,18 @@ class WebInterface(object):
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_server_children(self, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_server_children()
+            
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
         else:
             logger.warn('Unable to retrieve data.')
 

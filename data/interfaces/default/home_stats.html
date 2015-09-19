@@ -17,19 +17,19 @@ data[array_index]['rows'] :: Usable parameters
 
 row_id                  Return the db row id for a metadata item if one exists
 
-== Only if 'stat_id' is 'top_tv' or 'popular_tv' or 'top_movies' or 'popular_movies' or 'last_watched' ==
+== Only if 'stat_id' is 'top_tv' or 'popular_tv' or 'top_movies' or 'popular_movies' or 'top_music' or 'popular_music' or 'last_watched' ==
 thumb                   Return the thumb for the media item.
 
-== Only if 'stat_id' is 'top_tv' or 'popular_tv' ==
+== Only if 'stat_id' is 'top_tv' or 'popular_tv' or 'top_music' or 'popular_music' ==
 grandparent_thumb       Returns location of the item's thumbnail. Use with pms_image_proxy.
 rating_key              Returns the unique identifier for the media item.
 title                   Returns the title for the associated stat.
 
-== Only if 'stat_id' is 'top_tv' or 'top_movies' or 'top_user' or 'top_platform' ==
+== Only if 'stat_id' is 'top_tv' or 'top_movies' or 'top_music' or 'top_user' or 'top_platform' ==
 total_plays             Returns the count for the associated stat.
 total_duration          Returns the total duration for the associated stat.
 
-== Only of 'stat_id' is 'popular_tv' or 'popular_movies' ==
+== Only of 'stat_id' is 'popular_tv' or 'popular_movies' or 'popular_music' ==
 users_watched           Returns the count for the associated stat.
 
 == Only if 'stat_id' is 'top_user' or 'last_watched' ==
@@ -353,6 +353,158 @@ DOCUMENTATION :: END
                                 % if top_stat['rows'][loop.index]['thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['thumb']}&width=300&height=450&fallback=poster);"></div>
+                                </div>
+                                % else:
+                                <div class="home-platforms-instance-poster2">
+                                    <div class="home-platforms-list-poster-face" style="background-image: url(interfaces/default/images/poster.png);"></div>
+                                </div>
+                                % endif
+                            </a>
+                            <div class="home-platforms-instance-list-number">
+                                <h4>${loop.index + 1}</h4>
+                            </div>
+                        </li>
+                        % endif
+                        % endfor
+                    </div>
+                </div>
+            </ul>
+            % endif
+        </li>
+    </div>
+    % elif top_stat['stat_id'] == 'top_music' and top_stat['rows']:
+    <div class="home-platforms-instance">
+        <li>
+            <div class="home-platforms-instance-info">
+                <div class="home-platforms-instance-name">
+                    <h4>Most Listened to Artist</h4>
+                </div>
+                <div class="home-platforms-instance-playcount">
+                    <h4>
+                        <a href="info?item_id=${top_stat['rows'][0]['rating_key']}">
+                            ${top_stat['rows'][0]['title']}
+                        </a>
+                    </h4>
+                    % if top_stat['stat_type'] == 'total_plays':
+                    <h3>${top_stat['rows'][0]['total_plays']}</h3>
+                    <p> plays</p>
+                    % else:
+                    ${top_stat['rows'][0]['total_duration'] | hd}
+                    % endif
+                </div>
+            </div>
+            <a href="info?item_id=${top_stat['rows'][0]['rating_key']}">
+                % if top_stat['rows'][0]['grandparent_thumb']:
+                <div class="home-platforms-instance-poster">
+                    <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
+                </div>
+                % else:
+                <div class="home-platforms-instance-poster">
+                    <div class="home-platforms-poster-face" style="background-image: url(interfaces/default/images/poster.png);"></div>
+                </div>
+                % endif
+            </a>
+            %if len(top_stat['rows']) > 1:
+            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
+            <ul class="list-unstyled">
+                <div class="slider">
+                    <div class="home-platforms-instance-list">
+                        % for row in top_stat['rows']:
+                        %if loop.index > 0:
+                        <li>
+                            <div class="home-platforms-instance-list-info">
+                                <div class="home-platforms-instance-list-name">
+                                    <h5>
+                                        <a href="info?item_id=${top_stat['rows'][loop.index]['rating_key']}">
+                                            ${top_stat['rows'][loop.index]['title']}
+                                        </a>
+                                    </h5>
+                                </div>
+                                <div class="home-platforms-instance-list-playcount">
+                                    % if top_stat['stat_type'] == 'total_plays':
+                                    <h3>${top_stat['rows'][loop.index]['total_plays']}</h3>
+                                    <p> plays</p>
+                                    % else:
+                                    ${top_stat['rows'][loop.index]['total_duration'] | hd}
+                                    % endif
+                                </div>
+                            </div>
+                            <a href="info?item_id=${top_stat['rows'][loop.index]['rating_key']}">
+                                % if top_stat['rows'][loop.index]['grandparent_thumb']:
+                                <div class="home-platforms-instance-list-poster">
+                                    <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
+                                </div>
+                                % else:
+                                <div class="home-platforms-instance-poster2">
+                                    <div class="home-platforms-list-poster-face" style="background-image: url(interfaces/default/images/poster.png);"></div>
+                                </div>
+                                % endif
+                            </a>
+                            <div class="home-platforms-instance-list-number">
+                                <h4>${loop.index + 1}</h4>
+                            </div>
+                        </li>
+                        % endif
+                        % endfor
+                    </div>
+                </div>
+            </ul>
+            % endif
+        </li>
+    </div>
+    % elif top_stat['stat_id'] == 'popular_music' and top_stat['rows']:
+    <div class="home-platforms-instance">
+        <li>
+            <div class="home-platforms-instance-info">
+                <div class="home-platforms-instance-name">
+                    <h4>Most Popular Artist</h4>
+                </div>
+                <div class="home-platforms-instance-playcount">
+                    <h4>
+                        <a href="info?item_id=${top_stat['rows'][0]['rating_key']}">
+                            ${top_stat['rows'][0]['title']}
+                        </a>
+                    </h4>
+                    <h3>${top_stat['rows'][0]['users_watched']}</h3>
+                    <p> users</p>
+                </div>
+            </div>
+            <a href="info?item_id=${top_stat['rows'][0]['rating_key']}">
+                % if top_stat['rows'][0]['grandparent_thumb'] != '':
+                <div class="home-platforms-instance-poster">
+                    <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
+                </div>
+                % else:
+                <div class="home-platforms-instance-poster">
+                    <div class="home-platforms-poster-face" style="background-image: url(interfaces/default/images/poster.png);"></div>
+                </div>
+                % endif
+            </a>
+            %if len(top_stat['rows']) > 1:
+            <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
+            <ul class="list-unstyled">
+                <div class="slider">
+                    <div class="home-platforms-instance-list">
+                        % for row in top_stat['rows']:
+                        %if loop.index > 0:
+                        <li>
+                            <div class="home-platforms-instance-list-info">
+                                <div class="home-platforms-instance-list-name">
+                                    <h5>
+                                        <a href="info?item_id=${top_stat['rows'][loop.index]['rating_key']}">
+                                            ${top_stat['rows'][loop.index]['title']}
+                                        </a>
+                                    </h5>
+                                </div>
+                                <div class="home-platforms-instance-list-playcount">
+                                    <h3>${top_stat['rows'][loop.index]['users_watched']}</h3>
+                                    <p> users</p>
+                                </div>
+                            </div>
+                            <a href="info?item_id=${top_stat['rows'][loop.index]['rating_key']}">
+                                % if top_stat['rows'][loop.index]['grandparent_thumb']:
+                                <div class="home-platforms-instance-list-poster">
+                                    <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
                                 </div>
                                 % else:
                                 <div class="home-platforms-instance-poster2">
