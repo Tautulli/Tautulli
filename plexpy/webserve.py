@@ -472,6 +472,7 @@ class WebInterface(object):
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
+            "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
         }
@@ -523,6 +524,10 @@ class WebInterface(object):
         if 'pms_ip' in kwargs:
             if kwargs['pms_ip'] != plexpy.CONFIG.PMS_IP:
                 refresh_users = True
+
+        if 'home_stats_cards' in kwargs:
+            if kwargs['home_stats_cards'] != 'watch_statistics':
+                kwargs['home_stats_cards'] = ', '.join(kwargs['home_stats_cards'])
 
         plexpy.CONFIG.process_kwargs(kwargs)
 
