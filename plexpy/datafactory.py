@@ -136,10 +136,9 @@ class DataFactory(object):
 
         sort_type = 'total_plays' if stats_type == '0' else 'total_duration'
 
-        stats_queries = stats_cards.split(', ')
         home_stats = []
 
-        for stat in stats_queries:
+        for stat in stats_cards:
             if 'top_tv' in stat:
                 top_tv = []
                 try:

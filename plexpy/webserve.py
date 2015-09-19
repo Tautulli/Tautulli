@@ -127,7 +127,7 @@ class WebInterface(object):
         time_range = plexpy.CONFIG.HOME_STATS_LENGTH
         stats_type = plexpy.CONFIG.HOME_STATS_TYPE
         stats_count = plexpy.CONFIG.HOME_STATS_COUNT
-        stats_cards = plexpy.CONFIG.HOME_STATS_CARDS
+        stats_cards = plexpy.CONFIG.HOME_STATS_CARDS.split(', ')
         notify_watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
 
         stats_data = data_factory.get_home_stats(time_range=time_range,
@@ -142,7 +142,18 @@ class WebInterface(object):
     def library_stats(self, **kwargs):
         pms_connect = pmsconnect.PmsConnect()
 
-        library_cards = plexpy.CONFIG.HOME_LIBRARY_CARDS
+        library_cards = plexpy.CONFIG.HOME_LIBRARY_CARDS.split(', ')
+
+        if library_cards == ['library_statistics_first']:
+            library_cards = ['library_statistics']
+            server_children = pms_connect.get_server_children()
+            server_libraries = server_children['libraries_list']
+
+            for library in server_libraries:
+                library_cards.append(library['key'])
+
+            plexpy.CONFIG.HOME_LIBRARY_CARDS = ', '.join(library_cards)
+            plexpy.CONFIG.write()
 
         stats_data = pms_connect.get_library_stats(library_cards=library_cards)
 

@@ -1277,8 +1277,6 @@ class PmsConnect(object):
     def get_library_stats(self, library_cards=''):
         server_libraries = self.get_server_children()
 
-        library_keys = library_cards.split(', ')
-
         server_library_stats = []
 
         if server_libraries['libraries_count'] != '0':
@@ -1287,7 +1285,7 @@ class PmsConnect(object):
             for library in libraries_list:
                 library_type = library['type']
                 section_key = library['key']
-                if section_key in library_keys:
+                if section_key in library_cards:
                     library_list = self.get_library_children(library_type, section_key)
                 else:
                     continue
