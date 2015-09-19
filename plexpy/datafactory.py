@@ -131,10 +131,10 @@ class DataFactory(object):
 
         return dict
 
-    def get_home_stats(self, time_range='30', stats_type='0', stats_count='5', stats_cards='', notify_watched_percent='85'):
+    def get_home_stats(self, time_range='30', stats_type=0, stats_count='5', stats_cards='', notify_watched_percent='85'):
         monitor_db = database.MonitorDatabase()
 
-        sort_type = 'total_plays' if stats_type == '0' else 'total_duration'
+        sort_type = 'total_plays' if stats_type == 0 else 'total_duration'
 
         home_stats = []
 
