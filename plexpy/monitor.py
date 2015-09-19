@@ -241,7 +241,7 @@ class MonitorProcessing(object):
 
             if is_import:
                 if str(session['stopped']).isdigit():
-                    stopped = session['stopped']
+                    stopped = int(session['stopped'])
                 else:
                     stopped = int(time.time())
             else:
@@ -257,21 +257,25 @@ class MonitorProcessing(object):
                 logger.debug(u"PlexPy Monitor :: ratingKey %s not logged. Does not meet logging criteria. "
                              u"Media type is '%s'" % (session['rating_key'], session['media_type']))
 
+            if str(session['paused_counter']).isdigit():
+                real_play_time = stopped - session['started'] - int(session['paused_counter'])
+            else:
+                real_play_time = stopped - session['started']
+
             if plexpy.CONFIG.LOGGING_IGNORE_INTERVAL and not is_import:
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
-                        (int(stopped) - session['started'] < int(plexpy.CONFIG.LOGGING_IGNORE_INTERVAL)):
+                        (real_play_time < int(plexpy.CONFIG.LOGGING_IGNORE_INTERVAL)):
                     logging_enabled = False
                     logger.debug(u"PlexPy Monitor :: Play duration for ratingKey %s is %s secs which is less than %s "
                                  u"seconds, so we're not logging it." %
-                                 (session['rating_key'], str(int(stopped) - session['started']),
-                                  plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
+                                 (session['rating_key'], str(real_play_time), plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
             elif is_import and import_ignore_interval:
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
-                        (int(stopped) - session['started'] < int(import_ignore_interval)):
+                        (real_play_time < int(import_ignore_interval)):
                     logging_enabled = False
                     logger.debug(u"PlexPy Monitor :: Play duration for ratingKey %s is %s secs which is less than %s "
                                  u"seconds, so we're not logging it." %
-                                 (session['rating_key'], str(int(stopped) - session['started']),
+                                 (session['rating_key'], str(real_play_time),
                                   import_ignore_interval))
 
             if not user_details['keep_history'] and not is_import:
