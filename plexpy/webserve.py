@@ -1146,14 +1146,6 @@ class WebInterface(object):
 
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_server_children()
-        
-        if plexpy.CONFIG.HOME_LIBRARY_CARDS == '':
-            library_keys = ['library_statistics']
-            for library in result['libraries_list']:
-                library_keys.append(library['key'])
-
-            plexpy.CONFIG.HOME_LIBRARY_CARDS = ', '.join(library_keys)
-            plexpy.CONFIG.write()
             
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
