@@ -1,3 +1,6 @@
+<%!
+from plexpy import helpers
+%>
 % if data:
 <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -28,9 +31,10 @@
                         % elif item['input_type'] == 'checkbox':
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="${item['name']}" name="${item['name']}" value="1" ${item['value']}> ${item['label']}
+                                <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${helpers.checked(item['value'])}> ${item['label']}
                             </label>
                             <p class="help-block">${item['description']}</p>
+                            <input type="hidden" id="${item['name']}" name="${item['name']}" value="${item['value']}">
                         </div>
                         % endif
                     % endfor
@@ -80,5 +84,15 @@
         $.get("/testTwitter",
             function (data) { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>"+data+"</div>"); });
         $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
+    });
+
+    // Never send checkbox values directly, always substitute value in hidden input.
+    $('.checkboxes').click(function() {
+        var configToggle = $(this).data('id');
+        if ($(this).is(":checked")) {
+            $("#"+configToggle).val(1);
+        } else {
+            $("#"+configToggle).val(0);
+        }
     });
 </script>

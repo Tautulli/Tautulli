@@ -1243,7 +1243,7 @@ class Email(object):
                           'input_type': 'password'
                           },
                          {'label': 'TLS',
-                          'value': checked(plexpy.CONFIG.EMAIL_TLS),
+                          'value': plexpy.CONFIG.EMAIL_TLS,
                           'name': 'email_tls',
                           'description': 'Does the server use encryption.',
                           'input_type': 'checkbox'
