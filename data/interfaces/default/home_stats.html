@@ -697,9 +697,9 @@ DOCUMENTATION :: END
                     </h4>
                     <h5>
                         % if top_stat['rows'][0]['user_id']:
-                        <a href="user?user_id=${top_stat['rows'][0]['user_id']}">
+                        <a href="user?user_id=${top_stat['rows'][0]['user_id']}" title="${top_stat['rows'][0]['friendly_name']}">
                         % else:
-                        <a href="user?user=${top_stat['rows'][0]['user']}">
+                        <a href="user?user=${top_stat['rows'][0]['user']}" title="${top_stat['rows'][0]['friendly_name']}">
                             % endif
                             ${top_stat['rows'][0]['friendly_name']}
                         </a>
@@ -743,9 +743,9 @@ DOCUMENTATION :: END
                                 <div class="home-platforms-instance-list-last-user">
                                     <h5>
                                         % if top_stat['rows'][loop.index]['user_id']:
-                                        <a href="user?user_id=${top_stat['rows'][loop.index]['user_id']}">
+                                        <a href="user?user_id=${top_stat['rows'][loop.index]['user_id']}" title="${top_stat['rows'][loop.index]['friendly_name']}">
                                             % else:
-                                        <a href="user?user=${top_stat['rows'][loop.index]['user']}">
+                                        <a href="user?user=${top_stat['rows'][loop.index]['user']}" title="${top_stat['rows'][loop.index]['friendly_name']}">
                                             % endif
                                             ${top_stat['rows'][loop.index]['friendly_name']}
                                         </a>
