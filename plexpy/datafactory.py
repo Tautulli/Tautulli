@@ -324,6 +324,98 @@ class DataFactory(object):
                 home_stats.append({'stat_id': stat,
                                    'rows': popular_movies})
 
+            elif 'top_music' in stat:
+                top_music = []
+                try:
+                    query = 'SELECT session_history_metadata.id, ' \
+                            'session_history_metadata.grandparent_title, ' \
+                            'COUNT(session_history_metadata.grandparent_title) as total_plays, ' \
+                            'SUM(case when session_history.stopped > 0 ' \
+                            'then (session_history.stopped - session_history.started) ' \
+                            ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) ' \
+                            'else 0 end) as total_duration, ' \
+                            'session_history_metadata.grandparent_rating_key, ' \
+                            'MAX(session_history.started) as last_watch,' \
+                            'session_history_metadata.grandparent_thumb ' \
+                            'FROM session_history_metadata ' \
+                            'JOIN session_history on session_history_metadata.id = session_history.id ' \
+                            'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
+                            '>= datetime("now", "-%s days", "localtime") ' \
+                            'AND session_history_metadata.media_type = "track" ' \
+                            'GROUP BY session_history_metadata.grandparent_title ' \
+                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
+                    result = monitor_db.select(query)
+                except:
+                    logger.warn("Unable to execute database query.")
+                    return None
+
+                for item in result:
+                    row = {'title': item[1],
+                           'total_plays': item[2],
+                           'total_duration': item[3],
+                           'users_watched': '',
+                           'rating_key': item[4],
+                           'last_play': item[5],
+                           'grandparent_thumb': item[6],
+                           'thumb': '',
+                           'user': '',
+                           'friendly_name': '',
+                           'platform_type': '',
+                           'platform': '',
+                           'row_id': item[0]
+                           }
+                    top_music.append(row)
+
+                home_stats.append({'stat_id': stat,
+                                   'stat_type': sort_type,
+                                   'rows': top_music})
+
+            elif 'popular_music' in stat:
+                popular_music = []
+                try:
+                    query = 'SELECT session_history_metadata.id, ' \
+                            'session_history_metadata.grandparent_title, ' \
+                            'COUNT(DISTINCT session_history.user_id) as users_watched, ' \
+                            'session_history_metadata.grandparent_rating_key, ' \
+                            'MAX(session_history.started) as last_watch, ' \
+                            'COUNT(session_history.id) as total_plays, ' \
+                            'SUM(case when session_history.stopped > 0 ' \
+                            'then (session_history.stopped - session_history.started) ' \
+                            ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) ' \
+                            'else 0 end) as total_duration, ' \
+                            'session_history_metadata.grandparent_thumb ' \
+                            'FROM session_history_metadata ' \
+                            'JOIN session_history ON session_history_metadata.id = session_history.id ' \
+                            'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
+                            '>= datetime("now", "-%s days", "localtime") ' \
+                            'AND session_history_metadata.media_type = "track" ' \
+                            'GROUP BY session_history_metadata.grandparent_title ' \
+                            'ORDER BY users_watched DESC, %s DESC ' \
+                            'LIMIT %s' % (time_range, sort_type, stats_count)
+                    result = monitor_db.select(query)
+                except:
+                    logger.warn("Unable to execute database query.")
+                    return None
+
+                for item in result:
+                    row = {'title': item[1],
+                           'users_watched': item[2],
+                           'rating_key': item[3],
+                           'last_play': item[4],
+                           'total_plays': item[5],
+                           'grandparent_thumb': item[7],
+                           'thumb': '',
+                           'user': '',
+                           'friendly_name': '',
+                           'platform_type': '',
+                           'platform': '',
+                           'row_id': item[0]
+                           }
+                    popular_music.append(row)
+
+                home_stats.append({'stat_id': stat,
+                                   'rows': popular_music})
+
             elif 'top_users' in stat:
                 top_users = []
                 try:
