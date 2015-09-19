@@ -66,10 +66,8 @@ class WebInterface(object):
     def home(self):
         config = {
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
-            "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE,
-            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
-            "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
+            "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 
@@ -122,11 +120,19 @@ class WebInterface(object):
         return json.dumps(formats)
 
     @cherrypy.expose
-    def home_stats(self, time_range='30', stat_type='0', stat_count='5', notify_watched_percent='85', **kwargs):
+    def home_stats(self, **kwargs):
         data_factory = datafactory.DataFactory()
+
+        time_range = plexpy.CONFIG.HOME_STATS_LENGTH
+        stats_type = plexpy.CONFIG.HOME_STATS_TYPE
+        stats_count = plexpy.CONFIG.HOME_STATS_COUNT
+        stats_cards = plexpy.CONFIG.HOME_STATS_CARDS
+        notify_watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
+
         stats_data = data_factory.get_home_stats(time_range=time_range,
-                                                 stat_type=stat_type,
-                                                 stat_count=stat_count,
+                                                 stats_type=stats_type,
+                                                 stats_count=stats_count,
+                                                 stats_cards=stats_cards,
                                                  notify_watched_percent=notify_watched_percent)
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)

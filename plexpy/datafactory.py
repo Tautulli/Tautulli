@@ -131,19 +131,12 @@ class DataFactory(object):
 
         return dict
 
-    def get_home_stats(self, time_range='30', stat_type='0', stat_count='5', notify_watched_percent='85'):
+    def get_home_stats(self, time_range='30', stats_type='0', stats_count='5', stats_cards='', notify_watched_percent='85'):
         monitor_db = database.MonitorDatabase()
 
-        if not time_range.isdigit():
-            time_range = '30'
+        sort_type = 'total_plays' if stats_type == '0' else 'total_duration'
 
-        sort_type = 'total_plays' if stat_type == '0' else 'total_duration'
-
-        if not time_range.isdigit():
-            stat_count = '5'
-
-        # This actually determines the output order in the home page
-        stats_queries = ["top_tv", "popular_tv", "top_movies", "popular_movies", "top_users", "top_platforms", "last_watched"]
+        stats_queries = stats_cards.split(', ')
         home_stats = []
 
         for stat in stats_queries:
@@ -166,7 +159,7 @@ class DataFactory(object):
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "episode" ' \
                             'GROUP BY session_history_metadata.grandparent_title ' \
-                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
+                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -202,6 +195,10 @@ class DataFactory(object):
                             'session_history_metadata.grandparent_rating_key, ' \
                             'MAX(session_history.started) as last_watch, ' \
                             'COUNT(session_history.id) as total_plays, ' \
+                            'SUM(case when session_history.stopped > 0 ' \
+                            'then (session_history.stopped - session_history.started) ' \
+                            ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) ' \
+                            'else 0 end) as total_duration, ' \
                             'session_history_metadata.grandparent_thumb ' \
                             'FROM session_history_metadata ' \
                             'JOIN session_history ON session_history_metadata.id = session_history.id ' \
@@ -209,8 +206,8 @@ class DataFactory(object):
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "episode" ' \
                             'GROUP BY session_history_metadata.grandparent_title ' \
-                            'ORDER BY users_watched DESC, total_plays DESC ' \
-                            'LIMIT %s' % (time_range, stat_count)
+                            'ORDER BY users_watched DESC, %s DESC ' \
+                            'LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -222,7 +219,7 @@ class DataFactory(object):
                            'rating_key': item[3],
                            'last_play': item[4],
                            'total_plays': item[5],
-                           'grandparent_thumb': item[6],
+                           'grandparent_thumb': item[7],
                            'thumb': '',
                            'user': '',
                            'friendly_name': '',
@@ -254,7 +251,7 @@ class DataFactory(object):
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "movie" ' \
                             'GROUP BY session_history_metadata.full_title ' \
-                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
+                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -290,6 +287,10 @@ class DataFactory(object):
                             'session_history_metadata.rating_key, ' \
                             'MAX(session_history.started) as last_watch, ' \
                             'COUNT(session_history.id) as total_plays, ' \
+                            'SUM(case when session_history.stopped > 0 ' \
+                            'then (session_history.stopped - session_history.started) ' \
+                            ' - (case when session_history.paused_counter is NULL then 0 else session_history.paused_counter end) ' \
+                            'else 0 end) as total_duration, ' \
                             'session_history_metadata.thumb ' \
                             'FROM session_history_metadata ' \
                             'JOIN session_history ON session_history_metadata.id = session_history.id ' \
@@ -297,8 +298,8 @@ class DataFactory(object):
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'AND session_history_metadata.media_type = "movie" ' \
                             'GROUP BY session_history_metadata.full_title ' \
-                            'ORDER BY users_watched DESC, total_plays DESC ' \
-                            'LIMIT %s' % (time_range, stat_count)
+                            'ORDER BY users_watched DESC, %s DESC ' \
+                            'LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -311,7 +312,7 @@ class DataFactory(object):
                            'last_play': item[4],
                            'total_plays': item[5],
                            'grandparent_thumb': '',
-                           'thumb': item[6],
+                           'thumb': item[7],
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -343,7 +344,7 @@ class DataFactory(object):
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
                             'datetime("now", "-%s days", "localtime") '\
                             'GROUP BY session_history.user_id ' \
-                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
+                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -391,7 +392,7 @@ class DataFactory(object):
                             'WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '>= datetime("now", "-%s days", "localtime") ' \
                             'GROUP BY session_history.platform ' \
-                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stat_count)
+                            'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")
@@ -447,7 +448,7 @@ class DataFactory(object):
                             'AND percent_complete >= %s ' \
                             'GROUP BY session_history_metadata.full_title ' \
                             'ORDER BY last_watch DESC ' \
-                            'LIMIT %s' % (time_range, notify_watched_percent, stat_count)
+                            'LIMIT %s' % (time_range, notify_watched_percent, stats_count)
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query.")

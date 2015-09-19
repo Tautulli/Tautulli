@@ -84,15 +84,12 @@
     currentActivity();
     setInterval(currentActivity, 15000);
 
-    function getHomeStats(days, stat_type, stat_count, notify_watched_percent) {
+    function getHomeStats(days) {
         $.ajax({
             url: 'home_stats',
             cache: false,
             async: true,
-            data: {time_range: days,
-                   stat_type: stat_type,
-                   stat_count: stat_count,
-                   notify_watched_percent: notify_watched_percent},
+            data: { },
             complete: function(xhr, status) {
                 $("#home-stats").html(xhr.responseText);
             }
@@ -170,10 +167,7 @@
         }
     });
 
-    getHomeStats(${config['home_stats_length']},
-                 ${config['home_stats_type']},
-                 ${config['home_stats_count']},
-                 ${config['notify_watched_percent']});
+    getHomeStats();
     getLibraryStatsHeader();
     getLibraryStats();
 
