@@ -1208,7 +1208,7 @@ class PmsConnect(object):
                   'title': helpers.get_xml_attr(xml_head[0], 'title1'),
                   'libraries_list': libraries_list
                   }
-
+        
         return output
 
     """
@@ -1270,12 +1270,14 @@ class PmsConnect(object):
         return output
 
     """
-    Return processed and validated server statistics.
+    Return processed and validated library statistics.
 
     Output: array
     """
-    def get_library_stats(self):
+    def get_library_stats(self, library_cards=''):
         server_libraries = self.get_server_children()
+
+        library_keys = library_cards.split(', ')
 
         server_library_stats = []
 
@@ -1285,7 +1287,10 @@ class PmsConnect(object):
             for library in libraries_list:
                 library_type = library['type']
                 section_key = library['key']
-                library_list = self.get_library_children(library_type, section_key)
+                if section_key in library_keys:
+                    library_list = self.get_library_children(library_type, section_key)
+                else:
+                    continue
 
                 if library_list['library_count'] != '0':
                     library_stats = {'title': library['title'],

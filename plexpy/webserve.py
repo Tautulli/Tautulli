@@ -67,6 +67,7 @@ class WebInterface(object):
         config = {
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
+            "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
         }
         return serve_template(templatename="index.html", title="Home", config=config)
@@ -140,7 +141,10 @@ class WebInterface(object):
     @cherrypy.expose
     def library_stats(self, **kwargs):
         pms_connect = pmsconnect.PmsConnect()
-        stats_data = pms_connect.get_library_stats()
+
+        library_cards = plexpy.CONFIG.HOME_LIBRARY_CARDS
+
+        stats_data = pms_connect.get_library_stats(library_cards=library_cards)
 
         return serve_template(templatename="library_stats.html", title="Library Stats", data=stats_data)
 
@@ -479,6 +483,7 @@ class WebInterface(object):
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
             "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
+            "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
         }
@@ -534,6 +539,10 @@ class WebInterface(object):
         if 'home_stats_cards' in kwargs:
             if kwargs['home_stats_cards'] != 'watch_statistics':
                 kwargs['home_stats_cards'] = ', '.join(kwargs['home_stats_cards'])
+
+        if 'home_library_cards' in kwargs:
+            if kwargs['home_library_cards'] != 'library_statistics':
+                kwargs['home_library_cards'] = ', '.join(kwargs['home_library_cards'])
 
         plexpy.CONFIG.process_kwargs(kwargs)
 
@@ -1129,6 +1138,26 @@ class WebInterface(object):
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_server_children(self, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_server_children()
+        
+        if plexpy.CONFIG.HOME_LIBRARY_CARDS == '':
+            library_keys = ['library_statistics']
+            for library in result['libraries_list']:
+                library_keys.append(library['key'])
+
+            plexpy.CONFIG.HOME_LIBRARY_CARDS = ', '.join(library_keys)
+            plexpy.CONFIG.write()
+            
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
         else:
             logger.warn('Unable to retrieve data.')
 

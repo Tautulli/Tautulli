@@ -93,7 +93,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <div class="form-group">
                             <label for="home_stats_cards">Cards</label>
-                            <p class="help-block">Select the cards to show in the watch statistics on the home page.</p>
+                            <p class="help-block">Select the cards to show in the watch statistics on the home page. Select none to disable.</p>
                             <div class="row">
                                 <div class="col-md-6">
                                     <select multiple class="form-control" id="home_stats_cards" name="home_stats_cards" data-parsley-trigger="change">
@@ -137,7 +137,24 @@ available_notification_agents = notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Use play duration instead of play count to generate statistics.</p>
                         </div>
+
+                        <div class="padded-header">
+                            <h3>Library Statistics</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="home_library_cards">Cards</label>
+                            <p class="help-block">Select the cards to show in the library statistics on the home page. Select none to disable.</p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <select multiple class="form-control" id="home_library_cards" name="home_library_cards" data-parsley-trigger="change">
+                                        <option id="card-library_statistics" value="library_statistics" class="hidden" selected>Library Statistics</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-3">
                         <div class="padded-header">
@@ -1215,6 +1232,34 @@ $(document).ready(function() {
     }).on('mousemove', function(e) {
         e.preventDefault()
     });
+
+    $.ajax({
+        url: 'get_server_children',
+        data: { },
+        async: true,
+        complete: function (xhr, status) {
+            server_children_info = $.parseJSON(xhr.responseText);
+            libraries_list = server_children_info.libraries_list;
+            for (var i in libraries_list) {
+                title = libraries_list[i].title;
+                key = libraries_list[i].key;
+                $('#home_library_cards').append('<option id="card-' + key + '" value="' + key + '">' + title + '</option>')
+            }
+            var cards = "${config['home_library_cards']}".split(/[\s,]+/);
+            cards.forEach(function (item) {
+                $('#card-'+item).prop('selected', !$(this).prop('selected'));
+            });
+        }
+    });
+    $('#home_library_cards').on('mousedown', function(e) {
+        e.preventDefault();
+        var scroll = this.scrollTop;
+        e.target.selected = !e.target.selected;
+        this.scrollTop = scroll;
+    }).on('mousemove', function(e) {
+        e.preventDefault()
+    });
+
 });
 </script>
 </%def>
