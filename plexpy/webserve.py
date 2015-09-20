@@ -66,9 +66,9 @@ class WebInterface(object):
     def home(self):
         config = {
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
-            "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE,
-            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
+            "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
+            "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 
@@ -121,16 +121,41 @@ class WebInterface(object):
         return json.dumps(formats)
 
     @cherrypy.expose
-    def home_stats(self, time_range='30', stat_type='0', stat_count='5', **kwargs):
+    def home_stats(self, **kwargs):
         data_factory = datafactory.DataFactory()
-        stats_data = data_factory.get_home_stats(time_range=time_range, stat_type=stat_type, stat_count=stat_count)
+
+        time_range = plexpy.CONFIG.HOME_STATS_LENGTH
+        stats_type = plexpy.CONFIG.HOME_STATS_TYPE
+        stats_count = plexpy.CONFIG.HOME_STATS_COUNT
+        stats_cards = plexpy.CONFIG.HOME_STATS_CARDS.split(', ')
+        notify_watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
+
+        stats_data = data_factory.get_home_stats(time_range=time_range,
+                                                 stats_type=stats_type,
+                                                 stats_count=stats_count,
+                                                 stats_cards=stats_cards,
+                                                 notify_watched_percent=notify_watched_percent)
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
 
     @cherrypy.expose
     def library_stats(self, **kwargs):
         pms_connect = pmsconnect.PmsConnect()
-        stats_data = pms_connect.get_library_stats()
+
+        library_cards = plexpy.CONFIG.HOME_LIBRARY_CARDS.split(', ')
+
+        if library_cards == ['library_statistics_first']:
+            library_cards = ['library_statistics']
+            server_children = pms_connect.get_server_children()
+            server_libraries = server_children['libraries_list']
+
+            for library in server_libraries:
+                library_cards.append(library['key'])
+
+            plexpy.CONFIG.HOME_LIBRARY_CARDS = ', '.join(library_cards)
+            plexpy.CONFIG.write()
+
+        stats_data = pms_connect.get_library_stats(library_cards=library_cards)
 
         return serve_template(templatename="library_stats.html", title="Library Stats", data=stats_data)
 
@@ -144,7 +169,12 @@ class WebInterface(object):
 
     @cherrypy.expose
     def graphs(self):
-        return serve_template(templatename="graphs.html", title="Graphs")
+
+        config = {
+            "music_logging_enable": plexpy.CONFIG.MUSIC_LOGGING_ENABLE
+        }
+
+        return serve_template(templatename="graphs.html", title="Graphs", config=config)
 
     @cherrypy.expose
     def sync(self):
@@ -373,46 +403,7 @@ class WebInterface(object):
             "cache_dir": plexpy.CONFIG.CACHE_DIR,
             "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),
             "interface_list": interface_list,
-            "growl_enabled": checked(plexpy.CONFIG.GROWL_ENABLED),
-            "growl_host": plexpy.CONFIG.GROWL_HOST,
-            "growl_password": plexpy.CONFIG.GROWL_PASSWORD,
-            "prowl_enabled": checked(plexpy.CONFIG.PROWL_ENABLED),
-            "prowl_keys": plexpy.CONFIG.PROWL_KEYS,
-            "prowl_priority": plexpy.CONFIG.PROWL_PRIORITY,
-            "xbmc_enabled": checked(plexpy.CONFIG.XBMC_ENABLED),
-            "xbmc_host": plexpy.CONFIG.XBMC_HOST,
-            "xbmc_username": plexpy.CONFIG.XBMC_USERNAME,
-            "xbmc_password": plexpy.CONFIG.XBMC_PASSWORD,
-            "plex_enabled": checked(plexpy.CONFIG.PLEX_ENABLED),
-            "plex_client_host": plexpy.CONFIG.PLEX_CLIENT_HOST,
-            "plex_username": plexpy.CONFIG.PLEX_USERNAME,
-            "plex_password": plexpy.CONFIG.PLEX_PASSWORD,
-            "nma_enabled": checked(plexpy.CONFIG.NMA_ENABLED),
-            "nma_apikey": plexpy.CONFIG.NMA_APIKEY,
-            "nma_priority": int(plexpy.CONFIG.NMA_PRIORITY),
-            "pushalot_enabled": checked(plexpy.CONFIG.PUSHALOT_ENABLED),
-            "pushalot_apikey": plexpy.CONFIG.PUSHALOT_APIKEY,
-            "pushover_enabled": checked(plexpy.CONFIG.PUSHOVER_ENABLED),
-            "pushover_keys": plexpy.CONFIG.PUSHOVER_KEYS,
-            "pushover_apitoken": plexpy.CONFIG.PUSHOVER_APITOKEN,
-            "pushover_priority": plexpy.CONFIG.PUSHOVER_PRIORITY,
-            "pushbullet_enabled": checked(plexpy.CONFIG.PUSHBULLET_ENABLED),
-            "pushbullet_apikey": plexpy.CONFIG.PUSHBULLET_APIKEY,
-            "pushbullet_deviceid": plexpy.CONFIG.PUSHBULLET_DEVICEID,
-            "twitter_enabled": checked(plexpy.CONFIG.TWITTER_ENABLED),
-            "osx_notify_enabled": checked(plexpy.CONFIG.OSX_NOTIFY_ENABLED),
-            "osx_notify_app": plexpy.CONFIG.OSX_NOTIFY_APP,
-            "boxcar_enabled": checked(plexpy.CONFIG.BOXCAR_ENABLED),
-            "boxcar_token": plexpy.CONFIG.BOXCAR_TOKEN,
             "cache_sizemb": plexpy.CONFIG.CACHE_SIZEMB,
-            "email_enabled": checked(plexpy.CONFIG.EMAIL_ENABLED),
-            "email_from": plexpy.CONFIG.EMAIL_FROM,
-            "email_to": plexpy.CONFIG.EMAIL_TO,
-            "email_smtp_server": plexpy.CONFIG.EMAIL_SMTP_SERVER,
-            "email_smtp_user": plexpy.CONFIG.EMAIL_SMTP_USER,
-            "email_smtp_password": plexpy.CONFIG.EMAIL_SMTP_PASSWORD,
-            "email_smtp_port": int(plexpy.CONFIG.EMAIL_SMTP_PORT),
-            "email_tls": checked(plexpy.CONFIG.EMAIL_TLS),
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_logs_folder": plexpy.CONFIG.PMS_LOGS_FOLDER,
@@ -421,7 +412,6 @@ class WebInterface(object):
             "pms_ssl": checked(plexpy.CONFIG.PMS_SSL),
             "pms_use_bif": checked(plexpy.CONFIG.PMS_USE_BIF),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
-            "plexwatch_database": plexpy.CONFIG.PLEXWATCH_DATABASE,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
             "grouping_global_history": checked(plexpy.CONFIG.GROUPING_GLOBAL_HISTORY),
@@ -463,6 +453,8 @@ class WebInterface(object):
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
+            "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
+            "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
         }
@@ -474,12 +466,7 @@ class WebInterface(object):
         # Handle the variable config options. Note - keys with False values aren't getting passed
 
         checked_configs = [
-            "launch_browser", "enable_https", "api_enabled", "freeze_db", "growl_enabled",
-            "prowl_enabled", "xbmc_enabled", "check_github",
-            "plex_enabled", "nma_enabled", "pushalot_enabled",
-            "pushover_enabled", "pushbullet_enabled",
-            "twitter_enabled", "osx_notify_enabled",
-            "boxcar_enabled", "email_enabled", "email_tls",
+            "launch_browser", "enable_https", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "pms_use_bif", "pms_ssl",
             "tv_notify_enable", "movie_notify_enable", "music_notify_enable",
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
@@ -515,6 +502,14 @@ class WebInterface(object):
             if kwargs['pms_ip'] != plexpy.CONFIG.PMS_IP:
                 refresh_users = True
 
+        if 'home_stats_cards' in kwargs:
+            if kwargs['home_stats_cards'] != 'watch_statistics':
+                kwargs['home_stats_cards'] = ', '.join(kwargs['home_stats_cards'])
+
+        if 'home_library_cards' in kwargs:
+            if kwargs['home_library_cards'] != 'library_statistics':
+                kwargs['home_library_cards'] = ', '.join(kwargs['home_library_cards'])
+
         plexpy.CONFIG.process_kwargs(kwargs)
 
         # Write the config
@@ -535,15 +530,6 @@ class WebInterface(object):
 
     @cherrypy.expose
     def set_notification_config(self, **kwargs):
-        # Handle the variable config options. Note - keys with False values aren't getting passed
-
-        checked_configs = [
-            "email_tls"
-        ]
-        for checked_config in checked_configs:
-            if checked_config not in kwargs:
-                # checked items should be zero or one. if they were not sent then the item was not checked
-                kwargs[checked_config] = 0
 
         for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
             # the use prefix is fairly nice in the html, but does not match the actual config
@@ -1109,6 +1095,18 @@ class WebInterface(object):
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_server_children(self, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_server_children()
+            
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
         else:
             logger.warn('Unable to retrieve data.')
 

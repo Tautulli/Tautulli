@@ -34,14 +34,15 @@ available_notification_agents = notifiers.available_notification_agents()
         <div class="col-md-4">
             <ul class="nav-settings list-unstyled" role="tablist">
                 <li role="presentation" class="active"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">General</a></li>
-                <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Web Interface</a></li>
-                <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Access Control</a></li>
-                <li role="presentation"><a href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Plex Media Server</a></li>
-                <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Plex.tv Account</a></li>
-                <li role="presentation"><a href="#tabs-6" aria-controls="tabs-6" role="tab" data-toggle="tab">Extra Settings</a></li>
-                <li role="presentation"><a href="#tabs-7" aria-controls="tabs-7" role="tab" data-toggle="tab">Monitoring</a></li>
-                <li role="presentation"><a href="#tabs-8" aria-controls="tabs-8" role="tab" data-toggle="tab">Notifications</a></li>
-                <li role="presentation"><a href="#tabs-9" aria-controls="tabs-9" role="tab" data-toggle="tab">Notification Agents</a></li>
+                <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Homepage Statistics</a></li>
+                <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Web Interface</a></li>
+                <li role="presentation"><a href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Access Control</a></li>
+                <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Plex Media Server</a></li>
+                <li role="presentation"><a href="#tabs-6" aria-controls="tabs-6" role="tab" data-toggle="tab">Plex.tv Account</a></li>
+                <li role="presentation"><a href="#tabs-7" aria-controls="tabs-7" role="tab" data-toggle="tab">Extra Settings</a></li>
+                <li role="presentation"><a href="#tabs-8" aria-controls="tabs-8" role="tab" data-toggle="tab">Monitoring</a></li>
+                <li role="presentation"><a href="#tabs-9" aria-controls="tabs-9" role="tab" data-toggle="tab">Notifications</a></li>
+                <li role="presentation"><a href="#tabs-10" aria-controls="tabs-10" role="tab" data-toggle="tab">Notification Agents</a></li>
             </ul>
         </div>
         <div class="col-md-8">
@@ -83,10 +84,33 @@ available_notification_agents = notifiers.available_notification_agents()
                             </div>
                             <p class="help-block">Set your preferred time format. <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                         </div>
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-2">
                         <div class="padded-header">
-                            <h3>Homepage Statistics</h3>
+                            <h3>Watch Statistics</h3>
                         </div>
 
+                        <div class="form-group">
+                            <label for="home_stats_cards">Cards</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <select multiple class="form-control" id="home_stats_cards" name="home_stats_cards" data-parsley-trigger="change">
+                                        <option id="card-watch_statistics" value="watch_statistics" class="hidden" selected>Watch Statistics</option>
+                                        <option id="card-top_tv" value="top_tv">Most Watched TV</option>
+                                        <option id="card-popular_tv" value="popular_tv">Most Popular TV</option>
+                                        <option id="card-top_movies" value="top_movies">Most Watched Movie</option>
+                                        <option id="card-popular_movies" value="popular_movies">Most Popular Movie</option>
+                                        <option id="card-top_music" value="top_music">Most Listened Music</option>
+                                        <option id="card-popular_music" value="popular_music">Most Popular Music</option>
+                                        <option id="card-top_users" value="top_users">Most Active User</option>
+                                        <option id="card-top_platforms" value="top_platforms">Most Active Platform</option>
+                                        <option id="card-last_watched" value="last_watched">Last Watched</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="help-block">Select the cards to show in the watch statistics on the home page. Select none to disable.</p>
+                        </div>
                         <div class="form-group">
                             <label for="home_stats_length">Time Frame</label>
                             <div class="row">
@@ -95,7 +119,7 @@ available_notification_agents = notifiers.available_notification_agents()
                                 </div>
                                 <div id="home_stats_length_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Specify the number of days for the statistics on the home page. Default is 30 days.</p>
+                            <p class="help-block">Specify the number of days for the watch statistics on the home page. Default is 30 days.</p>
                         </div>
                         <div class="form-group">
                             <label for="home_stats_count">Top Lists</label>
@@ -105,7 +129,7 @@ available_notification_agents = notifiers.available_notification_agents()
                                 </div>
                                 <div id="home_stats_count_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Specify the number of items to show in the top lists for the statistics on the home page. Max is 10 items, default is 5 items, 0 to disable.</p>
+                            <p class="help-block">Specify the number of items to show in the top lists for the watch statistics on the home page. Max is 10 items, default is 5 items, 0 to disable.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -113,9 +137,26 @@ available_notification_agents = notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Use play duration instead of play count to generate statistics.</p>
                         </div>
+
+                        <div class="padded-header">
+                            <h3>Library Statistics</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="home_library_cards">Cards</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <select multiple class="form-control" id="home_library_cards" name="home_library_cards" data-parsley-trigger="change">
+                                        <option id="card-library_statistics" value="library_statistics" class="hidden" selected>Library Statistics</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="help-block">Select the cards to show in the library statistics on the home page. Select none to disable.</p>
+                        </div>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-2">
+                    <div role="tabpanel" class="tab-pane" id="tabs-3">
                         <div class="padded-header">
                             <h3>Web Interface</h3>
                         </div>
@@ -164,7 +205,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-3">
+                    <div role="tabpanel" class="tab-pane" id="tabs-4">
 
                         <div class="padded-header">
                             <h3>Authentication</h3>
@@ -216,7 +257,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-4">
+                    <div role="tabpanel" class="tab-pane" id="tabs-5">
 
                         <div class="padded-header">
                             <h3>Plex Media Server</h3>
@@ -272,7 +313,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
 
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-5">
+                    <div role="tabpanel" class="tab-pane" id="tabs-6">
 
                         <div class="padded-header">
                             <h3>Plex.tv Authentication</h3>
@@ -315,7 +356,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-6">
+                    <div role="tabpanel" class="tab-pane" id="tabs-7">
                         <div class="padded-header">
                             <h3>Extra Settings</h3>
                         </div>
@@ -334,7 +375,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-7">
+                    <div role="tabpanel" class="tab-pane" id="tabs-8">
 
                         <div class="padded-header">
                             <h3>Monitoring Settings</h3>
@@ -367,7 +408,7 @@ available_notification_agents = notifiers.available_notification_agents()
                                 </div>
                                 <div id="logging_ignore_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The interval (in seconds) PlexPy will wait for a video item to be active before logging it. 0 to disable.</p>
+                            <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -416,7 +457,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-8">
+                    <div role="tabpanel" class="tab-pane" id="tabs-9">
 
                         <div class="padded-header">
                             <h3>Global Notification Toggles</h3>
@@ -566,7 +607,7 @@ available_notification_agents = notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-9">
+                    <div role="tabpanel" class="tab-pane" id="tabs-10">
 
                         <div class="padded-header">
                             <h3>Notification Agents</h3>
@@ -1178,6 +1219,47 @@ $(document).ready(function() {
     }
 
     var accordion = new Accordion($('#accordion'), false);
+
+    var cards = "${config['home_stats_cards']}".split(/[\s,]+/);
+    cards.forEach(function (item) {
+        $('#card-'+item).prop('selected', !$(this).prop('selected'));
+    });
+    $('#home_stats_cards').on('mousedown', function(e) {
+        e.preventDefault();
+        var scroll = this.scrollTop;
+        e.target.selected = !e.target.selected;
+        this.scrollTop = scroll;
+    }).on('mousemove', function(e) {
+        e.preventDefault()
+    });
+
+    $.ajax({
+        url: 'get_server_children',
+        data: { },
+        async: true,
+        complete: function (xhr, status) {
+            server_children_info = $.parseJSON(xhr.responseText);
+            libraries_list = server_children_info.libraries_list;
+            for (var i in libraries_list) {
+                title = libraries_list[i].title;
+                key = libraries_list[i].key;
+                $('#home_library_cards').append('<option id="card-' + key + '" value="' + key + '">' + title + '</option>')
+            }
+            var cards = "${config['home_library_cards']}".split(/[\s,]+/);
+            cards.forEach(function (item) {
+                $('#card-'+item).prop('selected', !$(this).prop('selected'));
+            });
+        }
+    });
+    $('#home_library_cards').on('mousedown', function(e) {
+        e.preventDefault();
+        var scroll = this.scrollTop;
+        e.target.selected = !e.target.selected;
+        this.scrollTop = scroll;
+    }).on('mousemove', function(e) {
+        e.preventDefault()
+    });
+
 });
 </script>
 </%def>

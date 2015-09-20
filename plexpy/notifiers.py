@@ -49,7 +49,8 @@ AGENT_IDS = {"Growl": 0,
              "Pushover": 7,
              "OSX Notify": 8,
              "Boxcar2": 9,
-             "Email": 10}
+             "Email": 10,
+             "Twitter": 11}
 
 def available_notification_agents():
     agents = [{'name': 'Growl',
@@ -171,6 +172,18 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.EMAIL_ON_RESUME,
                'on_buffer': plexpy.CONFIG.EMAIL_ON_BUFFER,
                'on_watched': plexpy.CONFIG.EMAIL_ON_WATCHED
+               },
+              {'name': 'Twitter',
+               'id': AGENT_IDS['Twitter'],
+               'config_prefix': 'twitter',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.TWITTER_ENABLED),
+               'on_play': plexpy.CONFIG.TWITTER_ON_PLAY,
+               'on_stop': plexpy.CONFIG.TWITTER_ON_STOP,
+               'on_pause': plexpy.CONFIG.TWITTER_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.TWITTER_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.TWITTER_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.TWITTER_ON_WATCHED
                }
               ]
 
@@ -229,6 +242,9 @@ def get_notification_agent_config(config_id):
         elif config_id == 10:
             email = Email()
             return email.return_config_options()
+        elif config_id == 11:
+            tweet = TwitterNotifier()
+            return tweet.return_config_options()
         else:
             return []
     else:
@@ -271,6 +287,9 @@ def send_notification(config_id, subject, body):
         elif config_id == 10:
             email = Email()
             email.notify(subject=subject, message=body)
+        elif config_id == 11:
+            tweet = TwitterNotifier()
+            tweet.notify(subject=subject, message=body)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
@@ -912,19 +931,17 @@ class TwitterNotifier(object):
     SIGNIN_URL = 'https://api.twitter.com/oauth/authenticate'
 
     def __init__(self):
-        self.consumer_key = "oYKnp2ddX5gbARjqX8ZAAg"
-        self.consumer_secret = "A4Xkw9i5SjHbTk7XT8zzOPqivhj9MmRDR9Qn95YA9sk"
+        self.consumer_key = "2LdJKXHDUwJtjYBsdwJisIOsh"
+        self.consumer_secret = "QWbUcZzAIiL4zbDCIhy2EdUkV8yEEav3qMdo5y3FugxCFelWrA"
 
-    def notify_snatch(self, title):
-        if plexpy.CONFIG.TWITTER_ONSNATCH:
-            self._notifyTwitter(common.notifyStrings[common.NOTIFY_SNATCH] + ': ' + title + ' at ' + helpers.now())
-
-    def notify_download(self, title):
-        if plexpy.CONFIG.TWITTER_ENABLED:
-            self._notifyTwitter(common.notifyStrings[common.NOTIFY_DOWNLOAD] + ': ' + title + ' at ' + helpers.now())
+    def notify(self, subject, message):
+        if not subject or not message:
+            return
+        else:
+            self._send_tweet(subject + ': ' + message)
 
     def test_notify(self):
-        return self._notifyTwitter("This is a test notification from PlexPy at " + helpers.now(), force=True)
+        return self._send_tweet("This is a test notification from PlexPy at " + helpers.now())
 
     def _get_authorization(self):
 
@@ -958,7 +975,7 @@ class TwitterNotifier(object):
         logger.info('Generating and signing request for an access token using key ' + key)
 
         oauth_consumer = oauth.Consumer(key=self.consumer_key, secret=self.consumer_secret)
-        logger.info('oauth_consumer: ' + str(oauth_consumer))
+        # logger.debug('oauth_consumer: ' + str(oauth_consumer))
         oauth_client = oauth.Client(oauth_consumer, token)
         logger.info('oauth_client: ' + str(oauth_client))
         resp, content = oauth_client.request(self.ACCESS_TOKEN_URL, method='POST', body='oauth_verifier=%s' % key)
@@ -979,7 +996,6 @@ class TwitterNotifier(object):
             return True
 
     def _send_tweet(self, message=None):
-
         username = self.consumer_key
         password = self.consumer_secret
         access_token_key = plexpy.CONFIG.TWITTER_USERNAME
@@ -997,13 +1013,36 @@ class TwitterNotifier(object):
 
         return True
 
-    def _notifyTwitter(self, message='', force=False):
-        prefix = plexpy.CONFIG.TWITTER_PREFIX
+    def return_config_options(self):
+        config_option = [{'label': 'Request Authorisation',
+                          'value': 'Request Authorisation',
+                          'name': 'twitterStep1',
+                          'description': 'Step 1: Click Request button above. (Ensure you allow the browser pop-up).',
+                          'input_type': 'button'
+                          },
+                          {'label': 'Authorisation Key',
+                           'value': '',
+                           'name': 'twitter_key',
+                           'description': 'Step 2: Input the authorisation key you received from Step 1.',
+                           'input_type': 'text'
+                          },
+                          {'label': 'Verify Key',
+                           'value': 'Verify Key',
+                           'name': 'twitterStep2',
+                           'description': 'Step 3: Verify the key.',
+                           'input_type': 'button'
+                          },
+                          {'label': 'Test Twitter',
+                           'value': 'Test Twitter',
+                           'name': 'testTwitter',
+                           'description': 'Test if Twitter notifications are working. See logs for troubleshooting.',
+                           'input_type': 'button'
+                          },
+                          {'input_type': 'nosave'
+                          }
+                         ]
 
-        if not plexpy.CONFIG.TWITTER_ENABLED and not force:
-            return False
-
-        return self._send_tweet(prefix + ": " + message)
+        return config_option
 
 class OSX_NOTIFY(object):
 
@@ -1204,7 +1243,7 @@ class Email(object):
                           'input_type': 'password'
                           },
                          {'label': 'TLS',
-                          'value': checked(plexpy.CONFIG.EMAIL_TLS),
+                          'value': plexpy.CONFIG.EMAIL_TLS,
                           'name': 'email_tls',
                           'description': 'Does the server use encryption.',
                           'input_type': 'checkbox'
