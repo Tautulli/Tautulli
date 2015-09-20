@@ -20,7 +20,7 @@ import sys
 # Ensure lib added to path, before any other imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib/'))
 
-from plexpy import webstart, logger
+from plexpy import webstart, logger, web_socket
 
 import locale
 import time
@@ -190,6 +190,16 @@ def main():
 
     # Start the background threads
     plexpy.start()
+
+    # Open connection for websocket
+    if plexpy.CONFIG.MONITORING_USE_WEBSOCKET:
+        try:
+            web_socket.start_thread()
+        except:
+            logger.warn(u"Websocket :: Unable to open connection.")
+            # Fallback to polling
+            plexpy.CONFIG.MONITORING_USE_WEBSOCKET = 0
+            plexpy.initialize_scheduler()
 
     # Open webbrowser
     if plexpy.CONFIG.LAUNCH_BROWSER and not args.nolaunch:

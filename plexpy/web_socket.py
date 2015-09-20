@@ -1,0 +1,124 @@
+# This file is part of PlexPy.
+#
+#  PlexPy is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  PlexPy is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+
+# Mostly borrowed from https://github.com/trakt/Plex-Trakt-Scrobbler
+
+from plexpy import logger
+
+import threading
+import plexpy
+import json
+import time
+import websocket
+
+name = 'websocket'
+opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
+
+
+def start_thread():
+    threading.Thread(target=run).start()
+
+
+def run():
+    from websocket import create_connection
+
+    uri = 'ws://%s:%s/:/websockets/notifications' % (
+        plexpy.CONFIG.PMS_IP,
+        plexpy.CONFIG.PMS_PORT
+    )
+
+    # Set authentication token (if one is available)
+    if plexpy.CONFIG.PMS_TOKEN:
+        uri += '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN
+
+    ws = create_connection(uri)
+
+    reconnects = 0
+    logger.debug(u'PlexPy WebSocket :: Ready')
+
+    while True:
+        try:
+            process(*receive(ws))
+
+            # successfully received data, reset reconnects counter
+            reconnects = 0
+        except websocket.WebSocketConnectionClosedException:
+            if reconnects <= 5:
+                reconnects += 1
+
+                # Increasing sleep interval between reconnections
+                if reconnects > 1:
+                    time.sleep(2 * (reconnects - 1))
+
+                logger.info(u'PlexPy WebSocket :: Connection has closed, reconnecting...')
+                ws = create_connection(uri)
+            else:
+                logger.error(u'PlexPy WebSocket :: Connection unavailable, activity monitoring not available')
+                break
+
+    logger.debug(u'Leaving thread.')
+
+
+def receive(ws):
+    frame = ws.recv_frame()
+
+    if not frame:
+        raise websocket.WebSocketException("Not a valid frame %s" % frame)
+    elif frame.opcode in opcode_data:
+        return frame.opcode, frame.data
+    elif frame.opcode == websocket.ABNF.OPCODE_CLOSE:
+        ws.send_close()
+        return frame.opcode, None
+    elif frame.opcode == websocket.ABNF.OPCODE_PING:
+        ws.pong("Hi!")
+
+    return None, None
+
+
+def process(opcode, data):
+    from plexpy import monitor
+
+    if opcode not in opcode_data:
+        return False
+
+    try:
+        info = json.loads(data)
+    except Exception as ex:
+        logger.warn(u'PlexPy WebSocket :: Error decoding message from websocket: %s' % ex)
+        logger.debug(data)
+        return False
+
+    type = info.get('type')
+
+    if not type:
+        return False
+
+    if type == 'playing':
+        logger.debug('%s.playing %s' % (name, info))
+        try:
+            time_line = info.get('_children')
+        except:
+            logger.debug(u"PlexPy WebSocket :: Session found but unable to get timeline data.")
+            return False
+
+        last_session_state = monitor.get_last_state_by_session(time_line[0]['sessionKey'])
+        session_state = time_line[0]['state']
+
+        if last_session_state != session_state:
+            monitor.check_active_sessions()
+        else:
+            logger.debug(u"PlexPy WebSocket :: Session %s state has not changed." % time_line[0]['sessionKey'])
+
+    return True

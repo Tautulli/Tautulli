@@ -160,6 +160,21 @@ def check_active_sessions():
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
 
 
+def get_last_state_by_session(session_key=None):
+    monitor_db = database.MonitorDatabase()
+
+    if str(session_key).isdigit():
+        logger.debug(u"PlexPy Monitor :: Checking state for sessionKey %s..." % str(session_key))
+        query = 'SELECT state FROM sessions WHERE session_key = ? LIMIT 1'
+        result = monitor_db.select(query, args=[session_key])
+
+        if result:
+            return result[0]
+
+    logger.debug(u"PlexPy Monitor :: No session with key %s is active." % str(session_key))
+    return False
+
+
 class MonitorProcessing(object):
 
     def __init__(self):

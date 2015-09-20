@@ -279,7 +279,11 @@ def initialize_scheduler():
 
         if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex Server URLs', hours=12, minutes=0, seconds=0)
-            schedule_job(monitor.check_active_sessions, 'Check for active sessions', hours=0, minutes=0, seconds=seconds)
+
+            # If we're not using websockets then fall back to polling
+            if not CONFIG.MONITORING_USE_WEBSOCKET:
+                schedule_job(monitor.check_active_sessions, 'Check for active sessions',
+                             hours=0, minutes=0, seconds=seconds)
 
         # Refresh the users list
         if CONFIG.REFRESH_USERS_INTERVAL:
