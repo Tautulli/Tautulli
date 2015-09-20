@@ -71,6 +71,7 @@ COMMITS_BEHIND = None
 
 UMASK = None
 
+POLLING_FAILOVER = False
 
 def initialize(config_file):
     with INIT_LOCK:
@@ -80,6 +81,7 @@ def initialize(config_file):
         global CURRENT_VERSION
         global LATEST_VERSION
         global UMASK
+        global POLLING_FAILOVER
 
         CONFIG = plexpy.config.Config(config_file)
 
@@ -281,7 +283,7 @@ def initialize_scheduler():
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex Server URLs', hours=12, minutes=0, seconds=0)
 
             # If we're not using websockets then fall back to polling
-            if not CONFIG.MONITORING_USE_WEBSOCKET:
+            if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:
                 schedule_job(monitor.check_active_sessions, 'Check for active sessions',
                              hours=0, minutes=0, seconds=seconds)
 

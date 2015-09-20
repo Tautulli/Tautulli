@@ -43,12 +43,23 @@ def run():
     if plexpy.CONFIG.PMS_TOKEN:
         uri += '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN
 
-    ws = create_connection(uri)
-
+    ws_connected = False
     reconnects = 0
-    logger.debug(u'PlexPy WebSocket :: Ready')
 
-    while True:
+    # Try an open the websocket connection - if it fails after 5 retries fallback to polling
+    while not ws_connected and reconnects < 5:
+        try:
+            logger.info(u'PlexPy WebSocket :: Opening websocket, connection attempt %s.' % str(reconnects + 1))
+            ws = create_connection(uri)
+            reconnects = 0
+            ws_connected = True
+            logger.debug(u'PlexPy WebSocket :: Ready')
+        except IOError, e:
+            logger.info(u'PlexPy WebSocket :: %s.' % e)
+            reconnects += 1
+            time.sleep(5)
+
+    while ws_connected:
         try:
             process(*receive(ws))
 
@@ -63,10 +74,19 @@ def run():
                     time.sleep(2 * (reconnects - 1))
 
                 logger.info(u'PlexPy WebSocket :: Connection has closed, reconnecting...')
-                ws = create_connection(uri)
+                try:
+                    ws = create_connection(uri)
+                except IOError, e:
+                    logger.info(u'PlexPy WebSocket :: %s.' % e)
+
             else:
-                logger.error(u'PlexPy WebSocket :: Connection unavailable, activity monitoring not available')
+                ws_connected = False
                 break
+
+    if not ws_connected:
+        logger.error(u'PlexPy WebSocket :: Connection unavailable, falling back to polling.')
+        plexpy.POLLING_FAILOVER = True
+        plexpy.initialize_scheduler()
 
     logger.debug(u'Leaving thread.')
 
