@@ -975,7 +975,7 @@ class TwitterNotifier(object):
         logger.info('Generating and signing request for an access token using key ' + key)
 
         oauth_consumer = oauth.Consumer(key=self.consumer_key, secret=self.consumer_secret)
-        logger.info('oauth_consumer: ' + str(oauth_consumer))
+        # logger.debug('oauth_consumer: ' + str(oauth_consumer))
         oauth_client = oauth.Client(oauth_consumer, token)
         logger.info('oauth_client: ' + str(oauth_client))
         resp, content = oauth_client.request(self.ACCESS_TOKEN_URL, method='POST', body='oauth_verifier=%s' % key)
