@@ -15,7 +15,7 @@
 
 # Mostly borrowed from https://github.com/trakt/Plex-Trakt-Scrobbler
 
-from plexpy import logger
+from plexpy import logger, monitor
 
 import threading
 import plexpy
@@ -28,6 +28,9 @@ opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 
 
 def start_thread():
+    # Check for any existing sessions on start up
+    monitor.check_active_sessions(ws_request=True)
+    # Start the websocket listener on it's own thread
     threading.Thread(target=run).start()
 
 
@@ -53,9 +56,9 @@ def run():
             ws = create_connection(uri)
             reconnects = 0
             ws_connected = True
-            logger.debug(u'PlexPy WebSocket :: Ready')
+            logger.info(u'PlexPy WebSocket :: Ready')
         except IOError, e:
-            logger.info(u'PlexPy WebSocket :: %s.' % e)
+            logger.error(u'PlexPy WebSocket :: %s.' % e)
             reconnects += 1
             time.sleep(5)
 
@@ -73,7 +76,7 @@ def run():
                 if reconnects > 1:
                     time.sleep(2 * (reconnects - 1))
 
-                logger.info(u'PlexPy WebSocket :: Connection has closed, reconnecting...')
+                logger.warn(u'PlexPy WebSocket :: Connection has closed, reconnecting...')
                 try:
                     ws = create_connection(uri)
                 except IOError, e:
@@ -108,7 +111,7 @@ def receive(ws):
 
 
 def process(opcode, data):
-    from plexpy import monitor
+    from plexpy import activity_handler
 
     if opcode not in opcode_data:
         return False
@@ -126,19 +129,14 @@ def process(opcode, data):
         return False
 
     if type == 'playing':
-        logger.debug('%s.playing %s' % (name, info))
+        # logger.debug('%s.playing %s' % (name, info))
         try:
             time_line = info.get('_children')
         except:
             logger.debug(u"PlexPy WebSocket :: Session found but unable to get timeline data.")
             return False
 
-        last_session_state = monitor.get_last_state_by_session(time_line[0]['sessionKey'])
-        session_state = time_line[0]['state']
-
-        if last_session_state != session_state:
-            monitor.check_active_sessions()
-        else:
-            logger.debug(u"PlexPy WebSocket :: Session %s state has not changed." % time_line[0]['sessionKey'])
+        activity = activity_handler.ActivityHandler(timeline=time_line[0])
+        activity.process()
 
     return True

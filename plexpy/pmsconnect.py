@@ -705,9 +705,9 @@ class PmsConnect(object):
                               'transcode_container': transcode_container,
                               'transcode_protocol': transcode_protocol,
                               'duration': duration,
-                              'progress': progress,
+                              'view_offset': progress,
                               'progress_percent': str(helpers.get_percent(progress, duration)),
-                              'type': 'track',
+                              'media_type': 'track',
                               'indexes': 0
                               }
 
@@ -826,14 +826,14 @@ class PmsConnect(object):
                                   'transcode_container': transcode_container,
                                   'transcode_protocol': transcode_protocol,
                                   'duration': duration,
-                                  'progress': progress,
+                                  'view_offset': progress,
                                   'progress_percent': str(helpers.get_percent(progress, duration)),
                                   'indexes': use_indexes
                                   }
                 if helpers.get_xml_attr(session, 'ratingKey').isdigit():
-                    session_output['type'] = helpers.get_xml_attr(session, 'type')
+                    session_output['media_type'] = helpers.get_xml_attr(session, 'type')
                 else:
-                    session_output['type'] = 'clip'
+                    session_output['media_type'] = 'clip'
 
             elif helpers.get_xml_attr(session, 'type') == 'movie':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
@@ -882,14 +882,14 @@ class PmsConnect(object):
                                   'transcode_container': transcode_container,
                                   'transcode_protocol': transcode_protocol,
                                   'duration': duration,
-                                  'progress': progress,
+                                  'view_offset': progress,
                                   'progress_percent': str(helpers.get_percent(progress, duration)),
                                   'indexes': use_indexes
                                   }
                 if helpers.get_xml_attr(session, 'ratingKey').isdigit():
-                    session_output['type'] = helpers.get_xml_attr(session, 'type')
+                    session_output['media_type'] = helpers.get_xml_attr(session, 'type')
                 else:
-                    session_output['type'] = 'clip'
+                    session_output['media_type'] = 'clip'
 
             elif helpers.get_xml_attr(session, 'type') == 'clip':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
@@ -938,9 +938,9 @@ class PmsConnect(object):
                                   'transcode_container': transcode_container,
                                   'transcode_protocol': transcode_protocol,
                                   'duration': duration,
-                                  'progress': progress,
+                                  'view_offset': progress,
                                   'progress_percent': str(helpers.get_percent(progress, duration)),
-                                  'type': helpers.get_xml_attr(session, 'type'),
+                                  'media_type': helpers.get_xml_attr(session, 'type'),
                                   'indexes': 0
                                   }
 
@@ -1027,9 +1027,9 @@ class PmsConnect(object):
                               'transcode_container': transcode_container,
                               'transcode_protocol': transcode_protocol,
                               'duration': '',
-                              'progress': '',
+                              'view_offset': '',
                               'progress_percent': '100',
-                              'type': 'photo',
+                              'media_type': 'photo',
                               'indexes': 0
                               }
 
@@ -1082,7 +1082,6 @@ class PmsConnect(object):
                                        'duration': helpers.get_xml_attr(result, 'duration')
                                       }
                     children_list.append(children_output)
-
 
         output = {'children_count': helpers.get_xml_attr(xml_head[0], 'size'),
                   'children_type': helpers.get_xml_attr(xml_head[0], 'viewGroup'),

@@ -22,7 +22,8 @@ import time
 
 monitor_lock = threading.Lock()
 
-def check_active_sessions():
+
+def check_active_sessions(ws_request=False):
 
     with monitor_lock:
         pms_connect = pmsconnect.PmsConnect()
@@ -42,7 +43,8 @@ def check_active_sessions():
                                            'container, video_codec, audio_codec, bitrate, video_resolution, '
                                            'video_framerate, aspect_ratio, audio_channels, transcode_protocol, '
                                            'transcode_container, transcode_video_codec, transcode_audio_codec, '
-                                           'transcode_audio_channels, transcode_width, transcode_height, paused_counter '
+                                           'transcode_audio_channels, transcode_width, transcode_height, '
+                                           'paused_counter, last_paused '
                                            'FROM sessions')
             for stream in db_streams:
                 if any(d['session_key'] == str(stream['session_key']) and d['rating_key'] == str(stream['rating_key'])
@@ -59,19 +61,22 @@ def check_active_sessions():
                                     # Push it on it's own thread so we don't hold up our db actions
                                     threading.Thread(target=notification_handler.notify,
                                                      kwargs=dict(stream_data=stream, notify_action='pause')).start()
+
                                 if session['state'] == 'playing' and stream['state'] == 'paused':
                                     # Push any notifications -
                                     # Push it on it's own thread so we don't hold up our db actions
                                     threading.Thread(target=notification_handler.notify,
                                                      kwargs=dict(stream_data=stream, notify_action='resume')).start()
-                            if stream['state'] == 'paused':
+
+                            if stream['state'] == 'paused' and not ws_request:
                                 # The stream is still paused so we need to increment the paused_counter
                                 # Using the set config parameter as the interval, probably not the most accurate but
-                                # it will have to do for now.
+                                # it will have to do for now. If it's a websocket request don't use this method.
                                 paused_counter = int(stream['paused_counter']) + plexpy.CONFIG.MONITORING_INTERVAL
                                 monitor_db.action('UPDATE sessions SET paused_counter = ? '
                                                   'WHERE session_key = ? AND rating_key = ?',
                                                   [paused_counter, stream['session_key'], stream['rating_key']])
+
                             if session['state'] == 'buffering' and plexpy.CONFIG.BUFFER_THRESHOLD > 0:
                                 # The stream is buffering so we need to increment the buffer_count
                                 # We're going just increment on every monitor ping,
@@ -160,21 +165,6 @@ def check_active_sessions():
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
 
 
-def get_last_state_by_session(session_key=None):
-    monitor_db = database.MonitorDatabase()
-
-    if str(session_key).isdigit():
-        logger.debug(u"PlexPy Monitor :: Checking state for sessionKey %s..." % str(session_key))
-        query = 'SELECT state FROM sessions WHERE session_key = ? LIMIT 1'
-        result = monitor_db.select(query, args=[session_key])
-
-        if result:
-            return result[0]
-
-    logger.debug(u"PlexPy Monitor :: No session with key %s is active." % str(session_key))
-    return False
-
-
 class MonitorProcessing(object):
 
     def __init__(self):
@@ -184,7 +174,7 @@ class MonitorProcessing(object):
 
         values = {'session_key': session['session_key'],
                   'rating_key': session['rating_key'],
-                  'media_type': session['type'],
+                  'media_type': session['media_type'],
                   'state': session['state'],
                   'user_id': session['user_id'],
                   'user': session['user'],
@@ -197,7 +187,7 @@ class MonitorProcessing(object):
                   'platform': session['platform'],
                   'parent_rating_key': session['parent_rating_key'],
                   'grandparent_rating_key': session['grandparent_rating_key'],
-                  'view_offset': session['progress'],
+                  'view_offset': session['view_offset'],
                   'duration': session['duration'],
                   'video_decision': session['video_decision'],
                   'audio_decision': session['audio_decision'],

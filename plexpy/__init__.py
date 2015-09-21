@@ -361,7 +361,7 @@ def dbcheck():
         'audio_channels INTEGER, transcode_protocol TEXT, transcode_container TEXT, '
         'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
         'transcode_width INTEGER, transcode_height INTEGER, buffer_count INTEGER DEFAULT 0, '
-        'buffer_last_triggered INTEGER)'
+        'buffer_last_triggered INTEGER, last_paused INTEGER)'
     )
 
     # session_history table :: This is a history table which logs essential stream details
@@ -607,6 +607,15 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table users.")
         c_db.execute(
             'ALTER TABLE users ADD COLUMN custom_avatar_url TEXT'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT last_paused from sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN last_paused INTEGER'
         )
 
     # Add "Local" user to database as default unauthenticated user.

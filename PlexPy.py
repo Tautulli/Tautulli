@@ -198,7 +198,7 @@ def main():
         except:
             logger.warn(u"Websocket :: Unable to open connection.")
             # Fallback to polling
-            plexpy.CONFIG.MONITORING_USE_WEBSOCKET = 0
+            plexpy.POLLING_FAILOVER = True
             plexpy.initialize_scheduler()
 
     # Open webbrowser
