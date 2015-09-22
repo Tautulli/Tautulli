@@ -271,3 +271,59 @@ class ActivityProcessor(object):
         logger.debug(u"PlexPy Monitor :: Unable to find IP address on fallback search. Not logging IP address.")
 
         return None
+
+    def get_session_by_key(self, session_key=None):
+        if str(session_key).isdigit():
+            result = self.db.select('SELECT started, session_key, rating_key, media_type, title, parent_title, '
+                                    'grandparent_title, user_id, user, friendly_name, ip_address, player, '
+                                    'platform, machine_id, parent_rating_key, grandparent_rating_key, state, '
+                                    'view_offset, duration, video_decision, audio_decision, width, height, '
+                                    'container, video_codec, audio_codec, bitrate, video_resolution, '
+                                    'video_framerate, aspect_ratio, audio_channels, transcode_protocol, '
+                                    'transcode_container, transcode_video_codec, transcode_audio_codec, '
+                                    'transcode_audio_channels, transcode_width, transcode_height, '
+                                    'paused_counter, last_paused '
+                                    'FROM sessions WHERE session_key = ? LIMIT 1', args=[session_key])
+            for session in result:
+                if session:
+                    return session
+
+        return None
+
+    def set_session_state(self, session_key=None, state=None, view_offset=0):
+        if str(session_key).isdigit() and str(view_offset).isdigit():
+            values = {'view_offset': int(view_offset)}
+            if state:
+                values['state'] = state
+
+            keys = {'session_key': session_key}
+            result = self.db.upsert('sessions', values, keys)
+
+            return result
+
+        return None
+
+    def delete_session(self, session_key=None):
+        if str(session_key).isdigit():
+            self.db.action('DELETE FROM sessions WHERE session_key = ?', [session_key])
+
+    def set_session_last_paused(self, session_key=None, timestamp=None):
+        if str(session_key).isdigit():
+            result = self.db.select('SELECT last_paused, paused_counter '
+                                    'FROM sessions '
+                                    'WHERE session_key = ?', args=[session_key])
+
+            paused_counter = None
+            for session in result:
+                if session['last_paused']:
+                    paused_offset = int(time.time()) - int(session['last_paused'])
+                    paused_counter = int(session['paused_counter']) + int(paused_offset)
+
+            values = {'state': 'playing',
+                      'last_paused': timestamp
+                      }
+            if paused_counter:
+                values['paused_counter'] = paused_counter
+
+            keys = {'session_key': session_key}
+            self.db.upsert('sessions', values, keys)

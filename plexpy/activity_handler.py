@@ -14,7 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
-from plexpy import logger, datafactory, pmsconnect, activity_processor, threading, notification_handler
+from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler
 
 
 class ActivityHandler(object):
@@ -66,16 +66,16 @@ class ActivityHandler(object):
             logger.debug(u"PlexPy ActivityHandler :: Session %s has stopped." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
-            data_factory = datafactory.DataFactory()
-            data_factory.set_session_last_paused(session_key=self.get_session_key(), timestamp=None)
+            ap = activity_processor.ActivityProcessor()
+            ap.set_session_last_paused(session_key=self.get_session_key(), timestamp=None)
 
             # Update the session state and viewOffset
-            data_factory.set_session_state(session_key=self.get_session_key(),
-                                           state=self.timeline['state'],
-                                           view_offset=self.timeline['viewOffset'])
+            ap.set_session_state(session_key=self.get_session_key(),
+                                 state=self.timeline['state'],
+                                 view_offset=self.timeline['viewOffset'])
 
             # Retrieve the session data from our temp table
-            db_session = data_factory.get_session_by_key(session_key=self.get_session_key())
+            db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             # Fire off notifications
             threading.Thread(target=notification_handler.notify,
@@ -86,7 +86,7 @@ class ActivityHandler(object):
             monitor_proc.write_session_history(session=db_session)
 
             # Remove the session from our temp session table
-            data_factory.delete_session(session_key=self.get_session_key())
+            ap.delete_session(session_key=self.get_session_key())
 
     def on_buffer(self):
         pass
@@ -96,16 +96,16 @@ class ActivityHandler(object):
             logger.debug(u"PlexPy ActivityHandler :: Session %s has been paused." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
-            data_factory = datafactory.DataFactory()
-            data_factory.set_session_last_paused(session_key=self.get_session_key(), timestamp=int(time.time()))
+            ap = activity_processor.ActivityProcessor()
+            ap.set_session_last_paused(session_key=self.get_session_key(), timestamp=int(time.time()))
 
             # Update the session state and viewOffset
-            data_factory.set_session_state(session_key=self.get_session_key(),
-                                           state=self.timeline['state'],
-                                           view_offset=self.timeline['viewOffset'])
+            ap.set_session_state(session_key=self.get_session_key(),
+                                 state=self.timeline['state'],
+                                 view_offset=self.timeline['viewOffset'])
 
             # Retrieve the session data from our temp table
-            db_session = data_factory.get_session_by_key(session_key=self.get_session_key())
+            db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             # Fire off notifications
             threading.Thread(target=notification_handler.notify,
@@ -116,16 +116,16 @@ class ActivityHandler(object):
             logger.debug(u"PlexPy ActivityHandler :: Session %s has been resumed." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
-            data_factory = datafactory.DataFactory()
-            data_factory.set_session_last_paused(session_key=self.get_session_key(), timestamp=None)
+            ap = activity_processor.ActivityProcessor()
+            ap.set_session_last_paused(session_key=self.get_session_key(), timestamp=None)
 
             # Update the session state and viewOffset
-            data_factory.set_session_state(session_key=self.get_session_key(),
-                                           state=self.timeline['state'],
-                                           view_offset=self.timeline['viewOffset'])
+            ap.set_session_state(session_key=self.get_session_key(),
+                                 state=self.timeline['state'],
+                                 view_offset=self.timeline['viewOffset'])
 
             # Retrieve the session data from our temp table
-            db_session = data_factory.get_session_by_key(session_key=self.get_session_key())
+            db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             # Fire off notifications
             threading.Thread(target=notification_handler.notify,
@@ -134,8 +134,8 @@ class ActivityHandler(object):
     # This function receives events from our websocket connection
     def process(self):
         if self.is_valid_session():
-            data_factory = datafactory.DataFactory()
-            db_session = data_factory.get_session_by_key(session_key=self.get_session_key())
+            ap = activity_processor.ActivityProcessor()
+            db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             # If we already have this session in the temp table, check for state changes
             if db_session:
