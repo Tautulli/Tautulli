@@ -14,6 +14,8 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
+import plexpy
+
 from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler
 
 
@@ -88,9 +90,6 @@ class ActivityHandler(object):
             # Remove the session from our temp session table
             ap.delete_session(session_key=self.get_session_key())
 
-    def on_buffer(self):
-        pass
-
     def on_pause(self):
         if self.is_valid_session():
             logger.debug(u"PlexPy ActivityHandler :: Session %s has been paused." % str(self.get_session_key()))
@@ -131,9 +130,40 @@ class ActivityHandler(object):
             threading.Thread(target=notification_handler.notify,
                              kwargs=dict(stream_data=db_session, notify_action='resume')).start()
 
+    def on_buffer(self):
+        if self.is_valid_session():
+            logger.debug(u"PlexPy ActivityHandler :: Session %s is buffering." % self.get_session_key())
+            ap = activity_processor.ActivityProcessor()
+            db_stream = ap.get_session_by_key(session_key=self.get_session_key())
+
+            # Increment our buffer count
+            ap.increment_session_buffer_count(session_key=self.get_session_key())
+
+            # Get our current buffer count
+            current_buffer_count = ap.get_session_buffer_count(self.get_session_key())
+            logger.debug(u"PlexPy ActivityHandler :: Session %s buffer count is %s." %
+                         (self.get_session_key(), current_buffer_count))
+
+            # Get our last triggered time
+            buffer_last_triggered = ap.get_session_buffer_trigger_time(self.get_session_key())
+
+            time_since_last_trigger = 0
+            if buffer_last_triggered:
+                logger.debug(u"PlexPy ActivityHandler :: Session %s buffer last triggered at %s." %
+                             (self.get_session_key(), buffer_last_triggered))
+                time_since_last_trigger = int(time.time()) - int(buffer_last_triggered)
+
+            if current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and time_since_last_trigger == 0 or \
+                            time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT:
+                ap.set_session_buffer_trigger_time(session_key=self.get_session_key())
+                threading.Thread(target=notification_handler.notify,
+                                 kwargs=dict(stream_data=db_stream, notify_action='buffer')).start()
+
     # This function receives events from our websocket connection
     def process(self):
         if self.is_valid_session():
+            from plexpy import helpers
+
             ap = activity_processor.ActivityProcessor()
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
@@ -142,19 +172,24 @@ class ActivityHandler(object):
                 this_state = self.timeline['state']
                 last_state = db_session['state']
 
+                # Start our state checks
                 if this_state != last_state:
-                    # logger.debug(u"PlexPy ActivityHandler :: Last state %s :: Current state %s" %
-                    #              (last_state, this_state))
                     if this_state == 'paused':
                         self.on_pause()
                     elif last_state == 'paused' and this_state == 'playing':
                         self.on_resume()
                     elif this_state == 'stopped':
                         self.on_stop()
-                # else:
-                    # logger.debug(u"PlexPy ActivityHandler :: Session %s state has not changed." %
-                    #              self.get_session_key())
+                elif this_state == 'buffering':
+                    self.on_buffer()
+
+                # Monitor if the stream has reached the watch percentage for notifications
+                # The only purpose of this is for notifications
+                progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+                if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and this_state != 'buffering':
+                    threading.Thread(target=notification_handler.notify,
+                                     kwargs=dict(stream_data=db_session, notify_action='watched')).start()
+
             else:
                 # We don't have this session in our table yet, start a new one.
-                # logger.debug(u"PlexPy ActivityHandler :: Session %s has started." % self.get_session_key())
                 self.on_start()
