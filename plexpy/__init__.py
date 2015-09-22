@@ -31,7 +31,7 @@ except ImportError:
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from plexpy import versioncheck, logger, monitor, plextv
+from plexpy import versioncheck, logger, activity_pinger, plextv
 import plexpy.config
 
 PROG_DIR = None
@@ -284,7 +284,7 @@ def initialize_scheduler():
 
             # If we're not using websockets then fall back to polling
             if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:
-                schedule_job(monitor.check_active_sessions, 'Check for active sessions',
+                schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
                              hours=0, minutes=0, seconds=seconds)
 
         # Refresh the users list

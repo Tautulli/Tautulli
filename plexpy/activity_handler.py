@@ -14,7 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
-from plexpy import logger, datafactory, pmsconnect, monitor, threading, notification_handler
+from plexpy import logger, datafactory, pmsconnect, activity_processor, threading, notification_handler
 
 
 class ActivityHandler(object):
@@ -47,7 +47,7 @@ class ActivityHandler(object):
 
     def update_db_session(self):
         # Update our session temp table values
-        monitor_proc = monitor.MonitorProcessing()
+        monitor_proc = activity_processor.ActivityProcessor()
         monitor_proc.write_session(self.get_live_session())
 
     def on_start(self):
@@ -82,7 +82,7 @@ class ActivityHandler(object):
                              kwargs=dict(stream_data=db_session, notify_action='stop')).start()
 
             # Write it to the history table
-            monitor_proc = monitor.MonitorProcessing()
+            monitor_proc = activity_processor.ActivityProcessor()
             monitor_proc.write_session_history(session=db_session)
 
             # Remove the session from our temp session table

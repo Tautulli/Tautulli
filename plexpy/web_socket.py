@@ -15,7 +15,7 @@
 
 # Mostly borrowed from https://github.com/trakt/Plex-Trakt-Scrobbler
 
-from plexpy import logger, monitor
+from plexpy import logger, activity_pinger
 
 import threading
 import plexpy
@@ -29,7 +29,7 @@ opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 
 def start_thread():
     # Check for any existing sessions on start up
-    monitor.check_active_sessions(ws_request=True)
+    activity_pinger.check_active_sessions(ws_request=True)
     # Start the websocket listener on it's own thread
     threading.Thread(target=run).start()
 
