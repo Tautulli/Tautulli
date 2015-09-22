@@ -631,10 +631,6 @@ def shutdown(restart=False, update=False):
     cherrypy.engine.exit()
     SCHED.shutdown(wait=False)
 
-    # Clear any sessions in the db - Not sure yet if we should do this. More testing required
-    # logger.debug(u'Clearing Plex sessions.')
-    # monitor.drop_session_db()
-
     CONFIG.write()
 
     if not restart and not update:
