@@ -262,6 +262,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         <div class="padded-header">
                             <h3>Plex Media Server</h3>
                         </div>
+                        <p class="help-block">If you're using websocket monitoring, any server changes require a restart of PlexPy.</p>
                         <div class="form-group has-feedback" id="pms-ip-group">
                             <label for="pms_ip">Plex IP or Hostname</label>
                             <div class="row">
@@ -389,6 +390,12 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <div id="monitoring_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Min 30 seconds, recommended 60 seconds.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart)
+                            </label>
+                            <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens. This is currently experimental. Encrypted websocket is not currently supported.</p>
                         </div>
 
                         <div class="padded-header">

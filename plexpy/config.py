@@ -111,6 +111,7 @@ _CONFIG_DEFINITIONS = {
     'MUSIC_NOTIFY_ON_PAUSE': (int, 'Monitoring', 0),
     'MUSIC_LOGGING_ENABLE': (int, 'Monitoring', 0),
     'MONITORING_INTERVAL': (int, 'Monitoring', 60),
+    'MONITORING_USE_WEBSOCKET': (int, 'Monitoring', 0),
     'NMA_APIKEY': (str, 'NMA', ''),
     'NMA_ENABLED': (int, 'NMA', 0),
     'NMA_PRIORITY': (int, 'NMA', 0),

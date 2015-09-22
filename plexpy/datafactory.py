@@ -778,3 +778,4 @@ class DataFactory(object):
             return 'Deleted all items for user_id %s.' % user_id
         else:
             return 'Unable to delete items. Input user_id not valid.'
+
