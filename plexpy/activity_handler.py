@@ -23,6 +23,7 @@ class ActivityHandler(object):
 
     def __init__(self, timeline):
         self.timeline = timeline
+        # print timeline
 
     def is_valid_session(self):
         if 'sessionKey' in self.timeline:
@@ -63,7 +64,7 @@ class ActivityHandler(object):
             # Write the new session to our temp session table
             self.update_db_session()
 
-    def on_stop(self):
+    def on_stop(self, force_stop=False):
         if self.is_valid_session():
             logger.debug(u"PlexPy ActivityHandler :: Session %s has stopped." % str(self.get_session_key()))
 
@@ -72,9 +73,11 @@ class ActivityHandler(object):
             ap.set_session_last_paused(session_key=self.get_session_key(), timestamp=None)
 
             # Update the session state and viewOffset
-            ap.set_session_state(session_key=self.get_session_key(),
-                                 state=self.timeline['state'],
-                                 view_offset=self.timeline['viewOffset'])
+            # Set force_stop to true to disable the state set
+            if not force_stop:
+                ap.set_session_state(session_key=self.get_session_key(),
+                                     state=self.timeline['state'],
+                                     view_offset=self.timeline['viewOffset'])
 
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
@@ -110,7 +113,7 @@ class ActivityHandler(object):
             threading.Thread(target=notification_handler.notify,
                              kwargs=dict(stream_data=db_session, notify_action='pause')).start()
 
-    def on_resume(self, time_line=None):
+    def on_resume(self):
         if self.is_valid_session():
             logger.debug(u"PlexPy ActivityHandler :: Session %s has been resumed." % str(self.get_session_key()))
 
@@ -171,17 +174,32 @@ class ActivityHandler(object):
             if db_session:
                 this_state = self.timeline['state']
                 last_state = db_session['state']
+                this_key = str(self.timeline['ratingKey'])
+                last_key = str(db_session['rating_key'])
 
-                # Start our state checks
-                if this_state != last_state:
-                    if this_state == 'paused':
-                        self.on_pause()
-                    elif last_state == 'paused' and this_state == 'playing':
-                        self.on_resume()
-                    elif this_state == 'stopped':
-                        self.on_stop()
-                elif this_state == 'buffering':
-                    self.on_buffer()
+                # Make sure the same item is being played
+                if this_key == last_key:
+                    # Update the session state and viewOffset
+                    if this_state == 'playing':
+                        ap.set_session_state(session_key=self.get_session_key(),
+                                             state=this_state,
+                                             view_offset=self.timeline['viewOffset'])
+                    # Start our state checks
+                    if this_state != last_state:
+                        if this_state == 'paused':
+                            self.on_pause()
+                        elif last_state == 'paused' and this_state == 'playing':
+                            self.on_resume()
+                        elif this_state == 'stopped':
+                            self.on_stop()
+                    elif this_state == 'buffering':
+                        self.on_buffer()
+                # If a client doesn't register stop events (I'm looking at you PHT!) check if the ratingKey has changed
+                else:
+                    # Manually stop and start
+                    # Set force_stop so that we don't overwrite our last viewOffset
+                    self.on_stop(force_stop=True)
+                    self.on_start()
 
                 # Monitor if the stream has reached the watch percentage for notifications
                 # The only purpose of this is for notifications
