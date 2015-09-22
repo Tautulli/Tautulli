@@ -63,14 +63,14 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 <div class="item-children-instance-text-wrapper episode-item">
-                    <h3>${child['title']}</h3>
+                    <h3 title="${child['title']}">${child['title']}</h3>
                 </div>
                 % elif data['children_type'] == 'album':
                 <div class="item-children-poster">
                     <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300);"></div>
                 </div>
                 <div class="item-children-instance-text-wrapper album-item">
-                    <h3>${child['title']}</h3>
+                    <h3 title="${child['title']}">${child['title']}</h3>
                 </div>
                 % elif data['children_type'] == 'track':
                     % if loop.index % 2 == 0:
