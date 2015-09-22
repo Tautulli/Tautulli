@@ -830,14 +830,17 @@ class DataFactory(object):
                                        'FROM sessions '
                                        'WHERE session_key = ?', args=[session_key])
 
-            paused_counter = 0
+            paused_counter = None
             for session in result:
                 if session['last_paused']:
                     paused_offset = int(time.time()) - int(session['last_paused'])
                     paused_counter = int(session['paused_counter']) + int(paused_offset)
 
             values = {'state': 'playing',
-                      'last_paused': timestamp,
-                      'paused_counter': paused_counter}
+                      'last_paused': timestamp
+                      }
+            if paused_counter:
+                values['paused_counter'] = paused_counter
+
             keys = {'session_key': session_key}
             monitor_db.upsert('sessions', values, keys)
