@@ -99,6 +99,7 @@ class WebInterface(object):
         # The setup wizard just refreshes the page on submit so we must redirect to home if config set.
         # Also redirecting to home if a PMS token already exists - will remove this in future.
         if plexpy.CONFIG.FIRST_RUN_COMPLETE or plexpy.CONFIG.PMS_TOKEN:
+            plexpy.initialize_scheduler()
             raise cherrypy.HTTPRedirect("home")
         else:
             return serve_template(templatename="welcome.html", title="Welcome", config=config)
