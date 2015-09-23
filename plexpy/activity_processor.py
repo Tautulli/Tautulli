@@ -26,7 +26,7 @@ class ActivityProcessor(object):
     def __init__(self):
         self.db = database.MonitorDatabase()
 
-    def write_session(self, session=None):
+    def write_session(self, session=None, notify=True):
         if session:
             values = {'session_key': session['session_key'],
                       'rating_key': session['rating_key'],
@@ -73,8 +73,9 @@ class ActivityProcessor(object):
 
             if result == 'insert':
                 # Push any notifications - Push it on it's own thread so we don't hold up our db actions
-                threading.Thread(target=notification_handler.notify,
-                                 kwargs=dict(stream_data=values,notify_action='play')).start()
+                if notify:
+                    threading.Thread(target=notification_handler.notify,
+                                     kwargs=dict(stream_data=values, notify_action='play')).start()
 
                 started = int(time.time())
 

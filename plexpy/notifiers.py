@@ -1106,6 +1106,7 @@ class OSX_NOTIFY(object):
 
             notification_center = NSUserNotificationCenter.defaultUserNotificationCenter()
             notification_center.deliverNotification_(notification)
+            logger.info(u"OSX Notify notifications sent.")
 
             del pool
             return True

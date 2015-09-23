@@ -51,7 +51,7 @@ class ActivityHandler(object):
     def update_db_session(self):
         # Update our session temp table values
         monitor_proc = activity_processor.ActivityProcessor()
-        monitor_proc.write_session(self.get_live_session())
+        monitor_proc.write_session(session=self.get_live_session(), notify=False)
 
     def on_start(self):
         if self.is_valid_session():
