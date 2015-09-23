@@ -214,37 +214,37 @@ DOCUMENTATION :: END
             <i class="fa fa-spinner"></i>&nbsp;
             % endif
             % if a['media_type'] == 'episode':
-            <a href="info?item_id=${a['rating_key']}">${a['grandparent_title']} - ${a['title']}</a>
+            <a href="info?item_id=${a['rating_key']}" title="${a['grandparent_title']} - ${a['title']}">${a['grandparent_title']} - ${a['title']}</a>
             % elif a['media_type'] == 'movie':
-            <a href="info?item_id=${a['rating_key']}">${a['title']}</a>
+            <a href="info?item_id=${a['rating_key']}" title="${a['title']}">${a['title']}</a>
             % elif a['media_type'] == 'clip':
-            ${a['title']}
+            <span title="${a['title']}">${a['title']}</span>
             % elif a['media_type'] == 'track':
-            <a href="info?item_id=${a['rating_key']}">${a['grandparent_title']} - ${a['title']}</a>
+            <a href="info?item_id=${a['rating_key']}" title="${a['grandparent_title']} - ${a['title']}">${a['grandparent_title']} - ${a['title']}</a>
             % elif a['media_type'] == 'photo':
-            ${a['parent_title']}
+            <span title="${a['parent_title']}">${a['parent_title']}</span>
             % else:
-            ${a['title']}
+            <span title="${a['title']}">${a['title']}</span>
             % endif
         </div>
         <div class="dashboard-activity-metadata-subtitle">
             % if a['media_type'] == 'episode':
-            S${a['parent_media_index']} &middot; E${a['media_index']}
+            <span title="S${a['parent_media_index']} &middot; E${a['media_index']}">S${a['parent_media_index']} &middot; E${a['media_index']}</span>
             % elif a['media_type'] == 'movie':
-            ${a['year']}
+            <span title="${a['year']}">${a['year']}</span>
             % elif a['media_type'] == 'track':
-            <a href="info?item_id=${a['parent_rating_key']}">${a['parent_title']}</a>
+            <a href="info?item_id=${a['parent_rating_key']}" title="${a['parent_title']}">${a['parent_title']}</a>
             % elif a['media_type'] == 'photo':
-            ${a['title']}
+            <span title="${a['title']}">${a['title']}</span>
             % else:
-            ${a['year']}
+            <span title="${a['year']}">${a['year']}</span>
             % endif
         </div>
         <div class="dashboard-activity-metadata-user">
             % if a['user_id']:
-            <a href="user?user_id=${a['user_id']}">${a['friendly_name']}</a>
+            <a href="user?user_id=${a['user_id']}" title="${a['friendly_name']}">${a['friendly_name']}</a>
             % else:
-            <a href="user?user=${a['user']}">${a['friendly_name']}</a>
+            <a href="user?user=${a['user']}" title="${a['friendly_name']}">${a['friendly_name']}</a>
             % endif
         </div>
 </div>
