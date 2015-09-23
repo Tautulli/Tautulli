@@ -27,69 +27,69 @@ class ActivityProcessor(object):
         self.db = database.MonitorDatabase()
 
     def write_session(self, session=None):
+        if session:
+            values = {'session_key': session['session_key'],
+                      'rating_key': session['rating_key'],
+                      'media_type': session['media_type'],
+                      'state': session['state'],
+                      'user_id': session['user_id'],
+                      'user': session['user'],
+                      'machine_id': session['machine_id'],
+                      'title': session['title'],
+                      'parent_title': session['parent_title'],
+                      'grandparent_title': session['grandparent_title'],
+                      'friendly_name': session['friendly_name'],
+                      'player': session['player'],
+                      'platform': session['platform'],
+                      'parent_rating_key': session['parent_rating_key'],
+                      'grandparent_rating_key': session['grandparent_rating_key'],
+                      'view_offset': session['view_offset'],
+                      'duration': session['duration'],
+                      'video_decision': session['video_decision'],
+                      'audio_decision': session['audio_decision'],
+                      'width': session['width'],
+                      'height': session['height'],
+                      'container': session['container'],
+                      'video_codec': session['video_codec'],
+                      'audio_codec': session['audio_codec'],
+                      'bitrate': session['bitrate'],
+                      'video_resolution': session['video_resolution'],
+                      'video_framerate': session['video_framerate'],
+                      'aspect_ratio': session['aspect_ratio'],
+                      'audio_channels': session['audio_channels'],
+                      'transcode_protocol': session['transcode_protocol'],
+                      'transcode_container': session['transcode_container'],
+                      'transcode_video_codec': session['transcode_video_codec'],
+                      'transcode_audio_codec': session['transcode_audio_codec'],
+                      'transcode_audio_channels': session['transcode_audio_channels'],
+                      'transcode_width': session['transcode_width'],
+                      'transcode_height': session['transcode_height']
+                      }
 
-        values = {'session_key': session['session_key'],
-                  'rating_key': session['rating_key'],
-                  'media_type': session['media_type'],
-                  'state': session['state'],
-                  'user_id': session['user_id'],
-                  'user': session['user'],
-                  'machine_id': session['machine_id'],
-                  'title': session['title'],
-                  'parent_title': session['parent_title'],
-                  'grandparent_title': session['grandparent_title'],
-                  'friendly_name': session['friendly_name'],
-                  'player': session['player'],
-                  'platform': session['platform'],
-                  'parent_rating_key': session['parent_rating_key'],
-                  'grandparent_rating_key': session['grandparent_rating_key'],
-                  'view_offset': session['view_offset'],
-                  'duration': session['duration'],
-                  'video_decision': session['video_decision'],
-                  'audio_decision': session['audio_decision'],
-                  'width': session['width'],
-                  'height': session['height'],
-                  'container': session['container'],
-                  'video_codec': session['video_codec'],
-                  'audio_codec': session['audio_codec'],
-                  'bitrate': session['bitrate'],
-                  'video_resolution': session['video_resolution'],
-                  'video_framerate': session['video_framerate'],
-                  'aspect_ratio': session['aspect_ratio'],
-                  'audio_channels': session['audio_channels'],
-                  'transcode_protocol': session['transcode_protocol'],
-                  'transcode_container': session['transcode_container'],
-                  'transcode_video_codec': session['transcode_video_codec'],
-                  'transcode_audio_codec': session['transcode_audio_codec'],
-                  'transcode_audio_channels': session['transcode_audio_channels'],
-                  'transcode_width': session['transcode_width'],
-                  'transcode_height': session['transcode_height']
-                  }
+            keys = {'session_key': session['session_key'],
+                    'rating_key': session['rating_key']}
 
-        keys = {'session_key': session['session_key'],
-                'rating_key': session['rating_key']}
+            result = self.db.upsert('sessions', values, keys)
 
-        result = self.db.upsert('sessions', values, keys)
+            if result == 'insert':
+                # Push any notifications - Push it on it's own thread so we don't hold up our db actions
+                threading.Thread(target=notification_handler.notify,
+                                 kwargs=dict(stream_data=values,notify_action='play')).start()
 
-        if result == 'insert':
-            # Push any notifications - Push it on it's own thread so we don't hold up our db actions
-            threading.Thread(target=notification_handler.notify,
-                             kwargs=dict(stream_data=values,notify_action='play')).start()
+                started = int(time.time())
 
-            started = int(time.time())
+                # Try and grab IP address from logs
+                if plexpy.CONFIG.IP_LOGGING_ENABLE and plexpy.CONFIG.PMS_LOGS_FOLDER:
+                    ip_address = self.find_session_ip(rating_key=session['rating_key'],
+                                                      machine_id=session['machine_id'])
+                else:
+                    ip_address = None
 
-            # Try and grab IP address from logs
-            if plexpy.CONFIG.IP_LOGGING_ENABLE and plexpy.CONFIG.PMS_LOGS_FOLDER:
-                ip_address = self.find_session_ip(rating_key=session['rating_key'],
-                                                  machine_id=session['machine_id'])
-            else:
-                ip_address = None
+                timestamp = {'started': started,
+                             'ip_address': ip_address}
 
-            timestamp = {'started': started,
-                         'ip_address': ip_address}
-
-            # If it's our first write then time stamp it.
-            self.db.upsert('sessions', timestamp, keys)
+                # If it's our first write then time stamp it.
+                self.db.upsert('sessions', timestamp, keys)
 
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
         from plexpy import users

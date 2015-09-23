@@ -170,11 +170,12 @@ class ActivityHandler(object):
             ap = activity_processor.ActivityProcessor()
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
+            this_state = self.timeline['state']
+            this_key = str(self.timeline['ratingKey'])
+
             # If we already have this session in the temp table, check for state changes
             if db_session:
-                this_state = self.timeline['state']
                 last_state = db_session['state']
-                this_key = str(self.timeline['ratingKey'])
                 last_key = str(db_session['rating_key'])
 
                 # Make sure the same item is being played
@@ -210,4 +211,5 @@ class ActivityHandler(object):
 
             else:
                 # We don't have this session in our table yet, start a new one.
-                self.on_start()
+                if this_state != 'buffering':
+                    self.on_start()
