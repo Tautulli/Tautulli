@@ -43,20 +43,37 @@ from plexpy import common
                 <h3>Plex Media Server</h3>
                 <form>
                     <p class="help-block">Enter your Plex Server details and then click the Verify button to make sure PlexPy can reach the server.</p>
+
                 <div class="wizard-input-section">
-                    <label for="pms_ip">Plex IP or Hostname</label>
+                    % if servers:
+                        <label for="pms_ip">Choose Server</label>
+                    % else:
+                        <label for="pms_ip">Plex IP or Hostname</label>
+                    % endif
                     <div class="row">
                         <div class="col-xs-8">
-                            <input type="text" class="form-control pms-settings" name="pms_ip" id="pms_ip" placeholder="127.0.0.1" value="${config['pms_ip']}" required>
+                            % if servers:
+                                <select id="pms_ip">
+                                    % for server in servers:
+                                        <option value="${server['server']}:${server['port']}">${server['servername']}</option>
+                                    % endfor
+                                </select>
+                            % else:
+                                <input type="text" class="form-control pms-settings" name="pms_ip" id="pms_ip" placeholder="127.0.0.1" value="${config['pms_ip']}" required>
+                            % endif %
                         </div>
                     </div>
                 </div>
                 <div class="wizard-input-section">
+                    % if not server:
                     <label for="pms_port">Port Number</label>
-                    <div class="row">
+                        <div class="row">
                         <div class="col-xs-3">
                             <input type="text" class="form-control pms-settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
                         </div>
+                    % else:
+                        <div class="row">
+                    % endif
                         <div class="col-xs-4">
                             <div class="checkbox">
                                 <label>
@@ -297,8 +314,15 @@ from plexpy import common
 
     $("#verify-plex-server").click(function() {
         var pms_ip = $("#pms_ip").val()
-        var pms_port = $("#pms_port").val()
-        if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
+        var pms_port
+
+        if (pms_ip.indexOf(":") != -1) {
+            pms_port = pms_ip.split(':')[1]
+        } else{
+            pms_port = $("#pms_port").val()
+        }
+
+        if (($("#pms_ip").val() !== '') || (pms_port !== '')) {
             $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Validating server...');
             $('#pms-verify-status').fadeIn('fast');
             $.ajax({

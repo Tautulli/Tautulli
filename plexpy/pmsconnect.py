@@ -1,4 +1,7 @@
-﻿# This file is part of PlexPy.
+﻿#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,7 +18,7 @@
 
 from plexpy import logger, helpers, users, http_handler
 from urlparse import urlparse
-
+import socket
 import plexpy
 
 
@@ -39,14 +42,14 @@ class PmsConnect(object):
                                                         port=port,
                                                         token=plexpy.CONFIG.PMS_TOKEN)
 
-    """
-    Return current sessions.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_sessions(self, output_format=''):
+        """
+        Return current sessions.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/status/sessions'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -55,15 +58,15 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return metadata for request item.
-
-    Parameters required:    rating_key { Plex ratingKey }
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_metadata(self, rating_key='', output_format=''):
+        """
+        Return metadata for request item.
+
+        Parameters required:    rating_key { Plex ratingKey }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/library/metadata/' + rating_key
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -72,15 +75,15 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return list of recently added items.
-
-    Parameters required:    count { number of results to return }
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_recently_added(self, count='0', output_format=''):
+        """
+        Return list of recently added items.
+
+        Parameters required:    count { number of results to return }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -89,31 +92,31 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return list of children in requested library item.
-
-    Parameters required:    rating_key { ratingKey of parent }
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_children_list(self, rating_key='', output_format=''):
+        """
+        Return list of children in requested library item.
+
+        Parameters required:    rating_key { ratingKey of parent }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/library/metadata/' + rating_key + '/children'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
-        
+
         return request
 
-    """
-    Return list of local servers.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_server_list(self, output_format=''):
+        """
+        Return list of local servers.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/servers'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -122,14 +125,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return the local servers preferences.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_server_prefs(self, output_format=''):
+        """
+        Return the local servers preferences.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/:/prefs'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -138,14 +141,15 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return the local server identity.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_local_server_identity(self, output_format=''):
+        """
+        Return the local server identity.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
+
         uri = '/identity'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -154,14 +158,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return list of libraries on server.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_libraries_list(self, output_format=''):
+        """
+        Return list of libraries on server.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/library/sections'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -170,14 +174,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return list of items in library on server.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_library_list(self, section_key='', list_type='all', count='0', sort_type='', output_format=''):
+        """
+        Return list of items in library on server.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/library/sections/' + section_key + '/' + list_type +'?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count + sort_type
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -186,15 +190,15 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return sync item details.
-
-    Parameters required:    sync_id { unique sync id for item }
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_sync_item(self, sync_id=None, output_format=''):
+        """
+        Return sync item details.
+
+        Parameters required:    sync_id { unique sync id for item }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/sync/items/' + sync_id
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -203,14 +207,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return sync transcode queue.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_sync_transcode_queue(self, output_format=''):
+        """
+        Return sync transcode queue.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/sync/transcodeQueue'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -219,14 +223,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return processed and validated list of recently added items.
-
-    Parameters required:    count { number of results to return }
-
-    Output: array
-    """
     def get_recently_added_details(self, count='0'):
+        """
+        Return processed and validated list of recently added items.
+
+        Parameters required:    count { number of results to return }
+
+        Output: array
+        """
         recent = self.get_recently_added(count, output_format='xml')
 
         try:
@@ -277,14 +281,14 @@ class PmsConnect(object):
         output = {'recently_added': sorted(recents_list, key=lambda k: k['added_at'], reverse=True)}
         return output
 
-    """
-    Return processed and validated metadata list for requested item.
-
-    Parameters required:    rating_key { Plex ratingKey }
-
-    Output: array
-    """
     def get_metadata_details(self, rating_key=''):
+        """
+        Return processed and validated metadata list for requested item.
+
+        Parameters required:    rating_key { Plex ratingKey }
+
+        Output: array
+        """
         metadata = self.get_metadata(str(rating_key), output_format='xml')
 
         try:
@@ -610,15 +614,15 @@ class PmsConnect(object):
 
         return output
 
-    """
-    Return selected data from current sessions.
-    This function processes and validates session data
-
-    Parameters required:    stream_type { track or video }
-                            session { the session dictionary }
-    Output: dict
-    """
     def get_session_each(self, stream_type='', session=None):
+        """
+        Return selected data from current sessions.
+        This function processes and validates session data
+
+        Parameters required:    stream_type { track or video }
+                                session { the session dictionary }
+        Output: dict
+        """
         session_output = None
         user_data = users.Users()
 
@@ -1038,12 +1042,13 @@ class PmsConnect(object):
 
         return session_output
 
-    """
-    Return processed and validated children list.
 
-    Output: array
-    """
     def get_item_children(self, rating_key=''):
+        """
+        Return processed and validated children list.
+
+        Output: array
+        """
         children_data = self.get_children_list(rating_key, output_format='xml')
 
         try:
@@ -1061,7 +1066,7 @@ class PmsConnect(object):
                     children_list = {'children_count': '0',
                                      'children_list': []
                                      }
-                    return parent_list
+                    return parent_list  # undef name fixme
 
             result_data = []
 
@@ -1080,7 +1085,7 @@ class PmsConnect(object):
                                        'thumb': helpers.get_xml_attr(result, 'thumb'),
                                        'parent_thumb': helpers.get_xml_attr(a, 'thumb'),
                                        'duration': helpers.get_xml_attr(result, 'duration')
-                                      }
+                                       }
                     children_list.append(children_output)
 
         output = {'children_count': helpers.get_xml_attr(xml_head[0], 'size'),
@@ -1091,12 +1096,13 @@ class PmsConnect(object):
 
         return output
 
-    """
-    Return the list of local servers.
 
-    Output: array
-    """
     def get_servers_info(self):
+        """
+        Return the list of local servers.
+
+        Output: array
+        """
         recent = self.get_server_list(output_format='xml')
 
         try:
@@ -1118,12 +1124,13 @@ class PmsConnect(object):
 
         return server_info
 
-    """
-    Return the local machine identity.
 
-    Output: dict
-    """
     def get_server_identity(self):
+        """
+        Return the local machine identity.
+
+        Output: dict
+        """
         identity = self.get_local_server_identity(output_format='xml')
 
         try:
@@ -1140,14 +1147,15 @@ class PmsConnect(object):
 
         return server_identity
 
-    """
-    Return a specified server preference.
 
-    Parameters required:    pref { name of preference }
-
-    Output: string
-    """
     def get_server_pref(self, pref=None):
+        """
+        Return a specified server preference.
+
+        Parameters required:    pref { name of preference }
+
+        Output: string
+        """
         if pref:
             prefs = self.get_server_prefs(output_format='xml')
 
@@ -1168,12 +1176,13 @@ class PmsConnect(object):
             logger.debug(u"Server preferences queried but no parameter received.")
             return None
 
-    """
-    Return processed and validated server libraries list.
 
-    Output: array
-    """
     def get_server_children(self):
+        """
+        Return processed and validated server libraries list.
+
+        Output: array
+        """
         libraries_data = self.get_libraries_list(output_format='xml')
 
         try:
@@ -1207,18 +1216,19 @@ class PmsConnect(object):
                   'title': helpers.get_xml_attr(xml_head[0], 'title1'),
                   'libraries_list': libraries_list
                   }
-        
+
         return output
 
-    """
-    Return processed and validated server library items list.
 
-    Parameters required:    library_type { movie, show, episode, artist }
-                            section_key { unique library key }
-
-    Output: array
-    """
     def get_library_children(self, library_type='', section_key='', list_type='all', sort_type = ''):
+        """
+        Return processed and validated server library items list.
+
+        Parameters required:    library_type { movie, show, episode, artist }
+                                section_key { unique library key }
+
+        Output: array
+        """
 
         # Currently only grab the library with 1 items so 'size' is not 0
         count = '1'
@@ -1233,7 +1243,7 @@ class PmsConnect(object):
             list_type = 'albums'
 
         library_data = self.get_library_list(section_key, list_type, count, sort_type, output_format='xml')
-        
+
         try:
             xml_head = library_data.getElementsByTagName('MediaContainer')
         except:
@@ -1268,12 +1278,13 @@ class PmsConnect(object):
 
         return output
 
-    """
-    Return processed and validated library statistics.
 
-    Output: array
-    """
     def get_library_stats(self, library_cards=''):
+        """
+        Return processed and validated library statistics.
+
+        Output: array
+        """
         server_libraries = self.get_server_children()
 
         server_library_stats = []
@@ -1315,16 +1326,17 @@ class PmsConnect(object):
 
         return server_library_stats
 
-    """
-    Return image data as array.
-    Array contains the image content type and image binary
 
-    Parameters required:    img { Plex image location }
-    Optional parameters:    width { the image width }
-                            height { the image height }
-    Output: array
-    """
     def get_image(self, img=None, width=None, height=None):
+        """
+        Return image data as array.
+        Array contains the image content type and image binary
+
+        Parameters required:    img { Plex image location }
+        Optional parameters:    width { the image width }
+                                height { the image height }
+        Output: array
+        """
         if img:
             if width.isdigit() and height.isdigit():
                 uri = '/photo/:/transcode?url=http://127.0.0.1:32400' + img + '&width=' + width + '&height=' + height
@@ -1340,3 +1352,67 @@ class PmsConnect(object):
         else:
             logger.error("Image proxy queries but no input received.")
             return None
+
+    @staticmethod
+    def discover():
+        """ Tries to find all pms on a local network """
+        # setup socket for discovery -> multicast message
+        logger.debug("Trying to find all pms on your network")
+        GDM = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        GDM.settimeout(1.0)
+
+        # Set the time-to-live for messages to 1 for local network
+        GDM.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+        responses = []
+        try:
+            # Send data to the multicast group
+            GDM.sendto('M-SEARCH * HTTP/1.0', ('<broadcast>', 32414))
+
+            while True:
+                try:
+                    data, server = GDM.recvfrom(1024)
+                    responses.append({'from': server, 'data': data})
+
+                except socket.timeout:
+                    break
+
+        finally:
+            GDM.close()
+
+        trash = []
+        servers = []
+        if responses:
+            for response in responses:
+                if '200 OK' in response.get('data'):
+                    ip = response.get('from')[0]
+                    # Filter out on uuid so we only get unique servers
+                    check = response.get('data').split('\r\n')
+                    uuid = check[1:-2][4].split(': ')[1]
+                    if uuid not in trash:
+                        trash.append(uuid)
+                        d = {'server': ip}
+                        for each in response.get('data').split('\r\n'):
+                            if 'Content-Type:' in each:
+                                d['content-type'] = each.split(':')[1].strip()
+                            elif 'Resource-Identifier:' in each:
+                                d['uuid'] = each.split(':')[1].strip()
+                            elif 'Name:' in each:
+                                d['servername'] = each.split(':')[1].decode('utf-8', 'replace')
+                            elif 'Port:' in each:
+                                d['port'] = each.split(':')[1].strip()
+                            elif 'Updated-At:' in each:
+                                d['updated'] = each.split(':')[1].strip()
+                            elif 'Version:' in each:
+                                d['version'] = each.split(':')[1].strip()
+                            elif 'Server-Class:' in each:
+                                d['class'] = each.split(':')[1].strip()
+
+                        servers.append(d)
+        else:
+            logger.debug("Didn't find any Plex Media Servers :(")
+
+        logger.debug("Found %s servers" % len(servers))
+        logger.debug(servers)
+
+        return servers
