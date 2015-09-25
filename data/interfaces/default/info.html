@@ -11,21 +11,21 @@ data :: Usable parameters (if not applicable for media type, blank value will be
 
 == Global keys ==
 rating_key              Returns the unique identifier for the media item.
-type                    Returns the type of media. Either 'movie', 'episode' or 'show' or 'season'.
+type                    Returns the type of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
 art                     Returns the location of the item's artwork
-title                   Returns the name of the episode, show, season or movie.
+title                   Returns the name of the movie, show, episode, artist, album, or track.
 duration                Returns the standard runtime of the media.
 content_rating          Returns the age rating for the media.
 summary                 Returns a brief description of the media plot.
-grandparent_title       Returns the name of the TV show.
-parent_index            Returns the season number of the TV show.
-index                   Returns the episode number.
+grandparent_title       Returns the name of the show, or artist.
+parent_index            Returns the index number of the season.
+index                   Returns the index number of the episode, or track.
 parent_thumb            Returns the location of the item's thumbnail. Use with pms_image_proxy.
 writers                 Returns an array of writers.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
-parent_title            Returns the name of the TV show.
+parent_title            Returns the name of the show, or artist.
 rating                  Returns the 5 star rating value for the movie. Between 1 and 5.
-year                    Returns the release year of the movie.
+year                    Returns the release year of the movie, or show.
 genres                  Returns an array of genres.
 actors                  Returns an array of actors.
 directors               Returns an array of directors.
@@ -35,10 +35,14 @@ originally_available_at Returns the air date of the item.
 query :: Usable parameters
 
 == Global keys ==
-rating_key              Returns the unique identifier for the media item.
+query_string            Returns the string used for the search query.
+title                   Returns the name of the movie, episode, or track.
+parent_title            Returns the name of the album.
+grandparent_title       Returns the name of the show, or artist.
+media_index             Returns the index number of the episode, or track.
+parent_media_index      Returns the index number of the season.
 media_type              Returns the type of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
-title                   Returns the title for the search query.
-
+rating_key              Returns the unique identifier for the media item.
 
 DOCUMENTATION :: END
 </%doc>
