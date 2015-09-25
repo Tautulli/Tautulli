@@ -394,6 +394,25 @@ DOCUMENTATION :: END
                     <div class='table-card-back'>
                         <div id="search-results-list"></div>
                     </div>
+                    <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                                    <h4 class="modal-title" id="myModalLabel">Confirm Update</h4>
+                                </div>
+                                <div class="modal-body" style="text-align: center;">
+                                    <p>Are you REALLY sure you want to replace <strong>${query['title']}</strong> with </p>
+                                    <p><strong><span id="new_title"></span></strong></p>
+                                    <p>This is permanent and cannot be undone!</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-update">Update</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     % endif
                 </div>
             </div>
@@ -535,6 +554,31 @@ DOCUMENTATION :: END
         },
         complete: function(xhr, status) {
         $("#search-results-list").html(xhr.responseText); }
+    });
+    $(document).on('click', '#search-results-list a', function (e) {
+        e.preventDefault();
+        var new_rating_key = $(this).attr("id");
+        var new_href = $(this).attr("href");
+
+        $('#new_title').text($(this).find('.item-children-instance-text-wrapper').text());
+
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-update', function () {
+            var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspUpdating database..."
+            showMsg(msg, false, false, 0)
+
+            $.ajax({
+                url: 'update_history_rating_key',
+                data: { old_rating_key: "${query['rating_key']}",
+                    new_rating_key: new_rating_key,
+                    media_type: "${query['media_type']}"
+                    },
+                async: false,
+                success: function (data) {
+                    window.location.href = new_href;
+                }
+            });
+        });
     });
 </script>
 % endif
