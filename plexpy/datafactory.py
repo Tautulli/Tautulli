@@ -784,7 +784,7 @@ class DataFactory(object):
 
         if rating_key:
             query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
-                    'media_index, parent_media_index, media_type ' \
+                    'media_index, parent_media_index, year, media_type ' \
                     'FROM session_history_metadata ' \
                     'WHERE rating_key = ? ' \
                     'OR parent_rating_key = ? ' \
@@ -804,6 +804,7 @@ class DataFactory(object):
             grandparent_title = item['grandparent_title']
             media_index = item['media_index']
             parent_media_index = item['parent_media_index']
+            year = item['year']
 
             if str(item['rating_key']) == rating_key:
                 query_string = item['title']
@@ -832,6 +833,7 @@ class DataFactory(object):
                      'grandparent_title': grandparent_title,
                      'media_index': media_index,
                      'parent_media_index': parent_media_index,
+                     'year': year,
                      'media_type': media_type,
                      'rating_key': rating_key
                      }

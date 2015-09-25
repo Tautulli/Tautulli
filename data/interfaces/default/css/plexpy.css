@@ -1418,6 +1418,13 @@ a:hover .item-children-poster {
     width: 40px;
     margin-right: 20px;
 }
+#new_title h3 {
+    color: #F9AA03;
+    font-size: 14px;
+    line-height: 1.42857143;
+    font-weight: bold;
+    margin: 0;
+}
 .settings-alert {
     float: left;
     padding: 0;

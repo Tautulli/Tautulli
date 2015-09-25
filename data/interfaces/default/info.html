@@ -41,6 +41,7 @@ parent_title            Returns the name of the album.
 grandparent_title       Returns the name of the show, or artist.
 media_index             Returns the index number of the episode, or track.
 parent_media_index      Returns the index number of the season.
+year                    Returns the release year of the movie, or show.
 media_type              Returns the type of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
 rating_key              Returns the unique identifier for the media item.
 
@@ -454,8 +455,26 @@ DOCUMENTATION :: END
                                     <h4 class="modal-title" id="myModalLabel">Confirm Update</h4>
                                 </div>
                                 <div class="modal-body" style="text-align: center;">
-                                    <p>Are you REALLY sure you want to replace <strong>${query['title']}</strong> with </p>
-                                    <p><strong><span id="new_title"></span></strong></p>
+                                    <p>Are you REALLY sure you want to replace
+                                    <p><strong>
+                                        % if query['media_type'] == 'movie':
+                                        ${query['title']}<br />${query['year']}
+                                        % elif query['media_type'] == 'show':
+                                        ${query['grandparent_title']}<br />${query['year']}
+                                        % elif query['media_type'] == 'season':
+                                        ${query['grandparent_title']}<br />S${query['parent_media_index']}
+                                        % elif query['media_type'] == 'episode':
+                                        ${query['grandparent_title']}<br />${query['title']}<br />S${query['parent_media_index']} &middot; E${query['media_index']}
+                                        % elif query['media_type'] == 'artist':
+                                        ${query['grandparent_title']}
+                                        % elif query['media_type'] == 'album':
+                                        ${query['grandparent_title']}<br />${query['parent_title']}
+                                        % elif query['media_type'] == 'track':
+                                        ${query['grandparent_title']}<br />${query['title']}<br />${query['parent_title']}
+                                        % endif
+                                        </strong></p>
+                                    <p> with </p>
+                                    <p><span id="new_title"></span></p>
                                     <p>This is permanent and cannot be undone!</p>
                                 </div>
                                 <div class="modal-footer">
@@ -613,7 +632,7 @@ DOCUMENTATION :: END
         var new_rating_key = $(this).attr("id");
         var new_href = $(this).attr("href");
 
-        $('#new_title').text($(this).find('.item-children-instance-text-wrapper').text());
+        $('#new_title').html($(this).find('.item-children-instance-text-wrapper').html());
 
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-update', function () {
