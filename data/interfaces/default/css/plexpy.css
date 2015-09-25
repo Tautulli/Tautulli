@@ -1246,6 +1246,10 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     background-size: contain;
     height: 16px;
 }
+#children-list, #search-results-list {
+    position: relative;
+    z-index: 0;
+}
 .item-children-wrapper {
 }
 .item-children-section-title {
@@ -2411,4 +2415,38 @@ a .home-platforms-instance-list-oval:hover,
     .dashboard-instance {
         width: 100%;
     }
+}
+
+#search_form {
+    width: 350px;
+    padding: 8px 15px;
+}
+#search_form span.input-textbox {
+    overflow: hidden;
+    width: 250px;
+    height: 34px;
+    display: inline-flex;
+    float: right;
+}
+#search_form #search_query {
+    width: 0;
+    height: 34px;
+    margin-top: 0;
+    float: right;
+    position: relative;
+    right: -250px;
+    border-radius: 3px 0 0 3px;
+}
+#search_form #search_query.active {
+    width: 250px;
+    right: 0px;
+}
+#search_form #search_button.btn-inactive {
+    background-color: #000;
+    border: 1px solid rgba(0,0,0,0);
+    -webkit-transition: background 0.3s;
+    -moz-transition: background 0.3s;
+    -ms-transition: background 0.3s;
+    -o-transition: background 0.3s;
+    transition: background 0.3s;
 }

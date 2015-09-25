@@ -57,6 +57,18 @@ from plexpy import version
             </div>
             <div class="collapse navbar-collapse navbar-right" id="navbar-collapse-1">
                 <ul class="nav navbar-nav">
+                    <li>
+                        <form action="search" method="post" class="form" id="search_form">
+                            <div class="input-group">
+                                <span class="input-textbox">
+                                    <input type="text" class="form-control" name="search_query" id="search_query" aria-label="Search" placeholder="Search..."/>
+                                </span>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-dark btn-inactive" type="submit" id="search_button"><i class="fa fa-search"></i></button>
+                                </span>
+                            </div>
+                        </form>
+                    </li>
                     % if title=="Home":
                         <li class="active"><a href="home"><i class="fa fa-lg fa-home"></i></a></li>
                     % else:
@@ -116,6 +128,28 @@ ${next.headerIncludes()}
     if (!getCookie('updateDismiss')) {
         $('#updatebar').show();
     }
+</script>
+<script>
+    $('#search_form').submit(function (e) {
+        if ($('#search_query').hasClass('active') && $('#search_query').val().trim() != '') {
+            $.ajax({
+                type: 'post',
+                url: 'search',
+                data: { 'query': $('#search_query').val() }
+            })
+        } else {
+            e.preventDefault();
+            $('#search_button').removeClass('btn-inactive');
+            $('#search_query').clearQueue().val('').animate({ right: '0', width: '250px' }).addClass('active').focus();
+        }
+    })
+    $('#search_query').on('blur', function (e) {
+        if ($(this).val().trim() == '') {
+            $(this).delay(200).animate({ right: '-250px', width: '0' }, function () {
+                $('#search_button').addClass('btn-inactive');
+            }).removeClass('active');
+        }
+    });
 </script>
 ${next.javascriptIncludes()}
 </body>

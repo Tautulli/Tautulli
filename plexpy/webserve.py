@@ -1328,6 +1328,12 @@ class WebInterface(object):
             return json.dumps({'message': 'no data received'})
 
     @cherrypy.expose
+    def search(self, search_query=''):
+        query = search_query.replace('"', '')
+
+        return serve_template(templatename="search.html", title="Search", query=query)
+
+    @cherrypy.expose
     def search_results(self, query, **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
