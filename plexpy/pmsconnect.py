@@ -1421,8 +1421,15 @@ class PmsConnect(object):
                     metadata = self.get_metadata_details(rating_key=rating_key)
                     if metadata['metadata']['type'] == 'show':
                         search_results_list['show'].append(metadata['metadata'])
-                    elif metadata['metadata']['type'] == 'season':
-                        search_results_list['season'].append(metadata['metadata'])
+
+                        show_seasons = self.get_item_children(rating_key=metadata['metadata']['rating_key'])
+                        if show_seasons['children_count'] != '0':
+                            for season in show_seasons['children_list']:
+                                if season['rating_key']:
+                                    rating_key = season['rating_key']
+                                    metadata = self.get_metadata_details(rating_key=rating_key)
+                                    search_results_list['season'].append(metadata['metadata'])
+
                     elif metadata['metadata']['type'] == 'artist':
                         search_results_list['artist'].append(metadata['metadata'])
                     elif metadata['metadata']['type'] == 'album':

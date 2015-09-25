@@ -803,21 +803,23 @@ class DataFactory(object):
                 media_type = item['media_type']
 
             elif str(item['parent_rating_key']) == rating_key:
-                title = item['parent_title']
-                if item['media_type'] == episode:
+                if item['media_type'] == 'episode':
+                    title = item['grandparent_title']
                     media_type = 'season'
-                elif item['media_type'] == track:
+                elif item['media_type'] == 'track':
+                    title = item['parent_title']
                     media_type = 'album'
 
             elif str(item['grandparent_rating_key']) == rating_key:
-                title = item['grandparent_title']
-                if item['media_type'] == episode:
+                if item['media_type'] == 'episode':
+                    title = item['grandparent_title']
                     media_type = 'show'
-                elif item['media_type'] == track:
+                elif item['media_type'] == 'track':
+                    title = item['grandparent_title']
                     media_type = 'artist'
 
         if title and media_type:
-            query = {'title': title,
+            query = {'title': title.replace('"', ''),
                      'media_type': media_type,
                      'rating_key': rating_key}
         else:
