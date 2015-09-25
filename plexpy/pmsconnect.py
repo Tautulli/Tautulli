@@ -1382,13 +1382,13 @@ class PmsConnect(object):
             return []
         
         search_results_count = 0
-        search_results_list = {'movies': [],
-                               'shows': [],
-                               'seasons': [],
-                               'episodes': [],
-                               'artists': [],
-                               'albums': [],
-                               'tracks': []
+        search_results_list = {'movie': [],
+                               'show': [],
+                               'season': [],
+                               'episode': [],
+                               'artist': [],
+                               'album': [],
+                               'track': []
                                }
 
         totalSize = 0
@@ -1409,9 +1409,9 @@ class PmsConnect(object):
                     rating_key = helpers.get_xml_attr(result, 'ratingKey')
                     metadata = self.get_metadata_details(rating_key=rating_key)
                     if metadata['metadata']['type'] == 'movie':
-                        search_results_list['movies'].append(metadata['metadata'])
+                        search_results_list['movie'].append(metadata['metadata'])
                     elif metadata['metadata']['type'] == 'episode':
-                        search_results_list['episodes'].append(metadata['metadata'])
+                        search_results_list['episode'].append(metadata['metadata'])
                     search_results_count += 1
 
             if a.getElementsByTagName('Directory'):
@@ -1420,13 +1420,13 @@ class PmsConnect(object):
                     rating_key = helpers.get_xml_attr(result, 'ratingKey')
                     metadata = self.get_metadata_details(rating_key=rating_key)
                     if metadata['metadata']['type'] == 'show':
-                        search_results_list['shows'].append(metadata['metadata'])
+                        search_results_list['show'].append(metadata['metadata'])
                     elif metadata['metadata']['type'] == 'season':
-                        search_results_list['seasons'].append(metadata['metadata'])
+                        search_results_list['season'].append(metadata['metadata'])
                     elif metadata['metadata']['type'] == 'artist':
-                        search_results_list['artists'].append(metadata['metadata'])
+                        search_results_list['artist'].append(metadata['metadata'])
                     elif metadata['metadata']['type'] == 'album':
-                        search_results_list['albums'].append(metadata['metadata'])
+                        search_results_list['album'].append(metadata['metadata'])
                     search_results_count += 1
 
             if a.getElementsByTagName('Track'):
@@ -1434,7 +1434,7 @@ class PmsConnect(object):
                 for result in result_data:
                     rating_key = helpers.get_xml_attr(result, 'ratingKey')
                     metadata = self.get_metadata_details(rating_key=rating_key)
-                    search_results_list['tracks'].append(metadata['metadata'])
+                    search_results_list['track'].append(metadata['metadata'])
                     search_results_count += 1
 
         output = {'results_count': search_results_count,

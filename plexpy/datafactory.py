@@ -779,3 +779,48 @@ class DataFactory(object):
         else:
             return 'Unable to delete items. Input user_id not valid.'
 
+    def get_search_query(self, rating_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        if rating_key:
+            query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, media_type ' \
+                    'FROM session_history_metadata ' \
+                    'WHERE rating_key = ? ' \
+                    'OR parent_rating_key = ? ' \
+                    'OR grandparent_rating_key = ? ' \
+                    'LIMIT 1'
+            result = monitor_db.select(query=query, args=[rating_key, rating_key, rating_key])
+        else:
+            result = []
+
+        query = {}
+        title = None
+        media_type = None
+
+        for item in result:
+            if str(item['rating_key']) == rating_key:
+                title = item['title']
+                media_type = item['media_type']
+
+            elif str(item['parent_rating_key']) == rating_key:
+                title = item['parent_title']
+                if item['media_type'] == episode:
+                    media_type = 'season'
+                elif item['media_type'] == track:
+                    media_type = 'album'
+
+            elif str(item['grandparent_rating_key']) == rating_key:
+                title = item['grandparent_title']
+                if item['media_type'] == episode:
+                    media_type = 'show'
+                elif item['media_type'] == track:
+                    media_type = 'artist'
+
+        if title and media_type:
+            query = {'title': title,
+                     'media_type': media_type,
+                     'rating_key': rating_key}
+        else:
+            return None
+
+        return query

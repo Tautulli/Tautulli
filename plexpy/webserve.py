@@ -749,6 +749,7 @@ class WebInterface(object):
     @cherrypy.expose
     def info(self, item_id=None, source=None, **kwargs):
         metadata = None
+        query = None
 
         config = {
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
@@ -762,12 +763,15 @@ class WebInterface(object):
             result = pms_connect.get_metadata_details(rating_key=item_id)
             if result:
                 metadata = result['metadata']
+            else:
+                data_factory = datafactory.DataFactory()
+                query = data_factory.get_search_query(rating_key=item_id)
 
         if metadata:
             return serve_template(templatename="info.html", data=metadata, title="Info", config=config)
         else:
             logger.warn('Unable to retrieve data.')
-            return serve_template(templatename="info.html", data=None, title="Info")
+            return serve_template(templatename="info.html", data=None, query=query, title="Info")
 
     @cherrypy.expose
     def get_user_recently_watched(self, user=None, user_id=None, limit='10', **kwargs):

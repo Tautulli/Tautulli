@@ -32,6 +32,14 @@ directors               Returns an array of directors.
 studio                  Returns the name of the studio.
 originally_available_at Returns the air date of the item.
 
+query :: Usable parameters
+
+== Global keys ==
+rating_key              Returns the unique identifier for the media item.
+media_type              Returns the type of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
+title                   Returns the title for the search query.
+
+
 DOCUMENTATION :: END
 </%doc>
 
@@ -361,11 +369,34 @@ DOCUMENTATION :: END
 % else:
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-10">
-            <h3>
-                Error retrieving item data. This media may not be available in the Plex Media Server database
-                anymore.
-            </h3>
+        <div class="summary-container">
+            <div class="summary-navbar"></div>
+            <div class="summary-content-title-wrapper">
+                <div class="col-md-12">
+                    <h4>
+                        Error retrieving item metadata. This media item is not available in the Plex Media Server library.
+                    </h4>
+                    % if query:
+                    <h4>
+                        If the item has been moved, please select the correct match below to update the PlexPy database.
+                    </h4>
+                    % endif
+                </div>
+            </div>
+            <div class="summary-content-wrapper">
+                <div class='col-md-12'>
+                    % if query:
+                    <div class='table-card-header'>
+                        <div class="header-bar">
+                            <span>Search Results for <strong>${query['title']}</strong></span>
+                        </div>
+                    </div>
+                    <div class='table-card-back'>
+                        <div id="search-results-list"></div>
+                    </div>
+                    % endif
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -381,13 +412,6 @@ DOCUMENTATION :: END
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 
 % if data:
-% if data['type'] == 'movie' or data['type'] == 'show' or data['type'] == 'episode':
-<script>
-    // Convert rating to 5 star rating type
-    var starRating = Math.round(${data['rating']} / 2);
-    $('#stars').attr('data-rateit-value', starRating);
-</script>
-% endif
 <script src="interfaces/default/js/tables/history_table.js"></script>
 % if data['type'] == 'show' or data['type'] == 'artist':
 <script>
@@ -488,10 +512,30 @@ DOCUMENTATION :: END
     });
 </script>
 % endif
+% if data['rating']:
+<script>
+    // Convert rating to 5 star rating type
+    var starRating = Math.round(${data['rating']} / 2);
+    $('#stars').attr('data-rateit-value', starRating);
+</script>
+% endif
 <script>
     $("#airdate").html(moment($("#airdate").text()).format('MMM DD, YYYY'));
     $("#runtime").html(millisecondsToMinutes($("#runtime").text(), true));
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
+</script>
+% elif query:
+<script>
+    $.ajax({
+        url: 'get_search_results_children',
+        type: "GET",
+        async: true,
+        data: { query: "${query['title']}",
+            media_type: "${query['media_type']}"
+        },
+        complete: function(xhr, status) {
+        $("#search-results-list").html(xhr.responseText); }
+    });
 </script>
 % endif
 </%def>

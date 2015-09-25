@@ -1248,9 +1248,33 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
 }
 .item-children-wrapper {
 }
+.item-children-section-title {
+    position: relative;
+    padding: 10px;
+    background-color: #2c2c2c;
+    border-bottom: 1px solid #3d3d3d;
+    border-top: 1px solid #282828;
+    height: 50px;
+    line-height: 22px;
+    padding: 13px 20px;
+    margin: 20px 0;
+}
+.item-children-section-title h4 {
+    position: relative;
+    margin: 0;
+    line-height: 22px;
+    color: #fff;
+    font-size: 16px;
+    text-align: center;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .item-children-instance {
     list-style: none;
     margin: 0;
+    overflow: hidden;
 }
 .item-children-instance li {
     float: left;
