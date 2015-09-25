@@ -1429,6 +1429,7 @@ class PmsConnect(object):
                                     rating_key = season['rating_key']
                                     metadata = self.get_metadata_details(rating_key=rating_key)
                                     search_results_list['season'].append(metadata['metadata'])
+                                    search_results_count += 1
 
                     elif metadata['metadata']['type'] == 'artist':
                         search_results_list['artist'].append(metadata['metadata'])
