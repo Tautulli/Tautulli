@@ -17,6 +17,7 @@ from plexpy import logger, helpers, users, http_handler
 from urlparse import urlparse
 
 import plexpy
+import urllib
 
 
 class PmsConnect(object):
@@ -212,6 +213,22 @@ class PmsConnect(object):
     """
     def get_sync_transcode_queue(self, output_format=''):
         uri = '/sync/transcodeQueue'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    """
+    Return search results.
+
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_search(self, query='', track='', output_format=''):
+        uri = '/search?query=' + urllib.quote_plus(query) + track
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -1340,3 +1357,88 @@ class PmsConnect(object):
         else:
             logger.error("Image proxy queries but no input received.")
             return None
+
+    """
+    Return processed list of search results.
+
+    Output: array
+    """
+    def get_search_results(self, query=''):
+        search_results = self.get_search(query=query, output_format='xml')
+        search_results_tracks = self.get_search(query=query, track='&type=10', output_format='xml')
+
+        xml_head = []
+        try:
+            try:
+                xml_head += search_results.getElementsByTagName('MediaContainer')
+            except:
+                pass
+            try:
+                xml_head += search_results_tracks.getElementsByTagName('MediaContainer')
+            except:
+                pass
+        except:
+            logger.warn("Unable to parse XML for get_search_result_details.")
+            return []
+        
+        search_results_count = 0
+        search_results_list = {'movies': [],
+                               'shows': [],
+                               'seasons': [],
+                               'episodes': [],
+                               'artists': [],
+                               'albums': [],
+                               'tracks': []
+                               }
+
+        totalSize = 0
+        for a in xml_head:
+            if a.getAttribute('size'):
+                totalSize += int(a.getAttribute('size'))
+        if totalSize == 0:
+            logger.debug(u"No search results.")
+            search_results_list = {'results_count': search_results_count,
+                                    'results_list': []
+                                    }
+            return search_results_list
+
+        for a in xml_head:
+            if a.getElementsByTagName('Video'):
+                result_data = a.getElementsByTagName('Video')
+                for result in result_data:
+                    rating_key = helpers.get_xml_attr(result, 'ratingKey')
+                    metadata = self.get_metadata_details(rating_key=rating_key)
+                    if metadata['metadata']['type'] == 'movie':
+                        search_results_list['movies'].append(metadata['metadata'])
+                    elif metadata['metadata']['type'] == 'episode':
+                        search_results_list['episodes'].append(metadata['metadata'])
+                    search_results_count += 1
+
+            if a.getElementsByTagName('Directory'):
+                result_data = a.getElementsByTagName('Directory')
+                for result in result_data:
+                    rating_key = helpers.get_xml_attr(result, 'ratingKey')
+                    metadata = self.get_metadata_details(rating_key=rating_key)
+                    if metadata['metadata']['type'] == 'show':
+                        search_results_list['shows'].append(metadata['metadata'])
+                    elif metadata['metadata']['type'] == 'season':
+                        search_results_list['seasons'].append(metadata['metadata'])
+                    elif metadata['metadata']['type'] == 'artist':
+                        search_results_list['artists'].append(metadata['metadata'])
+                    elif metadata['metadata']['type'] == 'album':
+                        search_results_list['albums'].append(metadata['metadata'])
+                    search_results_count += 1
+
+            if a.getElementsByTagName('Track'):
+                result_data = a.getElementsByTagName('Track')
+                for result in result_data:
+                    rating_key = helpers.get_xml_attr(result, 'ratingKey')
+                    metadata = self.get_metadata_details(rating_key=rating_key)
+                    search_results_list['tracks'].append(metadata['metadata'])
+                    search_results_count += 1
+
+        output = {'results_count': search_results_count,
+                  'results_list': search_results_list
+                  }
+
+        return output

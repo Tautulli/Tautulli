@@ -1323,3 +1323,29 @@ class WebInterface(object):
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps({'message': 'no data received'})
 
+    @cherrypy.expose
+    def search_results(self, query, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_search_results(query)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_search_results_children(self, query, media_type=None, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_search_results(query)
+
+        if media_type:
+            result['results_list'] = {media_type: result['results_list'][media_type]}
+
+        if result:
+            return serve_template(templatename="info_search_results_list.html", data=result, title="Search Result List")
+        else:
+            logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="info_search_results_list.html", data=None, title="Search Result List")
