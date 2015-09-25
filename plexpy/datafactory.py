@@ -826,3 +826,36 @@ class DataFactory(object):
             return None
 
         return query
+
+    def update_rating_key(self, old_rating_key='', new_rating_key='', media_type=''):
+        monitor_db = database.MonitorDatabase()
+
+        if new_rating_key.isdigit():
+            logger.info(u"PlexPy DataFactory :: Updating rating key %s to %s in the session history database." % (old_rating_key, new_rating_key))
+            if media_type == 'movie' or media_type == 'episode' or media_type == 'track':
+                monitor_db.action('UPDATE session_history SET rating_key = ? WHERE rating_key = ?', [new_rating_key, old_rating_key])
+                monitor_db.action('UPDATE session_history_media_info SET rating_key = ? WHERE rating_key = ?', [new_rating_key, old_rating_key])
+                monitor_db.action('UPDATE session_history_metadata SET rating_key = ? WHERE rating_key = ?', [new_rating_key, old_rating_key])
+                monitor_db.action('UPDATE session_history_metadata SET thumb = replace(thumb, ?, ?) WHERE thumb LIKE "/library/metadata/%s/thumb/%%"' % old_rating_key, 
+                                  [old_rating_key, new_rating_key])
+
+            if media_type == 'season' or media_type == 'album':
+                monitor_db.action('UPDATE session_history SET parent_rating_key = ? WHERE parent_rating_key = ?', [new_rating_key, old_rating_key])
+                monitor_db.action('UPDATE session_history_metadata SET parent_rating_key = ? WHERE parent_rating_key = ?', [new_rating_key, old_rating_key])
+                monitor_db.action('UPDATE session_history_metadata SET parent_thumb = replace(parent_thumb, ?, ?) WHERE parent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_rating_key, 
+                                  [old_rating_key, new_rating_key])
+
+            if media_type == 'show' or media_type == 'artist':
+                monitor_db.action('UPDATE session_history SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', [new_rating_key, old_rating_key])
+                monitor_db.action('UPDATE session_history_metadata SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', [new_rating_key, old_rating_key])
+                monitor_db.action('UPDATE session_history_metadata SET grandparent_thumb = replace(grandparent_thumb, ?, ?) WHERE grandparent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_rating_key, 
+                                  [old_rating_key, new_rating_key])
+
+            if media_type == 'movie' or media_type == 'show':
+                monitor_db.action('UPDATE session_history_metadata SET art = replace(art, ?, ?) WHERE art LIKE "/library/metadata/%s/art/%%"' % old_rating_key, 
+                                  [old_rating_key, new_rating_key])
+
+            return 'Updated rating key %s to %s.' % (old_rating_key, new_rating_key)
+        else:
+            return 'Unable to update rating key. Input new_rating_key not valid.'
+

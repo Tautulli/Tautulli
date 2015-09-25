@@ -1353,3 +1353,19 @@ class WebInterface(object):
         else:
             logger.warn('Unable to retrieve data.')
             return serve_template(templatename="info_search_results_list.html", data=None, title="Search Result List")
+
+    @cherrypy.expose
+    def update_history_rating_key(self, old_rating_key, new_rating_key, media_type, **kwargs):
+        data_factory = datafactory.DataFactory()
+
+        if new_rating_key:
+            update_row = data_factory.update_rating_key(old_rating_key=old_rating_key,
+                                                        new_rating_key=new_rating_key,
+                                                        media_type=media_type)
+
+            if update_row:
+                cherrypy.response.headers['Content-type'] = 'application/json'
+                return json.dumps({'message': update_row})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
