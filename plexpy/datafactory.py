@@ -783,7 +783,8 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         if rating_key:
-            query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, media_type ' \
+            query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
+                    'media_index, parent_media_index, media_type ' \
                     'FROM session_history_metadata ' \
                     'WHERE rating_key = ? ' \
                     'OR parent_rating_key = ? ' \
@@ -794,34 +795,46 @@ class DataFactory(object):
             result = []
 
         query = {}
-        title = None
+        query_string = None
         media_type = None
 
         for item in result:
+            title = item['title']
+            parent_title = item['parent_title']
+            grandparent_title = item['grandparent_title']
+            media_index = item['media_index']
+            parent_media_index = item['parent_media_index']
+
             if str(item['rating_key']) == rating_key:
-                title = item['title']
+                query_string = item['title']
                 media_type = item['media_type']
 
             elif str(item['parent_rating_key']) == rating_key:
                 if item['media_type'] == 'episode':
-                    title = item['grandparent_title']
+                    query_string = item['grandparent_title']
                     media_type = 'season'
                 elif item['media_type'] == 'track':
-                    title = item['parent_title']
+                    query_string = item['parent_title']
                     media_type = 'album'
 
             elif str(item['grandparent_rating_key']) == rating_key:
                 if item['media_type'] == 'episode':
-                    title = item['grandparent_title']
+                    query_string = item['grandparent_title']
                     media_type = 'show'
                 elif item['media_type'] == 'track':
-                    title = item['grandparent_title']
+                    query_string = item['grandparent_title']
                     media_type = 'artist'
 
-        if title and media_type:
-            query = {'title': title.replace('"', ''),
+        if query_string and media_type:
+            query = {'query_string': query_string.replace('"', ''),
+                     'title': title,
+                     'parent_title': parent_title,
+                     'grandparent_title': grandparent_title,
+                     'media_index': media_index,
+                     'parent_media_index': parent_media_index,
                      'media_type': media_type,
-                     'rating_key': rating_key}
+                     'rating_key': rating_key
+                     }
         else:
             return None
 

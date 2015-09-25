@@ -1340,13 +1340,18 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_search_results_children(self, query, media_type=None, **kwargs):
+    def get_search_results_children(self, query, media_type=None, season_index=None, **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_search_results(query)
 
         if media_type:
             result['results_list'] = {media_type: result['results_list'][media_type]}
+        if media_type == 'season' and season_index:
+            for season in result['results_list']['season']:
+                if season['index'] == season_index:
+                    result['results_list']['season'] = [season]
+                    break
 
         if result:
             return serve_template(templatename="info_search_results_list.html", data=result, title="Search Result List")
