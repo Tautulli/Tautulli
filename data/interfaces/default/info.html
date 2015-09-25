@@ -269,7 +269,7 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     <div class='table-card-back'>
-                        <div id="children-list"></div>
+                        <div id="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading season list...</div>
                     </div>
                 </div>
                 % elif data['type'] == 'season':
@@ -280,7 +280,7 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     <div class='table-card-back'>
-                        <div id="children-list"></div>
+                        <div id="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading episode list...</div>
                     </div>
                 </div>
                 % elif data['type'] == 'artist':
@@ -291,7 +291,7 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     <div class='table-card-back'>
-                        <div id="children-list"></div>
+                        <div id="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading album list...</div>
                     </div>
                 </div>
                 % elif data['type'] == 'album':
@@ -302,7 +302,7 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     <div class='table-card-back'>
-                        <div id="children-list"></div>
+                        <div id="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading track list...</div>
                     </div>
                 </div>
                 % endif
@@ -370,7 +370,55 @@ DOCUMENTATION :: END
 <div class="container-fluid">
     <div class="row">
         <div class="summary-container">
-            <div class="summary-navbar"></div>
+            <div class="summary-navbar">
+                <div class="col-md-12">
+                    <div class="summary-navbar-list">
+                        % if query:
+                        % if query['media_type'] == 'movie':
+                        <span>Movies</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span>${query['title']}</span>
+                        % elif query['media_type'] == 'show':
+                        <span>TV Shows</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span>${query['grandparent_title']}</span>
+                        % elif query['media_type'] == 'season':
+                        <span class="hidden-xs hidden-sm">TV Shows</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span class="hidden-xs hidden-sm">${query['grandparent_title']}</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span>Season ${query['parent_media_index']}</span>
+                        % elif query['media_type'] == 'episode':
+                        <span class="hidden-xs hidden-sm">TV Shows</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span class="hidden-xs hidden-sm">${query['grandparent_title']}</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span>Season ${query['parent_media_index']}</span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span>Episode ${query['media_index']} - ${query['title']}</span>
+                        % elif query['media_type'] == 'artist':
+                        <span>Music</span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span>${query['grandparent_title']}</span>
+                        % elif query['media_type'] == 'album':
+                        <span class="hidden-xs hidden-sm">Music</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span>${query['grandparent_title']}</span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span>${query['parent_title']}</span>
+                        % elif query['media_type'] == 'track':
+                        <span class="hidden-xs hidden-sm">Music</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span class="hidden-xs hidden-sm">${query['grandparent_title']}</span>
+                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
+                        <span>${query['parent_title']}</span>
+                        <span><i class="fa fa-chevron-right"></i></span>
+                        <span>Track ${query['media_index']} - ${query['title']}</span>
+                        % endif
+                        % endif
+                    </div>
+                </div>
+            </div>
             <div class="summary-content-title-wrapper">
                 <div class="col-md-12">
                     <h4>
@@ -392,7 +440,7 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     <div class='table-card-back'>
-                        <div id="search-results-list"></div>
+                        <div id="search-results-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading search results...</div>
                     </div>
                     <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
                         <div class="modal-dialog">

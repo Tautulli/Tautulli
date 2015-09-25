@@ -1372,6 +1372,9 @@ a:hover .item-children-poster {
     text-align: left;
     clear: both;
 }
+.item-children-instance-text-wrapper h3.text-muted {
+    color: #777;
+}
 .item-children-list-item-odd {
     border-top: 0px solid #343434;
     border-bottom: 0px solid #343434;
