@@ -123,7 +123,7 @@ user_ip_table_options = {
 
     },
     "preDrawCallback": function(settings) {
-        var msg = "<div class='msg'><i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...</div>";
+        var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
         showMsg(msg, false, false, 0)
     }
 }
