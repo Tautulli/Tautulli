@@ -17,7 +17,7 @@ from plexpy import logger, helpers, users, http_handler
 from urlparse import urlparse
 
 import plexpy
-import urllib
+import urllib2
 
 
 class PmsConnect(object):
@@ -228,7 +228,7 @@ class PmsConnect(object):
     Output: array
     """
     def get_search(self, query='', track='', output_format=''):
-        uri = '/search?query=' + urllib.quote_plus(query) + track
+        uri = '/search?query=' + urllib2.quote(query.encode('utf8')) + track
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
