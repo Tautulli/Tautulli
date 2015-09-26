@@ -182,7 +182,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/library/sections/' + section_key + '/' + list_type +'?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count + sort_type
+        uri = '/library/sections/' + section_key + '/' + list_type + '?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count + sort_type
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -1042,7 +1042,6 @@ class PmsConnect(object):
 
         return session_output
 
-
     def get_item_children(self, rating_key=''):
         """
         Return processed and validated children list.
@@ -1096,7 +1095,6 @@ class PmsConnect(object):
 
         return output
 
-
     def get_servers_info(self):
         """
         Return the list of local servers.
@@ -1124,7 +1122,6 @@ class PmsConnect(object):
 
         return server_info
 
-
     def get_server_identity(self):
         """
         Return the local machine identity.
@@ -1146,7 +1143,6 @@ class PmsConnect(object):
                                }
 
         return server_identity
-
 
     def get_server_pref(self, pref=None):
         """
@@ -1175,7 +1171,6 @@ class PmsConnect(object):
         else:
             logger.debug(u"Server preferences queried but no parameter received.")
             return None
-
 
     def get_server_children(self):
         """
@@ -1219,8 +1214,7 @@ class PmsConnect(object):
 
         return output
 
-
-    def get_library_children(self, library_type='', section_key='', list_type='all', sort_type = ''):
+    def get_library_children(self, library_type='', section_key='', list_type='all', sort_type=''):
         """
         Return processed and validated server library items list.
 
@@ -1278,7 +1272,6 @@ class PmsConnect(object):
 
         return output
 
-
     def get_library_stats(self, library_cards=''):
         """
         Return processed and validated library statistics.
@@ -1325,7 +1318,6 @@ class PmsConnect(object):
                                                  'rows': library_stats})
 
         return server_library_stats
-
 
     def get_image(self, img=None, width=None, height=None):
         """
@@ -1398,7 +1390,7 @@ class PmsConnect(object):
                             elif 'Resource-Identifier:' in each:
                                 d['uuid'] = each.split(':')[1].strip()
                             elif 'Name:' in each:
-                                d['servername'] = each.split(':')[1].decode('utf-8', 'replace')
+                                d['servername'] = each.split(':')[1].strip().decode('utf-8', 'replace')
                             elif 'Port:' in each:
                                 d['port'] = each.split(':')[1].strip()
                             elif 'Updated-At:' in each:
