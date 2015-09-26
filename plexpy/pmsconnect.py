@@ -74,6 +74,23 @@ class PmsConnect(object):
         return request
 
     """
+    Return metadata for children of the request item.
+
+    Parameters required:    rating_key { Plex ratingKey }
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_metadata_children(self, rating_key='', output_format=''):
+        uri = '/library/metadata/' + rating_key + '/children'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    """
     Return list of recently added items.
 
     Parameters required:    count { number of results to return }
@@ -1450,3 +1467,109 @@ class PmsConnect(object):
                   }
 
         return output
+
+    """
+    Return processed list of grandparent/parent/child rating keys.
+
+    Output: array
+    """
+    def get_rating_keys_list(self, rating_key='', media_type=''):
+
+        if media_type == 'movie':
+            key_list = {0: {'rating_key': int(rating_key)}}
+            return key_list
+
+        if media_type == 'show' or media_type == 'season' or media_type == 'episode':
+            match_type = 'index'
+        elif media_type == 'artist' or media_type == 'album' or media_type == 'track':
+            match_type = 'title'
+        
+        # get grandparent rating key
+        if media_type == 'season' or media_type == 'album':
+            try:
+                metadata = self.get_metadata_details(rating_key=rating_key)
+                rating_key = metadata['metadata']['parent_rating_key']
+            except:
+                logger.warn("Unable to get parent_rating_key for get_rating_keys_list.")
+                return {}
+
+        elif media_type == 'episode' or media_type == 'track':
+            try:
+                metadata = self.get_metadata_details(rating_key=rating_key)
+                rating_key = metadata['metadata']['grandparent_rating_key']
+            except:
+                logger.warn("Unable to get grandparent_rating_key for get_rating_keys_list.")
+                return {}
+
+        # get parent_rating_keys
+        metadata = self.get_metadata_children(str(rating_key), output_format='xml')
+
+        try:
+            xml_head = metadata.getElementsByTagName('MediaContainer')
+        except:
+            logger.warn("Unable to parse XML for get_rating_keys_list.")
+            return {}
+
+        for a in xml_head:
+            if a.getAttribute('size'):
+                if a.getAttribute('size') == '0':
+                    return {}
+            
+            title = helpers.get_xml_attr(a, 'title2')
+
+            if a.getElementsByTagName('Directory'):
+                parents_metadata = a.getElementsByTagName('Directory')
+            else:
+                parents_metadata = []
+
+            parents = {}
+            for item in parents_metadata:
+                parent_rating_key = helpers.get_xml_attr(item, 'ratingKey')
+                parent_index = helpers.get_xml_attr(item, 'index')
+                parent_title = helpers.get_xml_attr(item, 'title')
+
+                if parent_rating_key:
+                    # get rating_keys
+                    metadata = self.get_metadata_children(str(parent_rating_key), output_format='xml')
+
+                    try:
+                        xml_head = metadata.getElementsByTagName('MediaContainer')
+                    except:
+                        logger.warn("Unable to parse XML for get_rating_keys_list.")
+                        return {}
+
+                    for a in xml_head:
+                        if a.getAttribute('size'):
+                            if a.getAttribute('size') == '0':
+                                return {}
+
+                        if a.getElementsByTagName('Video'):
+                            children_metadata = a.getElementsByTagName('Video')
+                        elif a.getElementsByTagName('Track'):
+                            children_metadata = a.getElementsByTagName('Track')
+                        else:
+                            children_metadata = []
+
+                        children = {}
+                        for item in children_metadata:
+                            child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
+                            child_index = helpers.get_xml_attr(item, 'index')
+                            child_title = helpers.get_xml_attr(item, 'title')
+
+                            if child_rating_key:
+                                key = int(child_index) if match_type == 'index' else child_title
+                                children.update({key: {'rating_key': int(child_rating_key)}})
+                    
+                    key = int(parent_index) if match_type == 'index' else parent_title
+                    parents.update({key: 
+                                {'rating_key': int(parent_rating_key),
+                                'children': children}
+                                })
+        
+        key = 0 if match_type == 'index' else title
+        key_list = {key:
+                    {'rating_key': int(rating_key),
+                     'children': parents}
+                    }
+
+        return key_list

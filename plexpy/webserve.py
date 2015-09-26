@@ -1368,15 +1368,64 @@ class WebInterface(object):
     @cherrypy.expose
     def update_history_rating_key(self, old_rating_key, new_rating_key, media_type, **kwargs):
         data_factory = datafactory.DataFactory()
+        pms_connect = pmsconnect.PmsConnect()
 
-        if new_rating_key:
-            update_row = data_factory.update_rating_key(old_rating_key=old_rating_key,
-                                                        new_rating_key=new_rating_key,
-                                                        media_type=media_type)
+        old_key_list = data_factory.get_rating_keys_list(rating_key=old_rating_key, media_type=media_type)
+        new_key_list = pms_connect.get_rating_keys_list(rating_key=new_rating_key, media_type=media_type)
 
-            if update_row:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': update_row})
+        update_db = data_factory.update_rating_key(old_key_list=old_key_list,
+                                                    new_key_list=new_key_list,
+                                                    media_type=media_type)
+
+        if update_db:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': update_db})
         else:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps({'message': 'no data received'})
+
+
+    # test code
+    @cherrypy.expose
+    def get_new_rating_keys(self, rating_key='', media_type='', **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_rating_keys_list(rating_key=rating_key, media_type=media_type)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_old_rating_keys(self, rating_key='', media_type='', **kwargs):
+
+        data_factory = datafactory.DataFactory()
+        result = data_factory.get_rating_keys_list(rating_key=rating_key, media_type=media_type)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_map_rating_keys(self, old_rating_key, new_rating_key, media_type, **kwargs):
+
+        data_factory = datafactory.DataFactory()
+        pms_connect = pmsconnect.PmsConnect()
+
+        if new_rating_key:
+            old_key_list = data_factory.get_rating_keys_list(rating_key=old_rating_key, media_type=media_type)
+            new_key_list = pms_connect.get_rating_keys_list(rating_key=new_rating_key, media_type=media_type)
+
+            result = data_factory.update_rating_key(old_key_list=old_key_list,
+                                                        new_key_list=new_key_list,
+                                                        media_type=media_type)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
