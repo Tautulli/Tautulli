@@ -1,4 +1,7 @@
-﻿# This file is part of PlexPy.
+﻿#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +17,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users
-from plexpy.helpers import checked, radio
+from plexpy.helpers import checked
 
 from mako.lookup import TemplateLookup
 from mako import exceptions
@@ -74,6 +77,8 @@ class WebInterface(object):
 
     @cherrypy.expose
     def welcome(self, **kwargs):
+        servers = pmsconnect.PmsConnect.discover()
+
         config = {
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
@@ -102,7 +107,7 @@ class WebInterface(object):
             plexpy.initialize_scheduler()
             raise cherrypy.HTTPRedirect("home")
         else:
-            return serve_template(templatename="welcome.html", title="Welcome", config=config)
+            return serve_template(templatename="welcome.html", title="Welcome", config=config, servers=servers)
 
     @cherrypy.expose
     def get_date_formats(self):
@@ -557,7 +562,7 @@ class WebInterface(object):
     @cherrypy.expose
     def get_history(self, user=None, user_id=None, **kwargs):
 
-        custom_where=[]
+        custom_where = []
         if user_id:
             custom_where = [['user_id', user_id]]
         elif user:
@@ -694,7 +699,7 @@ class WebInterface(object):
         try:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_current_activity()
-        except IOError, e:
+        except IOError:
             return serve_template(templatename="current_activity_header.html", data=None)
 
         if result:
@@ -709,7 +714,7 @@ class WebInterface(object):
         try:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_recently_added_details(count)
-        except IOError, e:
+        except IOError:
             return serve_template(templatename="recently_added.html", data=None)
 
         if result:
@@ -871,7 +876,7 @@ class WebInterface(object):
     @cherrypy.expose
     def get_user_ips(self, user_id=None, user=None, **kwargs):
 
-        custom_where=[]
+        custom_where = []
         if user_id:
             custom_where = [['user_id', user_id]]
         elif user:
@@ -1105,7 +1110,7 @@ class WebInterface(object):
 
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_server_children()
-            
+
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps(result)
@@ -1220,6 +1225,9 @@ class WebInterface(object):
     def get_server_id(self, hostname=None, port=None, **kwargs):
         from plexpy import http_handler
 
+        if ':' in hostname:
+            hostname, port = hostname.split(':')
+
         if hostname and port:
             request_handler = http_handler.HTTPHandler(host=hostname,
                                                        port=port,
@@ -1322,4 +1330,3 @@ class WebInterface(object):
         else:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps({'message': 'no data received'})
-

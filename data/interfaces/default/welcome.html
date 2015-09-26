@@ -15,6 +15,7 @@ from plexpy import common
     <link href="interfaces/default/css/bootstrap3/bootstrap.css" rel="stylesheet">
     <link href="interfaces/default/css/bootstrap-wizard.css" rel="stylesheet">
     <link href="interfaces/default/css/plexpy.css" rel="stylesheet">
+    <link href="interfaces/default/css/selectize.bootstrap3.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
     <link href="interfaces/default/css/font-awesome.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="interfaces/default/images/favicon.ico"/>
@@ -43,17 +44,26 @@ from plexpy import common
                 <h3>Plex Media Server</h3>
                 <form>
                     <p class="help-block">Enter your Plex Server details and then click the Verify button to make sure PlexPy can reach the server.</p>
+
                 <div class="wizard-input-section">
-                    <label for="pms_ip">Plex IP or Hostname</label>
+                    <label for="pms_ip">Choose Server</label>
                     <div class="row">
                         <div class="col-xs-8">
-                            <input type="text" class="form-control pms-settings" name="pms_ip" id="pms_ip" placeholder="127.0.0.1" value="${config['pms_ip']}" required>
+                            % if not len(servers):
+                                <input type="text" class="form-control pms-settings" name="pms_ip" id="pms_ip" placeholder="127.0.0.1" value="${config['pms_ip']}" required>
+                            % else:
+                                <select id="pms_ip_select">
+                                    % for server in servers:
+                                        <option value="${server['server']}" data-port="${server['port']}" data-id="${server['uuid']}">${server['servername']}</option>
+                                    % endfor
+                                </select>
+                            % endif
                         </div>
                     </div>
                 </div>
                 <div class="wizard-input-section">
                     <label for="pms_port">Port Number</label>
-                    <div class="row">
+                        <div class="row">
                         <div class="col-xs-3">
                             <input type="text" class="form-control pms-settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
                         </div>
@@ -186,6 +196,7 @@ from plexpy import common
 <script src="interfaces/default/js/bootstrap3/bootstrap.min.js"></script>
 <script src="interfaces/default/js/script.js"></script>
 <script src="interfaces/default/js/bootstrap-wizard.min.js"></script>
+<script src="interfaces/default/js/selectize.min.js"></script>
 <script>
 
     $(document).ready(function() {
@@ -218,8 +229,71 @@ from plexpy import common
                 }
             })
         });
-    });
 
+        $('#pms_ip_select').selectize({
+            create: true,
+            createOnBlur: true,
+            openOnFocus: true,
+            onInitialize: function () {
+                var s = this;
+                this.revertSettings.$children.each(function () {
+                    $.extend(s.options[this.value], $(this).data());
+                });
+                // Set it as valid as we only will use selectize if valid servers are found
+                $("#pms_valid").val("valid");
+                $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!').show();
+
+            },
+            render: {
+                option: function (item, escape) {
+                    return '<div data-id="' + item.id + '" data-port="' + item.port + '">' + item.value + '</div>';
+                },
+                item: function (item, escape) {
+                    // first item is rendered before initialization bug?
+                    if (!item.port) {
+                        $.extend(item,
+                            $(this.revertSettings.$children)
+                                 .filter('[value="' + item.value + '"]').data()
+                        );
+                        // Mark valid servers
+                        if (item.id != "undefined") {
+                            $("#pms_valid").val("valid");
+
+                        }
+                    }
+
+                    return '<div data-id="' + item.id + '" data-port="' + item.port + '">' + item.value + '</div>';
+                }
+            },
+            onChange: function(item) {
+                var uuid = $('.selectize-input').find('div').attr('data-id')
+                var port = $('.selectize-input').find('div').attr('data-port')
+
+                $("#pms-verify-status").html("")
+
+                // If a option was added by a user its
+                // data-xxx="undefined"
+                if (uuid != "undefined") {
+                    // To allow next step in the guide.
+                    // servers with uuid is verified
+                    $("#pms_valid").val("valid");
+                    $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!').show();
+                } else {
+                    // Self made options must be verified
+                    $("#pms_valid").val("");
+                    $("#pms-verify-status").html("").hide();
+
+                }
+
+                // If the server is verified set the correct port
+                if (port != "undefined") {
+                    $('#pms_port').val(port)
+                }
+
+            }
+        });
+
+    });
 
     function validatePMSip(el) {
         var valid_pms_ip = el.val();
@@ -296,14 +370,22 @@ from plexpy import common
     var authenticated = false;
 
     $("#verify-plex-server").click(function() {
-        var pms_ip = $("#pms_ip").val()
-        var pms_port = $("#pms_port").val()
-        if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
+        var ip
+        var pms_port
+        if ($("#pms_ip").val() != "undefined") {
+            ip = $('#pms_ip_select').selectize()[0].selectize.getValue()
+        } else {
+            ip = $("#pms_ip").val()
+        }
+
+        pms_port = $("#pms_port").val()
+
+        if ((ip !== '') || ($("#pms_port").val() !== '')) {
             $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Validating server...');
             $('#pms-verify-status').fadeIn('fast');
             $.ajax({
                 url: 'get_server_id',
-                data : { hostname: pms_ip, port: pms_port },
+                data : { hostname: ip, port: pms_port },
                 cache: true,
                 async: true,
                 timeout: 5000,
