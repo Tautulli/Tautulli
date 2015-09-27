@@ -790,3 +790,203 @@ class DataFactory(object):
             return 'Deleted all items for user_id %s.' % user_id
         else:
             return 'Unable to delete items. Input user_id not valid.'
+
+    def get_search_query(self, rating_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        if rating_key:
+            query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
+                    'media_index, parent_media_index, year, media_type ' \
+                    'FROM session_history_metadata ' \
+                    'WHERE rating_key = ? ' \
+                    'OR parent_rating_key = ? ' \
+                    'OR grandparent_rating_key = ? ' \
+                    'LIMIT 1'
+            result = monitor_db.select(query=query, args=[rating_key, rating_key, rating_key])
+        else:
+            result = []
+
+        query = {}
+        query_string = None
+        media_type = None
+
+        for item in result:
+            title = item['title']
+            parent_title = item['parent_title']
+            grandparent_title = item['grandparent_title']
+            media_index = item['media_index']
+            parent_media_index = item['parent_media_index']
+            year = item['year']
+
+            if str(item['rating_key']) == rating_key:
+                query_string = item['title']
+                media_type = item['media_type']
+
+            elif str(item['parent_rating_key']) == rating_key:
+                if item['media_type'] == 'episode':
+                    query_string = item['grandparent_title']
+                    media_type = 'season'
+                elif item['media_type'] == 'track':
+                    query_string = item['parent_title']
+                    media_type = 'album'
+
+            elif str(item['grandparent_rating_key']) == rating_key:
+                if item['media_type'] == 'episode':
+                    query_string = item['grandparent_title']
+                    media_type = 'show'
+                elif item['media_type'] == 'track':
+                    query_string = item['grandparent_title']
+                    media_type = 'artist'
+
+        if query_string and media_type:
+            query = {'query_string': query_string.replace('"', ''),
+                     'title': title,
+                     'parent_title': parent_title,
+                     'grandparent_title': grandparent_title,
+                     'media_index': media_index,
+                     'parent_media_index': parent_media_index,
+                     'year': year,
+                     'media_type': media_type,
+                     'rating_key': rating_key
+                     }
+        else:
+            return None
+
+        return query
+
+    def get_rating_keys_list(self, rating_key='', media_type=''):
+        monitor_db = database.MonitorDatabase()
+
+        if media_type == 'movie':
+            key_list = {0: {'rating_key': int(rating_key)}}
+            return key_list
+
+        if media_type == 'artist' or media_type == 'album' or media_type == 'track':
+            match_type = 'title'
+        else:
+            match_type = 'index'
+
+        # Get the grandparent rating key
+        try:
+            query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key ' \
+                    'FROM session_history_metadata ' \
+                    'WHERE rating_key = ? ' \
+                    'OR parent_rating_key = ? ' \
+                    'OR grandparent_rating_key = ? ' \
+                    'LIMIT 1'
+            result = monitor_db.select(query=query, args=[rating_key, rating_key, rating_key])
+
+            grandparent_rating_key = result[0]['grandparent_rating_key']
+
+        except:
+            logger.warn("Unable to execute database query.")
+            return {}
+
+        query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
+                'media_index, parent_media_index ' \
+                'FROM session_history_metadata ' \
+                'WHERE {0} = ? ' \
+                'GROUP BY {1} '
+
+        # get grandparent_rating_keys
+        grandparents = {}
+        result = monitor_db.select(query=query.format('grandparent_rating_key', 'grandparent_rating_key'),
+                                   args=[grandparent_rating_key])
+        for item in result:
+            # get parent_rating_keys
+            parents = {}
+            result = monitor_db.select(query=query.format('grandparent_rating_key', 'parent_rating_key'),
+                                       args=[item['grandparent_rating_key']])
+            for item in result:
+                # get rating_keys
+                children = {}
+                result = monitor_db.select(query=query.format('parent_rating_key', 'rating_key'),
+                                           args=[item['parent_rating_key']])
+                for item in result:
+                    key = item['media_index']
+                    children.update({key: {'rating_key': item['rating_key']}})
+
+                key = item['parent_media_index'] if match_type == 'index' else item['parent_title']
+                parents.update({key:
+                                {'rating_key': item['parent_rating_key'],
+                                 'children': children}
+                                })
+
+            key = 0 if match_type == 'index' else item['grandparent_title']
+            grandparents.update({key:
+                                 {'rating_key': item['grandparent_rating_key'],
+                                  'children': parents}
+                                 })
+
+        key_list = grandparents
+        
+        return key_list
+
+    def update_rating_key(self, old_key_list='', new_key_list='', media_type=''):
+        monitor_db = database.MonitorDatabase()
+
+        # function to map rating keys pairs
+        def get_pairs(old, new):
+            pairs = {}
+            for k, v in old.iteritems():
+                if k in new:
+                    if v['rating_key'] != new[k]['rating_key']:
+                        pairs.update({v['rating_key']: new[k]['rating_key']})
+                    if 'children' in old[k]:
+                        pairs.update(get_pairs(old[k]['children'], new[k]['children']))
+
+            return pairs
+
+        # map rating keys pairs
+        mapping = {}
+        if old_key_list and new_key_list:
+            mapping = get_pairs(old_key_list, new_key_list)
+        
+        if mapping:
+            logger.info(u"PlexPy DataFactory :: Updating rating keys in the database.")
+            for old_key, new_key in mapping.iteritems():
+                # check rating_key (3 tables)
+                monitor_db.action('UPDATE session_history SET rating_key = ? WHERE rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_media_info SET rating_key = ? WHERE rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_metadata SET rating_key = ? WHERE rating_key = ?', 
+                                  [new_key, old_key])
+
+                # check parent_rating_key (2 tables)
+                monitor_db.action('UPDATE session_history SET parent_rating_key = ? WHERE parent_rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_metadata SET parent_rating_key = ? WHERE parent_rating_key = ?', 
+                                  [new_key, old_key])
+
+                # check grandparent_rating_key (2 tables)
+                monitor_db.action('UPDATE session_history SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_metadata SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', 
+                                  [new_key, old_key])
+
+                # check thumb (1 table)
+                monitor_db.action('UPDATE session_history_metadata SET thumb = replace(thumb, ?, ?) \
+                                  WHERE thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                                  [old_key, new_key])
+
+                # check parent_thumb (1 table)
+                monitor_db.action('UPDATE session_history_metadata SET parent_thumb = replace(parent_thumb, ?, ?) \
+                                  WHERE parent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                                  [old_key, new_key])
+
+                # check grandparent_thumb (1 table)
+                monitor_db.action('UPDATE session_history_metadata SET grandparent_thumb = replace(grandparent_thumb, ?, ?) \
+                                  WHERE grandparent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                                  [old_key, new_key])
+
+                # check art (1 table)
+                monitor_db.action('UPDATE session_history_metadata SET art = replace(art, ?, ?) \
+                                  WHERE art LIKE "/library/metadata/%s/art/%%"' % old_key, 
+                                  [old_key, new_key])
+
+            return 'Updated rating key in database.'
+        else:
+            return 'No updated rating key needed in database. No changes were made.'
+        # for debugging
+        #return mapping
