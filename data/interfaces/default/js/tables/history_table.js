@@ -248,6 +248,7 @@ history_table_options = {
             var rowData = this.data();
             if (rowData['group_count'] != 1 && rowData['reference_id'] in history_child_table) {
                 // if grouped row and a child table was already created
+                $(this.node()).find('i.fa').toggleClass('fa-plus-circle').toggleClass('fa-minus-circle');
                 this.child(childTableFormat(rowData)).show();
                 createChildTable(this, rowData)
             }
@@ -382,6 +383,8 @@ $('#history_table').on('click', '> tbody > tr > td.expand-history a', function (
     var tr = $(this).closest('tr');
     var row = history_table.row(tr);
     var rowData = row.data();
+    
+    $(this).find('i.fa').toggleClass('fa-plus-circle').toggleClass('fa-minus-circle');
 
     if (row.child.isShown()) {
         $('div.slider', row.child()).slideUp(function () {
