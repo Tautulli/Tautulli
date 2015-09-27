@@ -1,0 +1,224 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           info_children_list.html
+Version:            0.1
+Variable names:     data [list]
+
+data :: Usable parameters
+
+== Global keys ==
+results_count           Returns the number of search results.
+results_list            Returns a dictionary of search result types.
+
+data['results_list'] :: Usable paramaters
+
+== media_type keys ==
+movie                   Returns an array of movie results
+show                    Returns an array of show results
+season                  Returns an array of season results
+episode                 Returns an array of episode results
+artist                  Returns an array of artist results
+album                   Returns an array of album results
+track                   Returns an array of track results
+
+data['results_list'][media_type] :: Usable paramaters
+
+== Global keys ==
+rating_key              Returns the unique identifier for the media item.
+type                    Returns the type of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
+art                     Returns the location of the item's artwork
+title                   Returns the name of the movie, show, episode, artist, album, or track.
+duration                Returns the standard runtime of the media.
+content_rating          Returns the age rating for the media.
+summary                 Returns a brief description of the media plot.
+grandparent_title       Returns the name of the show, or artist.
+parent_index            Returns the index number of the season.
+index                   Returns the index number of the episode, or track.
+parent_thumb            Returns the location of the item's thumbnail. Use with pms_image_proxy.
+writers                 Returns an array of writers.
+thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
+parent_title            Returns the name of the show, or artist.
+rating                  Returns the 5 star rating value for the movie. Between 1 and 5.
+year                    Returns the release year of the movie, or show.
+genres                  Returns an array of genres.
+actors                  Returns an array of actors.
+directors               Returns an array of directors.
+studio                  Returns the name of the studio.
+originally_available_at Returns the air date of the item.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data != None:
+% if data['results_count'] > 0:
+% if 'movie' in data['results_list'] and data['results_list']['movie']:
+<div class="item-children-wrapper">
+    <div class="item-children-section-title">
+        <h4>Movies</h4>
+    </div>
+    <ul class="item-children-instance list-unstyled">
+        % for child in data['results_list']['movie']:
+        <li>
+            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
+                </div>
+                <div class="item-children-instance-text-wrapper season-item">
+                    <h3 title="${child['title']}">${child['title']}</h3>
+                    <h3 class="text-muted">${child['year']}</h3>
+                </div>
+            </a>
+        </li>
+        % endfor
+    </ul>
+</div>
+% endif
+% if 'show' in data['results_list'] and data['results_list']['show']:
+<div class="item-children-wrapper">
+    <div class="item-children-section-title">
+        <h4>TV Shows</h4>
+    </div>
+    <ul class="item-children-instance list-unstyled">
+        % for child in data['results_list']['show']:
+        <li>
+            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
+                </div>
+                <div class="item-children-instance-text-wrapper season-item">
+                    <h3 title="${child['title']}">${child['title']}</h3>
+                    <h3 class="text-muted">${child['year']}</h3>
+                </div>
+            </a>
+        </li>
+        % endfor
+    </ul>
+</div>
+% endif
+% if 'season' in data['results_list'] and data['results_list']['season']:
+<div class="item-children-wrapper">
+    <div class="item-children-section-title">
+        <h4>Seasons</h4>
+    </div>
+    <ul class="item-children-instance list-unstyled">
+        % for child in data['results_list']['season']:
+        <li>
+            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
+                </div>
+                <div class="item-children-instance-text-wrapper season-item">
+                    <h3 title="${child['parent_title']}">${child['parent_title']}</h3>
+                    <h3 class="text-muted">S${child['index']}</h3>
+                </div>
+            </a>
+        </li>
+        % endfor
+    </ul>
+</div>
+% endif
+% if 'episode' in data['results_list'] and data['results_list']['episode']:
+<div class="item-children-wrapper">
+    <div class="item-children-section-title">
+        <h4>Episodes</h4>
+    </div>
+    <ul class="item-children-instance list-unstyled">
+        % for child in data['results_list']['episode']:
+        <li>
+            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face episode-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
+                </div>
+                <div class="item-children-instance-text-wrapper episode-item">
+                    <h3 title="${child['grandparent_title']}">${child['grandparent_title']}</h3>
+                    <h3 title="${child['title']}">${child['title']}</h3>
+                    <h3 class="text-muted">S${child['parent_index']} &middot; E${child['index']}</h3>
+                </div>
+            </a>
+        </li>
+        % endfor
+    </ul>
+</div>
+% endif
+% if 'artist' in data['results_list'] and data['results_list']['artist']:
+<div class="item-children-wrapper">
+    <div class="item-children-section-title">
+        <h4>Artists</h4>
+    </div>
+    <ul class="item-children-instance list-unstyled">
+        % for child in data['results_list']['artist']:
+        <li>
+            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300);"></div>
+                </div>
+                <div class="item-children-instance-text-wrapper album-item">
+                    <h3 title="${child['title']}">${child['title']}</h3>
+                </div>
+            </a>
+        </li>
+        % endfor
+    </ul>
+</div>
+% endif
+% if 'album' in data['results_list'] and data['results_list']['album']:
+<div class="item-children-wrapper">
+    <div class="item-children-section-title">
+        <h4>Albums</h4>
+    </div>
+    <ul class="item-children-instance list-unstyled">
+        % for child in data['results_list']['album']:
+        <li>
+            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300);"></div>
+                </div>
+                <div class="item-children-instance-text-wrapper album-item">
+                    <h3 title="${child['parent_title']}">${child['parent_title']}</h3>
+                    <h3 title="${child['title']}">${child['title']}</h3>
+                </div>
+            </a>
+        </li>
+        % endfor
+    </ul>
+</div>
+% endif
+% if 'track' in data['results_list'] and data['results_list']['track']:
+<div class="item-children-wrapper">
+    <div class="item-children-section-title">
+        <h4>Tracks</h4>
+    </div>
+    <ul class="item-children-instance list-unstyled">
+        % for child in data['results_list']['track']:
+        <li>
+            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['parent_thumb']}&width=300&height=300);">
+                        <div class="item-children-card-overlay">
+                            <div class="item-children-overlay-text">
+                                Track ${child['index']}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-children-instance-text-wrapper album-item">
+                    <h3 title="${child['grandparent_title']}">${child['grandparent_title']}</h3>
+                    <h3 title="${child['title']}">${child['title']}</h3>
+                    <h3 title="${child['parent_title']}" class="text-muted">${child['parent_title']}</h3>
+                </div>
+            </a>
+        </li>
+        % endfor
+    </ul>
+</div>
+% endif
+% else:
+<div class="item-children-wrapper">
+    No search results found.
+</div>
+% endif
+% endif
+

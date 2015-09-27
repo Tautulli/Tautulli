@@ -17,6 +17,7 @@ from plexpy import logger, helpers, users, http_handler
 from urlparse import urlparse
 
 import plexpy
+import urllib2
 
 
 class PmsConnect(object):
@@ -65,6 +66,23 @@ class PmsConnect(object):
     """
     def get_metadata(self, rating_key='', output_format=''):
         uri = '/library/metadata/' + rating_key
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    """
+    Return metadata for children of the request item.
+
+    Parameters required:    rating_key { Plex ratingKey }
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_metadata_children(self, rating_key='', output_format=''):
+        uri = '/library/metadata/' + rating_key + '/children'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -212,6 +230,22 @@ class PmsConnect(object):
     """
     def get_sync_transcode_queue(self, output_format=''):
         uri = '/sync/transcodeQueue'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    """
+    Return search results.
+
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_search(self, query='', track='', output_format=''):
+        uri = '/search?query=' + urllib2.quote(query.encode('utf8')) + track
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -1340,3 +1374,202 @@ class PmsConnect(object):
         else:
             logger.error("Image proxy queries but no input received.")
             return None
+
+    """
+    Return processed list of search results.
+
+    Output: array
+    """
+    def get_search_results(self, query=''):
+        search_results = self.get_search(query=query, output_format='xml')
+        search_results_tracks = self.get_search(query=query, track='&type=10', output_format='xml')
+
+        xml_head = []
+        try:
+            try:
+                xml_head += search_results.getElementsByTagName('MediaContainer')
+            except:
+                pass
+            try:
+                xml_head += search_results_tracks.getElementsByTagName('MediaContainer')
+            except:
+                pass
+        except:
+            logger.warn("Unable to parse XML for get_search_result_details.")
+            return []
+        
+        search_results_count = 0
+        search_results_list = {'movie': [],
+                               'show': [],
+                               'season': [],
+                               'episode': [],
+                               'artist': [],
+                               'album': [],
+                               'track': []
+                               }
+
+        totalSize = 0
+        for a in xml_head:
+            if a.getAttribute('size'):
+                totalSize += int(a.getAttribute('size'))
+        if totalSize == 0:
+            logger.debug(u"No search results.")
+            search_results_list = {'results_count': search_results_count,
+                                    'results_list': []
+                                    }
+            return search_results_list
+
+        for a in xml_head:
+            if a.getElementsByTagName('Video'):
+                result_data = a.getElementsByTagName('Video')
+                for result in result_data:
+                    rating_key = helpers.get_xml_attr(result, 'ratingKey')
+                    metadata = self.get_metadata_details(rating_key=rating_key)
+                    if metadata['metadata']['type'] == 'movie':
+                        search_results_list['movie'].append(metadata['metadata'])
+                    elif metadata['metadata']['type'] == 'episode':
+                        search_results_list['episode'].append(metadata['metadata'])
+                    search_results_count += 1
+
+            if a.getElementsByTagName('Directory'):
+                result_data = a.getElementsByTagName('Directory')
+                for result in result_data:
+                    rating_key = helpers.get_xml_attr(result, 'ratingKey')
+                    metadata = self.get_metadata_details(rating_key=rating_key)
+                    if metadata['metadata']['type'] == 'show':
+                        search_results_list['show'].append(metadata['metadata'])
+
+                        show_seasons = self.get_item_children(rating_key=metadata['metadata']['rating_key'])
+                        if show_seasons['children_count'] != '0':
+                            for season in show_seasons['children_list']:
+                                if season['rating_key']:
+                                    rating_key = season['rating_key']
+                                    metadata = self.get_metadata_details(rating_key=rating_key)
+                                    search_results_list['season'].append(metadata['metadata'])
+                                    search_results_count += 1
+
+                    elif metadata['metadata']['type'] == 'artist':
+                        search_results_list['artist'].append(metadata['metadata'])
+                    elif metadata['metadata']['type'] == 'album':
+                        search_results_list['album'].append(metadata['metadata'])
+                    search_results_count += 1
+
+            if a.getElementsByTagName('Track'):
+                result_data = a.getElementsByTagName('Track')
+                for result in result_data:
+                    rating_key = helpers.get_xml_attr(result, 'ratingKey')
+                    metadata = self.get_metadata_details(rating_key=rating_key)
+                    search_results_list['track'].append(metadata['metadata'])
+                    search_results_count += 1
+
+        output = {'results_count': search_results_count,
+                  'results_list': search_results_list
+                  }
+
+        return output
+
+    """
+    Return processed list of grandparent/parent/child rating keys.
+
+    Output: array
+    """
+    def get_rating_keys_list(self, rating_key='', media_type=''):
+
+        if media_type == 'movie':
+            key_list = {0: {'rating_key': int(rating_key)}}
+            return key_list
+
+        if media_type == 'artist' or media_type == 'album' or media_type == 'track':
+            match_type = 'title'
+        else:
+            match_type = 'index'
+        
+        # get grandparent rating key
+        if media_type == 'season' or media_type == 'album':
+            try:
+                metadata = self.get_metadata_details(rating_key=rating_key)
+                rating_key = metadata['metadata']['parent_rating_key']
+            except:
+                logger.warn("Unable to get parent_rating_key for get_rating_keys_list.")
+                return {}
+
+        elif media_type == 'episode' or media_type == 'track':
+            try:
+                metadata = self.get_metadata_details(rating_key=rating_key)
+                rating_key = metadata['metadata']['grandparent_rating_key']
+            except:
+                logger.warn("Unable to get grandparent_rating_key for get_rating_keys_list.")
+                return {}
+
+        # get parent_rating_keys
+        metadata = self.get_metadata_children(str(rating_key), output_format='xml')
+
+        try:
+            xml_head = metadata.getElementsByTagName('MediaContainer')
+        except:
+            logger.warn("Unable to parse XML for get_rating_keys_list.")
+            return {}
+
+        for a in xml_head:
+            if a.getAttribute('size'):
+                if a.getAttribute('size') == '0':
+                    return {}
+            
+            title = helpers.get_xml_attr(a, 'title2')
+
+            if a.getElementsByTagName('Directory'):
+                parents_metadata = a.getElementsByTagName('Directory')
+            else:
+                parents_metadata = []
+
+            parents = {}
+            for item in parents_metadata:
+                parent_rating_key = helpers.get_xml_attr(item, 'ratingKey')
+                parent_index = helpers.get_xml_attr(item, 'index')
+                parent_title = helpers.get_xml_attr(item, 'title')
+
+                if parent_rating_key:
+                    # get rating_keys
+                    metadata = self.get_metadata_children(str(parent_rating_key), output_format='xml')
+
+                    try:
+                        xml_head = metadata.getElementsByTagName('MediaContainer')
+                    except:
+                        logger.warn("Unable to parse XML for get_rating_keys_list.")
+                        return {}
+
+                    for a in xml_head:
+                        if a.getAttribute('size'):
+                            if a.getAttribute('size') == '0':
+                                return {}
+
+                        if a.getElementsByTagName('Video'):
+                            children_metadata = a.getElementsByTagName('Video')
+                        elif a.getElementsByTagName('Track'):
+                            children_metadata = a.getElementsByTagName('Track')
+                        else:
+                            children_metadata = []
+
+                        children = {}
+                        for item in children_metadata:
+                            child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
+                            child_index = helpers.get_xml_attr(item, 'index')
+                            child_title = helpers.get_xml_attr(item, 'title')
+
+                            if child_rating_key:
+                                key = int(child_index)
+                                children.update({key: {'rating_key': int(child_rating_key)}})
+                    
+                    key = int(parent_index) if match_type == 'index' else parent_title
+                    parents.update({key: 
+                                {'rating_key': int(parent_rating_key),
+                                'children': children}
+                                })
+        
+        key = 0 if match_type == 'index' else title
+        key_list = {key:
+                    {'rating_key': int(rating_key),
+                     'children': parents}
+                    }
+
+        return key_list

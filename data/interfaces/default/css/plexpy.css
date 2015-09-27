@@ -1246,11 +1246,39 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     background-size: contain;
     height: 16px;
 }
+#children-list, #search-results-list {
+    position: relative;
+    z-index: 0;
+}
 .item-children-wrapper {
+}
+.item-children-section-title {
+    position: relative;
+    padding: 10px;
+    background-color: #2c2c2c;
+    border-bottom: 1px solid #3d3d3d;
+    border-top: 1px solid #282828;
+    height: 50px;
+    line-height: 22px;
+    padding: 13px 20px;
+    margin: 20px 0;
+}
+.item-children-section-title h4 {
+    position: relative;
+    margin: 0;
+    line-height: 22px;
+    color: #fff;
+    font-size: 16px;
+    text-align: center;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .item-children-instance {
     list-style: none;
     margin: 0;
+    overflow: hidden;
 }
 .item-children-instance li {
     float: left;
@@ -1348,6 +1376,9 @@ a:hover .item-children-poster {
     text-align: left;
     clear: both;
 }
+.item-children-instance-text-wrapper h3.text-muted {
+    color: #777;
+}
 .item-children-list-item-odd {
     border-top: 0px solid #343434;
     border-bottom: 0px solid #343434;
@@ -1390,6 +1421,13 @@ a:hover .item-children-poster {
     display: inline-block;
     width: 40px;
     margin-right: 20px;
+}
+#new_title h3 {
+    color: #F9AA03;
+    font-size: 14px;
+    line-height: 1.42857143;
+    font-weight: bold;
+    margin: 0;
 }
 .settings-alert {
     float: left;
@@ -2377,4 +2415,38 @@ a .home-platforms-instance-list-oval:hover,
     .dashboard-instance {
         width: 100%;
     }
+}
+
+#search_form {
+    width: 350px;
+    padding: 8px 15px;
+}
+#search_form span.input-textbox {
+    overflow: hidden;
+    width: 250px;
+    height: 34px;
+    display: inline-flex;
+    float: right;
+}
+#search_form #search_query {
+    width: 0;
+    height: 34px;
+    margin-top: 0;
+    float: right;
+    position: relative;
+    right: -250px;
+    border-radius: 3px 0 0 3px;
+}
+#search_form #search_query.active {
+    width: 250px;
+    right: 0px;
+}
+#search_form #search_button.btn-inactive {
+    background-color: #000;
+    border: 1px solid rgba(0,0,0,0);
+    -webkit-transition: background 0.3s;
+    -moz-transition: background 0.3s;
+    -ms-transition: background 0.3s;
+    -o-transition: background 0.3s;
+    transition: background 0.3s;
 }
