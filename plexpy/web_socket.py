@@ -50,7 +50,7 @@ def run():
     reconnects = 0
 
     # Try an open the websocket connection - if it fails after 5 retries fallback to polling
-    while not ws_connected and reconnects < 5:
+    while not ws_connected and reconnects < 15:
         try:
             logger.info(u'PlexPy WebSocket :: Opening websocket, connection attempt %s.' % str(reconnects + 1))
             ws = create_connection(uri)
