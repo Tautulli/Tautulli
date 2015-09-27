@@ -934,35 +934,47 @@ class DataFactory(object):
             logger.info(u"PlexPy DataFactory :: Updating rating keys in the database.")
             for old_key, new_key in mapping.iteritems():
                 # check rating_key (3 tables)
-                monitor_db.action('UPDATE session_history SET rating_key = ? WHERE rating_key = ?', [new_key, old_key])
-                monitor_db.action('UPDATE session_history_media_info SET rating_key = ? WHERE rating_key = ?', [new_key, old_key])
-                monitor_db.action('UPDATE session_history_metadata SET rating_key = ? WHERE rating_key = ?', [new_key, old_key])
+                monitor_db.action('UPDATE session_history SET rating_key = ? WHERE rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_media_info SET rating_key = ? WHERE rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_metadata SET rating_key = ? WHERE rating_key = ?', 
+                                  [new_key, old_key])
 
                 # check parent_rating_key (2 tables)
-                monitor_db.action('UPDATE session_history SET parent_rating_key = ? WHERE parent_rating_key = ?', [new_key, old_key])
-                monitor_db.action('UPDATE session_history_metadata SET parent_rating_key = ? WHERE parent_rating_key = ?', [new_key, old_key])
+                monitor_db.action('UPDATE session_history SET parent_rating_key = ? WHERE parent_rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_metadata SET parent_rating_key = ? WHERE parent_rating_key = ?', 
+                                  [new_key, old_key])
 
                 # check grandparent_rating_key (2 tables)
-                monitor_db.action('UPDATE session_history SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', [new_key, old_key])
-                monitor_db.action('UPDATE session_history_metadata SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', [new_key, old_key])
+                monitor_db.action('UPDATE session_history SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_metadata SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', 
+                                  [new_key, old_key])
 
                 # check thumb (1 table)
-                monitor_db.action('UPDATE session_history_metadata SET thumb = replace(thumb, ?, ?) WHERE thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                monitor_db.action('UPDATE session_history_metadata SET thumb = replace(thumb, ?, ?) \
+                                  WHERE thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
                                   [old_key, new_key])
 
                 # check parent_thumb (1 table)
-                monitor_db.action('UPDATE session_history_metadata SET parent_thumb = replace(parent_thumb, ?, ?) WHERE parent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                monitor_db.action('UPDATE session_history_metadata SET parent_thumb = replace(parent_thumb, ?, ?) \
+                                  WHERE parent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
                                   [old_key, new_key])
 
                 # check grandparent_thumb (1 table)
-                monitor_db.action('UPDATE session_history_metadata SET grandparent_thumb = replace(grandparent_thumb, ?, ?) WHERE grandparent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                monitor_db.action('UPDATE session_history_metadata SET grandparent_thumb = replace(grandparent_thumb, ?, ?) \
+                                  WHERE grandparent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
                                   [old_key, new_key])
 
                 # check art (1 table)
-                monitor_db.action('UPDATE session_history_metadata SET art = replace(art, ?, ?) WHERE art LIKE "/library/metadata/%s/art/%%"' % old_key, 
+                monitor_db.action('UPDATE session_history_metadata SET art = replace(art, ?, ?) \
+                                  WHERE art LIKE "/library/metadata/%s/art/%%"' % old_key, 
                                   [old_key, new_key])
 
-            #return 'Updated rating key in database.'
-        #else:
-            #return 'No updated rating key needed in database. No changes were made.'
-        return mapping
+            return 'Updated rating key in database.'
+        else:
+            return 'No updated rating key needed in database. No changes were made.'
+        # for debugging
+        #return mapping

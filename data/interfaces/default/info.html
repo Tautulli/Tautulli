@@ -639,6 +639,7 @@ DOCUMENTATION :: END
 
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-update', function () {
+            $(this).prop('disabled', true);
             var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspUpdating database..."
             showMsg(msg, false, false, 0)
 
@@ -648,7 +649,7 @@ DOCUMENTATION :: END
                     new_rating_key: new_rating_key,
                     media_type: "${query['media_type']}"
                     },
-                async: false,
+                async: true,
                 success: function (data) {
                     window.location.href = new_href;
                 }
