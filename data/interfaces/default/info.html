@@ -460,7 +460,7 @@ DOCUMENTATION :: END
                                         % if query['media_type'] == 'movie':
                                         ${query['title']}<br />${query['year']}
                                         % elif query['media_type'] == 'show':
-                                        ${query['grandparent_title']}<br />${query['year']}
+                                        ${query['grandparent_title']}
                                         % elif query['media_type'] == 'season':
                                         ${query['grandparent_title']}<br />S${query['parent_media_index']}
                                         % elif query['media_type'] == 'episode':
@@ -475,6 +475,9 @@ DOCUMENTATION :: END
                                         </strong></p>
                                     <p> with </p>
                                     <p><span id="new_title"></span></p>
+                                    % if query['media_type'] != 'movie':
+                                    <p>All items for <strong>${query['grandparent_title']}</strong> will also be updated.</p>
+                                    % endif
                                     <p>This is permanent and cannot be undone!</p>
                                 </div>
                                 <div class="modal-footer">
