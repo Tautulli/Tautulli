@@ -60,6 +60,7 @@ class DataFactory(object):
                    'session_history.user',
                    'session_history_metadata.media_type',
                    'session_history_media_info.video_decision',
+                   'session_history_media_info.audio_decision',
                    'session_history.user_id as user_id'
                    ]
         try:
@@ -118,6 +119,7 @@ class DataFactory(object):
                    "user": item["user"],
                    "media_type": item["media_type"],
                    "video_decision": item["video_decision"],
+                   "audio_decision": item["audio_decision"],
                    "user_id": item["user_id"]
                    }
 
