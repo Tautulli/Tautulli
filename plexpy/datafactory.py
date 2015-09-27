@@ -948,19 +948,19 @@ class DataFactory(object):
 
                 # check thumb (1 table)
                 monitor_db.action('UPDATE session_history_metadata SET thumb = replace(thumb, ?, ?) WHERE thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
-                                  [new_key, old_key])
+                                  [old_key, new_key])
 
                 # check parent_thumb (1 table)
                 monitor_db.action('UPDATE session_history_metadata SET parent_thumb = replace(parent_thumb, ?, ?) WHERE parent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
-                                  [new_key, old_key])
+                                  [old_key, new_key])
 
                 # check grandparent_thumb (1 table)
                 monitor_db.action('UPDATE session_history_metadata SET grandparent_thumb = replace(grandparent_thumb, ?, ?) WHERE grandparent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
-                                  [new_key, old_key])
+                                  [old_key, new_key])
 
                 # check art (1 table)
                 monitor_db.action('UPDATE session_history_metadata SET art = replace(art, ?, ?) WHERE art LIKE "/library/metadata/%s/art/%%"' % old_key, 
-                                  [new_key, old_key])
+                                  [old_key, new_key])
 
             #return 'Updated rating key in database.'
         #else:
