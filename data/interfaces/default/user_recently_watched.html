@@ -48,11 +48,11 @@ DOCUMENTATION :: END
                 </div>
 				<div class="dashboard-recent-media-metacontainer">
 					% if item['type'] == 'episode':
-					<h3>${item['grandparent_title']}</h3>
-					<h3>${item['title']}</h3>
+					<h3 title="${item['grandparent_title']}">${item['grandparent_title']}</h3>
+					<h3 title="${item['title']}">${item['title']}</h3>
 					<h3 class="text-muted">S${item['parent_index']} &middot; E${item['index']}</h3>
 					% elif item['type'] == 'movie':
-					<h3>${item['title']}</h3>
+					<h3 title="${item['title']}">${item['title']}</h3>
 					<h3 class="text-muted">${item['year']}</h3>
 					% endif
 					<div class="text-muted" id="time-${item['time']}">
@@ -73,8 +73,8 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 <div class="dashboard-recent-media-metacontainer">
-                    <h3>${item['grandparent_title']}</h3>
-                    <h3>${item['title']}</h3>
+                    <h3 title="${item['grandparent_title']}">${item['grandparent_title']}</h3>
+                    <h3 title="${item['title']}">${item['title']}</h3>
                     <h3 class="text-muted">${item['parent_title']}</h3>
                 </div>
             </a>

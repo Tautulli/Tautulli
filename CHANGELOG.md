@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.1.10 (2015-09-20)
+
+* Added dedicated settings section for home stats configuration with ability to show/hide selected stats and sections.
+* Added support for Twitter notifications.
+* Only show music in graphs if music logging is enabled.
+* The monitoring ignore interval now excludes paused time. 
+* Fix display bug on activity panel which incorrectly reported transcoding sometimes.
+* Fix bug with Email notification TLS checkbox when it would be disabled by changing any other settings afterwards.
+* Fix issue on some Python releases where the webbrowser library isn't included.
+
+
 ## v1.1.9 (2015-09-14)
 
 * Another JonnyWong release. I'm going to stop thanking you now ;)

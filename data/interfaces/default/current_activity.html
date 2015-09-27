@@ -19,7 +19,7 @@ session_key                 Returns a unique session id for the active stream
 rating_key                  Returns the unique identifier for the media item.
 media_index                 Returns the index of the media item.
 parent_media_index          Returns the index of the media item's parent.
-type                        Returns the type of session. Either 'track', 'episode' or 'movie'.
+media_type                  Returns the type of session. Either 'track', 'episode' or 'movie'.
 thumb                       Returns the location of the item's thumbnail. Use with pms_image_proxy.
 bif_thumb                   Returns the location of the item's bif thumbnail. Use with pms_image_proxy.
 art                         Returns the location of the item's artwork
@@ -67,21 +67,21 @@ DOCUMENTATION :: END
 % if data['stream_count'] != '0':
 % for a in data['sessions']:
 <div class="dashboard-instance" id="instance-${a['session_key']}">
-    % if a['type'] == 'movie' or a['type'] == 'episode' or a['type'] == 'track':
+    % if a['media_type'] == 'movie' or a['media_type'] == 'episode' or a['media_type'] == 'track':
     <a href="info?item_id=${a['rating_key']}">
     % endif
         <div class="dashboard-activity-poster">
-            % if a['type'] == 'movie' and not a['indexes']:
+            % if a['media_type'] == 'movie' and not a['indexes']:
             <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
-            % elif a['type'] == 'episode' and not a['indexes']:
+            % elif a['media_type'] == 'episode' and not a['indexes']:
             <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
             % elif a['indexes']:
             <div class="dashboard-activity-poster-face bif" style="background-image: url(pms_image_proxy?img=${a['bif_thumb']}&width=500&height=280); display: none;"></div>
             % else:
-                % if a['type'] == 'track':
+                % if a['media_type'] == 'track':
                 <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
                 <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
-                % elif a['type'] == 'clip':
+                % elif a['media_type'] == 'clip':
                     % if a['art'][:4] == 'http':
                     <div class="dashboard-activity-poster-face" style="background-image: url(${a['art']});"></div>
                     % elif a['thumb'][:4] == 'http':
@@ -93,7 +93,7 @@ DOCUMENTATION :: END
                         <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=280);"></div>
                         % endif
                     % endif
-                % elif a['type'] == 'photo':
+                % elif a['media_type'] == 'photo':
                 <div class="dashboard-activity-poster-face bif" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=500);"></div>
                 % else:
                 <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300&fallback=cover);"></div>
@@ -116,9 +116,11 @@ DOCUMENTATION :: END
                         State &nbsp;<strong>Buffering</strong>
                         % endif
                     </div>
-                    % if a['type'] == 'track':
+                    % if a['media_type'] == 'track':
                         % if a['audio_decision'] == 'direct play':
                         Stream &nbsp;<strong>Direct Play</strong>
+                        % elif a['audio_decision'] == 'copy':
+                        Stream &nbsp;<strong>Direct Stream</strong>
                         % else:
                         Stream &nbsp;<strong>Transcoding
                             (Speed: ${a['transcode_speed']})
@@ -135,9 +137,11 @@ DOCUMENTATION :: END
                         % elif a['audio_decision'] != 'transcode':
                         Audio &nbsp;<strong>Transcode (${a['transcode_audio_codec']}) (${a['transcode_audio_channels']}ch)</strong>
                         % endif
-                    % elif a['type'] == 'episode' or a['type'] == 'movie' or a['type'] == 'clip':
-                        % if a['video_decision'] == 'direct play':
+                    % elif a['media_type'] == 'episode' or a['media_type'] == 'movie' or a['media_type'] == 'clip':
+                        % if a['video_decision'] == 'direct play' and a['audio_decision'] == 'direct play':
                         Stream &nbsp;<strong>Direct Play</strong>
+                        % elif a['video_decision'] == 'copy' and a['audio_decision'] == 'copy':
+                        Stream &nbsp;<strong>Direct Stream</strong>
                         % else:
                         Stream &nbsp;<strong>Transcoding
                             (Speed: ${a['transcode_speed']})
@@ -162,9 +166,11 @@ DOCUMENTATION :: END
                         % elif a['audio_decision'] == 'transcode':
                         Audio &nbsp;<strong>Transcode (${a['transcode_audio_codec']}) (${a['transcode_audio_channels']}ch)</strong>
                         % endif
-                    % elif a['type'] == 'photo':
+                    % elif a['media_type'] == 'photo':
                         % if a['video_decision'] == 'direct play':
                         Stream &nbsp;<strong>Direct Play</strong>
+                        % elif a['video_decision'] == 'copy':
+                        Stream &nbsp;<strong>Direct Stream</strong>
                         % else:
                         Stream &nbsp;<strong>
                             Transcoding
@@ -178,15 +184,15 @@ DOCUMENTATION :: END
                     <br>
                 </div>
             </div>
-            % if a['type'] != 'photo':
+            % if a['media_type'] != 'photo':
             <div class="dashboard-activity-poster-info-bar">
                 <div class="dashboard-activity-poster-info-time">
-                    <span class="progress_time">${a['progress']}</span>/<span class="progress_time">${a['duration']}</span>
+                    <span class="progress_time">${a['view_offset']}</span>/<span class="progress_time">${a['duration']}</span>
                 </div>
             </div>
             % endif
         </div>
-    % if a['type'] == 'movie' or a['type'] == 'episode' or a['type'] == 'track':
+    % if a['media_type'] == 'movie' or a['media_type'] == 'episode' or a['media_type'] == 'track':
     </a>
     % endif
     <div class="dashboard-activity-progress">
@@ -207,38 +213,38 @@ DOCUMENTATION :: END
             % elif a['state'] == 'buffering':
             <i class="fa fa-spinner"></i>&nbsp;
             % endif
-            % if a['type'] == 'episode':
-            <a href="info?item_id=${a['rating_key']}">${a['grandparent_title']} - ${a['title']}</a>
-            % elif a['type'] == 'movie':
-            <a href="info?item_id=${a['rating_key']}">${a['title']}</a>
-            % elif a['type'] == 'clip':
-            ${a['title']}
-            % elif a['type'] == 'track':
-            <a href="info?item_id=${a['rating_key']}">${a['grandparent_title']} - ${a['title']}</a>
-            % elif a['type'] == 'photo':
-            ${a['parent_title']}
+            % if a['media_type'] == 'episode':
+            <a href="info?item_id=${a['rating_key']}" title="${a['grandparent_title']} - ${a['title']}">${a['grandparent_title']} - ${a['title']}</a>
+            % elif a['media_type'] == 'movie':
+            <a href="info?item_id=${a['rating_key']}" title="${a['title']}">${a['title']}</a>
+            % elif a['media_type'] == 'clip':
+            <span title="${a['title']}">${a['title']}</span>
+            % elif a['media_type'] == 'track':
+            <a href="info?item_id=${a['rating_key']}" title="${a['grandparent_title']} - ${a['title']}">${a['grandparent_title']} - ${a['title']}</a>
+            % elif a['media_type'] == 'photo':
+            <span title="${a['parent_title']}">${a['parent_title']}</span>
             % else:
-            ${a['title']}
+            <span title="${a['title']}">${a['title']}</span>
             % endif
         </div>
         <div class="dashboard-activity-metadata-subtitle">
-            % if a['type'] == 'episode':
-            S${a['parent_media_index']} &middot; E${a['media_index']}
-            % elif a['type'] == 'movie':
-            ${a['year']}
-            % elif a['type'] == 'track':
-            <a href="info?item_id=${a['parent_rating_key']}">${a['parent_title']}</a>
-            % elif a['type'] == 'photo':
-            ${a['title']}
+            % if a['media_type'] == 'episode':
+            <span title="S${a['parent_media_index']} &middot; E${a['media_index']}">S${a['parent_media_index']} &middot; E${a['media_index']}</span>
+            % elif a['media_type'] == 'movie':
+            <span title="${a['year']}">${a['year']}</span>
+            % elif a['media_type'] == 'track':
+            <a href="info?item_id=${a['parent_rating_key']}" title="${a['parent_title']}">${a['parent_title']}</a>
+            % elif a['media_type'] == 'photo':
+            <span title="${a['title']}">${a['title']}</span>
             % else:
-            ${a['year']}
+            <span title="${a['year']}">${a['year']}</span>
             % endif
         </div>
         <div class="dashboard-activity-metadata-user">
             % if a['user_id']:
-            <a href="user?user_id=${a['user_id']}">${a['friendly_name']}</a>
+            <a href="user?user_id=${a['user_id']}" title="${a['friendly_name']}">${a['friendly_name']}</a>
             % else:
-            <a href="user?user=${a['user']}">${a['friendly_name']}</a>
+            <a href="user?user=${a['user']}" title="${a['friendly_name']}">${a['friendly_name']}</a>
             % endif
         </div>
 </div>

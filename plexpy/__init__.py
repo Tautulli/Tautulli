@@ -17,16 +17,21 @@ import os
 import sys
 import subprocess
 import threading
-import webbrowser
 import sqlite3
 import cherrypy
 import datetime
 import uuid
+# Some cut down versions of Python may not include this module and it's not critical for us
+try:
+    import webbrowser
+    no_browser = False
+except ImportError:
+    no_browser = True
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from plexpy import versioncheck, logger, monitor, plextv
+from plexpy import versioncheck, logger, activity_pinger, plextv
 import plexpy.config
 
 PROG_DIR = None
@@ -66,6 +71,7 @@ COMMITS_BEHIND = None
 
 UMASK = None
 
+POLLING_FAILOVER = False
 
 def initialize(config_file):
     with INIT_LOCK:
@@ -75,6 +81,7 @@ def initialize(config_file):
         global CURRENT_VERSION
         global LATEST_VERSION
         global UMASK
+        global POLLING_FAILOVER
 
         CONFIG = plexpy.config.Config(config_file)
 
@@ -228,18 +235,19 @@ def daemonize():
 
 
 def launch_browser(host, port, root):
-    if host == '0.0.0.0':
-        host = 'localhost'
+    if not no_browser:
+        if host == '0.0.0.0':
+            host = 'localhost'
 
-    if CONFIG.ENABLE_HTTPS:
-        protocol = 'https'
-    else:
-        protocol = 'http'
+        if CONFIG.ENABLE_HTTPS:
+            protocol = 'https'
+        else:
+            protocol = 'http'
 
-    try:
-        webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
-    except Exception as e:
-        logger.error('Could not launch browser: %s', e)
+        try:
+            webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
+        except Exception as e:
+            logger.error('Could not launch browser: %s', e)
 
 
 def initialize_scheduler():
@@ -273,7 +281,11 @@ def initialize_scheduler():
 
         if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex Server URLs', hours=12, minutes=0, seconds=0)
-            schedule_job(monitor.check_active_sessions, 'Check for active sessions', hours=0, minutes=0, seconds=seconds)
+
+            # If we're not using websockets then fall back to polling
+            if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:
+                schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
+                             hours=0, minutes=0, seconds=seconds)
 
         # Refresh the users list
         if CONFIG.REFRESH_USERS_INTERVAL:
@@ -349,7 +361,7 @@ def dbcheck():
         'audio_channels INTEGER, transcode_protocol TEXT, transcode_container TEXT, '
         'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
         'transcode_width INTEGER, transcode_height INTEGER, buffer_count INTEGER DEFAULT 0, '
-        'buffer_last_triggered INTEGER)'
+        'buffer_last_triggered INTEGER, last_paused INTEGER)'
     )
 
     # session_history table :: This is a history table which logs essential stream details
@@ -597,6 +609,15 @@ def dbcheck():
             'ALTER TABLE users ADD COLUMN custom_avatar_url TEXT'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT last_paused from sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN last_paused INTEGER'
+        )
+
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
     if not result.fetchone():
@@ -632,10 +653,6 @@ def dbcheck():
 def shutdown(restart=False, update=False):
     cherrypy.engine.exit()
     SCHED.shutdown(wait=False)
-
-    # Clear any sessions in the db - Not sure yet if we should do this. More testing required
-    # logger.debug(u'Clearing Plex sessions.')
-    # monitor.drop_session_db()
 
     CONFIG.write()
 

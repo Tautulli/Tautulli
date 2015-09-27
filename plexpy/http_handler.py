@@ -81,10 +81,11 @@ class HTTPHandler(object):
                 logger.warn(u"Failed to access uri endpoint %s with error %s" % (uri, e))
                 return None
             except Exception, e:
-                logger.warn(u"Failed to access uri endpoint %s. Is your server maybe accepting SSL connections only?" % uri)
+                logger.warn(u"Failed to access uri endpoint %s. Is your server maybe accepting SSL connections only? %s" % (uri, e))
                 return None
             except:
                 logger.warn(u"Failed to access uri endpoint %s with Uncaught exception." % uri)
+                return None
 
             if request_status == 200:
                 if output_format == 'dict':
