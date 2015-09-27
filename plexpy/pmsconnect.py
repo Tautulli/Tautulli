@@ -1479,10 +1479,10 @@ class PmsConnect(object):
             key_list = {0: {'rating_key': int(rating_key)}}
             return key_list
 
-        if media_type == 'show' or media_type == 'season' or media_type == 'episode':
-            match_type = 'index'
-        elif media_type == 'artist' or media_type == 'album' or media_type == 'track':
+        if media_type == 'artist' or media_type == 'album' or media_type == 'track':
             match_type = 'title'
+        else:
+            match_type = 'index'
         
         # get grandparent rating key
         if media_type == 'season' or media_type == 'album':
@@ -1557,7 +1557,7 @@ class PmsConnect(object):
                             child_title = helpers.get_xml_attr(item, 'title')
 
                             if child_rating_key:
-                                key = int(child_index) if match_type == 'index' else child_title
+                                key = int(child_index)
                                 children.update({key: {'rating_key': int(child_rating_key)}})
                     
                     key = int(parent_index) if match_type == 'index' else parent_title

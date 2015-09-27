@@ -849,10 +849,10 @@ class DataFactory(object):
             key_list = {0: {'rating_key': int(rating_key)}}
             return key_list
 
-        if media_type == 'show' or media_type == 'season' or media_type == 'episode':
-            match_type = 'index'
-        elif media_type == 'artist' or media_type == 'album' or media_type == 'track':
+        if media_type == 'artist' or media_type == 'album' or media_type == 'track':
             match_type = 'title'
+        else:
+            match_type = 'index'
 
         # Get the grandparent rating key
         try:
@@ -891,7 +891,7 @@ class DataFactory(object):
                 result = monitor_db.select(query=query.format('parent_rating_key', 'rating_key'),
                                            args=[item['parent_rating_key']])
                 for item in result:
-                    key = item['media_index'] if match_type == 'index' else item['title']
+                    key = item['media_index']
                     children.update({key: {'rating_key': item['rating_key']}})
 
                 key = item['parent_media_index'] if match_type == 'index' else item['parent_title']
