@@ -48,10 +48,11 @@ history_table_options = {
                     $(td).html('Currently watching...');
                 } else if (rowData['group_count'] > 1) {
                     date = moment(cellData, "X").format(date_format);
-                    expand_history = '<span class="expand-history-tooltip" data-toggle="tooltip" title="Show Detailed History"><i class="fa fa-info-circle fa-fw"></i></span>';
+                    expand_history = '<span class="expand-history-tooltip" data-toggle="tooltip" title="Show Detailed History"><i class="fa fa-plus-circle fa-fw"></i></span>';
                     $(td).html('<div><a href="#"><div style="float: left;">' + expand_history + '&nbsp;' + date + '</div></a></div>');
                 } else {
-                    $(td).html(moment(cellData, "X").format(date_format));
+                    date = moment(cellData, "X").format(date_format);
+                    $(td).html('<div><a href="#"><div style="float: left;"><i class="fa fa-fw"></i>&nbsp;' + date + '</div></a></div>');
                 }
             },
             "searchable": false,

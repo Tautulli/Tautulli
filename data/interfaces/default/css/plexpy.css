@@ -2378,7 +2378,6 @@ a .home-platforms-instance-list-oval:hover,
         width: 100%;
     }
 }
-
 table.display tr.shown + tr div.slider {
     display: none;
 }
