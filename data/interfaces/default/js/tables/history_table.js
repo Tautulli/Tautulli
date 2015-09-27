@@ -52,7 +52,7 @@ history_table_options = {
                     $(td).html('<div><a href="#"><div style="float: left;">' + expand_history + '&nbsp;' + date + '</div></a></div>');
                 } else {
                     date = moment(cellData, "X").format(date_format);
-                    $(td).html('<div><a href="#"><div style="float: left;"><i class="fa fa-fw"></i>&nbsp;' + date + '</div></a></div>');
+                    $(td).html('<div style="float: left;"><i class="fa fa-fw"></i>&nbsp;' + date + '</div>');
                 }
             },
             "searchable": false,
