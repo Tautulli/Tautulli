@@ -86,7 +86,7 @@ class ActivityHandler(object):
 
             # Fire off notifications
             progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
-            if progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
+            if plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
                 threading.Thread(target=notification_handler.notify,
                                  kwargs=dict(stream_data=db_session, notify_action='stop')).start()
 
@@ -117,7 +117,7 @@ class ActivityHandler(object):
 
             # Fire off notifications
             progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
-            if progress_percent < 99:
+            if plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99:
                 threading.Thread(target=notification_handler.notify,
                                 kwargs=dict(stream_data=db_session, notify_action='pause')).start()
 
@@ -141,7 +141,7 @@ class ActivityHandler(object):
 
             # Fire off notifications
             progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
-            if progress_percent < 99:
+            if plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99:
                 threading.Thread(target=notification_handler.notify,
                                  kwargs=dict(stream_data=db_session, notify_action='resume')).start()
 

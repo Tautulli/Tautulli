@@ -61,13 +61,15 @@ def check_active_sessions(ws_request=False):
                             # The user is still playing the same media item
                             # Here we can check the play states
                             if session['state'] != stream['state']:
-                                if session['state'] == 'paused' and progress_percent < 99:
+                                if session['state'] == 'paused' \
+                                    and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
                                     # Push any notifications -
                                     # Push it on it's own thread so we don't hold up our db actions
                                     threading.Thread(target=notification_handler.notify,
                                                      kwargs=dict(stream_data=stream, notify_action='pause')).start()
 
-                                if session['state'] == 'playing' and stream['state'] == 'paused' and progress_percent < 99:
+                                if session['state'] == 'playing' and stream['state'] == 'paused' \
+                                    and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
                                     # Push any notifications -
                                     # Push it on it's own thread so we don't hold up our db actions
                                     threading.Thread(target=notification_handler.notify,
@@ -132,7 +134,7 @@ def check_active_sessions(ws_request=False):
                             # Check if the user has reached the offset in the media we defined as the "watched" percent
                             # Don't trigger if state is buffer as some clients push the progress to the end when
                             # buffering on start.
-                            if progress_percent > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and session['state'] != 'buffering':
+                            if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and session['state'] != 'buffering':
                                 # Push any notifications -
                                 # Push it on it's own thread so we don't hold up our db actions
                                 threading.Thread(target=notification_handler.notify,
@@ -151,12 +153,12 @@ def check_active_sessions(ws_request=False):
                         progress_percent = None
 
                     # Check if the user has reached the offset in the media we defined as the "watched" percent
-                    if progress_percent > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
+                    if plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
                         # Push any notifications -
                         # Push it on it's own thread so we don't hold up our db actions
                         threading.Thread(target=notification_handler.notify,
                                             kwargs=dict(stream_data=stream, notify_action='watched')).start()
-                    else:
+                    if plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
                         # Push any notifications - Push it on it's own thread so we don't hold up our db actions
                         threading.Thread(target=notification_handler.notify,
                                          kwargs=dict(stream_data=stream, notify_action='stop')).start()
