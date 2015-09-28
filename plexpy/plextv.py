@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -14,7 +17,8 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from plexpy import logger, helpers, users, http_handler, database
-
+import xmltodict
+import json
 from xml.dom import minidom
 
 import base64
@@ -402,3 +406,20 @@ class PlexTV(object):
                     server_urls.append(server_details)
 
         return server_urls
+
+    def discover(self):
+        """ Query plex for all servers online. Returns the ones you own in a selectize format """
+        result = self.get_plextv_resources(include_https=True, output_format='raw')
+        clean_servers = []
+        servers = xmltodict.parse(result, process_namespaces=True, attr_prefix='')
+        if servers:
+            for server in servers['MediaContainer']['Device']:
+                if server.get('presence', None) == '1' and server.get('owned', None) == '1':
+                    for s in server['Connection']:
+                        s.update(server)
+                        s['value'] = s['address']
+                        s['label'] = server['name']
+                        del s['Connection']
+                        clean_servers.append(s)
+
+        return json.dumps(clean_servers, indent=4)
