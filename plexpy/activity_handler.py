@@ -66,6 +66,8 @@ class ActivityHandler(object):
 
     def on_stop(self, force_stop=False):
         if self.is_valid_session():
+            from plexpy import helpers
+
             logger.debug(u"PlexPy ActivityHandler :: Session %s has stopped." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
@@ -83,8 +85,10 @@ class ActivityHandler(object):
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             # Fire off notifications
-            threading.Thread(target=notification_handler.notify,
-                             kwargs=dict(stream_data=db_session, notify_action='stop')).start()
+            progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+            if progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
+                threading.Thread(target=notification_handler.notify,
+                                 kwargs=dict(stream_data=db_session, notify_action='stop')).start()
 
             # Write it to the history table
             monitor_proc = activity_processor.ActivityProcessor()
@@ -95,6 +99,8 @@ class ActivityHandler(object):
 
     def on_pause(self):
         if self.is_valid_session():
+            from plexpy import helpers
+
             logger.debug(u"PlexPy ActivityHandler :: Session %s has been paused." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
@@ -110,11 +116,15 @@ class ActivityHandler(object):
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             # Fire off notifications
-            threading.Thread(target=notification_handler.notify,
-                             kwargs=dict(stream_data=db_session, notify_action='pause')).start()
+            progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+            if progress_percent < 99:
+                threading.Thread(target=notification_handler.notify,
+                                kwargs=dict(stream_data=db_session, notify_action='pause')).start()
 
     def on_resume(self):
         if self.is_valid_session():
+            from plexpy import helpers
+
             logger.debug(u"PlexPy ActivityHandler :: Session %s has been resumed." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
@@ -130,8 +140,10 @@ class ActivityHandler(object):
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             # Fire off notifications
-            threading.Thread(target=notification_handler.notify,
-                             kwargs=dict(stream_data=db_session, notify_action='resume')).start()
+            progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+            if progress_percent < 99:
+                threading.Thread(target=notification_handler.notify,
+                                 kwargs=dict(stream_data=db_session, notify_action='resume')).start()
 
     def on_buffer(self):
         if self.is_valid_session():
@@ -178,13 +190,6 @@ class ActivityHandler(object):
                 last_state = db_session['state']
                 last_key = str(db_session['rating_key'])
 
-                # Monitor if the stream has reached the watch percentage for notifications
-                # The only purpose of this is for notifications
-                progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
-                if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and this_state != 'buffering':
-                    threading.Thread(target=notification_handler.notify,
-                                     kwargs=dict(stream_data=db_session, notify_action='watched')).start()
-
                 # Make sure the same item is being played
                 if this_key == last_key:
                     # Update the session state and viewOffset
@@ -194,11 +199,11 @@ class ActivityHandler(object):
                                              view_offset=self.timeline['viewOffset'])
                     # Start our state checks
                     if this_state != last_state:
-                        if this_state == 'paused' and progress_percent < 99:
+                        if this_state == 'paused':
                             self.on_pause()
-                        elif last_state == 'paused' and this_state == 'playing' and progress_percent < 99:
+                        elif last_state == 'paused' and this_state == 'playing':
                             self.on_resume()
-                        elif this_state == 'stopped' and progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
+                        elif this_state == 'stopped':
                             self.on_stop()
                     elif this_state == 'buffering':
                         self.on_buffer()
@@ -208,6 +213,13 @@ class ActivityHandler(object):
                     # Set force_stop so that we don't overwrite our last viewOffset
                     self.on_stop(force_stop=True)
                     self.on_start()
+
+                # Monitor if the stream has reached the watch percentage for notifications
+                # The only purpose of this is for notifications
+                progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+                if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and this_state != 'buffering':
+                    threading.Thread(target=notification_handler.notify,
+                                     kwargs=dict(stream_data=db_session, notify_action='watched')).start()
 
             else:
                 # We don't have this session in our table yet, start a new one.
