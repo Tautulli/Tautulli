@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -178,6 +178,13 @@ class ActivityHandler(object):
                 last_state = db_session['state']
                 last_key = str(db_session['rating_key'])
 
+                # Monitor if the stream has reached the watch percentage for notifications
+                # The only purpose of this is for notifications
+                progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+                if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and this_state != 'buffering':
+                    threading.Thread(target=notification_handler.notify,
+                                     kwargs=dict(stream_data=db_session, notify_action='watched')).start()
+
                 # Make sure the same item is being played
                 if this_key == last_key:
                     # Update the session state and viewOffset
@@ -187,11 +194,11 @@ class ActivityHandler(object):
                                              view_offset=self.timeline['viewOffset'])
                     # Start our state checks
                     if this_state != last_state:
-                        if this_state == 'paused':
+                        if this_state == 'paused' and progress_percent < 99:
                             self.on_pause()
-                        elif last_state == 'paused' and this_state == 'playing':
+                        elif last_state == 'paused' and this_state == 'playing' and progress_percent < 99:
                             self.on_resume()
-                        elif this_state == 'stopped':
+                        elif this_state == 'stopped' and progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
                             self.on_stop()
                     elif this_state == 'buffering':
                         self.on_buffer()
@@ -201,13 +208,6 @@ class ActivityHandler(object):
                     # Set force_stop so that we don't overwrite our last viewOffset
                     self.on_stop(force_stop=True)
                     self.on_start()
-
-                # Monitor if the stream has reached the watch percentage for notifications
-                # The only purpose of this is for notifications
-                progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
-                if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and this_state != 'buffering':
-                    threading.Thread(target=notification_handler.notify,
-                                     kwargs=dict(stream_data=db_session, notify_action='watched')).start()
 
             else:
                 # We don't have this session in our table yet, start a new one.

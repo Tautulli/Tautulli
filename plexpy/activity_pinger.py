@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -48,6 +48,12 @@ def check_active_sessions(ws_request=False):
             for stream in db_streams:
                 if any(d['session_key'] == str(stream['session_key']) and d['rating_key'] == str(stream['rating_key'])
                        for d in media_container):
+
+                    if stream['view_offset'] and stream['duration']:
+                        progress_percent = helpers.get_percent(stream['view_offset'], stream['duration'])
+                    else:
+                        progress_percent = None
+
                     # The user's session is still active
                     for session in media_container:
                         if session['session_key'] == str(stream['session_key']) and \
@@ -55,13 +61,13 @@ def check_active_sessions(ws_request=False):
                             # The user is still playing the same media item
                             # Here we can check the play states
                             if session['state'] != stream['state']:
-                                if session['state'] == 'paused':
+                                if session['state'] == 'paused' and progress_percent < 99:
                                     # Push any notifications -
                                     # Push it on it's own thread so we don't hold up our db actions
                                     threading.Thread(target=notification_handler.notify,
                                                      kwargs=dict(stream_data=stream, notify_action='pause')).start()
 
-                                if session['state'] == 'playing' and stream['state'] == 'paused':
+                                if session['state'] == 'playing' and stream['state'] == 'paused' and progress_percent < 99:
                                     # Push any notifications -
                                     # Push it on it's own thread so we don't hold up our db actions
                                     threading.Thread(target=notification_handler.notify,
@@ -126,13 +132,11 @@ def check_active_sessions(ws_request=False):
                             # Check if the user has reached the offset in the media we defined as the "watched" percent
                             # Don't trigger if state is buffer as some clients push the progress to the end when
                             # buffering on start.
-                            if session['view_offset'] and session['duration'] and session['state'] != 'buffering':
-                                if helpers.get_percent(session['view_offset'],
-                                                       session['duration']) > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
-                                    # Push any notifications -
-                                    # Push it on it's own thread so we don't hold up our db actions
-                                    threading.Thread(target=notification_handler.notify,
-                                                     kwargs=dict(stream_data=stream, notify_action='watched')).start()
+                            if progress_percent > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and session['state'] != 'buffering':
+                                # Push any notifications -
+                                # Push it on it's own thread so we don't hold up our db actions
+                                threading.Thread(target=notification_handler.notify,
+                                                    kwargs=dict(stream_data=stream, notify_action='watched')).start()
 
                 else:
                     # The user has stopped playing a stream
@@ -141,18 +145,21 @@ def check_active_sessions(ws_request=False):
                     monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
                                       [stream['session_key'], stream['rating_key']])
 
-                    # Check if the user has reached the offset in the media we defined as the "watched" percent
                     if stream['view_offset'] and stream['duration']:
-                        if helpers.get_percent(stream['view_offset'],
-                                               stream['duration']) > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
-                            # Push any notifications -
-                            # Push it on it's own thread so we don't hold up our db actions
-                            threading.Thread(target=notification_handler.notify,
-                                             kwargs=dict(stream_data=stream, notify_action='watched')).start()
+                        progress_percent = helpers.get_percent(stream['view_offset'], stream['duration'])
+                    else:
+                        progress_percent = None
 
-                    # Push any notifications - Push it on it's own thread so we don't hold up our db actions
-                    threading.Thread(target=notification_handler.notify,
-                                     kwargs=dict(stream_data=stream, notify_action='stop')).start()
+                    # Check if the user has reached the offset in the media we defined as the "watched" percent
+                    if progress_percent > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
+                        # Push any notifications -
+                        # Push it on it's own thread so we don't hold up our db actions
+                        threading.Thread(target=notification_handler.notify,
+                                            kwargs=dict(stream_data=stream, notify_action='watched')).start()
+                    else:
+                        # Push any notifications - Push it on it's own thread so we don't hold up our db actions
+                        threading.Thread(target=notification_handler.notify,
+                                         kwargs=dict(stream_data=stream, notify_action='stop')).start()
 
                     # Write the item history on playback stop
                     monitor_process.write_session_history(session=stream)
