@@ -26,48 +26,48 @@ class DataFactory(object):
     def __init__(self):
         pass
 
-    def get_history(self, kwargs=None, custom_where=None):
+    def get_history(self, kwargs=None, custom_where=None, grouping=0, watched_percent=85):
         data_tables = datatables.DataTables()
+        
+        group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
-        columns = ['session_history.id',
-                   'session_history.started as date',
-                   '(CASE WHEN users.friendly_name IS NULL THEN session_history'
-                   '.user ELSE users.friendly_name END) as friendly_name',
-                   'session_history.player',
-                   'session_history.ip_address',
-                   'session_history_metadata.full_title as full_title',
+        columns = ['session_history.reference_id',
+                   'session_history.id',
+                   'started AS date',
+                   'MIN(started) AS started',
+                   'MAX(stopped) AS stopped',
+                   'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - \
+		            SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration', 
+                   'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter', 
+                   'session_history.user_id',
+                   'session_history.user',
+                   '(CASE WHEN users.friendly_name IS NULL THEN user ELSE users.friendly_name END) as friendly_name',
+                   'player',
+                   'ip_address',
+                   'session_history_metadata.media_type',
+                   'session_history_metadata.rating_key',
+                   'session_history_metadata.parent_rating_key',
+                   'session_history_metadata.grandparent_rating_key',
+                   'session_history_metadata.full_title',
+                   'session_history_metadata.parent_title',
+                   'session_history_metadata.year',
+                   'session_history_metadata.media_index',
+                   'session_history_metadata.parent_media_index',
                    'session_history_metadata.thumb',
                    'session_history_metadata.parent_thumb',
                    'session_history_metadata.grandparent_thumb',
-                   'session_history_metadata.media_index',
-                   'session_history_metadata.parent_media_index',
-                   'session_history_metadata.parent_title',
-                   'session_history_metadata.year',
-                   'session_history.started',
-                   'session_history.paused_counter',
-                   'session_history.stopped',
-                   'round((julianday(datetime(session_history.stopped, "unixepoch", "localtime")) - \
-                    julianday(datetime(session_history.started, "unixepoch", "localtime"))) * 86400) - \
-                    (CASE WHEN session_history.paused_counter IS NULL THEN 0 \
-                    ELSE session_history.paused_counter END) as duration',
-                   '((CASE WHEN session_history.view_offset IS NULL THEN 0.1 ELSE \
-                    session_history.view_offset * 1.0 END) / \
-                   (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 ELSE \
-                    session_history_metadata.duration * 1.0 END) * 100) as percent_complete',
-                   'session_history.grandparent_rating_key as grandparent_rating_key',
-                   'session_history.parent_rating_key as parent_rating_key',
-                   'session_history.rating_key as rating_key',
-                   'session_history.user',
-                   'session_history_metadata.media_type',
+                   '((CASE WHEN view_offset IS NULL THEN 0.1 ELSE view_offset * 1.0 END) / \
+		            (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
                    'session_history_media_info.video_decision',
                    'session_history_media_info.audio_decision',
-                   'session_history.user_id as user_id'
+                   'COUNT(*) AS group_count',
+                   'GROUP_CONCAT(session_history.id) AS group_ids'
                    ]
         try:
             query = data_tables.ssp_query(table_name='session_history',
                                           columns=columns,
                                           custom_where=custom_where,
-                                          group_by=[],
+                                          group_by=group_by,
                                           join_types=['LEFT OUTER JOIN',
                                                       'JOIN',
                                                       'JOIN'],
@@ -87,7 +87,7 @@ class DataFactory(object):
                     'error': 'Unable to execute database query.'}
 
         history = query['result']
-
+        
         rows = []
         for item in history:
             if item["media_type"] == 'episode' and item["parent_thumb"]:
@@ -97,34 +97,44 @@ class DataFactory(object):
             else:
                 thumb = item["thumb"]
 
-            row = {"id": item['id'],
-                   "date": item['date'],
-                   "friendly_name": item['friendly_name'],
-                   "player": item["player"],
-                   "ip_address": item["ip_address"],
-                   "full_title": item["full_title"],
-                   "thumb": thumb,
-                   "media_index": item["media_index"],
-                   "parent_media_index": item["parent_media_index"],
-                   "parent_title": item["parent_title"],
-                   "year": item["year"],
+            if item['percent_complete'] >= watched_percent:
+                watched_status = 1
+            elif item['percent_complete'] >= watched_percent/2:
+                watched_status = 0.5
+            else:
+                watched_status = 0
+
+            row = {"reference_id": item["reference_id"],
+                   "id": item["id"],
+                   "date": item["date"],
                    "started": item["started"],
-                   "paused_counter": item["paused_counter"],
                    "stopped": item["stopped"],
                    "duration": item["duration"],
-                   "percent_complete": item["percent_complete"],
-                   "grandparent_rating_key": item["grandparent_rating_key"],
-                   "parent_rating_key": item["parent_rating_key"],
-                   "rating_key": item["rating_key"],
+                   "paused_counter": item["paused_counter"],
+                   "user_id": item["user_id"],
                    "user": item["user"],
+                   "friendly_name": item["friendly_name"],
+                   "player": item["player"],
+                   "ip_address": item["ip_address"],
                    "media_type": item["media_type"],
+                   "rating_key": item["rating_key"],
+                   "parent_rating_key": item["parent_rating_key"],
+                   "grandparent_rating_key": item["grandparent_rating_key"],
+                   "full_title": item["full_title"],
+                   "parent_title": item["parent_title"],
+                   "year": item["year"],
+                   "media_index": item["media_index"],
+                   "parent_media_index": item["parent_media_index"],
+                   "thumb": thumb,
                    "video_decision": item["video_decision"],
                    "audio_decision": item["audio_decision"],
-                   "user_id": item["user_id"]
+                   "watched_status": watched_status,
+                   "group_count": item["group_count"],
+                   "group_ids": item["group_ids"]
                    }
 
             rows.append(row)
-
+        
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
                 'data': rows,

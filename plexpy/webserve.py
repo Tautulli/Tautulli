@@ -458,7 +458,8 @@ class WebInterface(object):
             "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
             "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
-            "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
+            "buffer_wait": plexpy.CONFIG.BUFFER_WAIT,
+            "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)
@@ -474,7 +475,8 @@ class WebInterface(object):
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
-            "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type"
+            "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type",
+            "group_history_tables"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -555,28 +557,38 @@ class WebInterface(object):
                               message=message, timer=timer, quote=quote)
 
     @cherrypy.expose
-    def get_history(self, user=None, user_id=None, **kwargs):
+    def get_history(self, user=None, user_id=None, grouping=0, **kwargs):
+
+        if grouping == 'false':
+            grouping = 0
+        else:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
 
         custom_where=[]
         if user_id:
-            custom_where = [['user_id', user_id]]
+            custom_where = [['session_history.user_id', user_id]]
         elif user:
-            custom_where = [['user', user]]
+            custom_where = [['session_history.user', user]]
         if 'rating_key' in kwargs:
             rating_key = kwargs.get('rating_key', "")
-            custom_where = [['rating_key', rating_key]]
+            custom_where = [['session_history.rating_key', rating_key]]
         if 'parent_rating_key' in kwargs:
             rating_key = kwargs.get('parent_rating_key', "")
-            custom_where = [['parent_rating_key', rating_key]]
+            custom_where = [['session_history.parent_rating_key', rating_key]]
         if 'grandparent_rating_key' in kwargs:
             rating_key = kwargs.get('grandparent_rating_key', "")
-            custom_where = [['grandparent_rating_key', rating_key]]
+            custom_where = [['session_history.grandparent_rating_key', rating_key]]
         if 'start_date' in kwargs:
             start_date = kwargs.get('start_date', "")
             custom_where = [['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date]]
+        if 'reference_id' in kwargs:
+            reference_id = kwargs.get('reference_id', "")
+            custom_where = [['session_history.reference_id', reference_id]]
 
         data_factory = datafactory.DataFactory()
-        history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where)
+        history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)

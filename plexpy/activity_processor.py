@@ -159,6 +159,36 @@ class ActivityProcessor(object):
                 # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history transaction...")
                 self.db.action(query=query, args=args)
 
+                # Check if we should group the session, select the last two rows from the user
+                query = 'SELECT id, rating_key, user_id, reference_id FROM session_history \
+                         WHERE user_id = ? ORDER BY id DESC LIMIT 2 '
+
+                args = [session['user_id']]
+
+                result = self.db.select(query=query, args=args)
+                
+                new_session = {'id': result[0][0],
+                               'rating_key': result[0][1],
+                               'user_id': result[0][2],
+                               'reference_id': result[0][3]}
+
+                if len(result) == 1:
+                    prev_session = None
+                else:
+                    prev_session = {'id': result[1][0],
+                                    'rating_key': result[1][1],
+                                    'user_id': result[1][2],
+                                    'reference_id': result[1][3]}
+
+                query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
+                # If rating_key is the same in the previous session, then set the reference_id to the previous row, else set the reference_id to the new id
+                if (prev_session is not None) and (prev_session['rating_key'] == new_session['rating_key']):
+                    args = [prev_session['reference_id'], new_session['id']]
+                else:
+                    args = [new_session['id'], new_session['id']]
+
+                self.db.action(query=query, args=args)
+                
                 # logger.debug(u"PlexPy ActivityProcessor :: Successfully written history item, last id for session_history is %s"
                 #              % last_id)
 

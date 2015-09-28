@@ -84,6 +84,12 @@ available_notification_agents = notifiers.available_notification_agents()
                             </div>
                             <p class="help-block">Set your preferred time format. <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Table History
+                            </label>
+                            <p class="help-block">Group successive play history by the same user as a single entry in tables.</p>
+                        </div>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-2">

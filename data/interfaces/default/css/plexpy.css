@@ -2416,7 +2416,41 @@ a .home-platforms-instance-list-oval:hover,
         width: 100%;
     }
 }
-
+table.display tr.shown + tr div.slider {
+    display: none;
+}
+table.display tr.shown + tr > td {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+table.display tr.shown + tr:hover {
+    background-color: rgba(255,255,255,0);
+}
+table.display tr.shown + tr:hover a,
+table.display tr.shown + tr td:hover a,
+table.display tr.shown + tr .pagination > .active > a,
+table.display tr.shown + tr .pagination > .active > a:hover {
+    color: #fff;
+}
+table.display tr.shown + tr table[id^='history_child'] td:hover a {
+    color: #F9AA03;
+}
+table.display tr.shown + tr .pagination > .disabled > a {
+    color: #444444;
+}
+table.display tr.shown + tr .pagination > li > a:hover {
+    color: #23527c;
+}
+table[id^='history_child'] {
+    margin-top: 0;
+    margin-left: -4px;
+    opacity: .6;
+}
+table[id^='history_child'] thead th {
+    line-height: 0;
+    height: 0 !important;
+    overflow: hidden;
+}
 #search_form {
     width: 350px;
     padding: 8px 15px;

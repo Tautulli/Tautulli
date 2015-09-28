@@ -126,6 +126,7 @@ history_table_modal_options = {
         $('.media-type-tooltip').tooltip();
         $('.thumb-tooltip').popover({
             html: true,
+            container: '#history-modal',
             trigger: 'hover',
             placement: 'right',
             content: function () {
