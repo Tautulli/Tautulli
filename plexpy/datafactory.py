@@ -59,9 +59,9 @@ class DataFactory(object):
                    '((CASE WHEN view_offset IS NULL THEN 0.1 ELSE view_offset * 1.0 END) / \
 		            (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
                    'session_history_media_info.video_decision',
-                   'COUNT(*) AS group_count',
                    'session_history_media_info.audio_decision',
-                   'session_history.user_id as user_id'
+                   'COUNT(*) AS group_count',
+                   'GROUP_CONCAT(session_history.id) AS group_ids'
                    ]
         try:
             query = data_tables.ssp_query(table_name='session_history',
@@ -127,10 +127,10 @@ class DataFactory(object):
                    "parent_media_index": item["parent_media_index"],
                    "thumb": thumb,
                    "video_decision": item["video_decision"],
+                   "audio_decision": item["audio_decision"],
                    "watched_status": watched_status,
                    "group_count": item["group_count"],
-                   "audio_decision": item["audio_decision"],
-                   "user_id": item["user_id"]
+                   "group_ids": item["group_ids"]
                    }
 
             rows.append(row)

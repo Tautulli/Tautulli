@@ -269,14 +269,13 @@ history_table_options = {
             // toggle the parent button to danger
             $(row).find('button[data-id="' + rowData['id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
             // check if any child rows are not selected
-            for (var i = rowData['reference_id']; i <= rowData['id']; i++) {
-                var index = $.inArray(i, history_to_delete);
+            var group_ids = rowData['group_ids'].split(',').map(Number);
+            group_ids.forEach(function (id) {
+                var index = $.inArray(id, history_to_delete);
                 if (index == -1) {
-                    // if any child row is not selected, toggle parent button to warning
-                    $(row).find('button[data-id="' + rowData['id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
-                    break;
+                    $(row).find('button[data-id="' + rowData['id'] + '"]').addClass('btn-warning').removeClass('btn-danger');
                 }
-            }
+            });
         }
 
         if (rowData['group_count'] != 1 && rowData['reference_id'] in history_child_table) {
@@ -350,12 +349,13 @@ $('#history_table').on('click', '> tbody > tr > td.delete-control > button', fun
         // if grouped rows
         if ($(this).hasClass('btn-warning')) {
             // add all grouped rows to history_to_delete
-            for (var i = rowData['reference_id']; i <= rowData['id']; i++) {
-                var index = $.inArray(i, history_to_delete);
+            var group_ids = rowData['group_ids'].split(',').map(Number);
+            group_ids.forEach(function (id) {
+                var index = $.inArray(id, history_to_delete);
                 if (index == -1) {
-                    history_to_delete.push(i);
+                    history_to_delete.push(id);
                 }
-            }
+            });
             $(this).toggleClass('btn-warning').toggleClass('btn-danger');
             if (row.child.isShown()) {
                 // if child table is visible, toggle all child buttons to danger
@@ -363,12 +363,13 @@ $('#history_table').on('click', '> tbody > tr > td.delete-control > button', fun
             }
         } else {
             // remove all grouped rows to history_to_delete
-            for (var i = rowData['reference_id']; i <= rowData['id']; i++) {
-                var index = $.inArray(i, history_to_delete);
+            var group_ids = rowData['group_ids'].split(',').map(Number);
+            group_ids.forEach(function (id) {
+                var index = $.inArray(id, history_to_delete);
                 if (index != -1) {
                     history_to_delete.splice(index, 1);
                 }
-            }
+            });
             $(this).toggleClass('btn-warning').toggleClass('btn-danger');
             if (row.child.isShown()) {
                 // if child table is visible, toggle all child buttons to warning
@@ -553,14 +554,14 @@ function createChildTable(row, rowData) {
 
         tr.parents('tr').prev().find('td.delete-control > button.btn-warning').toggleClass('btn-warning').toggleClass('btn-danger');
         // check if any child rows are not selected
-        for (var i = rowData['reference_id']; i <= rowData['id']; i++) {
-            var index = $.inArray(i, history_to_delete);
+        var group_ids = rowData['group_ids'].split(',').map(Number);
+        group_ids.forEach(function (id) {
+            var index = $.inArray(id, history_to_delete);
             if (index == -1) {
                 // if any child row is not selected, toggle parent button to warning
-                tr.parents('tr').prev().find('td.delete-control > button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
-                break;
+                tr.parents('tr').prev().find('td.delete-control > button.btn-danger').addClass('btn-warning').removeClass('btn-danger');
             }
-        }
+        });
     });
 }
 
