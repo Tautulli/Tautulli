@@ -62,7 +62,7 @@ class MonitorDatabase(object):
 
     def action(self, query, args=None, return_last_id=False):
         if query is None:
-                return
+            return
 
         with db_lock:
             sql_result = None
