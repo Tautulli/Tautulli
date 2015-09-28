@@ -171,7 +171,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             <label for="http_host">HTTP Host</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" id="http_host" name="http_host" value="${config['http_host']}" data-parsley-trigger="change" required>
+                                    <input type="text" class="form-control http-settings" id="http_host" name="http_host" value="${config['http_host']}" data-parsley-trigger="change" required>
                                 </div>
                             </div>
                             <p class="help-block">e.g. localhost or an IP, such as 0.0.0.0</p>
@@ -180,7 +180,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             <label for="http_port">HTTP Port</label>
                             <div class="row">
                                 <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="http_port" name="http_port" value="${config['http_port']}" data-parsley-trigger="change" data-parsley-errors-container="#http_port_error" required>
+                                    <input type="text" class="form-control http-settings" data-parsley-type="integer" id="http_port" name="http_port" value="${config['http_port']}" data-parsley-trigger="change" data-parsley-errors-container="#http_port_error" required>
                                 </div>
                                 <div id="http_port_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
@@ -194,18 +194,18 @@ available_notification_agents = notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="enable_https" id="enable_https" value="1" ${config['enable_https']} /> Enable HTTPS
+                                <input type="checkbox" class="http-settings" name="enable_https" id="enable_https" value="1" ${config['enable_https']} /> Enable HTTPS
                             </label>
                             <p class="help-block">Enable HTTPS for web server for encrypted communication.</p>
                         </div>
                         <div id="https_options">
                             <div class="form-group">
                                 <label for="https_cert">HTTPS Cert</label>
-                                <input type="text" class="form-control" id="https_cert" name="https_cert" value="${config['https_cert']}">
+                                <input type="text" class="form-control http-settings" id="https_cert" name="https_cert" value="${config['https_cert']}">
                             </div>
                             <div class="form-group">
                                 <label for="https_key">HTTPS Key</label>
-                                <input type="text" class="form-control" id="https_key" name="https_key" value="${config['https_key']}">
+                                <input type="text" class="form-control http-settings" id="https_key" name="https_key" value="${config['https_key']}">
                             </div>
                         </div>
 
@@ -221,7 +221,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             <label for="http_username">HTTP Username</label>
                             <div class="row">
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="http_username" name="http_username" value="${config['http_username']}" size="30">
+                                    <input type="text" class="form-control auth-settings" id="http_username" name="http_username" value="${config['http_username']}" size="30">
                                 </div>
                             </div>
                             <p class="help-block">Username for web server authentication. Leave empty to disable.</p>
@@ -230,7 +230,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             <label for="http_password">HTTP Password</label>
                             <div class="row">
                                 <div class="col-md-4">
-                                    <input type="password" class="form-control" id="http_password" name="http_password" value="${config['http_password']}" size="30">
+                                    <input type="password" class="form-control auth-settings" id="http_password" name="http_password" value="${config['http_password']}" size="30">
                                 </div>
                             </div>
                             <p class="help-block">Password for web server authentication. Leave empty to disable.</p>
@@ -399,7 +399,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart)
+                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart)
                             </label>
                             <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens. This is currently experimental. Encrypted websocket is not currently supported.</p>
                         </div>
@@ -983,6 +983,22 @@ available_notification_agents = notifiers.available_notification_agents()
             </div>
         </div>
     </div>
+    <div id="restart-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="restart-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Restart</h4>
+                </div>
+                <div class="modal-body">
+                    You have changed settings that require PlexPy to restart. Hit the restart button below to restart now.
+                </div>
+                <div class="modal-footer">
+                    <button id="modal_link_restart" class="btn btn-bright"><i class="fa fa-refresh"></i> Restart</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </%def>
 
@@ -1003,6 +1019,19 @@ $(document).ready(function() {
         window.location.hash = e.target.hash.replace("#", "#" + prefix);
     });
 
+    // Global Variables
+    serverChanged = false;
+    authChanged = false;
+    httpChanged = false;
+    monitorChanged = false;
+
+    // Alert the user that their changes require a restart.
+    function postSaveChecks() {
+        if ((serverChanged && $('#monitoring_use_websocket').is(":checked")) || authChanged || httpChanged || monitorChanged) {
+          $('#restart-modal').modal('show');
+        }
+    }
+
     var configForm = $("#configUpdate");
     $('.save-button').click(function() {
         if ($("#pms_identifier").val() == "") {
@@ -1010,6 +1039,7 @@ $(document).ready(function() {
         } else {
             if (configForm.parsley().validate()) {
                 doAjaxCall('configUpdate',$(this),'tabs',true);
+                postSaveChecks();
                 return false;
             } else {
                 showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your settings.',false,true,2000,true)
@@ -1034,6 +1064,10 @@ $(document).ready(function() {
         $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking</button>');
         $(this).prop('disabled', true);
         window.location.href = "checkGithub";
+    });
+
+    $("#modal_link_restart").click(function() {
+        window.location.href = "restart";
     });
 
     if ($("#api_enabled").is(":checked")) {
@@ -1076,7 +1110,20 @@ $(document).ready(function() {
         }
     });
 
+    $( ".http-settings" ).change(function() {
+        httpChanged = true;
+    });
+
+    $( ".auth-settings" ).change(function() {
+        authChanged = true;
+    });
+
+    $( ".monitor-settings" ).change(function() {
+        monitorChanged = true;
+    });
+
     $( ".pms-settings" ).change(function() {
+        serverChanged = true;
         $("#pms_identifier").val("");
         $("#pms-verify-status").html("");
         verifyServer();
@@ -1138,11 +1185,11 @@ $(document).ready(function() {
                           'Authorization': 'Basic ' + btoa($("#pms_username").val() + ':' + $("#pms_password").val())
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
-                    $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Authentation failed!');
+                    $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Authentication failed!');
                 },
                 success: function (xml) {
                     var authToken = $(xml).find('user').attr('authenticationToken');
-                    $("#pms-token-status").html('<i class="fa fa-check"></i> Authentation successful!');
+                    $("#pms-token-status").html('<i class="fa fa-check"></i> Authentication successful!');
                     $("#pms_token").val(authToken);
                     $('#pms-auth-modal').modal('hide');
                 }
