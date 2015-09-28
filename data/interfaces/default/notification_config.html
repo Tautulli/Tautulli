@@ -12,22 +12,30 @@ from plexpy import helpers
             <div class="container-fluid">
                 <div class="row">
                     <form action="set_notification_config" method="post" class="form" id="set_notification_config" data-parsley-validate>
-                    <div class="col-md-8">
+                    <div class="col-md-12">
                     % for item in data:
                         % if item['input_type'] == 'text' or item['input_type'] == 'number' or item['input_type'] == 'password':
                         <div class="form-group">
                             <label for="${item['name']}">${item['label']}</label>
-                            <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30">
-                            % if item['name'] == 'osx_notify_app':
-                                <a href="javascript:void(0)" id="osxnotifyregister">Register</a>
-                            % endif
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30">
+                                    % if item['name'] == 'osx_notify_app':
+                                    <a href="javascript:void(0)" id="osxnotifyregister">Register</a>
+                                    % endif
+                                </div>
+                            </div>
                             <p class="help-block">${item['description']}</p>
                         </div>
                         % elif item['input_type'] == 'button':
                         <div class="form-group">
-                            <input type="${item['input_type']}" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="${item['input_type']}" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
+                                </div>
+                            </div>
+                            <p class="help-block">${item['description']}</p>
                         </div>
-                        <p class="help-block">${item['description']}</p>
                         % elif item['input_type'] == 'checkbox':
                         <div class="checkbox">
                             <label>
