@@ -49,8 +49,8 @@ def run():
     ws_connected = False
     reconnects = 0
 
-    # Try an open the websocket connection - if it fails after 5 retries fallback to polling
-    while not ws_connected and reconnects < 15:
+    # Try an open the websocket connection - if it fails after 15 retries fallback to polling
+    while not ws_connected and reconnects <= 15:
         try:
             logger.info(u'PlexPy WebSocket :: Opening websocket, connection attempt %s.' % str(reconnects + 1))
             ws = create_connection(uri)
@@ -69,12 +69,12 @@ def run():
             # successfully received data, reset reconnects counter
             reconnects = 0
         except websocket.WebSocketConnectionClosedException:
-            if reconnects <= 5:
+            if reconnects <= 15:
                 reconnects += 1
 
-                # Increasing sleep interval between reconnections
+                # Sleep 5 between connection attempts
                 if reconnects > 1:
-                    time.sleep(2 * (reconnects - 1))
+                    time.sleep(5)
 
                 logger.warn(u'PlexPy WebSocket :: Connection has closed, reconnecting...')
                 try:
@@ -91,7 +91,7 @@ def run():
         plexpy.POLLING_FAILOVER = True
         plexpy.initialize_scheduler()
 
-    logger.debug(u'Leaving thread.')
+    logger.debug(u'PlexPy WebSocket :: Leaving thread.')
 
 
 def receive(ws):

@@ -131,6 +131,12 @@ class ActivityProcessor(object):
                     logger.debug(u"PlexPy ActivityProcessor :: Play duration for ratingKey %s is %s secs which is less than %s "
                                  u"seconds, so we're not logging it." %
                                  (session['rating_key'], str(real_play_time), plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
+            if session['media_type'] == 'track' and not is_import:
+                if real_play_time < 15 and session['duration'] >= 30:
+                    logging_enabled = False
+                    logger.debug(u"PlexPy ActivityProcessor :: Play duration for ratingKey %s is %s secs, "
+                                 u"looks like it was skipped so we're not logging it" %
+                                 (session['rating_key'], str(real_play_time)))
             elif is_import and import_ignore_interval:
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
                         (real_play_time < int(import_ignore_interval)):
