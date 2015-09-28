@@ -18,7 +18,10 @@ from plexpy import logger
 import sqlite3
 import os
 import plexpy
+import time
+import threading
 
+db_lock = threading.Lock()
 
 def drop_session_db():
     monitor_db = MonitorDatabase()
@@ -58,31 +61,37 @@ class MonitorDatabase(object):
         self.connection.row_factory = sqlite3.Row
 
     def action(self, query, args=None, return_last_id=False):
-
         if query is None:
-            return
+                return
 
-        sql_result = None
+        with db_lock:
+            sql_result = None
+            attempts = 0
 
-        try:
-            with self.connection as c:
-                if args is None:
-                    sql_result = c.execute(query)
-                else:
-                    sql_result = c.execute(query, args)
+            while attempts < 5:
+                try:
+                    with self.connection as c:
+                        if args is None:
+                            sql_result = c.execute(query)
+                        else:
+                            sql_result = c.execute(query, args)
+                    # Our transaction was successful, leave the loop
+                    break
 
-        except sqlite3.OperationalError, e:
-            if "unable to open database file" in e.message or "database is locked" in e.message:
-                logger.warn('Database Error: %s', e)
-            else:
-                logger.error('Database error: %s', e)
-                raise
+                except sqlite3.OperationalError, e:
+                    if "unable to open database file" in e.message or "database is locked" in e.message:
+                        logger.warn('Database Error: %s', e)
+                        attempts += 1
+                        time.sleep(1)
+                    else:
+                        logger.error('Database error: %s', e)
+                        raise
 
-        except sqlite3.DatabaseError, e:
-            logger.error('Fatal Error executing %s :: %s', query, e)
-            raise
+                except sqlite3.DatabaseError, e:
+                    logger.error('Fatal Error executing %s :: %s', query, e)
+                    raise
 
-        return sql_result
+            return sql_result
 
     def select(self, query, args=None):
 
