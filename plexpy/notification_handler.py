@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, config, notifiers, database
+from plexpy import logger, config, notifiers, database, helpers
 
 import plexpy
 import time
@@ -33,6 +33,8 @@ def notify(stream_data=None, notify_action=None):
         if stream_data['media_type'] == 'movie' or stream_data['media_type'] == 'episode':
             if plexpy.CONFIG.MOVIE_NOTIFY_ENABLE or plexpy.CONFIG.TV_NOTIFY_ENABLE:
 
+                progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
+
                 for agent in notifiers.available_notification_agents():
                     if agent['on_play'] and notify_action == 'play':
                         # Build and send notification
@@ -43,7 +45,8 @@ def notify(stream_data=None, notify_action=None):
                         # Set the notification state in the db
                         set_notify_state(session=stream_data, state='play', agent_info=agent)
 
-                    elif agent['on_stop'] and notify_action == 'stop':
+                    elif agent['on_stop'] and notify_action == 'stop' \
+                        and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT):
                         # Build and send notification
                         notify_strings = build_notify_text(session=stream_data, state=notify_action)
                         notifiers.send_notification(config_id=agent['id'],
@@ -52,7 +55,8 @@ def notify(stream_data=None, notify_action=None):
 
                         set_notify_state(session=stream_data, state='stop', agent_info=agent)
 
-                    elif agent['on_pause'] and notify_action == 'pause':
+                    elif agent['on_pause'] and notify_action == 'pause' \
+                        and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
                         # Build and send notification
                         notify_strings = build_notify_text(session=stream_data, state=notify_action)
                         notifiers.send_notification(config_id=agent['id'],
@@ -61,7 +65,8 @@ def notify(stream_data=None, notify_action=None):
 
                         set_notify_state(session=stream_data, state='pause', agent_info=agent)
 
-                    elif agent['on_resume'] and notify_action == 'resume':
+                    elif agent['on_resume'] and notify_action == 'resume' \
+                        and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
                         # Build and send notification
                         notify_strings = build_notify_text(session=stream_data, state=notify_action)
                         notifiers.send_notification(config_id=agent['id'],

@@ -496,6 +496,12 @@ available_notification_agents = notifiers.available_notification_agents()
                             </div>
                             <p class="help-block">Set the progress percentage of when a watched notification should be triggered. Minimum 50, Maximum 95.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Consecutive Notifications
+                            </label>
+                            <p class="help-block">Disable to prevent consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Custom Notification Messages</h3>
