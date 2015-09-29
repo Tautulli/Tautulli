@@ -16,7 +16,7 @@
 import time
 import plexpy
 
-from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler
+from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler, helpers
 
 
 class ActivityHandler(object):
@@ -66,8 +66,6 @@ class ActivityHandler(object):
 
     def on_stop(self, force_stop=False):
         if self.is_valid_session():
-            from plexpy import helpers
-
             logger.debug(u"PlexPy ActivityHandler :: Session %s has stopped." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
@@ -99,8 +97,6 @@ class ActivityHandler(object):
 
     def on_pause(self):
         if self.is_valid_session():
-            from plexpy import helpers
-
             logger.debug(u"PlexPy ActivityHandler :: Session %s has been paused." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
@@ -123,8 +119,6 @@ class ActivityHandler(object):
 
     def on_resume(self):
         if self.is_valid_session():
-            from plexpy import helpers
-
             logger.debug(u"PlexPy ActivityHandler :: Session %s has been resumed." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
@@ -177,8 +171,6 @@ class ActivityHandler(object):
     # This function receives events from our websocket connection
     def process(self):
         if self.is_valid_session():
-            from plexpy import helpers
-
             ap = activity_processor.ActivityProcessor()
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
