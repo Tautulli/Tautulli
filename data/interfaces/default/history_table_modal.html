@@ -38,6 +38,7 @@
             type: "post",
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ),
+                         'grouping': false,
                          'start_date': '${data}'
                        };
             }

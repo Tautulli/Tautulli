@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 import time
 import plexpy
 
-from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler
+from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler, helpers
 
 
 class ActivityHandler(object):
@@ -83,8 +83,10 @@ class ActivityHandler(object):
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             # Fire off notifications
-            threading.Thread(target=notification_handler.notify,
-                             kwargs=dict(stream_data=db_session, notify_action='stop')).start()
+            progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+            if plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
+                threading.Thread(target=notification_handler.notify,
+                                 kwargs=dict(stream_data=db_session, notify_action='stop')).start()
 
             # Write it to the history table
             monitor_proc = activity_processor.ActivityProcessor()
@@ -110,8 +112,10 @@ class ActivityHandler(object):
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             # Fire off notifications
-            threading.Thread(target=notification_handler.notify,
-                             kwargs=dict(stream_data=db_session, notify_action='pause')).start()
+            progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+            if plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99:
+                threading.Thread(target=notification_handler.notify,
+                                kwargs=dict(stream_data=db_session, notify_action='pause')).start()
 
     def on_resume(self):
         if self.is_valid_session():
@@ -130,8 +134,10 @@ class ActivityHandler(object):
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
             # Fire off notifications
-            threading.Thread(target=notification_handler.notify,
-                             kwargs=dict(stream_data=db_session, notify_action='resume')).start()
+            progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+            if plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99:
+                threading.Thread(target=notification_handler.notify,
+                                 kwargs=dict(stream_data=db_session, notify_action='resume')).start()
 
     def on_buffer(self):
         if self.is_valid_session():
@@ -165,8 +171,6 @@ class ActivityHandler(object):
     # This function receives events from our websocket connection
     def process(self):
         if self.is_valid_session():
-            from plexpy import helpers
-
             ap = activity_processor.ActivityProcessor()
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
