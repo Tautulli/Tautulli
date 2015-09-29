@@ -1070,6 +1070,13 @@ class PmsConnect(object):
         else:
             logger.warn(u"No known stream types found in session list.")
 
+        # Rename Mystery platform names
+        platform_names = {'Mystery 3': 'Playstation 3',
+                          'Mystery 4': 'Playstation 4',
+                          'Mystery 5': 'Xbox 360'}
+        session_output['platform'] = platform_names.get(session_output['platform'], 
+                                                        session_output['platform'])
+
         return session_output
 
     """

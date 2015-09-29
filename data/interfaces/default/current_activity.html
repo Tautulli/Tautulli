@@ -106,7 +106,12 @@ DOCUMENTATION :: END
             </div>
             <div id="stream-${a['session_key']}" class="dashboard-activity-info-details-overlay">
                 <div class="dashboard-activity-info-details-content">
-                    <div class="dashboard-activity-info-platform" id="platform-${a['session_key']}">
+                    <div id="platform-${a['session_key']}" title="${a['platform']}">
+                        <script>
+                            $("#platform-${a['session_key']}").html("<div class='dashboard-activity-info-platform-box' style='background-image: url(" + getPlatformImagePath('${a['platform']}') + ");'>");
+                        </script>
+                    </div>
+                    <div class="dashboard-activity-info-platform">
                         <strong>${a['player']}</strong><br />
                         % if a['state'] == 'playing':
                         State &nbsp;<strong>Playing</strong>
@@ -249,9 +254,6 @@ DOCUMENTATION :: END
         </div>
 </div>
 </div>
-<script>
-    $("#platform-${a['session_key']}").prepend("<div class='dashboard-activity-info-platform-box' style='background-image: url(" + getPlatformImagePath('${a['platform']}') + ");'>");
-</script>
 
 % endfor
 <script>

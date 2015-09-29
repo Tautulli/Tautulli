@@ -516,8 +516,14 @@ class Users(object):
             return None
 
         for item in result:
+            # Rename Mystery platform names
+            platform_names = {'Mystery 3': 'Playstation 3',
+                              'Mystery 4': 'Playstation 4',
+                              'Mystery 5': 'Xbox 360'}
+            platform_type = platform_names.get(item[2], item[2])
+
             row = {'platform_name': item[0],
-                   'platform_type': item[2],
+                   'platform_type': platform_type,
                    'total_plays': item[1],
                    'result_id': result_id
                    }
