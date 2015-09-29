@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.2.0 (2015-09-29)
+
+* Added option to group consecutive plays in the history tables.
+* Added option for websocket monitoring (still slightly experimental and disabled by default).
+* Added global search option (searches your Plex library).
+* Added option to update any items that may have had their rating keys changed.
+* Added option to disable consecutive notifications. 
+* Some visual tweaks and fixes.
+* Fix bug where monitoring wouldn't start up after first run.
+* Fix bug showing incorrect transcode decisions for music tracks on history tables.
+
+
 ## v1.1.10 (2015-09-20)
 
 * Added dedicated settings section for home stats configuration with ability to show/hide selected stats and sections.
