@@ -29,7 +29,7 @@ import xmltodict
 
 cmd_list = ['getLogs', 'getVersion', 'checkGithub', 'shutdown',
             'getSettings', 'restart', 'update', 'getApikey', 'getHistory',
-            'getMetadata', 'getUserips', 'getPlayby']
+            'getMetadata', 'getUserips', 'getPlayby, getSync']
 
 
 class Api(object):
@@ -456,7 +456,7 @@ class Api(object):
         else:
             self.msg = 'Failed to find users ips'
 
-    def _getPlayby(self, time_range=30, y_axis='plays', playtype='total_plays_per_month', **kwargs):
+    def _getPlayby(self, time_range='30', y_axis='plays', playtype='total_plays_per_month', **kwargs):
 
         graph = graphs.Graphs()
         if playtype == 'total_plays_per_month':
