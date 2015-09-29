@@ -26,47 +26,48 @@ class DataFactory(object):
     def __init__(self):
         pass
 
-    def get_history(self, kwargs=None, custom_where=None):
+    def get_history(self, kwargs=None, custom_where=None, grouping=0, watched_percent=85):
         data_tables = datatables.DataTables()
+        
+        group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
-        columns = ['session_history.id',
-                   'session_history.started as date',
-                   '(CASE WHEN users.friendly_name IS NULL THEN session_history'
-                   '.user ELSE users.friendly_name END) as friendly_name',
-                   'session_history.player',
-                   'session_history.ip_address',
-                   'session_history_metadata.full_title as full_title',
+        columns = ['session_history.reference_id',
+                   'session_history.id',
+                   'started AS date',
+                   'MIN(started) AS started',
+                   'MAX(stopped) AS stopped',
+                   'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - \
+		            SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration', 
+                   'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter', 
+                   'session_history.user_id',
+                   'session_history.user',
+                   '(CASE WHEN users.friendly_name IS NULL THEN user ELSE users.friendly_name END) as friendly_name',
+                   'player',
+                   'ip_address',
+                   'session_history_metadata.media_type',
+                   'session_history_metadata.rating_key',
+                   'session_history_metadata.parent_rating_key',
+                   'session_history_metadata.grandparent_rating_key',
+                   'session_history_metadata.full_title',
+                   'session_history_metadata.parent_title',
+                   'session_history_metadata.year',
+                   'session_history_metadata.media_index',
+                   'session_history_metadata.parent_media_index',
                    'session_history_metadata.thumb',
                    'session_history_metadata.parent_thumb',
                    'session_history_metadata.grandparent_thumb',
-                   'session_history_metadata.media_index',
-                   'session_history_metadata.parent_media_index',
-                   'session_history_metadata.parent_title',
-                   'session_history_metadata.year',
-                   'session_history.started',
-                   'session_history.paused_counter',
-                   'session_history.stopped',
-                   'round((julianday(datetime(session_history.stopped, "unixepoch", "localtime")) - \
-                    julianday(datetime(session_history.started, "unixepoch", "localtime"))) * 86400) - \
-                    (CASE WHEN session_history.paused_counter IS NULL THEN 0 \
-                    ELSE session_history.paused_counter END) as duration',
-                   '((CASE WHEN session_history.view_offset IS NULL THEN 0.1 ELSE \
-                    session_history.view_offset * 1.0 END) / \
-                   (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 ELSE \
-                    session_history_metadata.duration * 1.0 END) * 100) as percent_complete',
-                   'session_history.grandparent_rating_key as grandparent_rating_key',
-                   'session_history.parent_rating_key as parent_rating_key',
-                   'session_history.rating_key as rating_key',
-                   'session_history.user',
-                   'session_history_metadata.media_type',
+                   '((CASE WHEN view_offset IS NULL THEN 0.1 ELSE view_offset * 1.0 END) / \
+		            (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
                    'session_history_media_info.video_decision',
-                   'session_history.user_id as user_id'
+                   'session_history_media_info.audio_decision',
+                   'COUNT(*) AS group_count',
+                   'GROUP_CONCAT(session_history.id) AS group_ids'
                    ]
         try:
             query = data_tables.ssp_query(table_name='session_history',
                                           columns=columns,
                                           custom_where=custom_where,
-                                          group_by=[],
+                                          group_by=group_by,
                                           join_types=['LEFT OUTER JOIN',
                                                       'JOIN',
                                                       'JOIN'],
@@ -86,7 +87,7 @@ class DataFactory(object):
                     'error': 'Unable to execute database query.'}
 
         history = query['result']
-
+        
         rows = []
         for item in history:
             if item["media_type"] == 'episode' and item["parent_thumb"]:
@@ -96,33 +97,44 @@ class DataFactory(object):
             else:
                 thumb = item["thumb"]
 
-            row = {"id": item['id'],
-                   "date": item['date'],
-                   "friendly_name": item['friendly_name'],
-                   "player": item["player"],
-                   "ip_address": item["ip_address"],
-                   "full_title": item["full_title"],
-                   "thumb": thumb,
-                   "media_index": item["media_index"],
-                   "parent_media_index": item["parent_media_index"],
-                   "parent_title": item["parent_title"],
-                   "year": item["year"],
+            if item['percent_complete'] >= watched_percent:
+                watched_status = 1
+            elif item['percent_complete'] >= watched_percent/2:
+                watched_status = 0.5
+            else:
+                watched_status = 0
+
+            row = {"reference_id": item["reference_id"],
+                   "id": item["id"],
+                   "date": item["date"],
                    "started": item["started"],
-                   "paused_counter": item["paused_counter"],
                    "stopped": item["stopped"],
                    "duration": item["duration"],
-                   "percent_complete": item["percent_complete"],
-                   "grandparent_rating_key": item["grandparent_rating_key"],
-                   "parent_rating_key": item["parent_rating_key"],
-                   "rating_key": item["rating_key"],
+                   "paused_counter": item["paused_counter"],
+                   "user_id": item["user_id"],
                    "user": item["user"],
+                   "friendly_name": item["friendly_name"],
+                   "player": item["player"],
+                   "ip_address": item["ip_address"],
                    "media_type": item["media_type"],
+                   "rating_key": item["rating_key"],
+                   "parent_rating_key": item["parent_rating_key"],
+                   "grandparent_rating_key": item["grandparent_rating_key"],
+                   "full_title": item["full_title"],
+                   "parent_title": item["parent_title"],
+                   "year": item["year"],
+                   "media_index": item["media_index"],
+                   "parent_media_index": item["parent_media_index"],
+                   "thumb": thumb,
                    "video_decision": item["video_decision"],
-                   "user_id": item["user_id"]
+                   "audio_decision": item["audio_decision"],
+                   "watched_status": watched_status,
+                   "group_count": item["group_count"],
+                   "group_ids": item["group_ids"]
                    }
 
             rows.append(row)
-
+        
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
                 'data': rows,
@@ -490,11 +502,17 @@ class DataFactory(object):
                     return None
 
                 for item in result:
+                    # Rename Mystery platform names
+                    platform_names = {'Mystery 3': 'Playstation 3',
+                                      'Mystery 4': 'Playstation 4',
+                                      'Mystery 5': 'Xbox 360'}
+                    platform_type = platform_names.get(item[0], item[0])
+
                     row = {'platform': item[0],
                            'total_plays': item[1],
                            'total_duration': item[2],
                            'last_play': item[3],
-                           'platform_type': item[0],
+                           'platform_type': platform_type,
                            'title': '',
                            'thumb': '',
                            'grandparent_thumb': '',
@@ -778,3 +796,203 @@ class DataFactory(object):
             return 'Deleted all items for user_id %s.' % user_id
         else:
             return 'Unable to delete items. Input user_id not valid.'
+
+    def get_search_query(self, rating_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        if rating_key:
+            query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
+                    'media_index, parent_media_index, year, media_type ' \
+                    'FROM session_history_metadata ' \
+                    'WHERE rating_key = ? ' \
+                    'OR parent_rating_key = ? ' \
+                    'OR grandparent_rating_key = ? ' \
+                    'LIMIT 1'
+            result = monitor_db.select(query=query, args=[rating_key, rating_key, rating_key])
+        else:
+            result = []
+
+        query = {}
+        query_string = None
+        media_type = None
+
+        for item in result:
+            title = item['title']
+            parent_title = item['parent_title']
+            grandparent_title = item['grandparent_title']
+            media_index = item['media_index']
+            parent_media_index = item['parent_media_index']
+            year = item['year']
+
+            if str(item['rating_key']) == rating_key:
+                query_string = item['title']
+                media_type = item['media_type']
+
+            elif str(item['parent_rating_key']) == rating_key:
+                if item['media_type'] == 'episode':
+                    query_string = item['grandparent_title']
+                    media_type = 'season'
+                elif item['media_type'] == 'track':
+                    query_string = item['parent_title']
+                    media_type = 'album'
+
+            elif str(item['grandparent_rating_key']) == rating_key:
+                if item['media_type'] == 'episode':
+                    query_string = item['grandparent_title']
+                    media_type = 'show'
+                elif item['media_type'] == 'track':
+                    query_string = item['grandparent_title']
+                    media_type = 'artist'
+
+        if query_string and media_type:
+            query = {'query_string': query_string.replace('"', ''),
+                     'title': title,
+                     'parent_title': parent_title,
+                     'grandparent_title': grandparent_title,
+                     'media_index': media_index,
+                     'parent_media_index': parent_media_index,
+                     'year': year,
+                     'media_type': media_type,
+                     'rating_key': rating_key
+                     }
+        else:
+            return None
+
+        return query
+
+    def get_rating_keys_list(self, rating_key='', media_type=''):
+        monitor_db = database.MonitorDatabase()
+
+        if media_type == 'movie':
+            key_list = {0: {'rating_key': int(rating_key)}}
+            return key_list
+
+        if media_type == 'artist' or media_type == 'album' or media_type == 'track':
+            match_type = 'title'
+        else:
+            match_type = 'index'
+
+        # Get the grandparent rating key
+        try:
+            query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key ' \
+                    'FROM session_history_metadata ' \
+                    'WHERE rating_key = ? ' \
+                    'OR parent_rating_key = ? ' \
+                    'OR grandparent_rating_key = ? ' \
+                    'LIMIT 1'
+            result = monitor_db.select(query=query, args=[rating_key, rating_key, rating_key])
+
+            grandparent_rating_key = result[0]['grandparent_rating_key']
+
+        except:
+            logger.warn("Unable to execute database query.")
+            return {}
+
+        query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
+                'media_index, parent_media_index ' \
+                'FROM session_history_metadata ' \
+                'WHERE {0} = ? ' \
+                'GROUP BY {1} '
+
+        # get grandparent_rating_keys
+        grandparents = {}
+        result = monitor_db.select(query=query.format('grandparent_rating_key', 'grandparent_rating_key'),
+                                   args=[grandparent_rating_key])
+        for item in result:
+            # get parent_rating_keys
+            parents = {}
+            result = monitor_db.select(query=query.format('grandparent_rating_key', 'parent_rating_key'),
+                                       args=[item['grandparent_rating_key']])
+            for item in result:
+                # get rating_keys
+                children = {}
+                result = monitor_db.select(query=query.format('parent_rating_key', 'rating_key'),
+                                           args=[item['parent_rating_key']])
+                for item in result:
+                    key = item['media_index']
+                    children.update({key: {'rating_key': item['rating_key']}})
+
+                key = item['parent_media_index'] if match_type == 'index' else item['parent_title']
+                parents.update({key:
+                                {'rating_key': item['parent_rating_key'],
+                                 'children': children}
+                                })
+
+            key = 0 if match_type == 'index' else item['grandparent_title']
+            grandparents.update({key:
+                                 {'rating_key': item['grandparent_rating_key'],
+                                  'children': parents}
+                                 })
+
+        key_list = grandparents
+        
+        return key_list
+
+    def update_rating_key(self, old_key_list='', new_key_list='', media_type=''):
+        monitor_db = database.MonitorDatabase()
+
+        # function to map rating keys pairs
+        def get_pairs(old, new):
+            pairs = {}
+            for k, v in old.iteritems():
+                if k in new:
+                    if v['rating_key'] != new[k]['rating_key']:
+                        pairs.update({v['rating_key']: new[k]['rating_key']})
+                    if 'children' in old[k]:
+                        pairs.update(get_pairs(old[k]['children'], new[k]['children']))
+
+            return pairs
+
+        # map rating keys pairs
+        mapping = {}
+        if old_key_list and new_key_list:
+            mapping = get_pairs(old_key_list, new_key_list)
+        
+        if mapping:
+            logger.info(u"PlexPy DataFactory :: Updating rating keys in the database.")
+            for old_key, new_key in mapping.iteritems():
+                # check rating_key (3 tables)
+                monitor_db.action('UPDATE session_history SET rating_key = ? WHERE rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_media_info SET rating_key = ? WHERE rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_metadata SET rating_key = ? WHERE rating_key = ?', 
+                                  [new_key, old_key])
+
+                # check parent_rating_key (2 tables)
+                monitor_db.action('UPDATE session_history SET parent_rating_key = ? WHERE parent_rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_metadata SET parent_rating_key = ? WHERE parent_rating_key = ?', 
+                                  [new_key, old_key])
+
+                # check grandparent_rating_key (2 tables)
+                monitor_db.action('UPDATE session_history SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', 
+                                  [new_key, old_key])
+                monitor_db.action('UPDATE session_history_metadata SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', 
+                                  [new_key, old_key])
+
+                # check thumb (1 table)
+                monitor_db.action('UPDATE session_history_metadata SET thumb = replace(thumb, ?, ?) \
+                                  WHERE thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                                  [old_key, new_key])
+
+                # check parent_thumb (1 table)
+                monitor_db.action('UPDATE session_history_metadata SET parent_thumb = replace(parent_thumb, ?, ?) \
+                                  WHERE parent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                                  [old_key, new_key])
+
+                # check grandparent_thumb (1 table)
+                monitor_db.action('UPDATE session_history_metadata SET grandparent_thumb = replace(grandparent_thumb, ?, ?) \
+                                  WHERE grandparent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                                  [old_key, new_key])
+
+                # check art (1 table)
+                monitor_db.action('UPDATE session_history_metadata SET art = replace(art, ?, ?) \
+                                  WHERE art LIKE "/library/metadata/%s/art/%%"' % old_key, 
+                                  [old_key, new_key])
+
+            return 'Updated rating key in database.'
+        else:
+            return 'No updated rating key needed in database. No changes were made.'
+        # for debugging
+        #return mapping

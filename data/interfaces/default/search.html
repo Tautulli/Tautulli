@@ -1,0 +1,41 @@
+<%inherit file="base.html"/>
+
+<%def name="headIncludes()">
+</%def>
+
+<%def name="headerIncludes()">
+</%def>
+
+<%def name="body()">
+<div class='container-fluid'>
+    <div class='table-card-header'>
+        <div class="header-bar">
+            <span><i class="fa fa-search"></i> Search Results 
+            % if query:
+            for <strong>${query}</strong>
+            % endif
+            </span>
+        </div>
+    </div>
+    <div class='table-card-back'>
+        <div id="search-results-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading search results...</div>
+    </div>
+</div>
+</%def>
+
+<%def name="javascriptIncludes()">
+<script>
+    $('#search_button').removeClass('btn-inactive');
+    $('#search_query').val('${query}').css({ right: '0', width: '250px' }).addClass('active');
+
+    $.ajax({
+        url: 'get_search_results_children',
+        type: "GET",
+        async: true,
+        data: {'query': "${query}"},
+        complete: function (xhr, status) {
+            $("#search-results-list").html(xhr.responseText);
+        }
+    });
+</script>
+</%def>

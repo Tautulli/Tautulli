@@ -1,4 +1,4 @@
-#  This file is part of PlexPy.
+﻿#  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -385,16 +385,16 @@ class GROWL(object):
         self.notify('ZOMG Lazors Pewpewpew!', 'Test Message')
 
     def return_config_options(self):
-        config_option = [{'label': 'Host',
+        config_option = [{'label': 'Growl Host',
                           'value': self.host,
                           'name': 'growl_host',
-                          'description': 'Set the hostname.',
+                          'description': 'Your Growl hostname.',
                           'input_type': 'text'
                           },
-                         {'label': 'Password',
+                         {'label': 'Growl Password',
                           'value': self.password,
                           'name': 'growl_password',
-                          'description': 'Set the password.',
+                          'description': 'Your Growl password.',
                           'input_type': 'password'
                           }
                          ]
@@ -458,16 +458,16 @@ class PROWL(object):
         self.notify('ZOMG Lazors Pewpewpew!', 'Test Message')
 
     def return_config_options(self):
-        config_option = [{'label': 'API Key',
+        config_option = [{'label': 'Prowl API Key',
                           'value': self.keys,
                           'name': 'prowl_keys',
-                          'description': 'Set the API key.',
+                          'description': 'Your Prowl API key.',
                           'input_type': 'text'
                           },
-                         {'label': 'Priority (-2,-1,0,1 or 2)',
+                         {'label': 'Priority',
                           'value': self.priority,
                           'name': 'prowl_priority',
-                          'description': 'Set the priority.',
+                          'description': 'Set the priority (-2,-1,0,1 or 2).',
                           'input_type': 'number'
                           }
                          ]
@@ -542,19 +542,19 @@ class XBMC(object):
         config_option = [{'label': 'XBMC Host:Port',
                           'value': self.hosts,
                           'name': 'xbmc_host',
-                          'description': 'e.g. http://localhost:8080. Separate hosts with commas.',
+                          'description': 'Host running XBMC (e.g. http://localhost:8080). Separate multiple hosts with commas.',
                           'input_type': 'text'
                           },
-                         {'label': 'Username',
+                         {'label': 'XBMC Username',
                           'value': self.username,
                           'name': 'xbmc_username',
-                          'description': 'Set the Username.',
+                          'description': 'Your XBMC username.',
                           'input_type': 'text'
                           },
-                         {'label': 'Password',
+                         {'label': 'XBMC Password',
                           'value': self.password,
                           'name': 'xbmc_password',
-                          'description': 'Set the Password.',
+                          'description': 'Your XMBC password.',
                           'input_type': 'password'
                           }
                          ]
@@ -689,13 +689,13 @@ class NMA(object):
         config_option = [{'label': 'NotifyMyAndroid API Key',
                           'value': plexpy.CONFIG.NMA_APIKEY,
                           'name': 'nma_apikey',
-                          'description': 'Separate multiple api keys with commas.',
+                          'description': 'Your NotifyMyAndroid API key. Separate multiple api keys with commas.',
                           'input_type': 'text'
                           },
                          {'label': 'Priority',
                           'value': plexpy.CONFIG.NMA_PRIORITY,
                           'name': 'nma_priority',
-                          'description': 'Priority (-2,-1,0,1 or 2).',
+                          'description': 'Set the priority (-2,-1,0,1 or 2).',
                           'input_type': 'number'
                           }
                          ]
@@ -761,7 +761,7 @@ class PUSHBULLET(object):
         self.notify('Main Screen Activate', 'Test Message')
 
     def return_config_options(self):
-        config_option = [{'label': 'API Key',
+        config_option = [{'label': 'Pushbullet API Key',
                           'value': self.apikey,
                           'name': 'pushbullet_apikey',
                           'description': 'Your Pushbullet API key.',
@@ -829,7 +829,7 @@ class PUSHALOT(object):
                 return False
 
     def return_config_options(self):
-        config_option = [{'label': 'API Key',
+        config_option = [{'label': 'Pushalot API Key',
                           'value': plexpy.CONFIG.PUSHALOT_APIKEY,
                           'name': 'pushalot_apikey',
                           'description': 'Your Pushalot API key.',
@@ -901,7 +901,7 @@ class PUSHOVER(object):
         self.notify('Main Screen Activate', 'Test Message')
 
     def return_config_options(self):
-        config_option = [{'label': 'API Key',
+        config_option = [{'label': 'Pushover API Key',
                           'value': self.keys,
                           'name': 'pushover_keys',
                           'description': 'Your Pushover API key.',
@@ -910,13 +910,13 @@ class PUSHOVER(object):
                          {'label': 'Priority',
                           'value': self.priority,
                           'name': 'pushover_priority',
-                          'description': 'Priority (-1,0, or 1).',
+                          'description': 'Set the priority (-2,-1,0,1 or 2).',
                           'input_type': 'number'
                           },
-                         {'label': 'API Token',
+                         {'label': 'Pushover API Token',
                           'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
                           'name': 'pushover_apitoken',
-                          'description': 'Leave blank to use PlexPy default.',
+                          'description': 'Your Pushover API toekn. Leave blank to use PlexPy default.',
                           'input_type': 'text'
                           }
                          ]
@@ -1106,6 +1106,7 @@ class OSX_NOTIFY(object):
 
             notification_center = NSUserNotificationCenter.defaultUserNotificationCenter()
             notification_center.deliverNotification_(notification)
+            logger.info(u"OSX Notify notifications sent.")
 
             del pool
             return True
@@ -1160,7 +1161,7 @@ class BOXCAR(object):
             return False
 
     def return_config_options(self):
-        config_option = [{'label': 'Access Token',
+        config_option = [{'label': 'Boxcar Access Token',
                           'value': plexpy.CONFIG.BOXCAR_TOKEN,
                           'name': 'boxcar_token',
                           'description': 'Your Boxcar access token.',
@@ -1215,7 +1216,7 @@ class Email(object):
                          {'label': 'To',
                           'value': plexpy.CONFIG.EMAIL_TO,
                           'name': 'email_to',
-                          'description': 'Who should the recipeint be.',
+                          'description': 'Who should the recipient be.',
                           'input_type': 'text'
                           },
                          {'label': 'SMTP Server',

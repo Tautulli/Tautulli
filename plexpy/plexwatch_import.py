@@ -15,7 +15,7 @@
 
 import sqlite3
 
-from plexpy import logger, helpers, monitor, users, plextv
+from plexpy import logger, helpers, activity_pinger, activity_processor, users, plextv
 from xml.dom import minidom
 
 import plexpy
@@ -245,9 +245,10 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
     logger.debug(u"PlexPy Importer :: PlexWatch data import in progress...")
 
     logger.debug(u"PlexPy Importer :: Disabling monitoring while import in progress.")
-    plexpy.schedule_job(monitor.check_active_sessions, 'Check for active sessions', hours=0, minutes=0, seconds=0)
+    plexpy.schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
+                        hours=0, minutes=0, seconds=0)
 
-    monitor_processing = monitor.MonitorProcessing()
+    ap = activity_processor.ActivityProcessor()
     user_data = users.Users()
 
     # Get the latest friends list so we can pull user id's
@@ -373,10 +374,10 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
         # On older versions of PMS, "clip" items were still classified as "movie" and had bad ratingKey values
         # Just make sure that the ratingKey is indeed an integer
         if session_history_metadata['rating_key'].isdigit():
-            monitor_processing.write_session_history(session=session_history,
-                                                     import_metadata=session_history_metadata,
-                                                     is_import=True,
-                                                     import_ignore_interval=import_ignore_interval)
+            ap.write_session_history(session=session_history,
+                                     import_metadata=session_history_metadata,
+                                     is_import=True,
+                                     import_ignore_interval=import_ignore_interval)
         else:
             logger.debug(u"PlexPy Importer :: Item has bad rating_key: %s" % session_history_metadata['rating_key'])
 

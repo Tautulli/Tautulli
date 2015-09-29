@@ -99,6 +99,7 @@ class WebInterface(object):
         # The setup wizard just refreshes the page on submit so we must redirect to home if config set.
         # Also redirecting to home if a PMS token already exists - will remove this in future.
         if plexpy.CONFIG.FIRST_RUN_COMPLETE or plexpy.CONFIG.PMS_TOKEN:
+            plexpy.initialize_scheduler()
             raise cherrypy.HTTPRedirect("home")
         else:
             return serve_template(templatename="welcome.html", title="Welcome", config=config)
@@ -430,6 +431,7 @@ class WebInterface(object):
             "movie_notify_on_pause": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_PAUSE),
             "music_notify_on_pause": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_PAUSE),
             "monitoring_interval": plexpy.CONFIG.MONITORING_INTERVAL,
+            "monitoring_use_websocket": checked(plexpy.CONFIG.MONITORING_USE_WEBSOCKET),
             "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
             "ip_logging_enable": checked(plexpy.CONFIG.IP_LOGGING_ENABLE),
@@ -437,6 +439,7 @@ class WebInterface(object):
             "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
             "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
+            "notify_consecutive": checked(plexpy.CONFIG.NOTIFY_CONSECUTIVE),
             "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
             "notify_on_start_subject_text": plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT,
             "notify_on_start_body_text": plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT,
@@ -456,7 +459,8 @@ class WebInterface(object):
             "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
             "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
-            "buffer_wait": plexpy.CONFIG.BUFFER_WAIT
+            "buffer_wait": plexpy.CONFIG.BUFFER_WAIT,
+            "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)
@@ -468,11 +472,12 @@ class WebInterface(object):
         checked_configs = [
             "launch_browser", "enable_https", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "pms_use_bif", "pms_ssl",
-            "tv_notify_enable", "movie_notify_enable", "music_notify_enable",
+            "tv_notify_enable", "movie_notify_enable", "music_notify_enable", "monitoring_use_websocket",
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
-            "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type"
+            "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type",
+            "group_history_tables", "notify_consecutive"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -553,28 +558,38 @@ class WebInterface(object):
                               message=message, timer=timer, quote=quote)
 
     @cherrypy.expose
-    def get_history(self, user=None, user_id=None, **kwargs):
+    def get_history(self, user=None, user_id=None, grouping=0, **kwargs):
+
+        if grouping == 'false':
+            grouping = 0
+        else:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
 
         custom_where=[]
         if user_id:
-            custom_where = [['user_id', user_id]]
+            custom_where = [['session_history.user_id', user_id]]
         elif user:
-            custom_where = [['user', user]]
+            custom_where = [['session_history.user', user]]
         if 'rating_key' in kwargs:
             rating_key = kwargs.get('rating_key', "")
-            custom_where = [['rating_key', rating_key]]
+            custom_where = [['session_history.rating_key', rating_key]]
         if 'parent_rating_key' in kwargs:
             rating_key = kwargs.get('parent_rating_key', "")
-            custom_where = [['parent_rating_key', rating_key]]
+            custom_where = [['session_history.parent_rating_key', rating_key]]
         if 'grandparent_rating_key' in kwargs:
             rating_key = kwargs.get('grandparent_rating_key', "")
-            custom_where = [['grandparent_rating_key', rating_key]]
+            custom_where = [['session_history.grandparent_rating_key', rating_key]]
         if 'start_date' in kwargs:
             start_date = kwargs.get('start_date', "")
             custom_where = [['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date]]
+        if 'reference_id' in kwargs:
+            reference_id = kwargs.get('reference_id', "")
+            custom_where = [['session_history.reference_id', reference_id]]
 
         data_factory = datafactory.DataFactory()
-        history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where)
+        history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)
@@ -747,6 +762,7 @@ class WebInterface(object):
     @cherrypy.expose
     def info(self, item_id=None, source=None, **kwargs):
         metadata = None
+        query = None
 
         config = {
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
@@ -760,12 +776,15 @@ class WebInterface(object):
             result = pms_connect.get_metadata_details(rating_key=item_id)
             if result:
                 metadata = result['metadata']
+            else:
+                data_factory = datafactory.DataFactory()
+                query = data_factory.get_search_query(rating_key=item_id)
 
         if metadata:
             return serve_template(templatename="info.html", data=metadata, title="Info", config=config)
         else:
             logger.warn('Unable to retrieve data.')
-            return serve_template(templatename="info.html", data=None, title="Info")
+            return serve_template(templatename="info.html", data=None, query=query, title="Info")
 
     @cherrypy.expose
     def get_user_recently_watched(self, user=None, user_id=None, limit='10', **kwargs):
@@ -1321,3 +1340,105 @@ class WebInterface(object):
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps({'message': 'no data received'})
 
+    @cherrypy.expose
+    def search(self, search_query=''):
+        query = search_query.replace('"', '')
+
+        return serve_template(templatename="search.html", title="Search", query=query)
+
+    @cherrypy.expose
+    def search_results(self, query, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_search_results(query)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_search_results_children(self, query, media_type=None, season_index=None, **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_search_results(query)
+
+        if media_type:
+            result['results_list'] = {media_type: result['results_list'][media_type]}
+        if media_type == 'season' and season_index:
+            for season in result['results_list']['season']:
+                if season['index'] == season_index:
+                    result['results_list']['season'] = [season]
+                    break
+
+        if result:
+            return serve_template(templatename="info_search_results_list.html", data=result, title="Search Result List")
+        else:
+            logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="info_search_results_list.html", data=None, title="Search Result List")
+
+    @cherrypy.expose
+    def update_history_rating_key(self, old_rating_key, new_rating_key, media_type, **kwargs):
+        data_factory = datafactory.DataFactory()
+        pms_connect = pmsconnect.PmsConnect()
+
+        old_key_list = data_factory.get_rating_keys_list(rating_key=old_rating_key, media_type=media_type)
+        new_key_list = pms_connect.get_rating_keys_list(rating_key=new_rating_key, media_type=media_type)
+
+        update_db = data_factory.update_rating_key(old_key_list=old_key_list,
+                                                    new_key_list=new_key_list,
+                                                    media_type=media_type)
+
+        if update_db:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': update_db})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
+
+
+    # test code
+    @cherrypy.expose
+    def get_new_rating_keys(self, rating_key='', media_type='', **kwargs):
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_rating_keys_list(rating_key=rating_key, media_type=media_type)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_old_rating_keys(self, rating_key='', media_type='', **kwargs):
+
+        data_factory = datafactory.DataFactory()
+        result = data_factory.get_rating_keys_list(rating_key=rating_key, media_type=media_type)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_map_rating_keys(self, old_rating_key, new_rating_key, media_type, **kwargs):
+
+        data_factory = datafactory.DataFactory()
+        pms_connect = pmsconnect.PmsConnect()
+
+        if new_rating_key:
+            old_key_list = data_factory.get_rating_keys_list(rating_key=old_rating_key, media_type=media_type)
+            new_key_list = pms_connect.get_rating_keys_list(rating_key=new_rating_key, media_type=media_type)
+
+            result = data_factory.update_rating_key(old_key_list=old_key_list,
+                                                        new_key_list=new_key_list,
+                                                        media_type=media_type)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn('Unable to retrieve data.')
