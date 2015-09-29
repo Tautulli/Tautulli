@@ -24,6 +24,7 @@ from xml.dom import minidom
 import base64
 import plexpy
 
+
 def refresh_users():
     logger.info("Requesting users list refresh...")
     result = PlexTV().get_full_users_list()
@@ -57,6 +58,7 @@ def refresh_users():
         logger.info("Users list refreshed.")
     else:
         logger.warn("Unable to refresh users list.")
+
 
 def get_real_pms_url():
     logger.info("Requesting URLs for server...")
@@ -94,6 +96,7 @@ def get_real_pms_url():
     else:
         plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
         plexpy.CONFIG.write()
+
 
 class PlexTV(object):
     """
@@ -137,7 +140,7 @@ class PlexTV(object):
         if plextv_response:
             xml_head = plextv_response.getElementsByTagName('user')
             if not xml_head:
-                logger.warn("Error parsing XML for Plex.tv token: %s" % e)
+                logger.warn("Error parsing XML for Plex.tv token")
                 return []
 
             auth_token = xml_head[0].getAttribute('authenticationToken')
@@ -410,16 +413,34 @@ class PlexTV(object):
     def discover(self):
         """ Query plex for all servers online. Returns the ones you own in a selectize format """
         result = self.get_plextv_resources(include_https=True, output_format='raw')
-        clean_servers = []
         servers = xmltodict.parse(result, process_namespaces=True, attr_prefix='')
-        if servers:
-            for server in servers['MediaContainer']['Device']:
-                if server.get('presence', None) == '1' and server.get('owned', None) == '1':
-                    for s in server['Connection']:
-                        s.update(server)
-                        s['value'] = s['address']
-                        s['label'] = server['name']
-                        del s['Connection']
-                        clean_servers.append(s)
+        clean_servers = []
+
+        try:
+            if servers:
+                # Fix if its only one "device"
+                if int(servers['MediaContainer']['size']) == 1:
+                    servers['MediaContainer']['Device'] = [servers['MediaContainer']['Device']]
+
+                for server in servers['MediaContainer']['Device']:
+                    # Only grab servers online and own
+                    if server.get('presence', None) == '1' and server.get('owned', None) == '1' and server.get('provides', None) == 'server':
+                        # If someone only has one connection..
+                        if isinstance(server['Connection'], dict):
+                            server['Connection'] = [server['Connection']]
+
+                        for s in server['Connection']:
+                            # to avoid circular ref
+                            d = {}
+                            d.update(s)
+                            d.update(server)
+                            d['label'] = d['name']
+                            d['value'] = d['address']
+                            del d['Connection']
+                            clean_servers.append(d)
+
+        except Exception as e:
+            logger.warn('Failed to get servers from plex %s' % e)
+            return clean_servers
 
         return json.dumps(clean_servers, indent=4)
