@@ -354,7 +354,10 @@ class ActivityProcessor(object):
             for session in result:
                 if session['last_paused']:
                     paused_offset = int(time.time()) - int(session['last_paused'])
-                    paused_counter = int(session['paused_counter']) + int(paused_offset)
+                    if session['paused_counter']:
+                        paused_counter = int(session['paused_counter']) + int(paused_offset)
+                    else:
+                        paused_counter = int(paused_offset)
 
             values = {'state': 'playing',
                       'last_paused': timestamp
