@@ -502,11 +502,17 @@ class DataFactory(object):
                     return None
 
                 for item in result:
+                    # Rename Mystery platform names
+                    platform_names = {'Mystery 3': 'Playstation 3',
+                                      'Mystery 4': 'Playstation 4',
+                                      'Mystery 5': 'Xbox 360'}
+                    platform_type = platform_names.get(item[0], item[0])
+
                     row = {'platform': item[0],
                            'total_plays': item[1],
                            'total_duration': item[2],
                            'last_play': item[3],
-                           'platform_type': item[0],
+                           'platform_type': platform_type,
                            'title': '',
                            'thumb': '',
                            'grandparent_thumb': '',

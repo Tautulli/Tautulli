@@ -213,11 +213,11 @@ function getPlatformImagePath(platformName) {
         return 'interfaces/default/images/platforms/opera.png';
     } else if (platformName.indexOf("KODI") > -1) {
         return 'interfaces/default/images/platforms/kodi.png';
-    } else if (platformName.indexOf("Mystery 3") > -1) {
+    } else if (platformName.indexOf("Playstation 3") > -1) {
         return 'interfaces/default/images/platforms/playstation.png';
-    } else if (platformName.indexOf("Mystery 4") > -1) {
+    } else if (platformName.indexOf("Playstation 4") > -1) {
         return 'interfaces/default/images/platforms/playstation.png';
-	} else if (platformName.indexOf("Mystery 5") > -1) {
+	} else if (platformName.indexOf("Xbox 360") > -1) {
         return 'interfaces/default/images/platforms/xbox.png';
 	} else if (platformName.indexOf("Windows") > -1) {
 	    return 'interfaces/default/images/platforms/win8.png';
