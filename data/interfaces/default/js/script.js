@@ -217,13 +217,13 @@ function getPlatformImagePath(platformName) {
         return 'interfaces/default/images/platforms/playstation.png';
     } else if (platformName.indexOf("Playstation 4") > -1) {
         return 'interfaces/default/images/platforms/playstation.png';
-	} else if (platformName.indexOf("Xbox 360") > -1) {
+    } else if (platformName.indexOf("Xbox 360") > -1) {
         return 'interfaces/default/images/platforms/xbox.png';
-	} else if (platformName.indexOf("Windows") > -1) {
-	    return 'interfaces/default/images/platforms/win8.png';
-	} else if (platformName.indexOf("Windows phone") > -1) {
-	    return 'interfaces/default/images/platforms/wp.png';
-	} else {
+    } else if (platformName.indexOf("Windows") > -1) {
+        return 'interfaces/default/images/platforms/win8.png';
+    } else if (platformName.indexOf("Windows phone") > -1) {
+        return 'interfaces/default/images/platforms/wp.png';
+    } else {
         return 'interfaces/default/images/platforms/default.png';
     }
 }
