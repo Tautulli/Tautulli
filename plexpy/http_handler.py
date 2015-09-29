@@ -88,19 +88,24 @@ class HTTPHandler(object):
                 return None
 
             if request_status == 200:
-                if output_format == 'dict':
-                    output = helpers.convert_xml_to_dict(request_content)
-                elif output_format == 'json':
-                    output = helpers.convert_xml_to_json(request_content)
-                elif output_format == 'xml':
-                    output = helpers.parse_xml(request_content)
-                else:
-                    output = request_content
-
-                if return_type:
-                    return output, content_type
-
-                return output
+                try:
+                    if output_format == 'dict':
+                        output = helpers.convert_xml_to_dict(request_content)
+                    elif output_format == 'json':
+                        output = helpers.convert_xml_to_json(request_content)
+                    elif output_format == 'xml':
+                        output = helpers.parse_xml(request_content)
+                    else:
+                        output = request_content
+    
+                    if return_type:
+                        return output, content_type
+    
+                    return output
+                    
+                except Exception as e:
+                    logger.warn(u"Failed to parse %s to %s %s" % (uri, output_type, e))
+                    return None
             else:
                 logger.warn(u"Failed to access uri endpoint %s. Status code %r" % (uri, request_status))
                 return None
