@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.1 (2015-09-29)
+
+* Fix for possible issue when paused_counter is null.
+
+
 ## v1.2.0 (2015-09-29)
 
 * Added option to group consecutive plays in the history tables.
