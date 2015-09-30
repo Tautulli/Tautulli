@@ -67,13 +67,13 @@ sync_table_options = {
         },
         {
             "targets": [4],
-            "data": "device_name",
-            "className": "no-wrap hidden-xs"
+            "data": "platform",
+            "className": "no-wrap hidden-sm hidden-xs"
         },
         {
             "targets": [5],
-            "data": "platform",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "data": "device_name",
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [6],

@@ -813,17 +813,17 @@ class WebInterface(object):
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
-    def get_user_platform_stats(self, user=None, user_id=None, **kwargs):
+    def get_user_player_stats(self, user=None, user_id=None, **kwargs):
 
         user_data = users.Users()
-        result = user_data.get_user_platform_stats(user_id=user_id, user=user)
+        result = user_data.get_user_player_stats(user_id=user_id, user=user)
 
         if result:
-            return serve_template(templatename="user_platform_stats.html", data=result,
-                                  title="Platform Stats")
+            return serve_template(templatename="user_player_stats.html", data=result,
+                                  title="Player Stats")
         else:
             logger.warn('Unable to retrieve data.')
-            return serve_template(templatename="user_platform_stats.html", data=None, title="Platform Stats")
+            return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
     def get_item_children(self, rating_key='', **kwargs):

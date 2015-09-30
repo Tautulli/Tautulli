@@ -64,7 +64,7 @@ users_list_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "12%",
+            "width": "10%",
             "className": "edit-user-control no-wrap"
         },
         {
@@ -78,7 +78,7 @@ users_list_table_options = {
                 }
             },
             "searchable": false,
-            "width": "12%",
+            "width": "10%",
             "className": "no-wrap hidden-xs"
         },
         {
@@ -99,12 +99,25 @@ users_list_table_options = {
                     $(td).html('n/a');
                 }
             },
-            "width": "12%",
+            "width": "10%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control-ip"
         },
         {
             "targets": [5],
-            "data":"platform",
+            "data": "platform",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html(cellData);
+                } else {
+                    $(td).html('n/a');
+                }
+            },
+            "width": "10%",
+            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+        },
+        {
+            "targets": [6],
+            "data":"player",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
                     var transcode_dec = '';
@@ -120,11 +133,11 @@ users_list_table_options = {
                     $(td).html('n/a');
                 }
             },
-            "width": "12%",
+            "width": "15%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
         },
         {
-            "targets": [6],
+            "targets": [7],
             "data":"last_watched",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -153,7 +166,7 @@ users_list_table_options = {
             "className": "hidden-sm hidden-xs"
         },
         {
-            "targets": [7],
+            "targets": [8],
             "data": "plays",
             "searchable": false,
             "width": "10%"

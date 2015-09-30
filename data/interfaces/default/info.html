@@ -333,6 +333,7 @@ DOCUMENTATION :: END
                                     <th align='left' id="friendly_name">User</th>
                                     <th align='left' id="ip_address">IP Address</th>
                                     <th align='left' id="platform">Platform</th>
+                                    <th align='left' id="player">Player</th>
                                     <th align='left' id="title">Title</th>
                                     <th align='left' id="started">Started</th>
                                     <th align='left' id="paused_counter">Paused</th>
@@ -550,7 +551,7 @@ DOCUMENTATION :: END
     $(document).ready(function () {
         get_history();
         history_table = $('#history_table').DataTable(history_table_options);
-        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
         $(colvis.button()).appendTo('div.colvis-button-bar');
 
         clearSearchButton('history_table', history_table);

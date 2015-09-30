@@ -11,8 +11,9 @@ data[array_index] :: Usable parameters
 
 == Global keys ==
 result_id               Returns a unique identifier for the result.
-platform_name           Returns the name of the platform.
-total_plays             Returns the play count for the platform.
+player_name             Returns the name of the player.
+platform_type           Returns the name of the platform
+total_plays             Returns the play count for the player.
 
 DOCUMENTATION :: END
 </%doc>
@@ -20,13 +21,13 @@ DOCUMENTATION :: END
 % if data != None:
 % for a in data:
 <ul class="list-unstyled">
-    <div class="user-platforms-instance">
+    <div class="user-player-instance">
         <li>
-            <span id="user-platform-image-${a['result_id']}"></span>
-            <div class="user-platforms-instance-name">
-                ${a['platform_name']}
+            <span id="user-player-image-${a['result_id']}"></span>
+            <div class="user-player-instance-name">
+                ${a['player_name']}
             </div>
-            <div class="user-platforms-instance-playcount">
+            <div class="user-player-instance-playcount">
                 <h3>${a['total_plays']}</h3>
                 <p> plays</p>
             </div>
@@ -34,7 +35,7 @@ DOCUMENTATION :: END
     </div>
 </ul>
 <script>
-    $("#user-platform-image-${a['result_id']}").html("<div class='user-platforms-instance-box' style='background-image: url(" + getPlatformImagePath('${a['platform_type']}') + ");'>");
+    $("#user-player-image-${a['result_id']}").html("<div class='user-player-instance-box' style='background-image: url(" + getPlatformImagePath('${a['platform_type']}') + ");'>");
 </script>
 % endfor
 % else:
