@@ -137,9 +137,9 @@ DOCUMENTATION :: END
                         <br />
                         % if a['audio_decision'] == 'direct play':
                         Audio &nbsp;<strong>Direct Play (${a['audio_codec']}) (${a['audio_channels']}ch)</strong>
-                        % elif a['audio_decision'] == 'Copy':
+                        % elif a['audio_decision'] == 'copy':
                         Audio &nbsp;<strong>Direct Stream (${a['transcode_audio_codec']}) (${a['transcode_audio_channels']}ch)</strong>
-                        % elif a['audio_decision'] != 'transcode':
+                        % elif a['audio_decision'] == 'transcode':
                         Audio &nbsp;<strong>Transcode (${a['transcode_audio_codec']}) (${a['transcode_audio_channels']}ch)</strong>
                         % endif
                     % elif a['media_type'] == 'episode' or a['media_type'] == 'movie' or a['media_type'] == 'clip':
