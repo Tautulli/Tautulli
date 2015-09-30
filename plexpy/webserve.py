@@ -778,8 +778,8 @@ class WebInterface(object):
             metadata = {'type': 'library', 'library': 'movie', 'media_type': 'movie', 'title': 'Movies'}
         elif item_id == 'show':
             metadata = {'type': 'library', 'library': 'show', 'media_type': 'episode', 'title': 'TV Shows'}
-        elif item_id == 'music':
-            metadata = {'type': 'library', 'library': 'music', 'media_type': 'track', 'title': 'Music'}
+        elif item_id == 'artist':
+            metadata = {'type': 'library', 'library': 'artist', 'media_type': 'track', 'title': 'Music'}
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=item_id)
