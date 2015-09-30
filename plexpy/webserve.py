@@ -587,6 +587,9 @@ class WebInterface(object):
         if 'reference_id' in kwargs:
             reference_id = kwargs.get('reference_id', "")
             custom_where = [['session_history.reference_id', reference_id]]
+        if 'media_type' in kwargs:
+            media_type = kwargs.get('media_type', "")
+            custom_where = [['session_history_metadata.media_type', media_type]]
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
@@ -771,6 +774,12 @@ class WebInterface(object):
         if source == 'history':
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(row_id=item_id)
+        elif item_id == 'movie':
+            metadata = {'type': 'library', 'library': 'movie', 'media_type': 'movie', 'title': 'Movies'}
+        elif item_id == 'show':
+            metadata = {'type': 'library', 'library': 'show', 'media_type': 'episode', 'title': 'TV Shows'}
+        elif item_id == 'music':
+            metadata = {'type': 'library', 'library': 'music', 'media_type': 'track', 'title': 'Music'}
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=item_id)

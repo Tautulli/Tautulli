@@ -60,27 +60,37 @@ DOCUMENTATION :: END
 % if data:
 <div class="container-fluid">
     <div class="row">
+        % if data['type'] != 'library':
         <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['art']}&width=1920&height=1080)"></div>
+        % endif
         <div class="summary-container">
             <div class="summary-navbar">
                 <div class="col-md-12">
                     <div class="summary-navbar-list">
-                        % if data['type'] == 'movie':
-                        <span>Movies</span>
+                        % if data['type'] == 'library':
+                        % if data['library'] == 'movie':
+                        <span><a href="#">Movies</a></span>
+                        % elif data['library'] == 'show':
+                        <span><a href="#">TV Shows</a></span>
+                        % elif data['library'] == 'music':
+                        <span><a href="#">Music</a></span>
+                        % endif
+                        % elif data['type'] == 'movie':
+                        <span><a href="info?item_id=movie">Movies</a></span>
                         <span><i class="fa fa-chevron-right"></i></span>
                         <span><a href="#">${data['title']}</a></span>
                         % elif data['type'] == 'show':
-                        <span>TV Shows</span>
+                        <span><a href="info?item_id=show">TV Shows</a></span>
                         <span><i class="fa fa-chevron-right"></i></span>
                         <span><a href="#">${data['title']}</a></span>
                         % elif data['type'] == 'season':
-                        <span class="hidden-xs hidden-sm">TV Shows</span>
+                        <span class="hidden-xs hidden-sm"><a href="info?item_id=show">TV Shows</a></span>
                         <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
                         <span><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></span>
                         <span><i class="fa fa-chevron-right"></i></span>
                         <span><a href="#">Season ${data['index']}</a></span>
                         % elif data['type'] == 'episode':
-                        <span class="hidden-xs hidden-sm">TV Shows</span>
+                        <span class="hidden-xs hidden-sm"><a href="info?item_id=show">TV Shows</a></span>
                         <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
                         <span class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></span>
                         <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
@@ -88,17 +98,17 @@ DOCUMENTATION :: END
                         <span><i class="fa fa-chevron-right"></i></span>
                         <span><a href="#">Episode ${data['index']} - ${data['title']}</a></span>
                         % elif data['type'] == 'artist':
-                        <span>Music</span>
+                        <span><a href="info?item_id=music">Music</a></span>
                         <span><i class="fa fa-chevron-right"></i></span>
                         <span><a href="#">${data['title']}</a></span>
                         % elif data['type'] == 'album':
-                        <span class="hidden-xs hidden-sm">Music</span>
+                        <span class="hidden-xs hidden-sm"><a href="info?item_id=music">Music</a></span>
                         <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
                         <span><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></span>
                         <span><i class="fa fa-chevron-right"></i></span>
                         <span><a href="#">${data['title']}</a></span>
                         % elif data['type'] == 'track':
-                        <span class="hidden-xs hidden-sm">Music</span>
+                        <span class="hidden-xs hidden-sm"><a href="info?item_id=music">Music</a></span>
                         <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
                         <span class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></span>
                         <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
@@ -109,12 +119,13 @@ DOCUMENTATION :: END
                     </div>
                 </div>
             </div>
+            % if data['type'] != 'library':
             <div class="summary-content-title-wrapper">
                 <div class="col-md-9">
                     <div class="summary-content-poster hidden-xs hidden-sm">
                         % if data['type'] == 'track':
                         <a href="http://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details/%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}" target="Plex/Web" title="View in Plex/Web">
-                        % else:
+                        % elif data['type'] != 'library':
                         <a href="http://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details/%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="Plex/Web" title="View in Plex/Web">
                         % endif
                             % if data['type'] == 'episode':
@@ -129,7 +140,7 @@ DOCUMENTATION :: END
                                     <span></span>
                                 </div>
                             </div>
-                            % else:
+                            % elif data['type'] != 'library':
                             <div class="summary-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=450&fallback=poster);">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
@@ -159,7 +170,9 @@ DOCUMENTATION :: END
                     </div>
                 </div>
             </div>
+            % endif
             <div class="summary-content-wrapper">
+                % if data['type'] != 'library':
                 <div class="col-md-9">
                     % if data['type'] == 'movie' or data['type'] == 'show' or data['type'] == 'season':
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 275px;"></div>
@@ -310,6 +323,7 @@ DOCUMENTATION :: END
                         <div id="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading track list...</div>
                     </div>
                 </div>
+                % endif
                 % endif
                 <div class='col-md-12'>
                     <div class='table-card-header'>
@@ -507,7 +521,20 @@ DOCUMENTATION :: END
 
 % if data:
 <script src="interfaces/default/js/tables/history_table.js"></script>
-% if data['type'] == 'show' or data['type'] == 'artist':
+% if data['type'] == 'library':
+<script>
+    function get_history() {
+        history_table_options.ajax = {
+            "url": "get_history",
+            type: 'post',
+            data: function ( d ) {
+                return { 'json_data': JSON.stringify( d ),
+                    'media_type': '${data['media_type']}' };
+            }
+        }
+    }
+</script>
+% elif data['type'] == 'show' or data['type'] == 'artist':
 <script>
     function get_history() {
         history_table_options.ajax = {
@@ -606,7 +633,7 @@ DOCUMENTATION :: END
     });
 </script>
 % endif
-% if data['rating']:
+% if data['type'] != 'library' and data['rating']:
 <script>
     // Convert rating to 5 star rating type
     var starRating = Math.round(${data['rating']} / 2);
