@@ -67,55 +67,44 @@ DOCUMENTATION :: END
             <div class="summary-navbar">
                 <div class="col-md-12">
                     <div class="summary-navbar-list">
+                        <ul class="list-unstyled breadcrumb">
                         % if data['type'] == 'library':
                         % if data['library'] == 'movie':
-                        <span><a href="#">Movies</a></span>
+                        <li class="active">Movies</li>
                         % elif data['library'] == 'show':
-                        <span><a href="#">TV Shows</a></span>
+                        <li class="active">TV Shows</li>
                         % elif data['library'] == 'artist':
-                        <span><a href="#">Music</a></span>
+                        <li class="active">Music</li>
                         % endif
                         % elif data['type'] == 'movie':
-                        <span><a href="info?item_id=movie">Movies</a></span>
-                        <span><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="#">${data['title']}</a></span>
+                        <li><a href="info?item_id=movie">Movies</a></li>
+                        <li class="active">${data['title']}</li>
                         % elif data['type'] == 'show':
-                        <span><a href="info?item_id=show">TV Shows</a></span>
-                        <span><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="#">${data['title']}</a></span>
+                        <li><a href="info?item_id=show">TV Shows</a></li>
+                        <li class="active">${data['title']}</li>
                         % elif data['type'] == 'season':
-                        <span class="hidden-xs hidden-sm"><a href="info?item_id=show">TV Shows</a></span>
-                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></span>
-                        <span><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="#">Season ${data['index']}</a></span>
+                        <li class="hidden-xs hidden-sm"><a href="info?item_id=show">TV Shows</a></li>
+                        <li><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></li>
+                        <li class="active">Season ${data['index']}</li>
                         % elif data['type'] == 'episode':
-                        <span class="hidden-xs hidden-sm"><a href="info?item_id=show">TV Shows</a></span>
-                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
-                        <span class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></span>
-                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="info?item_id=${data['parent_rating_key']}">Season ${data['parent_index']}</a></span>
-                        <span><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="#">Episode ${data['index']} - ${data['title']}</a></span>
+                        <li class="hidden-xs hidden-sm"><a href="info?item_id=show">TV Shows</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
+                        <li><a href="info?item_id=${data['parent_rating_key']}">Season ${data['parent_index']}</a></li>
+                        <li class="active">Episode ${data['index']} - ${data['title']}</li>
                         % elif data['type'] == 'artist':
-                        <span><a href="info?item_id=artist">Music</a></span>
-                        <span><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="#">${data['title']}</a></span>
+                        <li><a href="info?item_id=artist">Music</a></li>
+                        <li class="active">${data['title']}</li>
                         % elif data['type'] == 'album':
-                        <span class="hidden-xs hidden-sm"><a href="info?item_id=artist">Music</a></span>
-                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></span>
-                        <span><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="#">${data['title']}</a></span>
+                        <li class="hidden-xs hidden-sm"><a href="info?item_id=artist">Music</a></li>
+                        <li><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></li>
+                        <li class="active">${data['title']}</li>
                         % elif data['type'] == 'track':
-                        <span class="hidden-xs hidden-sm"><a href="info?item_id=artist">Music</a></span>
-                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
-                        <span class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></span>
-                        <span class="hidden-xs hidden-sm"><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></span>
-                        <span><i class="fa fa-chevron-right"></i></span>
-                        <span><a href="#">Track ${data['index']} - ${data['title']}</a></span>
+                        <li class="hidden-xs hidden-sm"><a href="info?item_id=artist">Music</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
+                        <li><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></li>
+                        <li class="active">Track ${data['index']} - ${data['title']}</li>
                         % endif
+                        </ul>
                     </div>
                 </div>
             </div>

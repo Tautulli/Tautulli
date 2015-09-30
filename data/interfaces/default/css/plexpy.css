@@ -961,14 +961,24 @@ a:hover .dashboard-recent-media-cover {
     white-space: nowrap;
     overflow: hidden;
 }
-.summary-navbar-list span {
-    display: inline-block;
-    margin-right: 15px;
+.summary-navbar-list .breadcrumb {
+    padding: 0;
+    margin: 0;
+    background: none;
 }
-.summary-navbar-list span a {
+.summary-navbar-list .breadcrumb > li + li:before {
+    color: #444;
+    font-family: FontAwesome;
+    content: "\f054";
+    padding: 0 15px;
+}
+.summary-navbar-list .breadcrumb > .active {
+    color: #eee;
+}
+.summary-navbar-list .breadcrumb a {
     color: #999;
 }
-.summary-navbar-list span a:hover {
+.summary-navbar-list .breadcrumb a:hover {
     color: #F9AA03;
 }
 .summary-content-title-wrapper {
