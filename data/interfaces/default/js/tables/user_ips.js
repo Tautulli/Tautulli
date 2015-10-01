@@ -49,7 +49,18 @@ user_ip_table_options = {
         },
         {
             "targets": [2],
-            "data":"platform",
+            "data": "platform",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "15%",
+            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+        },
+        {
+            "targets": [3],
+            "data":"player",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
                     var transcode_dec = '';
@@ -69,7 +80,7 @@ user_ip_table_options = {
             "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
         },
         {
-            "targets": [3],
+            "targets": [4],
             "data":"last_watched",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
@@ -94,10 +105,11 @@ user_ip_table_options = {
                     }
                 }
             },
+            "width": "30%",
             "className": "hidden-sm hidden-xs"
         },
         {
-            "targets": [4],
+            "targets": [5],
             "data":"play_count",
             "searchable": false,
             "width": "10%"

@@ -42,6 +42,7 @@ class DataFactory(object):
                    'session_history.user_id',
                    'session_history.user',
                    '(CASE WHEN users.friendly_name IS NULL THEN user ELSE users.friendly_name END) as friendly_name',
+                   'platform',
                    'player',
                    'ip_address',
                    'session_history_metadata.media_type',
@@ -104,6 +105,12 @@ class DataFactory(object):
             else:
                 watched_status = 0
 
+            # Rename Mystery platform names
+            platform_names = {'Mystery 3': 'Playstation 3',
+                              'Mystery 4': 'Playstation 4',
+                              'Mystery 5': 'Xbox 360'}
+            platform = platform_names.get(item["platform"], item["platform"])
+
             row = {"reference_id": item["reference_id"],
                    "id": item["id"],
                    "date": item["date"],
@@ -114,6 +121,7 @@ class DataFactory(object):
                    "user_id": item["user_id"],
                    "user": item["user"],
                    "friendly_name": item["friendly_name"],
+                   "platform": platform,
                    "player": item["player"],
                    "ip_address": item["ip_address"],
                    "media_type": item["media_type"],

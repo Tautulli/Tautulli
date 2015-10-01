@@ -587,6 +587,9 @@ class WebInterface(object):
         if 'reference_id' in kwargs:
             reference_id = kwargs.get('reference_id', "")
             custom_where = [['session_history.reference_id', reference_id]]
+        if 'media_type' in kwargs:
+            media_type = kwargs.get('media_type', "")
+            custom_where = [['session_history_metadata.media_type', media_type]]
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
@@ -771,6 +774,12 @@ class WebInterface(object):
         if source == 'history':
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(row_id=item_id)
+        elif item_id == 'movie':
+            metadata = {'type': 'library', 'library': 'movie', 'media_type': 'movie', 'title': 'Movies'}
+        elif item_id == 'show':
+            metadata = {'type': 'library', 'library': 'show', 'media_type': 'episode', 'title': 'TV Shows'}
+        elif item_id == 'artist':
+            metadata = {'type': 'library', 'library': 'artist', 'media_type': 'track', 'title': 'Music'}
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=item_id)
@@ -813,17 +822,17 @@ class WebInterface(object):
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
-    def get_user_platform_stats(self, user=None, user_id=None, **kwargs):
+    def get_user_player_stats(self, user=None, user_id=None, **kwargs):
 
         user_data = users.Users()
-        result = user_data.get_user_platform_stats(user_id=user_id, user=user)
+        result = user_data.get_user_player_stats(user_id=user_id, user=user)
 
         if result:
-            return serve_template(templatename="user_platform_stats.html", data=result,
-                                  title="Platform Stats")
+            return serve_template(templatename="user_player_stats.html", data=result,
+                                  title="Player Stats")
         else:
             logger.warn('Unable to retrieve data.')
-            return serve_template(templatename="user_platform_stats.html", data=None, title="Platform Stats")
+            return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
     def get_item_children(self, rating_key='', **kwargs):

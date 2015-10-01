@@ -961,14 +961,24 @@ a:hover .dashboard-recent-media-cover {
     white-space: nowrap;
     overflow: hidden;
 }
-.summary-navbar-list span {
-    display: inline-block;
-    margin-right: 15px;
+.summary-navbar-list .breadcrumb {
+    padding: 0;
+    margin: 0;
+    background: none;
 }
-.summary-navbar-list span a {
+.summary-navbar-list .breadcrumb > li + li:before {
+    color: #444;
+    font-family: FontAwesome;
+    content: "\f054";
+    padding: 0 15px;
+}
+.summary-navbar-list .breadcrumb > .active {
+    color: #eee;
+}
+.summary-navbar-list .breadcrumb a {
     color: #999;
 }
-.summary-navbar-list span a:hover {
+.summary-navbar-list .breadcrumb a:hover {
     color: #F9AA03;
 }
 .summary-content-title-wrapper {
@@ -1565,19 +1575,19 @@ a:hover .item-children-poster {
     top: 3px;
     left: 3px;
 }
-.user-platforms ul {
+.user-player ul {
     list-style: none;
     margin: 0;
 }
-.user-platforms-instance {
+.user-player-instance {
     float: left;
     width: 240px;
     height: 80px;
     margin-bottom: 25px;
 }
-.user-platforms-instance li {
+.user-player-instance li {
 }
-.user-platforms-instance-box {
+.user-player-instance-box {
     float: left;
     width: 75px;
     border-radius: 3px;
@@ -1589,7 +1599,7 @@ a:hover .item-children-poster {
     height: 80px;
     width: 80px;
 }
-.user-platforms-instance-name {
+.user-player-instance-name {
     float: left;
     padding-top: 14px;
     color: #fff;
@@ -1602,7 +1612,7 @@ a:hover .item-children-poster {
     width: 140px;
     margin-left: 10px;
 }
-.user-platforms-instance-playcount h3 {
+.user-player-instance-playcount h3 {
     font-size: 30px;
     font-weight: bold;
     color: #F9AA03;
@@ -1612,7 +1622,7 @@ a:hover .item-children-poster {
     margin: 0 5px 0 10px;
     float: left;
 }
-.user-platforms-instance-playcount p {
+.user-player-instance-playcount p {
     color: #aaa;
     font-size: 12px;
     float: left;
