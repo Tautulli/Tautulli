@@ -29,7 +29,7 @@ import xmltodict
 
 cmd_list = ['getLogs', 'getVersion', 'checkGithub', 'shutdown',
             'getSettings', 'restart', 'update', 'getApikey', 'getHistory',
-            'getMetadata', 'getUserips', 'getPlayby, getSync']
+            'getMetadata', 'getUserips', 'getPlayby', 'getSync']
 
 
 class Api(object):
