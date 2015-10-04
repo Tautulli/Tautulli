@@ -845,6 +845,7 @@ class PUSHOVER(object):
         self.enabled = plexpy.CONFIG.PUSHOVER_ENABLED
         self.keys = plexpy.CONFIG.PUSHOVER_KEYS
         self.priority = plexpy.CONFIG.PUSHOVER_PRIORITY
+	self.sound = plexpy.CONFIG.PUSHOVER_SOUND
         self.on_play = plexpy.CONFIG.PUSHOVER_ON_PLAY
         self.on_stop = plexpy.CONFIG.PUSHOVER_ON_STOP
         self.on_watched = plexpy.CONFIG.PUSHOVER_ON_WATCHED
@@ -867,6 +868,7 @@ class PUSHOVER(object):
                 'user': plexpy.CONFIG.PUSHOVER_KEYS,
                 'title': event,
                 'message': message.encode("utf-8"),
+                'sound': plexpy.CONFIG.PUSHOVER_SOUND,
                 'priority': plexpy.CONFIG.PUSHOVER_PRIORITY}
 
         http_handler.request("POST",
@@ -893,10 +895,11 @@ class PUSHOVER(object):
         #For uniformity reasons not removed
         return
 
-    def test(self, keys, priority):
+    def test(self, keys, priority, sound):
         self.enabled = True
         self.keys = keys
         self.priority = priority
+	self.sound = sound
 
         self.notify('Main Screen Activate', 'Test Message')
 
@@ -912,6 +915,12 @@ class PUSHOVER(object):
                           'name': 'pushover_priority',
                           'description': 'Set the priority (-2,-1,0,1 or 2).',
                           'input_type': 'number'
+                          },
+                         {'label': 'Sound',
+                          'value': self.sound,
+                          'name': 'pushover_sound',
+                          'description': 'Set the notification sound (choose from <a href="https://pushover.net/api#sounds" target="_blank">this list</a> or leave blank for default)',
+                          'input_type': 'text'
                           },
                          {'label': 'Pushover API Token',
                           'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
