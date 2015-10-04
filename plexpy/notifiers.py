@@ -845,7 +845,7 @@ class PUSHOVER(object):
         self.enabled = plexpy.CONFIG.PUSHOVER_ENABLED
         self.keys = plexpy.CONFIG.PUSHOVER_KEYS
         self.priority = plexpy.CONFIG.PUSHOVER_PRIORITY
-	self.sound = plexpy.CONFIG.PUSHOVER_SOUND
+        self.sound = plexpy.CONFIG.PUSHOVER_SOUND
         self.on_play = plexpy.CONFIG.PUSHOVER_ON_PLAY
         self.on_stop = plexpy.CONFIG.PUSHOVER_ON_STOP
         self.on_watched = plexpy.CONFIG.PUSHOVER_ON_WATCHED
@@ -899,7 +899,7 @@ class PUSHOVER(object):
         self.enabled = True
         self.keys = keys
         self.priority = priority
-	self.sound = sound
+        self.sound = sound
 
         self.notify('Main Screen Activate', 'Test Message')
 
