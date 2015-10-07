@@ -15,6 +15,7 @@ from plexpy import common
     <link href="interfaces/default/css/bootstrap3/bootstrap.css" rel="stylesheet">
     <link href="interfaces/default/css/bootstrap-wizard.css" rel="stylesheet">
     <link href="interfaces/default/css/plexpy.css" rel="stylesheet">
+    <link href="interfaces/default/css/selectize.bootstrap3.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
     <link href="interfaces/default/css/font-awesome.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="interfaces/default/images/favicon.ico"/>
@@ -40,45 +41,6 @@ from plexpy import common
                 </div>
             </div>
             <div class="wizard-card" data-cardname="card2">
-                <h3>Plex Media Server</h3>
-                <form>
-                    <p class="help-block">Enter your Plex Server details and then click the Verify button to make sure PlexPy can reach the server.</p>
-                <div class="wizard-input-section">
-                    <label for="pms_ip">Plex IP or Hostname</label>
-                    <div class="row">
-                        <div class="col-xs-8">
-                            <input type="text" class="form-control pms-settings" name="pms_ip" id="pms_ip" placeholder="127.0.0.1" value="${config['pms_ip']}" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="wizard-input-section">
-                    <label for="pms_port">Port Number</label>
-                    <div class="row">
-                        <div class="col-xs-3">
-                            <input type="text" class="form-control pms-settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
-                        </div>
-                        <div class="col-xs-4">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Force SSL
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-xs-4">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
-                <input type="hidden" class="form-control pms-settings" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
-                <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
-            </div>
-
-            <div class="wizard-card" data-cardname="card3">
                 <h3>Plex Authentication</h3>
                 <p class="help-block">Enter your Plex.tv username and password. PlexPy does not store your username or password.</p>
                 <div class="wizard-input-section">
@@ -100,6 +62,46 @@ from plexpy import common
                 <input type="hidden" class="form-control pms-auth" name="pms_token" id="pms_token" value="${config['pms_token']}" data-validate="validatePMStoken">
                 <a class="btn btn-dark" id="pms-authenticate" href="#" role="button">Authenticate</a><span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
             </div>
+            <div class="wizard-card" data-cardname="card3">
+                <h3>Plex Media Server</h3>
+                <form>
+                    <p class="help-block">Enter your Plex Server details and then click the Verify button to make sure PlexPy can reach the server.</p>
+                <div class="wizard-input-section">
+                    <label for="pms_ip">Plex IP or Hostname</label>
+                    <div class="row">
+                        <div class="col-xs-8">
+                            <select id="pms_ip" name="pms_ip"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="wizard-input-section">
+                    <label for="pms_port">Port Number</label>
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <input type="text" class="form-control pms_settings" name="pms_port" id="pms_port" placeholder="32400" value="${config['pms_port']}" required>
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1"> Force SSL
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1"> Remote Server
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" class="form-control pms-settings" id="pms_valid" data-validate="validatePMSip" value="">
+                <input type="hidden" class="form-control pms-settings" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
+                <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a><span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
+            </div>
+
+
             <div class="wizard-card" data-cardname="card4">
                 <h3>Monitoring</h3>
                 <div class="wizard-input-section">
@@ -184,6 +186,7 @@ from plexpy import common
 
 <script src="interfaces/default/js/jquery-2.1.4.min.js"></script>
 <script src="interfaces/default/js/bootstrap3/bootstrap.min.js"></script>
+<script src="interfaces/default/js/selectize.min.js"></script>
 <script src="interfaces/default/js/script.js"></script>
 <script src="interfaces/default/js/bootstrap-wizard.min.js"></script>
 <script>
@@ -217,6 +220,73 @@ from plexpy import common
                     }, 5000);
                 }
             })
+        });
+
+        $select_pms = $('#pms_ip').selectize({
+            create: true,
+            createOnBlur: true,
+            openOnFocus: true,
+            maxItems: 1,
+            closeAfterSelect: true,
+            onInitialize: function () {
+                var s = this;
+                this.revertSettings.$children.each(function () {
+                    $.extend(s.options[this.value], $(this).data());
+                });
+
+            },
+            render: {
+                option: function (item, escape) {
+                    return '<div data-use_ssl="' + item.httpsRequired + '" data-local="' + item.local + '" data-ci="' + item.clientIdentifier + '" data-ip="' + item.ip + '" data-port="' + item.port + '">' + item.value + '</div>';
+                },
+                item: function (item, escape) {
+                    // first item is rendered before initialization bug?
+                    if (!item.ci) {
+                        $.extend(item,
+                        $(this.revertSettings.$children)
+                            .filter('[value="' + item.value + '"]').data());
+
+                    }
+                    return '<div data-use_ssl="' + item.httpsRequired + '" data-local="' + item.local + '" data-ci="' + item.clientIdentifier + '" data-ip="' + item.ip + '" data-port="' + item.port + '">' + item.value + '</div>';
+                }
+            },
+            onChange: function (item) {
+                var ci = $('.selectize-input').find('div').attr('data-ci');
+                var port = $('.selectize-input').find('div').attr('data-port')
+                var local = $('.selectize-input').find('div').attr('data-local')
+                var ssl = $('.selectize-input').find('div').attr('data-use_ssl')
+
+                $("#pms-verify-status").html("");
+                // If a option was added by a user its
+                // data-xxx="undefined"
+                if (ci != "undefined") {
+                    // To allow next step in the guide.
+                    // servers with clientIdentifier is verified
+                    $("#pms_valid").val("valid");
+                    $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!').show();
+                } else {
+                    // Self made options must be verified
+                    $("#pms_valid").val("");
+                    $("#pms-verify-status").html("").hide();
+                }
+                // If the server is verified set the correct port
+                if (port != "undefined") {
+                    $('#pms_port').val(port);
+                } else {
+                    // set default port
+                    $('#pms_port').val("32400");
+                }
+                if (local != "undefined" && local == '0') {
+                    $('#pms_is_remote').prop('checked', true);
+                } else {
+                    $('#pms_is_remote').prop('checked', false);
+                }
+                if (ssl != "undefined" && ssl == "1") {
+                    $('#pms_ssl').prop('checked', true);
+                } else {
+                    $('#pms_ssl').prop('checked', false);
+                }
+            }
         });
     });
 
@@ -371,6 +441,7 @@ from plexpy import common
                     $('#pms-token-status').fadeIn('fast');
                     $("#pms_token").val(authToken);
                     authenticated = true;
+                    getServerOptions(authToken)
                 }
             });
         } else {
@@ -399,6 +470,18 @@ from plexpy import common
             }
         });
     });
+
+    function getServerOptions(token) {
+        /* Set token and returns server options */
+        $.ajax({
+            url: "discover/" + token,
+            success: function (result) {
+                $('#pms_ip').html("")
+                // Add all servers to the "combobox"
+                $select_pms[0].selectize.addOption(result);
+            }
+        })
+    }
 </script>
 
 </body>
