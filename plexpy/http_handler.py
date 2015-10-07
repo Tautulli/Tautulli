@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -14,11 +17,10 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from plexpy import logger, helpers
-
 from httplib import HTTPSConnection
 from httplib import HTTPConnection
-
 import ssl
+
 
 class HTTPHandler(object):
     """
@@ -88,19 +90,25 @@ class HTTPHandler(object):
                 return None
 
             if request_status == 200:
-                if output_format == 'dict':
-                    output = helpers.convert_xml_to_dict(request_content)
-                elif output_format == 'json':
-                    output = helpers.convert_xml_to_json(request_content)
-                elif output_format == 'xml':
-                    output = helpers.parse_xml(request_content)
-                else:
-                    output = request_content
+                try:
+                    if output_format == 'dict':
+                        output = helpers.convert_xml_to_dict(request_content)
+                    elif output_format == 'json':
+                        output = helpers.convert_xml_to_json(request_content)
+                    elif output_format == 'xml':
+                        output = helpers.parse_xml(request_content)
+                    else:
+                        output = request_content
 
-                if return_type:
-                    return output, content_type
+                    if return_type:
+                        return output, content_type
 
-                return output
+                    return output
+
+                except Exception as e:
+                    logger.warn(u"Failed format response from uri %s to %s error %s" % (uri, output_format, e))
+                    return None
+
             else:
                 logger.warn(u"Failed to access uri endpoint %s. Status code %r" % (uri, request_status))
                 return None
