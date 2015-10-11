@@ -1317,11 +1317,11 @@ class IFTTT(object):
                 logger.info(u"Ifttt notification failed serverside.")
                 return False
 
-    def test(self, apikey):
+    def test(self, apikey, event):
 
         self.enabled = True
         self.apikey = apikey        
-
+        self.event = event
         self.notify('Main Screen Activate', 'Test Message')
 
     def return_config_options(self):
@@ -1332,7 +1332,7 @@ class IFTTT(object):
                           'input_type': 'text'
                           },
                          {'label': 'Ifttt event',
-                          'value': self.apikey,
+                          'value': self.event,
                           'name': 'ifttt_event',
                           'description': 'The Ifttt maker event to fire.',
                           'input_type': 'text'
