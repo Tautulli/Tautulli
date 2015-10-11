@@ -1276,7 +1276,8 @@ class Email(object):
 class IFTTT(object):
 
     def __init__(self):
-        self.apikey = plexpy.CONFIG.IFTTT_KEY        
+        self.apikey = plexpy.CONFIG.IFTTT_KEY
+        self.event = plexpy.CONFIG.IFTTT_EVENT
         self.on_play = plexpy.CONFIG.IFTTT_ON_PLAY
         self.on_stop = plexpy.CONFIG.IFTTT_ON_STOP
         self.on_watched = plexpy.CONFIG.IFTTT_ON_WATCHED
@@ -1285,25 +1286,26 @@ class IFTTT(object):
     def notify(self, message, subject):
         if not message or not subject:
             return
-
-        context = ssl.create_default_context()
-        #context = ssl._create_unverified_context()
+        # This should be the contex we use, but it isn't working as it casues an SSL validation error
+        # Unfortunately this is beyond my phython ability!
+        #context = ssl.create_default_context()
+        context = ssl._create_unverified_context()
         http_handler = HTTPSConnection("maker.ifttt.com", context=context)
 
         data = {'value1': subject.encode("utf-8"),
                 'value2': message.encode("utf-8")}
         
-        logger.debug("Ifttt SENDING: %s" % json.dumps(data))
+        #logger.debug("Ifttt SENDING: %s" % json.dumps(data))
 
         http_handler.request("POST",
-                                "/trigger/plextv/with/key/%s" % plexpy.CONFIG.IFTTT_KEY,
+                                "/trigger/%s/with/key/%s" % (plexpy.CONFIG.IFTTT_EVENT, plexpy.CONFIG.IFTTT_KEY),
                                 headers={'Content-type': "application/json"},
                                 body=json.dumps(data))
         response = http_handler.getresponse()
         request_status = response.status
-        logger.debug(u"Ifttt response status: %r" % request_status)
-        logger.debug(u"Ifttt response headers: %r" % response.getheaders())
-        logger.debug(u"Ifttt response body: %r" % response.read())
+        #logger.debug(u"Ifttt response status: %r" % request_status)
+        #logger.debug(u"Ifttt response headers: %r" % response.getheaders())
+        #logger.debug(u"Ifttt response body: %r" % response.read())
 
         if request_status == 200:
                 logger.info(u"Ifttt notifications sent.")
@@ -1326,7 +1328,13 @@ class IFTTT(object):
         config_option = [{'label': 'Ifttt Maker Channel Key',
                           'value': self.apikey,
                           'name': 'ifttt_key',
-                          'description': 'Your Pushbullet  key.',
+                          'description': 'Your Ifttt  key. You can get a key from here https://ifttt.com/maker',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Ifttt event',
+                          'value': self.apikey,
+                          'name': 'ifttt_event',
+                          'description': 'The Ifttt maker event to fire.',
                           'input_type': 'text'
                           }
                          ]
