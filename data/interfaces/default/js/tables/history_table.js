@@ -214,13 +214,13 @@ history_table_options = {
         {
             "targets": [11],
             "data": "watched_status",
-            "render": function (data, type, full) {
-                if (data == 1) {
-                    return '<span class="watched-tooltip" data-toggle="tooltip" title="Watched"><i class="fa fa-lg fa-circle"></i></span>'
-                } else if (data == 0.5) {
-                    return '<span class="watched-tooltip" data-toggle="tooltip" title="Partial"><i class="fa fa-lg fa-adjust fa-rotate-180"></i></span>'
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData == 1) {
+                    $(td).html('<span class="watched-tooltip" data-toggle="tooltip" title="' + rowData['percent_complete'] + '%"><i class="fa fa-lg fa-circle"></i></span>');
+                } else if (cellData == 0.5) {
+                    $(td).html('<span class="watched-tooltip" data-toggle="tooltip" title="' + rowData['percent_complete'] + '%"><i class="fa fa-lg fa-adjust fa-rotate-180"></i></span>');
                 } else {
-                    return '<span class="watched-tooltip" data-toggle="tooltip" title="Unwatched"><i class="fa fa-lg fa-circle-o"></i></span>'
+                    $(td).html('<span class="watched-tooltip" data-toggle="tooltip" title="' + rowData['percent_complete'] + '%"><i class="fa fa-lg fa-circle-o"></i></span>');
                 }
             },
             "searchable": false,
@@ -236,12 +236,13 @@ history_table_options = {
 
         // Create the tooltips.
         $('.expand-history-tooltip').tooltip({ container: 'body' });
-        $('.external-ip-tooltip').tooltip();
-        $('.transcode-tooltip').tooltip();
-        $('.media-type-tooltip').tooltip();
-        $('.watched-tooltip').tooltip();
+        $('.external-ip-tooltip').tooltip({ container: 'body' });
+        $('.transcode-tooltip').tooltip({ container: 'body' });
+        $('.media-type-tooltip').tooltip({ container: 'body' });
+        $('.watched-tooltip').tooltip({ container: 'body' });
         $('.thumb-tooltip').popover({
             html: true,
+            container: 'body',
             trigger: 'hover',
             placement: 'right',
             content: function () {
