@@ -1168,6 +1168,7 @@ class BOXCAR(object):
     def __init__(self):
         self.url = 'https://new.boxcar.io/api/notifications'
         self.token = plexpy.CONFIG.BOXCAR_TOKEN
+        self.sound = plexpy.CONFIG.BOXCAR_SOUND
         self.on_play = plexpy.CONFIG.BOXCAR_ON_PLAY
         self.on_stop = plexpy.CONFIG.BOXCAR_ON_STOP
         self.on_watched = plexpy.CONFIG.BOXCAR_ON_WATCHED
@@ -1181,7 +1182,7 @@ class BOXCAR(object):
                 'user_credentials': plexpy.CONFIG.BOXCAR_TOKEN,
                 'notification[title]': title.encode('utf-8'),
                 'notification[long_message]': message.encode('utf-8'),
-                'notification[sound]': "done"
+                'notification[sound]': plexpy.CONFIG.BOXCAR_SOUND
                 })
 
             req = urllib2.Request(self.url)
@@ -1199,6 +1200,42 @@ class BOXCAR(object):
                           'name': 'boxcar_token',
                           'description': 'Your Boxcar access token.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Sound',
+                          'value': self.sound,
+                          'name': 'boxcar_sound',
+                          'description': 'Set the notification sound. Leave blank for the default sound.',
+                          'input_type': 'select',
+                          'select_options': {'': '',
+                                             'beep-crisp': 'Beep (Crisp)',
+                                             'beep-soft': 'Beep (Soft)',
+                                             'bell-modern': 'Bell (Modern)',
+                                             'bell-one-tone': 'Bell (One Tone)',
+                                             'bell-simple': 'Bell (Simple)',
+                                             'bell-triple': 'Bell (Triple)',
+                                             'bird-1': 'Bird (1)',
+                                             'bird-2': 'Bird (2)',
+                                             'boing': 'Boing',
+                                             'cash': 'Cash',
+                                             'clanging': 'Clanging',
+                                             'detonator-charge': 'Detonator Charge',
+                                             'digital-alarm': 'Digital Alarm',
+                                             'done': 'Done',
+                                             'echo': 'Echo',
+                                             'flourish': 'Flourish',
+                                             'harp': 'Harp',
+                                             'light': 'Light',
+                                             'magic-chime':'Magic Chime',
+                                             'magic-coin': 'Magic Coin',
+                                             'no-sound': 'No Sound',
+                                             'notifier-1': 'Notifier (1)',
+                                             'notifier-2': 'Notifier (2)',
+                                             'notifier-3': 'Notifier (3)',
+                                             'orchestral-long': 'Orchestral (Long)',
+                                             'orchestral-short': 'Orchestral (Short)',
+                                             'score': 'Score',
+                                             'success': 'Success',
+                                             'up': 'Up'}
                           }
                          ]
 
