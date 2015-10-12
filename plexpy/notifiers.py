@@ -467,8 +467,9 @@ class PROWL(object):
                          {'label': 'Priority',
                           'value': self.priority,
                           'name': 'prowl_priority',
-                          'description': 'Set the priority (-2,-1,0,1 or 2).',
-                          'input_type': 'number'
+                          'description': 'Set the priority.',
+                          'input_type': 'select',
+                          'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           }
                          ]
 
@@ -695,8 +696,9 @@ class NMA(object):
                          {'label': 'Priority',
                           'value': plexpy.CONFIG.NMA_PRIORITY,
                           'name': 'nma_priority',
-                          'description': 'Set the priority (-2,-1,0,1 or 2).',
-                          'input_type': 'number'
+                          'description': 'Set the priority.',
+                          'input_type': 'select',
+                          'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           }
                          ]
 
@@ -913,8 +915,9 @@ class PUSHOVER(object):
                          {'label': 'Priority',
                           'value': self.priority,
                           'name': 'pushover_priority',
-                          'description': 'Set the priority (-2,-1,0,1 or 2).',
-                          'input_type': 'number'
+                          'description': 'Set the priority.',
+                          'input_type': 'select',
+                          'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           },
                          {'label': 'Sound',
                           'value': self.sound,

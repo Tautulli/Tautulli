@@ -44,6 +44,24 @@ from plexpy import helpers
                             <p class="help-block">${item['description']}</p>
                             <input type="hidden" id="${item['name']}" name="${item['name']}" value="${item['value']}">
                         </div>
+                        % elif item['input_type'] == 'select':
+                        <div class="form-group">
+                            <label for="${item['name']}">${item['label']}</label>
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <select class="form-control" id="${item['name']}" name="${item['name']}" >
+                                        % for key, value in sorted(item['select_options'].iteritems()):
+                                        % if key == item['value']:
+                                        <option value="${key}" selected>${value}</option>
+                                        % else:
+                                        <option value="${key}">${value}</option>
+                                        % endif
+                                        % endfor
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="help-block">${item['description']}</p>
+                        </div>
                         % endif
                     % endfor
                     </div>
@@ -68,8 +86,8 @@ from plexpy import helpers
 <script>
     $('#osxnotifyregister').click(function () {
         var osx_notify_app = $("#osx_notify_app").val();
-        $.get("/osxnotifyregister", {'app': osx_notify_app}, function (data) { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>"+data+"</div>"); });
-        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut()
+        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { $('#ajaxMsg').html("<i class='fa fa-check'></i> " + data); });
+        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
     })
 
     var notificationConfig = $("#set_notification_config");
@@ -80,17 +98,17 @@ from plexpy import helpers
 
     $('#twitterStep1').click(function () {
         $.get("/twitterStep1", function (data) {window.open(data); })
-        .done(function () { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>Confirm Authorization. Check pop-up blocker if no response.</div>"); });
+        .done(function () { $('#ajaxMsg').html("<i class='fa fa-check'></i> Confirm Authorization. Check pop-up blocker if no response."); });
         $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
     });
     $('#twitterStep2').click(function () {
         var twitter_key = $("#twitter_key").val();
-        $.get("/twitterStep2", {'key': twitter_key}, function (data) { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>"+data+"</div>"); });
+        $.get("/twitterStep2", { 'key': twitter_key }, function (data) { $('#ajaxMsg').html("<i class='fa fa-check'></i> " + data); });
         $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
     });
     $('#testTwitter').click(function () {
         $.get("/testTwitter",
-            function (data) { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>"+data+"</div>"); });
+            function (data) { $('#ajaxMsg').html("<i class='fa fa-check'></i> " + data); });
         $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
     });
 
