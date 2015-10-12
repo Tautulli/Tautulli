@@ -914,18 +914,16 @@ class PUSHOVER(object):
         if request_status == 200:
             data = json.loads(response.read())
             sounds = data.get('sounds', {})
+            sounds.update({'': ''})
             return sounds
         elif request_status >= 400 and request_status < 500:
-            logger.info(u"Unable to retrieve Pushover notification sounds: %s" % response.reason)
-            return {}
+            logger.info(u"Unable to retrieve Pushover notification sounds list: %s" % response.reason)
+            return {'': ''}
         else:
-            logger.info(u"Unable to retrieve Pushover notification sounds.")
-            return {}
+            logger.info(u"Unable to retrieve Pushover notification sounds list.")
+            return {'': ''}
 
     def return_config_options(self):
-        sounds = self.get_sounds()
-        sounds[''] = ''
-
         config_option = [{'label': 'Pushover User Key',
                           'value': self.keys,
                           'name': 'pushover_keys',
@@ -944,7 +942,7 @@ class PUSHOVER(object):
                           'name': 'pushover_sound',
                           'description': 'Set the notification sound. Leave blank for the default sound.',
                           'input_type': 'select',
-                          'select_options': sounds
+                          'select_options': self.get_sounds()
                           },
                          {'label': 'Pushover API Token',
                           'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
