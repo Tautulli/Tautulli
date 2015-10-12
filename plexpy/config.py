@@ -1,4 +1,4 @@
-﻿import plexpy.logger
+import plexpy.logger
 import itertools
 import os
 import re
@@ -181,11 +181,19 @@ _CONFIG_DEFINITIONS = {
     'PUSHBULLET_ON_RESUME': (int, 'PushBullet', 0),
     'PUSHBULLET_ON_BUFFER': (int, 'PushBullet', 0),
     'PUSHBULLET_ON_WATCHED': (int, 'PushBullet', 0),
+    'IFTTT_KEY': (str, 'Ifttt', ''),
+    'IFTTT_EVENT': (str, 'Ifttt', 'plextv'),
+    'IFTTT_ENABLED': (int, 'IFTTT', 0),
+    'IFTTT_ON_PLAY': (int, 'IFTTT', 0),
+    'IFTTT_ON_STOP': (int, 'IFTTT', 0),
+    'IFTTT_ON_PAUSE': (int, 'IFTTT', 0),
+    'IFTTT_ON_RESUME': (int, 'IFTTT', 0),
+    'IFTTT_ON_BUFFER': (int, 'IFTTT', 0),
+    'IFTTT_ON_WATCHED': (int, 'IFTTT', 0),
     'PUSHOVER_APITOKEN': (str, 'Pushover', ''),
     'PUSHOVER_ENABLED': (int, 'Pushover', 0),
     'PUSHOVER_KEYS': (str, 'Pushover', ''),
     'PUSHOVER_PRIORITY': (int, 'Pushover', 0),
-    'PUSHOVER_SOUND': (str, 'Pushover', ''),
     'PUSHOVER_ON_PLAY': (int, 'Pushover', 0),
     'PUSHOVER_ON_STOP': (int, 'Pushover', 0),
     'PUSHOVER_ON_PAUSE': (int, 'Pushover', 0),
