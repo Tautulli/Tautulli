@@ -194,6 +194,7 @@ _CONFIG_DEFINITIONS = {
     'PUSHOVER_ENABLED': (int, 'Pushover', 0),
     'PUSHOVER_KEYS': (str, 'Pushover', ''),
     'PUSHOVER_PRIORITY': (int, 'Pushover', 0),
+    'PUSHOVER_SOUND': (str, 'Pushover', ''),
     'PUSHOVER_ON_PLAY': (int, 'Pushover', 0),
     'PUSHOVER_ON_STOP': (int, 'Pushover', 0),
     'PUSHOVER_ON_PAUSE': (int, 'Pushover', 0),
