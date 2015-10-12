@@ -37,6 +37,7 @@ _CONFIG_DEFINITIONS = {
     'API_KEY': (str, 'General', ''),
     'BOXCAR_ENABLED': (int, 'Boxcar', 0),
     'BOXCAR_TOKEN': (str, 'Boxcar', ''),
+    'BOXCAR_SOUND': (str, 'Boxcar', ''),
     'BOXCAR_ON_PLAY': (int, 'Boxcar', 0),
     'BOXCAR_ON_STOP': (int, 'Boxcar', 0),
     'BOXCAR_ON_PAUSE': (int, 'Boxcar', 0),
