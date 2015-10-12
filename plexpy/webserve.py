@@ -1305,7 +1305,7 @@ class WebInterface(object):
         checkboxes = {'email_tls': checked(plexpy.CONFIG.EMAIL_TLS)}
 
         return serve_template(templatename="notification_config.html", title="Notification Configuration",
-                              data=config, checkboxes=checkboxes)
+                              config_id=config_id, data=config, checkboxes=checkboxes)
 
     @cherrypy.expose
     def get_notification_agent_triggers(self, config_id, **kwargs):

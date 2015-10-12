@@ -487,8 +487,9 @@ class PROWL(object):
                          {'label': 'Priority',
                           'value': self.priority,
                           'name': 'prowl_priority',
-                          'description': 'Set the priority (-2,-1,0,1 or 2).',
-                          'input_type': 'number'
+                          'description': 'Set the priority.',
+                          'input_type': 'select',
+                          'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           }
                          ]
 
@@ -715,8 +716,9 @@ class NMA(object):
                          {'label': 'Priority',
                           'value': plexpy.CONFIG.NMA_PRIORITY,
                           'name': 'nma_priority',
-                          'description': 'Set the priority (-2,-1,0,1 or 2).',
-                          'input_type': 'number'
+                          'description': 'Set the priority.',
+                          'input_type': 'select',
+                          'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           }
                          ]
 
@@ -892,9 +894,9 @@ class PUSHOVER(object):
                 'priority': plexpy.CONFIG.PUSHOVER_PRIORITY}
 
         http_handler.request("POST",
-                                "/1/messages.json",
-                                headers={'Content-type': "application/x-www-form-urlencoded"},
-                                body=urlencode(data))
+                             "/1/messages.json",
+                             headers={'Content-type': "application/x-www-form-urlencoded"},
+                             body=urlencode(data))
         response = http_handler.getresponse()
         request_status = response.status
         # logger.debug(u"Pushover response status: %r" % request_status)
@@ -923,29 +925,49 @@ class PUSHOVER(object):
         
         self.notify('Main Screen Activate', 'Test Message')
 
+    def get_sounds(self):
+        http_handler = HTTPSConnection("api.pushover.net")
+        http_handler.request("GET", "/1/sounds.json?token=" + self.application_token)
+        response = http_handler.getresponse()
+        request_status = response.status
+        
+        if request_status == 200:
+            data = json.loads(response.read())
+            sounds = data.get('sounds', {})
+            sounds.update({'': ''})
+            return sounds
+        elif request_status >= 400 and request_status < 500:
+            logger.info(u"Unable to retrieve Pushover notification sounds list: %s" % response.reason)
+            return {'': ''}
+        else:
+            logger.info(u"Unable to retrieve Pushover notification sounds list.")
+            return {'': ''}
+
     def return_config_options(self):
-        config_option = [{'label': 'Pushover API Key',
+        config_option = [{'label': 'Pushover User Key',
                           'value': self.keys,
                           'name': 'pushover_keys',
-                          'description': 'Your Pushover API key.',
+                          'description': 'Your Pushover user key.',
                           'input_type': 'text'
                           },
                          {'label': 'Priority',
                           'value': self.priority,
                           'name': 'pushover_priority',
-                          'description': 'Set the priority (-2,-1,0,1 or 2).',
-                          'input_type': 'number'
+                          'description': 'Set the priority.',
+                          'input_type': 'select',
+                          'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           },
                          {'label': 'Sound',
                           'value': self.sound,
                           'name': 'pushover_sound',
-                          'description': 'Set the notification sound (choose from <a href="https://pushover.net/api#sounds" target="_blank">this list</a> or leave blank for default)',
-                          'input_type': 'text'
+                          'description': 'Set the notification sound. Leave blank for the default sound.',
+                          'input_type': 'select',
+                          'select_options': self.get_sounds()
                           },
                          {'label': 'Pushover API Token',
                           'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
                           'name': 'pushover_apitoken',
-                          'description': 'Your Pushover API toekn. Leave blank to use PlexPy default.',
+                          'description': 'Your Pushover API token. Leave blank to use PlexPy default.',
                           'input_type': 'text'
                           }
                          ]
@@ -1164,6 +1186,7 @@ class BOXCAR(object):
     def __init__(self):
         self.url = 'https://new.boxcar.io/api/notifications'
         self.token = plexpy.CONFIG.BOXCAR_TOKEN
+        self.sound = plexpy.CONFIG.BOXCAR_SOUND
         self.on_play = plexpy.CONFIG.BOXCAR_ON_PLAY
         self.on_stop = plexpy.CONFIG.BOXCAR_ON_STOP
         self.on_watched = plexpy.CONFIG.BOXCAR_ON_WATCHED
@@ -1177,7 +1200,7 @@ class BOXCAR(object):
                 'user_credentials': plexpy.CONFIG.BOXCAR_TOKEN,
                 'notification[title]': title.encode('utf-8'),
                 'notification[long_message]': message.encode('utf-8'),
-                'notification[sound]': "done"
+                'notification[sound]': plexpy.CONFIG.BOXCAR_SOUND
                 })
 
             req = urllib2.Request(self.url)
@@ -1195,6 +1218,42 @@ class BOXCAR(object):
                           'name': 'boxcar_token',
                           'description': 'Your Boxcar access token.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Sound',
+                          'value': self.sound,
+                          'name': 'boxcar_sound',
+                          'description': 'Set the notification sound. Leave blank for the default sound.',
+                          'input_type': 'select',
+                          'select_options': {'': '',
+                                             'beep-crisp': 'Beep (Crisp)',
+                                             'beep-soft': 'Beep (Soft)',
+                                             'bell-modern': 'Bell (Modern)',
+                                             'bell-one-tone': 'Bell (One Tone)',
+                                             'bell-simple': 'Bell (Simple)',
+                                             'bell-triple': 'Bell (Triple)',
+                                             'bird-1': 'Bird (1)',
+                                             'bird-2': 'Bird (2)',
+                                             'boing': 'Boing',
+                                             'cash': 'Cash',
+                                             'clanging': 'Clanging',
+                                             'detonator-charge': 'Detonator Charge',
+                                             'digital-alarm': 'Digital Alarm',
+                                             'done': 'Done',
+                                             'echo': 'Echo',
+                                             'flourish': 'Flourish',
+                                             'harp': 'Harp',
+                                             'light': 'Light',
+                                             'magic-chime':'Magic Chime',
+                                             'magic-coin': 'Magic Coin',
+                                             'no-sound': 'No Sound',
+                                             'notifier-1': 'Notifier (1)',
+                                             'notifier-2': 'Notifier (2)',
+                                             'notifier-3': 'Notifier (3)',
+                                             'orchestral-long': 'Orchestral (Long)',
+                                             'orchestral-short': 'Orchestral (Short)',
+                                             'score': 'Score',
+                                             'success': 'Success',
+                                             'up': 'Up'}
                           }
                          ]
 
