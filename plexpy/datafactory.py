@@ -136,6 +136,7 @@ class DataFactory(object):
                    "thumb": thumb,
                    "video_decision": item["video_decision"],
                    "audio_decision": item["audio_decision"],
+                   "percent_complete": int(round(item['percent_complete'])),
                    "watched_status": watched_status,
                    "group_count": item["group_count"],
                    "group_ids": item["group_ids"]
