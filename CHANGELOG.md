@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.2.2 (2015-10-12)
+
+* Add server discovery on first run.
+* Add column to tables for Platform.
+* Add link to top level breadcrumbs on info pages.
+* Add ability to change notification sounds for Pushover and Boxcar.
+* Show watched percentage tooltip on progress column in history tables. 
+* More logging in event an http request fails.
+* Code cleanups and other fixes.
+* Fix ordering on sync table.
+* Fix bug on home stats cards.
+* Fix bug on activity pane where music details were not shown.
+
+
 ## v1.2.1 (2015-09-29)
 
 * Fix for possible issue when paused_counter is null.
