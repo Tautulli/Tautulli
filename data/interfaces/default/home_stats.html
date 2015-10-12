@@ -65,7 +65,7 @@ DOCUMENTATION :: END
 %>
 
 % if data:
-% if data[0]['rows'] or data[1]['rows'] or data[2]['rows'] or data[3]['rows'] or data[4]['rows'] or data[5]['rows']:
+% if data[0]['rows']:
 <ul class="list-unstyled">
     % for top_stat in data:
     % if top_stat['stat_id'] == 'top_tv' and top_stat['rows']:
