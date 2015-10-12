@@ -90,9 +90,18 @@ from plexpy import helpers
         $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
     })
 
-    var notificationConfig = $("#set_notification_config");
     $('#save-notification-item').click(function() {
-        doAjaxCall('set_notification_config',$(this),'tabs',true);
+        doAjaxCall('set_notification_config', $(this), 'tabs', true);
+        // Reload modal to update certain fields
+        $.ajax({
+            url: 'get_notification_agent_config',
+            data: { config_id: '${config_id}' },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#notification-config-modal").html(xhr.responseText);
+            }
+        });
         return false;
     });
 

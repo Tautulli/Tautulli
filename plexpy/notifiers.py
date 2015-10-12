@@ -874,9 +874,9 @@ class PUSHOVER(object):
                 'priority': plexpy.CONFIG.PUSHOVER_PRIORITY}
 
         http_handler.request("POST",
-                                "/1/messages.json",
-                                headers={'Content-type': "application/x-www-form-urlencoded"},
-                                body=urlencode(data))
+                             "/1/messages.json",
+                             headers={'Content-type': "application/x-www-form-urlencoded"},
+                             body=urlencode(data))
         response = http_handler.getresponse()
         request_status = response.status
         # logger.debug(u"Pushover response status: %r" % request_status)
@@ -905,11 +905,31 @@ class PUSHOVER(object):
 
         self.notify('Main Screen Activate', 'Test Message')
 
+    def get_sounds(self):
+        http_handler = HTTPSConnection("api.pushover.net")
+        http_handler.request("GET", "/1/sounds.json?token=" + self.application_token)
+        response = http_handler.getresponse()
+        request_status = response.status
+        
+        if request_status == 200:
+            data = json.loads(response.read())
+            sounds = data.get('sounds', {})
+            return sounds
+        elif request_status >= 400 and request_status < 500:
+            logger.info(u"Unable to retrieve Pushover notification sounds: %s" % response.reason)
+            return {}
+        else:
+            logger.info(u"Unable to retrieve Pushover notification sounds.")
+            return {}
+
     def return_config_options(self):
-        config_option = [{'label': 'Pushover API Key',
+        sounds = self.get_sounds()
+        sounds[''] = ''
+
+        config_option = [{'label': 'Pushover User Key',
                           'value': self.keys,
                           'name': 'pushover_keys',
-                          'description': 'Your Pushover API key.',
+                          'description': 'Your Pushover user key.',
                           'input_type': 'text'
                           },
                          {'label': 'Priority',
@@ -922,13 +942,14 @@ class PUSHOVER(object):
                          {'label': 'Sound',
                           'value': self.sound,
                           'name': 'pushover_sound',
-                          'description': 'Set the notification sound (choose from <a href="https://pushover.net/api#sounds" target="_blank">this list</a> or leave blank for default)',
-                          'input_type': 'text'
+                          'description': 'Set the notification sound. Leave blank for the default sound.',
+                          'input_type': 'select',
+                          'select_options': sounds
                           },
                          {'label': 'Pushover API Token',
                           'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
                           'name': 'pushover_apitoken',
-                          'description': 'Your Pushover API toekn. Leave blank to use PlexPy default.',
+                          'description': 'Your Pushover API token. Leave blank to use PlexPy default.',
                           'input_type': 'text'
                           }
                          ]
