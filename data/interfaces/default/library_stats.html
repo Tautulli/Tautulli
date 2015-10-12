@@ -37,7 +37,13 @@ DOCUMENTATION :: END
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
+                    % if library['type'] != 'photo':
+                    <h4>
+                        <a href="info?item_id=${library['type']}" title="${library['rows']['title']}">${library['rows']['title']}</a>
+                    </h4>
+                    % else:
                     <h4>${library['rows']['title']}</h4>
+                    % endif
                 </div>
                 <div class="home-platforms-instance-playcount">
                     <h5>${library['rows']['count_type']}</h5>

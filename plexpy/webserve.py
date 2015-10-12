@@ -1,4 +1,7 @@
-﻿# This file is part of PlexPy.
+﻿#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -97,8 +100,7 @@ class WebInterface(object):
         }
 
         # The setup wizard just refreshes the page on submit so we must redirect to home if config set.
-        # Also redirecting to home if a PMS token already exists - will remove this in future.
-        if plexpy.CONFIG.FIRST_RUN_COMPLETE or plexpy.CONFIG.PMS_TOKEN:
+        if plexpy.CONFIG.FIRST_RUN_COMPLETE:
             plexpy.initialize_scheduler()
             raise cherrypy.HTTPRedirect("home")
         else:
@@ -567,7 +569,7 @@ class WebInterface(object):
 
         watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
 
-        custom_where=[]
+        custom_where = []
         if user_id:
             custom_where = [['session_history.user_id', user_id]]
         elif user:
@@ -587,6 +589,9 @@ class WebInterface(object):
         if 'reference_id' in kwargs:
             reference_id = kwargs.get('reference_id', "")
             custom_where = [['session_history.reference_id', reference_id]]
+        if 'media_type' in kwargs:
+            media_type = kwargs.get('media_type', "")
+            custom_where = [['session_history_metadata.media_type', media_type]]
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
@@ -771,6 +776,12 @@ class WebInterface(object):
         if source == 'history':
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(row_id=item_id)
+        elif item_id == 'movie':
+            metadata = {'type': 'library', 'library': 'movie', 'media_type': 'movie', 'title': 'Movies'}
+        elif item_id == 'show':
+            metadata = {'type': 'library', 'library': 'show', 'media_type': 'episode', 'title': 'TV Shows'}
+        elif item_id == 'artist':
+            metadata = {'type': 'library', 'library': 'artist', 'media_type': 'track', 'title': 'Music'}
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=item_id)
@@ -813,17 +824,17 @@ class WebInterface(object):
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
-    def get_user_platform_stats(self, user=None, user_id=None, **kwargs):
+    def get_user_player_stats(self, user=None, user_id=None, **kwargs):
 
         user_data = users.Users()
-        result = user_data.get_user_platform_stats(user_id=user_id, user=user)
+        result = user_data.get_user_player_stats(user_id=user_id, user=user)
 
         if result:
-            return serve_template(templatename="user_platform_stats.html", data=result,
-                                  title="Platform Stats")
+            return serve_template(templatename="user_player_stats.html", data=result,
+                                  title="Player Stats")
         else:
             logger.warn('Unable to retrieve data.')
-            return serve_template(templatename="user_platform_stats.html", data=None, title="Platform Stats")
+            return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
     def get_item_children(self, rating_key='', **kwargs):
@@ -888,7 +899,7 @@ class WebInterface(object):
     @cherrypy.expose
     def get_user_ips(self, user_id=None, user=None, **kwargs):
 
-        custom_where=[]
+        custom_where = []
         if user_id:
             custom_where = [['user_id', user_id]]
         elif user:
@@ -1122,7 +1133,7 @@ class WebInterface(object):
 
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_server_children()
-            
+
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps(result)
@@ -1294,7 +1305,7 @@ class WebInterface(object):
         checkboxes = {'email_tls': checked(plexpy.CONFIG.EMAIL_TLS)}
 
         return serve_template(templatename="notification_config.html", title="Notification Configuration",
-                              data=config, checkboxes=checkboxes)
+                              config_id=config_id, data=config, checkboxes=checkboxes)
 
     @cherrypy.expose
     def get_notification_agent_triggers(self, config_id, **kwargs):
@@ -1387,8 +1398,8 @@ class WebInterface(object):
         new_key_list = pms_connect.get_rating_keys_list(rating_key=new_rating_key, media_type=media_type)
 
         update_db = data_factory.update_rating_key(old_key_list=old_key_list,
-                                                    new_key_list=new_key_list,
-                                                    media_type=media_type)
+                                                   new_key_list=new_key_list,
+                                                   media_type=media_type)
 
         if update_db:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -1396,7 +1407,6 @@ class WebInterface(object):
         else:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps({'message': 'no data received'})
-
 
     # test code
     @cherrypy.expose
@@ -1434,11 +1444,27 @@ class WebInterface(object):
             new_key_list = pms_connect.get_rating_keys_list(rating_key=new_rating_key, media_type=media_type)
 
             result = data_factory.update_rating_key(old_key_list=old_key_list,
-                                                        new_key_list=new_key_list,
-                                                        media_type=media_type)
+                                                    new_key_list=new_key_list,
+                                                    media_type=media_type)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps(result)
         else:
             logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def discover(self, token=''):
+        """
+        Returns the servers that you own as a
+        list of dicts (formatted for selectize)
+        """
+        # Need to set token so result dont return http 401
+        plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
+        plexpy.CONFIG.write()
+
+        result = plextv.PlexTV()
+        servers = result.discover()
+        if servers:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return servers

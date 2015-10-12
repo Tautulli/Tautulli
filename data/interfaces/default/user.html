@@ -85,11 +85,11 @@ from plexpy import helpers
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <div class="header-bar">
-                            <span><i class="fa fa-television"></i> Platform Stats</span>
+                            <span><i class="fa fa-television"></i> Player Stats</span>
                         </div>
                     </div>
                     <div class="table-card-back">
-                        <div id="user-platform-stats" class="user-platforms">
+                        <div id="user-player-stats" class="user-player">
                             <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
                             <br>
                         </div>
@@ -133,6 +133,7 @@ from plexpy import helpers
                                 <th align="left">Last Seen</th>
                                 <th align="left">IP Address</th>
                                 <th align="left">Last Platform</th>
+                                <th align="left">Last Player</th>
                                 <th align="left">Last Watched</th>
                                 <th align="left">Play Count</th>
                             </tr>
@@ -170,6 +171,7 @@ from plexpy import helpers
                                 <th align='left' id="friendly_name">User</th>
                                 <th align='left' id="ip_address">IP Address</th>
                                 <th align='left' id="platform">Platform</th>
+                                <th align='left' id="player">Player</th>
                                 <th align='left' id="title">Title</th>
                                 <th align='left' id="started">Started</th>
                                 <th align='left' id="paused_counter">Paused</th>
@@ -207,8 +209,8 @@ from plexpy import helpers
                                 <th align='left' id="username">Username</th>
                                 <th align='left' id="sync_title">Title</th>
                                 <th align='left' id="type">Type</th>
-                                <th align='left' id="device">Device</th>
                                 <th align='left' id="sync_platform">Platform</th>
+                                <th align='left' id="device">Device</th>
                                 <th align='left' id="size">Total Size</th>
                                 <th align='left' id="items">Total Items</th>
                                 <th align='left' id="converted">Converted</th>
@@ -309,11 +311,11 @@ from plexpy import helpers
 
         // Populate platform stats
         $.ajax({
-            url: 'get_user_platform_stats',
+            url: 'get_user_player_stats',
             async: true,
             data: { user_id: user_id, user: '${data['username']}' },
             complete: function(xhr, status) {
-                $("#user-platform-stats").html(xhr.responseText);
+                $("#user-player-stats").html(xhr.responseText);
             }
         });
 
@@ -332,7 +334,7 @@ from plexpy import helpers
             history_table = $('#history_table').DataTable(history_table_options);
             history_table.column(2).visible(false);
 
-            var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 10] });
+            var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
             $(colvis.button()).appendTo('#button-bar-history');
             
             clearSearchButton('history_table', history_table);

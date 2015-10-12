@@ -32,7 +32,8 @@ class Users(object):
                    'MAX(session_history.started) as last_seen',
                    'session_history.ip_address as ip_address',
                    'COUNT(session_history.id) as plays',
-                   'session_history.player as platform',
+                   'session_history.platform as platform',
+                   'session_history.player as player',
                    'session_history_metadata.full_title as last_watched',
                    'session_history_metadata.thumb',
                    'session_history_metadata.parent_thumb',
@@ -83,12 +84,19 @@ class Users(object):
             else:
                 user_thumb = item['user_thumb']
 
+            # Rename Mystery platform names
+            platform_names = {'Mystery 3': 'Playstation 3',
+                              'Mystery 4': 'Playstation 4',
+                              'Mystery 5': 'Xbox 360'}
+            platform = platform_names.get(item["platform"], item["platform"])
+
             row = {"id": item['id'],
                    "plays": item['plays'],
                    "last_seen": item['last_seen'],
                    "friendly_name": item['friendly_name'],
                    "ip_address": item['ip_address'],
-                   "platform": item['platform'],
+                   "platform": platform,
+                   "player": item['player'],
                    "last_watched": item['last_watched'],
                    "thumb": thumb,
                    "media_type": item['media_type'],
@@ -121,7 +129,8 @@ class Users(object):
                    'session_history.started as last_seen',
                    'session_history.ip_address as ip_address',
                    'COUNT(session_history.id) as play_count',
-                   'session_history.player as platform',
+                   'session_history.platform as platform',
+                   'session_history.player as player',
                    'session_history_metadata.full_title as last_watched',
                    'session_history_metadata.thumb',
                    'session_history_metadata.parent_thumb',
@@ -169,11 +178,18 @@ class Users(object):
             else:
                 thumb = item["thumb"]
 
+            # Rename Mystery platform names
+            platform_names = {'Mystery 3': 'Playstation 3',
+                              'Mystery 4': 'Playstation 4',
+                              'Mystery 5': 'Xbox 360'}
+            platform = platform_names.get(item["platform"], item["platform"])
+
             row = {"id": item['id'],
                    "last_seen": item['last_seen'],
                    "ip_address": item['ip_address'],
                    "play_count": item['play_count'],
-                   "platform": item['platform'],
+                   "platform": platform,
+                   "player": item['player'],
                    "last_watched": item['last_watched'],
                    "thumb": thumb,
                    "media_type": item['media_type'],
@@ -490,10 +506,10 @@ class Users(object):
 
         return user_watch_time_stats
 
-    def get_user_platform_stats(self, user=None, user_id=None):
+    def get_user_player_stats(self, user=None, user_id=None):
         monitor_db = database.MonitorDatabase()
 
-        platform_stats = []
+        player_stats = []
         result_id = 0
 
         try:
@@ -522,12 +538,12 @@ class Users(object):
                               'Mystery 5': 'Xbox 360'}
             platform_type = platform_names.get(item[2], item[2])
 
-            row = {'platform_name': item[0],
+            row = {'player_name': item[0],
                    'platform_type': platform_type,
                    'total_plays': item[1],
                    'result_id': result_id
                    }
-            platform_stats.append(row)
+            player_stats.append(row)
             result_id += 1
 
-        return platform_stats
+        return player_stats

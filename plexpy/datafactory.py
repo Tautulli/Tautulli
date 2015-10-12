@@ -42,6 +42,7 @@ class DataFactory(object):
                    'session_history.user_id',
                    'session_history.user',
                    '(CASE WHEN users.friendly_name IS NULL THEN user ELSE users.friendly_name END) as friendly_name',
+                   'platform',
                    'player',
                    'ip_address',
                    'session_history_metadata.media_type',
@@ -104,6 +105,12 @@ class DataFactory(object):
             else:
                 watched_status = 0
 
+            # Rename Mystery platform names
+            platform_names = {'Mystery 3': 'Playstation 3',
+                              'Mystery 4': 'Playstation 4',
+                              'Mystery 5': 'Xbox 360'}
+            platform = platform_names.get(item["platform"], item["platform"])
+
             row = {"reference_id": item["reference_id"],
                    "id": item["id"],
                    "date": item["date"],
@@ -114,6 +121,7 @@ class DataFactory(object):
                    "user_id": item["user_id"],
                    "user": item["user"],
                    "friendly_name": item["friendly_name"],
+                   "platform": platform,
                    "player": item["player"],
                    "ip_address": item["ip_address"],
                    "media_type": item["media_type"],
@@ -128,6 +136,7 @@ class DataFactory(object):
                    "thumb": thumb,
                    "video_decision": item["video_decision"],
                    "audio_decision": item["audio_decision"],
+                   "percent_complete": int(round(item['percent_complete'])),
                    "watched_status": watched_status,
                    "group_count": item["group_count"],
                    "group_ids": item["group_ids"]
@@ -151,7 +160,7 @@ class DataFactory(object):
         home_stats = []
 
         for stat in stats_cards:
-            if 'top_tv' in stat:
+            if stat == 'top_tv':
                 top_tv = []
                 try:
                     query = 'SELECT session_history_metadata.id, ' \
@@ -197,7 +206,7 @@ class DataFactory(object):
                                    'stat_type': sort_type,
                                    'rows': top_tv})
 
-            elif 'popular_tv' in stat:
+            elif stat == 'popular_tv':
                 popular_tv = []
                 try:
                     query = 'SELECT session_history_metadata.id, ' \
@@ -243,7 +252,7 @@ class DataFactory(object):
                 home_stats.append({'stat_id': stat,
                                    'rows': popular_tv})
 
-            elif 'top_movies' in stat:
+            elif stat == 'top_movies':
                 top_movies = []
                 try:
                     query = 'SELECT session_history_metadata.id, ' \
@@ -289,7 +298,7 @@ class DataFactory(object):
                                    'stat_type': sort_type,
                                    'rows': top_movies})
 
-            elif 'popular_movies' in stat:
+            elif stat == 'popular_movies':
                 popular_movies = []
                 try:
                     query = 'SELECT session_history_metadata.id, ' \
@@ -335,7 +344,7 @@ class DataFactory(object):
                 home_stats.append({'stat_id': stat,
                                    'rows': popular_movies})
 
-            elif 'top_music' in stat:
+            elif stat == 'top_music':
                 top_music = []
                 try:
                     query = 'SELECT session_history_metadata.id, ' \
@@ -381,7 +390,7 @@ class DataFactory(object):
                                    'stat_type': sort_type,
                                    'rows': top_music})
 
-            elif 'popular_music' in stat:
+            elif stat == 'popular_music':
                 popular_music = []
                 try:
                     query = 'SELECT session_history_metadata.id, ' \
@@ -427,7 +436,7 @@ class DataFactory(object):
                 home_stats.append({'stat_id': stat,
                                    'rows': popular_music})
 
-            elif 'top_users' in stat:
+            elif stat == 'top_users':
                 top_users = []
                 try:
                     query = 'SELECT session_history.user, ' \
@@ -480,7 +489,7 @@ class DataFactory(object):
                                    'stat_type': sort_type,
                                    'rows': top_users})
 
-            elif 'top_platforms' in stat:
+            elif stat == 'top_platforms':
                 top_platform = []
 
                 try:
@@ -528,7 +537,7 @@ class DataFactory(object):
                                    'stat_type': sort_type,
                                    'rows': top_platform})
 
-            elif 'last_watched' in stat:
+            elif stat == 'last_watched':
                 last_watched = []
                 try:
                     query = 'SELECT session_history_metadata.id, ' \

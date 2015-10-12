@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify

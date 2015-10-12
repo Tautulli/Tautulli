@@ -2,7 +2,7 @@ sync_table_options = {
     "processing": false,
     "serverSide": false,
     "pagingType": "bootstrap",
-    "order": [ 0, 'desc'],
+    "order": [ [ 0, 'desc'], [ 1, 'asc'], [2, 'asc'] ],
     "pageLength": 25,
     "stateSave": true,
     "language": {
@@ -67,13 +67,13 @@ sync_table_options = {
         },
         {
             "targets": [4],
-            "data": "device_name",
-            "className": "no-wrap hidden-xs"
+            "data": "platform",
+            "className": "no-wrap hidden-sm hidden-xs"
         },
         {
             "targets": [5],
-            "data": "platform",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "data": "device_name",
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [6],
