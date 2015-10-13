@@ -19,6 +19,7 @@
 from plexpy import logger, helpers
 from httplib import HTTPSConnection
 from httplib import HTTPConnection
+from xml.dom import minidom
 import ssl
 
 
@@ -96,7 +97,10 @@ class HTTPHandler(object):
                     elif output_format == 'json':
                         output = helpers.convert_xml_to_json(request_content)
                     elif output_format == 'xml':
-                        output = helpers.parse_xml(request_content)
+                        try:
+                            output = minidom.parseString(request_content)
+                        except Exception as err:
+                            raise
                     else:
                         output = request_content
 
