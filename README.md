@@ -2,7 +2,7 @@
 
 [![Join the chat at https://gitter.im/drzoidberg33/plexpy](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/drzoidberg33/plexpy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-A python based web application for monitoring, analytics and notifications for Plex Media Server (www.plex.tv).
+A Python based web application for monitoring, analytics and notifications for Plex Media Server (www.plex.tv).
 
 This project is based on code from Headphones (https://github.com/rembo10/headphones) and PlexWatchWeb (https://github.com/ecleese/plexWatchWeb).
 
