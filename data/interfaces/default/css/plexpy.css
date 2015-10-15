@@ -1518,7 +1518,7 @@ a:hover .item-children-poster {
 }
 .user-overview-stats-instance {
     float: left;
-    width: 350px;
+    width: 400px;
     height: 80px;
     margin-bottom: 25px;
 }
@@ -1531,7 +1531,7 @@ a:hover .item-children-poster {
 .user-overview-stats-instance li {
     float: left;
     list-style: none;
-    width: 340px;
+    width: 100%;
     height: 90px;
 }
 .user-overview-stats-instance-text {
