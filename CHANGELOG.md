@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.3 (2015-10-18)
+
+* Added "remaining time" as notification substitution.
+* Fix bug on home stats cards.
+* Fix visual bug on user page.
+
+
 ## v1.2.2 (2015-10-12)
 
 * Add server discovery on first run.
