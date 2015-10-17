@@ -841,94 +841,106 @@ available_notification_agents = notifiers.available_notification_agents()
                         </p>
                         <table>
                             <tbody>
-                            <tr>
-                                <td width="150"><strong>{user}</strong></td>
-                                <td>The username of the person streaming.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{server_name}</strong></td>
-                                <td>The name of your Plex Server.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{player}</strong></td>
-                                <td>The name of the device being used for playback.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{platform}</strong></td>
-                                <td>The type of client being used for playback.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{title}</strong></td>
-                                <td>The title of the item being played back.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{show_name}</strong></td>
-                                <td>The title of the TV series being played back.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{episode_name}</strong></td>
-                                <td>The title of the episode being played back.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{album_name}</strong></td>
-                                <td>The title of the album being played back if item is track.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{transcode_decision}</strong></td>
-                                <td>The transcode decisions for the media item.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{year}</strong></td>
-                                <td>The release year for the media item.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{studio}</strong></td>
-                                <td>The studio for the media item.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{content_rating}</strong></td>
-                                <td>The content rating for the media item. E.g. TV-MA, TV-PG, etc.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{summary}</strong></td>
-                                <td>A short plot summary for the media item.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{season_num}</strong></td>
-                                <td>The season number for the media item if item is episode.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{season_num00}</strong></td>
-                                <td>The two digit season number.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{episode_num}</strong></td>
-                                <td>The episode number for the media item if item is episode.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{episode_num00}</strong></td>
-                                <td>The two digit episode number.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{rating}</strong></td>
-                                <td>The rating (out of 10) for the item.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{duration}</strong></td>
-                                <td>The duration (in minutes) for the item.</td>
-                            </tr>
+                                <tr>
+                                    <td width="150"><strong>{server_name}</strong></td>
+                                    <td>The name of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{user}</strong></td>
+                                    <td>The username of the person streaming.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{platform}</strong></td>
+                                    <td>The type of client being used for playback.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{player}</strong></td>
+                                    <td>The name of the device being used for playback.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{media_type}</strong></td>
+                                    <td>The type of media being played (movie, episode, track).</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{title}</strong></td>
+                                    <td>The title of the item being played.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{show_name}</strong></td>
+                                    <td>The title of the TV series being played.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{episode_name}</strong></td>
+                                    <td>The title of the episode being played.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{artist_name}</strong></td>
+                                    <td>The name of the artist being played.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{album_name}</strong></td>
+                                    <td>The title of the album being played.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{season_num}</strong></td>
+                                    <td>The season number for the media item if item is episode.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{season_num00}</strong></td>
+                                    <td>The two digit season number.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{episode_num}</strong></td>
+                                    <td>The episode number for the media item if item is episode.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{episode_num00}</strong></td>
+                                    <td>The two digit episode number.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{transcode_decision}</strong></td>
+                                    <td>The transcode decisions for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{year}</strong></td>
+                                    <td>The release year for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{studio}</strong></td>
+                                    <td>The studio for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{content_rating}</strong></td>
+                                    <td>The content rating for the media item. (e.g. TV-MA, TV-PG, etc.)</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{summary}</strong></td>
+                                    <td>A short plot summary for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{rating}</strong></td>
+                                    <td>The rating (out of 10) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{duration}</strong></td>
+                                    <td>The duration (in minutes) for the item.</td>
+                                </tr>
                                 <tr>
                                     <td width="150"><strong>{stream_duration}</strong></td>
                                     <td>The stream duration (in minutes) for the item.</td>
                                 </tr>
-                            <tr>
-                                <td width="150"><strong>{progress}</strong></td>
-                                <td>The last reported offset (in minutes) for the item.</td>
-                            </tr>
-                            <tr>
-                                <td width="150"><strong>{progress_percent}</strong></td>
-                                <td>The last reported progress percent for the item.</td>
-                            </tr>
+                                <tr>
+                                    <td width="150"><strong>{remaining_duration}</strong></td>
+                                    <td>The remaining duration (in minutes) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{progress}</strong></td>
+                                    <td>The last reported offset (in minutes) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{progress_percent}</strong></td>
+                                    <td>The last reported progress percent for the item.</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
