@@ -564,7 +564,7 @@ class DataFactory(object):
                             'AND (session_history_metadata.media_type = "movie" ' \
                             'OR session_history_metadata.media_type = "episode") ' \
                             'AND percent_complete >= %s ' \
-                            'GROUP BY session_history_metadata.full_title ' \
+                            'GROUP BY session_history.id ' \
                             'ORDER BY last_watch DESC ' \
                             'LIMIT %s' % (time_range, notify_watched_percent, stats_count)
                     result = monitor_db.select(query)
