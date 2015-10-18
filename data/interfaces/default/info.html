@@ -514,11 +514,11 @@ DOCUMENTATION :: END
 <script>
     function get_history() {
         history_table_options.ajax = {
-            "url": "get_history",
+            url: 'get_history',
             type: 'post',
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ),
-                    'media_type': '${data['media_type']}' };
+                    'media_type': "${data['media_type']}" };
             }
         }
     }
@@ -527,11 +527,11 @@ DOCUMENTATION :: END
 <script>
     function get_history() {
         history_table_options.ajax = {
-            "url": "get_history",
+            url: 'get_history',
             type: 'post',
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ),
-                    'grandparent_rating_key': ${data['rating_key']} };
+                    'grandparent_rating_key': "${data['rating_key']}" };
             }
         }
     }
@@ -540,11 +540,11 @@ DOCUMENTATION :: END
 <script>
     function get_history() {
         history_table_options.ajax = {
-            "url": "get_history",
+            url: 'get_history',
             type: 'post',
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ),
-                    'parent_rating_key': ${data['rating_key']} };
+                    'parent_rating_key': "${data['rating_key']}" };
             }
         }
     }
@@ -553,11 +553,11 @@ DOCUMENTATION :: END
 <script>
     function get_history() {
         history_table_options.ajax = {
-            "url": "get_history",
+            url: 'get_history',
             type: 'post',
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ),
-                    'rating_key': ${data['rating_key']} };
+                    'rating_key': "${data['rating_key']}" };
             }
         }
     }
@@ -614,12 +614,19 @@ DOCUMENTATION :: END
 <script>
     $.ajax({
         url: 'get_item_children',
-        type: "GET",
+        type: 'GET',
         async: true,
         data: { rating_key : ${data['rating_key']} },
         complete: function(xhr, status) {
         $("#children-list").html(xhr.responseText); }
     });
+</script>
+% endif
+% if data['type'] != 'library':
+<script>
+    $('#row-edit-mode').after('<a href="info?item_id=${data['rating_key']}" class="btn btn-danger btn-edit" id="fix-metadata" \
+        data-toggle="tooltip" data-placement="left" title="Fix metadata if the item was moved in Plex"><i class="fa fa-wrench"></i> Fix Metadata</a>');
+    $('#fix-metadata').tooltip();
 </script>
 % endif
 % if data['type'] != 'library' and data['rating']:
@@ -638,7 +645,7 @@ DOCUMENTATION :: END
 <script>
     $.ajax({
         url: 'get_search_results_children',
-        type: "GET",
+        type: 'GET',
         async: true,
         data: {'query': "${query['query_string']}",
                'media_type': "${query['media_type']}",
