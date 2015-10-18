@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -141,10 +141,13 @@ class DataTables(object):
                 c_where += w[0] + ' = ? AND '
 
                 # The order of our args changes if we are grouping
-                if grouping:
-                    args.insert(0, w[1])
-                else:
-                    args.append(w[1])
+                #if grouping:
+                #    args.insert(0, w[1])
+                #else:
+                #    args.append(w[1])
+
+                # My testing shows that order of args doesn't change
+                args.append(w[1])
 
             if c_where:
                 c_where = 'WHERE ' + c_where.rstrip(' AND ')
