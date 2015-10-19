@@ -41,6 +41,7 @@ def extract_plexwatch_xml(xml=None):
         grandparent_thumb = helpers.get_xml_attr(a, 'grandparentThumb')
         grandparent_title = helpers.get_xml_attr(a, 'grandparentTitle')
         guid = helpers.get_xml_attr(a, 'guid')
+        library_id = helpers.get_xml_attr(a, 'librarySectionID')
         media_index = helpers.get_xml_attr(a, 'index')
         originally_available_at = helpers.get_xml_attr(a, 'originallyAvailableAt')
         last_viewed_at = helpers.get_xml_attr(a, 'lastViewedAt')
@@ -156,6 +157,7 @@ def extract_plexwatch_xml(xml=None):
                   'title': title,
                   'tagline': tagline,
                   'guid': guid,
+                  'library_id': library_id,
                   'media_index': media_index,
                   'originally_available_at': originally_available_at,
                   'last_viewed_at': last_viewed_at,
@@ -352,8 +354,8 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                                     'title': row['title'],
                                     'parent_title': extracted_xml['parent_title'],
                                     'grandparent_title': row['grandparent_title'],
-                                    'index': extracted_xml['media_index'],
-                                    'parent_index': extracted_xml['parent_media_index'],
+                                    'media_index': extracted_xml['media_index'],
+                                    'parent_media_index': extracted_xml['parent_media_index'],
                                     'thumb': extracted_xml['thumb'],
                                     'parent_thumb': extracted_xml['parent_thumb'],
                                     'grandparent_thumb': extracted_xml['grandparent_thumb'],
@@ -370,6 +372,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                                     'rating': extracted_xml['rating'],
                                     'duration': extracted_xml['duration'],
                                     'guid': extracted_xml['guid'],
+                                    'library_id': extracted_xml['library_id'],
                                     'directors': extracted_xml['directors'],
                                     'writers': extracted_xml['writers'],
                                     'actors': extracted_xml['actors'],
@@ -409,4 +412,3 @@ def import_users():
         logger.debug(u"PlexPy Importer :: Users imported.")
     except:
         logger.debug(u"PlexPy Importer :: Failed to import users.")
-

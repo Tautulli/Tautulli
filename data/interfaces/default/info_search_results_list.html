@@ -35,8 +35,8 @@ duration                Returns the standard runtime of the media.
 content_rating          Returns the age rating for the media.
 summary                 Returns a brief description of the media plot.
 grandparent_title       Returns the name of the show, or artist.
-parent_index            Returns the index number of the season.
-index                   Returns the index number of the episode, or track.
+parent_media_index      Returns the index number of the season.
+media_index             Returns the index number of the episode, or track.
 parent_thumb            Returns the location of the item's thumbnail. Use with pms_image_proxy.
 writers                 Returns an array of writers.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
@@ -112,7 +112,7 @@ DOCUMENTATION :: END
                 </div>
                 <div class="item-children-instance-text-wrapper season-item">
                     <h3 title="${child['parent_title']}">${child['parent_title']}</h3>
-                    <h3 class="text-muted">S${child['index']}</h3>
+                    <h3 class="text-muted">S${child['media_index']}</h3>
                 </div>
             </a>
         </li>
@@ -135,7 +135,7 @@ DOCUMENTATION :: END
                 <div class="item-children-instance-text-wrapper episode-item">
                     <h3 title="${child['grandparent_title']}">${child['grandparent_title']}</h3>
                     <h3 title="${child['title']}">${child['title']}</h3>
-                    <h3 class="text-muted">S${child['parent_index']} &middot; E${child['index']}</h3>
+                    <h3 class="text-muted">S${child['parent_media_index']} &middot; E${child['media_index']}</h3>
                 </div>
             </a>
         </li>
@@ -199,7 +199,7 @@ DOCUMENTATION :: END
                     <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['parent_thumb']}&width=300&height=300);">
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
-                                Track ${child['index']}
+                                Track ${child['media_index']}
                             </div>
                         </div>
                     </div>

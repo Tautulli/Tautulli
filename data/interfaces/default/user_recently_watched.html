@@ -50,7 +50,7 @@ DOCUMENTATION :: END
 					% if item['type'] == 'episode':
 					<h3 title="${item['grandparent_title']}">${item['grandparent_title']}</h3>
 					<h3 title="${item['title']}">${item['title']}</h3>
-					<h3 class="text-muted">S${item['parent_index']} &middot; E${item['index']}</h3>
+					<h3 class="text-muted">S${item['parent_media_index']} &middot; E${item['media_index']}</h3>
 					% elif item['type'] == 'movie':
 					<h3 title="${item['title']}">${item['title']}</h3>
 					<h3 class="text-muted">${item['year']}</h3>

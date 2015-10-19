@@ -405,11 +405,10 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS session_history_metadata (id INTEGER PRIMARY KEY, '
         'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
         'title TEXT, parent_title TEXT, grandparent_title TEXT, full_title TEXT, media_index INTEGER, '
-        'parent_media_index INTEGER, thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, art TEXT, media_type TEXT, '
-        'year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, last_viewed_at INTEGER, '
-        'content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, duration INTEGER DEFAULT 0, guid TEXT, '
-        'directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT)'
-        ''
+        'parent_media_index INTEGER, library_id INTEGER, thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, '
+        'art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, '
+        'last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, '
+        'duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT)'
     )
 
     # users table :: This table keeps record of the friends list
@@ -419,6 +418,20 @@ def dbcheck():
         'friendly_name TEXT, thumb TEXT, email TEXT, custom_avatar_url TEXT, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
         'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0)'
+    )
+
+    # notify_log table :: This is a table which logs notifications sent
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
+        'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER, '
+        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER)'
+    )
+
+    # library_sections table :: This table keeps record of the servers library sections
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'section_id INTEGER UNIQUE, section_name TEXT, section_type TEXT)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -547,6 +560,50 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN transcode_height INTEGER'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT buffer_count from sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN buffer_count INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN buffer_last_triggered INTEGER'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT last_paused from sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN last_paused INTEGER'
+        )
+
+    # Upgrade session_history table from earlier versions
+    try:
+        c_db.execute('SELECT reference_id from session_history')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history.")
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN reference_id INTEGER DEFAULT 0'
+        )
+        # Set reference_id to the first row where (user_id = previous row, rating_key != previous row) and user_id = user_id
+        c_db.execute(
+            'UPDATE session_history ' \
+            'SET reference_id = (SELECT (CASE \
+             WHEN (SELECT MIN(id) FROM session_history WHERE id > ( \
+                 SELECT MAX(id) FROM session_history \
+                 WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) IS NULL \
+             THEN (SELECT MIN(id) FROM session_history WHERE (user_id = t1.user_id)) \
+             ELSE (SELECT MIN(id) FROM session_history WHERE id > ( \
+                 SELECT MAX(id) FROM session_history \
+                 WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) END) ' \
+            'FROM session_history AS t1 ' \
+            'WHERE t1.id = session_history.id) '
+        )
+
     # Upgrade session_history_metadata table from earlier versions
     try:
         c_db.execute('SELECT full_title from session_history_metadata')
@@ -565,13 +622,14 @@ def dbcheck():
             'ALTER TABLE session_history_metadata ADD COLUMN tagline TEXT'
         )
 
-    # notify_log table :: This is a table which logs notifications sent
-    c_db.execute(
-        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
-        'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER, '
-        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER, on_created INTEGER)'
-    )
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute('SELECT library_id from session_history_metadata')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_metadata.")
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN library_id INTEGER'
+        )
 
     # Upgrade users table from earlier versions
     try:
@@ -589,6 +647,24 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table users.")
         c_db.execute(
             'ALTER TABLE users ADD COLUMN keep_history INTEGER DEFAULT 1'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT custom_avatar_url from users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN custom_avatar_url TEXT'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT deleted_user from users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN deleted_user INTEGER DEFAULT 0'
         )
 
     # Upgrade notify_log table from earlier versions
@@ -615,73 +691,11 @@ def dbcheck():
             'ALTER TABLE notify_log ADD COLUMN on_created INTEGER'
         )
 
-    # Upgrade sessions table from earlier versions
-    try:
-        c_db.execute('SELECT buffer_count from sessions')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
-        c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN buffer_count INTEGER DEFAULT 0'
-        )
-        c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN buffer_last_triggered INTEGER'
-        )
-
-    # Upgrade users table from earlier versions
-    try:
-        c_db.execute('SELECT custom_avatar_url from users')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table users.")
-        c_db.execute(
-            'ALTER TABLE users ADD COLUMN custom_avatar_url TEXT'
-        )
-
-    # Upgrade sessions table from earlier versions
-    try:
-        c_db.execute('SELECT last_paused from sessions')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
-        c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN last_paused INTEGER'
-        )
-
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
     if not result.fetchone():
         logger.debug(u'User "Local" does not exist. Adding user.')
         c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
-
-    # Upgrade session_history table from earlier versions
-    try:
-        c_db.execute('SELECT reference_id from session_history')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table session_history.")
-        c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN reference_id INTEGER DEFAULT 0'
-        )
-        # Set reference_id to the first row where (user_id = previous row, rating_key != previous row) and user_id = user_id
-        c_db.execute(
-            'UPDATE session_history ' \
-            'SET reference_id = (SELECT (CASE \
-             WHEN (SELECT MIN(id) FROM session_history WHERE id > ( \
-                 SELECT MAX(id) FROM session_history \
-                 WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) IS NULL \
-             THEN (SELECT MIN(id) FROM session_history WHERE (user_id = t1.user_id)) \
-             ELSE (SELECT MIN(id) FROM session_history WHERE id > ( \
-                 SELECT MAX(id) FROM session_history \
-                 WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) END) ' \
-            'FROM session_history AS t1 ' \
-            'WHERE t1.id = session_history.id) '
-        )
-
-    # Upgrade users table from earlier versions
-    try:
-        c_db.execute('SELECT deleted_user from users')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table users.")
-        c_db.execute(
-            'ALTER TABLE users ADD COLUMN deleted_user INTEGER DEFAULT 0'
-        )
 
     conn_db.commit()
     c_db.close()

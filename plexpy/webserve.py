@@ -167,6 +167,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     def history(self):
+        # Make sure our library sections are up to date.
+        data_factory = datafactory.DataFactory()
+        data_factory.update_library_sections()
+
         return serve_template(templatename="history.html", title="History")
 
     @cherrypy.expose
@@ -623,6 +627,9 @@ class WebInterface(object):
         if 'reference_id' in kwargs:
             reference_id = kwargs.get('reference_id', "")
             custom_where.append(['session_history.reference_id', reference_id])
+        if 'library_id' in kwargs:
+            library_id = kwargs.get('library_id', "")
+            custom_where.append(['session_history_metadata.library_id', library_id])
         if 'media_type' in kwargs:
             media_type = kwargs.get('media_type', "")
             if media_type != 'all':
@@ -838,23 +845,27 @@ class WebInterface(object):
             return None
 
     @cherrypy.expose
-    def info(self, item_id=None, source=None, **kwargs):
+    def info(self, library_id=None, item_id=None, source=None, query=None, **kwargs):
+        # Make sure our library sections are up to date.
+        data_factory = datafactory.DataFactory()
+        data_factory.update_library_sections()
+
         metadata = None
-        query = None
+        query_string = query
 
         config = {
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
+            "update_library_ids": plexpy.CONFIG.UPDATE_LIBRARY_IDS
         }
 
         if source == 'history':
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(row_id=item_id)
-        elif item_id == 'movie':
-            metadata = {'media_type': 'library', 'library': 'movie', 'media_type_filter': 'movie', 'title': 'Movies'}
-        elif item_id == 'show':
-            metadata = {'media_type': 'library', 'library': 'show', 'media_type_filter': 'episode', 'title': 'TV Shows'}
-        elif item_id == 'artist':
-            metadata = {'media_type': 'library', 'library': 'artist', 'media_type_filter': 'track', 'title': 'Music'}
+        elif library_id:
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_library_metadata_details(library_id=library_id)
+            if result:
+                metadata = result['metadata']
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=item_id)
@@ -863,6 +874,8 @@ class WebInterface(object):
             else:
                 data_factory = datafactory.DataFactory()
                 query = data_factory.get_search_query(rating_key=item_id)
+                if query_string:
+                    query['query_string'] = query_string
 
         if metadata:
             return serve_template(templatename="info.html", data=metadata, title="Info", config=config)
@@ -1527,7 +1540,7 @@ class WebInterface(object):
             result['results_list'] = {media_type: result['results_list'][media_type]}
         if media_type == 'season' and season_index:
             for season in result['results_list']['season']:
-                if season['index'] == season_index:
+                if season['media_index'] == season_index:
                     result['results_list']['season'] = [season]
                     break
 
@@ -1616,3 +1629,33 @@ class WebInterface(object):
         if servers:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return servers
+
+    @cherrypy.expose
+    def update_library_ids(self, **kwargs):
+
+        logger.debug(u"Updating library_id's in database.")
+        data_factory = datafactory.DataFactory()
+        result = data_factory.update_library_ids()
+
+        if result:
+            logger.debug(u"Updated all library_id's in database.")
+            plexpy.CONFIG.UPDATE_LIBRARY_IDS = 0
+            plexpy.CONFIG.write()
+            return "Library ids updated."
+        else:
+            logger.debug(u"Unable to update library_id's in database.")
+            return "Unable to update library ids in database."
+
+    @cherrypy.expose
+    def update_library_sections(self, **kwargs):
+
+        logger.debug(u"Updating library sections in database.")
+        data_factory = datafactory.DataFactory()
+        result = data_factory.update_library_sections()
+
+        if result:
+            logger.debug(u"Updated all library sections in database.")
+            return "Library sections updated."
+        else:
+            logger.debug(u"Unable to update library sections in database.")
+            return "Unable to update library sections in database."

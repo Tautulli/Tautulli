@@ -60,49 +60,41 @@ DOCUMENTATION :: END
 % if data:
 <div class="container-fluid">
     <div class="row">
-        % if data['media_type'] != 'library':
         <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['art']}&width=1920&height=1080)"></div>
-        % endif
         <div class="summary-container">
             <div class="summary-navbar">
                 <div class="col-md-12">
                     <div class="summary-navbar-list">
                         <ul class="list-unstyled breadcrumb">
                         % if data['media_type'] == 'library':
-                        % if data['library'] == 'movie':
-                        <li class="active">Movies</li>
-                        % elif data['library'] == 'show':
-                        <li class="active">TV Shows</li>
-                        % elif data['library'] == 'artist':
-                        <li class="active">Music</li>
-                        % endif
+                        <li class="active">${data['title']}</li>
                         % elif data['media_type'] == 'movie':
-                        <li><a href="info?item_id=movie">Movies</a></li>
+                        <li><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['media_type'] == 'show':
-                        <li><a href="info?item_id=show">TV Shows</a></li>
+                        <li><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['media_type'] == 'season':
-                        <li class="hidden-xs hidden-sm"><a href="info?item_id=show">TV Shows</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></li>
-                        <li class="active">Season ${data['index']}</li>
+                        <li class="active">Season ${data['media_index']}</li>
                         % elif data['media_type'] == 'episode':
-                        <li class="hidden-xs hidden-sm"><a href="info?item_id=show">TV Shows</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
-                        <li><a href="info?item_id=${data['parent_rating_key']}">Season ${data['parent_index']}</a></li>
-                        <li class="active">Episode ${data['index']} - ${data['title']}</li>
+                        <li><a href="info?item_id=${data['parent_rating_key']}">Season ${data['parent_media_index']}</a></li>
+                        <li class="active">Episode ${data['media_index']} - ${data['title']}</li>
                         % elif data['media_type'] == 'artist':
-                        <li><a href="info?item_id=artist">Music</a></li>
+                        <li><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['media_type'] == 'album':
-                        <li class="hidden-xs hidden-sm"><a href="info?item_id=artist">Music</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['media_type'] == 'track':
-                        <li class="hidden-xs hidden-sm"><a href="info?item_id=artist">Music</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
                         <li><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></li>
-                        <li class="active">Track ${data['index']} - ${data['title']}</li>
+                        <li class="active">Track ${data['media_index']} - ${data['title']}</li>
                         % endif
                         </ul>
                     </div>
@@ -143,18 +135,18 @@ DOCUMENTATION :: END
                         <h1>&nbsp;</h1><h1>${data['title']}</h1>
                         % elif data['media_type'] == 'season':
                         <h1>&nbsp;</h1><h1><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></h1>
-                        <h3 class="hidden-xs">S${data['index']}</h3>
+                        <h3 class="hidden-xs">S${data['media_index']}</h3>
                         % elif data['media_type'] == 'episode':
                         <h1><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></h1>
                         <h2>${data['title']}</h2>
-                        <h3 class="hidden-xs">S${data['parent_index']} &middot; E${data['index']}</h3>
+                        <h3 class="hidden-xs">S${data['parent_media_index']} &middot; E${data['media_index']}</h3>
                         % elif data['media_type'] == 'album':
                         <h1><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         % elif data['media_type'] == 'track':
                         <h1><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></h1>
                         <h2><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a> - ${data['title']}</h2>
-                        <h3 class="hidden-xs">T${data['index']}</h3>
+                        <h3 class="hidden-xs">T${data['media_index']}</h3>
                         % endif
                     </div>
                 </div>
@@ -315,6 +307,13 @@ DOCUMENTATION :: END
                 % endif
                 % endif
                 <div class='col-md-12'>
+                    % if data['media_type'] == 'library' and config['update_library_ids'] == 1:
+                    <div id="update_library_ids_mssage" style="text-align: center; margin-top: 20px;">
+                        <i class="fa fa-refresh fa-spin"></i> Updating library ids in the database. This could take a few minutes depending on the size of your database.
+                        <br />
+                        The history table will refresh automatically when the update is complete. Please wait...
+                    </div>
+                    % endif
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Watch History for <strong>${data['title']}</strong></span>
@@ -417,21 +416,15 @@ DOCUMENTATION :: END
                     </div>
                 </div>
             </div>
-            <div class="summary-content-title-wrapper">
-                <div class="col-md-12">
-                    <h4 style="text-align: center; margin-bottom: 20px;">
-                        Error retrieving item metadata. This media item is not available in the Plex Media Server library.
-                    </h4>
-                    % if query:
-                    <h4 style="text-align: center; margin-bottom: 20px;">
-                        If the item has been moved, please select the correct match below to update the PlexPy database.
-                    </h4>
-                    % endif
-                </div>
-            </div>
             <div class="summary-content-wrapper">
                 <div class='col-md-12'>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <i class="fa fa-exclamation-triangle"></i> Error retrieving item metadata. This media item is not available in the Plex Media Server library.
+                    </div>
                     % if query:
+                    <div style="text-align: center; margin-top: 20px;">
+                        If the item has been moved, please select the correct match below to update the PlexPy database.
+                    </div>
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Search Results for <strong>${query['query_string']}</strong></span>
@@ -507,9 +500,22 @@ DOCUMENTATION :: END
             type: 'post',
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ),
-                    'media_type': "${data['media_type_filter']}" };
+                    'library_id': "${data['library_id']}" };
             }
         }
+    }
+    if ("${config['update_library_ids']}" == "1") {
+        $.ajax({
+            url: 'update_library_ids',
+            type: 'post',
+            cache: false,
+            async: true,
+            data: { },
+            complete: function (xhr, status) {
+                $('#update_library_ids_mssage').remove();
+                history_table.draw();
+            }
+        });
     }
 </script>
 % elif data['media_type'] == 'show' or data['media_type'] == 'artist':

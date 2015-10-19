@@ -755,8 +755,8 @@ class DataFactory(object):
                                  'parent_title': row['parent_title'],
                                  'grandparent_title': row['grandparent_title'],
                                  'thumb': thumb,
-                                 'index': row['media_index'],
-                                 'parent_index': row['parent_media_index'],
+                                 'media_index': row['media_index'],
+                                 'parent_media_index': row['parent_media_index'],
                                  'year': row['year'],
                                  'time': row['started'],
                                  'user': row['user']
@@ -769,12 +769,23 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         if row_id:
-            query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
-                    'full_title, media_index, parent_media_index, thumb, parent_thumb, grandparent_thumb, art, media_type, ' \
-                    'year, originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, tagline, ' \
-                    'rating, duration, guid, directors, writers, actors, genres, studio ' \
+            query = 'SELECT session_history_metadata.rating_key, session_history_metadata.parent_rating_key, ' \
+                    'session_history_metadata.grandparent_rating_key, session_history_metadata.title, ' \
+                    'session_history_metadata.parent_title, session_history_metadata.grandparent_title, ' \
+                    'session_history_metadata.full_title, library_sections.section_name, ' \
+                    'session_history_metadata.media_index, session_history_metadata.parent_media_index, ' \
+                    'session_history_metadata.library_id, session_history_metadata.thumb, ' \
+                    'session_history_metadata.parent_thumb, session_history_metadata.grandparent_thumb, ' \
+                    'session_history_metadata.art, session_history_metadata.media_type, session_history_metadata.year, ' \
+                    'session_history_metadata.originally_available_at, session_history_metadata.added_at, ' \
+                    'session_history_metadata.updated_at, session_history_metadata.last_viewed_at, ' \
+                    'session_history_metadata.content_rating, session_history_metadata.summary, ' \
+                    'session_history_metadata.tagline, session_history_metadata.rating, session_history_metadata.duration, ' \
+                    'session_history_metadata.guid, session_history_metadata.directors, session_history_metadata.writers, ' \
+                    'session_history_metadata.actors, session_history_metadata.genres, session_history_metadata.studio ' \
                     'FROM session_history_metadata ' \
-                    'WHERE id = ?'
+                    'JOIN library_sections ON session_history_metadata.library_id = library_sections.section_id ' \
+                    'WHERE session_history_metadata.id = ?'
             result = monitor_db.select(query=query, args=[row_id])
         else:
             result = []
@@ -791,9 +802,9 @@ class DataFactory(object):
                         'parent_rating_key': item['parent_rating_key'],
                         'grandparent_rating_key': item['grandparent_rating_key'],
                         'grandparent_title': item['grandparent_title'],
-                        'parent_index': item['parent_media_index'],
+                        'parent_media_index': item['parent_media_index'],
                         'parent_title': item['parent_title'],
-                        'index': item['media_index'],
+                        'media_index': item['media_index'],
                         'studio': item['studio'],
                         'title': item['title'],
                         'content_rating': item['content_rating'],
@@ -814,7 +825,9 @@ class DataFactory(object):
                         'writers': writers,
                         'directors': directors,
                         'genres': genres,
-                        'actors': actors
+                        'actors': actors,
+                        'library_title': item['section_name'],
+                        'library_id': item['library_id']
                         }
 
         return metadata
@@ -1051,6 +1064,10 @@ class DataFactory(object):
         if mapping:
             logger.info(u"PlexPy DataFactory :: Updating rating keys in the database.")
             for old_key, new_key in mapping.iteritems():
+                # check library_id (1 table)
+                monitor_db.action('UPDATE session_history_metadata SET library_id = ? WHERE rating_key = ?', 
+                                  [new_key_list['library_id'], old_key])
+
                 # check rating_key (3 tables)
                 monitor_db.action('UPDATE session_history SET rating_key = ? WHERE rating_key = ?',
                                   [new_key, old_key])
@@ -1135,3 +1152,54 @@ class DataFactory(object):
             total_duration = item['total_duration']
 
         return total_duration
+
+    def update_library_ids(self):
+        from plexpy import pmsconnect
+
+        pms_connect = pmsconnect.PmsConnect()
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            query = 'SELECT id, rating_key FROM session_history_metadata WHERE library_id IS NULL'
+            result = monitor_db.select(query=query)
+        except:
+            logger.warn("Unable to execute database query for update_library_id.")
+            return None
+
+        for item in result:
+            id = item[0]
+            rating_key = item[1]
+
+            result = pms_connect.get_metadata_details(rating_key=rating_key)
+
+            if result:
+                metadata = result['metadata']
+
+                section_keys = {'id': id}
+                section_values = {'library_id': metadata['library_id']}
+
+                monitor_db.upsert('session_history_metadata', key_dict=section_keys, value_dict=section_values)
+            else:
+                continue
+
+        return True
+
+    def update_library_sections(self):
+        from plexpy import pmsconnect
+
+        pms_connect = pmsconnect.PmsConnect()
+        library_sections = pms_connect.get_server_children()
+
+        if library_sections:
+            if library_sections['libraries_count'] != '0':
+                monitor_db = database.MonitorDatabase()
+
+                for section in library_sections['libraries_list']:
+                    section_keys = {'section_id': section['key']}
+                    section_values = {'section_id': section['key'],
+                                      'section_name': section['title'],
+                                      'section_type': section['type']}
+
+                    monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
+
+        return True
