@@ -182,7 +182,7 @@ class DataFactory(object):
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: top_tv.")
                     return None
 
                 for item in result:
@@ -230,7 +230,7 @@ class DataFactory(object):
                             'LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: popular_tv.")
                     return None
 
                 for item in result:
@@ -274,7 +274,7 @@ class DataFactory(object):
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: top_movies.")
                     return None
 
                 for item in result:
@@ -322,7 +322,7 @@ class DataFactory(object):
                             'LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: popular_movies.")
                     return None
 
                 for item in result:
@@ -366,7 +366,7 @@ class DataFactory(object):
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: top_music.")
                     return None
 
                 for item in result:
@@ -414,7 +414,7 @@ class DataFactory(object):
                             'LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: popular_music.")
                     return None
 
                 for item in result:
@@ -459,7 +459,7 @@ class DataFactory(object):
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: top_users.")
                     return None
 
                 for item in result:
@@ -507,7 +507,7 @@ class DataFactory(object):
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: top_platforms.")
                     return None
 
                 for item in result:
@@ -564,12 +564,12 @@ class DataFactory(object):
                             'AND (session_history_metadata.media_type = "movie" ' \
                             'OR session_history_metadata.media_type = "episode") ' \
                             'AND percent_complete >= %s ' \
-                            'GROUP BY session_history_metadata.full_title ' \
+                            'GROUP BY session_history.id ' \
                             'ORDER BY last_watch DESC ' \
                             'LIMIT %s' % (time_range, notify_watched_percent, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: last_watched.")
                     return None
 
                 for item in result:
@@ -680,7 +680,7 @@ class DataFactory(object):
                         'ORDER BY started DESC LIMIT ?'
                 result = monitor_db.select(query, args=[limit])
         except:
-            logger.warn("Unable to execute database query.")
+            logger.warn("Unable to execute database query for get_recently_watched.")
             return None
 
         for row in result:
@@ -894,7 +894,7 @@ class DataFactory(object):
             grandparent_rating_key = result[0]['grandparent_rating_key']
 
         except:
-            logger.warn("Unable to execute database query.")
+            logger.warn("Unable to execute database query for get_rating_keys_list.")
             return {}
 
         query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \

@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -70,6 +70,39 @@ class DataTables(object):
         else:
             grouping = False
 
+        # Build join parameters
+        if join_types:
+            counter = 0
+            for join_type in join_types:
+                if join_type.upper() == 'LEFT OUTER JOIN':
+                    join_item = 'LEFT OUTER JOIN %s ON %s = %s ' % \
+                                (join_tables[counter], join_evals[counter][0], join_evals[counter][1])
+                elif join_type.upper() == 'JOIN' or join_type.upper() == 'INNER JOIN':
+                    join_item = 'JOIN %s ON %s = %s ' % \
+                                (join_tables[counter], join_evals[counter][0], join_evals[counter][1])
+                else:
+                    join_item = ''
+
+                counter += 1
+                join += join_item
+
+        # Build custom where parameters
+        if custom_where:
+            for w in custom_where:
+                c_where += w[0] + ' = ? AND '
+
+                # The order of our args changes if we are grouping
+                #if grouping:
+                #    args.insert(0, w[1])
+                #else:
+                #    args.append(w[1])
+
+                # My testing shows that order of args doesn't change
+                args.append(w[1])
+
+            if c_where:
+                c_where = 'WHERE ' + c_where.rstrip(' AND ')
+
         # Build ordering
         for o in parameters['order']:
             sort_order = ' COLLATE NOCASE'
@@ -118,36 +151,6 @@ class DataTables(object):
 
             if where:
                 where = 'WHERE ' + where.rstrip(' OR ')
-
-        # Build join parameters
-        if join_types:
-            counter = 0
-            for join_type in join_types:
-                if join_type.upper() == 'LEFT OUTER JOIN':
-                    join_item = 'LEFT OUTER JOIN %s ON %s = %s ' % \
-                                (join_tables[counter], join_evals[counter][0], join_evals[counter][1])
-                elif join_type.upper() == 'JOIN' or join_type.upper() == 'INNER JOIN':
-                    join_item = 'JOIN %s ON %s = %s ' % \
-                                (join_tables[counter], join_evals[counter][0], join_evals[counter][1])
-                else:
-                    join_item = ''
-
-                counter += 1
-                join += join_item
-
-        # Build custom where parameters
-        if custom_where:
-            for w in custom_where:
-                c_where += w[0] + ' = ? AND '
-
-                # The order of our args changes if we are grouping
-                if grouping:
-                    args.insert(0, w[1])
-                else:
-                    args.append(w[1])
-
-            if c_where:
-                c_where = 'WHERE ' + c_where.rstrip(' AND ')
 
         # Build our queries
         if grouping:

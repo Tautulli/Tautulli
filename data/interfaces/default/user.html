@@ -319,15 +319,17 @@ from plexpy import helpers
             }
         });
 
-        $( "#history-tab-btn" ).one( "click", function() {
+        function loadHistoryTable(media_type) {
             // Build watch history table
             history_table_options.ajax = {
-                "url": "get_history",
+                url: 'get_history',
                 type: 'post',
                 data: function ( d ) {
-                    return { 'json_data': JSON.stringify( d ),
-                             'user_id': user_id,
-                             'user': "${data['username']}"
+                    return {
+                        'json_data': JSON.stringify( d ),
+                        'user_id': user_id,
+                        'user': "${data['username']}",
+                        'media_type': media_type
                     };
                 }
             }
@@ -338,6 +340,36 @@ from plexpy import helpers
             $(colvis.button()).appendTo('#button-bar-history');
             
             clearSearchButton('history_table', history_table);
+
+            $('#history_table_filter').prepend('<div class="btn-group" data-toggle="buttons" id="media_type-selection" style="padding-right: 15px;"> \
+                <label class="btn btn-dark"> \
+                    <input type="radio" name="media_type-filter" id="history-all" value="all" autocomplete="off"> All \
+                </label> \
+                <label class="btn btn-dark"> \
+                    <input type="radio" name="media_type-filter" id="history-movies" value="movie" autocomplete="off"> Movies \
+                </label> \
+                <label class="btn btn-dark"> \
+                    <input type="radio" name="media_type-filter" id="history-tv_shows" value="episode" autocomplete="off"> TV Shows \
+                </label> \
+                <label class="btn btn-dark"> \
+                    <input type="radio" name="media_type-filter" id="history-music" value="track" autocomplete="off"> Music \
+                </label> \
+            </div>');
+
+            $('#media_type-selection').on('change', function () {
+                media_type = $('input[name=media_type-filter]:checked', '#media_type-selection').val();
+                loadHistoryTable(media_type)
+            });
+            $('#media_type-selection > label').removeClass('active');
+            if (media_type == 'all') { $('#history-all').closest('label').addClass('active'); }
+            if (media_type == 'movie') { $('#history-movies').closest('label').addClass('active'); }
+            if (media_type == 'episode') { $('#history-tv_shows').closest('label').addClass('active'); }
+            if (media_type == 'track') { $('#history-music').closest('label').addClass('active'); }
+        }
+
+        $( "#history-tab-btn" ).one( "click", function() {
+            var media_type = 'all';
+            loadHistoryTable(media_type)
         });
 
         $( "#ip-tab-btn" ).one( "click", function() {
