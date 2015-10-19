@@ -347,6 +347,9 @@ class PmsConnect(object):
             else:
                 logger.debug(u"Metadata failed")
 
+            library_id = helpers.get_xml_attr(a, 'librarySectionID')
+            library_title = helpers.get_xml_attr(a, 'librarySectionTitle')
+            
         genres = []
         actors = []
         writers = []
@@ -368,8 +371,42 @@ class PmsConnect(object):
             for director in metadata_main.getElementsByTagName('Director'):
                 directors.append(helpers.get_xml_attr(director, 'tag'))
 
-        if metadata_type == 'show':
+        if metadata_type == 'movie':
             metadata = {'type': metadata_type,
+                        'library_id': library_id,
+                        'library_title': library_title,
+                        'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
+                        'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
+                        'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
+                        'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                        'index': helpers.get_xml_attr(metadata_main, 'index'),
+                        'studio': helpers.get_xml_attr(metadata_main, 'studio'),
+                        'title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
+                        'summary': helpers.get_xml_attr(metadata_main, 'summary'),
+                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
+                        'rating': helpers.get_xml_attr(metadata_main, 'rating'),
+                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
+                        'year': helpers.get_xml_attr(metadata_main, 'year'),
+                        'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
+                        'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
+                        'art': helpers.get_xml_attr(metadata_main, 'art'),
+                        'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
+                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
+                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
+                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
+                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
+                        'genres': genres,
+                        'actors': actors,
+                        'writers': writers,
+                        'directors': directors
+                        }
+            metadata_list = {'metadata': metadata}
+        elif metadata_type == 'show':
+            metadata = {'type': metadata_type,
+                        'library_id': library_id,
+                        'library_title': library_title,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
@@ -402,6 +439,8 @@ class PmsConnect(object):
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
             show_details = self.get_metadata_details(parent_rating_key)
             metadata = {'type': metadata_type,
+                        'library_id': library_id,
+                        'library_title': library_title,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
@@ -433,6 +472,8 @@ class PmsConnect(object):
             metadata_list = {'metadata': metadata}
         elif metadata_type == 'episode':
             metadata = {'type': metadata_type,
+                        'library_id': library_id,
+                        'library_title': library_title,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
@@ -463,38 +504,10 @@ class PmsConnect(object):
                         'actors': actors
                         }
             metadata_list = {'metadata': metadata}
-        elif metadata_type == 'movie':
-            metadata = {'type': metadata_type,
-                        'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
-                        'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
-                        'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
-                        'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
-                        'index': helpers.get_xml_attr(metadata_main, 'index'),
-                        'studio': helpers.get_xml_attr(metadata_main, 'studio'),
-                        'title': helpers.get_xml_attr(metadata_main, 'title'),
-                        'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
-                        'summary': helpers.get_xml_attr(metadata_main, 'summary'),
-                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
-                        'rating': helpers.get_xml_attr(metadata_main, 'rating'),
-                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
-                        'year': helpers.get_xml_attr(metadata_main, 'year'),
-                        'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
-                        'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
-                        'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
-                        'art': helpers.get_xml_attr(metadata_main, 'art'),
-                        'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
-                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
-                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
-                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
-                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
-                        'genres': genres,
-                        'actors': actors,
-                        'writers': writers,
-                        'directors': directors
-                        }
-            metadata_list = {'metadata': metadata}
         elif metadata_type == 'artist':
             metadata = {'type': metadata_type,
+                        'library_id': library_id,
+                        'library_title': library_title,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
@@ -527,6 +540,8 @@ class PmsConnect(object):
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
             artist_details = self.get_metadata_details(parent_rating_key)
             metadata = {'type': metadata_type,
+                        'library_id': library_id,
+                        'library_title': library_title,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
@@ -560,6 +575,8 @@ class PmsConnect(object):
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
             album_details = self.get_metadata_details(parent_rating_key)
             metadata = {'type': metadata_type,
+                        'library_id': library_id,
+                        'library_title': library_title,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),

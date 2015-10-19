@@ -713,9 +713,9 @@ class DataFactory(object):
 
         if row_id:
             query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
-                    'full_title, media_index, parent_media_index, thumb, parent_thumb, grandparent_thumb, art, media_type, ' \
-                    'year, originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, tagline, ' \
-                    'rating, duration, guid, directors, writers, actors, genres, studio ' \
+                    'full_title, library_title, media_index, parent_media_index, library_id, thumb, parent_thumb, grandparent_thumb, ' \
+                    'art, media_type, year, originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, ' \
+                    'tagline, rating, duration, guid, directors, writers, actors, genres, studio ' \
                     'FROM session_history_metadata ' \
                     'WHERE id = ?'
             result = monitor_db.select(query=query, args=[row_id])
@@ -757,7 +757,9 @@ class DataFactory(object):
                         'writers': writers,
                         'directors': directors,
                         'genres': genres,
-                        'actors': actors
+                        'actors': actors,
+                        'library_title': item['library_title'],
+                        'library_id': item['library_id']
                         }
 
         return metadata
