@@ -39,7 +39,7 @@ DOCUMENTATION :: END
                 <div class="home-platforms-instance-name">
                     % if library['type'] != 'photo':
                     <h4>
-                        <a href="info?item_id=${library['type']}" title="${library['rows']['title']}">${library['rows']['title']}</a>
+                        <a href="info?library_id=${library['rows']['key']}" title="${library['rows']['title']}">${library['rows']['title']}</a>
                     </h4>
                     % else:
                     <h4>${library['rows']['title']}</h4>

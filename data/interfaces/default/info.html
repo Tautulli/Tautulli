@@ -69,37 +69,31 @@ DOCUMENTATION :: END
                     <div class="summary-navbar-list">
                         <ul class="list-unstyled breadcrumb">
                         % if data['type'] == 'library':
-                        % if data['library'] == 'movie':
-                        <li class="active">Movies</li>
-                        % elif data['library'] == 'show':
-                        <li class="active">TV Shows</li>
-                        % elif data['library'] == 'artist':
-                        <li class="active">Music</li>
-                        % endif
+                        <li class="active">${data['title']}</li>
                         % elif data['type'] == 'movie':
-                        <li><a href="info?item_id=movie">Movies</a></li>
+                        <li><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['type'] == 'show':
-                        <li><a href="info?item_id=show">TV Shows</a></li>
+                        <li><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['type'] == 'season':
-                        <li class="hidden-xs hidden-sm"><a href="info?item_id=show">TV Shows</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></li>
                         <li class="active">Season ${data['index']}</li>
                         % elif data['type'] == 'episode':
-                        <li class="hidden-xs hidden-sm"><a href="info?item_id=show">TV Shows</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
                         <li><a href="info?item_id=${data['parent_rating_key']}">Season ${data['parent_index']}</a></li>
                         <li class="active">Episode ${data['index']} - ${data['title']}</li>
                         % elif data['type'] == 'artist':
-                        <li><a href="info?item_id=artist">Music</a></li>
+                        <li><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['type'] == 'album':
-                        <li class="hidden-xs hidden-sm"><a href="info?item_id=artist">Music</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['type'] == 'track':
-                        <li class="hidden-xs hidden-sm"><a href="info?item_id=artist">Music</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="info?library_id=${data['library_id']}">${data['library_title']}</a></li>
                         <li class="hidden-xs hidden-sm"><a href="info?item_id=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
                         <li><a href="info?item_id=${data['parent_rating_key']}">${data['parent_title']}</a></li>
                         <li class="active">Track ${data['index']} - ${data['title']}</li>
@@ -507,7 +501,7 @@ DOCUMENTATION :: END
             type: 'post',
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ),
-                    'media_type': "${data['media_type']}" };
+                    'library_id': "${data['library_id']}" };
             }
         }
     }

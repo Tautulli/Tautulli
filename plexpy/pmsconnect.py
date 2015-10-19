@@ -613,6 +613,53 @@ class PmsConnect(object):
         return metadata_list
 
     """
+    Return processed and validated metadata list for requested library.
+
+    Parameters required:    library_id { Plex library key }
+
+    Output: array
+    """
+    def get_library_metadata_details(self, library_id=''):
+        libraries_data = self.get_libraries_list(output_format='xml')
+
+        try:
+            xml_head = libraries_data.getElementsByTagName('MediaContainer')
+        except:
+            logger.warn("Unable to parse XML for get_library_metadata_details.")
+            return []
+
+        metadata_list = []
+
+        for a in xml_head:
+            if a.getAttribute('size'):
+                if a.getAttribute('size') == '0':
+                    metadata_list = {'metadata': None}
+                    return metadata_list
+
+            if a.getElementsByTagName('Directory'):
+                result_data = a.getElementsByTagName('Directory')
+                for result in result_data:
+                    key = helpers.get_xml_attr(result, 'key')
+                    if key == library_id:
+                        metadata = {'type': 'library',
+                                    'library_id': helpers.get_xml_attr(result, 'key'),
+                                    'library': helpers.get_xml_attr(result, 'type'),
+                                    'title': helpers.get_xml_attr(result, 'title'),
+                                    'art': helpers.get_xml_attr(result, 'art'),
+                                    'thumb': helpers.get_xml_attr(result, 'thumb')
+                                    }
+                        if metadata['library'] == 'movie':
+                            metadata['media_type'] = 'movie'
+                        elif metadata['library'] == 'show':
+                            metadata['media_type'] = 'episode'
+                        elif metadata['library'] == 'artist':
+                            metadata['media_type'] = 'track'
+
+            metadata_list = {'metadata': metadata}
+        
+        return metadata_list
+
+    """
     Return processed and validated session list.
 
     Output: array

@@ -589,6 +589,9 @@ class WebInterface(object):
         if 'reference_id' in kwargs:
             reference_id = kwargs.get('reference_id', "")
             custom_where.append(['session_history.reference_id', reference_id])
+        if 'library_id' in kwargs:
+            library_id = kwargs.get('library_id', "")
+            custom_where.append(['session_history_metadata.library_id', library_id])
         if 'media_type' in kwargs:
             media_type = kwargs.get('media_type', "")
             if media_type != 'all':
@@ -766,7 +769,7 @@ class WebInterface(object):
             return None
 
     @cherrypy.expose
-    def info(self, item_id=None, source=None, **kwargs):
+    def info(self, library_id=None, item_id=None, source=None, **kwargs):
         metadata = None
         query = None
 
@@ -777,12 +780,11 @@ class WebInterface(object):
         if source == 'history':
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(row_id=item_id)
-        elif item_id == 'movie':
-            metadata = {'type': 'library', 'library': 'movie', 'media_type': 'movie', 'title': 'Movies'}
-        elif item_id == 'show':
-            metadata = {'type': 'library', 'library': 'show', 'media_type': 'episode', 'title': 'TV Shows'}
-        elif item_id == 'artist':
-            metadata = {'type': 'library', 'library': 'artist', 'media_type': 'track', 'title': 'Music'}
+        elif library_id:
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_library_metadata_details(library_id=library_id)
+            if result:
+                metadata = result['metadata']
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=item_id)
