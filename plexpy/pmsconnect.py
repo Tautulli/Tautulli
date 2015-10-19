@@ -1348,7 +1348,8 @@ class PmsConnect(object):
                     continue
 
                 if library_list['library_count'] != '0':
-                    library_stats = {'title': library['title'],
+                    library_stats = {'key': library['key'],
+                                     'title': library['title'],
                                      'thumb': library['thumb'],
                                      'count': library_list['library_count'],
                                      'count_type': library_list['count_type']
@@ -1513,6 +1514,8 @@ class PmsConnect(object):
             try:
                 metadata = self.get_metadata_details(rating_key=rating_key)
                 rating_key = metadata['metadata']['parent_rating_key']
+                library_id = metadata['metadata']['library_id']
+                library_title = metadata['metadata']['library_title']
             except:
                 logger.warn("Unable to get parent_rating_key for get_rating_keys_list.")
                 return {}
@@ -1521,6 +1524,8 @@ class PmsConnect(object):
             try:
                 metadata = self.get_metadata_details(rating_key=rating_key)
                 rating_key = metadata['metadata']['grandparent_rating_key']
+                library_id = metadata['metadata']['library_id']
+                library_title = metadata['metadata']['library_title']
             except:
                 logger.warn("Unable to get grandparent_rating_key for get_rating_keys_list.")
                 return {}
@@ -1593,7 +1598,9 @@ class PmsConnect(object):
         key = 0 if match_type == 'index' else title
         key_list = {key:
                     {'rating_key': int(rating_key),
-                     'children': parents}
+                     'children': parents},
+                    'library_id': library_id,
+                    'library_title': library_title
                     }
 
         return key_list
