@@ -774,7 +774,8 @@ class WebInterface(object):
         query = None
 
         config = {
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
+            "update_library_ids": plexpy.CONFIG.UPDATE_LIBRARY_IDS
         }
 
         if source == 'history':
@@ -1471,3 +1472,19 @@ class WebInterface(object):
         if servers:
             cherrypy.response.headers['Content-type'] = 'application/json'
             return servers
+
+    @cherrypy.expose
+    def update_library_ids(self, **kwargs):
+
+        logger.debug(u"Updating library_id's in database.")
+        data_factory = datafactory.DataFactory()
+        result = data_factory.update_library_ids()
+
+        if result:
+            plexpy.CONFIG.UPDATE_LIBRARY_IDS = 0
+            plexpy.CONFIG.write()
+            logger.debug(u"Updated all library_id's in database.")
+            return "Library ids updated."
+        else:
+            logger.debug(u"Unable to update library_id's in database.")
+            return "Unable to update library ids in database."

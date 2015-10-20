@@ -609,15 +609,6 @@ def dbcheck():
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN library_title TEXT'
         )
-        logger.debug(u"Updating library_id's in database. Please wait...")
-        from plexpy import datafactory
-        data_factory = datafactory.DataFactory()
-        result = data_factory.update_library_ids()
-
-        if result:
-            logger.debug(u"Updated all library_id's in database.")
-        else:
-            logger.debug(u"Unable to update library_id's in database.")
 
     # Upgrade users table from earlier versions
     try:

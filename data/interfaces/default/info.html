@@ -502,6 +502,24 @@ DOCUMENTATION :: END
                     'library_id': "${data['library_id']}" };
             }
         }
+        if ("${config['update_library_ids']}" == "1") {
+            $('#history_table').before('<div id="update_mssage" style="text-align: center"> \
+                    <i class="fa fa-refresh fa-spin"></i> Updating library ids in the database. This could take a few minutes depending on the size of your database. \
+                    <br /> \
+                    The history table will refresh automatically when complete. Please wait... \
+                </div>')
+            $.ajax({
+                url: 'update_library_ids',
+                type: 'post',
+                cache: false,
+                async: true,
+                data: { },
+                complete: function (xhr, status) {
+                    $('#update_mssage').remove();
+                    history_table.draw();
+                }
+            });
+        }
     }
 </script>
 % elif data['type'] == 'show' or data['type'] == 'artist':
