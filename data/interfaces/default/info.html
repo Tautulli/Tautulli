@@ -307,6 +307,13 @@ DOCUMENTATION :: END
                 % endif
                 % endif
                 <div class='col-md-12'>
+                    % if data['type'] == 'library' and config['update_library_ids'] == 1:
+                    <div id="update_library_ids_mssage" style="text-align: center; margin-top: 20px;">
+                        <i class="fa fa-refresh fa-spin"></i> Updating library ids in the database. This could take a few minutes depending on the size of your database.
+                        <br />
+                        The history table will refresh automatically when the update is complete. Please wait...
+                    </div>
+                    % endif
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Watch History for <strong>${data['title']}</strong></span>
@@ -409,21 +416,15 @@ DOCUMENTATION :: END
                     </div>
                 </div>
             </div>
-            <div class="summary-content-title-wrapper">
-                <div class="col-md-12">
-                    <h4 style="text-align: center; margin-bottom: 20px;">
-                        Error retrieving item metadata. This media item is not available in the Plex Media Server library.
-                    </h4>
-                    % if query:
-                    <h4 style="text-align: center; margin-bottom: 20px;">
-                        If the item has been moved, please select the correct match below to update the PlexPy database.
-                    </h4>
-                    % endif
-                </div>
-            </div>
             <div class="summary-content-wrapper">
                 <div class='col-md-12'>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <i class="fa fa-exclamation-triangle"></i> Error retrieving item metadata. This media item is not available in the Plex Media Server library.
+                    </div>
                     % if query:
+                    <div style="text-align: center; margin-top: 20px;">
+                        If the item has been moved, please select the correct match below to update the PlexPy database.
+                    </div>
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Search Results for <strong>${query['query_string']}</strong></span>
@@ -502,24 +503,19 @@ DOCUMENTATION :: END
                     'library_id': "${data['library_id']}" };
             }
         }
-        if ("${config['update_library_ids']}" == "1") {
-            $('#history_table').before('<div id="update_mssage" style="text-align: center"> \
-                    <i class="fa fa-refresh fa-spin"></i> Updating library ids in the database. This could take a few minutes depending on the size of your database. \
-                    <br /> \
-                    The history table will refresh automatically when complete. Please wait... \
-                </div>')
-            $.ajax({
-                url: 'update_library_ids',
-                type: 'post',
-                cache: false,
-                async: true,
-                data: { },
-                complete: function (xhr, status) {
-                    $('#update_mssage').remove();
-                    history_table.draw();
-                }
-            });
-        }
+    }
+    if ("${config['update_library_ids']}" == "1") {
+        $.ajax({
+            url: 'update_library_ids',
+            type: 'post',
+            cache: false,
+            async: true,
+            data: { },
+            complete: function (xhr, status) {
+                $('#update_library_ids_mssage').remove();
+                history_table.draw();
+            }
+        });
     }
 </script>
 % elif data['type'] == 'show' or data['type'] == 'artist':

@@ -1481,9 +1481,9 @@ class WebInterface(object):
         result = data_factory.update_library_ids()
 
         if result:
+            logger.debug(u"Updated all library_id's in database.")
             plexpy.CONFIG.UPDATE_LIBRARY_IDS = 0
             plexpy.CONFIG.write()
-            logger.debug(u"Updated all library_id's in database.")
             return "Library ids updated."
         else:
             logger.debug(u"Unable to update library_id's in database.")
