@@ -1,4 +1,4 @@
-﻿#  This file is part of PlexPy.
+#  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import os.path
 import subprocess
 import gntp.notifier
 import json
+import ssl
 
 import oauth2 as oauth
 import pythontwitter as twitter
@@ -50,7 +51,8 @@ AGENT_IDS = {"Growl": 0,
              "OSX Notify": 8,
              "Boxcar2": 9,
              "Email": 10,
-             "Twitter": 11}
+             "Twitter": 11,
+             "IFTTT": 12}
 
 def available_notification_agents():
     agents = [{'name': 'Growl',
@@ -184,6 +186,18 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.TWITTER_ON_RESUME,
                'on_buffer': plexpy.CONFIG.TWITTER_ON_BUFFER,
                'on_watched': plexpy.CONFIG.TWITTER_ON_WATCHED
+               },
+              {'name': 'IFTTT',
+               'id': AGENT_IDS['IFTTT'],
+               'config_prefix': 'ifttt',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.IFTTT_ENABLED),
+               'on_play': plexpy.CONFIG.IFTTT_ON_PLAY,
+               'on_stop': plexpy.CONFIG.IFTTT_ON_STOP,
+               'on_pause': plexpy.CONFIG.IFTTT_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.IFTTT_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.IFTTT_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.IFTTT_ON_WATCHED
                }
               ]
 
@@ -245,6 +259,9 @@ def get_notification_agent_config(config_id):
         elif config_id == 11:
             tweet = TwitterNotifier()
             return tweet.return_config_options()
+        elif config_id == 12:
+            iftttClient = IFTTT()
+            return iftttClient.return_config_options()
         else:
             return []
     else:
@@ -290,6 +307,9 @@ def send_notification(config_id, subject, body):
         elif config_id == 11:
             tweet = TwitterNotifier()
             tweet.notify(subject=subject, message=body)
+        elif config_id == 12:
+            iftttClient = IFTTT()
+            iftttClient.notify(subject=subject, message=body)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
@@ -1316,6 +1336,74 @@ class Email(object):
                           'name': 'email_tls',
                           'description': 'Does the server use encryption.',
                           'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+    
+class IFTTT(object):
+
+    def __init__(self):
+        self.apikey = plexpy.CONFIG.IFTTT_KEY
+        self.event = plexpy.CONFIG.IFTTT_EVENT
+        self.on_play = plexpy.CONFIG.IFTTT_ON_PLAY
+        self.on_stop = plexpy.CONFIG.IFTTT_ON_STOP
+        self.on_watched = plexpy.CONFIG.IFTTT_ON_WATCHED
+
+
+    def notify(self, message, subject):
+        if not message or not subject:
+            return
+        # This should be the contex we use, but it isn't working as it casues an SSL validation error
+        # Unfortunately this is beyond my phython ability!
+        #context = ssl.create_default_context()
+        context = ssl._create_unverified_context()
+        http_handler = HTTPSConnection("maker.ifttt.com", context=context)
+
+        data = {'value1': subject.encode("utf-8"),
+                'value2': message.encode("utf-8")}
+        
+        #logger.debug("Ifttt SENDING: %s" % json.dumps(data))
+
+        http_handler.request("POST",
+                                "/trigger/%s/with/key/%s" % (plexpy.CONFIG.IFTTT_EVENT, plexpy.CONFIG.IFTTT_KEY),
+                                headers={'Content-type': "application/json"},
+                                body=json.dumps(data))
+        response = http_handler.getresponse()
+        request_status = response.status
+        #logger.debug(u"Ifttt response status: %r" % request_status)
+        #logger.debug(u"Ifttt response headers: %r" % response.getheaders())
+        #logger.debug(u"Ifttt response body: %r" % response.read())
+
+        if request_status == 200:
+                logger.info(u"Ifttt notifications sent.")
+                return True
+        elif request_status >= 400 and request_status < 500:
+                logger.info(u"Ifttt request failed: %s" % response.reason)
+                return False
+        else:
+                logger.info(u"Ifttt notification failed serverside.")
+                return False
+
+    def test(self, apikey, event):
+
+        self.enabled = True
+        self.apikey = apikey        
+        self.event = event
+        self.notify('Main Screen Activate', 'Test Message')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Ifttt Maker Channel Key',
+                          'value': self.apikey,
+                          'name': 'ifttt_key',
+                          'description': 'Your Ifttt  key. You can get a key from here https://ifttt.com/maker',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Ifttt event',
+                          'value': self.event,
+                          'name': 'ifttt_event',
+                          'description': 'The Ifttt maker event to fire.',
+                          'input_type': 'text'
                           }
                          ]
 
