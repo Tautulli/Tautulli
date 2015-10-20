@@ -571,27 +571,28 @@ class WebInterface(object):
 
         custom_where = []
         if user_id:
-            custom_where = [['session_history.user_id', user_id]]
+            custom_where.append(['session_history.user_id', user_id])
         elif user:
-            custom_where = [['session_history.user', user]]
+            custom_where.append(['session_history.user', user])
         if 'rating_key' in kwargs:
             rating_key = kwargs.get('rating_key', "")
-            custom_where = [['session_history.rating_key', rating_key]]
+            custom_where.append(['session_history.rating_key', rating_key])
         if 'parent_rating_key' in kwargs:
             rating_key = kwargs.get('parent_rating_key', "")
-            custom_where = [['session_history.parent_rating_key', rating_key]]
+            custom_where.append(['session_history.parent_rating_key', rating_key])
         if 'grandparent_rating_key' in kwargs:
             rating_key = kwargs.get('grandparent_rating_key', "")
-            custom_where = [['session_history.grandparent_rating_key', rating_key]]
+            custom_where.append(['session_history.grandparent_rating_key', rating_key])
         if 'start_date' in kwargs:
             start_date = kwargs.get('start_date', "")
-            custom_where = [['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date]]
+            custom_where.append(['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date])
         if 'reference_id' in kwargs:
             reference_id = kwargs.get('reference_id', "")
-            custom_where = [['session_history.reference_id', reference_id]]
+            custom_where.append(['session_history.reference_id', reference_id])
         if 'media_type' in kwargs:
             media_type = kwargs.get('media_type', "")
-            custom_where = [['session_history_metadata.media_type', media_type]]
+            if media_type != 'all':
+               custom_where.append(['session_history_metadata.media_type', media_type])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
