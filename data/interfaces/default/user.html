@@ -342,7 +342,7 @@ from plexpy import helpers
             clearSearchButton('history_table', history_table);
 
             $('#history_table_filter').prepend('<div class="btn-group" data-toggle="buttons" id="media_type-selection" style="padding-right: 15px;"> \
-                <label class="btn btn-dark"> \
+                <label class="btn btn-dark active"> \
                     <input type="radio" name="media_type-filter" id="history-all" value="all" autocomplete="off"> All \
                 </label> \
                 <label class="btn btn-dark"> \
@@ -357,19 +357,17 @@ from plexpy import helpers
             </div>');
 
             $('#media_type-selection').on('change', function () {
-                media_type = $('input[name=media_type-filter]:checked', '#media_type-selection').val();
-                loadHistoryTable(media_type)
+                $('#media_type-selection > label').removeClass('active');
+                selected_filter = $('input[name=media_type-filter]:checked', '#media_type-selection');
+                $(selected_filter).closest('label').addClass('active');
+                media_type = $(selected_filter).val();
+                history_table.draw();
             });
-            $('#media_type-selection > label').removeClass('active');
-            if (media_type == 'all') { $('#history-all').closest('label').addClass('active'); }
-            if (media_type == 'movie') { $('#history-movies').closest('label').addClass('active'); }
-            if (media_type == 'episode') { $('#history-tv_shows').closest('label').addClass('active'); }
-            if (media_type == 'track') { $('#history-music').closest('label').addClass('active'); }
         }
 
         $( "#history-tab-btn" ).one( "click", function() {
             var media_type = 'all';
-            loadHistoryTable(media_type)
+            loadHistoryTable(media_type);
         });
 
         $( "#ip-tab-btn" ).one( "click", function() {
