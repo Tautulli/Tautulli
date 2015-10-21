@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -213,3 +213,48 @@ class ActivityHandler(object):
                 # We don't have this session in our table yet, start a new one.
                 if this_state != 'buffering':
                     self.on_start()
+
+class TimelineHandler(object):
+
+    def __init__(self, timeline):
+        self.timeline = timeline
+        # print timeline
+
+    def is_item(self):
+        if 'itemID' in self.timeline and 'metadataState' in self.timeline:
+            return True
+
+        return False
+
+    def get_rating_key(self):
+        if self.is_item():
+            return int(self.timeline['itemID'])
+
+        return None
+
+    def get_metadata(self):
+        pms_connect = pmsconnect.PmsConnect()
+        metadata_list = pms_connect.get_metadata_details(self.get_rating_key())
+
+        if metadata_list:
+            return metadata_list['metadata']
+
+        return None
+
+    def on_created(self):
+        if self.is_item():
+            logger.debug(u"PlexPy TimelineHandler :: Library item %s has been added to Plex." % str(self.get_rating_key()))
+
+            # Fire off notifications
+            threading.Thread(target=notification_handler.notify_timeline,
+                             kwargs=dict(timeline_data=self.get_metadata(), notify_action='created')).start()
+
+    # This function receives events from our websocket connection
+    def process(self):
+        if self.is_item():
+
+            this_state = self.timeline['state']
+            this_metadataState = self.timeline['metadataState']
+
+            if this_state == 0 and this_metadataState == 'created':
+                self.on_created()
