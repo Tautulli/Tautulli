@@ -57,6 +57,13 @@ from plexpy import helpers
                             </label>
                             <p class="help-block">Trigger notification when a media item triggers the defined buffer threshold.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_created" ${helpers.checked(data['on_created'])} class="toggle-switches">
+                                Notify on recently added
+                            </label>
+                            <p class="help-block">Trigger notification when a media item is added to the Plex Media Server.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -81,6 +88,7 @@ from plexpy import helpers
                     console.log('success');
                 }
             });
+            $('.toggle-notification-triggers-modal[data-id=' + configToggle + ']').addClass('active');
         } else {
             var data = {};
             data[$(this).data('config-name')] = 0;
@@ -92,6 +100,9 @@ from plexpy import helpers
                     console.log('success');
                 }
             });
+            if (!($('.toggle-switches').is(":checked"))) {
+                $('.toggle-notification-triggers-modal[data-id=' + configToggle + ']').removeClass('active');
+            }
         }
     });
 </script>
