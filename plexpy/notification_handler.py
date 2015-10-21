@@ -168,6 +168,19 @@ def notify(stream_data=None, notify_action=None):
         logger.debug(u"PlexPy Notifier :: Notify called but incomplete data received.")
 
 
+def notify_timeline(timeline_data=None, notify_action=None):
+    if timeline_data and notify_action:
+        for agent in notifiers.available_notification_agents():
+            if agent['on_created'] and notify_action == 'created':
+                # Build and send notification
+                notify_strings = build_notify_text(session=timeline_data, state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1])
+    else:
+        logger.debug(u"PlexPy Notifier :: Notify timeline called but incomplete data received.")
+
+
 def get_notify_state(session):
     monitor_db = database.MonitorDatabase()
     result = monitor_db.select('SELECT on_play, on_stop, on_pause, on_resume, on_buffer, on_watched, agent_id '
@@ -268,6 +281,8 @@ def build_notify_text(session, state):
         on_buffer_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT))
         on_watched_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
         on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
+        on_created_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT))
+        on_created_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT))
     else:
         on_start_subject = plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT
         on_start_body = plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT
@@ -281,6 +296,8 @@ def build_notify_text(session, state):
         on_buffer_body = plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT
         on_watched_subject = plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT
         on_watched_body = plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT
+        on_created_subject = plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT
+        on_created_body = plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT
 
     # Create a title
     if session['media_type'] == 'episode':
@@ -293,24 +310,26 @@ def build_notify_text(session, state):
         full_title = session['title']
 
     # Generate a combined transcode decision value
-    if session['video_decision']:
+    transcode_decision = ''
+    if session.get('video_decision', None):
         if session['video_decision'] == 'transcode':
             transcode_decision = 'Transcode'
         elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
             transcode_decision = 'Direct Stream'
         else:
             transcode_decision = 'Direct Play'
-    else:
+    elif session.get('audio_decision', None):
         if session['audio_decision'] == 'transcode':
             transcode_decision = 'Transcode'
         else:
             transcode_decision = 'Direct Play'
 
     duration = helpers.convert_milliseconds_to_minutes(item_metadata['duration'])
-    view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
+    view_offset = helpers.convert_milliseconds_to_minutes(session.get('view_offset', ''))
+
     stream_duration = 0
-    if state != 'play':
-        if session['paused_counter']:
+    if state != 'play' and state != 'created':
+        if 'paused_counter' in session:
             stream_duration = int((time.time() - helpers.cast_to_float(session['started']) -
                                    helpers.cast_to_float(session['paused_counter'])) / 60)
         else:
@@ -319,9 +338,9 @@ def build_notify_text(session, state):
     progress_percent = helpers.get_percent(view_offset, duration)
 
     available_params = {'server_name': server_name,
-                        'user': session['friendly_name'],
-                        'platform': session['platform'],
-                        'player': session['player'],
+                        'user': session.get('friendly_name', ''),
+                        'platform': session.get('platform', ''),
+                        'player': session.get('player', ''),
                         'media_type': session['media_type'],
                         'title': full_title,
                         'show_name': item_metadata['grandparent_title'],
@@ -484,6 +503,28 @@ def build_notify_text(session, state):
 
             try:
                 body_text = unicode(on_watched_body).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    elif state == 'created':
+        # Default body text
+        body_text = '%s was recently added to Plex.' % full_title
+
+        if on_created_subject and on_created_body:
+            try:
+                subject_text = unicode(on_created_subject).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_created_body).format(**available_params)
             except LookupError, e:
                 logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
             except:
