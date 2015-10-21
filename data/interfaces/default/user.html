@@ -262,33 +262,6 @@ from plexpy import helpers
 <script src="interfaces/default/js/tables/user_ips.js"></script>
 <script src="interfaces/default/js/tables/sync_table.js"></script>
 <script>
-    function recentlyWatched() {
-        var widthVal = $('body').find("#user-recently-watched").width();
-        var tmp = (widthVal-32) / 180;
-
-        if (tmp > 0) {
-            containerSize = parseInt(tmp);
-        } else {
-            containerSize = 1;
-        }
-        
-        % if data['user_id']:
-            var user_id = ${data['user_id']};
-        % else:
-            var user_id = null;
-        % endif
-
-        // Populate recently watched
-        $.ajax({
-            url: 'get_user_recently_watched',
-            async: true,
-            data: { user_id: user_id, user: '${data['username']}', limit: containerSize },
-            complete: function(xhr, status) {
-                $("#user-recently-watched").html(xhr.responseText);
-            }
-        });        
-    }
-    
     $(document).ready(function () {
 
         % if data['user_id']:
@@ -297,13 +270,15 @@ from plexpy import helpers
             var user_id = null;
         % endif
 
+        var username = '${data['username'].replace("'", "\\'")}';
+
         $("#edit-user-tooltip").tooltip();
 
         // Populate watch time stats
         $.ajax({
             url: 'get_user_watch_time_stats',
             async: true,
-            data: { user_id: user_id, user: '${data['username']}' },
+            data: { user_id: user_id, user: username },
             complete: function(xhr, status) {
                 $("#user-time-stats").html(xhr.responseText);
             }
@@ -313,7 +288,7 @@ from plexpy import helpers
         $.ajax({
             url: 'get_user_player_stats',
             async: true,
-            data: { user_id: user_id, user: '${data['username']}' },
+            data: { user_id: user_id, user: username },
             complete: function(xhr, status) {
                 $("#user-player-stats").html(xhr.responseText);
             }
@@ -328,7 +303,7 @@ from plexpy import helpers
                     return {
                         'json_data': JSON.stringify( d ),
                         'user_id': user_id,
-                        'user': "${data['username']}",
+                        'user': username,
                         'media_type': media_type
                     };
                 }
@@ -378,7 +353,7 @@ from plexpy import helpers
                 data: function ( d ) {
                     return { 'json_data': JSON.stringify( d ),
                              'user_id': user_id,
-                             'user': "${data['username']}"
+                             'user': username
                     };
                 }
             }
@@ -393,7 +368,7 @@ from plexpy import helpers
                 "url": "get_sync",
                 "data": function(d) {
                    d.user_id = user_id;
-                   d.user = "${data['username']}";
+                   d.user = username;
                 }
             }
             sync_table = $('#sync_table').DataTable(sync_table_options);
@@ -410,7 +385,7 @@ from plexpy import helpers
             $("#edit-user-tooltip").tooltip('hide');
             $.ajax({
                 url: 'edit_user_dialog',
-                data: { user_id: user_id, user: '${data['username']}' },
+                data: { user_id: user_id, user: username },
                 cache: false,
                 async: true,
                 complete: function(xhr, status) {
@@ -455,6 +430,33 @@ from plexpy import helpers
                 });
             }
         });
+
+        function recentlyWatched() {
+            var widthVal = $('body').find("#user-recently-watched").width();
+            var tmp = (widthVal-32) / 180;
+
+            if (tmp > 0) {
+                containerSize = parseInt(tmp);
+            } else {
+                containerSize = 1;
+            }
+
+            % if data['user_id']:
+                var user_id = ${data['user_id']};
+            % else:
+                var user_id = null;
+            % endif
+
+            // Populate recently watched
+            $.ajax({
+                url: 'get_user_recently_watched',
+                async: true,
+                data: { user_id: user_id, user: username, limit: containerSize },
+                complete: function(xhr, status) {
+                    $("#user-recently-watched").html(xhr.responseText);
+                }
+            });
+        }
         
         recentlyWatched();
         $(window).resize(function() {
