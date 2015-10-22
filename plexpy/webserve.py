@@ -654,6 +654,16 @@ class WebInterface(object):
             return "Error sending tweet"
 
     @cherrypy.expose
+    def test_ifttt(self):
+        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+        event = notifiers.IFTTT()
+        result = event.test()
+        if result:
+            return "Notification successful."
+        else:
+            return "Error sending event."
+
+    @cherrypy.expose
     def osxnotifyregister(self, app):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
         from osxnotify import registerapp as osxnotify
