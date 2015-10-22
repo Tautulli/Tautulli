@@ -707,9 +707,9 @@ class DataFactory(object):
 
         if row_id:
             query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
-                    'full_title, media_index, parent_media_index, thumb, parent_thumb, grandparent_thumb, art, media_type, ' \
-                    'year, originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, tagline, ' \
-                    'rating, duration, guid, directors, writers, actors, genres, studio ' \
+                    'full_title, library_title, media_index, parent_media_index, library_id, thumb, parent_thumb, grandparent_thumb, ' \
+                    'art, media_type, year, originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, ' \
+                    'tagline, rating, duration, guid, directors, writers, actors, genres, studio ' \
                     'FROM session_history_metadata ' \
                     'WHERE id = ?'
             result = monitor_db.select(query=query, args=[row_id])
@@ -751,7 +751,9 @@ class DataFactory(object):
                         'writers': writers,
                         'directors': directors,
                         'genres': genres,
-                        'actors': actors
+                        'actors': actors,
+                        'library_title': item['library_title'],
+                        'library_id': item['library_id']
                         }
 
         return metadata
@@ -848,7 +850,9 @@ class DataFactory(object):
                     media_type = 'artist'
 
         if query_string and media_type:
-            query = {'query_string': query_string.replace('"', ''),
+            query_string = query_string.replace('"', '')
+            query_string = query_string.replace(u"’", u"'")
+            query = {'query_string': query_string,
                      'title': title,
                      'parent_title': parent_title,
                      'grandparent_title': grandparent_title,
@@ -954,6 +958,14 @@ class DataFactory(object):
         if mapping:
             logger.info(u"PlexPy DataFactory :: Updating rating keys in the database.")
             for old_key, new_key in mapping.iteritems():
+                # check library_id (1 table)
+                monitor_db.action('UPDATE session_history_metadata SET library_id = ? WHERE rating_key = ?', 
+                                  [new_key_list['library_id'], old_key])
+
+                # check library_title (1 table)
+                monitor_db.action('UPDATE session_history_metadata SET library_title = ? WHERE rating_key = ?', 
+                                  [new_key_list['library_title'], old_key])
+
                 # check rating_key (3 tables)
                 monitor_db.action('UPDATE session_history SET rating_key = ? WHERE rating_key = ?', 
                                   [new_key, old_key])
@@ -999,3 +1011,31 @@ class DataFactory(object):
             return 'No updated rating key needed in database. No changes were made.'
         # for debugging
         #return mapping
+
+    def update_library_ids(self):
+        from plexpy import pmsconnect
+
+        pms_connect = pmsconnect.PmsConnect()
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            query = 'SELECT id, rating_key FROM session_history_metadata WHERE library_id IS NULL'
+            result = monitor_db.select(query=query)
+        except:
+            logger.warn("Unable to execute database query for update_library_id.")
+            return None
+
+        for item in result:
+            id = item[0]
+            rating_key = item[1]
+
+            result = pms_connect.get_metadata_details(rating_key=rating_key)
+
+            if result:
+                metadata = result['metadata']
+                monitor_db.action('UPDATE session_history_metadata SET library_id = ? WHERE id = ?', [metadata['library_id'], id])
+                monitor_db.action('UPDATE session_history_metadata SET library_title = ? WHERE id = ?', [metadata['library_title'], id])
+            else:
+                continue
+
+        return True

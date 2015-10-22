@@ -219,6 +219,7 @@ _CONFIG_DEFINITIONS = {
     'TWITTER_ON_BUFFER': (int, 'Twitter', 0),
     'TWITTER_ON_WATCHED': (int, 'Twitter', 0),
     'UPDATE_DB_INTERVAL': (int, 'General', 24),
+    'UPDATE_LIBRARY_IDS': (int, 'General', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'XBMC_ENABLED': (int, 'XBMC', 0),

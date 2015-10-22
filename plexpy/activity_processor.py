@@ -242,18 +242,18 @@ class ActivityProcessor(object):
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history_metadata table...")
                 query = 'INSERT INTO session_history_metadata (id, rating_key, parent_rating_key, ' \
-                        'grandparent_rating_key, title, parent_title, grandparent_title, full_title, media_index, ' \
-                        'parent_media_index, thumb, parent_thumb, grandparent_thumb, art, media_type, year, ' \
-                        'originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, ' \
-                        'tagline, rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
+                        'grandparent_rating_key, title, parent_title, grandparent_title, full_title, library_title, ' \
+                        'media_index, parent_media_index, library_id, thumb, parent_thumb, grandparent_thumb, art, ' \
+                        'media_type, year, originally_available_at, added_at, updated_at, last_viewed_at, content_rating, ' \
+                        'summary, tagline, rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
                         '(last_insert_rowid(), ' \
-                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
                 args = [session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
-                        session['title'], session['parent_title'], session['grandparent_title'], full_title,
-                        metadata['index'], metadata['parent_index'], metadata['thumb'], metadata['parent_thumb'],
-                        metadata['grandparent_thumb'], metadata['art'], session['media_type'], metadata['year'],
-                        metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
+                        session['title'], session['parent_title'], session['grandparent_title'], full_title, metadata['library_title'],
+                        metadata['index'], metadata['parent_index'], metadata['library_id'], metadata['thumb'],
+                        metadata['parent_thumb'], metadata['grandparent_thumb'], metadata['art'], session['media_type'],
+                        metadata['year'], metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
                         metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['tagline'], 
                         metadata['rating'], metadata['duration'], metadata['guid'], directors, writers, actors, genres, metadata['studio']]
 

@@ -386,12 +386,11 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS session_history_metadata (id INTEGER PRIMARY KEY, '
         'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
-        'title TEXT, parent_title TEXT, grandparent_title TEXT, full_title TEXT, media_index INTEGER, '
-        'parent_media_index INTEGER, thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, art TEXT, media_type TEXT, '
-        'year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, last_viewed_at INTEGER, '
-        'content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, duration INTEGER DEFAULT 0, guid TEXT, '
-        'directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT)'
-        ''
+        'title TEXT, parent_title TEXT, grandparent_title TEXT, library_title TEXT, full_title TEXT, media_index INTEGER, '
+        'parent_media_index INTEGER,  library_id INTEGER, thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, art TEXT, '
+        'media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, '
+        'last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, duration INTEGER DEFAULT 0, '
+        'guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT)'
     )
 
     # users table :: This table keeps record of the friends list
@@ -401,6 +400,14 @@ def dbcheck():
         'friendly_name TEXT, thumb TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
         'keep_history INTEGER DEFAULT 1, custom_avatar_url TEXT)'
+    )
+
+    # notify_log table :: This is a table which logs notifications sent
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
+        'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER, '
+        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -529,65 +536,6 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN transcode_height INTEGER'
         )
 
-    # Upgrade session_history_metadata table from earlier versions
-    try:
-        c_db.execute('SELECT full_title from session_history_metadata')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table session_history_metadata.")
-        c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN full_title TEXT'
-        )
-
-    # Upgrade session_history_metadata table from earlier versions
-    try:
-        c_db.execute('SELECT tagline from session_history_metadata')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table session_history_metadata.")
-        c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN tagline TEXT'
-        )
-
-    # notify_log table :: This is a table which logs notifications sent
-    c_db.execute(
-        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
-        'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER, '
-        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER)'
-    )
-
-    # Upgrade users table from earlier versions
-    try:
-        c_db.execute('SELECT do_notify from users')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table users.")
-        c_db.execute(
-            'ALTER TABLE users ADD COLUMN do_notify INTEGER DEFAULT 1'
-        )
-
-    # Upgrade users table from earlier versions
-    try:
-        c_db.execute('SELECT keep_history from users')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table users.")
-        c_db.execute(
-            'ALTER TABLE users ADD COLUMN keep_history INTEGER DEFAULT 1'
-        )
-
-    # Upgrade notify_log table from earlier versions
-    try:
-        c_db.execute('SELECT on_pause from notify_log')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table notify_log.")
-        c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN on_pause INTEGER'
-        )
-        c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN on_resume INTEGER'
-        )
-        c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN on_buffer INTEGER'
-        )
-
     # Upgrade sessions table from earlier versions
     try:
         c_db.execute('SELECT buffer_count from sessions')
@@ -600,15 +548,6 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN buffer_last_triggered INTEGER'
         )
 
-    # Upgrade users table from earlier versions
-    try:
-        c_db.execute('SELECT custom_avatar_url from users')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table users.")
-        c_db.execute(
-            'ALTER TABLE users ADD COLUMN custom_avatar_url TEXT'
-        )
-
     # Upgrade sessions table from earlier versions
     try:
         c_db.execute('SELECT last_paused from sessions')
@@ -617,12 +556,6 @@ def dbcheck():
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN last_paused INTEGER'
         )
-
-    # Add "Local" user to database as default unauthenticated user.
-    result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
-    if not result.fetchone():
-        logger.debug(u'User "Local" does not exist. Adding user.')
-        c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
 
     # Upgrade session_history table from earlier versions
     try:
@@ -646,6 +579,84 @@ def dbcheck():
             'FROM session_history AS t1 ' \
             'WHERE t1.id = session_history.id) '
         )
+
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute('SELECT full_title from session_history_metadata')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_metadata.")
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN full_title TEXT'
+        )
+
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute('SELECT tagline from session_history_metadata')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_metadata.")
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN tagline TEXT'
+        )
+
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute('SELECT library_id from session_history_metadata')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_metadata.")
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN library_id INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN library_title TEXT'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT do_notify from users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN do_notify INTEGER DEFAULT 1'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT keep_history from users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN keep_history INTEGER DEFAULT 1'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT custom_avatar_url from users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN custom_avatar_url TEXT'
+        )
+
+    # Upgrade notify_log table from earlier versions
+    try:
+        c_db.execute('SELECT on_pause from notify_log')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table notify_log.")
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN on_pause INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN on_resume INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN on_buffer INTEGER'
+        )
+
+    # Add "Local" user to database as default unauthenticated user.
+    result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
+    if not result.fetchone():
+        logger.debug(u'User "Local" does not exist. Adding user.')
+        c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
 
     conn_db.commit()
     c_db.close()
