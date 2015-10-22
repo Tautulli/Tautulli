@@ -106,10 +106,7 @@ class DataFactory(object):
                 watched_status = 0
 
             # Rename Mystery platform names
-            platform_names = {'Mystery 3': 'Playstation 3',
-                              'Mystery 4': 'Playstation 4',
-                              'Mystery 5': 'Xbox 360'}
-            platform = platform_names.get(item["platform"], item["platform"])
+            platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
 
             row = {"reference_id": item["reference_id"],
                    "id": item["id"],
@@ -512,10 +509,7 @@ class DataFactory(object):
 
                 for item in result:
                     # Rename Mystery platform names
-                    platform_names = {'Mystery 3': 'Playstation 3',
-                                      'Mystery 4': 'Playstation 4',
-                                      'Mystery 5': 'Xbox 360'}
-                    platform_type = platform_names.get(item[0], item[0])
+                    platform_type = common.PLATFORM_NAME_OVERRIDES.get(item[0], item[0])
 
                     row = {'platform': item[0],
                            'total_plays': item[1],

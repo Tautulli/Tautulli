@@ -85,10 +85,7 @@ class Users(object):
                 user_thumb = item['user_thumb']
 
             # Rename Mystery platform names
-            platform_names = {'Mystery 3': 'Playstation 3',
-                              'Mystery 4': 'Playstation 4',
-                              'Mystery 5': 'Xbox 360'}
-            platform = platform_names.get(item["platform"], item["platform"])
+            platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
 
             row = {"id": item['id'],
                    "plays": item['plays'],
@@ -179,10 +176,7 @@ class Users(object):
                 thumb = item["thumb"]
 
             # Rename Mystery platform names
-            platform_names = {'Mystery 3': 'Playstation 3',
-                              'Mystery 4': 'Playstation 4',
-                              'Mystery 5': 'Xbox 360'}
-            platform = platform_names.get(item["platform"], item["platform"])
+            platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
 
             row = {"id": item['id'],
                    "last_seen": item['last_seen'],
@@ -533,10 +527,7 @@ class Users(object):
 
         for item in result:
             # Rename Mystery platform names
-            platform_names = {'Mystery 3': 'Playstation 3',
-                              'Mystery 4': 'Playstation 4',
-                              'Mystery 5': 'Xbox 360'}
-            platform_type = platform_names.get(item[2], item[2])
+            platform_type = common.PLATFORM_NAME_OVERRIDES.get(item[2], item[2])
 
             row = {'player_name': item[0],
                    'platform_type': platform_type,

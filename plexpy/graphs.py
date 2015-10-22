@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, database, helpers
+from plexpy import logger, database, helpers, common
 
 import datetime
 
@@ -392,10 +392,7 @@ class Graphs(object):
             series_3.append(item[3])
 
         # Rename Mystery platform names
-        platform_names = [('Mystery 3', 'Playstation 3'),
-                          ('Mystery 4', 'Playstation 4'),
-                          ('Mystery 5', 'Xbox 360')]
-        for old_name, new_name in platform_names:
+        for old_name, new_name in common.PLATFORM_NAME_OVERRIDES:
             categories = [item.replace(old_name, new_name) for item in categories]
 
         series_1_output = {'name': 'TV',
@@ -814,10 +811,7 @@ class Graphs(object):
             series_3.append(item[3])
 
         # Rename Mystery platform names
-        platform_names = [('Mystery 3', 'Playstation 3'),
-                          ('Mystery 4', 'Playstation 4'),
-                          ('Mystery 5', 'Xbox 360')]
-        for old_name, new_name in platform_names:
+        for old_name, new_name in common.PLATFORM_NAME_OVERRIDES:
             categories = [item.replace(old_name, new_name) for item in categories]
 
         series_1_output = {'name': 'Direct Play',

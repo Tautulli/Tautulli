@@ -42,3 +42,8 @@ notify_strings[NOTIFY_STOPPED] = "Playback stopped"
 DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
 DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
 DEFAULT_COVER_THUMB = "interfaces/default/images/cover.png"
+
+PLATFORM_NAME_OVERRIDES = {'Konvergo': 'Plex Media Player',
+                           'Mystery 3': 'Playstation 3',
+                           'Mystery 4': 'Playstation 4',
+                           'Mystery 5': 'Xbox 360'}

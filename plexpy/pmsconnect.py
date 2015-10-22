@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, users, http_handler
+from plexpy import logger, helpers, users, http_handler, common
 from urlparse import urlparse
 
 import plexpy
@@ -1071,11 +1071,8 @@ class PmsConnect(object):
             logger.warn(u"No known stream types found in session list.")
 
         # Rename Mystery platform names
-        platform_names = {'Mystery 3': 'Playstation 3',
-                          'Mystery 4': 'Playstation 4',
-                          'Mystery 5': 'Xbox 360'}
-        session_output['platform'] = platform_names.get(session_output['platform'], 
-                                                        session_output['platform'])
+        session_output['platform'] = common.PLATFORM_NAME_OVERRIDES.get(session_output['platform'],
+                                                                        session_output['platform'])
 
         return session_output
 
