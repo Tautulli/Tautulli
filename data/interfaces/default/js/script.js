@@ -223,6 +223,8 @@ function getPlatformImagePath(platformName) {
         return 'interfaces/default/images/platforms/win8.png';
     } else if (platformName.indexOf("Windows phone") > -1) {
         return 'interfaces/default/images/platforms/wp.png';
+	} else if (platformName.indexOf("Plex Media Player") > -1) {
+        return 'interfaces/default/images/platforms/pmp.png';
     } else {
         return 'interfaces/default/images/platforms/default.png';
     }
