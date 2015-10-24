@@ -245,10 +245,10 @@ def build_notify_text(session, state):
     server_name = pms_connect.get_server_pref(pref='FriendlyName')
 
     # Get metadata feed for item
-    metadata = pms_connect.get_metadata_details(rating_key=session['rating_key'])
+    metadata_list = pms_connect.get_metadata_details(rating_key=session['rating_key'])
 
-    if metadata:
-        item_metadata = metadata['metadata']
+    if metadata_list:
+        metadata = metadata_list['metadata']
     else:
         logger.error(u"PlexPy Notifier :: Unable to retrieve metadata for rating_key %s" % str(session['rating_key']))
         return []
@@ -311,21 +311,24 @@ def build_notify_text(session, state):
 
     # Generate a combined transcode decision value
     transcode_decision = ''
-    if session.get('video_decision', None):
+    if 'video_decision' in session:
         if session['video_decision'] == 'transcode':
             transcode_decision = 'Transcode'
         elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
             transcode_decision = 'Direct Stream'
         else:
             transcode_decision = 'Direct Play'
-    elif session.get('audio_decision', None):
+    elif 'audio_decision' in session:
         if session['audio_decision'] == 'transcode':
             transcode_decision = 'Transcode'
         else:
             transcode_decision = 'Direct Play'
 
-    duration = helpers.convert_milliseconds_to_minutes(item_metadata['duration'])
-    view_offset = helpers.convert_milliseconds_to_minutes(session.get('view_offset', ''))
+    duration = helpers.convert_milliseconds_to_minutes(metadata['duration'])
+
+    view_offset = ''
+    if 'view_offset' in session:
+        view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
 
     stream_duration = 0
     if state != 'play' and state != 'created':
@@ -337,26 +340,30 @@ def build_notify_text(session, state):
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
+    user = session['friendly_name'] if 'friendly_name' in session else ''
+    platform = session['platform'] if 'platform' in session else ''
+    player = session['player'] if 'player' in session else ''
+
     available_params = {'server_name': server_name,
-                        'user': session.get('friendly_name', ''),
-                        'platform': session.get('platform', ''),
-                        'player': session.get('player', ''),
+                        'user': user,
+                        'platform': platform,
+                        'player': player,
                         'media_type': session['media_type'],
                         'title': full_title,
-                        'show_name': item_metadata['grandparent_title'],
-                        'episode_name': item_metadata['title'],
-                        'artist_name': item_metadata['grandparent_title'],
-                        'album_name': item_metadata['parent_title'],
-                        'season_num': item_metadata['parent_index'],
-                        'season_num00': item_metadata['parent_index'].zfill(2),
-                        'episode_num': item_metadata['index'],
-                        'episode_num00': item_metadata['index'].zfill(2),
+                        'show_name': metadata['grandparent_title'],
+                        'episode_name': metadata['title'],
+                        'artist_name': metadata['grandparent_title'],
+                        'album_name': metadata['parent_title'],
+                        'season_num': metadata['parent_index'],
+                        'season_num00': metadata['parent_index'].zfill(2),
+                        'episode_num': metadata['index'],
+                        'episode_num00': metadata['index'].zfill(2),
                         'transcode_decision': transcode_decision,
-                        'year': item_metadata['year'],
-                        'studio': item_metadata['studio'],
-                        'content_rating': item_metadata['content_rating'],
-                        'summary': item_metadata['summary'],
-                        'rating': item_metadata['rating'],
+                        'year': metadata['year'],
+                        'studio': metadata['studio'],
+                        'content_rating': metadata['content_rating'],
+                        'summary': metadata['summary'],
+                        'rating': metadata['rating'],
                         'duration': duration,
                         'stream_duration': stream_duration,
                         'remaining_duration': duration - view_offset,
