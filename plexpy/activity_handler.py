@@ -221,7 +221,7 @@ class TimelineHandler(object):
         # print timeline
 
     def is_item(self):
-        if 'itemID' in self.timeline and 'metadataState' in self.timeline:
+        if 'itemID' in self.timeline:
             return True
 
         return False
@@ -254,7 +254,13 @@ class TimelineHandler(object):
         if self.is_item():
 
             this_state = self.timeline['state']
-            this_metadataState = self.timeline['metadataState']
+            this_type = self.timeline['type']
+            this_metadataState = self.timeline.get('metadataState', None)
+            this_section_id = self.timeline['sectionID']
+            this_rating_key = self.timeline['itemID']
 
-            if this_state == 0 and this_metadataState == 'created':
+            # state:    5: done processing metadata
+            # type:     1: movie, 2: tv show, 4: episode, 8: artist, 10: track
+            types = [1, 2, 4, 8, 10]
+            if this_state == 5 and this_type in types and not this_metadataState:
                 self.on_created()
