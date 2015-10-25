@@ -502,6 +502,12 @@ available_notification_agents = notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Disable to prevent consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_recently_added_grandparent" id="notify_recently_added_grandparent" value="1" ${config['notify_recently_added_grandparent']}> Group notifications for recently added TV Shows or Artists
+                            </label>
+                            <p class="help-block">Endable to only get one notification for recently added Episodes or Tracks. Movies are unaffected.</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Custom Notification Messages</h3>
