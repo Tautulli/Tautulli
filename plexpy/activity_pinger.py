@@ -198,11 +198,14 @@ def check_recently_added():
                         else:
                             logger.error(u"PlexPy Monitor :: Unable to retrieve children metadata for rating_key" % str(item['rating_key']))
 
-                    for item in metadata:
-                        if (plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT and int(item['updated_at']) >= current_time - plexpy.CONFIG.MONITORING_INTERVAL) \
-                            or (not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT and int(item['added_at']) >= current_time - plexpy.CONFIG.MONITORING_INTERVAL):
-                            logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
+                    if metadata:
+                        for item in metadata:
+                            if (plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT \
+                                and int(item['updated_at']) >= current_time - plexpy.CONFIG.MONITORING_INTERVAL) \
+                                or (not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT \
+                                and int(item['added_at']) >= current_time - plexpy.CONFIG.MONITORING_INTERVAL):
+                                logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
 
-                            # Fire off notifications
-                            threading.Thread(target=notification_handler.notify_timeline,
-                                             kwargs=dict(timeline_data=item, notify_action='created')).start()
+                                # Fire off notifications
+                                threading.Thread(target=notification_handler.notify_timeline,
+                                                 kwargs=dict(timeline_data=item, notify_action='created')).start()
