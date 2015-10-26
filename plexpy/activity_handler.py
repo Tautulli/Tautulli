@@ -256,9 +256,10 @@ class TimelineHandler(object):
             this_state = self.timeline['state']
             this_type = self.timeline['type']
             this_metadataState = self.timeline.get('metadataState', None)
+            this_mediaState = self.timeline.get('mediaState', None)
 
             # state:    5: done processing metadata
             # type:     1: movie, 2: tv show, 4: episode, 8: artist, 10: track
             types = [1, 2, 4, 8, 10]
-            if this_state == 5 and this_type in types and not this_metadataState:
+            if this_state == 5 and this_type in types and this_metadataState == None and this_mediaState == None:
                 self.on_created()
