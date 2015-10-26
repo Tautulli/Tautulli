@@ -177,7 +177,7 @@ def notify_timeline(timeline_data=None, notify_action=None):
                     or (not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT \
                     and (timeline_data['media_type'] == 'movie' or timeline_data['media_type'] == 'episode' or timeline_data['media_type'] == 'track')):
                     # Build and send notification
-                    notify_strings = build_notify_text(session=timeline_data, state=notify_action)
+                    notify_strings = build_notify_text(timeline=timeline_data, state=notify_action)
                     notifiers.send_notification(config_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1])
@@ -264,37 +264,49 @@ def set_notify_state(session, state, agent_info):
         logger.error('PlexPy Notifier :: Unable to set notify state.')
 
 
-def build_notify_text(session, state):
+def build_notify_text(session=None, timeline=None, state=None):
     from plexpy import pmsconnect, helpers
     import re
 
     # Get the server name
     pms_connect = pmsconnect.PmsConnect()
     server_name = pms_connect.get_server_pref(pref='FriendlyName')
+    # If friendly name is blank
+    if not server_name:
+        servers_info = pms_connect.get_servers_info()
+        for server in servers_info:
+            if server['machine_identifier'] == plexpy.CONFIG.PMS_IDENTIFIER:
+                server_name = server['name']
+                break
 
     # Get metadata feed for item
-    metadata_list = pms_connect.get_metadata_details(rating_key=session['rating_key'])
+    if session:
+        rating_key = session['rating_key']
+    elif timeline:
+        rating_key = timeline['rating_key']
+
+    metadata_list = pms_connect.get_metadata_details(rating_key=rating_key)
 
     if metadata_list:
         metadata = metadata_list['metadata']
     else:
-        logger.error(u"PlexPy Notifier :: Unable to retrieve metadata for rating_key %s" % str(session['rating_key']))
+        logger.error(u"PlexPy Notifier :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
         return []
 
     # Check for exclusion tags
-    if session['media_type'] == 'episode':
+    if metadata['media_type'] == 'episode':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<movie>[^>]+.</movie>|<music>[^>]+.</music>', re.IGNORECASE)
-    elif session['media_type'] == 'movie':
+    elif metadata['media_type'] == 'movie':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<tv>[^>]+.</tv>|<music>[^>]+.</music>', re.IGNORECASE)
-    elif session['media_type'] == 'track':
+    elif metadata['media_type'] == 'track':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', re.IGNORECASE)
     else:
         pattern = None
 
-    if session['media_type'] == 'episode' or session['media_type'] == 'movie' or session['media_type'] == 'track' \
+    if metadata['media_type'] == 'episode' or metadata['media_type'] == 'movie' or metadata['media_type'] == 'track' \
             and pattern:
         # Remove the unwanted tags and strip any unmatch tags too.
         on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
@@ -328,55 +340,57 @@ def build_notify_text(session, state):
         on_created_body = plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT
 
     # Create a title
-    if session['media_type'] == 'episode':
-        full_title = '%s - %s' % (session['grandparent_title'],
-                                  session['title'])
-    elif session['media_type'] == 'track':
-        full_title = '%s - %s' % (session['grandparent_title'],
-                                  session['title'])
+    if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
+        full_title = '%s - %s' % (metadata['grandparent_title'],
+                                  metadata['title'])
     else:
-        full_title = session['title']
-
-    # Generate a combined transcode decision value
-    transcode_decision = ''
-    if 'video_decision' in session:
-        if session['video_decision'] == 'transcode':
-            transcode_decision = 'Transcode'
-        elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
-            transcode_decision = 'Direct Stream'
-        else:
-            transcode_decision = 'Direct Play'
-    elif 'audio_decision' in session:
-        if session['audio_decision'] == 'transcode':
-            transcode_decision = 'Transcode'
-        else:
-            transcode_decision = 'Direct Play'
+        full_title = metadata['title']
 
     duration = helpers.convert_milliseconds_to_minutes(metadata['duration'])
 
-    view_offset = 0
-    if 'view_offset' in session:
-        view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
-
+    # Default values
+    transcode_decision = ''
     stream_duration = 0
-    if state != 'play' and state != 'created':
-        if 'paused_counter' in session:
-            stream_duration = int((time.time() - helpers.cast_to_float(session['started']) -
-                                   helpers.cast_to_float(session['paused_counter'])) / 60)
-        else:
-            stream_duration = int((time.time() - helpers.cast_to_float(session['started'])) / 60)
+    view_offset = 0
+    user = ''
+    platform = ''
+    player = ''
+
+    # Session values
+    if session:
+        # Generate a combined transcode decision value
+        if session['video_decision']:
+            if session['video_decision'] == 'transcode':
+                transcode_decision = 'Transcode'
+            elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
+                transcode_decision = 'Direct Stream'
+            else:
+                transcode_decision = 'Direct Play'
+        elif session['audio_decision']:
+            if session['audio_decision'] == 'transcode':
+                transcode_decision = 'Transcode'
+            else:
+                transcode_decision = 'Direct Play'
+
+        if state != 'play':
+            if session['paused_counter']:
+                stream_duration = int((time.time() - helpers.cast_to_float(session['started']) -
+                                       helpers.cast_to_float(session['paused_counter'])) / 60)
+            else:
+                stream_duration = int((time.time() - helpers.cast_to_float(session['started'])) / 60)
+
+        view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
+        user = session['friendly_name']
+        platform = session['platform']
+        player = session['player']
 
     progress_percent = helpers.get_percent(view_offset, duration)
-
-    user = session['friendly_name'] if 'friendly_name' in session else ''
-    platform = session['platform'] if 'platform' in session else ''
-    player = session['player'] if 'player' in session else ''
 
     available_params = {'server_name': server_name,
                         'user': user,
                         'platform': platform,
                         'player': player,
-                        'media_type': session['media_type'],
+                        'media_type': metadata['media_type'],
                         'title': full_title,
                         'show_name': metadata['grandparent_title'],
                         'episode_name': metadata['title'],
