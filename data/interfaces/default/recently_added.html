@@ -11,13 +11,13 @@ data[array_index] :: Usable parameters
 
 == Global keys ==
 rating_key              Returns the unique identifier for the media item.
-type                    Returns the type of media. Either 'movie' or 'season'.
+media_type              Returns the media type of media. Either 'movie' or 'season' or 'album'.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
 added_at                Returns the time when the media was added to the library.
 title                   Returns the name of the movie or season.
 parent_title            Returns the name of the TV Show a season belongs too.
 
-== Only if 'type' is 'movie' ==
+== Only if 'media_type' is 'movie' ==
 year                    Returns the movie release year.
 
 DOCUMENTATION :: END
@@ -29,7 +29,7 @@ DOCUMENTATION :: END
         % for item in data:
         <div class="dashboard-recent-media-instance">
             <li>
-                % if item['type'] == 'season' or item['type'] == 'movie':
+                % if item['media_type'] == 'season' or item['media_type'] == 'movie':
 				<a href="info?item_id=${item['rating_key']}">
 					<div class="dashboard-recent-media-poster">
 						<div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
@@ -43,16 +43,16 @@ DOCUMENTATION :: END
                         </div>
                     </div>
 					<div class="dashboard-recent-media-metacontainer">
-						% if item['type'] == 'season':
+						% if item['media_type'] == 'season':
 						<h3 title="${item['parent_title']}">${item['parent_title']}</h3>
 						<h3 class="text-muted">${item['title']}</h3>
-						% elif item['type'] == 'movie':
+						% elif item['media_type'] == 'movie':
 						<h3 title="${item['title']}">${item['title']}</h3>
 						<h3 class="text-muted">${item['year']}</h3>
 						% endif
 					</div>
 				</a>
-				% elif item['type'] == 'album':
+				% elif item['media_type'] == 'album':
                 <a href="info?item_id=${item['rating_key']}">
                     <div class="dashboard-recent-media-cover">
                         <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">

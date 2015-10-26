@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -246,6 +246,8 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
 
     logger.debug(u"PlexPy Importer :: Disabling monitoring while import in progress.")
     plexpy.schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
+                        hours=0, minutes=0, seconds=0)
+    plexpy.schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
                         hours=0, minutes=0, seconds=0)
 
     ap = activity_processor.ActivityProcessor()

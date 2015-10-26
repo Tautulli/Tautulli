@@ -286,6 +286,8 @@ def initialize_scheduler():
             if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:
                 schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
                              hours=0, minutes=0, seconds=seconds)
+                schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
+                             hours=0, minutes=0, seconds=seconds)
 
         # Refresh the users list
         if CONFIG.REFRESH_USERS_INTERVAL:

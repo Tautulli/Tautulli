@@ -256,8 +256,6 @@ class TimelineHandler(object):
             this_state = self.timeline['state']
             this_type = self.timeline['type']
             this_metadataState = self.timeline.get('metadataState', None)
-            this_section_id = self.timeline['sectionID']
-            this_rating_key = self.timeline['itemID']
 
             # state:    5: done processing metadata
             # type:     1: movie, 2: tv show, 4: episode, 8: artist, 10: track

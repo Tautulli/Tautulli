@@ -281,10 +281,13 @@ class PmsConnect(object):
                 recents_main = a.getElementsByTagName('Directory')
                 for item in recents_main:
                     recent_type = helpers.get_xml_attr(item, 'type')
-                    recent_items = {'type': recent_type,
+                    recent_items = {'media_type': recent_type,
                                     'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
+                                    'parent_rating_key': helpers.get_xml_attr(item, 'parentRatingKey'),
                                     'title': helpers.get_xml_attr(item, 'title'),
                                     'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
+                                    'library_id': helpers.get_xml_attr(item, 'librarySectionID'),
+                                    'library_title': helpers.get_xml_attr(item, 'librarySectionTitle'),
                                     'thumb': helpers.get_xml_attr(item, 'thumb'),
                                     'added_at': helpers.get_xml_attr(item, 'addedAt')
                                     }
@@ -296,10 +299,12 @@ class PmsConnect(object):
                     recent_type = helpers.get_xml_attr(item, 'type')
 
                     if recent_type == 'movie':
-                        recent_items = {'type': recent_type,
+                        recent_items = {'media_type': recent_type,
                                         'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
                                         'title': helpers.get_xml_attr(item, 'title'),
                                         'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
+                                        'library_id': helpers.get_xml_attr(item, 'librarySectionID'),
+                                        'library_title': helpers.get_xml_attr(item, 'librarySectionTitle'),
                                         'year': helpers.get_xml_attr(item, 'year'),
                                         'thumb': helpers.get_xml_attr(item, 'thumb'),
                                         'added_at': helpers.get_xml_attr(item, 'addedAt')
@@ -594,6 +599,49 @@ class PmsConnect(object):
             return None
 
         return metadata_list
+
+    """
+    Return processed and validated metadata list for all children of requested item.
+
+    Parameters required:    rating_key { Plex ratingKey }
+
+    Output: array
+    """
+    def get_metadata_children_details(self, rating_key=''):
+        metadata = self.get_metadata_children(str(rating_key), output_format='xml')
+
+        try:
+            xml_head = metadata.getElementsByTagName('MediaContainer')
+        except:
+            logger.warn("Unable to parse XML for get_metadata_children.")
+            return []
+
+        metadata_list = []
+
+        for a in xml_head:
+            if a.getAttribute('size'):
+                if a.getAttribute('size') == '0':
+                    metadata_list = {'metadata': None}
+                    return metadata_list
+
+            if a.getElementsByTagName('Video'):
+                metadata_main = a.getElementsByTagName('Video')
+                for item in metadata_main:
+                    child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
+                    metadata = self.get_metadata_details(str(child_rating_key))
+                    if metadata:
+                        metadata_list.append(metadata['metadata'])
+
+            elif a.getElementsByTagName('Track'):
+                metadata_main = a.getElementsByTagName('Track')
+                for item in metadata_main:
+                    child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
+                    metadata = self.get_metadata_details(str(child_rating_key))
+                    if metadata:
+                        metadata_list.append(metadata['metadata'])
+                    
+        output = {'metadata': metadata_list}
+        return output
 
     """
     Return processed and validated session list.
