@@ -3,7 +3,7 @@
 import plexpy
 from plexpy import notifiers, common, versioncheck
 
-available_notification_agents = notifiers.available_notification_agents()
+available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
 %>
 <%def name="headIncludes()">
 </%def>
