@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -162,3 +162,50 @@ def check_active_sessions(ws_request=False):
                 monitor_process.write_session(session)
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
+            
+
+def check_recently_added():
+
+    with monitor_lock:
+        current_time = int(time.time())
+
+        pms_connect = pmsconnect.PmsConnect()
+        recently_added_list = pms_connect.get_recently_added_details(count='10')
+
+        if recently_added_list:
+            recently_added = recently_added_list['recently_added']
+
+            for item in recently_added:
+                if int(item['added_at']) >= current_time - plexpy.CONFIG.MONITORING_INTERVAL:
+                    if item['media_type'] == 'movie':
+                        metadata_list = pms_connect.get_metadata_details(item['rating_key'])
+                        if metadata_list:
+                            metadata = [metadata_list['metadata']]
+                        else:
+                            logger.error(u"PlexPy Monitor :: Unable to retrieve metadata for rating_key %s" % str(item['rating_key']))
+
+                    elif plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
+                        metadata_list = pms_connect.get_metadata_details(item['parent_rating_key'])
+                        if metadata_list:
+                            metadata = [metadata_list['metadata']]
+                        else:
+                            logger.error(u"PlexPy Monitor :: Unable to retrieve metadata for parent_rating_key %s" % str(item['parent_rating_key']))
+
+                    else:
+                        metadata_list = pms_connect.get_metadata_children_details(item['rating_key'])
+                        if metadata_list:
+                            metadata = metadata_list['metadata']
+                        else:
+                            logger.error(u"PlexPy Monitor :: Unable to retrieve children metadata for rating_key" % str(item['rating_key']))
+
+                    if metadata:
+                        for item in metadata:
+                            if (plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT \
+                                and int(item['updated_at']) >= current_time - plexpy.CONFIG.MONITORING_INTERVAL) \
+                                or (not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT \
+                                and int(item['added_at']) >= current_time - plexpy.CONFIG.MONITORING_INTERVAL):
+                                logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
+
+                                # Fire off notifications
+                                threading.Thread(target=notification_handler.notify_timeline,
+                                                 kwargs=dict(timeline_data=item, notify_action='created')).start()

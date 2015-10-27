@@ -3,7 +3,7 @@
 import plexpy
 from plexpy import notifiers, common, versioncheck
 
-available_notification_agents = notifiers.available_notification_agents()
+available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
 %>
 <%def name="headIncludes()">
 </%def>
@@ -502,6 +502,12 @@ available_notification_agents = notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Disable to prevent consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_recently_added_grandparent" id="notify_recently_added_grandparent" value="1" ${config['notify_recently_added_grandparent']}> Group notifications for recently added TV Shows or Music
+                            </label>
+                            <p class="help-block">Enable to only get one notification for recently added Episodes or Tracks. Movies are unaffected.</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Custom Notification Messages</h3>
@@ -515,7 +521,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             <a href="#notify-text-tags-modal" data-toggle="modal">here</a> to view usage information.
                         </p>
                         <br/>
-                        <ul id="accordion" class="accordion list-unstyled">
+                        <ul id="accordion-session" class="accordion list-unstyled">
                             <li>
                                 <div class="link"><i class="fa fa-play"></i>Playback Start<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
@@ -619,6 +625,25 @@ available_notification_agents = notifiers.available_notification_agents()
                                 </ul>
                             </li>
                         </ul>
+                        <ul id="accordion-timeline" class="accordion list-unstyled">
+                            <li>
+                                <div class="link"><i class="fa fa-download"></i>Recently Added<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_created_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_created_subject_text" name="notify_on_created_subject_text" value="${config['notify_on_created_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_created_body_text">Message Body</label>
+                                            <input class="form-control" type="text" id="notify_on_created_body_text" name="notify_on_created_body_text" value="${config['notify_on_created_body_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
@@ -635,7 +660,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             % for agent in available_notification_agents:
                             <li>
                                 <span>
-                                    % if agent['on_play'] or agent['on_stop'] or agent['on_pause'] or agent['on_resume'] or agent['on_buffer'] or agent['on_watched']:
+                                    % if agent['on_play'] or agent['on_stop'] or agent['on_pause'] or agent['on_resume'] or agent['on_buffer'] or agent['on_watched'] or agent['on_created']:
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left active" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
                                     % else:
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
@@ -1292,7 +1317,8 @@ $(document).ready(function() {
         }
     }
 
-    var accordion = new Accordion($('#accordion'), false);
+    var accordion_session = new Accordion($('#accordion-session'), false);
+    var accordion_timeline = new Accordion($('#accordion-timeline'), false);
 
     var cards = "${config['home_stats_cards']}".split(/[\s,]+/);
     cards.forEach(function (item) {

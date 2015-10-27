@@ -281,10 +281,13 @@ class PmsConnect(object):
                 recents_main = a.getElementsByTagName('Directory')
                 for item in recents_main:
                     recent_type = helpers.get_xml_attr(item, 'type')
-                    recent_items = {'type': recent_type,
+                    recent_items = {'media_type': recent_type,
                                     'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
+                                    'parent_rating_key': helpers.get_xml_attr(item, 'parentRatingKey'),
                                     'title': helpers.get_xml_attr(item, 'title'),
                                     'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
+                                    'library_id': helpers.get_xml_attr(item, 'librarySectionID'),
+                                    'library_title': helpers.get_xml_attr(item, 'librarySectionTitle'),
                                     'thumb': helpers.get_xml_attr(item, 'thumb'),
                                     'added_at': helpers.get_xml_attr(item, 'addedAt')
                                     }
@@ -296,10 +299,12 @@ class PmsConnect(object):
                     recent_type = helpers.get_xml_attr(item, 'type')
 
                     if recent_type == 'movie':
-                        recent_items = {'type': recent_type,
+                        recent_items = {'media_type': recent_type,
                                         'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
                                         'title': helpers.get_xml_attr(item, 'title'),
                                         'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
+                                        'library_id': helpers.get_xml_attr(item, 'librarySectionID'),
+                                        'library_title': helpers.get_xml_attr(item, 'librarySectionTitle'),
                                         'year': helpers.get_xml_attr(item, 'year'),
                                         'thumb': helpers.get_xml_attr(item, 'thumb'),
                                         'added_at': helpers.get_xml_attr(item, 'addedAt')
@@ -369,7 +374,7 @@ class PmsConnect(object):
                 directors.append(helpers.get_xml_attr(director, 'tag'))
 
         if metadata_type == 'show':
-            metadata = {'type': metadata_type,
+            metadata = {'media_type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
@@ -401,7 +406,7 @@ class PmsConnect(object):
         elif metadata_type == 'season':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
             show_details = self.get_metadata_details(parent_rating_key)
-            metadata = {'type': metadata_type,
+            metadata = {'media_type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
@@ -432,7 +437,7 @@ class PmsConnect(object):
                         }
             metadata_list = {'metadata': metadata}
         elif metadata_type == 'episode':
-            metadata = {'type': metadata_type,
+            metadata = {'media_type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
@@ -464,7 +469,7 @@ class PmsConnect(object):
                         }
             metadata_list = {'metadata': metadata}
         elif metadata_type == 'movie':
-            metadata = {'type': metadata_type,
+            metadata = {'media_type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
@@ -494,7 +499,7 @@ class PmsConnect(object):
                         }
             metadata_list = {'metadata': metadata}
         elif metadata_type == 'artist':
-            metadata = {'type': metadata_type,
+            metadata = {'media_type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
@@ -526,7 +531,7 @@ class PmsConnect(object):
         elif metadata_type == 'album':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
             artist_details = self.get_metadata_details(parent_rating_key)
-            metadata = {'type': metadata_type,
+            metadata = {'media_type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
@@ -559,7 +564,7 @@ class PmsConnect(object):
         elif metadata_type == 'track':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
             album_details = self.get_metadata_details(parent_rating_key)
-            metadata = {'type': metadata_type,
+            metadata = {'media_type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
@@ -594,6 +599,49 @@ class PmsConnect(object):
             return None
 
         return metadata_list
+
+    """
+    Return processed and validated metadata list for all children of requested item.
+
+    Parameters required:    rating_key { Plex ratingKey }
+
+    Output: array
+    """
+    def get_metadata_children_details(self, rating_key=''):
+        metadata = self.get_metadata_children(str(rating_key), output_format='xml')
+
+        try:
+            xml_head = metadata.getElementsByTagName('MediaContainer')
+        except:
+            logger.warn("Unable to parse XML for get_metadata_children.")
+            return []
+
+        metadata_list = []
+
+        for a in xml_head:
+            if a.getAttribute('size'):
+                if a.getAttribute('size') == '0':
+                    metadata_list = {'metadata': None}
+                    return metadata_list
+
+            if a.getElementsByTagName('Video'):
+                metadata_main = a.getElementsByTagName('Video')
+                for item in metadata_main:
+                    child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
+                    metadata = self.get_metadata_details(str(child_rating_key))
+                    if metadata:
+                        metadata_list.append(metadata['metadata'])
+
+            elif a.getElementsByTagName('Track'):
+                metadata_main = a.getElementsByTagName('Track')
+                for item in metadata_main:
+                    child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
+                    metadata = self.get_metadata_details(str(child_rating_key))
+                    if metadata:
+                        metadata_list.append(metadata['metadata'])
+                    
+        output = {'metadata': metadata_list}
+        return output
 
     """
     Return processed and validated session list.
@@ -1429,9 +1477,9 @@ class PmsConnect(object):
                 for result in result_data:
                     rating_key = helpers.get_xml_attr(result, 'ratingKey')
                     metadata = self.get_metadata_details(rating_key=rating_key)
-                    if metadata['metadata']['type'] == 'movie':
+                    if metadata['metadata']['media_type'] == 'movie':
                         search_results_list['movie'].append(metadata['metadata'])
-                    elif metadata['metadata']['type'] == 'episode':
+                    elif metadata['metadata']['media_type'] == 'episode':
                         search_results_list['episode'].append(metadata['metadata'])
                     search_results_count += 1
 
@@ -1440,7 +1488,7 @@ class PmsConnect(object):
                 for result in result_data:
                     rating_key = helpers.get_xml_attr(result, 'ratingKey')
                     metadata = self.get_metadata_details(rating_key=rating_key)
-                    if metadata['metadata']['type'] == 'show':
+                    if metadata['metadata']['media_type'] == 'show':
                         search_results_list['show'].append(metadata['metadata'])
 
                         show_seasons = self.get_item_children(rating_key=metadata['metadata']['rating_key'])
@@ -1452,9 +1500,9 @@ class PmsConnect(object):
                                     search_results_list['season'].append(metadata['metadata'])
                                     search_results_count += 1
 
-                    elif metadata['metadata']['type'] == 'artist':
+                    elif metadata['metadata']['media_type'] == 'artist':
                         search_results_list['artist'].append(metadata['metadata'])
-                    elif metadata['metadata']['type'] == 'album':
+                    elif metadata['metadata']['media_type'] == 'album':
                         search_results_list['album'].append(metadata['metadata'])
                     search_results_count += 1
 

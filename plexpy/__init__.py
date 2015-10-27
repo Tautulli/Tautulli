@@ -286,6 +286,8 @@ def initialize_scheduler():
             if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:
                 schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
                              hours=0, minutes=0, seconds=seconds)
+                schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
+                             hours=0, minutes=0, seconds=seconds)
 
         # Refresh the users list
         if CONFIG.REFRESH_USERS_INTERVAL:
@@ -552,7 +554,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
         'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER, '
-        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER)'
+        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER, on_created INTEGER)'
     )
 
     # Upgrade users table from earlier versions
@@ -586,6 +588,15 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE notify_log ADD COLUMN on_buffer INTEGER'
+        )
+
+    # Upgrade notify_log table from earlier versions
+    try:
+        c_db.execute('SELECT on_created from notify_log')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table notify_log.")
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN on_created INTEGER'
         )
 
     # Upgrade sessions table from earlier versions

@@ -442,6 +442,7 @@ class WebInterface(object):
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
             "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
             "notify_consecutive": checked(plexpy.CONFIG.NOTIFY_CONSECUTIVE),
+            "notify_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT),
             "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
             "notify_on_start_subject_text": plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT,
             "notify_on_start_body_text": plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT,
@@ -455,6 +456,8 @@ class WebInterface(object):
             "notify_on_buffer_body_text": plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT,
             "notify_on_watched_subject_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT,
             "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT,
+            "notify_on_created_subject_text": plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT,
+            "notify_on_created_body_text": plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
@@ -479,7 +482,7 @@ class WebInterface(object):
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
             "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type",
-            "group_history_tables", "notify_consecutive"
+            "group_history_tables", "notify_consecutive", "notify_recently_added_grandparent"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -788,11 +791,11 @@ class WebInterface(object):
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(row_id=item_id)
         elif item_id == 'movie':
-            metadata = {'type': 'library', 'library': 'movie', 'media_type': 'movie', 'title': 'Movies'}
+            metadata = {'media_type': 'library', 'library': 'movie', 'media_type_filter': 'movie', 'title': 'Movies'}
         elif item_id == 'show':
-            metadata = {'type': 'library', 'library': 'show', 'media_type': 'episode', 'title': 'TV Shows'}
+            metadata = {'media_type': 'library', 'library': 'show', 'media_type_filter': 'episode', 'title': 'TV Shows'}
         elif item_id == 'artist':
-            metadata = {'type': 'library', 'library': 'artist', 'media_type': 'track', 'title': 'Music'}
+            metadata = {'media_type': 'library', 'library': 'artist', 'media_type_filter': 'track', 'title': 'Music'}
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=item_id)

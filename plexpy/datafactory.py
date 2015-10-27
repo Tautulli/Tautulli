@@ -723,7 +723,7 @@ class DataFactory(object):
             actors = item['actors'].split(';') if item['actors'] else []
             genres = item['genres'].split(';') if item['genres'] else []
 
-            metadata = {'type': item['media_type'],
+            metadata = {'media_type': item['media_type'],
                         'rating_key': item['rating_key'],
                         'parent_rating_key': item['parent_rating_key'],
                         'grandparent_rating_key': item['grandparent_rating_key'],

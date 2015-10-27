@@ -43,7 +43,7 @@ def notify(stream_data=None, notify_action=None):
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1])
                         # Set the notification state in the db
-                        set_notify_state(session=stream_data, state='play', agent_info=agent)
+                        set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
                     elif agent['on_stop'] and notify_action == 'stop' \
                         and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT):
@@ -53,7 +53,7 @@ def notify(stream_data=None, notify_action=None):
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1])
 
-                        set_notify_state(session=stream_data, state='stop', agent_info=agent)
+                        set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
                     elif agent['on_pause'] and notify_action == 'pause' \
                         and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
@@ -63,7 +63,7 @@ def notify(stream_data=None, notify_action=None):
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1])
 
-                        set_notify_state(session=stream_data, state='pause', agent_info=agent)
+                        set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
                     elif agent['on_resume'] and notify_action == 'resume' \
                         and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
@@ -73,7 +73,7 @@ def notify(stream_data=None, notify_action=None):
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1])
 
-                        set_notify_state(session=stream_data, state='resume', agent_info=agent)
+                        set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
                     elif agent['on_buffer'] and notify_action == 'buffer':
                         # Build and send notification
@@ -82,7 +82,7 @@ def notify(stream_data=None, notify_action=None):
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1])
 
-                        set_notify_state(session=stream_data, state='buffer', agent_info=agent)
+                        set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
                     elif agent['on_watched'] and notify_action == 'watched':
                         # Get the current states for notifications from our db
@@ -96,7 +96,7 @@ def notify(stream_data=None, notify_action=None):
                                                         subject=notify_strings[0],
                                                         body=notify_strings[1])
                             # Set the notification state in the db
-                            set_notify_state(session=stream_data, state='watched', agent_info=agent)
+                            set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
                         else:
                             # Check in our notify log if the notification has already been sent
@@ -108,7 +108,7 @@ def notify(stream_data=None, notify_action=None):
                                                                 subject=notify_strings[0],
                                                                 body=notify_strings[1])
                                     # Set the notification state in the db
-                                    set_notify_state(session=stream_data, state='watched', agent_info=agent)
+                                    set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
         elif stream_data['media_type'] == 'track':
             if plexpy.CONFIG.MUSIC_NOTIFY_ENABLE:
@@ -121,7 +121,7 @@ def notify(stream_data=None, notify_action=None):
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1])
                         # Set the notification state in the db
-                        set_notify_state(session=stream_data, state='play', agent_info=agent)
+                        set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
                     elif agent['on_stop'] and notify_action == 'stop':
                         # Build and send notification
@@ -130,7 +130,7 @@ def notify(stream_data=None, notify_action=None):
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1])
                         # Set the notification state in the db
-                        set_notify_state(session=stream_data, state='stop', agent_info=agent)
+                        set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
                     elif agent['on_pause'] and notify_action == 'pause':
                         # Build and send notification
@@ -139,7 +139,7 @@ def notify(stream_data=None, notify_action=None):
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1])
                         # Set the notification state in the db
-                        set_notify_state(session=stream_data, state='pause', agent_info=agent)
+                        set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
                     elif agent['on_resume'] and notify_action == 'resume':
                         # Build and send notification
@@ -148,7 +148,7 @@ def notify(stream_data=None, notify_action=None):
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1])
                         # Set the notification state in the db
-                        set_notify_state(session=stream_data, state='resume', agent_info=agent)
+                        set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
                     elif agent['on_buffer'] and notify_action == 'buffer':
                         # Build and send notification
@@ -157,7 +157,7 @@ def notify(stream_data=None, notify_action=None):
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1])
                         # Set the notification state in the db
-                        set_notify_state(session=stream_data, state='buffer', agent_info=agent)
+                        set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
         elif stream_data['media_type'] == 'clip':
             pass
@@ -166,6 +166,25 @@ def notify(stream_data=None, notify_action=None):
             pass
     else:
         logger.debug(u"PlexPy Notifier :: Notify called but incomplete data received.")
+
+
+def notify_timeline(timeline_data=None, notify_action=None):
+    if timeline_data and notify_action:
+        for agent in notifiers.available_notification_agents():
+            if agent['on_created'] and notify_action == 'created':
+                if (plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT \
+                    and (timeline_data['media_type'] == 'movie' or timeline_data['media_type'] == 'show' or timeline_data['media_type'] == 'artist')) \
+                    or (not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT \
+                    and (timeline_data['media_type'] == 'movie' or timeline_data['media_type'] == 'episode' or timeline_data['media_type'] == 'track')):
+                    # Build and send notification
+                    notify_strings = build_notify_text(timeline=timeline_data, state=notify_action)
+                    notifiers.send_notification(config_id=agent['id'],
+                                                subject=notify_strings[0],
+                                                body=notify_strings[1])
+                    # Set the notification state in the db
+                    set_notify_state(session=timeline_data, state=notify_action, agent_info=agent)
+    else:
+        logger.debug(u"PlexPy Notifier :: Notify timeline called but incomplete data received.")
 
 
 def get_notify_state(session):
@@ -190,6 +209,21 @@ def get_notify_state(session):
 
     return notify_states
 
+def get_notify_state_timeline(timeline):
+    monitor_db = database.MonitorDatabase()
+    result = monitor_db.select('SELECT on_created, agent_id '
+                               'FROM notify_log '
+                               'WHERE rating_key = ? '
+                               'ORDER BY id DESC',
+                               args=[timeline['rating_key']])
+    notify_states = []
+    for item in result:
+        notify_state = {'on_created': item[0],
+                        'agent_id': item[1]}
+        notify_states.append(notify_state)
+
+    return notify_states
+
 
 def set_notify_state(session, state, agent_info):
 
@@ -208,52 +242,71 @@ def set_notify_state(session, state, agent_info):
             values = {'on_buffer': int(time.time())}
         elif state == 'watched':
             values = {'on_watched': int(time.time())}
+        elif state == 'created':
+            values = {'on_created': int(time.time())}
         else:
             return
 
-        keys = {'session_key': session['session_key'],
-                'rating_key': session['rating_key'],
-                'user_id': session['user_id'],
-                'user': session['user'],
-                'agent_id': agent_info['id'],
-                'agent_name': agent_info['name']}
+        if state == 'created':
+            keys = {'rating_key': session['rating_key'],
+                    'agent_id': agent_info['id'],
+                    'agent_name': agent_info['name']}
+        else:
+            keys = {'session_key': session['session_key'],
+                    'rating_key': session['rating_key'],
+                    'user_id': session['user_id'],
+                    'user': session['user'],
+                    'agent_id': agent_info['id'],
+                    'agent_name': agent_info['name']}
 
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
     else:
         logger.error('PlexPy Notifier :: Unable to set notify state.')
 
 
-def build_notify_text(session, state):
+def build_notify_text(session=None, timeline=None, state=None):
     from plexpy import pmsconnect, helpers
     import re
 
     # Get the server name
     pms_connect = pmsconnect.PmsConnect()
     server_name = pms_connect.get_server_pref(pref='FriendlyName')
+    # If friendly name is blank
+    if not server_name:
+        servers_info = pms_connect.get_servers_info()
+        for server in servers_info:
+            if server['machine_identifier'] == plexpy.CONFIG.PMS_IDENTIFIER:
+                server_name = server['name']
+                break
 
     # Get metadata feed for item
-    metadata = pms_connect.get_metadata_details(rating_key=session['rating_key'])
+    if session:
+        rating_key = session['rating_key']
+    elif timeline:
+        rating_key = timeline['rating_key']
 
-    if metadata:
-        item_metadata = metadata['metadata']
+    metadata_list = pms_connect.get_metadata_details(rating_key=rating_key)
+
+    if metadata_list:
+        metadata = metadata_list['metadata']
     else:
-        logger.error(u"PlexPy Notifier :: Unable to retrieve metadata for rating_key %s" % str(session['rating_key']))
+        logger.error(u"PlexPy Notifier :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
         return []
 
     # Check for exclusion tags
-    if session['media_type'] == 'episode':
+    if metadata['media_type'] == 'episode':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<movie>[^>]+.</movie>|<music>[^>]+.</music>', re.IGNORECASE)
-    elif session['media_type'] == 'movie':
+    elif metadata['media_type'] == 'movie':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<tv>[^>]+.</tv>|<music>[^>]+.</music>', re.IGNORECASE)
-    elif session['media_type'] == 'track':
+    elif metadata['media_type'] == 'track':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', re.IGNORECASE)
     else:
         pattern = None
 
-    if session['media_type'] == 'episode' or session['media_type'] == 'movie' or session['media_type'] == 'track' \
+    if metadata['media_type'] == 'episode' or metadata['media_type'] == 'movie' or metadata['media_type'] == 'track' \
             and pattern:
         # Remove the unwanted tags and strip any unmatch tags too.
         on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
@@ -268,6 +321,8 @@ def build_notify_text(session, state):
         on_buffer_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT))
         on_watched_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
         on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
+        on_created_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT))
+        on_created_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT))
     else:
         on_start_subject = plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT
         on_start_body = plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT
@@ -281,63 +336,76 @@ def build_notify_text(session, state):
         on_buffer_body = plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT
         on_watched_subject = plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT
         on_watched_body = plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT
+        on_created_subject = plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT
+        on_created_body = plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT
 
     # Create a title
-    if session['media_type'] == 'episode':
-        full_title = '%s - %s' % (session['grandparent_title'],
-                                  session['title'])
-    elif session['media_type'] == 'track':
-        full_title = '%s - %s' % (session['grandparent_title'],
-                                  session['title'])
+    if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
+        full_title = '%s - %s' % (metadata['grandparent_title'],
+                                  metadata['title'])
     else:
-        full_title = session['title']
+        full_title = metadata['title']
 
-    # Generate a combined transcode decision value
-    if session['video_decision']:
-        if session['video_decision'] == 'transcode':
-            transcode_decision = 'Transcode'
-        elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
-            transcode_decision = 'Direct Stream'
-        else:
-            transcode_decision = 'Direct Play'
-    else:
-        if session['audio_decision'] == 'transcode':
-            transcode_decision = 'Transcode'
-        else:
-            transcode_decision = 'Direct Play'
+    duration = helpers.convert_milliseconds_to_minutes(metadata['duration'])
 
-    duration = helpers.convert_milliseconds_to_minutes(item_metadata['duration'])
-    view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
+    # Default values
+    transcode_decision = ''
     stream_duration = 0
-    if state != 'play':
-        if session['paused_counter']:
-            stream_duration = int((time.time() - helpers.cast_to_float(session['started']) -
-                                   helpers.cast_to_float(session['paused_counter'])) / 60)
-        else:
-            stream_duration = int((time.time() - helpers.cast_to_float(session['started'])) / 60)
+    view_offset = 0
+    user = ''
+    platform = ''
+    player = ''
+
+    # Session values
+    if session:
+        # Generate a combined transcode decision value
+        if session['video_decision']:
+            if session['video_decision'] == 'transcode':
+                transcode_decision = 'Transcode'
+            elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
+                transcode_decision = 'Direct Stream'
+            else:
+                transcode_decision = 'Direct Play'
+        elif session['audio_decision']:
+            if session['audio_decision'] == 'transcode':
+                transcode_decision = 'Transcode'
+            else:
+                transcode_decision = 'Direct Play'
+
+        if state != 'play':
+            if session['paused_counter']:
+                stream_duration = int((time.time() - helpers.cast_to_float(session['started']) -
+                                       helpers.cast_to_float(session['paused_counter'])) / 60)
+            else:
+                stream_duration = int((time.time() - helpers.cast_to_float(session['started'])) / 60)
+
+        view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
+        user = session['friendly_name']
+        platform = session['platform']
+        player = session['player']
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
     available_params = {'server_name': server_name,
-                        'user': session['friendly_name'],
-                        'platform': session['platform'],
-                        'player': session['player'],
-                        'media_type': session['media_type'],
+                        'user': user,
+                        'platform': platform,
+                        'player': player,
+                        'media_type': metadata['media_type'],
                         'title': full_title,
-                        'show_name': item_metadata['grandparent_title'],
-                        'episode_name': item_metadata['title'],
-                        'artist_name': item_metadata['grandparent_title'],
-                        'album_name': item_metadata['parent_title'],
-                        'season_num': item_metadata['parent_index'],
-                        'season_num00': item_metadata['parent_index'].zfill(2),
-                        'episode_num': item_metadata['index'],
-                        'episode_num00': item_metadata['index'].zfill(2),
+                        'show_name': metadata['grandparent_title'],
+                        'episode_name': metadata['title'],
+                        'artist_name': metadata['grandparent_title'],
+                        'album_name': metadata['parent_title'],
+                        'season_num': metadata['parent_index'],
+                        'season_num00': metadata['parent_index'].zfill(2),
+                        'episode_num': metadata['index'],
+                        'episode_num00': metadata['index'].zfill(2),
                         'transcode_decision': transcode_decision,
-                        'year': item_metadata['year'],
-                        'studio': item_metadata['studio'],
-                        'content_rating': item_metadata['content_rating'],
-                        'summary': item_metadata['summary'],
-                        'rating': item_metadata['rating'],
+                        'year': metadata['year'],
+                        'studio': metadata['studio'],
+                        'content_rating': metadata['content_rating'],
+                        'summary': metadata['summary'],
+                        'rating': metadata['rating'],
                         'duration': duration,
                         'stream_duration': stream_duration,
                         'remaining_duration': duration - view_offset,
@@ -484,6 +552,28 @@ def build_notify_text(session, state):
 
             try:
                 body_text = unicode(on_watched_body).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    elif state == 'created':
+        # Default body text
+        body_text = '%s was recently added to Plex.' % full_title
+
+        if on_created_subject and on_created_body:
+            try:
+                subject_text = unicode(on_created_subject).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_created_body).format(**available_params)
             except LookupError, e:
                 logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
             except:
