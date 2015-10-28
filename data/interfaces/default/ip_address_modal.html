@@ -17,8 +17,8 @@
                 <h4><strong>Location Details</strong></h4>
                 <ul class="list-unstyled">
                     <li>Country: <strong><span id="country"></span></strong></li>
-                    <li>City: <strong><span id="city"></span></strong></li>
                     <li>Region: <strong><span id="region"></span></strong></li>
+                    <li>City: <strong><span id="city"></span></strong></li>
                     <li>Timezone: <strong><span id="timezone"></span></strong></li>
                     <li>Latitude: <strong><span id="lat"></span></strong></li>
                     <li>Longitude: <strong><span id="lon"></span></strong></li>
@@ -28,13 +28,12 @@
                 <h4><strong>Connection Details</strong></h4>
                 <ul class="list-unstyled">
                     <li>ISP: <strong><span id="isp"></span></strong></li>
-                    <li>Organization: <strong><span id="org"></span></strong></li>
                     <li>AS: <strong><span id="as"></span></strong></li>
                 </ul>
             </div>
         </div>
         <div class="modal-footer">
-            <span class="text-muted">Service provided by ip-api.com.</span>
+            <span class="text-muted">Service provided by www.telize.com.</span>
         </div>
     </div>
 </div>
@@ -43,7 +42,7 @@
 <script>
     function getUserLocation(ip_address) {
         $.ajax({
-            url: 'http://ip-api.com/json/' + ip_address,
+            url: 'https://www.telize.com/geoip/' + ip_address,
             cache: true,
             async: true,
             type: 'GET',
@@ -55,13 +54,12 @@
                 $('#modal_header_ip_address').html('<i class="fa fa-map-marker"></i> IP Address: ' + ip_address);
                 $('#country').html(data.country);
                 $('#city').html(data.city);
-                $('#region').html(data.regionName);
+                $('#region').html(data.region);
                 $('#timezone').html(data.timezone);
-                $('#lat').html(data.lat);
-                $('#lon').html(data.lon);
+                $('#lat').html(data.latitude);
+                $('#lon').html(data.longitude);
                 $('#isp').html(data.isp);
-                $('#org').html(data.org);
-                $('#as').html(data.as);
+                $('#as').html(data.asn);
             },
             timeout: 5000
         });
