@@ -35,6 +35,8 @@ import json
 import oauth2 as oauth
 import pythontwitter as twitter
 
+import telegram
+
 from email.mime.text import MIMEText
 import smtplib
 import email.utils
@@ -51,7 +53,8 @@ AGENT_IDS = {"Growl": 0,
              "Boxcar2": 9,
              "Email": 10,
              "Twitter": 11,
-             "IFTTT": 12}
+             "IFTTT": 12,
+             "Telegram": 13}
 
 def available_notification_agents():
     agents = [{'name': 'Growl',
@@ -209,6 +212,19 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.IFTTT_ON_BUFFER,
                'on_watched': plexpy.CONFIG.IFTTT_ON_WATCHED,
                'on_created': plexpy.CONFIG.IFTTT_ON_CREATED
+               },
+              {'name': 'Telegram',
+               'id': AGENT_IDS['Telegram'],
+               'config_prefix': 'telegram',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.TELEGRAM_ENABLED),
+               'on_play': plexpy.CONFIG.TELEGRAM_ON_PLAY,
+               'on_stop': plexpy.CONFIG.TELEGRAM_ON_STOP,
+               'on_pause': plexpy.CONFIG.TELEGRAM_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.TELEGRAM_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.TELEGRAM_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.TELEGRAM_ON_WATCHED,
+               'on_created': plexpy.CONFIG.TELEGRAM_ON_CREATED
                }
               ]
 
@@ -274,6 +290,9 @@ def get_notification_agent_config(config_id):
         elif config_id == 12:
             iftttClient = IFTTT()
             return iftttClient.return_config_options()
+        elif config_id == 13:
+        	telegramClient = TELEGRAM()
+        	return telegramClient.return_config_options()
         else:
             return []
     else:
@@ -322,6 +341,9 @@ def send_notification(config_id, subject, body):
         elif config_id == 12:
             iftttClient = IFTTT()
             iftttClient.notify(subject=subject, message=body)
+        elif config_id == 13:
+        	telegramClient = TELEGRAM()
+        	telegramClient.notify(message=body, event=subject)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
@@ -1413,6 +1435,61 @@ class IFTTT(object):
                            'name': 'testIFTTT',
                            'description': 'Test if IFTTT notifications are working. See logs for troubleshooting.',
                            'input_type': 'button'
+                          }
+                         ]
+
+        return config_option
+
+class TELEGRAM(object):
+
+    def __init__(self):
+        self.enabled = plexpy.CONFIG.TELEGRAM_ENABLED
+        self.bot_token = plexpy.CONFIG.TELEGRAM_BOT_TOKEN
+        self.chat_id = plexpy.CONFIG.TELEGRAM_CHAT_ID
+
+        self.on_play = plexpy.CONFIG.TELEGRAM_ON_PLAY
+        self.on_stop = plexpy.CONFIG.TELEGRAM_ON_STOP
+        self.on_watched = plexpy.CONFIG.TELEGRAM_ON_WATCHED
+        
+
+    def conf(self, options):
+        return cherrypy.config['config'].get('Telegram', options)
+
+    def notify(self, message, event):
+        if not message or not event:
+            return
+
+        bot = telegram.Bot(self.bot_token)
+
+        bot.sendMessage(chat_id=self.chat_id, text=message.encode("utf-8"))
+
+        logger.info(u"Telegram notifications sent.")
+
+        return True
+
+    def updateLibrary(self):
+        #For uniformity reasons not removed
+        return
+
+    def test(self, bot_token, chat_id):
+        self.enabled = True
+        self.bot_token = bot_token
+        self.chat_id = chat_id
+
+        self.notify('Main Screen Activate', 'Test Message')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Telegram Bot ID',
+                          'value': self.bot_token,
+                          'name': 'telegram_bot_token',
+                          'description': 'Your Bot ID here.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Telegram Chat ID',
+                          'value': self.chat_id,
+                          'name': 'telegram_chat_id',
+                          'description': 'Your Telegram Chat or Group ID.',
+                          'input_type': 'text'
                           }
                          ]
 
