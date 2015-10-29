@@ -35,8 +35,6 @@ import json
 import oauth2 as oauth
 import pythontwitter as twitter
 
-import telegram
-
 from email.mime.text import MIMEText
 import smtplib
 import email.utils
@@ -291,8 +289,8 @@ def get_notification_agent_config(config_id):
             iftttClient = IFTTT()
             return iftttClient.return_config_options()
         elif config_id == 13:
-        	telegramClient = TELEGRAM()
-        	return telegramClient.return_config_options()
+          telegramClient = TELEGRAM()
+          return telegramClient.return_config_options()
         else:
             return []
     else:
@@ -342,8 +340,8 @@ def send_notification(config_id, subject, body):
             iftttClient = IFTTT()
             iftttClient.notify(subject=subject, message=body)
         elif config_id == 13:
-        	telegramClient = TELEGRAM()
-        	telegramClient.notify(message=body, event=subject)
+          telegramClient = TELEGRAM()
+          telegramClient.notify(message=body, event=subject)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
@@ -1447,11 +1445,6 @@ class TELEGRAM(object):
         self.bot_token = plexpy.CONFIG.TELEGRAM_BOT_TOKEN
         self.chat_id = plexpy.CONFIG.TELEGRAM_CHAT_ID
 
-        self.on_play = plexpy.CONFIG.TELEGRAM_ON_PLAY
-        self.on_stop = plexpy.CONFIG.TELEGRAM_ON_STOP
-        self.on_watched = plexpy.CONFIG.TELEGRAM_ON_WATCHED
-        
-
     def conf(self, options):
         return cherrypy.config['config'].get('Telegram', options)
 
@@ -1459,13 +1452,28 @@ class TELEGRAM(object):
         if not message or not event:
             return
 
-        bot = telegram.Bot(self.bot_token)
+        http_handler = HTTPSConnection("api.telegram.org")
 
-        bot.sendMessage(chat_id=self.chat_id, text=message.encode("utf-8"))
+        data = {'chat_id': self.chat_id,
+                'text': message.encode("utf-8")}
 
-        logger.info(u"Telegram notifications sent.")
+        http_handler.request("POST",
+                                "/bot%s/%s" % (self.bot_token, "sendMessage"),
+                                headers={'Content-type': "application/x-www-form-urlencoded"},
+                                body=json.dumps(data))
 
-        return True
+        response = http_handler.getresponse()
+        request_status = response.status
+
+        if request_status == 200:
+                logger.info(u"Telegram notifications sent.")
+                return True
+        elif request_status >= 400 and request_status < 500:
+                logger.info(u"Telegram request failed: %s" % response.reason)
+                return False
+        else:
+                logger.info(u"Telegram notification failed serverside.")
+                return False
 
     def updateLibrary(self):
         #For uniformity reasons not removed
@@ -1479,16 +1487,16 @@ class TELEGRAM(object):
         self.notify('Main Screen Activate', 'Test Message')
 
     def return_config_options(self):
-        config_option = [{'label': 'Telegram Bot ID',
+        config_option = [{'label': 'Telegram Bot Token',
                           'value': self.bot_token,
                           'name': 'telegram_bot_token',
-                          'description': 'Your Bot ID here.',
+                          'description': 'Your Bot Token here.',
                           'input_type': 'text'
                           },
                          {'label': 'Telegram Chat ID',
                           'value': self.chat_id,
                           'name': 'telegram_chat_id',
-                          'description': 'Your Telegram Chat or Group ID.',
+                          'description': 'Your Telegram Chat ID or Group ID.',
                           'input_type': 'text'
                           }
                          ]
