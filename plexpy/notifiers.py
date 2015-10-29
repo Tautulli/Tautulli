@@ -1460,7 +1460,7 @@ class TELEGRAM(object):
         http_handler.request("POST",
                                 "/bot%s/%s" % (self.bot_token, "sendMessage"),
                                 headers={'Content-type': "application/x-www-form-urlencoded"},
-                                body=json.dumps(data))
+                                body=urlencode(data))
 
         response = http_handler.getresponse()
         request_status = response.status
@@ -1490,13 +1490,13 @@ class TELEGRAM(object):
         config_option = [{'label': 'Telegram Bot Token',
                           'value': self.bot_token,
                           'name': 'telegram_bot_token',
-                          'description': 'Your Bot Token here.',
+                          'description': 'Your bot token. Contact <a href="http://telegram.me/BotFather">@BotFather</a> on Telegram to get one.',
                           'input_type': 'text'
                           },
                          {'label': 'Telegram Chat ID',
                           'value': self.chat_id,
                           'name': 'telegram_chat_id',
-                          'description': 'Your Telegram Chat ID or Group ID.',
+                          'description': 'Your Telegram Chat ID or Group ID. Contact <a href="http://telegram.me/myidbot">@myidbot</a> on Telegram to get an ID.',
                           'input_type': 'text'
                           }
                          ]
