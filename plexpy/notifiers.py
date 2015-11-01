@@ -1455,7 +1455,7 @@ class TELEGRAM(object):
         http_handler = HTTPSConnection("api.telegram.org")
 
         data = {'chat_id': self.chat_id,
-                'text': event + ': ' + message.encode("utf-8")}
+                'text': event.encode('utf-8') + ': ' + message.encode("utf-8")}
 
         http_handler.request("POST",
                                 "/bot%s/%s" % (self.bot_token, "sendMessage"),
