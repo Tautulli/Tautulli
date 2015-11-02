@@ -51,7 +51,8 @@ AGENT_IDS = {"Growl": 0,
              "Boxcar2": 9,
              "Email": 10,
              "Twitter": 11,
-             "IFTTT": 12}
+             "IFTTT": 12,
+             "Telegram": 13}
 
 def available_notification_agents():
     agents = [{'name': 'Growl',
@@ -209,6 +210,19 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.IFTTT_ON_BUFFER,
                'on_watched': plexpy.CONFIG.IFTTT_ON_WATCHED,
                'on_created': plexpy.CONFIG.IFTTT_ON_CREATED
+               },
+              {'name': 'Telegram',
+               'id': AGENT_IDS['Telegram'],
+               'config_prefix': 'telegram',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.TELEGRAM_ENABLED),
+               'on_play': plexpy.CONFIG.TELEGRAM_ON_PLAY,
+               'on_stop': plexpy.CONFIG.TELEGRAM_ON_STOP,
+               'on_pause': plexpy.CONFIG.TELEGRAM_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.TELEGRAM_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.TELEGRAM_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.TELEGRAM_ON_WATCHED,
+               'on_created': plexpy.CONFIG.TELEGRAM_ON_CREATED
                }
               ]
 
@@ -274,6 +288,9 @@ def get_notification_agent_config(config_id):
         elif config_id == 12:
             iftttClient = IFTTT()
             return iftttClient.return_config_options()
+        elif config_id == 13:
+          telegramClient = TELEGRAM()
+          return telegramClient.return_config_options()
         else:
             return []
     else:
@@ -322,6 +339,9 @@ def send_notification(config_id, subject, body):
         elif config_id == 12:
             iftttClient = IFTTT()
             iftttClient.notify(subject=subject, message=body)
+        elif config_id == 13:
+          telegramClient = TELEGRAM()
+          telegramClient.notify(message=body, event=subject)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
@@ -1413,6 +1433,71 @@ class IFTTT(object):
                            'name': 'testIFTTT',
                            'description': 'Test if IFTTT notifications are working. See logs for troubleshooting.',
                            'input_type': 'button'
+                          }
+                         ]
+
+        return config_option
+
+class TELEGRAM(object):
+
+    def __init__(self):
+        self.enabled = plexpy.CONFIG.TELEGRAM_ENABLED
+        self.bot_token = plexpy.CONFIG.TELEGRAM_BOT_TOKEN
+        self.chat_id = plexpy.CONFIG.TELEGRAM_CHAT_ID
+
+    def conf(self, options):
+        return cherrypy.config['config'].get('Telegram', options)
+
+    def notify(self, message, event):
+        if not message or not event:
+            return
+
+        http_handler = HTTPSConnection("api.telegram.org")
+
+        data = {'chat_id': self.chat_id,
+                'text': event.encode('utf-8') + ': ' + message.encode("utf-8")}
+
+        http_handler.request("POST",
+                                "/bot%s/%s" % (self.bot_token, "sendMessage"),
+                                headers={'Content-type': "application/x-www-form-urlencoded"},
+                                body=urlencode(data))
+
+        response = http_handler.getresponse()
+        request_status = response.status
+
+        if request_status == 200:
+                logger.info(u"Telegram notifications sent.")
+                return True
+        elif request_status >= 400 and request_status < 500:
+                logger.info(u"Telegram request failed: %s" % response.reason)
+                return False
+        else:
+                logger.info(u"Telegram notification failed serverside.")
+                return False
+
+    def updateLibrary(self):
+        #For uniformity reasons not removed
+        return
+
+    def test(self, bot_token, chat_id):
+        self.enabled = True
+        self.bot_token = bot_token
+        self.chat_id = chat_id
+
+        self.notify('Main Screen Activate', 'Test Message')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Telegram Bot Token',
+                          'value': self.bot_token,
+                          'name': 'telegram_bot_token',
+                          'description': 'Your bot token. Contact <a href="http://telegram.me/BotFather">@BotFather</a> on Telegram to get one.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Telegram Chat ID',
+                          'value': self.chat_id,
+                          'name': 'telegram_chat_id',
+                          'description': 'Your Telegram Chat ID or Group ID. Contact <a href="http://telegram.me/myidbot">@myidbot</a> on Telegram to get an ID.',
+                          'input_type': 'text'
                           }
                          ]
 
