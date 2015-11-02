@@ -2472,7 +2472,7 @@ table[id^='history_child'] thead th {
     display: inline-flex;
     float: right;
 }
-#search_form #search_query {
+#search_form #query {
     width: 0;
     height: 34px;
     margin-top: 0;
@@ -2481,7 +2481,7 @@ table[id^='history_child'] thead th {
     right: -250px;
     border-radius: 3px 0 0 3px;
 }
-#search_form #search_query.active {
+#search_form #query.active {
     width: 250px;
     right: 0px;
 }
