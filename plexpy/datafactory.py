@@ -848,7 +848,7 @@ class DataFactory(object):
                     media_type = 'artist'
 
         if query_string and media_type:
-            query = {'query_string': query_string.replace('"', ''),
+            query = {'query_string': query_string,
                      'title': title,
                      'parent_title': parent_title,
                      'grandparent_title': grandparent_title,

@@ -1366,8 +1366,7 @@ class WebInterface(object):
             return json.dumps({'message': 'no data received'})
 
     @cherrypy.expose
-    def search(self, search_query=''):
-        query = search_query.replace('"', '')
+    def search(self, query=''):
 
         return serve_template(templatename="search.html", title="Search", query=query)
 

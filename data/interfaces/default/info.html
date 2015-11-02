@@ -636,7 +636,7 @@ DOCUMENTATION :: END
         url: 'get_search_results_children',
         type: 'GET',
         async: true,
-        data: {'query': "${query['query_string']}",
+        data: {'query': "${query['query_string'].replace('"','\\"')}",
                'media_type': "${query['media_type']}",
                'season_index': "${query['parent_media_index']}"
         },
