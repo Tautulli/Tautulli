@@ -900,7 +900,7 @@ class PUSHOVER(object):
 
         data = {'token': self.application_token,
                 'user': plexpy.CONFIG.PUSHOVER_KEYS,
-                'title': event,
+                'title': event.encode("utf-8"),
                 'message': message.encode("utf-8"),
                 'sound': plexpy.CONFIG.PUSHOVER_SOUND,
                 'priority': plexpy.CONFIG.PUSHOVER_PRIORITY}
