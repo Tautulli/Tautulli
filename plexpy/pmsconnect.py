@@ -413,9 +413,9 @@ class PmsConnect(object):
                         'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
                         'index': helpers.get_xml_attr(metadata_main, 'index'),
-                        'studio': helpers.get_xml_attr(metadata_main, 'studio'),
+                        'studio': show_details['metadata']['studio'],
                         'title': helpers.get_xml_attr(metadata_main, 'title'),
-                        'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
+                        'content_rating': show_details['metadata']['content_rating'],
                         'summary': show_details['metadata']['summary'],
                         'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
                         'rating': helpers.get_xml_attr(metadata_main, 'rating'),
@@ -430,13 +430,15 @@ class PmsConnect(object):
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
                         'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
                         'guid': helpers.get_xml_attr(metadata_main, 'guid'),
-                        'genres': genres,
-                        'actors': actors,
-                        'writers': writers,
-                        'directors': directors
+                        'genres': show_details['metadata']['genres'],
+                        'actors': show_details['metadata']['actors'],
+                        'writers': show_details['metadata']['writers'],
+                        'directors': show_details['metadata']['directors']
                         }
             metadata_list = {'metadata': metadata}
         elif metadata_type == 'episode':
+            grandparent_rating_key = helpers.get_xml_attr(metadata_main, 'grandparentRatingKey')
+            show_details = self.get_metadata_details(grandparent_rating_key)
             metadata = {'media_type': metadata_type,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
@@ -445,7 +447,7 @@ class PmsConnect(object):
                         'parent_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
                         'index': helpers.get_xml_attr(metadata_main, 'index'),
-                        'studio': helpers.get_xml_attr(metadata_main, 'studio'),
+                        'studio': show_details['metadata']['studio'],
                         'title': helpers.get_xml_attr(metadata_main, 'title'),
                         'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
                         'summary': helpers.get_xml_attr(metadata_main, 'summary'),
@@ -462,10 +464,10 @@ class PmsConnect(object):
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
                         'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
                         'guid': helpers.get_xml_attr(metadata_main, 'guid'),
+                        'genres': show_details['metadata']['genres'],
+                        'actors': show_details['metadata']['actors'],
                         'writers': writers,
-                        'directors': directors,
-                        'genres': genres,
-                        'actors': actors
+                        'directors': directors
                         }
             metadata_list = {'metadata': metadata}
         elif metadata_type == 'movie':
@@ -589,7 +591,7 @@ class PmsConnect(object):
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
                         'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
                         'guid': helpers.get_xml_attr(metadata_main, 'guid'),
-                        'genres': genres,
+                        'genres': album_details['metadata']['genres'],
                         'actors': actors,
                         'writers': writers,
                         'directors': directors
