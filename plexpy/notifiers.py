@@ -1418,7 +1418,7 @@ class IFTTT(object):
         config_option = [{'label': 'Ifttt Maker Channel Key',
                           'value': self.apikey,
                           'name': 'ifttt_key',
-                          'description': 'Your Ifttt  key. You can get a key from <a href="https://ifttt.com/maker">here</a>.',
+                          'description': 'Your Ifttt  key. You can get a key from <a href="https://ifttt.com/maker" target="_blank">here</a>.',
                           'input_type': 'text'
                           },
                          {'label': 'Ifttt Event',
@@ -1490,13 +1490,13 @@ class TELEGRAM(object):
         config_option = [{'label': 'Telegram Bot Token',
                           'value': self.bot_token,
                           'name': 'telegram_bot_token',
-                          'description': 'Your Telegram bot token. Contact <a href="http://telegram.me/BotFather">@BotFather</a> on Telegram to get one.',
+                          'description': 'Your Telegram bot token. Contact <a href="http://telegram.me/BotFather" target="_blank">@BotFather</a> on Telegram to get one.',
                           'input_type': 'text'
                           },
                          {'label': 'Telegram Chat ID',
                           'value': self.chat_id,
                           'name': 'telegram_chat_id',
-                          'description': 'Your Telegram Chat ID or Group ID. Contact <a href="http://telegram.me/myidbot">@myidbot</a> on Telegram to get an ID.',
+                          'description': 'Your Telegram Chat ID or Group ID. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
                           'input_type': 'text'
                           }
                          ]
