@@ -355,6 +355,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     user = ''
     platform = ''
     player = ''
+    ip_address = 'N/A'
 
     # Session values
     if session:
@@ -383,6 +384,7 @@ def build_notify_text(session=None, timeline=None, state=None):
         user = session['friendly_name']
         platform = session['platform']
         player = session['player']
+        ip_address = session['ip_address'] if session['ip_address'] != '' else 'N/A'
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
@@ -390,12 +392,14 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'user': user,
                         'platform': platform,
                         'player': player,
+                        'ip_address': ip_address,
                         'media_type': metadata['media_type'],
                         'title': full_title,
                         'show_name': metadata['grandparent_title'],
                         'episode_name': metadata['title'],
                         'artist_name': metadata['grandparent_title'],
                         'album_name': metadata['parent_title'],
+                        'track_name': metadata['title'],
                         'season_num': metadata['parent_index'],
                         'season_num00': metadata['parent_index'].zfill(2),
                         'episode_num': metadata['index'],
