@@ -1004,8 +1004,7 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         if session_key:
-            query = 'SELECT CASE WHEN ip_address IS NULL THEN "N/A" ELSE ip_address END ' \
-                    'FROM sessions WHERE session_key = %d' % int(session_key)
+            query = 'SELECT ip_address FROM sessions WHERE session_key = %d' % int(session_key)
             result = monitor_db.select(query)
         else:
             return None

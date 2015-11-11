@@ -32,6 +32,7 @@ user_thumb                  Returns the profile picture of the user owning the s
 state                       Returns the state of the current session. Either 'playing', 'paused' or 'buffering'.
 title                       Returns the name of the episode, movie or music track.
 year                        Returns the year of the episode, movie, or clip.
+ip_address                  Returns the ip address of the stream.
 player                      Returns the name of the platform used to play the stream.
 platform                    Returns the type of platform used to play the stream.
 throttled                   Returns true if the transcode session is throttled.
@@ -192,7 +193,11 @@ DOCUMENTATION :: END
             % if a['media_type'] != 'photo':
             <div class="dashboard-activity-poster-info-bar">
                 <div class="dashboard-activity-poster-info-ip-address">
+                    % if a['ip_address']:
                     <span>IP: ${a['ip_address']}</span>
+                    % else:
+                    <span>IP: N/A</span>
+                    % endif
                 </div>
                 <div class="dashboard-activity-poster-info-time">
                     <span class="progress_time">${a['view_offset']}</span>/<span class="progress_time">${a['duration']}</span>
