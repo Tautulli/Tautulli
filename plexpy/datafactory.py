@@ -999,3 +999,20 @@ class DataFactory(object):
             return 'No updated rating key needed in database. No changes were made.'
         # for debugging
         #return mapping
+
+    def get_session_ip(self, session_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        if session_key:
+            query = 'SELECT CASE WHEN ip_address IS NULL THEN "N/A" ELSE ip_address END ' \
+                    'FROM sessions WHERE session_key = %d' % int(session_key)
+            result = monitor_db.select(query)
+        else:
+            return None
+
+        ip_address = 'N/A'
+
+        for item in result:
+            ip_address = item[0]
+
+        return ip_address

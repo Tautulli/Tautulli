@@ -191,6 +191,9 @@ DOCUMENTATION :: END
             </div>
             % if a['media_type'] != 'photo':
             <div class="dashboard-activity-poster-info-bar">
+                <div class="dashboard-activity-poster-info-ip-address">
+                    <span>IP: ${a['ip_address']}</span>
+                </div>
                 <div class="dashboard-activity-poster-info-time">
                     <span class="progress_time">${a['view_offset']}</span>/<span class="progress_time">${a['duration']}</span>
                 </div>
