@@ -688,6 +688,14 @@ a:hover .dashboard-activity-poster {
     white-space: nowrap;
     width: 150px;
 }
+.dashboard-activity-poster-info-ip-address {
+    position: absolute;
+    bottom: 5px;
+    left: 10px;
+    text-align: left;
+    font-size: 12px;
+    color: #eee;
+}
 .dashboard-activity-poster-info-time {
     position: absolute;
     bottom: 5px;

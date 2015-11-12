@@ -711,6 +711,12 @@ class WebInterface(object):
         try:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_current_activity()
+
+            data_factory = datafactory.DataFactory()
+            for session in result['sessions']:
+                if not session['ip_address']:
+                    ip_address = data_factory.get_session_ip(session['session_key'])
+                    session['ip_address'] = ip_address
         except:
             return serve_template(templatename="current_activity.html", data=None)
 

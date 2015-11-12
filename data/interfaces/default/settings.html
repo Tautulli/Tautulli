@@ -435,7 +435,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <span id="debugLogCheck" style="color: #eb8600; padding-left: 10px;"></span>
                             <p class="help-block">
-                                Enable this to attempt to log the IP address of the user.
+                                Enable this to attempt to log the IP address of the user (for PMS 0.9.12 and below, IP address is automatically logged for PMS 0.9.14 and above).
                             </p>
                         </div>
 
@@ -883,12 +883,16 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td>The name of the device being used for playback.</td>
                                 </tr>
                                 <tr>
+                                    <td width="150"><strong>{ip_address}</strong></td>
+                                    <td>The IP address of the device being used for playback. (PMS 0.9.14 and above)</td>
+                                </tr>
+                                <tr>
                                     <td width="150"><strong>{media_type}</strong></td>
                                     <td>The type of media being played (movie, episode, track).</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{title}</strong></td>
-                                    <td>The title of the item being played.</td>
+                                    <td>The full title of the item being played.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{show_name}</strong></td>
@@ -905,6 +909,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td width="150"><strong>{album_name}</strong></td>
                                     <td>The title of the album being played.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{track_name}</strong></td>
+                                    <td>The title of the track being played.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{season_num}</strong></td>
