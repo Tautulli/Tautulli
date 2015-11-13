@@ -27,13 +27,12 @@
             <div class="col-md-6">
                 <h4><strong>Connection Details</strong></h4>
                 <ul class="list-unstyled">
-                    <li>ISP: <strong><span id="isp"></span></strong></li>
-                    <li>AS: <strong><span id="as"></span></strong></li>
+                    <li>Organization: <strong><span id="organization"></span></strong></li>
                 </ul>
             </div>
         </div>
         <div class="modal-footer">
-            <span class="text-muted">Service provided by www.telize.com.</span>
+            <span class="text-muted">Telize service written by <a href="https://github.com/fcambus/telize" target="_blank">Frederic Cambus</a>.</span>
         </div>
     </div>
 </div>
@@ -42,7 +41,7 @@
 <script>
     function getUserLocation(ip_address) {
         $.ajax({
-            url: 'https://www.telize.com/geoip/' + ip_address,
+            url: 'https://telize.myhtpc.co.za/geoip/' + ip_address,
             cache: true,
             async: true,
             type: 'GET',
@@ -58,8 +57,7 @@
                 $('#timezone').html(data.timezone);
                 $('#lat').html(data.latitude);
                 $('#lon').html(data.longitude);
-                $('#isp').html(data.isp);
-                $('#as').html(data.asn);
+                $('#organization').html(data.organization);
             },
             timeout: 5000
         });
