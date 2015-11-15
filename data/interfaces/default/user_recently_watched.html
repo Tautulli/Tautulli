@@ -34,7 +34,7 @@ DOCUMENTATION :: END
         % for item in data:
         <li>
             % if item['type'] == 'episode' or item['type'] == 'movie':
-			<a href="info?source=history&item_id=${item['row_id']}">
+			<a href="info?source=history&rating_key=${item['rating_key']}">
 				<div class="dashboard-recent-media-poster">
 					<div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
                         <div class="dashboard-recent-media-overlay">
@@ -60,7 +60,7 @@ DOCUMENTATION :: END
 				</div>
 			</a>
             % elif item['type'] == 'track':
-            <a href="info?source=history&item_id=${item['row_id']}">
+            <a href="info?source=history&rating_key=${item['rating_key']}">
                 <div class="dashboard-recent-media-cover">
                     <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">
                         <div class="dashboard-recent-media-overlay">

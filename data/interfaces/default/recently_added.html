@@ -30,7 +30,7 @@ DOCUMENTATION :: END
         <div class="dashboard-recent-media-instance">
             <li>
                 % if item['media_type'] == 'season' or item['media_type'] == 'movie':
-				<a href="info?item_id=${item['rating_key']}">
+				<a href="info?rating_key=${item['rating_key']}">
 					<div class="dashboard-recent-media-poster">
 						<div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
                             <div class="dashboard-recent-media-overlay">
@@ -53,7 +53,7 @@ DOCUMENTATION :: END
 					</div>
 				</a>
 				% elif item['media_type'] == 'album':
-                <a href="info?item_id=${item['rating_key']}">
+                <a href="info?rating_key=${item['rating_key']}">
                     <div class="dashboard-recent-media-cover">
                         <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">
                             <div class="dashboard-recent-media-overlay">

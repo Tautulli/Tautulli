@@ -62,7 +62,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['movie']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
                 </div>
@@ -84,7 +84,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['show']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
                 </div>
@@ -106,7 +106,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['season']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
                 </div>
@@ -128,7 +128,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['episode']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face episode-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
                 </div>
@@ -151,7 +151,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['artist']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300);"></div>
                 </div>
@@ -172,7 +172,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['album']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300);"></div>
                 </div>
@@ -194,7 +194,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['track']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['parent_thumb']}&width=300&height=300);">
                         <div class="item-children-card-overlay">
