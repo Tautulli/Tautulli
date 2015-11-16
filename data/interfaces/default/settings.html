@@ -533,7 +533,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_start_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_start_body_text" name="notify_on_start_body_text" value="${config['notify_on_start_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_start_body_text" name="notify_on_start_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_start_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -550,7 +550,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_stop_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_stop_body_text" name="notify_on_stop_body_text" value="${config['notify_on_stop_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_stop_body_text" name="notify_on_stop_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_stop_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -567,7 +567,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_pause_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_pause_body_text" name="notify_on_pause_body_text" value="${config['notify_on_pause_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_pause_body_text" name="notify_on_pause_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_pause_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -584,7 +584,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_resume_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_resume_body_text" name="notify_on_resume_body_text" value="${config['notify_on_resume_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_resume_body_text" name="notify_on_resume_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_resume_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -601,7 +601,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_watched_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_watched_body_text" name="notify_on_watched_body_text" value="${config['notify_on_watched_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_watched_body_text" name="notify_on_watched_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_watched_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -618,7 +618,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_buffer_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_buffer_body_text" name="notify_on_buffer_body_text" value="${config['notify_on_buffer_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_buffer_body_text" name="notify_on_buffer_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_buffer_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -637,7 +637,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_created_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_created_body_text" name="notify_on_created_body_text" value="${config['notify_on_created_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_created_body_text" name="notify_on_created_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_created_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -1388,6 +1388,14 @@ $(document).ready(function() {
         e.preventDefault()
     });
 
+    // auto resizing textarea for custom notification message body
+    $('textarea[data-autoresize]').each(function() {
+        var offset = this.offsetHeight - this.clientHeight;
+        var resizeTextarea = function(el) {
+            $(el).css('height', 'auto').css('height', el.scrollHeight + offset);
+        };
+        $(this).on('focus keyup input', function() { resizeTextarea(this); }).removeAttr('data-autoresize');
+    });
 });
 </script>
 </%def>
