@@ -1632,3 +1632,17 @@ class PmsConnect(object):
                     }
 
         return key_list
+
+    def get_server_friendly_name(self):
+
+        server_name = self.get_server_pref(pref='FriendlyName')
+
+        # If friendly name is blank
+        if not server_name:
+            servers_info = self.get_servers_info()
+            for server in servers_info:
+                if server['machine_identifier'] == plexpy.CONFIG.PMS_IDENTIFIER:
+                    server_name = server['name']
+                    break
+
+        return server_name

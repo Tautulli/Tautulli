@@ -100,20 +100,12 @@
 
     function getLibraryStatsHeader() { 
         $.ajax({
-            "url": "get_servers_info",
-            type: "post",
+            url: 'get_server_friendly_name',
             cache: false,
             async: true,
             data: { },
             complete: function (xhr, status) {
-                server_info = $.parseJSON(xhr.responseText);
-                var server_name = 'Server name not found';
-                for (var i in server_info) {
-                    if (server_info[i].machine_identifier == '${config['pms_identifier']}') { 
-                        server_name = server_info[i].name
-                        break;
-                    }
-                }
+                server_name = xhr.responseText;
                 $('#library-statistics-header h3').append(' <small>' + server_name + '</small>')
             }
         });

@@ -270,14 +270,7 @@ def build_notify_text(session=None, timeline=None, state=None):
 
     # Get the server name
     pms_connect = pmsconnect.PmsConnect()
-    server_name = pms_connect.get_server_pref(pref='FriendlyName')
-    # If friendly name is blank
-    if not server_name:
-        servers_info = pms_connect.get_servers_info()
-        for server in servers_info:
-            if server['machine_identifier'] == plexpy.CONFIG.PMS_IDENTIFIER:
-                server_name = server['name']
-                break
+    server_name = pms_connect.get_server_friendly_name()
 
     # Get metadata feed for item
     if session:

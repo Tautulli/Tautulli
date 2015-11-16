@@ -46,9 +46,13 @@ def serve_template(templatename, **kwargs):
 
     _hplookup = TemplateLookup(directories=[template_dir])
 
+    # Get the server name
+    pms_connect = pmsconnect.PmsConnect()
+    server_name = pms_connect.get_server_friendly_name()
+
     try:
         template = _hplookup.get_template(templatename)
-        return template.render(**kwargs)
+        return template.render(server_name=server_name, **kwargs)
     except:
         return exceptions.html_error_template().render()
 
@@ -1137,10 +1141,25 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_server_prefs(self, **kwargs):
+    def get_server_friendly_name(self, **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_server_prefs(output_format='json')
+        result = pms_connect.get_server_friendly_name()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_server_prefs(self, pref=None, **kwargs):
+
+        if pref:
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_server_pref(pref=pref)
+        else:
+            result = None
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
