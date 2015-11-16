@@ -287,20 +287,22 @@ def build_notify_text(session=None, timeline=None, state=None):
         return []
 
     # Check for exclusion tags
-    if metadata['media_type'] == 'episode':
-        # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile('<movie>[^>]+.</movie>|<music>[^>]+.</music>', re.IGNORECASE)
-    elif metadata['media_type'] == 'movie':
+    if metadata['media_type'] == 'movie':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<tv>[^>]+.</tv>|<music>[^>]+.</music>', re.IGNORECASE)
-    elif metadata['media_type'] == 'track':
+    elif metadata['media_type'] == 'show' or metadata['media_type'] == 'episode':
+        # Regex pattern to remove the text in the tags we don't want
+        pattern = re.compile('<movie>[^>]+.</movie>|<music>[^>]+.</music>', re.IGNORECASE)
+    elif metadata['media_type'] == 'artist' or metadata['media_type'] == 'track':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', re.IGNORECASE)
     else:
         pattern = None
 
-    if metadata['media_type'] == 'episode' or metadata['media_type'] == 'movie' or metadata['media_type'] == 'track' \
-            and pattern:
+    if metadata['media_type'] == 'movie' \
+        or metadata['media_type'] == 'show' or metadata['media_type'] == 'episode' \
+        or metadata['media_type'] == 'artist' or metadata['media_type'] == 'track' \
+        and pattern:
         # Remove the unwanted tags and strip any unmatch tags too.
         on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
         on_start_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
