@@ -163,6 +163,19 @@ def check_active_sessions(ws_request=False):
                 monitor_process.write_session(session)
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
+            response = pms_connect.get_server_response()
+            global ping_count
+        
+            if not response:
+                ping_count += 1
+                logger.warn(u"PlexPy Monitor :: Unable to get a response from the server, ping attempt %s." % str(ping_count))
+
+                if ping_count == 3:
+                    # Fire off notifications
+                    threading.Thread(target=notification_handler.notify_timeline,
+                                     kwargs=dict(notify_action='down')).start()
+            else:
+                ping_count = 0
             
 
 def check_recently_added():
@@ -220,22 +233,3 @@ def check_recently_added():
                             # Fire off notifications
                             threading.Thread(target=notification_handler.notify_timeline,
                                              kwargs=dict(timeline_data=item, notify_action='created')).start()
-
-
-def check_server_response():
-
-    with monitor_lock:
-        pms_connect = pmsconnect.PmsConnect()
-        response = pms_connect.get_server_response()
-        global ping_count
-        
-        if not response:
-            ping_count += 1
-            logger.warn(u"PlexPy Monitor :: Unable to get a response from the server, ping attempt %s." % str(ping_count))
-
-            if ping_count == 3:
-                # Fire off notifications
-                threading.Thread(target=notification_handler.notify_timeline,
-                                 kwargs=dict(notify_action='down')).start()
-        else:
-            ping_count = 0

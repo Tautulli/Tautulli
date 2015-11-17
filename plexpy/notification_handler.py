@@ -179,7 +179,7 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                             body=notify_strings[1])
                 # Set the notification state in the db
                 set_notify_state(session=timeline_data, state=notify_action, agent_info=agent)
-    elif notify_action == 'down':
+    elif not timeline_data and notify_action:
         for agent in notifiers.available_notification_agents():
             if agent['on_down'] and notify_action == 'down':
                 # Build and send notification
