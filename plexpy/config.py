@@ -140,6 +140,7 @@ _CONFIG_DEFINITIONS = {
     'NMA_ON_CREATED': (int, 'NMA', 0),
     'NOTIFY_CONSECUTIVE': (int, 'Monitoring', 1),
     'NOTIFY_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 0),
+    'NOTIFY_RECENTLY_ADDED_DELAY': (int, 'Monitoring', 60),
     'NOTIFY_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'NOTIFY_ON_START_SUBJECT_TEXT': (str, 'Monitoring', 'PlexPy ({server_name})'),
     'NOTIFY_ON_START_BODY_TEXT': (str, 'Monitoring', '{user} ({player}) started playing {title}.'),
