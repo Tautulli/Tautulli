@@ -26,6 +26,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_IP': (str, 'PMS', '127.0.0.1'),
     'PMS_IS_REMOTE': (int, 'PMS', 0),
     'PMS_LOGS_FOLDER': (str, 'PMS', ''),
+    'PMS_NAME': (str, 'PMS', ''),
     'PMS_PORT': (int, 'PMS', 32400),
     'PMS_TOKEN': (str, 'PMS', ''),
     'PMS_SSL': (int, 'General', 0),

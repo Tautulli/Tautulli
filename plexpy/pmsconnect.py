@@ -1645,4 +1645,8 @@ class PmsConnect(object):
                     server_name = server['name']
                     break
 
+        if server_name != plexpy.CONFIG.PMS_NAME:
+            plexpy.CONFIG.__setattr__('PMS_NAME', server_name)
+            plexpy.CONFIG.write()
+
         return server_name

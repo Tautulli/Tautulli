@@ -46,9 +46,7 @@ def serve_template(templatename, **kwargs):
 
     _hplookup = TemplateLookup(directories=[template_dir])
 
-    # Get the server name
-    pms_connect = pmsconnect.PmsConnect()
-    server_name = pms_connect.get_server_friendly_name()
+    server_name = plexpy.CONFIG.PMS_NAME
 
     try:
         template = _hplookup.get_template(templatename)
@@ -75,7 +73,8 @@ class WebInterface(object):
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
             "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
+            "pms_name": plexpy.CONFIG.PMS_NAME
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 

@@ -31,7 +31,7 @@ except ImportError:
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from plexpy import versioncheck, logger, activity_pinger, plextv
+from plexpy import versioncheck, logger, activity_pinger, plextv, pmsconnect
 import plexpy.config
 
 PROG_DIR = None
@@ -169,6 +169,7 @@ def initialize(config_file):
         # Get the real PMS urls for SSL and remote access
         if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT:
             plextv.get_real_pms_url()
+            pmsconnect.PmsConnect().get_server_friendly_name()
 
         # Refresh the users list on startup
         if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
@@ -280,7 +281,10 @@ def initialize_scheduler():
             seconds = 0
 
         if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
-            schedule_job(plextv.get_real_pms_url, 'Refresh Plex Server URLs', hours=12, minutes=0, seconds=0)
+            schedule_job(plextv.get_real_pms_url, 'Refresh Plex Server URLs',
+                         hours=12, minutes=0, seconds=0)
+            schedule_job(pmsconnect.PmsConnect().get_server_friendly_name, 'Refresh Plex Server Name',
+                         hours=12, minutes=0, seconds=0)
 
             # If we're not using websockets then fall back to polling
             if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:
