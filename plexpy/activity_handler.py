@@ -218,7 +218,7 @@ class TimelineHandler(object):
 
     def __init__(self, timeline):
         self.timeline = timeline
-        logger.debug(timeline)
+        #logger.debug(timeline)
 
     def is_item(self):
         if 'itemID' in self.timeline:

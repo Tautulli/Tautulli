@@ -172,17 +172,13 @@ def notify_timeline(timeline_data=None, notify_action=None):
     if timeline_data and notify_action:
         for agent in notifiers.available_notification_agents():
             if agent['on_created'] and notify_action == 'created':
-                if (plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT \
-                    and (timeline_data['media_type'] == 'movie' or timeline_data['media_type'] == 'show' or timeline_data['media_type'] == 'artist')) \
-                    or (not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT \
-                    and (timeline_data['media_type'] == 'movie' or timeline_data['media_type'] == 'episode' or timeline_data['media_type'] == 'track')):
-                    # Build and send notification
-                    notify_strings = build_notify_text(timeline=timeline_data, state=notify_action)
-                    notifiers.send_notification(config_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1])
-                    # Set the notification state in the db
-                    set_notify_state(session=timeline_data, state=notify_action, agent_info=agent)
+                # Build and send notification
+                notify_strings = build_notify_text(timeline=timeline_data, state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1])
+                # Set the notification state in the db
+                set_notify_state(session=timeline_data, state=notify_action, agent_info=agent)
     else:
         logger.debug(u"PlexPy Notifier :: Notify timeline called but incomplete data received.")
 
