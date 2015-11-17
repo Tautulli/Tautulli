@@ -66,7 +66,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.GROWL_ON_RESUME,
                'on_buffer': plexpy.CONFIG.GROWL_ON_BUFFER,
                'on_watched': plexpy.CONFIG.GROWL_ON_WATCHED,
-               'on_created': plexpy.CONFIG.GROWL_ON_CREATED
+               'on_created': plexpy.CONFIG.GROWL_ON_CREATED,
+               'on_down': plexpy.CONFIG.GROWL_ON_DOWN
                },
               {'name': 'Prowl',
                'id': AGENT_IDS['Prowl'],
@@ -79,7 +80,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.PROWL_ON_RESUME,
                'on_buffer': plexpy.CONFIG.PROWL_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PROWL_ON_WATCHED,
-               'on_created': plexpy.CONFIG.PROWL_ON_CREATED
+               'on_created': plexpy.CONFIG.PROWL_ON_CREATED,
+               'on_down': plexpy.CONFIG.PROWL_ON_DOWN
                },
               {'name': 'XBMC',
                'id': AGENT_IDS['XBMC'],
@@ -92,7 +94,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.XBMC_ON_RESUME,
                'on_buffer': plexpy.CONFIG.XBMC_ON_BUFFER,
                'on_watched': plexpy.CONFIG.XBMC_ON_WATCHED,
-               'on_created': plexpy.CONFIG.XBMC_ON_CREATED
+               'on_created': plexpy.CONFIG.XBMC_ON_CREATED,
+               'on_down': plexpy.CONFIG.XBMC_ON_DOWN
                },
               {'name': 'Plex',
                'id': AGENT_IDS['Plex'],
@@ -105,7 +108,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.PLEX_ON_RESUME,
                'on_buffer': plexpy.CONFIG.PLEX_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED,
-               'on_created': plexpy.CONFIG.PLEX_ON_CREATED
+               'on_created': plexpy.CONFIG.PLEX_ON_CREATED,
+               'on_down': plexpy.CONFIG.PLEX_ON_DOWN
                },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
@@ -118,7 +122,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.NMA_ON_RESUME,
                'on_buffer': plexpy.CONFIG.NMA_ON_BUFFER,
                'on_watched': plexpy.CONFIG.NMA_ON_WATCHED,
-               'on_created': plexpy.CONFIG.NMA_ON_CREATED
+               'on_created': plexpy.CONFIG.NMA_ON_CREATED,
+               'on_down': plexpy.CONFIG.NMA_ON_DOWN
                },
               {'name': 'Pushalot',
                'id': AGENT_IDS['Pushalot'],
@@ -131,7 +136,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.PUSHALOT_ON_RESUME,
                'on_buffer': plexpy.CONFIG.PUSHALOT_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PUSHALOT_ON_WATCHED,
-               'on_created': plexpy.CONFIG.PUSHALOT_ON_CREATED
+               'on_created': plexpy.CONFIG.PUSHALOT_ON_CREATED,
+               'on_down': plexpy.CONFIG.PUSHALOT_ON_DOWN
                },
               {'name': 'Pushbullet',
                'id': AGENT_IDS['Pushbullet'],
@@ -144,7 +150,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.PUSHBULLET_ON_RESUME,
                'on_buffer': plexpy.CONFIG.PUSHBULLET_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PUSHBULLET_ON_WATCHED,
-               'on_created': plexpy.CONFIG.PUSHBULLET_ON_CREATED
+               'on_created': plexpy.CONFIG.PUSHBULLET_ON_CREATED,
+               'on_down': plexpy.CONFIG.PUSHBULLET_ON_DOWN
                },
               {'name': 'Pushover',
                'id': AGENT_IDS['Pushover'],
@@ -157,7 +164,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.PUSHOVER_ON_RESUME,
                'on_buffer': plexpy.CONFIG.PUSHOVER_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PUSHOVER_ON_WATCHED,
-               'on_created': plexpy.CONFIG.PUSHOVER_ON_CREATED
+               'on_created': plexpy.CONFIG.PUSHOVER_ON_CREATED,
+               'on_down': plexpy.CONFIG.PUSHOVER_ON_DOWN
                },
               {'name': 'Boxcar2',
                'id': AGENT_IDS['Boxcar2'],
@@ -170,7 +178,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.BOXCAR_ON_RESUME,
                'on_buffer': plexpy.CONFIG.BOXCAR_ON_BUFFER,
                'on_watched': plexpy.CONFIG.BOXCAR_ON_WATCHED,
-               'on_created': plexpy.CONFIG.BOXCAR_ON_CREATED
+               'on_created': plexpy.CONFIG.BOXCAR_ON_CREATED,
+               'on_down': plexpy.CONFIG.BOXCAR_ON_DOWN
                },
               {'name': 'E-mail',
                'id': AGENT_IDS['Email'],
@@ -183,7 +192,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.EMAIL_ON_RESUME,
                'on_buffer': plexpy.CONFIG.EMAIL_ON_BUFFER,
                'on_watched': plexpy.CONFIG.EMAIL_ON_WATCHED,
-               'on_created': plexpy.CONFIG.EMAIL_ON_CREATED
+               'on_created': plexpy.CONFIG.EMAIL_ON_CREATED,
+               'on_down': plexpy.CONFIG.EMAIL_ON_DOWN
                },
               {'name': 'Twitter',
                'id': AGENT_IDS['Twitter'],
@@ -196,7 +206,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.TWITTER_ON_RESUME,
                'on_buffer': plexpy.CONFIG.TWITTER_ON_BUFFER,
                'on_watched': plexpy.CONFIG.TWITTER_ON_WATCHED,
-               'on_created': plexpy.CONFIG.TWITTER_ON_CREATED
+               'on_created': plexpy.CONFIG.TWITTER_ON_CREATED,
+               'on_down': plexpy.CONFIG.TWITTER_ON_DOWN
                },
               {'name': 'IFTTT',
                'id': AGENT_IDS['IFTTT'],
@@ -209,7 +220,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.IFTTT_ON_RESUME,
                'on_buffer': plexpy.CONFIG.IFTTT_ON_BUFFER,
                'on_watched': plexpy.CONFIG.IFTTT_ON_WATCHED,
-               'on_created': plexpy.CONFIG.IFTTT_ON_CREATED
+               'on_created': plexpy.CONFIG.IFTTT_ON_CREATED,
+               'on_down': plexpy.CONFIG.IFTTT_ON_DOWN
                },
               {'name': 'Telegram',
                'id': AGENT_IDS['Telegram'],
@@ -222,7 +234,8 @@ def available_notification_agents():
                'on_resume': plexpy.CONFIG.TELEGRAM_ON_RESUME,
                'on_buffer': plexpy.CONFIG.TELEGRAM_ON_BUFFER,
                'on_watched': plexpy.CONFIG.TELEGRAM_ON_WATCHED,
-               'on_created': plexpy.CONFIG.TELEGRAM_ON_CREATED
+               'on_created': plexpy.CONFIG.TELEGRAM_ON_CREATED,
+               'on_down': plexpy.CONFIG.TELEGRAM_ON_DOWN
                }
               ]
 
@@ -240,7 +253,8 @@ def available_notification_agents():
                        'on_resume': plexpy.CONFIG.OSX_NOTIFY_ON_RESUME,
                        'on_buffer': plexpy.CONFIG.OSX_NOTIFY_ON_BUFFER,
                        'on_watched': plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED,
-                       'on_created': plexpy.CONFIG.OSX_NOTIFY_ON_CREATED
+                       'on_created': plexpy.CONFIG.OSX_NOTIFY_ON_CREATED,
+                       'on_down': plexpy.CONFIG.OSX_NOTIFY_ON_DOWN
                        })
 
     return agents

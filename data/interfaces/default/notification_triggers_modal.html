@@ -64,6 +64,13 @@ from plexpy import helpers
                             </label>
                             <p class="help-block">Trigger notification when a media item is added to the Plex Media Server.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_down" ${helpers.checked(data['on_down'])} class="toggle-switches">
+                                Notify on server down
+                            </label>
+                            <p class="help-block">Trigger notification when the Plex Media Server cannot be reached.</p>
+                        </div>
                     </div>
                 </div>
             </div>

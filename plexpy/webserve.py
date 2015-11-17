@@ -462,6 +462,8 @@ class WebInterface(object):
             "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT,
             "notify_on_created_subject_text": plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT,
             "notify_on_created_body_text": plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT,
+            "notify_on_down_subject_text": plexpy.CONFIG.NOTIFY_ON_DOWN_SUBJECT_TEXT,
+            "notify_on_down_body_text": plexpy.CONFIG.NOTIFY_ON_DOWN_BODY_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
