@@ -287,6 +287,8 @@ def initialize_scheduler():
                          hours=12, minutes=0, seconds=0)
             schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
                          hours=0, minutes=0, seconds=seconds)
+            schedule_job(activity_pinger.check_server_response, 'Check for server response',
+                         hours=0, minutes=0, seconds=seconds)
 
             # If we're not using websockets then fall back to polling
             if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:

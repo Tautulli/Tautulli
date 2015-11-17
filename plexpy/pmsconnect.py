@@ -1649,3 +1649,16 @@ class PmsConnect(object):
                     }
 
         return key_list
+
+    """
+    Check for a server response.
+
+    Output: bool
+    """
+    def get_server_response(self):
+        response = self.get_server_list()
+
+        if not response:
+            return False
+        else:
+            return True
