@@ -169,7 +169,7 @@ def initialize(config_file):
         # Get the real PMS urls for SSL and remote access
         if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT:
             plextv.get_real_pms_url()
-            pmsconnect.PmsConnect().get_server_friendly_name()
+            pmsconnect.get_server_friendly_name()
 
         # Refresh the users list on startup
         if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
@@ -283,7 +283,7 @@ def initialize_scheduler():
         if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex Server URLs',
                          hours=12, minutes=0, seconds=0)
-            schedule_job(pmsconnect.PmsConnect().get_server_friendly_name, 'Refresh Plex Server Name',
+            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex Server Name',
                          hours=12, minutes=0, seconds=0)
             schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
                          hours=0, minutes=0, seconds=seconds)

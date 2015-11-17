@@ -19,6 +19,23 @@ from urlparse import urlparse
 import plexpy
 import urllib2
 
+def get_server_friendly_name():
+    logger.info("Requesting name from server...")
+    server_name = PmsConnect().get_server_pref(pref='FriendlyName')
+    
+    # If friendly name is blank
+    if not server_name:
+        servers_info = PmsConnect().get_servers_info()
+        for server in servers_info:
+            if server['machine_identifier'] == plexpy.CONFIG.PMS_IDENTIFIER:
+                server_name = server['name']
+                break
+    
+    if server_name and server_name != plexpy.CONFIG.PMS_NAME:
+        plexpy.CONFIG.__setattr__('PMS_NAME', server_name)
+        plexpy.CONFIG.write()
+
+    return server_name
 
 class PmsConnect(object):
     """
@@ -1632,21 +1649,3 @@ class PmsConnect(object):
                     }
 
         return key_list
-
-    def get_server_friendly_name(self):
-
-        server_name = self.get_server_pref(pref='FriendlyName')
-
-        # If friendly name is blank
-        if not server_name:
-            servers_info = self.get_servers_info()
-            for server in servers_info:
-                if server['machine_identifier'] == plexpy.CONFIG.PMS_IDENTIFIER:
-                    server_name = server['name']
-                    break
-
-        if server_name != plexpy.CONFIG.PMS_NAME:
-            plexpy.CONFIG.__setattr__('PMS_NAME', server_name)
-            plexpy.CONFIG.write()
-
-        return server_name

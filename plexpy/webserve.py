@@ -1143,8 +1143,7 @@ class WebInterface(object):
     @cherrypy.expose
     def get_server_friendly_name(self, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_server_friendly_name()
+        result = pmsconnect.get_server_friendly_name()
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

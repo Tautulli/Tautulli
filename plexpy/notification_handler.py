@@ -261,12 +261,10 @@ def set_notify_state(session, state, agent_info):
 
 
 def build_notify_text(session=None, timeline=None, state=None):
-    from plexpy import pmsconnect, helpers
     import re
 
     # Get the server name
-    pms_connect = pmsconnect.PmsConnect()
-    server_name = pms_connect.get_server_friendly_name()
+    server_name = plexpy.CONFIG.PMS_NAME
 
     # Get metadata feed for item
     if session:
