@@ -269,6 +269,7 @@ def set_notify_state(session, state, agent_info):
 
 
 def build_notify_text(session=None, timeline=None, state=None):
+    from plexpy import pmsconnect
     import re
 
     # Get the server name
@@ -280,6 +281,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     elif timeline:
         rating_key = timeline['rating_key']
 
+    pms_connect = pmsconnect.PmsConnect()
     metadata_list = pms_connect.get_metadata_details(rating_key=rating_key)
 
     if metadata_list:
