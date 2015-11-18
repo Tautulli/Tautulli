@@ -181,7 +181,13 @@ def notify_timeline(timeline_data=None, notify_action=None):
                 set_notify_state(session=timeline_data, state=notify_action, agent_info=agent)
     elif not timeline_data and notify_action:
         for agent in notifiers.available_notification_agents():
-            if agent['on_down'] and notify_action == 'down':
+            if agent['on_extdown'] and notify_action == 'extdown':
+                # Build and send notification
+                notify_strings = build_server_notify_text(state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1])
+            if agent['on_intdown'] and notify_action == 'intdown':
                 # Build and send notification
                 notify_strings = build_server_notify_text(state=notify_action)
                 notifiers.send_notification(config_id=agent['id'],
@@ -619,8 +625,10 @@ def build_server_notify_text(state=None):
         logger.error(u"PlexPy Notifier :: Unable to retrieve server uptime.")
         server_uptime = 'N/A'
 
-    on_down_subject = plexpy.CONFIG.NOTIFY_ON_DOWN_SUBJECT_TEXT
-    on_down_body = plexpy.CONFIG.NOTIFY_ON_DOWN_BODY_TEXT
+    on_extdown_subject = plexpy.CONFIG.NOTIFY_ON_EXTDOWN_SUBJECT_TEXT
+    on_extdown_body = plexpy.CONFIG.NOTIFY_ON_EXTDOWN_BODY_TEXT
+    on_intdown_subject = plexpy.CONFIG.NOTIFY_ON_INTDOWN_SUBJECT_TEXT
+    on_intdown_body = plexpy.CONFIG.NOTIFY_ON_INTDOWN_BODY_TEXT
 
     available_params = {'server_name': server_name,
                         'server_uptime': server_uptime}
@@ -628,20 +636,42 @@ def build_server_notify_text(state=None):
     # Default text
     subject_text = 'PlexPy (%s)' % server_name
 
-    if state == 'down':
+    if state == 'extdown':
         # Default body text
-        body_text = 'Unable to get a response from the server.'
+        body_text = 'The Plex external port is down.'
 
-        if on_down_subject and on_down_body:
+        if on_extdown_subject and on_extdown_body:
             try:
-                subject_text = unicode(on_down_subject).format(**available_params)
+                subject_text = unicode(on_extdown_subject).format(**available_params)
             except LookupError, e:
                 logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
 
             try:
-                body_text = unicode(on_down_body).format(**available_params)
+                body_text = unicode(on_extdown_body).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    elif state == 'intdown':
+        # Default body text
+        body_text = 'The Plex server is down.'
+
+        if on_intdown_subject and on_intdown_body:
+            try:
+                subject_text = unicode(on_intdown_subject).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_intdown_body).format(**available_params)
             except LookupError, e:
                 logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
             except:

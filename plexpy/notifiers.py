@@ -67,7 +67,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.GROWL_ON_BUFFER,
                'on_watched': plexpy.CONFIG.GROWL_ON_WATCHED,
                'on_created': plexpy.CONFIG.GROWL_ON_CREATED,
-               'on_down': plexpy.CONFIG.GROWL_ON_DOWN
+               'on_extdown': plexpy.CONFIG.GROWL_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.GROWL_ON_INTDOWN
                },
               {'name': 'Prowl',
                'id': AGENT_IDS['Prowl'],
@@ -81,7 +82,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.PROWL_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PROWL_ON_WATCHED,
                'on_created': plexpy.CONFIG.PROWL_ON_CREATED,
-               'on_down': plexpy.CONFIG.PROWL_ON_DOWN
+               'on_extdown': plexpy.CONFIG.PROWL_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PROWL_ON_INTDOWN
                },
               {'name': 'XBMC',
                'id': AGENT_IDS['XBMC'],
@@ -95,7 +97,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.XBMC_ON_BUFFER,
                'on_watched': plexpy.CONFIG.XBMC_ON_WATCHED,
                'on_created': plexpy.CONFIG.XBMC_ON_CREATED,
-               'on_down': plexpy.CONFIG.XBMC_ON_DOWN
+               'on_extdown': plexpy.CONFIG.XBMC_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.XBMC_ON_INTDOWN
                },
               {'name': 'Plex',
                'id': AGENT_IDS['Plex'],
@@ -109,7 +112,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.PLEX_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED,
                'on_created': plexpy.CONFIG.PLEX_ON_CREATED,
-               'on_down': plexpy.CONFIG.PLEX_ON_DOWN
+               'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN
                },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
@@ -123,7 +127,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.NMA_ON_BUFFER,
                'on_watched': plexpy.CONFIG.NMA_ON_WATCHED,
                'on_created': plexpy.CONFIG.NMA_ON_CREATED,
-               'on_down': plexpy.CONFIG.NMA_ON_DOWN
+               'on_extdown': plexpy.CONFIG.NMA_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.NMA_ON_INTDOWN
                },
               {'name': 'Pushalot',
                'id': AGENT_IDS['Pushalot'],
@@ -137,7 +142,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.PUSHALOT_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PUSHALOT_ON_WATCHED,
                'on_created': plexpy.CONFIG.PUSHALOT_ON_CREATED,
-               'on_down': plexpy.CONFIG.PUSHALOT_ON_DOWN
+               'on_extdown': plexpy.CONFIG.PUSHALOT_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PUSHALOT_ON_INTDOWN
                },
               {'name': 'Pushbullet',
                'id': AGENT_IDS['Pushbullet'],
@@ -151,7 +157,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.PUSHBULLET_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PUSHBULLET_ON_WATCHED,
                'on_created': plexpy.CONFIG.PUSHBULLET_ON_CREATED,
-               'on_down': plexpy.CONFIG.PUSHBULLET_ON_DOWN
+               'on_extdown': plexpy.CONFIG.PUSHBULLET_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PUSHBULLET_ON_INTDOWN
                },
               {'name': 'Pushover',
                'id': AGENT_IDS['Pushover'],
@@ -165,7 +172,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.PUSHOVER_ON_BUFFER,
                'on_watched': plexpy.CONFIG.PUSHOVER_ON_WATCHED,
                'on_created': plexpy.CONFIG.PUSHOVER_ON_CREATED,
-               'on_down': plexpy.CONFIG.PUSHOVER_ON_DOWN
+               'on_extdown': plexpy.CONFIG.PUSHOVER_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PUSHOVER_ON_INTDOWN
                },
               {'name': 'Boxcar2',
                'id': AGENT_IDS['Boxcar2'],
@@ -179,7 +187,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.BOXCAR_ON_BUFFER,
                'on_watched': plexpy.CONFIG.BOXCAR_ON_WATCHED,
                'on_created': plexpy.CONFIG.BOXCAR_ON_CREATED,
-               'on_down': plexpy.CONFIG.BOXCAR_ON_DOWN
+               'on_extdown': plexpy.CONFIG.BOXCAR_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.BOXCAR_ON_INTDOWN
                },
               {'name': 'E-mail',
                'id': AGENT_IDS['Email'],
@@ -193,7 +202,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.EMAIL_ON_BUFFER,
                'on_watched': plexpy.CONFIG.EMAIL_ON_WATCHED,
                'on_created': plexpy.CONFIG.EMAIL_ON_CREATED,
-               'on_down': plexpy.CONFIG.EMAIL_ON_DOWN
+               'on_extdown': plexpy.CONFIG.EMAIL_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.EMAIL_ON_INTDOWN
                },
               {'name': 'Twitter',
                'id': AGENT_IDS['Twitter'],
@@ -207,7 +217,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.TWITTER_ON_BUFFER,
                'on_watched': plexpy.CONFIG.TWITTER_ON_WATCHED,
                'on_created': plexpy.CONFIG.TWITTER_ON_CREATED,
-               'on_down': plexpy.CONFIG.TWITTER_ON_DOWN
+               'on_extdown': plexpy.CONFIG.TWITTER_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.TWITTER_ON_INTDOWN
                },
               {'name': 'IFTTT',
                'id': AGENT_IDS['IFTTT'],
@@ -221,7 +232,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.IFTTT_ON_BUFFER,
                'on_watched': plexpy.CONFIG.IFTTT_ON_WATCHED,
                'on_created': plexpy.CONFIG.IFTTT_ON_CREATED,
-               'on_down': plexpy.CONFIG.IFTTT_ON_DOWN
+               'on_extdown': plexpy.CONFIG.IFTTT_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.IFTTT_ON_INTDOWN
                },
               {'name': 'Telegram',
                'id': AGENT_IDS['Telegram'],
@@ -235,7 +247,8 @@ def available_notification_agents():
                'on_buffer': plexpy.CONFIG.TELEGRAM_ON_BUFFER,
                'on_watched': plexpy.CONFIG.TELEGRAM_ON_WATCHED,
                'on_created': plexpy.CONFIG.TELEGRAM_ON_CREATED,
-               'on_down': plexpy.CONFIG.TELEGRAM_ON_DOWN
+               'on_extdown': plexpy.CONFIG.TELEGRAM_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.TELEGRAM_ON_INTDOWN
                }
               ]
 
@@ -254,7 +267,8 @@ def available_notification_agents():
                        'on_buffer': plexpy.CONFIG.OSX_NOTIFY_ON_BUFFER,
                        'on_watched': plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED,
                        'on_created': plexpy.CONFIG.OSX_NOTIFY_ON_CREATED,
-                       'on_down': plexpy.CONFIG.OSX_NOTIFY_ON_DOWN
+                       'on_extdown': plexpy.CONFIG.OSX_NOTIFY_ON_EXTDOWN,
+                       'on_intdown': plexpy.CONFIG.OSX_NOTIFY_ON_INTDOWN
                        })
 
     return agents

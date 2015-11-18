@@ -538,7 +538,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         <br/>
                         <ul id="accordion-session" class="accordion list-unstyled">
                             <li>
-                                <div class="link"><i class="fa fa-play"></i>Playback Start<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-play fa-fw"></i>&nbsp;Playback Start<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -555,7 +555,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-stop"></i>Playback Stop<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-stop fa-fw"></i>&nbsp;Playback Stop<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -572,7 +572,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-pause"></i>Playback Pause<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-pause fa-fw"></i>&nbsp;Playback Pause<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -589,7 +589,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-play"></i>Playback Resume<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-play fa-fw"></i>&nbsp;Playback Resume<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -606,7 +606,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-eye"></i>Watched<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-eye fa-fw"></i>&nbsp;Watched<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -623,7 +623,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-spinner"></i>Buffer Warnings<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-spinner fa-fw"></i>&nbsp;Buffer Warnings<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -642,7 +642,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </ul>
                         <ul id="accordion-timeline" class="accordion list-unstyled">
                             <li>
-                                <div class="link"><i class="fa fa-download"></i>Recently Added<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-download fa-fw"></i>&nbsp;Recently Added<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -659,17 +659,34 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-server"></i>Server Down<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex External Port Down<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
-                                            <label for="notify_on_down_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_down_subject_text" name="notify_on_down_subject_text" value="${config['notify_on_down_subject_text']}" data-parsley-trigger="change" required>
+                                            <label for="notify_on_extdown_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_extdown_subject_text" name="notify_on_extdown_subject_text" value="${config['notify_on_extdown_subject_text']}" data-parsley-trigger="change" required>
                                             <p class="help-block">Set a custom subject line.</p>
                                         </div>
                                         <div class="form-group">
-                                            <label for="notify_on_down_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_down_body_text" name="notify_on_down_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_down_body_text']}</textarea>
+                                            <label for="notify_on_extdown_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_extdown_body_text" name="notify_on_extdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extdown_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Server Down<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_intdown_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_intdown_subject_text" name="notify_on_intdown_subject_text" value="${config['notify_on_intdown_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_intdown_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_intdown_body_text" name="notify_on_intdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_intdown_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -692,7 +709,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             % for agent in available_notification_agents:
                             <li>
                                 <span>
-                                    % if agent['on_play'] or agent['on_stop'] or agent['on_pause'] or agent['on_resume'] or agent['on_buffer'] or agent['on_watched'] or agent['on_created'] or agent['on_down']:
+                                    % if agent['on_play'] or agent['on_stop'] or agent['on_pause'] or agent['on_resume'] or agent['on_buffer'] or agent['on_watched'] or agent['on_created'] or agent['on_extdown'] or agent['on_intdown']:
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left active" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
                                     % else:
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
