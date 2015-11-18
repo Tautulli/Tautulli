@@ -1348,6 +1348,8 @@ class Email(object):
 
             mailserver.sendmail(plexpy.CONFIG.EMAIL_FROM, plexpy.CONFIG.EMAIL_TO, message.as_string())
             mailserver.quit()
+
+            logger.info(u"Email notifications sent.")
             return True
 
         except Exception, e:
