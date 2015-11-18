@@ -13,21 +13,21 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, pmsconnect, notification_handler, database, helpers, activity_processor
+from plexpy import logger, pmsconnect, plextv, notification_handler, database, helpers, activity_processor
 
 import threading
 import plexpy
 import time
+import urllib2
 
 monitor_lock = threading.Lock()
-ping_count = 0
+ext_ping_count = 0
+int_ping_count = 0
 
 
 def check_active_sessions(ws_request=False):
 
     with monitor_lock:
-        global ping_count
-
         pms_connect = pmsconnect.PmsConnect()
         session_list = pms_connect.get_current_activity()
         monitor_db = database.MonitorDatabase()
@@ -35,7 +35,6 @@ def check_active_sessions(ws_request=False):
         # logger.debug(u"PlexPy Monitor :: Checking for active streams.")
 
         if session_list:
-            ping_count = 0
             media_container = session_list['sessions']
 
             # Check our temp table for what we must do with the new streams
@@ -166,19 +165,6 @@ def check_active_sessions(ws_request=False):
                 monitor_process.write_session(session)
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
-            response = pms_connect.get_server_response()
-        
-            if not response:
-                ping_count += 1
-                logger.warn(u"PlexPy Monitor :: Unable to get a response from the server, ping attempt %s." % str(ping_count))
-
-                if ping_count == 3:
-                    # Fire off notifications
-                    threading.Thread(target=notification_handler.notify_timeline,
-                                     kwargs=dict(notify_action='down')).start()
-            else:
-                ping_count = 0
-            
 
 def check_recently_added():
 
@@ -201,7 +187,7 @@ def check_recently_added():
                         metadata = [metadata_list['metadata']]
                     else:
                         logger.error(u"PlexPy Monitor :: Unable to retrieve metadata for rating_key %s" \
-                                        % str(item['rating_key']))
+                                     % str(item['rating_key']))
 
                 else:
                     metadata_list = pms_connect.get_metadata_children_details(item['rating_key'])
@@ -209,7 +195,7 @@ def check_recently_added():
                         metadata = metadata_list['metadata']
                     else:
                         logger.error(u"PlexPy Monitor :: Unable to retrieve children metadata for rating_key %s" \
-                                        % str(item['rating_key']))
+                                     % str(item['rating_key']))
 
                 if metadata:
                     if not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
@@ -230,8 +216,54 @@ def check_recently_added():
                                     item = metadata_list['metadata']
                                 else:
                                     logger.error(u"PlexPy Monitor :: Unable to retrieve grandparent metadata for grandparent_rating_key %s" \
-                                                    % str(item['rating_key']))
+                                                 % str(item['rating_key']))
 
                             # Fire off notifications
                             threading.Thread(target=notification_handler.notify_timeline,
                                              kwargs=dict(timeline_data=item, notify_action='created')).start()
+
+def check_server_response():
+
+    with monitor_lock:
+        plex_tv = plextv.PlexTV()
+        external_response = plex_tv.get_server_response()
+        pms_connect = pmsconnect.PmsConnect()
+        internal_response = pms_connect.get_server_response()
+
+        global ext_ping_count
+        global int_ping_count
+        
+        if not external_response:
+            ext_ping_count += 1
+            logger.warn(u"PlexPy Monitor :: Plex remote access port mapping failed, ping attempt %s." \
+                        % str(ext_ping_count))
+        else:
+            host = external_response[0]['host']
+            port = external_response[0]['port']
+
+            try:
+                http_response = urllib2.urlopen('http://' + host + ':' + port)
+            except urllib2.HTTPError, e:
+                ext_ping_count = 0
+            except urllib2.URLError, e:
+                ext_ping_count += 1
+                logger.warn(u"PlexPy Monitor :: Unable to get an external response from the server, ping attempt %s." \
+                            % str(ext_ping_count))
+            else:
+                ext_ping_count = 0
+
+        if not internal_response:
+            int_ping_count += 1
+            logger.warn(u"PlexPy Monitor :: Unable to get an internal response from the server, ping attempt %s." \
+                        % str(int_ping_count))
+        else:
+            int_ping_count = 0
+
+        if ext_ping_count == 3:
+            # Fire off notifications
+            threading.Thread(target=notification_handler.notify_timeline,
+                                kwargs=dict(notify_action='extdown')).start()
+        if int_ping_count == 3:
+            # Fire off notifications
+            threading.Thread(target=notification_handler.notify_timeline,
+                                kwargs=dict(notify_action='intdown')).start()

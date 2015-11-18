@@ -463,3 +463,22 @@ class PlexTV(object):
                 break
 
         return server_times
+
+    def get_server_response(self):
+        response = self.get_plextv_server_list(output_format='xml')
+
+        server_url = []
+
+        try:
+            xml_head = response.getElementsByTagName('Server')
+        except:
+            return False
+
+        for a in xml_head:
+            if helpers.get_xml_attr(a, 'machineIdentifier') == plexpy.CONFIG.PMS_IDENTIFIER:
+                server_url.append({"host": helpers.get_xml_attr(a, 'host'),
+                                   "port": helpers.get_xml_attr(a, 'port')
+                                   })
+            break
+
+        return server_url
