@@ -26,6 +26,8 @@ ping_count = 0
 def check_active_sessions(ws_request=False):
 
     with monitor_lock:
+        global ping_count
+
         pms_connect = pmsconnect.PmsConnect()
         session_list = pms_connect.get_current_activity()
         monitor_db = database.MonitorDatabase()
@@ -33,6 +35,7 @@ def check_active_sessions(ws_request=False):
         # logger.debug(u"PlexPy Monitor :: Checking for active streams.")
 
         if session_list:
+            ping_count = 0
             media_container = session_list['sessions']
 
             # Check our temp table for what we must do with the new streams
@@ -164,7 +167,6 @@ def check_active_sessions(ws_request=False):
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
             response = pms_connect.get_server_response()
-            global ping_count
         
             if not response:
                 ping_count += 1

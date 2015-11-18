@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, config, notifiers, database, helpers
+from plexpy import logger, config, notifiers, database, helpers, plextv, pmsconnect
 
 import plexpy
 import time
@@ -269,11 +269,21 @@ def set_notify_state(session, state, agent_info):
 
 
 def build_notify_text(session=None, timeline=None, state=None):
-    from plexpy import pmsconnect
     import re
 
     # Get the server name
     server_name = plexpy.CONFIG.PMS_NAME
+
+    # Get the server uptime
+    plex_tv = plextv.PlexTV()
+    server_times = plex_tv.get_server_times()
+
+    if server_times:
+        updated_at = server_times[0]['updated_at']
+        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_float(updated_at)))
+    else:
+        logger.error(u"PlexPy Notifier :: Unable to retrieve server uptime.")
+        server_uptime = 'N/A'
 
     # Get metadata feed for item
     if session:
@@ -388,6 +398,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     progress_percent = helpers.get_percent(view_offset, duration)
 
     available_params = {'server_name': server_name,
+                        'server_uptime': server_uptime,
                         'user': user,
                         'platform': platform,
                         'player': player,
@@ -597,10 +608,22 @@ def build_server_notify_text(state=None):
     # Get the server name
     server_name = plexpy.CONFIG.PMS_NAME
 
+    # Get the server uptime
+    plex_tv = plextv.PlexTV()
+    server_times = plex_tv.get_server_times()
+
+    if server_times:
+        updated_at = server_times[0]['updated_at']
+        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_float(updated_at)))
+    else:
+        logger.error(u"PlexPy Notifier :: Unable to retrieve server uptime.")
+        server_uptime = 'N/A'
+
     on_down_subject = plexpy.CONFIG.NOTIFY_ON_DOWN_SUBJECT_TEXT
     on_down_body = plexpy.CONFIG.NOTIFY_ON_DOWN_BODY_TEXT
 
-    available_params = {'server_name': server_name}
+    available_params = {'server_name': server_name,
+                        'server_uptime': server_uptime}
 
     # Default text
     subject_text = 'PlexPy (%s)' % server_name

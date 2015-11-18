@@ -444,3 +444,22 @@ class PlexTV(object):
             return clean_servers
 
         return json.dumps(clean_servers, indent=4)
+
+    def get_server_times(self):
+        servers = self.get_plextv_server_list(output_format='xml')
+        server_times = []
+
+        try:
+            xml_head = servers.getElementsByTagName('Server')
+        except:
+            logger.warn("Error parsing XML for Plex servers.")
+            return []
+
+        for a in xml_head:
+            if helpers.get_xml_attr(a, 'machineIdentifier') == plexpy.CONFIG.PMS_IDENTIFIER:
+                server_times.append({"created_at": helpers.get_xml_attr(a, 'createdAt'),
+                                     "updated_at": helpers.get_xml_attr(a, 'updatedAt')
+                                     })
+                break
+
+        return server_times
