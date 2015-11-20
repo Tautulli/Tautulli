@@ -139,14 +139,14 @@ def process(opcode, data):
         activity = activity_handler.ActivityHandler(timeline=time_line[0])
         activity.process()
 
-    if type == 'timeline':
-        try:
-            time_line = info.get('_children')
-        except:
-            logger.debug(u"PlexPy WebSocket :: Timeline event found but unable to get timeline data.")
-            return False
+    #if type == 'timeline':
+    #    try:
+    #        time_line = info.get('_children')
+    #    except:
+    #        logger.debug(u"PlexPy WebSocket :: Timeline event found but unable to get timeline data.")
+    #        return False
 
-        activity = activity_handler.TimelineHandler(timeline=time_line[0])
-        activity.process()
+    #    activity = activity_handler.TimelineHandler(timeline=time_line[0])
+    #    activity.process()
 
     return True

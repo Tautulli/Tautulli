@@ -46,9 +46,11 @@ def serve_template(templatename, **kwargs):
 
     _hplookup = TemplateLookup(directories=[template_dir])
 
+    server_name = plexpy.CONFIG.PMS_NAME
+
     try:
         template = _hplookup.get_template(templatename)
-        return template.render(**kwargs)
+        return template.render(server_name=server_name, **kwargs)
     except:
         return exceptions.html_error_template().render()
 
@@ -71,7 +73,8 @@ class WebInterface(object):
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
             "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
+            "pms_name": plexpy.CONFIG.PMS_NAME
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 
@@ -432,6 +435,7 @@ class WebInterface(object):
             "tv_notify_on_pause": checked(plexpy.CONFIG.TV_NOTIFY_ON_PAUSE),
             "movie_notify_on_pause": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_PAUSE),
             "music_notify_on_pause": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_PAUSE),
+            "monitor_remote_access": checked(plexpy.CONFIG.MONITOR_REMOTE_ACCESS),
             "monitoring_interval": plexpy.CONFIG.MONITORING_INTERVAL,
             "monitoring_use_websocket": checked(plexpy.CONFIG.MONITORING_USE_WEBSOCKET),
             "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
@@ -443,6 +447,7 @@ class WebInterface(object):
             "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
             "notify_consecutive": checked(plexpy.CONFIG.NOTIFY_CONSECUTIVE),
             "notify_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT),
+            "notify_recently_added_delay": plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY,
             "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
             "notify_on_start_subject_text": plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT,
             "notify_on_start_body_text": plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT,
@@ -458,6 +463,10 @@ class WebInterface(object):
             "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT,
             "notify_on_created_subject_text": plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT,
             "notify_on_created_body_text": plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT,
+            "notify_on_extdown_subject_text": plexpy.CONFIG.NOTIFY_ON_EXTDOWN_SUBJECT_TEXT,
+            "notify_on_extdown_body_text": plexpy.CONFIG.NOTIFY_ON_EXTDOWN_BODY_TEXT,
+            "notify_on_intdown_subject_text": plexpy.CONFIG.NOTIFY_ON_INTDOWN_SUBJECT_TEXT,
+            "notify_on_intdown_body_text": plexpy.CONFIG.NOTIFY_ON_INTDOWN_BODY_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
@@ -482,7 +491,7 @@ class WebInterface(object):
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
             "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type",
-            "group_history_tables", "notify_consecutive", "notify_recently_added_grandparent"
+            "group_history_tables", "notify_consecutive", "notify_recently_added_grandparent", "monitor_remote_access"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -1137,10 +1146,24 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_server_prefs(self, **kwargs):
+    def get_server_friendly_name(self, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_server_prefs(output_format='json')
+        result = pmsconnect.get_server_friendly_name()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_server_prefs(self, pref=None, **kwargs):
+
+        if pref:
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_server_pref(pref=pref)
+        else:
+            result = None
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

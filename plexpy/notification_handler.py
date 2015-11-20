@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, config, notifiers, database, helpers
+from plexpy import logger, config, notifiers, database, helpers, plextv, pmsconnect
 
 import plexpy
 import time
@@ -172,17 +172,27 @@ def notify_timeline(timeline_data=None, notify_action=None):
     if timeline_data and notify_action:
         for agent in notifiers.available_notification_agents():
             if agent['on_created'] and notify_action == 'created':
-                if (plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT \
-                    and (timeline_data['media_type'] == 'movie' or timeline_data['media_type'] == 'show' or timeline_data['media_type'] == 'artist')) \
-                    or (not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT \
-                    and (timeline_data['media_type'] == 'movie' or timeline_data['media_type'] == 'episode' or timeline_data['media_type'] == 'track')):
-                    # Build and send notification
-                    notify_strings = build_notify_text(timeline=timeline_data, state=notify_action)
-                    notifiers.send_notification(config_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1])
-                    # Set the notification state in the db
-                    set_notify_state(session=timeline_data, state=notify_action, agent_info=agent)
+                # Build and send notification
+                notify_strings = build_notify_text(timeline=timeline_data, state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1])
+                # Set the notification state in the db
+                set_notify_state(session=timeline_data, state=notify_action, agent_info=agent)
+    elif not timeline_data and notify_action:
+        for agent in notifiers.available_notification_agents():
+            if agent['on_extdown'] and notify_action == 'extdown':
+                # Build and send notification
+                notify_strings = build_server_notify_text(state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1])
+            if agent['on_intdown'] and notify_action == 'intdown':
+                # Build and send notification
+                notify_strings = build_server_notify_text(state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1])
     else:
         logger.debug(u"PlexPy Notifier :: Notify timeline called but incomplete data received.")
 
@@ -265,19 +275,21 @@ def set_notify_state(session, state, agent_info):
 
 
 def build_notify_text(session=None, timeline=None, state=None):
-    from plexpy import pmsconnect, helpers
     import re
 
     # Get the server name
-    pms_connect = pmsconnect.PmsConnect()
-    server_name = pms_connect.get_server_pref(pref='FriendlyName')
-    # If friendly name is blank
-    if not server_name:
-        servers_info = pms_connect.get_servers_info()
-        for server in servers_info:
-            if server['machine_identifier'] == plexpy.CONFIG.PMS_IDENTIFIER:
-                server_name = server['name']
-                break
+    server_name = plexpy.CONFIG.PMS_NAME
+
+    # Get the server uptime
+    plex_tv = plextv.PlexTV()
+    server_times = plex_tv.get_server_times()
+
+    if server_times:
+        updated_at = server_times[0]['updated_at']
+        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_float(updated_at)))
+    else:
+        logger.error(u"PlexPy Notifier :: Unable to retrieve server uptime.")
+        server_uptime = 'N/A'
 
     # Get metadata feed for item
     if session:
@@ -285,6 +297,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     elif timeline:
         rating_key = timeline['rating_key']
 
+    pms_connect = pmsconnect.PmsConnect()
     metadata_list = pms_connect.get_metadata_details(rating_key=rating_key)
 
     if metadata_list:
@@ -294,20 +307,22 @@ def build_notify_text(session=None, timeline=None, state=None):
         return []
 
     # Check for exclusion tags
-    if metadata['media_type'] == 'episode':
-        # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile('<movie>[^>]+.</movie>|<music>[^>]+.</music>', re.IGNORECASE)
-    elif metadata['media_type'] == 'movie':
+    if metadata['media_type'] == 'movie':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<tv>[^>]+.</tv>|<music>[^>]+.</music>', re.IGNORECASE)
-    elif metadata['media_type'] == 'track':
+    elif metadata['media_type'] == 'show' or metadata['media_type'] == 'episode':
+        # Regex pattern to remove the text in the tags we don't want
+        pattern = re.compile('<movie>[^>]+.</movie>|<music>[^>]+.</music>', re.IGNORECASE)
+    elif metadata['media_type'] == 'artist' or metadata['media_type'] == 'track':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', re.IGNORECASE)
     else:
         pattern = None
 
-    if metadata['media_type'] == 'episode' or metadata['media_type'] == 'movie' or metadata['media_type'] == 'track' \
-            and pattern:
+    if metadata['media_type'] == 'movie' \
+        or metadata['media_type'] == 'show' or metadata['media_type'] == 'episode' \
+        or metadata['media_type'] == 'artist' or metadata['media_type'] == 'track' \
+        and pattern:
         # Remove the unwanted tags and strip any unmatch tags too.
         on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
         on_start_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
@@ -389,6 +404,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     progress_percent = helpers.get_percent(view_offset, duration)
 
     available_params = {'server_name': server_name,
+                        'server_uptime': server_uptime,
                         'user': user,
                         'platform': platform,
                         'player': player,
@@ -594,6 +610,78 @@ def build_notify_text(session=None, timeline=None, state=None):
     else:
         return None
 
+def build_server_notify_text(state=None):
+    # Get the server name
+    server_name = plexpy.CONFIG.PMS_NAME
+
+    # Get the server uptime
+    plex_tv = plextv.PlexTV()
+    server_times = plex_tv.get_server_times()
+
+    if server_times:
+        updated_at = server_times[0]['updated_at']
+        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_float(updated_at)))
+    else:
+        logger.error(u"PlexPy Notifier :: Unable to retrieve server uptime.")
+        server_uptime = 'N/A'
+
+    on_extdown_subject = plexpy.CONFIG.NOTIFY_ON_EXTDOWN_SUBJECT_TEXT
+    on_extdown_body = plexpy.CONFIG.NOTIFY_ON_EXTDOWN_BODY_TEXT
+    on_intdown_subject = plexpy.CONFIG.NOTIFY_ON_INTDOWN_SUBJECT_TEXT
+    on_intdown_body = plexpy.CONFIG.NOTIFY_ON_INTDOWN_BODY_TEXT
+
+    available_params = {'server_name': server_name,
+                        'server_uptime': server_uptime}
+
+    # Default text
+    subject_text = 'PlexPy (%s)' % server_name
+
+    if state == 'extdown':
+        # Default body text
+        body_text = 'The Plex Media Server remote access is down.'
+
+        if on_extdown_subject and on_extdown_body:
+            try:
+                subject_text = unicode(on_extdown_subject).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_extdown_body).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    elif state == 'intdown':
+        # Default body text
+        body_text = 'The Plex Media Server is down.'
+
+        if on_intdown_subject and on_intdown_body:
+            try:
+                subject_text = unicode(on_intdown_subject).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_intdown_body).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    else:
+        return None
 
 def strip_tag(data):
     import re

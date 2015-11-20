@@ -41,7 +41,7 @@ class DataFactory(object):
                    'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter', 
                    'session_history.user_id',
                    'session_history.user',
-                   '(CASE WHEN users.friendly_name IS NULL THEN user ELSE users.friendly_name END) as friendly_name',
+                   '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) as friendly_name',
                    'platform',
                    'player',
                    'ip_address',
@@ -437,7 +437,7 @@ class DataFactory(object):
                 top_users = []
                 try:
                     query = 'SELECT session_history.user, ' \
-                            '(case when users.friendly_name is null then session_history.user else ' \
+                            '(case when users.friendly_name is null then users.username else ' \
                             'users.friendly_name end) as friendly_name,' \
                             'COUNT(session_history.id) as total_plays, ' \
                             'SUM(case when session_history.stopped > 0 ' \
@@ -536,7 +536,7 @@ class DataFactory(object):
                 try:
                     query = 'SELECT session_history_metadata.id, ' \
                             'session_history.user, ' \
-                            '(case when users.friendly_name is null then session_history.user else ' \
+                            '(case when users.friendly_name is null then users.username else ' \
                             'users.friendly_name end) as friendly_name,' \
                             'users.user_id, ' \
                             'users.custom_avatar_url as user_thumb, ' \

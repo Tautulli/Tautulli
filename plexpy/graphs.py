@@ -410,7 +410,7 @@ class Graphs(object):
 
         if y_axis == 'plays':
             query = 'SELECT ' \
-                    '(case when users.friendly_name is null then session_history.user else ' \
+                    '(case when users.friendly_name is null then users.username else ' \
                     'users.friendly_name end) as friendly_name,' \
                     'SUM(case when media_type = "episode" then 1 else 0 end) as tv_count, ' \
                     'SUM(case when media_type = "movie" then 1 else 0 end) as movie_count, ' \
@@ -427,7 +427,7 @@ class Graphs(object):
             result = monitor_db.select(query)
         else:
             query = 'SELECT ' \
-                    '(case when users.friendly_name is null then session_history.user else ' \
+                    '(case when users.friendly_name is null then users.username else ' \
                     'users.friendly_name end) as friendly_name,' \
                     'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_duration, ' \
