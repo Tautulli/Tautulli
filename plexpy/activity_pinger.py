@@ -225,32 +225,9 @@ def check_recently_added():
 def check_server_response():
 
     with monitor_lock:
-        plex_tv = plextv.PlexTV()
-        external_response = plex_tv.get_server_response()
         pms_connect = pmsconnect.PmsConnect()
         internal_response = pms_connect.get_server_response()
-
-        global ext_ping_count
         global int_ping_count
-        
-        if not external_response:
-            ext_ping_count += 1
-            logger.warn(u"PlexPy Monitor :: Plex remote access port mapping failed, ping attempt %s." \
-                        % str(ext_ping_count))
-        else:
-            host = external_response[0]['host']
-            port = external_response[0]['port']
-
-            try:
-                http_response = urllib2.urlopen('http://' + host + ':' + port)
-            except urllib2.HTTPError, e:
-                ext_ping_count = 0
-            except urllib2.URLError, e:
-                ext_ping_count += 1
-                logger.warn(u"PlexPy Monitor :: Unable to get an external response from the server, ping attempt %s." \
-                            % str(ext_ping_count))
-            else:
-                ext_ping_count = 0
 
         if not internal_response:
             int_ping_count += 1
@@ -259,11 +236,36 @@ def check_server_response():
         else:
             int_ping_count = 0
 
-        if ext_ping_count == 3:
-            # Fire off notifications
-            threading.Thread(target=notification_handler.notify_timeline,
-                                kwargs=dict(notify_action='extdown')).start()
+        if plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
+            plex_tv = plextv.PlexTV()
+            external_response = plex_tv.get_server_response()
+            global ext_ping_count
+        
+            if not external_response:
+                ext_ping_count += 1
+                logger.warn(u"PlexPy Monitor :: Plex remote access port mapping failed, ping attempt %s." \
+                            % str(ext_ping_count))
+            else:
+                host = external_response[0]['host']
+                port = external_response[0]['port']
+
+                try:
+                    http_response = urllib2.urlopen('http://' + host + ':' + port)
+                except urllib2.HTTPError, e:
+                    ext_ping_count = 0
+                except urllib2.URLError, e:
+                    ext_ping_count += 1
+                    logger.warn(u"PlexPy Monitor :: Unable to get an external response from the server, ping attempt %s." \
+                                % str(ext_ping_count))
+                else:
+                    ext_ping_count = 0
+
         if int_ping_count == 3:
             # Fire off notifications
             threading.Thread(target=notification_handler.notify_timeline,
                                 kwargs=dict(notify_action='intdown')).start()
+
+        if ext_ping_count == 3:
+            # Fire off notifications
+            threading.Thread(target=notification_handler.notify_timeline,
+                                kwargs=dict(notify_action='extdown')).start()

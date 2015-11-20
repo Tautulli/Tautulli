@@ -435,6 +435,7 @@ class WebInterface(object):
             "tv_notify_on_pause": checked(plexpy.CONFIG.TV_NOTIFY_ON_PAUSE),
             "movie_notify_on_pause": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_PAUSE),
             "music_notify_on_pause": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_PAUSE),
+            "monitor_remote_access": checked(plexpy.CONFIG.MONITOR_REMOTE_ACCESS),
             "monitoring_interval": plexpy.CONFIG.MONITORING_INTERVAL,
             "monitoring_use_websocket": checked(plexpy.CONFIG.MONITORING_USE_WEBSOCKET),
             "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
@@ -490,7 +491,7 @@ class WebInterface(object):
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
             "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type",
-            "group_history_tables", "notify_consecutive", "notify_recently_added_grandparent"
+            "group_history_tables", "notify_consecutive", "notify_recently_added_grandparent", "monitor_remote_access"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:

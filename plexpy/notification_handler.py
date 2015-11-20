@@ -638,7 +638,7 @@ def build_server_notify_text(state=None):
 
     if state == 'extdown':
         # Default body text
-        body_text = 'The Plex external port is down.'
+        body_text = 'The Plex Media Server remote access is down.'
 
         if on_extdown_subject and on_extdown_body:
             try:
@@ -660,7 +660,7 @@ def build_server_notify_text(state=None):
             return [subject_text, body_text]
     elif state == 'intdown':
         # Default body text
-        body_text = 'The Plex server is down.'
+        body_text = 'The Plex Media Server is down.'
 
         if on_intdown_subject and on_intdown_body:
             try:

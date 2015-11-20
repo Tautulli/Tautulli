@@ -403,6 +403,12 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens. This is currently experimental. Encrypted websocket is not currently supported.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
+                            </label>
+                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down. (Must have remote access set up in Plex.)</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>History Logging</h3>
@@ -659,7 +665,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex External Port Down<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Down<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -1305,7 +1311,7 @@ $(document).ready(function() {
                           'X-Plex-Version': '${common.VERSION_NUMBER}',
                           'X-Plex-Platform': '${common.PLATFORM}',
                           'X-Plex-Platform-Version': '${common.PLATFORM_VERSION}',
-                          'X-Plex-Client-Identifier': '${config['pms_uuid']}',
+                          'X-Plex-Client-Identifier': '${config["pms_uuid"]}',
                           'Authorization': 'Basic ' + btoa($("#pms_username").val() + ':' + $("#pms_password").val())
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
