@@ -18,7 +18,6 @@ from plexpy import logger, pmsconnect, plextv, notification_handler, database, h
 import threading
 import plexpy
 import time
-import urllib2
 
 monitor_lock = threading.Lock()
 ext_ping_count = 0
@@ -226,39 +225,39 @@ def check_server_response():
 
     with monitor_lock:
         pms_connect = pmsconnect.PmsConnect()
-        internal_response = pms_connect.get_server_response()
-        global int_ping_count
+        server_response = pms_connect.get_server_response()
 
-        if not internal_response:
+        global int_ping_count
+        global ext_ping_count
+        
+        # Check for internal server response
+        if not server_response:
             int_ping_count += 1
             logger.warn(u"PlexPy Monitor :: Unable to get an internal response from the server, ping attempt %s." \
                         % str(int_ping_count))
+        # Reset internal ping counter
         else:
             int_ping_count = 0
 
-        if plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
-            plex_tv = plextv.PlexTV()
-            external_response = plex_tv.get_server_response()
-            global ext_ping_count
+        # Check for remote access
+        if server_response and plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
         
-            if not external_response:
-                ext_ping_count += 1
-                logger.warn(u"PlexPy Monitor :: Plex remote access port mapping failed, ping attempt %s." \
-                            % str(ext_ping_count))
-            else:
-                host = external_response[0]['host']
-                port = external_response[0]['port']
+            mapping_state = server_response['mapping_state']
+            mapping_error = server_response['mapping_error']
 
-                try:
-                    http_response = urllib2.urlopen('http://' + host + ':' + port)
-                except urllib2.HTTPError, e:
-                    ext_ping_count = 0
-                except urllib2.URLError, e:
-                    ext_ping_count += 1
-                    logger.warn(u"PlexPy Monitor :: Unable to get an external response from the server, ping attempt %s." \
-                                % str(ext_ping_count))
-                else:
-                    ext_ping_count = 0
+            # Check if the port is mapped
+            if not mapping_state == 'mapped':
+                ext_ping_count += 1
+                logger.warn(u"PlexPy Monitor :: Plex remote access port not mapped, ping attempt %s." \
+                            % str(ext_ping_count))
+            # Check if the port is open
+            elif mapping_error == 'unreachable':
+                ext_ping_count += 1
+                logger.warn(u"PlexPy Monitor :: Plex remote access port mapped, but mapping failed, ping attempt %s." \
+                            % str(ext_ping_count))
+            # Reset external ping counter
+            else:
+                ext_ping_count = 0
 
         if int_ping_count == 3:
             # Fire off notifications
