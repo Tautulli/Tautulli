@@ -1004,10 +1004,10 @@ class PUSHOVER(object):
             return {'': ''}
 
     def return_config_options(self):
-        config_option = [{'label': 'Pushover User Key',
+        config_option = [{'label': 'Pushover User or Group Key',
                           'value': self.keys,
                           'name': 'pushover_keys',
-                          'description': 'Your Pushover user key.',
+                          'description': 'Your Pushover user or group key.',
                           'input_type': 'text'
                           },
                          {'label': 'Priority',
