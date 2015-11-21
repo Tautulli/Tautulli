@@ -479,7 +479,12 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable Movie and TV Notifications
+                                <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable Movie Notifications
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="tv_notify_enable" id="tv_notify_enable" value="1" ${config['tv_notify_enable']}> Enable TV Show Notifications
                             </label>
                         </div>
                         <div class="checkbox">
@@ -527,7 +532,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </div>
                                 <div id="notify_recently_added_delay_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Set the delay for recently added notifications to allow metadata to be processes. Minimum 60 seconds.</p>
+                            <p class="help-block">Set the delay for recently added notifications to allow metadata to be processed. Minimum 60 seconds.</p>
                         </div>
 
                         <div class="padded-header">
