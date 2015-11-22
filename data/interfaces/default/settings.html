@@ -1180,7 +1180,6 @@ $(document).ready(function() {
 
     $('.save-button').click(function() {
         if ($("#pms_identifier").val() == "") {
-            //showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your server.', false, true, 2000, true)
             verifyServer(function () { saveSettings() });
         } else {
             saveSettings();
@@ -1292,13 +1291,15 @@ $(document).ready(function() {
                         $("#pms-verify").html('<i class="fa fa-check"></i>');
                         $('#pms-verify').fadeIn('fast');
                         $("#pms-ip-group").removeClass("has-error");
+
+                        if (_callback) {
+                            _callback();
+                        }
                     } else {
                         $("#pms-verify").html('<i class="fa fa-close"></i>');
                         $('#pms-verify').fadeIn('fast');
                         $("#pms-ip-group").addClass("has-error");
-                    }
-                    if (_callback) {
-                        _callback();
+                        showMsg('<i class="fa fa-exclamation-circle"></i>&nbspCould not verify your server.', false, true, 2000, true)
                     }
                 }
             });
@@ -1306,6 +1307,7 @@ $(document).ready(function() {
             $("#pms-verify").html('<i class="fa fa-close"></i>');
             $('#pms-verify').fadeIn('fast');
             $("#pms-ip-group").addClass("has-error");
+            showMsg('<i class="fa fa-exclamation-circle"></i>&nbspCould not verify your server.', false, true, 2000, true)
         }
     }
 
