@@ -271,6 +271,36 @@ class PmsConnect(object):
         return request
 
     """
+    Return account details.
+
+    Optional parameters:    output_format { dict, json }
+
+    Output: array
+    """
+    def get_account(self, output_format=''):
+        uri = '/myplex/account'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    """
+    Refresh Plex remote access port mapping.
+
+    Optional parameters:    None
+
+    Output: None
+    """
+    def put_refresh_reachability(self):
+        uri = '/myplex/refreshReachability'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='PUT')
+
+        return request
+    """
     Return processed and validated list of recently added items.
 
     Parameters required:    count { number of results to return }
@@ -1650,15 +1680,24 @@ class PmsConnect(object):
 
         return key_list
 
-    """
-    Check for a server response.
-
-    Output: bool
-    """
     def get_server_response(self):
-        response = self.get_server_list()
+        # Refresh Plex remote access port mapping first
+        self.put_refresh_reachability()
+        account_data = self.get_account(output_format='xml')
+        
+        try:
+            xml_head = account_data.getElementsByTagName('MyPlex')
+        except:
+            logger.warn("Unable to parse XML for get_server_response.")
+            return None
+        
+        server_response = {}
 
-        if not response:
-            return False
-        else:
-            return True
+        for a in xml_head:
+            server_response = {'mapping_state': helpers.get_xml_attr(a, 'mappingState'),
+                               'mapping_error': helpers.get_xml_attr(a, 'mappingError'),
+                               'public_address': helpers.get_xml_attr(a, 'publicAddress'),
+                               'public_port': helpers.get_xml_attr(a, 'publicPort')
+                               }
+        
+        return server_response

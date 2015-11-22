@@ -1,4 +1,4 @@
-<%
+﻿<%
 import plexpy
 from plexpy import common
 %>
@@ -130,7 +130,10 @@ from plexpy import common
                 <p class="help-block">PlexPy supports a wide variety of notification options. To set up a notification agent conifgure this in <strong>Settings -> Notification Agents</strong>
                 after you have completed this setup wizard.</p><br/>
                 <div class="wizard-input-section">
-                    <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable notifications on Movie and TV playback
+                    <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable notifications on Movie playback
+                </div>
+                <div class="wizard-input-section">
+                    <input type="checkbox" name="tv_notify_enable" id="tv_notify_enable" value="1" ${config['tv_notify_enable']}> Enable notifications on TV Show playback
                 </div>
                 <div class="wizard-input-section">
                     <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1" ${config['music_notify_enable']}> Enable notifications on Music playback
