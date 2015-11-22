@@ -273,9 +273,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label for="pms_ip">Plex IP or Hostname</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" required>
+                                    <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
                                     <span class="form-control-feedback" id="pms-verify" aria-hidden="true" style="display: none;"></span>
                                 </div>
+                                <div id="pms_ip_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">IP Address or hostname for Plex Media Server.</p>
                         </div>
