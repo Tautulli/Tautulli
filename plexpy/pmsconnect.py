@@ -287,6 +287,20 @@ class PmsConnect(object):
         return request
 
     """
+    Refresh Plex remote access port mapping.
+
+    Optional parameters:    None
+
+    Output: None
+    """
+    def put_refresh_reachability(self):
+        uri = '/myplex/refreshReachability'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='PUT')
+
+        return request
+    """
     Return processed and validated list of recently added items.
 
     Parameters required:    count { number of results to return }
@@ -1667,6 +1681,8 @@ class PmsConnect(object):
         return key_list
 
     def get_server_response(self):
+        # Refresh Plex remote access port mapping first
+        self.put_refresh_reachability()
         account_data = self.get_account(output_format='xml')
         
         try:
