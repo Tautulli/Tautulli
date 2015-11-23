@@ -6,11 +6,7 @@ A python based web application for monitoring, analytics and notifications for P
 
 This project is based on code from Headphones (https://github.com/rembo10/headphones) and PlexWatchWeb (https://github.com/ecleese/plexWatchWeb).
 
-* plexPy forum thread: https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program
-
-If you'd like to buy me a beer, hit the donate button below. All donations go to the project maintainer (primarily for the procurement of liquid refreshment).
-
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=G9HZK9BDJLKT6)
+* PlexPy forum thread: https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program
 
 
 ###Support
