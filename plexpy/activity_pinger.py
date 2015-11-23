@@ -200,6 +200,7 @@ def check_recently_added():
                     if not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
                         for item in metadata:
                             if 0 < int(item['added_at']) - time_threshold <= time_interval:
+                                logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
                                 # Fire off notifications
                                 threading.Thread(target=notification_handler.notify_timeline,
                                                  kwargs=dict(timeline_data=item, notify_action='created')).start()
@@ -217,6 +218,7 @@ def check_recently_added():
                                     logger.error(u"PlexPy Monitor :: Unable to retrieve grandparent metadata for grandparent_rating_key %s" \
                                                  % str(item['rating_key']))
 
+                            logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
                             # Fire off notifications
                             threading.Thread(target=notification_handler.notify_timeline,
                                              kwargs=dict(timeline_data=item, notify_action='created')).start()
