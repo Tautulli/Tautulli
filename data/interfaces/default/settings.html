@@ -416,15 +416,21 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="video_logging_enable" name="video_logging_enable" value="1" ${config['video_logging_enable']}> Log Movies and TV
+                                <input type="checkbox" id="movie_logging_enable" name="movie_logging_enable" value="1" ${config['movie_logging_enable']}> Log Movies
                             </label>
-                            <p class="help-block">Keep records of all video items played from your Plex Media Server.</p>
+                            <p class="help-block">Keep records of all movie items played from your Plex Media Server.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="tv_logging_enable" name="tv_logging_enable" value="1" ${config['tv_logging_enable']}> Log TV Shows
+                            </label>
+                            <p class="help-block">Keep records of all TV show items played from your Plex Media Server.</p>
                         </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1" ${config['music_logging_enable']}> Log Music
                             </label>
-                            <p class="help-block">Keep records of all audio items played from your Plex Media Server. VERY experimental.</p>
+                            <p class="help-block">Keep records of all audio items played from your Plex Media Server.</p>
                         </div>
                         <div class="form-group">
                             <label for="logging_ignore_interval">Ignore Interval</label>

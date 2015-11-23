@@ -93,10 +93,11 @@ class WebInterface(object):
             "movie_notify_enable": checked(plexpy.CONFIG.MOVIE_NOTIFY_ENABLE),
             "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
             "music_notify_enable": checked(plexpy.CONFIG.MUSIC_NOTIFY_ENABLE),
-            "tv_notify_on_start": checked(plexpy.CONFIG.TV_NOTIFY_ON_START),
             "movie_notify_on_start": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_START),
+            "tv_notify_on_start": checked(plexpy.CONFIG.TV_NOTIFY_ON_START),
             "music_notify_on_start": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_START),
-            "video_logging_enable": checked(plexpy.CONFIG.VIDEO_LOGGING_ENABLE),
+            "movie_logging_enable": checked(plexpy.CONFIG.MOVIE_LOGGING_ENABLE),
+            "tv_logging_enable": checked(plexpy.CONFIG.TV_LOGGING_ENABLE),
             "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
             "check_github": checked(plexpy.CONFIG.CHECK_GITHUB)
@@ -441,7 +442,8 @@ class WebInterface(object):
             "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
             "ip_logging_enable": checked(plexpy.CONFIG.IP_LOGGING_ENABLE),
-            "video_logging_enable": checked(plexpy.CONFIG.VIDEO_LOGGING_ENABLE),
+            "movie_logging_enable": checked(plexpy.CONFIG.MOVIE_LOGGING_ENABLE),
+            "tv_logging_enable": checked(plexpy.CONFIG.TV_LOGGING_ENABLE),
             "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
             "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
@@ -490,8 +492,9 @@ class WebInterface(object):
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
-            "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type",
-            "group_history_tables", "notify_consecutive", "notify_recently_added_grandparent", "monitor_remote_access"
+            "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable", 
+            "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", 
+            "notify_recently_added_grandparent", "monitor_remote_access"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:

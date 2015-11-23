@@ -110,8 +110,11 @@ class ActivityProcessor(object):
             else:
                 stopped = int(time.time())
 
-            if plexpy.CONFIG.VIDEO_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
-                    (session['media_type'] == 'movie' or session['media_type'] == 'episode'):
+            if plexpy.CONFIG.MOVIE_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
+                    session['media_type'] == 'movie':
+                logging_enabled = True
+            elif plexpy.CONFIG.TV_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
+                    session['media_type'] == 'episode':
                 logging_enabled = True
             elif plexpy.CONFIG.MUSIC_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
                     session['media_type'] == 'track':

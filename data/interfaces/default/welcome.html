@@ -105,8 +105,16 @@ from plexpy import common
             <div class="wizard-card" data-cardname="card4">
                 <h3>Monitoring</h3>
                 <div class="wizard-input-section">
-                    <input type="checkbox" id="video_logging_enable" name="video_logging_enable" value="1" ${config['video_logging_enable']}> Log Movies and TV
-                    <p class="help-block">Keep records of all video items played from your Plex Media Server.</p>
+                    <input type="checkbox" id="movie_logging_enable" name="movie_logging_enable" value="1" ${config['movie_logging_enable']}> Log Movies
+                    <p class="help-block">Keep records of all movie items played.</p>
+                </div>
+                <div class="wizard-input-section">
+                    <input type="checkbox" id="tv_logging_enable" name="tv_logging_enable" value="1" ${config['tv_logging_enable']}> Log TV Shows
+                    <p class="help-block">Keep records of all TV show items played.</p>
+                </div>
+                <div class="wizard-input-section">
+                    <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1" ${config['music_logging_enable']}> Log Music
+                    <p class="help-block">Keep records of all audio items played.</p>
                 </div>
                 <div class="wizard-input-section">
                     <label for="logging_ignore_interval">Ignore Interval</label>
@@ -118,12 +126,6 @@ from plexpy import common
                     </div>
                     <p class="help-block">The interval (in seconds) PlexPy will wait for a video item to be active before logging it. 0 to disable.</p>
                 </div>
-                <!-- Music logging is still very experimental -- leave this for now.
-                <div class="wizard-input-section">
-                    <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1"> Log Music
-                    <p class="help-block">Keep records of all audio items played from your Plex Media Server. VERY experimental.</p>
-                </div>
-                -->
             </div>
             <div class="wizard-card" data-cardname="card5" data-validate="validateNotifications">
                 <h3>Notifications</h3>
