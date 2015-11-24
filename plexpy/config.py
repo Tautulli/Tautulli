@@ -280,6 +280,7 @@ _CONFIG_DEFINITIONS = {
     'TWITTER_ON_INTDOWN': (int, 'Twitter', 0),
     'UPDATE_DB_INTERVAL': (int, 'General', 24),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
+    'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'XBMC_ENABLED': (int, 'XBMC', 0),
     'XBMC_HOST': (str, 'XBMC', ''),
     'XBMC_PASSWORD': (str, 'XBMC', ''),
@@ -305,6 +306,7 @@ class Config(object):
         self._config = ConfigObj(self._config_file, encoding='utf-8')
         for key in _CONFIG_DEFINITIONS.keys():
             self.check_setting(key)
+        self._upgrade()
 
     def _define(self, name):
         key = name.upper()
@@ -394,3 +396,17 @@ class Config(object):
         for name, value in kwargs.items():
             key, definition_type, section, ini_key, default = self._define(name)
             self._config[section][ini_key] = definition_type(value)
+
+    def _upgrade(self):
+        """
+        Upgrades config file from previous verisions and bumps up config version
+        """
+        if self.CONFIG_VERSION == '0':
+            # Separate out movie and tv notifications
+            if self.MOVIE_NOTIFY_ENABLE == 1:
+                self.TV_NOTIFY_ENABLE = 1
+            # Separate out movie and tv logging
+            if self.VIDEO_LOGGING_ENABLE == 0:
+                self.MOVIE_LOGGING_ENABLE = 0
+                self.TV_LOGGING_ENABLE = 0
+            self.CONFIG_VERSION = '1'
