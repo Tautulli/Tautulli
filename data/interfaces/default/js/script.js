@@ -223,6 +223,8 @@ function getPlatformImagePath(platformName) {
         return 'interfaces/default/images/platforms/win8.png';
     } else if (platformName.indexOf("Windows phone") > -1) {
         return 'interfaces/default/images/platforms/wp.png';
+	} else if (platformName.indexOf("Plex Media Player") > -1) {
+        return 'interfaces/default/images/platforms/pmp.png';
     } else {
         return 'interfaces/default/images/platforms/default.png';
     }
@@ -230,7 +232,9 @@ function getPlatformImagePath(platformName) {
 
 function isPrivateIP(ip_address) {
     if (ip_address.indexOf(".") > -1) {
-        var parts = ip_address.split('.');
+        // get IPv4 mapped address (xxx.xxx.xxx.xxx) from IPv6 addresss (::ffff:xxx.xxx.xxx.xxx)
+        var parts = ip_address.split(":");
+        var parts = parts[parts.length - 1].split('.');
         if (parts[0] === '10' ||
             (parts[0] === '172' && (parseInt(parts[1], 10) >= 16 && parseInt(parts[1], 10) <= 31)) ||
             (parts[0] === '192' && parts[1] === '168')) {

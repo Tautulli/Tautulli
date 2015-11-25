@@ -76,19 +76,50 @@
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/history_table.js"></script>
 <script>
-    $(document).ready(function() {
-        history_table_options.ajax = {
-            "url": "get_history",
-            type: "post",
-            data: function ( d ) {
-                return { 'json_data': JSON.stringify( d ) };
+    $(document).ready(function () {
+        function loadHistoryTable(media_type) {
+            history_table_options.ajax = {
+                url: 'get_history',
+                type: 'post',
+                data: function (d) {
+                    return {
+                        'json_data': JSON.stringify(d),
+                        'media_type': media_type
+                    };
+                }
             }
-        }
-        history_table = $('#history_table').DataTable(history_table_options);
-        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
-        $(colvis.button()).appendTo('div.colvis-button-bar');
+            history_table = $('#history_table').DataTable(history_table_options);
+            var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
+            $(colvis.button()).appendTo('div.colvis-button-bar');
 
-        clearSearchButton('history_table', history_table);
+            clearSearchButton('history_table', history_table);
+
+            $('#history_table_filter').prepend('<div class="btn-group" data-toggle="buttons" id="media_type-selection" style="padding-right: 15px;"> \
+                <label class="btn btn-dark active"> \
+                    <input type="radio" name="media_type-filter" id="history-all" value="all" autocomplete="off"> All \
+                </label> \
+                <label class="btn btn-dark"> \
+                    <input type="radio" name="media_type-filter" id="history-movies" value="movie" autocomplete="off"> Movies \
+                </label> \
+                <label class="btn btn-dark"> \
+                    <input type="radio" name="media_type-filter" id="history-tv_shows" value="episode" autocomplete="off"> TV Shows \
+                </label> \
+                <label class="btn btn-dark"> \
+                    <input type="radio" name="media_type-filter" id="history-music" value="track" autocomplete="off"> Music \
+                </label> \
+            </div>');
+
+            $('#media_type-selection').on('change', function () {
+                $('#media_type-selection > label').removeClass('active');
+                selected_filter = $('input[name=media_type-filter]:checked', '#media_type-selection');
+                $(selected_filter).closest('label').addClass('active');
+                media_type = $(selected_filter).val();
+                history_table.draw();
+            });
+        }
+
+        var media_type = 'all';
+        loadHistoryTable(media_type);
 
         $('#row-edit-mode').on('click', function() {
             $('#row-edit-mode-alert').fadeIn(200);

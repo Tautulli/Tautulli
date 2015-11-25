@@ -39,6 +39,7 @@ class ActivityProcessor(object):
                       'parent_title': session['parent_title'],
                       'grandparent_title': session['grandparent_title'],
                       'friendly_name': session['friendly_name'],
+                      'ip_address': session['ip_address'],
                       'player': session['player'],
                       'platform': session['platform'],
                       'parent_rating_key': session['parent_rating_key'],
@@ -78,16 +79,16 @@ class ActivityProcessor(object):
                                      kwargs=dict(stream_data=values, notify_action='play')).start()
 
                 started = int(time.time())
+                timestamp = {'started': started}
 
-                # Try and grab IP address from logs
-                if plexpy.CONFIG.IP_LOGGING_ENABLE and plexpy.CONFIG.PMS_LOGS_FOLDER:
-                    ip_address = self.find_session_ip(rating_key=session['rating_key'],
-                                                      machine_id=session['machine_id'])
-                else:
-                    ip_address = None
-
-                timestamp = {'started': started,
-                             'ip_address': ip_address}
+                # Try and grab IP address from logs (fallback if not on PMS 0.9.14 and above)
+                if not session['ip_address']:
+                    if plexpy.CONFIG.IP_LOGGING_ENABLE and plexpy.CONFIG.PMS_LOGS_FOLDER:
+                        ip_address = self.find_session_ip(rating_key=session['rating_key'],
+                                                          machine_id=session['machine_id'])
+                        timestamp.update({'ip_address': ip_address})
+                    else:
+                        timestamp.update({'ip_address': None})
 
                 # If it's our first write then time stamp it.
                 self.db.upsert('sessions', timestamp, keys)
@@ -109,8 +110,11 @@ class ActivityProcessor(object):
             else:
                 stopped = int(time.time())
 
-            if plexpy.CONFIG.VIDEO_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
-                    (session['media_type'] == 'movie' or session['media_type'] == 'episode'):
+            if plexpy.CONFIG.MOVIE_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
+                    session['media_type'] == 'movie':
+                logging_enabled = True
+            elif plexpy.CONFIG.TV_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
+                    session['media_type'] == 'episode':
                 logging_enabled = True
             elif plexpy.CONFIG.MUSIC_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
                     session['media_type'] == 'track':
@@ -278,10 +282,17 @@ class ActivityProcessor(object):
                 if ipv4:
                     # The logged IP will always be the first match and we don't want localhost entries
                     if ipv4[0] != '127.0.0.1':
-                        logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s "
-                                     u"and machineIdentifier %s."
-                                     % (ipv4[0], rating_key, machine_id))
-                        return ipv4[0]
+                        # check if IPv4 mapped IPv6 address (::ffff:xxx.xxx.xxx.xxx)
+                        if '::ffff:' + ipv4[0] in line:
+                            logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s "
+                                         u"and machineIdentifier %s."
+                                         % ('::ffff:' + ipv4[0], rating_key, machine_id))
+                            return '::ffff:' + ipv4[0]
+                        else:
+                            logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s "
+                                         u"and machineIdentifier %s."
+                                         % (ipv4[0], rating_key, machine_id))
+                            return ipv4[0]
 
         logger.debug(u"PlexPy ActivityProcessor :: Unable to find IP address on first pass. "
                      u"Attempting fallback check in 5 seconds...")
@@ -301,9 +312,14 @@ class ActivityProcessor(object):
                 if ipv4:
                     # The logged IP will always be the first match and we don't want localhost entries
                     if ipv4[0] != '127.0.0.1':
-                        logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s." %
-                                     (ipv4[0], rating_key))
-                        return ipv4[0]
+                        if '::ffff:' + ipv4[0] in line:
+                            logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s." %
+                                         ('::ffff:' + ipv4[0], rating_key))
+                            return '::ffff:' + ipv4[0]
+                        else:
+                            logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s." %
+                                         (ipv4[0], rating_key))
+                            return ipv4[0]
 
         logger.debug(u"PlexPy ActivityProcessor :: Unable to find IP address on fallback search. Not logging IP address.")
 

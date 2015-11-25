@@ -1,5 +1,30 @@
 # Changelog
 
+## v1.2.4 (2015-11-24)
+
+* Add filtering by media type in the history table
+* Add IFTTT notification agent
+* Add Telegram notification agent
+* Add notifications for recently added media
+* Add notifications for server down and remote access down
+* Add more metadata to notifications options
+* Add IP address to notification options (for PMS 0.9.14 and above)
+* Add server uptime to notification options
+* Add IP address to current activity
+* Add IPv6 address logging
+* Add PMS server name to the page title
+* Fix bug in "Last Watched" statistic
+* Fix bug in search query
+* Fix bug on user pages for usernames with single quotes
+* Fix name for new Plex Media Center
+* Fix Pushover notifications with unicode characters
+* Fix bug with showing old usernames in datatables
+* Fix bug with "Please verify your server" in settings
+* Change IP lookup provider
+* Change notifications custom body text to larger text box
+* Change movie/tv logging and notifications into individual options
+
+
 ## v1.2.3 (2015-10-18)
 
 * Added "remaining time" as notification substitution.

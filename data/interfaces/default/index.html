@@ -33,7 +33,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header" id="library-statistics-header">
-                <h3>Library Statistics</h3>
+                <h3>Library Statistics <small>${config['pms_name']}</small></h3>
             </div>
             <div id="library-stats" class="library-platforms">
                 <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
@@ -98,27 +98,6 @@
         });
     }
 
-    function getLibraryStatsHeader() { 
-        $.ajax({
-            "url": "get_servers_info",
-            type: "post",
-            cache: false,
-            async: true,
-            data: { },
-            complete: function (xhr, status) {
-                server_info = $.parseJSON(xhr.responseText);
-                var server_name = 'Server name not found';
-                for (var i in server_info) {
-                    if (server_info[i].machine_identifier == '${config['pms_identifier']}') { 
-                        server_name = server_info[i].name
-                        break;
-                    }
-                }
-                $('#library-statistics-header h3').append(' <small>' + server_name + '</small>')
-            }
-        });
-    }
-
     function getLibraryStats() {
         $.ajax({
             url: 'library_stats',
@@ -170,7 +149,6 @@
     });
 
     getHomeStats();
-    getLibraryStatsHeader();
     getLibraryStats();
 
 

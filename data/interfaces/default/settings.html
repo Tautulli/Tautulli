@@ -3,7 +3,7 @@
 import plexpy
 from plexpy import notifiers, common, versioncheck
 
-available_notification_agents = notifiers.available_notification_agents()
+available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
 %>
 <%def name="headIncludes()">
 </%def>
@@ -273,9 +273,10 @@ available_notification_agents = notifiers.available_notification_agents()
                             <label for="pms_ip">Plex IP or Hostname</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" required>
+                                    <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
                                     <span class="form-control-feedback" id="pms-verify" aria-hidden="true" style="display: none;"></span>
                                 </div>
+                                <div id="pms_ip_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">IP Address or hostname for Plex Media Server.</p>
                         </div>
@@ -403,21 +404,33 @@ available_notification_agents = notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens. This is currently experimental. Encrypted websocket is not currently supported.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
+                            </label>
+                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down. Your server needs to have remote access enabled.</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>History Logging</h3>
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="video_logging_enable" name="video_logging_enable" value="1" ${config['video_logging_enable']}> Log Movies and TV
+                                <input type="checkbox" id="movie_logging_enable" name="movie_logging_enable" value="1" ${config['movie_logging_enable']}> Log Movies
                             </label>
-                            <p class="help-block">Keep records of all video items played from your Plex Media Server.</p>
+                            <p class="help-block">Keep records of all movie items played from your Plex Media Server.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="tv_logging_enable" name="tv_logging_enable" value="1" ${config['tv_logging_enable']}> Log TV Shows
+                            </label>
+                            <p class="help-block">Keep records of all TV show items played from your Plex Media Server.</p>
                         </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1" ${config['music_logging_enable']}> Log Music
                             </label>
-                            <p class="help-block">Keep records of all audio items played from your Plex Media Server. VERY experimental.</p>
+                            <p class="help-block">Keep records of all music items played from your Plex Media Server.</p>
                         </div>
                         <div class="form-group">
                             <label for="logging_ignore_interval">Ignore Interval</label>
@@ -435,7 +448,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             </label>
                             <span id="debugLogCheck" style="color: #eb8600; padding-left: 10px;"></span>
                             <p class="help-block">
-                                Enable this to attempt to log the IP address of the user.
+                                Enable this to attempt to log the IP address of the user (for PMS 0.9.12 and below, IP address is automatically logged for PMS 0.9.14 and above).
                             </p>
                         </div>
 
@@ -473,7 +486,12 @@ available_notification_agents = notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable Movie and TV Notifications
+                                <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable Movie Notifications
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="tv_notify_enable" id="tv_notify_enable" value="1" ${config['tv_notify_enable']}> Enable TV Show Notifications
                             </label>
                         </div>
                         <div class="checkbox">
@@ -483,7 +501,7 @@ available_notification_agents = notifiers.available_notification_agents()
                         </div>
 
                         <div class="padded-header">
-                            <h3>Notification Tuning</h3>
+                            <h3>Current Activity Notifications</h3>
                         </div>
 
                         <div class="form-group">
@@ -504,6 +522,27 @@ available_notification_agents = notifiers.available_notification_agents()
                         </div>
 
                         <div class="padded-header">
+                            <h3>Recently Added Notifications</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_recently_added_grandparent" id="notify_recently_added_grandparent" value="1" ${config['notify_recently_added_grandparent']}> Group notifications for recently added TV Shows or Music
+                            </label>
+                            <p class="help-block">Enable to only get one notification for recently added Episodes or Tracks. Movies are unaffected.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="notify_recently_added_delay">Notification Delay</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_recently_added_delay" name="notify_recently_added_delay" value="${config['notify_recently_added_delay']}" size="5" data-parsley-min="60" data-parsley-trigger="change" data-parsley-errors-container="#notify_recently_added_delay_error" required>
+                                </div>
+                                <div id="notify_recently_added_delay_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the delay for recently added notifications to allow metadata to be processed. Minimum 60 seconds.</p>
+                        </div>
+
+                        <div class="padded-header">
                             <h3>Custom Notification Messages</h3>
                         </div>
                         <p class="help-block">
@@ -515,9 +554,9 @@ available_notification_agents = notifiers.available_notification_agents()
                             <a href="#notify-text-tags-modal" data-toggle="modal">here</a> to view usage information.
                         </p>
                         <br/>
-                        <ul id="accordion" class="accordion list-unstyled">
+                        <ul id="accordion-session" class="accordion list-unstyled">
                             <li>
-                                <div class="link"><i class="fa fa-play"></i>Playback Start<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-play fa-fw"></i>&nbsp;Playback Start<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -527,14 +566,14 @@ available_notification_agents = notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_start_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_start_body_text" name="notify_on_start_body_text" value="${config['notify_on_start_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_start_body_text" name="notify_on_start_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_start_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-stop"></i>Playback Stop<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-stop fa-fw"></i>&nbsp;Playback Stop<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -544,14 +583,14 @@ available_notification_agents = notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_stop_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_stop_body_text" name="notify_on_stop_body_text" value="${config['notify_on_stop_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_stop_body_text" name="notify_on_stop_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_stop_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-pause"></i>Playback Pause<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-pause fa-fw"></i>&nbsp;Playback Pause<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -561,14 +600,14 @@ available_notification_agents = notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_pause_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_pause_body_text" name="notify_on_pause_body_text" value="${config['notify_on_pause_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_pause_body_text" name="notify_on_pause_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_pause_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-play"></i>Playback Resume<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-play fa-fw"></i>&nbsp;Playback Resume<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -578,14 +617,14 @@ available_notification_agents = notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_resume_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_resume_body_text" name="notify_on_resume_body_text" value="${config['notify_on_resume_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_resume_body_text" name="notify_on_resume_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_resume_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-eye"></i>Watched<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-eye fa-fw"></i>&nbsp;Watched<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -595,14 +634,14 @@ available_notification_agents = notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_watched_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_watched_body_text" name="notify_on_watched_body_text" value="${config['notify_on_watched_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_watched_body_text" name="notify_on_watched_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_watched_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-spinner"></i>Buffer Warnings<i class="fa fa-chevron-down"></i></div>
+                                <div class="link"><i class="fa fa-spinner fa-fw"></i>&nbsp;Buffer Warnings<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
                                         <div class="form-group">
@@ -612,7 +651,60 @@ available_notification_agents = notifiers.available_notification_agents()
                                         </div>
                                         <div class="form-group">
                                             <label for="notify_on_buffer_body_text">Message Body</label>
-                                            <input class="form-control" type="text" id="notify_on_buffer_body_text" name="notify_on_buffer_body_text" value="${config['notify_on_buffer_body_text']}" data-parsley-trigger="change" required>
+                                            <textarea class="form-control" id="notify_on_buffer_body_text" name="notify_on_buffer_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_buffer_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <ul id="accordion-timeline" class="accordion list-unstyled">
+                            <li>
+                                <div class="link"><i class="fa fa-download fa-fw"></i>&nbsp;Recently Added<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_created_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_created_subject_text" name="notify_on_created_subject_text" value="${config['notify_on_created_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_created_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_created_body_text" name="notify_on_created_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_created_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Down<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_extdown_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_extdown_subject_text" name="notify_on_extdown_subject_text" value="${config['notify_on_extdown_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_extdown_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_extdown_body_text" name="notify_on_extdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extdown_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Server Down<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_intdown_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_intdown_subject_text" name="notify_on_intdown_subject_text" value="${config['notify_on_intdown_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_intdown_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_intdown_body_text" name="notify_on_intdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_intdown_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -635,7 +727,7 @@ available_notification_agents = notifiers.available_notification_agents()
                             % for agent in available_notification_agents:
                             <li>
                                 <span>
-                                    % if agent['on_play'] or agent['on_stop'] or agent['on_pause'] or agent['on_resume'] or agent['on_buffer'] or agent['on_watched']:
+                                    % if agent['on_play'] or agent['on_stop'] or agent['on_pause'] or agent['on_resume'] or agent['on_buffer'] or agent['on_watched'] or agent['on_created'] or agent['on_extdown'] or agent['on_intdown']:
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left active" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
                                     % else:
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
@@ -846,6 +938,10 @@ available_notification_agents = notifiers.available_notification_agents()
                                     <td>The name of your Plex Server.</td>
                                 </tr>
                                 <tr>
+                                    <td width="150"><strong>{server_uptime}</strong></td>
+                                    <td>The uptime (in days, hours, mins, secs) of your Plex Server.</td>
+                                </tr>
+                                <tr>
                                     <td width="150"><strong>{user}</strong></td>
                                     <td>The username of the person streaming.</td>
                                 </tr>
@@ -858,12 +954,16 @@ available_notification_agents = notifiers.available_notification_agents()
                                     <td>The name of the device being used for playback.</td>
                                 </tr>
                                 <tr>
+                                    <td width="150"><strong>{ip_address}</strong></td>
+                                    <td>The IP address of the device being used for playback. (PMS 0.9.14 and above)</td>
+                                </tr>
+                                <tr>
                                     <td width="150"><strong>{media_type}</strong></td>
                                     <td>The type of media being played (movie, episode, track).</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{title}</strong></td>
-                                    <td>The title of the item being played.</td>
+                                    <td>The full title of the item being played.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{show_name}</strong></td>
@@ -880,6 +980,10 @@ available_notification_agents = notifiers.available_notification_agents()
                                 <tr>
                                     <td width="150"><strong>{album_name}</strong></td>
                                     <td>The title of the album being played.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{track_name}</strong></td>
+                                    <td>The title of the track being played.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{season_num}</strong></td>
@@ -914,8 +1018,28 @@ available_notification_agents = notifiers.available_notification_agents()
                                     <td>The content rating for the media item. (e.g. TV-MA, TV-PG, etc.)</td>
                                 </tr>
                                 <tr>
+                                    <td width="150"><strong>{directors}</strong></td>
+                                    <td>A list of directors for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{writers}</strong></td>
+                                    <td>A list of writers for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{actors}</strong></td>
+                                    <td>A list of actors for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{genres}</strong></td>
+                                    <td>A list of genres for the media item.</td>
+                                </tr>
+                                <tr>
                                     <td width="150"><strong>{summary}</strong></td>
                                     <td>A short plot summary for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td width="150"><strong>{tagline}</strong></td>
+                                    <td>A tagline for the media item.</td>
                                 </tr>
                                 <tr>
                                     <td width="150"><strong>{rating}</strong></td>
@@ -1051,17 +1175,21 @@ $(document).ready(function() {
     }
 
     var configForm = $("#configUpdate");
+    function saveSettings() {
+        if (configForm.parsley().validate()) {
+            doAjaxCall('configUpdate', $(this), 'tabs', true);
+            postSaveChecks();
+            return false;
+        } else {
+            showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your settings.', false, true, 2000, true)
+        }
+    }
+
     $('.save-button').click(function() {
         if ($("#pms_identifier").val() == "") {
-            showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your server.',false,true,2000,true)
+            verifyServer(function () { saveSettings() });
         } else {
-            if (configForm.parsley().validate()) {
-                doAjaxCall('configUpdate',$(this),'tabs',true);
-                postSaveChecks();
-                return false;
-            } else {
-                showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your settings.',false,true,2000,true)
-            }
+            saveSettings();
         }
     });
 
@@ -1147,7 +1275,7 @@ $(document).ready(function() {
         verifyServer();
     });
 
-    function verifyServer() {
+    function verifyServer(_callback) {
         var pms_ip = $("#pms_ip").val()
         var pms_port = $("#pms_port").val()
         if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
@@ -1170,10 +1298,15 @@ $(document).ready(function() {
                         $("#pms-verify").html('<i class="fa fa-check"></i>');
                         $('#pms-verify').fadeIn('fast');
                         $("#pms-ip-group").removeClass("has-error");
+
+                        if (_callback) {
+                            _callback();
+                        }
                     } else {
                         $("#pms-verify").html('<i class="fa fa-close"></i>');
                         $('#pms-verify').fadeIn('fast');
                         $("#pms-ip-group").addClass("has-error");
+                        showMsg('<i class="fa fa-exclamation-circle"></i>&nbspCould not verify your server.', false, true, 2000, true)
                     }
                 }
             });
@@ -1181,6 +1314,7 @@ $(document).ready(function() {
             $("#pms-verify").html('<i class="fa fa-close"></i>');
             $('#pms-verify').fadeIn('fast');
             $("#pms-ip-group").addClass("has-error");
+            showMsg('<i class="fa fa-exclamation-circle"></i>&nbspCould not verify your server.', false, true, 2000, true)
         }
     }
 
@@ -1199,7 +1333,7 @@ $(document).ready(function() {
                           'X-Plex-Version': '${common.VERSION_NUMBER}',
                           'X-Plex-Platform': '${common.PLATFORM}',
                           'X-Plex-Platform-Version': '${common.PLATFORM_VERSION}',
-                          'X-Plex-Client-Identifier': '${config['pms_uuid']}',
+                          'X-Plex-Client-Identifier': '${config["pms_uuid"]}',
                           'Authorization': 'Basic ' + btoa($("#pms_username").val() + ':' + $("#pms_password").val())
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
@@ -1292,7 +1426,8 @@ $(document).ready(function() {
         }
     }
 
-    var accordion = new Accordion($('#accordion'), false);
+    var accordion_session = new Accordion($('#accordion-session'), false);
+    var accordion_timeline = new Accordion($('#accordion-timeline'), false);
 
     var cards = "${config['home_stats_cards']}".split(/[\s,]+/);
     cards.forEach(function (item) {
@@ -1334,6 +1469,14 @@ $(document).ready(function() {
         e.preventDefault()
     });
 
+    // auto resizing textarea for custom notification message body
+    $('textarea[data-autoresize]').each(function() {
+        var offset = this.offsetHeight - this.clientHeight;
+        var resizeTextarea = function(el) {
+            $(el).css('height', 'auto').css('height', el.scrollHeight + offset);
+        };
+        $(this).on('focus keyup input', function() { resizeTextarea(this); }).removeAttr('data-autoresize');
+    });
 });
 </script>
 </%def>

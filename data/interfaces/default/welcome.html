@@ -1,4 +1,4 @@
-<%
+﻿<%
 import plexpy
 from plexpy import common
 %>
@@ -104,9 +104,15 @@ from plexpy import common
 
             <div class="wizard-card" data-cardname="card4">
                 <h3>Monitoring</h3>
+                <p class="help-block">Keep records of all movie, TV show, or music items played from your Plex Media Server.</p>
                 <div class="wizard-input-section">
-                    <input type="checkbox" id="video_logging_enable" name="video_logging_enable" value="1" ${config['video_logging_enable']}> Log Movies and TV
-                    <p class="help-block">Keep records of all video items played from your Plex Media Server.</p>
+                    <input type="checkbox" id="movie_logging_enable" name="movie_logging_enable" value="1" ${config['movie_logging_enable']}> Log Movies
+                </div>
+                <div class="wizard-input-section">
+                    <input type="checkbox" id="tv_logging_enable" name="tv_logging_enable" value="1" ${config['tv_logging_enable']}> Log TV Shows
+                </div>
+                <div class="wizard-input-section">
+                    <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1" ${config['music_logging_enable']}> Log Music
                 </div>
                 <div class="wizard-input-section">
                     <label for="logging_ignore_interval">Ignore Interval</label>
@@ -118,19 +124,16 @@ from plexpy import common
                     </div>
                     <p class="help-block">The interval (in seconds) PlexPy will wait for a video item to be active before logging it. 0 to disable.</p>
                 </div>
-                <!-- Music logging is still very experimental -- leave this for now.
-                <div class="wizard-input-section">
-                    <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1"> Log Music
-                    <p class="help-block">Keep records of all audio items played from your Plex Media Server. VERY experimental.</p>
-                </div>
-                -->
             </div>
             <div class="wizard-card" data-cardname="card5" data-validate="validateNotifications">
                 <h3>Notifications</h3>
                 <p class="help-block">PlexPy supports a wide variety of notification options. To set up a notification agent conifgure this in <strong>Settings -> Notification Agents</strong>
                 after you have completed this setup wizard.</p><br/>
                 <div class="wizard-input-section">
-                    <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable notifications on Movie and TV playback
+                    <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable notifications on Movie playback
+                </div>
+                <div class="wizard-input-section">
+                    <input type="checkbox" name="tv_notify_enable" id="tv_notify_enable" value="1" ${config['tv_notify_enable']}> Enable notifications on TV Show playback
                 </div>
                 <div class="wizard-input-section">
                     <input type="checkbox" name="music_notify_enable" id="music_notify_enable" value="1" ${config['music_notify_enable']}> Enable notifications on Music playback
@@ -262,6 +265,7 @@ from plexpy import common
                 if (ci != "undefined") {
                     // To allow next step in the guide.
                     // servers with clientIdentifier is verified
+                    $("#pms_identifier").val(ci);
                     $("#pms_valid").val("valid");
                     $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!').show();
                 } else {

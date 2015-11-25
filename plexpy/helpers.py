@@ -1,4 +1,4 @@
-#  This file is part of PlexPy.
+﻿#  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -144,6 +144,31 @@ def now():
     now = datetime.datetime.now()
     return now.strftime("%Y-%m-%d %H:%M:%S")
 
+def human_duration(s):
+
+    hd = ''
+
+    if str(s).isdigit():
+        d = int(s / 84600)
+        h = int((s % 84600) / 3600)
+        m = int(((s % 84600) % 3600) / 60)
+        s = int(((s % 84600) % 3600) % 60)
+        
+        hd_list = []
+        if d > 0:
+            hd_list.append(str(d) + ' days')
+        if h > 0:
+            hd_list.append(str(h) + ' hrs')
+        if m > 0:
+            hd_list.append(str(m) + ' mins')
+        if s > 0:
+            hd_list.append(str(s) + ' secs')
+            
+        hd = ' '.join(hd_list)
+
+        return hd
+    else:
+        return hd
 
 def get_age(date):
 

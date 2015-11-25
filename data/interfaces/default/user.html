@@ -262,33 +262,6 @@ from plexpy import helpers
 <script src="interfaces/default/js/tables/user_ips.js"></script>
 <script src="interfaces/default/js/tables/sync_table.js"></script>
 <script>
-    function recentlyWatched() {
-        var widthVal = $('body').find("#user-recently-watched").width();
-        var tmp = (widthVal-32) / 180;
-
-        if (tmp > 0) {
-            containerSize = parseInt(tmp);
-        } else {
-            containerSize = 1;
-        }
-        
-        % if data['user_id']:
-            var user_id = ${data['user_id']};
-        % else:
-            var user_id = null;
-        % endif
-
-        // Populate recently watched
-        $.ajax({
-            url: 'get_user_recently_watched',
-            async: true,
-            data: { user_id: user_id, user: '${data['username']}', limit: containerSize },
-            complete: function(xhr, status) {
-                $("#user-recently-watched").html(xhr.responseText);
-            }
-        });        
-    }
-    
     $(document).ready(function () {
 
         % if data['user_id']:
@@ -297,13 +270,15 @@ from plexpy import helpers
             var user_id = null;
         % endif
 
+        var username = '${data['username'].replace("'", "\\'")}';
+
         $("#edit-user-tooltip").tooltip();
 
         // Populate watch time stats
         $.ajax({
             url: 'get_user_watch_time_stats',
             async: true,
-            data: { user_id: user_id, user: '${data['username']}' },
+            data: { user_id: user_id, user: username },
             complete: function(xhr, status) {
                 $("#user-time-stats").html(xhr.responseText);
             }
@@ -313,21 +288,23 @@ from plexpy import helpers
         $.ajax({
             url: 'get_user_player_stats',
             async: true,
-            data: { user_id: user_id, user: '${data['username']}' },
+            data: { user_id: user_id, user: username },
             complete: function(xhr, status) {
                 $("#user-player-stats").html(xhr.responseText);
             }
         });
 
-        $( "#history-tab-btn" ).one( "click", function() {
+        function loadHistoryTable(media_type) {
             // Build watch history table
             history_table_options.ajax = {
-                "url": "get_history",
+                url: 'get_history',
                 type: 'post',
                 data: function ( d ) {
-                    return { 'json_data': JSON.stringify( d ),
-                             'user_id': user_id,
-                             'user': "${data['username']}"
+                    return {
+                        'json_data': JSON.stringify( d ),
+                        'user_id': user_id,
+                        'user': username,
+                        'media_type': media_type
                     };
                 }
             }
@@ -338,6 +315,34 @@ from plexpy import helpers
             $(colvis.button()).appendTo('#button-bar-history');
             
             clearSearchButton('history_table', history_table);
+
+            $('#history_table_filter').prepend('<div class="btn-group" data-toggle="buttons" id="media_type-selection" style="padding-right: 15px;"> \
+                <label class="btn btn-dark active"> \
+                    <input type="radio" name="media_type-filter" id="history-all" value="all" autocomplete="off"> All \
+                </label> \
+                <label class="btn btn-dark"> \
+                    <input type="radio" name="media_type-filter" id="history-movies" value="movie" autocomplete="off"> Movies \
+                </label> \
+                <label class="btn btn-dark"> \
+                    <input type="radio" name="media_type-filter" id="history-tv_shows" value="episode" autocomplete="off"> TV Shows \
+                </label> \
+                <label class="btn btn-dark"> \
+                    <input type="radio" name="media_type-filter" id="history-music" value="track" autocomplete="off"> Music \
+                </label> \
+            </div>');
+
+            $('#media_type-selection').on('change', function () {
+                $('#media_type-selection > label').removeClass('active');
+                selected_filter = $('input[name=media_type-filter]:checked', '#media_type-selection');
+                $(selected_filter).closest('label').addClass('active');
+                media_type = $(selected_filter).val();
+                history_table.draw();
+            });
+        }
+
+        $( "#history-tab-btn" ).one( "click", function() {
+            var media_type = 'all';
+            loadHistoryTable(media_type);
         });
 
         $( "#ip-tab-btn" ).one( "click", function() {
@@ -348,7 +353,7 @@ from plexpy import helpers
                 data: function ( d ) {
                     return { 'json_data': JSON.stringify( d ),
                              'user_id': user_id,
-                             'user': "${data['username']}"
+                             'user': username
                     };
                 }
             }
@@ -363,7 +368,7 @@ from plexpy import helpers
                 "url": "get_sync",
                 "data": function(d) {
                    d.user_id = user_id;
-                   d.user = "${data['username']}";
+                   d.user = username;
                 }
             }
             sync_table = $('#sync_table').DataTable(sync_table_options);
@@ -380,7 +385,7 @@ from plexpy import helpers
             $("#edit-user-tooltip").tooltip('hide');
             $.ajax({
                 url: 'edit_user_dialog',
-                data: { user_id: user_id, user: '${data['username']}' },
+                data: { user_id: user_id, user: username },
                 cache: false,
                 async: true,
                 complete: function(xhr, status) {
@@ -425,6 +430,33 @@ from plexpy import helpers
                 });
             }
         });
+
+        function recentlyWatched() {
+            var widthVal = $('body').find("#user-recently-watched").width();
+            var tmp = (widthVal-32) / 180;
+
+            if (tmp > 0) {
+                containerSize = parseInt(tmp);
+            } else {
+                containerSize = 1;
+            }
+
+            % if data['user_id']:
+                var user_id = ${data['user_id']};
+            % else:
+                var user_id = null;
+            % endif
+
+            // Populate recently watched
+            $.ajax({
+                url: 'get_user_recently_watched',
+                async: true,
+                data: { user_id: user_id, user: username, limit: containerSize },
+                complete: function(xhr, status) {
+                    $("#user-recently-watched").html(xhr.responseText);
+                }
+            });
+        }
         
         recentlyWatched();
         $(window).resize(function() {

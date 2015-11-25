@@ -46,9 +46,11 @@ def serve_template(templatename, **kwargs):
 
     _hplookup = TemplateLookup(directories=[template_dir])
 
+    server_name = plexpy.CONFIG.PMS_NAME
+
     try:
         template = _hplookup.get_template(templatename)
-        return template.render(**kwargs)
+        return template.render(server_name=server_name, **kwargs)
     except:
         return exceptions.html_error_template().render()
 
@@ -71,7 +73,8 @@ class WebInterface(object):
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
             "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
+            "pms_name": plexpy.CONFIG.PMS_NAME
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 
@@ -87,13 +90,14 @@ class WebInterface(object):
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
             "pms_ssl": checked(plexpy.CONFIG.PMS_SSL),
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
-            "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
             "movie_notify_enable": checked(plexpy.CONFIG.MOVIE_NOTIFY_ENABLE),
+            "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
             "music_notify_enable": checked(plexpy.CONFIG.MUSIC_NOTIFY_ENABLE),
-            "tv_notify_on_start": checked(plexpy.CONFIG.TV_NOTIFY_ON_START),
             "movie_notify_on_start": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_START),
+            "tv_notify_on_start": checked(plexpy.CONFIG.TV_NOTIFY_ON_START),
             "music_notify_on_start": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_START),
-            "video_logging_enable": checked(plexpy.CONFIG.VIDEO_LOGGING_ENABLE),
+            "movie_logging_enable": checked(plexpy.CONFIG.MOVIE_LOGGING_ENABLE),
+            "tv_logging_enable": checked(plexpy.CONFIG.TV_LOGGING_ENABLE),
             "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
             "check_github": checked(plexpy.CONFIG.CHECK_GITHUB)
@@ -420,8 +424,8 @@ class WebInterface(object):
             "grouping_global_history": checked(plexpy.CONFIG.GROUPING_GLOBAL_HISTORY),
             "grouping_user_history": checked(plexpy.CONFIG.GROUPING_USER_HISTORY),
             "grouping_charts": checked(plexpy.CONFIG.GROUPING_CHARTS),
-            "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
             "movie_notify_enable": checked(plexpy.CONFIG.MOVIE_NOTIFY_ENABLE),
+            "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
             "music_notify_enable": checked(plexpy.CONFIG.MUSIC_NOTIFY_ENABLE),
             "tv_notify_on_start": checked(plexpy.CONFIG.TV_NOTIFY_ON_START),
             "movie_notify_on_start": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_START),
@@ -432,16 +436,20 @@ class WebInterface(object):
             "tv_notify_on_pause": checked(plexpy.CONFIG.TV_NOTIFY_ON_PAUSE),
             "movie_notify_on_pause": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_PAUSE),
             "music_notify_on_pause": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_PAUSE),
+            "monitor_remote_access": checked(plexpy.CONFIG.MONITOR_REMOTE_ACCESS),
             "monitoring_interval": plexpy.CONFIG.MONITORING_INTERVAL,
             "monitoring_use_websocket": checked(plexpy.CONFIG.MONITORING_USE_WEBSOCKET),
             "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
             "ip_logging_enable": checked(plexpy.CONFIG.IP_LOGGING_ENABLE),
-            "video_logging_enable": checked(plexpy.CONFIG.VIDEO_LOGGING_ENABLE),
+            "movie_logging_enable": checked(plexpy.CONFIG.MOVIE_LOGGING_ENABLE),
+            "tv_logging_enable": checked(plexpy.CONFIG.TV_LOGGING_ENABLE),
             "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
             "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
             "notify_consecutive": checked(plexpy.CONFIG.NOTIFY_CONSECUTIVE),
+            "notify_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT),
+            "notify_recently_added_delay": plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY,
             "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
             "notify_on_start_subject_text": plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT,
             "notify_on_start_body_text": plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT,
@@ -455,6 +463,12 @@ class WebInterface(object):
             "notify_on_buffer_body_text": plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT,
             "notify_on_watched_subject_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT,
             "notify_on_watched_body_text": plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT,
+            "notify_on_created_subject_text": plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT,
+            "notify_on_created_body_text": plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT,
+            "notify_on_extdown_subject_text": plexpy.CONFIG.NOTIFY_ON_EXTDOWN_SUBJECT_TEXT,
+            "notify_on_extdown_body_text": plexpy.CONFIG.NOTIFY_ON_EXTDOWN_BODY_TEXT,
+            "notify_on_intdown_subject_text": plexpy.CONFIG.NOTIFY_ON_INTDOWN_SUBJECT_TEXT,
+            "notify_on_intdown_body_text": plexpy.CONFIG.NOTIFY_ON_INTDOWN_BODY_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
@@ -474,12 +488,13 @@ class WebInterface(object):
         checked_configs = [
             "launch_browser", "enable_https", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "pms_use_bif", "pms_ssl",
-            "tv_notify_enable", "movie_notify_enable", "music_notify_enable", "monitoring_use_websocket",
+            "movie_notify_enable", "tv_notify_enable", "music_notify_enable", "monitoring_use_websocket",
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
-            "ip_logging_enable", "video_logging_enable", "music_logging_enable", "pms_is_remote", "home_stats_type",
-            "group_history_tables", "notify_consecutive"
+            "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable", 
+            "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", 
+            "notify_recently_added_grandparent", "monitor_remote_access"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -571,27 +586,28 @@ class WebInterface(object):
 
         custom_where = []
         if user_id:
-            custom_where = [['session_history.user_id', user_id]]
+            custom_where.append(['session_history.user_id', user_id])
         elif user:
-            custom_where = [['session_history.user', user]]
+            custom_where.append(['session_history.user', user])
         if 'rating_key' in kwargs:
             rating_key = kwargs.get('rating_key', "")
-            custom_where = [['session_history.rating_key', rating_key]]
+            custom_where.append(['session_history.rating_key', rating_key])
         if 'parent_rating_key' in kwargs:
             rating_key = kwargs.get('parent_rating_key', "")
-            custom_where = [['session_history.parent_rating_key', rating_key]]
+            custom_where.append(['session_history.parent_rating_key', rating_key])
         if 'grandparent_rating_key' in kwargs:
             rating_key = kwargs.get('grandparent_rating_key', "")
-            custom_where = [['session_history.grandparent_rating_key', rating_key]]
+            custom_where.append(['session_history.grandparent_rating_key', rating_key])
         if 'start_date' in kwargs:
             start_date = kwargs.get('start_date', "")
-            custom_where = [['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date]]
+            custom_where.append(['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date])
         if 'reference_id' in kwargs:
             reference_id = kwargs.get('reference_id', "")
-            custom_where = [['session_history.reference_id', reference_id]]
+            custom_where.append(['session_history.reference_id', reference_id])
         if 'media_type' in kwargs:
             media_type = kwargs.get('media_type', "")
-            custom_where = [['session_history_metadata.media_type', media_type]]
+            if media_type != 'all':
+               custom_where.append(['session_history_metadata.media_type', media_type])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
@@ -653,6 +669,16 @@ class WebInterface(object):
             return "Error sending tweet"
 
     @cherrypy.expose
+    def test_ifttt(self):
+        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+        event = notifiers.IFTTT()
+        result = event.test()
+        if result:
+            return "Notification successful."
+        else:
+            return "Error sending event."
+
+    @cherrypy.expose
     def osxnotifyregister(self, app):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
         from osxnotify import registerapp as osxnotify
@@ -697,6 +723,12 @@ class WebInterface(object):
         try:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_current_activity()
+
+            data_factory = datafactory.DataFactory()
+            for session in result['sessions']:
+                if not session['ip_address']:
+                    ip_address = data_factory.get_session_ip(session['session_key'])
+                    session['ip_address'] = ip_address
         except:
             return serve_template(templatename="current_activity.html", data=None)
 
@@ -777,11 +809,11 @@ class WebInterface(object):
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(row_id=item_id)
         elif item_id == 'movie':
-            metadata = {'type': 'library', 'library': 'movie', 'media_type': 'movie', 'title': 'Movies'}
+            metadata = {'media_type': 'library', 'library': 'movie', 'media_type_filter': 'movie', 'title': 'Movies'}
         elif item_id == 'show':
-            metadata = {'type': 'library', 'library': 'show', 'media_type': 'episode', 'title': 'TV Shows'}
+            metadata = {'media_type': 'library', 'library': 'show', 'media_type_filter': 'episode', 'title': 'TV Shows'}
         elif item_id == 'artist':
-            metadata = {'type': 'library', 'library': 'artist', 'media_type': 'track', 'title': 'Music'}
+            metadata = {'media_type': 'library', 'library': 'artist', 'media_type_filter': 'track', 'title': 'Music'}
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=item_id)
@@ -1117,10 +1149,24 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_server_prefs(self, **kwargs):
+    def get_server_friendly_name(self, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_server_prefs(output_format='json')
+        result = pmsconnect.get_server_friendly_name()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return result
+        else:
+            logger.warn('Unable to retrieve data.')
+
+    @cherrypy.expose
+    def get_server_prefs(self, pref=None, **kwargs):
+
+        if pref:
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_server_pref(pref=pref)
+        else:
+            result = None
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -1352,8 +1398,7 @@ class WebInterface(object):
             return json.dumps({'message': 'no data received'})
 
     @cherrypy.expose
-    def search(self, search_query=''):
-        query = search_query.replace('"', '')
+    def search(self, query=''):
 
         return serve_template(templatename="search.html", title="Search", query=query)
 

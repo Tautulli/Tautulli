@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -138,5 +138,15 @@ def process(opcode, data):
 
         activity = activity_handler.ActivityHandler(timeline=time_line[0])
         activity.process()
+
+    #if type == 'timeline':
+    #    try:
+    #        time_line = info.get('_children')
+    #    except:
+    #        logger.debug(u"PlexPy WebSocket :: Timeline event found but unable to get timeline data.")
+    #        return False
+
+    #    activity = activity_handler.TimelineHandler(timeline=time_line[0])
+    #    activity.process()
 
     return True

@@ -41,7 +41,7 @@ class DataFactory(object):
                    'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter', 
                    'session_history.user_id',
                    'session_history.user',
-                   '(CASE WHEN users.friendly_name IS NULL THEN user ELSE users.friendly_name END) as friendly_name',
+                   '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) as friendly_name',
                    'platform',
                    'player',
                    'ip_address',
@@ -106,10 +106,7 @@ class DataFactory(object):
                 watched_status = 0
 
             # Rename Mystery platform names
-            platform_names = {'Mystery 3': 'Playstation 3',
-                              'Mystery 4': 'Playstation 4',
-                              'Mystery 5': 'Xbox 360'}
-            platform = platform_names.get(item["platform"], item["platform"])
+            platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
 
             row = {"reference_id": item["reference_id"],
                    "id": item["id"],
@@ -182,7 +179,7 @@ class DataFactory(object):
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: top_tv.")
                     return None
 
                 for item in result:
@@ -230,7 +227,7 @@ class DataFactory(object):
                             'LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: popular_tv.")
                     return None
 
                 for item in result:
@@ -274,7 +271,7 @@ class DataFactory(object):
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: top_movies.")
                     return None
 
                 for item in result:
@@ -322,7 +319,7 @@ class DataFactory(object):
                             'LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: popular_movies.")
                     return None
 
                 for item in result:
@@ -366,7 +363,7 @@ class DataFactory(object):
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: top_music.")
                     return None
 
                 for item in result:
@@ -414,7 +411,7 @@ class DataFactory(object):
                             'LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: popular_music.")
                     return None
 
                 for item in result:
@@ -440,7 +437,7 @@ class DataFactory(object):
                 top_users = []
                 try:
                     query = 'SELECT session_history.user, ' \
-                            '(case when users.friendly_name is null then session_history.user else ' \
+                            '(case when users.friendly_name is null then users.username else ' \
                             'users.friendly_name end) as friendly_name,' \
                             'COUNT(session_history.id) as total_plays, ' \
                             'SUM(case when session_history.stopped > 0 ' \
@@ -459,7 +456,7 @@ class DataFactory(object):
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: top_users.")
                     return None
 
                 for item in result:
@@ -507,15 +504,12 @@ class DataFactory(object):
                             'ORDER BY %s DESC LIMIT %s' % (time_range, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: top_platforms.")
                     return None
 
                 for item in result:
                     # Rename Mystery platform names
-                    platform_names = {'Mystery 3': 'Playstation 3',
-                                      'Mystery 4': 'Playstation 4',
-                                      'Mystery 5': 'Xbox 360'}
-                    platform_type = platform_names.get(item[0], item[0])
+                    platform_type = common.PLATFORM_NAME_OVERRIDES.get(item[0], item[0])
 
                     row = {'platform': item[0],
                            'total_plays': item[1],
@@ -542,7 +536,7 @@ class DataFactory(object):
                 try:
                     query = 'SELECT session_history_metadata.id, ' \
                             'session_history.user, ' \
-                            '(case when users.friendly_name is null then session_history.user else ' \
+                            '(case when users.friendly_name is null then users.username else ' \
                             'users.friendly_name end) as friendly_name,' \
                             'users.user_id, ' \
                             'users.custom_avatar_url as user_thumb, ' \
@@ -564,12 +558,12 @@ class DataFactory(object):
                             'AND (session_history_metadata.media_type = "movie" ' \
                             'OR session_history_metadata.media_type = "episode") ' \
                             'AND percent_complete >= %s ' \
-                            'GROUP BY session_history_metadata.full_title ' \
+                            'GROUP BY session_history.id ' \
                             'ORDER BY last_watch DESC ' \
                             'LIMIT %s' % (time_range, notify_watched_percent, stats_count)
                     result = monitor_db.select(query)
                 except:
-                    logger.warn("Unable to execute database query.")
+                    logger.warn("Unable to execute database query for get_home_stats: last_watched.")
                     return None
 
                 for item in result:
@@ -680,7 +674,7 @@ class DataFactory(object):
                         'ORDER BY started DESC LIMIT ?'
                 result = monitor_db.select(query, args=[limit])
         except:
-            logger.warn("Unable to execute database query.")
+            logger.warn("Unable to execute database query for get_recently_watched.")
             return None
 
         for row in result:
@@ -729,7 +723,7 @@ class DataFactory(object):
             actors = item['actors'].split(';') if item['actors'] else []
             genres = item['genres'].split(';') if item['genres'] else []
 
-            metadata = {'type': item['media_type'],
+            metadata = {'media_type': item['media_type'],
                         'rating_key': item['rating_key'],
                         'parent_rating_key': item['parent_rating_key'],
                         'grandparent_rating_key': item['grandparent_rating_key'],
@@ -854,7 +848,7 @@ class DataFactory(object):
                     media_type = 'artist'
 
         if query_string and media_type:
-            query = {'query_string': query_string.replace('"', ''),
+            query = {'query_string': query_string,
                      'title': title,
                      'parent_title': parent_title,
                      'grandparent_title': grandparent_title,
@@ -894,7 +888,7 @@ class DataFactory(object):
             grandparent_rating_key = result[0]['grandparent_rating_key']
 
         except:
-            logger.warn("Unable to execute database query.")
+            logger.warn("Unable to execute database query for get_rating_keys_list.")
             return {}
 
         query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
@@ -1005,3 +999,19 @@ class DataFactory(object):
             return 'No updated rating key needed in database. No changes were made.'
         # for debugging
         #return mapping
+
+    def get_session_ip(self, session_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        if session_key:
+            query = 'SELECT ip_address FROM sessions WHERE session_key = %d' % int(session_key)
+            result = monitor_db.select(query)
+        else:
+            return None
+
+        ip_address = 'N/A'
+
+        for item in result:
+            ip_address = item[0]
+
+        return ip_address

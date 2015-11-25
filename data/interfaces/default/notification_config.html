@@ -121,6 +121,12 @@ from plexpy import helpers
         $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
     });
 
+    $('#testIFTTT').click(function () {
+        $.get("/test_ifttt",
+            function (data) { $('#ajaxMsg').html("<i class='fa fa-check'></i> " + data); });
+        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
+    });
+
     // Never send checkbox values directly, always substitute value in hidden input.
     $('.checkboxes').click(function() {
         var configToggle = $(this).data('id');

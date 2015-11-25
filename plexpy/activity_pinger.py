@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,13 +13,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, pmsconnect, notification_handler, database, helpers, activity_processor
+from plexpy import logger, pmsconnect, plextv, notification_handler, database, helpers, activity_processor
 
 import threading
 import plexpy
 import time
 
 monitor_lock = threading.Lock()
+ext_ping_count = 0
+int_ping_count = 0
 
 
 def check_active_sessions(ws_request=False):
@@ -162,3 +164,109 @@ def check_active_sessions(ws_request=False):
                 monitor_process.write_session(session)
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
+
+def check_recently_added():
+
+    with monitor_lock:
+        # add delay to allow for metadata processing
+        delay = plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY
+        time_threshold = int(time.time()) - delay
+        time_interval = plexpy.CONFIG.MONITORING_INTERVAL
+
+        pms_connect = pmsconnect.PmsConnect()
+        recently_added_list = pms_connect.get_recently_added_details(count='10')
+
+        if recently_added_list:
+            recently_added = recently_added_list['recently_added']
+
+            for item in recently_added:
+                if item['media_type'] == 'movie':
+                    metadata_list = pms_connect.get_metadata_details(item['rating_key'])
+                    if metadata_list:
+                        metadata = [metadata_list['metadata']]
+                    else:
+                        logger.error(u"PlexPy Monitor :: Unable to retrieve metadata for rating_key %s" \
+                                     % str(item['rating_key']))
+
+                else:
+                    metadata_list = pms_connect.get_metadata_children_details(item['rating_key'])
+                    if metadata_list:
+                        metadata = metadata_list['metadata']
+                    else:
+                        logger.error(u"PlexPy Monitor :: Unable to retrieve children metadata for rating_key %s" \
+                                     % str(item['rating_key']))
+
+                if metadata:
+                    if not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
+                        for item in metadata:
+                            if 0 < int(item['added_at']) - time_threshold <= time_interval:
+                                logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
+                                # Fire off notifications
+                                threading.Thread(target=notification_handler.notify_timeline,
+                                                 kwargs=dict(timeline_data=item, notify_action='created')).start()
+                    
+                    else:
+                        item = max(metadata, key=lambda x:x['added_at'])
+
+                        if 0 < int(item['added_at']) - time_threshold <= time_interval:
+                            if item['media_type'] == 'episode' or item['media_type'] == 'track':
+                                metadata_list = pms_connect.get_metadata_details(item['grandparent_rating_key'])
+
+                                if metadata_list:
+                                    item = metadata_list['metadata']
+                                else:
+                                    logger.error(u"PlexPy Monitor :: Unable to retrieve grandparent metadata for grandparent_rating_key %s" \
+                                                 % str(item['rating_key']))
+
+                            logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
+                            # Fire off notifications
+                            threading.Thread(target=notification_handler.notify_timeline,
+                                             kwargs=dict(timeline_data=item, notify_action='created')).start()
+
+def check_server_response():
+
+    with monitor_lock:
+        pms_connect = pmsconnect.PmsConnect()
+        server_response = pms_connect.get_server_response()
+
+        global int_ping_count
+        global ext_ping_count
+        
+        # Check for internal server response
+        if not server_response:
+            int_ping_count += 1
+            logger.warn(u"PlexPy Monitor :: Unable to get an internal response from the server, ping attempt %s." \
+                        % str(int_ping_count))
+        # Reset internal ping counter
+        else:
+            int_ping_count = 0
+
+        # Check for remote access
+        if server_response and plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
+        
+            mapping_state = server_response['mapping_state']
+            mapping_error = server_response['mapping_error']
+
+            # Check if the port is mapped
+            if not mapping_state == 'mapped':
+                ext_ping_count += 1
+                logger.warn(u"PlexPy Monitor :: Plex remote access port not mapped, ping attempt %s." \
+                            % str(ext_ping_count))
+            # Check if the port is open
+            elif mapping_error == 'unreachable':
+                ext_ping_count += 1
+                logger.warn(u"PlexPy Monitor :: Plex remote access port mapped, but mapping failed, ping attempt %s." \
+                            % str(ext_ping_count))
+            # Reset external ping counter
+            else:
+                ext_ping_count = 0
+
+        if int_ping_count == 3:
+            # Fire off notifications
+            threading.Thread(target=notification_handler.notify_timeline,
+                                kwargs=dict(notify_action='intdown')).start()
+
+        if ext_ping_count == 3:
+            # Fire off notifications
+            threading.Thread(target=notification_handler.notify_timeline,
+                                kwargs=dict(notify_action='extdown')).start()

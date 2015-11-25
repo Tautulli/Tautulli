@@ -1,4 +1,4 @@
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -213,3 +213,53 @@ class ActivityHandler(object):
                 # We don't have this session in our table yet, start a new one.
                 if this_state != 'buffering':
                     self.on_start()
+
+class TimelineHandler(object):
+
+    def __init__(self, timeline):
+        self.timeline = timeline
+        #logger.debug(timeline)
+
+    def is_item(self):
+        if 'itemID' in self.timeline:
+            return True
+
+        return False
+
+    def get_rating_key(self):
+        if self.is_item():
+            return int(self.timeline['itemID'])
+
+        return None
+
+    def get_metadata(self):
+        pms_connect = pmsconnect.PmsConnect()
+        metadata_list = pms_connect.get_metadata_details(self.get_rating_key())
+
+        if metadata_list:
+            return metadata_list['metadata']
+
+        return None
+
+    def on_created(self):
+        if self.is_item():
+            logger.debug(u"PlexPy TimelineHandler :: Library item %s has been added to Plex." % str(self.get_rating_key()))
+
+            # Fire off notifications
+            threading.Thread(target=notification_handler.notify_timeline,
+                             kwargs=dict(timeline_data=self.get_metadata(), notify_action='created')).start()
+
+    # This function receives events from our websocket connection
+    def process(self):
+        if self.is_item():
+
+            this_state = self.timeline['state']
+            this_type = self.timeline['type']
+            this_metadataState = self.timeline.get('metadataState', None)
+            this_mediaState = self.timeline.get('mediaState', None)
+
+            # state:    5: done processing metadata
+            # type:     1: movie, 2: tv show, 4: episode, 8: artist, 10: track
+            types = [1, 2, 4, 8, 10]
+            if this_state == 5 and this_type in types and this_metadataState == None and this_mediaState == None:
+                self.on_created()

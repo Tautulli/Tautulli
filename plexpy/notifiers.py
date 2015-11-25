@@ -50,7 +50,9 @@ AGENT_IDS = {"Growl": 0,
              "OSX Notify": 8,
              "Boxcar2": 9,
              "Email": 10,
-             "Twitter": 11}
+             "Twitter": 11,
+             "IFTTT": 12,
+             "Telegram": 13}
 
 def available_notification_agents():
     agents = [{'name': 'Growl',
@@ -63,7 +65,10 @@ def available_notification_agents():
                'on_pause': plexpy.CONFIG.GROWL_ON_PAUSE,
                'on_resume': plexpy.CONFIG.GROWL_ON_RESUME,
                'on_buffer': plexpy.CONFIG.GROWL_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.GROWL_ON_WATCHED
+               'on_watched': plexpy.CONFIG.GROWL_ON_WATCHED,
+               'on_created': plexpy.CONFIG.GROWL_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.GROWL_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.GROWL_ON_INTDOWN
                },
               {'name': 'Prowl',
                'id': AGENT_IDS['Prowl'],
@@ -75,7 +80,10 @@ def available_notification_agents():
                'on_pause': plexpy.CONFIG.PROWL_ON_PAUSE,
                'on_resume': plexpy.CONFIG.PROWL_ON_RESUME,
                'on_buffer': plexpy.CONFIG.PROWL_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.PROWL_ON_WATCHED
+               'on_watched': plexpy.CONFIG.PROWL_ON_WATCHED,
+               'on_created': plexpy.CONFIG.PROWL_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.PROWL_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PROWL_ON_INTDOWN
                },
               {'name': 'XBMC',
                'id': AGENT_IDS['XBMC'],
@@ -87,7 +95,10 @@ def available_notification_agents():
                'on_pause': plexpy.CONFIG.XBMC_ON_PAUSE,
                'on_resume': plexpy.CONFIG.XBMC_ON_RESUME,
                'on_buffer': plexpy.CONFIG.XBMC_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.XBMC_ON_WATCHED
+               'on_watched': plexpy.CONFIG.XBMC_ON_WATCHED,
+               'on_created': plexpy.CONFIG.XBMC_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.XBMC_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.XBMC_ON_INTDOWN
                },
               {'name': 'Plex',
                'id': AGENT_IDS['Plex'],
@@ -99,7 +110,10 @@ def available_notification_agents():
                'on_pause': plexpy.CONFIG.PLEX_ON_PAUSE,
                'on_resume': plexpy.CONFIG.PLEX_ON_RESUME,
                'on_buffer': plexpy.CONFIG.PLEX_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED
+               'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED,
+               'on_created': plexpy.CONFIG.PLEX_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN
                },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
@@ -111,7 +125,10 @@ def available_notification_agents():
                'on_pause': plexpy.CONFIG.NMA_ON_PAUSE,
                'on_resume': plexpy.CONFIG.NMA_ON_RESUME,
                'on_buffer': plexpy.CONFIG.NMA_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.NMA_ON_WATCHED
+               'on_watched': plexpy.CONFIG.NMA_ON_WATCHED,
+               'on_created': plexpy.CONFIG.NMA_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.NMA_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.NMA_ON_INTDOWN
                },
               {'name': 'Pushalot',
                'id': AGENT_IDS['Pushalot'],
@@ -123,7 +140,10 @@ def available_notification_agents():
                'on_pause': plexpy.CONFIG.PUSHALOT_ON_PAUSE,
                'on_resume': plexpy.CONFIG.PUSHALOT_ON_RESUME,
                'on_buffer': plexpy.CONFIG.PUSHALOT_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.PUSHALOT_ON_WATCHED
+               'on_watched': plexpy.CONFIG.PUSHALOT_ON_WATCHED,
+               'on_created': plexpy.CONFIG.PUSHALOT_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.PUSHALOT_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PUSHALOT_ON_INTDOWN
                },
               {'name': 'Pushbullet',
                'id': AGENT_IDS['Pushbullet'],
@@ -135,7 +155,10 @@ def available_notification_agents():
                'on_pause': plexpy.CONFIG.PUSHBULLET_ON_PAUSE,
                'on_resume': plexpy.CONFIG.PUSHBULLET_ON_RESUME,
                'on_buffer': plexpy.CONFIG.PUSHBULLET_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.PUSHBULLET_ON_WATCHED
+               'on_watched': plexpy.CONFIG.PUSHBULLET_ON_WATCHED,
+               'on_created': plexpy.CONFIG.PUSHBULLET_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.PUSHBULLET_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PUSHBULLET_ON_INTDOWN
                },
               {'name': 'Pushover',
                'id': AGENT_IDS['Pushover'],
@@ -147,7 +170,10 @@ def available_notification_agents():
                'on_pause': plexpy.CONFIG.PUSHOVER_ON_PAUSE,
                'on_resume': plexpy.CONFIG.PUSHOVER_ON_RESUME,
                'on_buffer': plexpy.CONFIG.PUSHOVER_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.PUSHOVER_ON_WATCHED
+               'on_watched': plexpy.CONFIG.PUSHOVER_ON_WATCHED,
+               'on_created': plexpy.CONFIG.PUSHOVER_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.PUSHOVER_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PUSHOVER_ON_INTDOWN
                },
               {'name': 'Boxcar2',
                'id': AGENT_IDS['Boxcar2'],
@@ -159,7 +185,10 @@ def available_notification_agents():
                'on_pause': plexpy.CONFIG.BOXCAR_ON_PAUSE,
                'on_resume': plexpy.CONFIG.BOXCAR_ON_RESUME,
                'on_buffer': plexpy.CONFIG.BOXCAR_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.BOXCAR_ON_WATCHED
+               'on_watched': plexpy.CONFIG.BOXCAR_ON_WATCHED,
+               'on_created': plexpy.CONFIG.BOXCAR_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.BOXCAR_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.BOXCAR_ON_INTDOWN
                },
               {'name': 'E-mail',
                'id': AGENT_IDS['Email'],
@@ -171,7 +200,10 @@ def available_notification_agents():
                'on_pause': plexpy.CONFIG.EMAIL_ON_PAUSE,
                'on_resume': plexpy.CONFIG.EMAIL_ON_RESUME,
                'on_buffer': plexpy.CONFIG.EMAIL_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.EMAIL_ON_WATCHED
+               'on_watched': plexpy.CONFIG.EMAIL_ON_WATCHED,
+               'on_created': plexpy.CONFIG.EMAIL_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.EMAIL_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.EMAIL_ON_INTDOWN
                },
               {'name': 'Twitter',
                'id': AGENT_IDS['Twitter'],
@@ -183,7 +215,40 @@ def available_notification_agents():
                'on_pause': plexpy.CONFIG.TWITTER_ON_PAUSE,
                'on_resume': plexpy.CONFIG.TWITTER_ON_RESUME,
                'on_buffer': plexpy.CONFIG.TWITTER_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.TWITTER_ON_WATCHED
+               'on_watched': plexpy.CONFIG.TWITTER_ON_WATCHED,
+               'on_created': plexpy.CONFIG.TWITTER_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.TWITTER_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.TWITTER_ON_INTDOWN
+               },
+              {'name': 'IFTTT',
+               'id': AGENT_IDS['IFTTT'],
+               'config_prefix': 'ifttt',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.IFTTT_ENABLED),
+               'on_play': plexpy.CONFIG.IFTTT_ON_PLAY,
+               'on_stop': plexpy.CONFIG.IFTTT_ON_STOP,
+               'on_pause': plexpy.CONFIG.IFTTT_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.IFTTT_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.IFTTT_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.IFTTT_ON_WATCHED,
+               'on_created': plexpy.CONFIG.IFTTT_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.IFTTT_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.IFTTT_ON_INTDOWN
+               },
+              {'name': 'Telegram',
+               'id': AGENT_IDS['Telegram'],
+               'config_prefix': 'telegram',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.TELEGRAM_ENABLED),
+               'on_play': plexpy.CONFIG.TELEGRAM_ON_PLAY,
+               'on_stop': plexpy.CONFIG.TELEGRAM_ON_STOP,
+               'on_pause': plexpy.CONFIG.TELEGRAM_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.TELEGRAM_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.TELEGRAM_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.TELEGRAM_ON_WATCHED,
+               'on_created': plexpy.CONFIG.TELEGRAM_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.TELEGRAM_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.TELEGRAM_ON_INTDOWN
                }
               ]
 
@@ -200,7 +265,10 @@ def available_notification_agents():
                        'on_pause': plexpy.CONFIG.OSX_NOTIFY_ON_PAUSE,
                        'on_resume': plexpy.CONFIG.OSX_NOTIFY_ON_RESUME,
                        'on_buffer': plexpy.CONFIG.OSX_NOTIFY_ON_BUFFER,
-                       'on_watched': plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED
+                       'on_watched': plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED,
+                       'on_created': plexpy.CONFIG.OSX_NOTIFY_ON_CREATED,
+                       'on_extdown': plexpy.CONFIG.OSX_NOTIFY_ON_EXTDOWN,
+                       'on_intdown': plexpy.CONFIG.OSX_NOTIFY_ON_INTDOWN
                        })
 
     return agents
@@ -245,6 +313,12 @@ def get_notification_agent_config(config_id):
         elif config_id == 11:
             tweet = TwitterNotifier()
             return tweet.return_config_options()
+        elif config_id == 12:
+            iftttClient = IFTTT()
+            return iftttClient.return_config_options()
+        elif config_id == 13:
+          telegramClient = TELEGRAM()
+          return telegramClient.return_config_options()
         else:
             return []
     else:
@@ -290,6 +364,12 @@ def send_notification(config_id, subject, body):
         elif config_id == 11:
             tweet = TwitterNotifier()
             tweet.notify(subject=subject, message=body)
+        elif config_id == 12:
+            iftttClient = IFTTT()
+            iftttClient.notify(subject=subject, message=body)
+        elif config_id == 13:
+          telegramClient = TELEGRAM()
+          telegramClient.notify(message=body, event=subject)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
@@ -868,7 +948,7 @@ class PUSHOVER(object):
 
         data = {'token': self.application_token,
                 'user': plexpy.CONFIG.PUSHOVER_KEYS,
-                'title': event,
+                'title': event.encode("utf-8"),
                 'message': message.encode("utf-8"),
                 'sound': plexpy.CONFIG.PUSHOVER_SOUND,
                 'priority': plexpy.CONFIG.PUSHOVER_PRIORITY}
@@ -924,10 +1004,10 @@ class PUSHOVER(object):
             return {'': ''}
 
     def return_config_options(self):
-        config_option = [{'label': 'Pushover User Key',
+        config_option = [{'label': 'Pushover User or Group Key',
                           'value': self.keys,
                           'name': 'pushover_keys',
-                          'description': 'Your Pushover user key.',
+                          'description': 'Your Pushover user or group key.',
                           'input_type': 'text'
                           },
                          {'label': 'Priority',
@@ -1268,6 +1348,8 @@ class Email(object):
 
             mailserver.sendmail(plexpy.CONFIG.EMAIL_FROM, plexpy.CONFIG.EMAIL_TO, message.as_string())
             mailserver.quit()
+
+            logger.info(u"Email notifications sent.")
             return True
 
         except Exception, e:
@@ -1316,6 +1398,136 @@ class Email(object):
                           'name': 'email_tls',
                           'description': 'Does the server use encryption.',
                           'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+
+
+class IFTTT(object):
+
+    def __init__(self):
+        self.apikey = plexpy.CONFIG.IFTTT_KEY
+        self.event = plexpy.CONFIG.IFTTT_EVENT
+
+    def notify(self, message, subject):
+        if not message or not subject:
+            return
+
+        http_handler = HTTPSConnection("maker.ifttt.com")
+
+        data = {'value1': subject.encode("utf-8"),
+                'value2': message.encode("utf-8")}
+
+        # logger.debug("Ifttt SENDING: %s" % json.dumps(data))
+
+        http_handler.request("POST",
+                             "/trigger/%s/with/key/%s" % (self.event, self.apikey),
+                             headers={'Content-type': "application/json"},
+                             body=json.dumps(data))
+        response = http_handler.getresponse()
+        request_status = response.status
+        # logger.debug(u"Ifttt response status: %r" % request_status)
+        # logger.debug(u"Ifttt response headers: %r" % response.getheaders())
+        # logger.debug(u"Ifttt response body: %r" % response.read())
+
+        if request_status == 200:
+                logger.info(u"Ifttt notifications sent.")
+                return True
+        elif request_status >= 400 and request_status < 500:
+                logger.info(u"Ifttt request failed: %s" % response.reason)
+                return False
+        else:
+                logger.info(u"Ifttt notification failed serverside.")
+                return False
+
+    def test(self):
+        return self.notify('PlexPy', 'Test Message')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Ifttt Maker Channel Key',
+                          'value': self.apikey,
+                          'name': 'ifttt_key',
+                          'description': 'Your Ifttt  key. You can get a key from <a href="https://ifttt.com/maker" target="_blank">here</a>.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Ifttt Event',
+                          'value': self.event,
+                          'name': 'ifttt_event',
+                          'description': 'The Ifttt maker event to fire. The notification subject and body will be sent'
+                                         ' as value1 and value2 respectively.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Test Event',
+                           'value': 'Test Event',
+                           'name': 'testIFTTT',
+                           'description': 'Test if IFTTT notifications are working. See logs for troubleshooting.',
+                           'input_type': 'button'
+                          }
+                         ]
+
+        return config_option
+
+class TELEGRAM(object):
+
+    def __init__(self):
+        self.enabled = plexpy.CONFIG.TELEGRAM_ENABLED
+        self.bot_token = plexpy.CONFIG.TELEGRAM_BOT_TOKEN
+        self.chat_id = plexpy.CONFIG.TELEGRAM_CHAT_ID
+
+    def conf(self, options):
+        return cherrypy.config['config'].get('Telegram', options)
+
+    def notify(self, message, event):
+        if not message or not event:
+            return
+
+        http_handler = HTTPSConnection("api.telegram.org")
+
+        data = {'chat_id': self.chat_id,
+                'text': event.encode('utf-8') + ': ' + message.encode("utf-8")}
+
+        http_handler.request("POST",
+                                "/bot%s/%s" % (self.bot_token, "sendMessage"),
+                                headers={'Content-type': "application/x-www-form-urlencoded"},
+                                body=urlencode(data))
+
+        response = http_handler.getresponse()
+        request_status = response.status
+
+        if request_status == 200:
+                logger.info(u"Telegram notifications sent.")
+                return True
+        elif request_status >= 400 and request_status < 500:
+                logger.info(u"Telegram request failed: %s" % response.reason)
+                return False
+        else:
+                logger.info(u"Telegram notification failed serverside.")
+                return False
+
+    def updateLibrary(self):
+        #For uniformity reasons not removed
+        return
+
+    def test(self, bot_token, chat_id):
+        self.enabled = True
+        self.bot_token = bot_token
+        self.chat_id = chat_id
+
+        self.notify('Main Screen Activate', 'Test Message')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Telegram Bot Token',
+                          'value': self.bot_token,
+                          'name': 'telegram_bot_token',
+                          'description': 'Your Telegram bot token. Contact <a href="http://telegram.me/BotFather" target="_blank">@BotFather</a> on Telegram to get one.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Telegram Chat ID',
+                          'value': self.chat_id,
+                          'name': 'telegram_chat_id',
+                          'description': 'Your Telegram Chat ID or Group ID. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
+                          'input_type': 'text'
                           }
                          ]
 

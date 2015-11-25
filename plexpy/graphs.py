@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, database, helpers
+from plexpy import logger, database, helpers, common
 
 import datetime
 
@@ -386,17 +386,10 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
-            categories.append(item[0])
+            categories.append(common.PLATFORM_NAME_OVERRIDES.get(item[0], item[0]))
             series_1.append(item[1])
             series_2.append(item[2])
             series_3.append(item[3])
-
-        # Rename Mystery platform names
-        platform_names = [('Mystery 3', 'Playstation 3'),
-                          ('Mystery 4', 'Playstation 4'),
-                          ('Mystery 5', 'Xbox 360')]
-        for old_name, new_name in platform_names:
-            categories = [item.replace(old_name, new_name) for item in categories]
 
         series_1_output = {'name': 'TV',
                            'data': series_1}
@@ -417,7 +410,7 @@ class Graphs(object):
 
         if y_axis == 'plays':
             query = 'SELECT ' \
-                    '(case when users.friendly_name is null then session_history.user else ' \
+                    '(case when users.friendly_name is null then users.username else ' \
                     'users.friendly_name end) as friendly_name,' \
                     'SUM(case when media_type = "episode" then 1 else 0 end) as tv_count, ' \
                     'SUM(case when media_type = "movie" then 1 else 0 end) as movie_count, ' \
@@ -434,7 +427,7 @@ class Graphs(object):
             result = monitor_db.select(query)
         else:
             query = 'SELECT ' \
-                    '(case when users.friendly_name is null then session_history.user else ' \
+                    '(case when users.friendly_name is null then users.username else ' \
                     'users.friendly_name end) as friendly_name,' \
                     'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_duration, ' \
@@ -808,17 +801,10 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
-            categories.append(item[0])
+            categories.append(common.PLATFORM_NAME_OVERRIDES.get(item[0], item[0]))
             series_1.append(item[1])
             series_2.append(item[2])
             series_3.append(item[3])
-
-        # Rename Mystery platform names
-        platform_names = [('Mystery 3', 'Playstation 3'),
-                          ('Mystery 4', 'Playstation 4'),
-                          ('Mystery 5', 'Xbox 360')]
-        for old_name, new_name in platform_names:
-            categories = [item.replace(old_name, new_name) for item in categories]
 
         series_1_output = {'name': 'Direct Play',
                            'data': series_1}
