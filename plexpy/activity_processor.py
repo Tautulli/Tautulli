@@ -39,6 +39,7 @@ class ActivityProcessor(object):
                       'parent_title': session['parent_title'],
                       'grandparent_title': session['grandparent_title'],
                       'friendly_name': session['friendly_name'],
+                      'ip_address': session['ip_address'],
                       'player': session['player'],
                       'platform': session['platform'],
                       'parent_rating_key': session['parent_rating_key'],
@@ -82,14 +83,17 @@ class ActivityProcessor(object):
                 timestamp = {'started': started}
                 self.db.upsert('sessions', timestamp, keys)
 
-                ip_address = {'ip_address': session['ip_address']}
                 # Try and grab IP address from logs (fallback if not on PMS 0.9.14 and above)
                 if not session['ip_address']:
                     if plexpy.CONFIG.IP_LOGGING_ENABLE and plexpy.CONFIG.PMS_LOGS_FOLDER:
                         ip_address = self.find_session_ip(rating_key=session['rating_key'],
                                                           machine_id=session['machine_id'])
-                        ip_address = {'ip_address': ip_address}
-                self.db.upsert('sessions', ip_address, keys)
+                    else:
+                        ip_adress = None
+
+                    query = 'UPDATE sessions SET ip_address = ? WHERE session_key = ? AND rating_key = ? '
+                    args = [ip_address, session['session_key'], session['rating_key']]
+                    self.db.action(query=query, args=args)
 
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
         from plexpy import users
