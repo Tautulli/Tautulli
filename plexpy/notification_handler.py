@@ -161,7 +161,7 @@ def notify(stream_data=None, notify_action=None):
         elif stream_data['media_type'] == 'clip':
             pass
         else:
-            logger.debug(u"PlexPy Notifier :: Notify called with unsupported media type.")
+            #logger.debug(u"PlexPy Notifier :: Notify called with unsupported media type.")
             pass
     else:
         logger.debug(u"PlexPy Notifier :: Notify called but incomplete data received.")
