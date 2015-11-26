@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.5 (2015-11-25)
+
+* Add video_decision and audio_decision to notification options
+* Fix IP address logging
+* Fix log spam if notifications disabled 
+
+
 ## v1.2.4 (2015-11-24)
 
 * Add filtering by media type in the history table

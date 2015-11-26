@@ -161,7 +161,7 @@ def notify(stream_data=None, notify_action=None):
         elif stream_data['media_type'] == 'clip':
             pass
         else:
-            logger.debug(u"PlexPy Notifier :: Notify called with unsupported media type.")
+            #logger.debug(u"PlexPy Notifier :: Notify called with unsupported media type.")
             pass
     else:
         logger.debug(u"PlexPy Notifier :: Notify called but incomplete data received.")
@@ -370,6 +370,8 @@ def build_notify_text(session=None, timeline=None, state=None):
     duration = helpers.convert_milliseconds_to_minutes(metadata['duration'])
 
     # Default values
+    video_decision = ''
+    audio_decision = ''
     transcode_decision = ''
     stream_duration = 0
     view_offset = 0
@@ -381,18 +383,15 @@ def build_notify_text(session=None, timeline=None, state=None):
     # Session values
     if session:
         # Generate a combined transcode decision value
-        if session['video_decision']:
-            if session['video_decision'] == 'transcode':
-                transcode_decision = 'Transcode'
-            elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
-                transcode_decision = 'Direct Stream'
-            else:
-                transcode_decision = 'Direct Play'
-        elif session['audio_decision']:
-            if session['audio_decision'] == 'transcode':
-                transcode_decision = 'Transcode'
-            else:
-                transcode_decision = 'Direct Play'
+        video_decision = session['video_decision'].title()
+        audio_decision = session['audio_decision'].title()
+
+        if session['video_decision'] == 'transcode' or session['audio_decision'] == 'transcode':
+            transcode_decision = 'Transcode'
+        elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
+            transcode_decision = 'Direct Stream'
+        else:
+            transcode_decision = 'Direct Play'
 
         if state != 'play':
             if session['paused_counter']:
@@ -422,10 +421,12 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'artist_name': metadata['grandparent_title'],
                         'album_name': metadata['parent_title'],
                         'track_name': metadata['title'],
-                        'season_num': metadata['parent_index'],
+                        'season_num': metadata['parent_index'].zfill(1),
                         'season_num00': metadata['parent_index'].zfill(2),
-                        'episode_num': metadata['index'],
+                        'episode_num': metadata['index'].zfill(1),
                         'episode_num00': metadata['index'].zfill(2),
+                        'video_decision': video_decision,
+                        'audio_decision': audio_decision,
                         'transcode_decision': transcode_decision,
                         'year': metadata['year'],
                         'studio': metadata['studio'],
