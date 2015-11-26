@@ -425,6 +425,8 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'season_num00': metadata['parent_index'].zfill(2),
                         'episode_num': metadata['index'].zfill(1),
                         'episode_num00': metadata['index'].zfill(2),
+                        'video_decision': video_decision,
+                        'audio_decision': audio_decision,
                         'transcode_decision': transcode_decision,
                         'year': metadata['year'],
                         'studio': metadata['studio'],
