@@ -404,7 +404,7 @@ def build_notify_text(session=None, timeline=None, state=None):
         user = session['friendly_name']
         platform = session['platform']
         player = session['player']
-        ip_address = session['ip_address'] if session['ip_address'] != '' else 'N/A'
+        ip_address = session['ip_address'] if session['ip_address'] else 'N/A'
 
     progress_percent = helpers.get_percent(view_offset, duration)
 

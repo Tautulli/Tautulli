@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.7 (2015-11-27)
+* Fix IP address option in notifications
+
+
 ## v1.2.6 (2015-11-27)
 
 * Fixes for IP logging in PMS < 0.9.14.x.

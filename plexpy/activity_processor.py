@@ -79,6 +79,7 @@ class ActivityProcessor(object):
             if result == 'insert':
                 # Push any notifications - Push it on it's own thread so we don't hold up our db actions
                 if notify:
+                    values.update({'ip_address': session['ip_address']})
                     threading.Thread(target=notification_handler.notify,
                                      kwargs=dict(stream_data=values, notify_action='play')).start()
 
