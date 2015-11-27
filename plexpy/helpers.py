@@ -92,13 +92,15 @@ def latinToAscii(unicrap):
     }
 
     r = ''
-    for i in unicrap:
-        if ord(i) in xlate:
-            r += xlate[ord(i)]
-        elif ord(i) >= 0x80:
-            pass
-        else:
-            r += str(i)
+    if unicrap:
+        for i in unicrap:
+            if ord(i) in xlate:
+                r += xlate[ord(i)]
+            elif ord(i) >= 0x80:
+                pass
+            else:
+                r += str(i)
+
     return r
 
 

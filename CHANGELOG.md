@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.6 (2015-11-27)
+
+* Fixes for IP logging in PMS < 0.9.14.x.
+* Fix issue in plexWatch importer when trying to import item with no ratingKey.
+
+
 ## v1.2.5 (2015-11-25)
 
 * Add video_decision and audio_decision to notification options
