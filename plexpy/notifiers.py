@@ -896,9 +896,9 @@ class PUSHALOT(object):
         response = http_handler.getresponse()
         request_status = response.status
 
-        logger.debug(u"Pushalot response status: %r" % request_status)
-        logger.debug(u"Pushalot response headers: %r" % response.getheaders())
-        logger.debug(u"Pushalot response body: %r" % response.read())
+        #logger.debug(u"Pushalot response status: %r" % request_status)
+        #logger.debug(u"Pushalot response headers: %r" % response.getheaders())
+        #logger.debug(u"Pushalot response body: %r" % response.read())
 
         if request_status == 200:
                 logger.info(u"Pushalot notifications sent.")
