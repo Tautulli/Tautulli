@@ -406,9 +406,9 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL UNIQUE, '
-        'friendly_name TEXT, thumb TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
+        'friendly_name TEXT, thumb TEXT, email TEXT, custom_avatar_url TEXT, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
-        'keep_history INTEGER DEFAULT 1, custom_avatar_url TEXT)'
+        'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -662,6 +662,15 @@ def dbcheck():
                  WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) END) ' \
             'FROM session_history AS t1 ' \
             'WHERE t1.id = session_history.id) '
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT deleted_user from users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN deleted_user INTEGER DEFAULT 0'
         )
 
     conn_db.commit()

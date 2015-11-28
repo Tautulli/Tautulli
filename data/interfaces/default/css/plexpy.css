@@ -2374,7 +2374,8 @@ a .home-platforms-instance-list-oval:hover,
     top: 5px;
     left: 12px;
 }
-#users-to-delete > li {
+#users-to-delete > li,
+#users-to-purge > li {
     color: #e9a049;
 }
 #updatebar {

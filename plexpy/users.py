@@ -24,6 +24,8 @@ class Users(object):
     def get_user_list(self, kwargs=None):
         data_tables = datatables.DataTables()
 
+        custom_where = ['users.deleted_user', 0]
+
         columns = ['session_history.id',
                    'users.user_id as user_id',
                    'users.custom_avatar_url as user_thumb',
@@ -48,7 +50,7 @@ class Users(object):
         try:
             query = data_tables.ssp_query(table_name='users',
                                           columns=columns,
-                                          custom_where=[],
+                                          custom_where=[custom_where],
                                           group_by=['users.user_id'],
                                           join_types=['LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN',
