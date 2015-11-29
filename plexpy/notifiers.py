@@ -1526,7 +1526,7 @@ class TELEGRAM(object):
                          {'label': 'Telegram Chat ID',
                           'value': self.chat_id,
                           'name': 'telegram_chat_id',
-                          'description': 'Your Telegram Chat ID or Group ID. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
+                          'description': 'Your Telegram Chat ID, Group ID, or channel username. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
                           'input_type': 'text'
                           }
                          ]
