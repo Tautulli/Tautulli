@@ -250,7 +250,7 @@ _CONFIG_DEFINITIONS = {
     'REFRESH_USERS_ON_STARTUP': (int, 'Monitoring', 1),
     'TELEGRAM_BOT_TOKEN': (str, 'Telegram', ''),
     'TELEGRAM_ENABLED': (int, 'Telegram', 0),
-    'TELEGRAM_CHAT_ID': (str, 'Telegram', ''),
+    'TELEGRAM_CHAT_ID': (int, 'Telegram', 0),
     'TELEGRAM_ON_PLAY': (int, 'Telegram', 0),
     'TELEGRAM_ON_STOP': (int, 'Telegram', 0),
     'TELEGRAM_ON_PAUSE': (int, 'Telegram', 0),
