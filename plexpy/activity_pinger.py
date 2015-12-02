@@ -180,6 +180,8 @@ def check_recently_added():
             recently_added = recently_added_list['recently_added']
 
             for item in recently_added:
+                metadata = []
+                
                 if item['media_type'] == 'movie':
                     metadata_list = pms_connect.get_metadata_details(item['rating_key'])
                     if metadata_list:
