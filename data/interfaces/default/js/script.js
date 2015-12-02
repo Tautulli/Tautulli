@@ -176,7 +176,9 @@ function getPlatformImagePath(platformName) {
     if (platformName.indexOf("Roku") > -1) {
         return 'interfaces/default/images/platforms/roku.png';
     } else if (platformName.indexOf("Apple TV") > -1) {
-        return 'interfaces/default/images/platforms/appletv.png';
+        return 'interfaces/default/images/platforms/atv.png';
+    } else if (platformName.indexOf("tvOS") > -1) {
+        return 'interfaces/default/images/platforms/atv.png';
     } else if (platformName.indexOf("Firefox") > -1) {
         return 'interfaces/default/images/platforms/firefox.png';
     } else if (platformName.indexOf("Chromecast") > -1) {
