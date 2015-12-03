@@ -505,7 +505,7 @@ class PROWL(object):
 
         data = {'apikey': plexpy.CONFIG.PROWL_KEYS,
                 'application': 'PlexPy',
-                'event': event,
+                'event': event.encode("utf-8"),
                 'description': message.encode("utf-8"),
                 'priority': plexpy.CONFIG.PROWL_PRIORITY}
 
