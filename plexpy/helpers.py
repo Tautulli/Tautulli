@@ -28,7 +28,23 @@ import os
 import json
 import xmltodict
 import math
+from functools import wraps
 
+def profile_func(func):
+    @wraps(func)
+    def inner(*args, **kwargs):
+    	from plexpy import logger
+        start = time.time()
+        res = func(*args, **kwargs)
+        logger.debug('%s took %s' % (func.__name__, time.time() - start))
+        return res
+    return inner
+
+def tobool(s):
+	if s in [1, '1', 'on', 'yes', 'Yes']:
+		return True
+	else:
+		return False
 
 def multikeysort(items, columns):
     comparers = [((itemgetter(col[1:].strip()), -1) if col.startswith('-') else (itemgetter(col.strip()), 1)) for col in columns]
