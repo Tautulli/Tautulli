@@ -800,6 +800,40 @@ class DataFactory(object):
         else:
             return 'Unable to delete items. Input user_id not valid.'
 
+    def delete_user(self, user_id=None):
+        monitor_db = database.MonitorDatabase()
+
+        if user_id.isdigit():
+            self.delete_all_user_history(user_id)
+            logger.info(u"PlexPy DataFactory :: Deleting user with id %s from database." % user_id)
+            monitor_db.action('UPDATE users SET deleted_user = 1 WHERE user_id = ?', [user_id])
+            monitor_db.action('UPDATE users SET keep_history = 0 WHERE user_id = ?', [user_id])
+            monitor_db.action('UPDATE users SET do_notify = 0 WHERE user_id = ?', [user_id])
+
+            return 'Deleted user with id %s.' % user_id
+        else:
+            return 'Unable to delete user. Input user_id not valid.'
+
+    def undelete_user(self, user_id=None, username=None):
+        monitor_db = database.MonitorDatabase()
+
+        if user_id and user_id.isdigit():
+            logger.info(u"PlexPy DataFactory :: Re-adding user with id %s to database." % user_id)
+            monitor_db.action('UPDATE users SET deleted_user = 0 WHERE user_id = ?', [user_id])
+            monitor_db.action('UPDATE users SET keep_history = 1 WHERE user_id = ?', [user_id])
+            monitor_db.action('UPDATE users SET do_notify = 1 WHERE user_id = ?', [user_id])
+
+            return 'Re-added user with id %s.' % user_id
+        elif username:
+            logger.info(u"PlexPy DataFactory :: Re-adding user with username %s to database." % username)
+            monitor_db.action('UPDATE users SET deleted_user = 0 WHERE username = ?', [username])
+            monitor_db.action('UPDATE users SET keep_history = 1 WHERE username = ?', [username])
+            monitor_db.action('UPDATE users SET do_notify = 1 WHERE username = ?', [username])
+
+            return 'Re-added user with username %s.' % username
+        else:
+            return 'Unable to re-add user. Input user_id or username not valid.'
+
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()
 

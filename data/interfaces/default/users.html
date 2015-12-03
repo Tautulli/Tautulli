@@ -16,7 +16,7 @@
             <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
                 <i class="fa fa-pencil"></i> Edit mode
             </button>&nbsp
-            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect users to purge. Data is purged upon exiting edit mode.</div>
+            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect users to delete/purge. Data is deleted/purged upon exiting edit mode.</div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -46,16 +46,16 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                        <h4 class="modal-title" id="myModalLabel">Confirm Purge</h4>
+                        <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
                     </div>
                     <div class="modal-body" style="text-align: center;">
-                        <p>Are you REALLY sure you want to purge all history for the following users:</p>
                         <ul id="users-to-delete" class="list-unstyled"></ul>
+                        <ul id="users-to-purge" class="list-unstyled"></ul>
                         <p>This is permanent and cannot be undone!</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-purge">Purge</button>
+                        <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Confirm</button>
                     </div>
                 </div>
             </div>
@@ -74,8 +74,8 @@
 <script>
     $(document).ready(function () {
         users_list_table_options.ajax = {
-            "url": "get_user_list",
-            type: "post",
+            url: 'get_user_list',
+            type: 'POST',
             data: function ( d ) {
                 return { 'json_data': JSON.stringify( d ) };
             }
@@ -88,18 +88,46 @@
         $('#row-edit-mode').on('click', function () {
             $('#row-edit-mode-alert').fadeIn(200);
             $('#users-to-delete').html('');
+            $('#users-to-purge').html('');
 
             if ($(this).hasClass('active')) {
-                if (users_to_purge.length > 0) {
+                if (users_to_delete.length > 0 || users_to_purge.length > 0) {
                     $('.edit-control').each(function () {
                         $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     });
 
-                    for (var i = 0; i < users_to_purge.length; i++) {
-                        $('#users-to-delete').append('<li>' + $('div[data-id=' + users_to_purge[i] + '] > input').val() + '</li>');
+                    users_to_purge = $.grep(users_to_purge, function (value) {
+                        return $.inArray(value, users_to_delete) < 0;
+                    });
+
+                    if (users_to_delete.length > 0) {
+                        $('#users-to-delete').prepend('<p>Are you REALLY sure you want to delete the following users:</p>')
+                        for (var i = 0; i < users_to_delete.length; i++) {
+                            $('#users-to-delete').append('<li>' + $('div[data-id=' + users_to_delete[i] + '] > input').val() + '</li>');
+                        }
                     }
+
+                    if (users_to_purge.length > 0) {
+                        $('#users-to-purge').prepend('<p>Are you REALLY sure you want to purge all history for the following users:</p>')
+                        for (var i = 0; i < users_to_purge.length; i++) {
+                            $('#users-to-purge').append('<li>' + $('div[data-id=' + users_to_purge[i] + '] > input').val() + '</li>');
+                        }
+                    }
+
                     $('#confirm-modal').modal();
-                    $('#confirm-modal').one('click', '#confirm-purge', function () {
+                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                        for (var i = 0; i < users_to_delete.length; i++) {
+                            $.ajax({
+                                url: 'delete_user',
+                                data: { user_id: users_to_delete[i] },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    var msg = "User deleted";
+                                    showMsg(msg, false, true, 2000);
+                                }
+                            });
+                        }
                         for (var i = 0; i < users_to_purge.length; i++) {
                             $.ajax({
                                 url: 'delete_all_user_history',
@@ -129,6 +157,7 @@
                 });
 
             } else {
+                users_to_delete = [];
                 users_to_purge = [];
                 $('.edit-control').each(function () {
                     $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
@@ -147,12 +176,12 @@
             url: 'refresh_users_list',
             cache: false,
             async: true,
-            success : function(data) {
+            success: function(data) {
                 showMsg('<i class="fa fa-check"></i>&nbspUser list refresh started...',false,true,2000,false)
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh user list.',false,true,2000,true)
-            },
+            }
         });
     });
 </script>

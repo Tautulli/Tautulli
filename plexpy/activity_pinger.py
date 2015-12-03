@@ -180,6 +180,8 @@ def check_recently_added():
             recently_added = recently_added_list['recently_added']
 
             for item in recently_added:
+                metadata = []
+                
                 if item['media_type'] == 'movie':
                     metadata_list = pms_connect.get_metadata_details(item['rating_key'])
                     if metadata_list:
@@ -199,7 +201,7 @@ def check_recently_added():
                 if metadata:
                     if not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
                         for item in metadata:
-                            if 0 < int(item['added_at']) - time_threshold <= time_interval:
+                            if 0 < time_threshold - int(item['added_at']) <= time_interval:
                                 logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
                                 # Fire off notifications
                                 threading.Thread(target=notification_handler.notify_timeline,
@@ -208,7 +210,7 @@ def check_recently_added():
                     else:
                         item = max(metadata, key=lambda x:x['added_at'])
 
-                        if 0 < int(item['added_at']) - time_threshold <= time_interval:
+                        if 0 < time_threshold - int(item['added_at']) <= time_interval:
                             if item['media_type'] == 'episode' or item['media_type'] == 'track':
                                 metadata_list = pms_connect.get_metadata_details(item['grandparent_rating_key'])
 

@@ -1398,6 +1398,40 @@ class WebInterface(object):
             return json.dumps({'message': 'no data received'})
 
     @cherrypy.expose
+    def delete_user(self, user_id, **kwargs):
+        data_factory = datafactory.DataFactory()
+
+        if user_id:
+            delete_row = data_factory.delete_user(user_id=user_id)
+
+            if delete_row:
+                cherrypy.response.headers['Content-type'] = 'application/json'
+                return json.dumps({'message': delete_row})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
+
+    @cherrypy.expose
+    def undelete_user(self, user_id=None, username=None, **kwargs):
+        data_factory = datafactory.DataFactory()
+        
+        if user_id:
+            delete_row = data_factory.undelete_user(user_id=user_id)
+
+            if delete_row:
+                cherrypy.response.headers['Content-type'] = 'application/json'
+                return json.dumps({'message': delete_row})
+        elif username:
+            delete_row = data_factory.undelete_user(username=username)
+
+            if delete_row:
+                cherrypy.response.headers['Content-type'] = 'application/json'
+                return json.dumps({'message': delete_row})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
+
+    @cherrypy.expose
     def search(self, query=''):
 
         return serve_template(templatename="search.html", title="Search", query=query)
