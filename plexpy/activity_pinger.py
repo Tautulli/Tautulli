@@ -22,6 +22,7 @@ import time
 monitor_lock = threading.Lock()
 ext_ping_count = 0
 int_ping_count = 0
+prev_keys = [0] * 10
 
 
 def check_active_sessions(ws_request=False):
@@ -33,7 +34,11 @@ def check_active_sessions(ws_request=False):
         monitor_process = activity_processor.ActivityProcessor()
         # logger.debug(u"PlexPy Monitor :: Checking for active streams.")
 
+        global int_ping_count
+
         if session_list:
+            int_ping_count = 0
+
             media_container = session_list['sessions']
 
             # Check our temp table for what we must do with the new streams
@@ -165,6 +170,16 @@ def check_active_sessions(ws_request=False):
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
 
+            int_ping_count += 1
+            logger.warn(u"PlexPy Monitor :: Unable to get an internal response from the server, ping attempt %s." \
+                        % str(int_ping_count))
+
+        if int_ping_count == 3:
+            # Fire off notifications
+            threading.Thread(target=notification_handler.notify_timeline,
+                                kwargs=dict(notify_action='intdown')).start()
+
+
 def check_recently_added():
 
     with monitor_lock:
@@ -177,7 +192,12 @@ def check_recently_added():
         recently_added_list = pms_connect.get_recently_added_details(count='10')
 
         if recently_added_list:
-            recently_added = recently_added_list['recently_added']
+            new_recently_added = recently_added_list['recently_added']
+
+            global prev_keys
+            new_keys = [item['rating_key'] for item in new_recently_added]
+            recently_added = [new_recently_added[i] for i, x in enumerate(new_keys) if x != prev_keys[i]]
+            prev_keys = new_keys
 
             for item in recently_added:
                 metadata = []
@@ -231,20 +251,10 @@ def check_server_response():
         pms_connect = pmsconnect.PmsConnect()
         server_response = pms_connect.get_server_response()
 
-        global int_ping_count
         global ext_ping_count
         
-        # Check for internal server response
-        if not server_response:
-            int_ping_count += 1
-            logger.warn(u"PlexPy Monitor :: Unable to get an internal response from the server, ping attempt %s." \
-                        % str(int_ping_count))
-        # Reset internal ping counter
-        else:
-            int_ping_count = 0
-
         # Check for remote access
-        if server_response and plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
+        if server_response:
         
             mapping_state = server_response['mapping_state']
             mapping_error = server_response['mapping_error']
@@ -262,11 +272,6 @@ def check_server_response():
             # Reset external ping counter
             else:
                 ext_ping_count = 0
-
-        if int_ping_count == 3:
-            # Fire off notifications
-            threading.Thread(target=notification_handler.notify_timeline,
-                                kwargs=dict(notify_action='intdown')).start()
 
         if ext_ping_count == 3:
             # Fire off notifications
