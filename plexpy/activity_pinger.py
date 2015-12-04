@@ -22,6 +22,7 @@ import time
 monitor_lock = threading.Lock()
 ext_ping_count = 0
 int_ping_count = 0
+prev_keys = [0] * 10
 
 
 def check_active_sessions(ws_request=False):
@@ -191,7 +192,12 @@ def check_recently_added():
         recently_added_list = pms_connect.get_recently_added_details(count='10')
 
         if recently_added_list:
-            recently_added = recently_added_list['recently_added']
+            new_recently_added = recently_added_list['recently_added']
+
+            global prev_keys
+            new_keys = [item['rating_key'] for item in new_recently_added]
+            recently_added = [new_recently_added[i] for i, x in enumerate(new_keys) if x != prev_keys[i]]
+            prev_keys = new_keys
 
             for item in recently_added:
                 metadata = []
