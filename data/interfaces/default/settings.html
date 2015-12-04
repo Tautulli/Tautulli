@@ -313,7 +313,8 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change">
                                 </div>
                             </div>
-                            <p class="help-block">Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br /><a href="https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files" target="_blank">Click here</a> for help. This is required if you enable IP logging. </p>
+                            <p class="help-block">Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br />
+                            <a href="https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
                         </div>
 
                         <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
@@ -414,23 +415,21 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         <div class="padded-header">
                             <h3>History Logging</h3>
                         </div>
+                        <p class="help-block">Keep records of all movie, TV show, or music items played from your Plex Media Server.</p>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="movie_logging_enable" name="movie_logging_enable" value="1" ${config['movie_logging_enable']}> Log Movies
+                                <input type="checkbox" id="movie_logging_enable" name="movie_logging_enable" value="1" ${config['movie_logging_enable']}> Enable Movie Logging
                             </label>
-                            <p class="help-block">Keep records of all movie items played from your Plex Media Server.</p>
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="tv_logging_enable" name="tv_logging_enable" value="1" ${config['tv_logging_enable']}> Log TV Shows
+                                <input type="checkbox" id="tv_logging_enable" name="tv_logging_enable" value="1" ${config['tv_logging_enable']}> Enable TV Show Logging
                             </label>
-                            <p class="help-block">Keep records of all TV show items played from your Plex Media Server.</p>
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1" ${config['music_logging_enable']}> Log Music
+                                <input type="checkbox" id="music_logging_enable" name="music_logging_enable" value="1" ${config['music_logging_enable']}> Enable Music Logging
                             </label>
-                            <p class="help-block">Keep records of all music items played from your Plex Media Server.</p>
                         </div>
                         <div class="form-group">
                             <label for="logging_ignore_interval">Ignore Interval</label>
@@ -534,7 +533,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label>
                                 <input type="checkbox" name="notify_recently_added_grandparent" id="notify_recently_added_grandparent" value="1" ${config['notify_recently_added_grandparent']}> Group notifications for recently added TV Shows or Music
                             </label>
-                            <p class="help-block">Enable to only get one notification for recently added Episodes or Tracks. Movies are unaffected.</p>
+                            <p class="help-block">Enable to only get one TV Show or Artist notification for recently added Episodes or Tracks. Movies are unaffected.</p>
                         </div>
                         <div class="form-group">
                             <label for="notify_recently_added_delay">Notification Delay</label>
