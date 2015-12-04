@@ -285,10 +285,20 @@ def initialize_scheduler():
                          hours=12, minutes=0, seconds=0)
             schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex Server Name',
                          hours=12, minutes=0, seconds=0)
-            schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-                         hours=0, minutes=0, seconds=seconds)
-            schedule_job(activity_pinger.check_server_response, 'Check for server response',
-                         hours=0, minutes=0, seconds=seconds)
+
+            if CONFIG.NOTIFY_RECENTLY_ADDED:
+                schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
+                             hours=0, minutes=0, seconds=seconds)
+            else:
+                schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
+                             hours=0, minutes=0, seconds=0)
+
+            if CONFIG.MONITOR_REMOTE_ACCESS:
+                schedule_job(activity_pinger.check_server_response, 'Check for server response',
+                             hours=0, minutes=0, seconds=seconds)
+            else:
+                schedule_job(activity_pinger.check_server_response, 'Check for server response',
+                             hours=0, minutes=0, seconds=0)
 
             # If we're not using websockets then fall back to polling
             if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:

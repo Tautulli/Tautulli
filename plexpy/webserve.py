@@ -448,6 +448,7 @@ class WebInterface(object):
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
             "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
             "notify_consecutive": checked(plexpy.CONFIG.NOTIFY_CONSECUTIVE),
+            "notify_recently_added": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED),
             "notify_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT),
             "notify_recently_added_delay": plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY,
             "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
@@ -494,7 +495,7 @@ class WebInterface(object):
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable", 
             "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", 
-            "notify_recently_added_grandparent", "monitor_remote_access"
+            "notify_recently_added", "notify_recently_added_grandparent", "monitor_remote_access"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -519,6 +520,14 @@ class WebInterface(object):
             if (kwargs['monitoring_interval'] != str(plexpy.CONFIG.MONITORING_INTERVAL)) or \
                     (kwargs['refresh_users_interval'] != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL)):
                 reschedule = True
+        
+        if 'notify_recently_added' in kwargs and \
+            (kwargs['notify_recently_added'] != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED):
+            reschedule = True
+
+        if 'monitor_remote_access' in kwargs and \
+            (kwargs['monitor_remote_access'] != plexpy.CONFIG.MONITOR_REMOTE_ACCESS):
+            reschedule = True
 
         if 'pms_ip' in kwargs:
             if kwargs['pms_ip'] != plexpy.CONFIG.PMS_IP:

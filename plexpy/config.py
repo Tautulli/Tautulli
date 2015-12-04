@@ -151,6 +151,7 @@ _CONFIG_DEFINITIONS = {
     'NMA_ON_EXTDOWN': (int, 'NMA', 0),
     'NMA_ON_INTDOWN': (int, 'NMA', 0),
     'NOTIFY_CONSECUTIVE': (int, 'Monitoring', 1),
+    'NOTIFY_RECENTLY_ADDED': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED_DELAY': (int, 'Monitoring', 60),
     'NOTIFY_WATCHED_PERCENT': (int, 'Monitoring', 85),
