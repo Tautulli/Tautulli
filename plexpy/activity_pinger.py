@@ -22,7 +22,6 @@ import time
 monitor_lock = threading.Lock()
 ext_ping_count = 0
 int_ping_count = 0
-prev_keys = [0] * 10
 
 
 def check_active_sessions(ws_request=False):
@@ -192,31 +191,27 @@ def check_recently_added():
         recently_added_list = pms_connect.get_recently_added_details(count='10')
 
         if recently_added_list:
-            new_recently_added = recently_added_list['recently_added']
-
-            global prev_keys
-            new_keys = [item['rating_key'] for item in new_recently_added]
-            recently_added = [new_recently_added[i] for i, x in enumerate(new_keys) if x != prev_keys[i]]
-            prev_keys = new_keys
+            recently_added = recently_added_list['recently_added']
 
             for item in recently_added:
                 metadata = []
                 
-                if item['media_type'] == 'movie':
-                    metadata_list = pms_connect.get_metadata_details(item['rating_key'])
-                    if metadata_list:
-                        metadata = [metadata_list['metadata']]
-                    else:
-                        logger.error(u"PlexPy Monitor :: Unable to retrieve metadata for rating_key %s" \
-                                     % str(item['rating_key']))
+                if 0 < time_threshold - int(item['added_at']) <= time_interval:
+                    if item['media_type'] == 'movie':
+                        metadata_list = pms_connect.get_metadata_details(item['rating_key'])
+                        if metadata_list:
+                            metadata = [metadata_list['metadata']]
+                        else:
+                            logger.error(u"PlexPy Monitor :: Unable to retrieve metadata for rating_key %s" \
+                                         % str(item['rating_key']))
 
-                else:
-                    metadata_list = pms_connect.get_metadata_children_details(item['rating_key'])
-                    if metadata_list:
-                        metadata = metadata_list['metadata']
                     else:
-                        logger.error(u"PlexPy Monitor :: Unable to retrieve children metadata for rating_key %s" \
-                                     % str(item['rating_key']))
+                        metadata_list = pms_connect.get_metadata_children_details(item['rating_key'])
+                        if metadata_list:
+                            metadata = metadata_list['metadata']
+                        else:
+                            logger.error(u"PlexPy Monitor :: Unable to retrieve children metadata for rating_key %s" \
+                                         % str(item['rating_key']))
 
                 if metadata:
                     if not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
