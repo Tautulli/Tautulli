@@ -203,6 +203,8 @@ function getPlatformImagePath(platformName) {
         return 'interfaces/default/images/platforms/safari.png';
     } else if (platformName.indexOf("Internet Explorer") > -1) {
         return 'interfaces/default/images/platforms/ie.png';
+    } else if (platformName.indexOf("Microsoft Edge") > -1) {
+        return 'interfaces/default/images/platforms/msedge.png';
     } else if (platformName.indexOf("Unknown Browser") > -1) {
         return 'interfaces/default/images/platforms/dafault.png';
     } else if (platformName.indexOf("Windows-XBMC") > -1) {
