@@ -342,13 +342,13 @@ class PlexTV(object):
 
                         rating_key = clean_uri.rpartition('%2F')[-1]
 
-                        sync_details = {"device_name": device_name,
-                                        "platform": device_platform,
-                                        "username": device_username,
-                                        "friendly_name": device_friendly_name,
+                        sync_details = {"device_name": helpers.sanitize(device_name),
+                                        "platform": helpers.sanitize(device_platform),
+                                        "username": helpers.sanitize(device_username),
+                                        "friendly_name": helpers.sanitize(device_friendly_name),
                                         "user_id": device_user_id,
-                                        "root_title": sync_root_title,
-                                        "title": sync_title,
+                                        "root_title": helpers.sanitize(sync_root_title),
+                                        "title": helpers.sanitize(sync_title),
                                         "metadata_type": sync_metadata_type,
                                         "content_type": sync_content_type,
                                         "rating_key": rating_key,
