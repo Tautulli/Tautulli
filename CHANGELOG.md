@@ -2,6 +2,12 @@
 
 ## v1.2.12 (2015-12-06)
 
+* Fix match newlines between tags in notification text.
+* Fix current activity not showing on PMS 0.9.12.
+
+
+## v1.2.12 (2015-12-06)
+
 * Fix for "too many open files" error.
 
 
