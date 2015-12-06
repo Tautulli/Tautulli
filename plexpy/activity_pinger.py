@@ -127,7 +127,8 @@ def check_active_sessions(ws_request=False):
                                                              kwargs=dict(stream_data=stream, notify_action='buffer')).start()
 
                                 logger.debug(u"PlexPy Monitor :: Stream buffering. Count is now %s. Last triggered %s."
-                                             % (buffer_values[0][0], buffer_values[0][1]))
+                                             % (buffer_values[0]['buffer_count'],
+                                                buffer_values[0]['buffer_last_triggered']))
 
                             # Check if the user has reached the offset in the media we defined as the "watched" percent
                             # Don't trigger if state is buffer as some clients push the progress to the end when

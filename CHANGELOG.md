@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.11 (2015-12-06)
+
+* Fix more regressions (sorry).
+
+
 ## v1.2.10 (2015-12-06)
 
 * Fix broken count graphs regression.
