@@ -1,6 +1,22 @@
 # Changelog
 
+## v1.2.8 (2015-12-06)
+
+* Fix sanitize player names
+* Fix recently added notification delay
+* Fix recently added metadata queries
+* Fix multiple lines in notification body text
+* Fix UTF-8 encoding in Prowl notifications subject line
+* Change to only log IPv4 addresses
+* Add global toggle for recently added notifcations
+* Add feature to delete users
+* Add channel support for Telegram notification agent
+* Add icon for Apple tvOS
+* Add icon for Microsoft Edge
+
+
 ## v1.2.7 (2015-11-27)
+
 * Fix IP address option in notifications
 
 
