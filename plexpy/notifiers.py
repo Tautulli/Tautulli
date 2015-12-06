@@ -879,9 +879,9 @@ class PUSHALOT(object):
 
         pushalot_authorizationtoken = plexpy.CONFIG.PUSHALOT_APIKEY
 
-        logger.debug(u"Pushalot event: " + event)
-        logger.debug(u"Pushalot message: " + message)
-        logger.debug(u"Pushalot api: " + pushalot_authorizationtoken)
+        #logger.debug(u"Pushalot event: " + event)
+        #logger.debug(u"Pushalot message: " + message)
+        #logger.debug(u"Pushalot api: " + pushalot_authorizationtoken)
 
         http_handler = HTTPSConnection("pushalot.com")
 

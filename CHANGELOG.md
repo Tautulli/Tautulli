@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.9 (2015-12-06)
+
+* Fix and improve text sanitization.
+
+
 ## v1.2.8 (2015-12-06)
 
 * Fix sanitize player names
