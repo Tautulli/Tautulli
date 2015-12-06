@@ -89,16 +89,13 @@ class Users(object):
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
 
-            # Sanitize player name
-            player = helpers.sanitize(item["player"])
-
             row = {"id": item['id'],
                    "plays": item['plays'],
                    "last_seen": item['last_seen'],
                    "friendly_name": item['friendly_name'],
                    "ip_address": item['ip_address'],
                    "platform": platform,
-                   "player": player,
+                   "player": item["player"],
                    "last_watched": item['last_watched'],
                    "thumb": thumb,
                    "media_type": item['media_type'],
@@ -183,15 +180,12 @@ class Users(object):
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
 
-            # Sanitize player name
-            player = helpers.sanitize(item["player"])
-
             row = {"id": item['id'],
                    "last_seen": item['last_seen'],
                    "ip_address": item['ip_address'],
                    "play_count": item['play_count'],
                    "platform": platform,
-                   "player": player,
+                   "player": item['player'],
                    "last_watched": item['last_watched'],
                    "thumb": thumb,
                    "media_type": item['media_type'],
