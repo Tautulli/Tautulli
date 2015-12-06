@@ -1046,6 +1046,6 @@ class DataFactory(object):
         ip_address = 'N/A'
 
         for item in result:
-            ip_address = item[0]
+            ip_address = item['ip_address']
 
         return ip_address
