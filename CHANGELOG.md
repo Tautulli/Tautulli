@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.10 (2015-12-06)
+
+* Fix broken count graphs regression.
+
+
 ## v1.2.9 (2015-12-06)
 
 * Fix and improve text sanitization.
