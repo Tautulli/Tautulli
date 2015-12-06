@@ -178,12 +178,18 @@ class DataTables(object):
         filtered = self.ssp_db.select(query, args=args)
 
         # Build grand totals
-        totalcount = self.ssp_db.select('SELECT COUNT(id) from %s' % table_name)[0][0]
+        totalcount = self.ssp_db.select('SELECT COUNT(id) as total_count from %s' % table_name)[0]['total_count']
 
         # Get draw counter
         draw_counter = int(parameters['draw'])
 
+        # Paginate results
         result = filtered[parameters['start']:(parameters['start'] + parameters['length'])]
+
+        # Sanitize on the way out
+        result = [{k: helpers.sanitize(v) if isinstance(v, basestring) else v for k, v in row.iteritems()}
+                  for row in result]
+
         output = {'result': result,
                   'draw': draw_counter,
                   'filteredCount': len(filtered),

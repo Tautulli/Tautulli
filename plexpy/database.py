@@ -58,7 +58,14 @@ class MonitorDatabase(object):
         self.connection.execute("PRAGMA journal_mode = %s" % plexpy.CONFIG.JOURNAL_MODE)
         # 64mb of cache memory, probably need to make it user configurable
         self.connection.execute("PRAGMA cache_size=-%s" % (get_cache_size() * 1024))
-        self.connection.row_factory = sqlite3.Row
+        self.connection.row_factory = self.dict_factory
+
+    def dict_factory(self, cursor, row):
+        d = {}
+        for idx, col in enumerate(cursor.description):
+            d[col[0]] = row[idx]
+
+        return d
 
     def action(self, query, args=None, return_last_id=False):
         if query is None:
