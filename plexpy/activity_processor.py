@@ -180,18 +180,18 @@ class ActivityProcessor(object):
 
                 result = self.db.select(query=query, args=args)
                 
-                new_session = {'id': result[0][0],
-                               'rating_key': result[0][1],
-                               'user_id': result[0][2],
-                               'reference_id': result[0][3]}
+                new_session = {'id': result[0]['id'],
+                               'rating_key': result[0]['rating_key'],
+                               'user_id': result[0]['user_id'],
+                               'reference_id': result[0]['reference_id']}
 
                 if len(result) == 1:
                     prev_session = None
                 else:
-                    prev_session = {'id': result[1][0],
-                                    'rating_key': result[1][1],
-                                    'user_id': result[1][2],
-                                    'reference_id': result[1][3]}
+                    prev_session = {'id': result[1]['id'],
+                                    'rating_key': result[1]['rating_key'],
+                                    'user_id': result[1]['user_id'],
+                                    'reference_id': result[1]['reference_id']}
 
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
                 # If rating_key is the same in the previous session, then set the reference_id to the previous row, else set the reference_id to the new id
