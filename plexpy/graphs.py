@@ -44,11 +44,11 @@ class Graphs(object):
             else:
                 query = 'SELECT date(started, "unixepoch", "localtime") as date_played, ' \
                         'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) ' \
-                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_duration, ' \
+                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_count, ' \
                         'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) ' \
-                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_duration, ' \
+                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_count, ' \
                         'SUM(case when media_type = "track" and stopped > 0 then (stopped - started) ' \
-                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_duration ' \
+                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_count ' \
                         'FROM session_history ' \
                         'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
                         'GROUP BY date_played ' \
@@ -77,9 +77,9 @@ class Graphs(object):
             series_3_value = 0
             for item in result:
                 if date_string == item['date_played']:
-                    series_1_value = item['tv_duration']
-                    series_2_value = item['movie_duration']
-                    series_3_value = item['music_duration']
+                    series_1_value = item['tv_count']
+                    series_2_value = item['movie_count']
+                    series_3_value = item['music_count']
                     break
                 else:
                     series_1_value = 0
@@ -138,11 +138,11 @@ class Graphs(object):
                     'when 5 then "Friday" ' \
                     'else "Saturday" end as dayofweek, ' \
                     'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_count, ' \
                     'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_count, ' \
                     'SUM(case when media_type = "track" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_duration ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_count ' \
                     'FROM session_history ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") ' \
@@ -166,9 +166,9 @@ class Graphs(object):
             series_3_value = 0
             for item in result:
                 if day_item == item['dayofweek']:
-                    series_1_value = item['tv_duration']
-                    series_2_value = item['movie_duration']
-                    series_3_value = item['music_duration']
+                    series_1_value = item['tv_count']
+                    series_2_value = item['movie_count']
+                    series_3_value = item['music_count']
                     break
                 else:
                     series_1_value = 0
@@ -211,11 +211,11 @@ class Graphs(object):
         else:
             query = 'select strftime("%H", datetime(started, "unixepoch", "localtime")) as hourofday, ' \
                     'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_count, ' \
                     'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_count, ' \
                     'SUM(case when media_type = "track" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_duration ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_count ' \
                     'FROM session_history ' \
                     'WHERE datetime(stopped, "unixepoch", "localtime") >= ' \
                     'datetime("now", "-' + time_range + ' days", "localtime") ' \
@@ -241,9 +241,9 @@ class Graphs(object):
             series_3_value = 0
             for item in result:
                 if hour_item == item['hourofday']:
-                    series_1_value = item['tv_duration']
-                    series_2_value = item['movie_duration']
-                    series_3_value = item['music_duration']
+                    series_1_value = item['tv_count']
+                    series_2_value = item['movie_count']
+                    series_3_value = item['music_count']
                     break
                 else:
                     series_1_value = 0
@@ -283,11 +283,11 @@ class Graphs(object):
         else:
             query = 'SELECT strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) as datestring, ' \
                     'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_count, ' \
                     'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_count, ' \
                     'SUM(case when media_type = "track" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_duration ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_count ' \
                     'FROM session_history ' \
                     'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-12 months", "localtime") ' \
                     'GROUP BY strftime("%Y-%m", datetime(started, "unixepoch", "localtime")) ' \
@@ -317,9 +317,9 @@ class Graphs(object):
             series_3_value = 0
             for item in result:
                 if date_string == item['datestring']:
-                    series_1_value = item['tv_duration']
-                    series_2_value = item['movie_duration']
-                    series_3_value = item['music_duration']
+                    series_1_value = item['tv_count']
+                    series_2_value = item['movie_count']
+                    series_3_value = item['music_count']
                     break
                 else:
                     series_1_value = 0
@@ -364,11 +364,11 @@ class Graphs(object):
         else:
             query = 'SELECT platform, ' \
                     'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_count, ' \
                     'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_count, ' \
                     'SUM(case when media_type = "track" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_count, ' \
                     'SUM(case when stopped > 0 then (stopped - started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as total_duration ' \
                     'FROM session_history ' \
@@ -387,9 +387,9 @@ class Graphs(object):
 
         for item in result:
             categories.append(common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform']))
-            series_1.append(item['tv_duration'])
-            series_2.append(item['movie_duration'])
-            series_3.append(item['music_duration'])
+            series_1.append(item['tv_count'])
+            series_2.append(item['movie_count'])
+            series_3.append(item['music_count'])
 
         series_1_output = {'name': 'TV',
                            'data': series_1}
@@ -430,11 +430,11 @@ class Graphs(object):
                     '(case when users.friendly_name is null then users.username else ' \
                     'users.friendly_name end) as friendly_name,' \
                     'SUM(case when media_type = "episode" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tv_count, ' \
                     'SUM(case when media_type = "movie" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as movie_count, ' \
                     'SUM(case when media_type = "track" and stopped > 0 then (stopped - started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as music_count, ' \
                     'SUM(case when stopped > 0 then (stopped - started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as total_duration ' \
                     'FROM session_history ' \
@@ -454,9 +454,9 @@ class Graphs(object):
 
         for item in result:
             categories.append(item['friendly_name'])
-            series_1.append(item['tv_duration'])
-            series_2.append(item['movie_duration'])
-            series_3.append(item['music_duration'])
+            series_1.append(item['tv_count'])
+            series_2.append(item['movie_count'])
+            series_3.append(item['music_count'])
 
         series_1_output = {'name': 'TV',
                            'data': series_1}
@@ -501,15 +501,15 @@ class Graphs(object):
                         'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
                         'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play")) ' \
                         'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_duration, ' \
+                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_count, ' \
                         'SUM(case when (session_history_media_info.video_decision = "copy" ' \
                         'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy")) ' \
                         'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_duration, ' \
+                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_count, ' \
                         'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
                         'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode")) ' \
                         'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_duration ' \
+                        ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_count ' \
                         'FROM session_history ' \
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
                         'WHERE datetime(session_history.stopped, "unixepoch", "localtime") >= ' \
@@ -541,9 +541,9 @@ class Graphs(object):
             series_3_value = 0
             for item in result:
                 if date_string == item['date_played']:
-                    series_1_value = item['dp_duration']
-                    series_2_value = item['ds_duration']
-                    series_3_value = item['tc_duration']
+                    series_1_value = item['dp_count']
+                    series_2_value = item['ds_count']
+                    series_3_value = item['tc_count']
                     break
                 else:
                     series_1_value = 0
@@ -598,15 +598,15 @@ class Graphs(object):
                     'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "copy" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_count, ' \
                     'SUM(case when stopped > 0 then (stopped - started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as total_duration ' \
                     'FROM session_history ' \
@@ -627,9 +627,9 @@ class Graphs(object):
 
         for item in result:
             categories.append(item['resolution'])
-            series_1.append(item['dp_duration'])
-            series_2.append(item['ds_duration'])
-            series_3.append(item['tc_duration'])
+            series_1.append(item['dp_count'])
+            series_2.append(item['ds_count'])
+            series_3.append(item['tc_count'])
 
         series_1_output = {'name': 'Direct Play',
                            'data': series_1}
@@ -695,15 +695,15 @@ class Graphs(object):
                     'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "copy" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_count, ' \
                     'SUM(case when stopped > 0 then (stopped - started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as total_duration ' \
                     'FROM session_history ' \
@@ -724,9 +724,9 @@ class Graphs(object):
 
         for item in result:
             categories.append(item['resolution'])
-            series_1.append(item['dp_duration'])
-            series_2.append(item['ds_duration'])
-            series_3.append(item['tc_duration'])
+            series_1.append(item['dp_count'])
+            series_2.append(item['ds_count'])
+            series_3.append(item['tc_count'])
 
         series_1_output = {'name': 'Direct Play',
                            'data': series_1}
@@ -773,15 +773,15 @@ class Graphs(object):
                     'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "copy" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_count, ' \
                     'SUM(case when session_history.stopped > 0 ' \
                     'then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as total_duration ' \
@@ -802,9 +802,9 @@ class Graphs(object):
 
         for item in result:
             categories.append(common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform']))
-            series_1.append(item['dp_duration'])
-            series_2.append(item['ds_duration'])
-            series_3.append(item['tc_duration'])
+            series_1.append(item['dp_count'])
+            series_2.append(item['ds_count'])
+            series_3.append(item['tc_count'])
 
         series_1_output = {'name': 'Direct Play',
                            'data': series_1}
@@ -853,15 +853,15 @@ class Graphs(object):
                     'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "copy" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
                     'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode")) ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
-                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_duration, ' \
+                    ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_count, ' \
                     'SUM(case when session_history.stopped > 0 ' \
                     'then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as total_duration ' \
@@ -883,9 +883,9 @@ class Graphs(object):
 
         for item in result:
             categories.append(item['username'])
-            series_1.append(item['dp_duration'])
-            series_2.append(item['ds_duration'])
-            series_3.append(item['tc_duration'])
+            series_1.append(item['dp_count'])
+            series_2.append(item['ds_count'])
+            series_3.append(item['tc_count'])
 
         series_1_output = {'name': 'Direct Play',
                            'data': series_1}
