@@ -176,7 +176,9 @@ function getPlatformImagePath(platformName) {
     if (platformName.indexOf("Roku") > -1) {
         return 'interfaces/default/images/platforms/roku.png';
     } else if (platformName.indexOf("Apple TV") > -1) {
-        return 'interfaces/default/images/platforms/appletv.png';
+        return 'interfaces/default/images/platforms/atv.png';
+    } else if (platformName.indexOf("tvOS") > -1) {
+        return 'interfaces/default/images/platforms/atv.png';
     } else if (platformName.indexOf("Firefox") > -1) {
         return 'interfaces/default/images/platforms/firefox.png';
     } else if (platformName.indexOf("Chromecast") > -1) {
@@ -201,6 +203,8 @@ function getPlatformImagePath(platformName) {
         return 'interfaces/default/images/platforms/safari.png';
     } else if (platformName.indexOf("Internet Explorer") > -1) {
         return 'interfaces/default/images/platforms/ie.png';
+    } else if (platformName.indexOf("Microsoft Edge") > -1) {
+        return 'interfaces/default/images/platforms/msedge.png';
     } else if (platformName.indexOf("Unknown Browser") > -1) {
         return 'interfaces/default/images/platforms/dafault.png';
     } else if (platformName.indexOf("Windows-XBMC") > -1) {

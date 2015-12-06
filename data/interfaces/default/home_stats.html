@@ -39,7 +39,7 @@ user_id                 Returns the user id for the associated stat.
 friendly_name           Returns the friendly name of the user for the associated stat.
 
 == Only if 'stat_id' is 'top_platform' or 'last_watched' ==
-platform_type           Returns the platform name for the associated stat.
+player                  Returns the player name for the associated stat.
 
 == Only if 'stat_id' is 'last_watched' ==
 last_watch              Returns the time the media item was last watched.
@@ -709,7 +709,7 @@ DOCUMENTATION :: END
                             <script>
                                 $('#last-watch-stat').text(moment(${top_stat['rows'][0]['last_watch']},"X").format(date_format));
                             </script>
-                        </span> - ${top_stat['rows'][0]['platform_type']}
+                        </span> - ${top_stat['rows'][0]['player']}
                     </p>
                 </div>
             </div>
@@ -755,7 +755,7 @@ DOCUMENTATION :: END
                                             <script>
                                                 $('#home-platforms-instance-list-last-watch-${loop.index + 1}').text(moment(${top_stat['rows'][loop.index]['last_watch']},"X").format(date_format));
                                             </script>
-                                        </span> - ${top_stat['rows'][loop.index]['platform_type']}
+                                        </span> - ${top_stat['rows'][loop.index]['player']}
                                     </p>
                                 </div>
                             </div>

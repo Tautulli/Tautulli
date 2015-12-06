@@ -108,6 +108,9 @@ class DataFactory(object):
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
 
+            # Sanitize player name
+            player = helpers.sanitize(item["player"])
+
             row = {"reference_id": item["reference_id"],
                    "id": item["id"],
                    "date": item["date"],
@@ -119,7 +122,7 @@ class DataFactory(object):
                    "user": item["user"],
                    "friendly_name": item["friendly_name"],
                    "platform": platform,
-                   "player": item["player"],
+                   "player": player,
                    "ip_address": item["ip_address"],
                    "media_type": item["media_type"],
                    "rating_key": item["rating_key"],
@@ -545,7 +548,7 @@ class DataFactory(object):
                             'session_history_metadata.thumb, ' \
                             'session_history_metadata.grandparent_thumb, ' \
                             'MAX(session_history.started) as last_watch, ' \
-                            'session_history.player as platform, ' \
+                            'session_history.player, ' \
                             '((CASE WHEN session_history.view_offset IS NULL THEN 0.1 ELSE \
                              session_history.view_offset * 1.0 END) / \
                              (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 ELSE \
@@ -571,6 +574,9 @@ class DataFactory(object):
                         thumb = item[7]
                     else:
                         thumb = item[8]
+                    
+                    # Sanitize player name
+                    player = helpers.sanitize(item["player"])
 
                     row = {'row_id': item[0],
                            'user': item[1],
@@ -582,7 +588,7 @@ class DataFactory(object):
                            'thumb': thumb,
                            'grandparent_thumb': item[8],
                            'last_watch': item[9],
-                           'platform_type': item[10],
+                           'player': player,
                            }
                     last_watched.append(row)
 
@@ -799,6 +805,40 @@ class DataFactory(object):
             return 'Deleted all items for user_id %s.' % user_id
         else:
             return 'Unable to delete items. Input user_id not valid.'
+
+    def delete_user(self, user_id=None):
+        monitor_db = database.MonitorDatabase()
+
+        if user_id.isdigit():
+            self.delete_all_user_history(user_id)
+            logger.info(u"PlexPy DataFactory :: Deleting user with id %s from database." % user_id)
+            monitor_db.action('UPDATE users SET deleted_user = 1 WHERE user_id = ?', [user_id])
+            monitor_db.action('UPDATE users SET keep_history = 0 WHERE user_id = ?', [user_id])
+            monitor_db.action('UPDATE users SET do_notify = 0 WHERE user_id = ?', [user_id])
+
+            return 'Deleted user with id %s.' % user_id
+        else:
+            return 'Unable to delete user. Input user_id not valid.'
+
+    def undelete_user(self, user_id=None, username=None):
+        monitor_db = database.MonitorDatabase()
+
+        if user_id and user_id.isdigit():
+            logger.info(u"PlexPy DataFactory :: Re-adding user with id %s to database." % user_id)
+            monitor_db.action('UPDATE users SET deleted_user = 0 WHERE user_id = ?', [user_id])
+            monitor_db.action('UPDATE users SET keep_history = 1 WHERE user_id = ?', [user_id])
+            monitor_db.action('UPDATE users SET do_notify = 1 WHERE user_id = ?', [user_id])
+
+            return 'Re-added user with id %s.' % user_id
+        elif username:
+            logger.info(u"PlexPy DataFactory :: Re-adding user with username %s to database." % username)
+            monitor_db.action('UPDATE users SET deleted_user = 0 WHERE username = ?', [username])
+            monitor_db.action('UPDATE users SET keep_history = 1 WHERE username = ?', [username])
+            monitor_db.action('UPDATE users SET do_notify = 1 WHERE username = ?', [username])
+
+            return 'Re-added user with username %s.' % username
+        else:
+            return 'Unable to re-add user. Input user_id or username not valid.'
 
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()

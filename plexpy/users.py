@@ -24,6 +24,8 @@ class Users(object):
     def get_user_list(self, kwargs=None):
         data_tables = datatables.DataTables()
 
+        custom_where = ['users.deleted_user', 0]
+
         columns = ['session_history.id',
                    'users.user_id as user_id',
                    'users.custom_avatar_url as user_thumb',
@@ -48,7 +50,7 @@ class Users(object):
         try:
             query = data_tables.ssp_query(table_name='users',
                                           columns=columns,
-                                          custom_where=[],
+                                          custom_where=[custom_where],
                                           group_by=['users.user_id'],
                                           join_types=['LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN',
@@ -87,13 +89,16 @@ class Users(object):
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
 
+            # Sanitize player name
+            player = helpers.sanitize(item["player"])
+
             row = {"id": item['id'],
                    "plays": item['plays'],
                    "last_seen": item['last_seen'],
                    "friendly_name": item['friendly_name'],
                    "ip_address": item['ip_address'],
                    "platform": platform,
-                   "player": item['player'],
+                   "player": player,
                    "last_watched": item['last_watched'],
                    "thumb": thumb,
                    "media_type": item['media_type'],
@@ -178,12 +183,15 @@ class Users(object):
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
 
+            # Sanitize player name
+            player = helpers.sanitize(item["player"])
+
             row = {"id": item['id'],
                    "last_seen": item['last_seen'],
                    "ip_address": item['ip_address'],
                    "play_count": item['play_count'],
                    "platform": platform,
-                   "player": item['player'],
+                   "player": player,
                    "last_watched": item['last_watched'],
                    "thumb": thumb,
                    "media_type": item['media_type'],
@@ -529,7 +537,10 @@ class Users(object):
             # Rename Mystery platform names
             platform_type = common.PLATFORM_NAME_OVERRIDES.get(item[2], item[2])
 
-            row = {'player_name': item[0],
+            # Sanitize player name
+            player = helpers.sanitize(item[0])
+
+            row = {'player_name': player,
                    'platform_type': platform_type,
                    'total_plays': item[1],
                    'result_id': result_id

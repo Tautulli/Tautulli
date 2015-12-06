@@ -33,7 +33,11 @@ def check_active_sessions(ws_request=False):
         monitor_process = activity_processor.ActivityProcessor()
         # logger.debug(u"PlexPy Monitor :: Checking for active streams.")
 
+        global int_ping_count
+
         if session_list:
+            int_ping_count = 0
+
             media_container = session_list['sessions']
 
             # Check our temp table for what we must do with the new streams
@@ -165,6 +169,16 @@ def check_active_sessions(ws_request=False):
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
 
+            int_ping_count += 1
+            logger.warn(u"PlexPy Monitor :: Unable to get an internal response from the server, ping attempt %s." \
+                        % str(int_ping_count))
+
+        if int_ping_count == 3:
+            # Fire off notifications
+            threading.Thread(target=notification_handler.notify_timeline,
+                                kwargs=dict(notify_action='intdown')).start()
+
+
 def check_recently_added():
 
     with monitor_lock:
@@ -180,26 +194,29 @@ def check_recently_added():
             recently_added = recently_added_list['recently_added']
 
             for item in recently_added:
-                if item['media_type'] == 'movie':
-                    metadata_list = pms_connect.get_metadata_details(item['rating_key'])
-                    if metadata_list:
-                        metadata = [metadata_list['metadata']]
-                    else:
-                        logger.error(u"PlexPy Monitor :: Unable to retrieve metadata for rating_key %s" \
-                                     % str(item['rating_key']))
+                metadata = []
+                
+                if 0 < time_threshold - int(item['added_at']) <= time_interval:
+                    if item['media_type'] == 'movie':
+                        metadata_list = pms_connect.get_metadata_details(item['rating_key'])
+                        if metadata_list:
+                            metadata = [metadata_list['metadata']]
+                        else:
+                            logger.error(u"PlexPy Monitor :: Unable to retrieve metadata for rating_key %s" \
+                                         % str(item['rating_key']))
 
-                else:
-                    metadata_list = pms_connect.get_metadata_children_details(item['rating_key'])
-                    if metadata_list:
-                        metadata = metadata_list['metadata']
                     else:
-                        logger.error(u"PlexPy Monitor :: Unable to retrieve children metadata for rating_key %s" \
-                                     % str(item['rating_key']))
+                        metadata_list = pms_connect.get_metadata_children_details(item['rating_key'])
+                        if metadata_list:
+                            metadata = metadata_list['metadata']
+                        else:
+                            logger.error(u"PlexPy Monitor :: Unable to retrieve children metadata for rating_key %s" \
+                                         % str(item['rating_key']))
 
                 if metadata:
                     if not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
                         for item in metadata:
-                            if 0 < int(item['added_at']) - time_threshold <= time_interval:
+                            if 0 < time_threshold - int(item['added_at']) <= time_interval:
                                 logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
                                 # Fire off notifications
                                 threading.Thread(target=notification_handler.notify_timeline,
@@ -208,7 +225,7 @@ def check_recently_added():
                     else:
                         item = max(metadata, key=lambda x:x['added_at'])
 
-                        if 0 < int(item['added_at']) - time_threshold <= time_interval:
+                        if 0 < time_threshold - int(item['added_at']) <= time_interval:
                             if item['media_type'] == 'episode' or item['media_type'] == 'track':
                                 metadata_list = pms_connect.get_metadata_details(item['grandparent_rating_key'])
 
@@ -229,20 +246,10 @@ def check_server_response():
         pms_connect = pmsconnect.PmsConnect()
         server_response = pms_connect.get_server_response()
 
-        global int_ping_count
         global ext_ping_count
         
-        # Check for internal server response
-        if not server_response:
-            int_ping_count += 1
-            logger.warn(u"PlexPy Monitor :: Unable to get an internal response from the server, ping attempt %s." \
-                        % str(int_ping_count))
-        # Reset internal ping counter
-        else:
-            int_ping_count = 0
-
         # Check for remote access
-        if server_response and plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
+        if server_response:
         
             mapping_state = server_response['mapping_state']
             mapping_error = server_response['mapping_error']
@@ -260,11 +267,6 @@ def check_server_response():
             # Reset external ping counter
             else:
                 ext_ping_count = 0
-
-        if int_ping_count == 3:
-            # Fire off notifications
-            threading.Thread(target=notification_handler.notify_timeline,
-                                kwargs=dict(notify_action='intdown')).start()
 
         if ext_ping_count == 3:
             # Fire off notifications

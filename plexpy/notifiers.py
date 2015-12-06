@@ -505,7 +505,7 @@ class PROWL(object):
 
         data = {'apikey': plexpy.CONFIG.PROWL_KEYS,
                 'application': 'PlexPy',
-                'event': event,
+                'event': event.encode("utf-8"),
                 'description': message.encode("utf-8"),
                 'priority': plexpy.CONFIG.PROWL_PRIORITY}
 
@@ -896,9 +896,9 @@ class PUSHALOT(object):
         response = http_handler.getresponse()
         request_status = response.status
 
-        logger.debug(u"Pushalot response status: %r" % request_status)
-        logger.debug(u"Pushalot response headers: %r" % response.getheaders())
-        logger.debug(u"Pushalot response body: %r" % response.read())
+        #logger.debug(u"Pushalot response status: %r" % request_status)
+        #logger.debug(u"Pushalot response headers: %r" % response.getheaders())
+        #logger.debug(u"Pushalot response body: %r" % response.read())
 
         if request_status == 200:
                 logger.info(u"Pushalot notifications sent.")
@@ -1526,7 +1526,7 @@ class TELEGRAM(object):
                          {'label': 'Telegram Chat ID',
                           'value': self.chat_id,
                           'name': 'telegram_chat_id',
-                          'description': 'Your Telegram Chat ID or Group ID. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
+                          'description': 'Your Telegram Chat ID, Group ID, or channel username. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
                           'input_type': 'text'
                           }
                          ]
