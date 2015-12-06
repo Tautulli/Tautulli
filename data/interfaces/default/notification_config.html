@@ -25,7 +25,7 @@ from plexpy import helpers
                                     % endif
                                 </div>
                             </div>
-                            <p class="help-block">${item['description']}</p>
+                            <p class="help-block">${item['description'] | n}</p>
                         </div>
                         % elif item['input_type'] == 'button':
                         <div class="form-group">
@@ -34,14 +34,14 @@ from plexpy import helpers
                                     <input type="${item['input_type']}" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
                                 </div>
                             </div>
-                            <p class="help-block">${item['description']}</p>
+                            <p class="help-block">${item['description'] | n}</p>
                         </div>
                         % elif item['input_type'] == 'checkbox':
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${helpers.checked(item['value'])}> ${item['label']}
                             </label>
-                            <p class="help-block">${item['description']}</p>
+                            <p class="help-block">${item['description'] | n}</p>
                             <input type="hidden" id="${item['name']}" name="${item['name']}" value="${item['value']}">
                         </div>
                         % elif item['input_type'] == 'select':
@@ -60,7 +60,7 @@ from plexpy import helpers
                                     </select>
                                 </div>
                             </div>
-                            <p class="help-block">${item['description']}</p>
+                            <p class="help-block">${item['description'] | n}</p>
                         </div>
                         % endif
                     % endfor
