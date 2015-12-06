@@ -1130,7 +1130,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                     <h4 class="modal-title">Changelog</h4>
                 </div>
                 <div class="modal-body">
-                    ${versioncheck.read_changelog()}
+                    ${versioncheck.read_changelog() | n}
                 </div>
                 <div class="modal-footer">
                 </div>
