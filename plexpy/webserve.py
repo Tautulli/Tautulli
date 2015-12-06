@@ -735,8 +735,6 @@ class WebInterface(object):
                 if not session['ip_address']:
                     ip_address = data_factory.get_session_ip(session['session_key'])
                     session['ip_address'] = ip_address
-                # Sanitize player name
-                session['player'] = helpers.sanitize(session['player'])
 
         except:
             return serve_template(templatename="current_activity.html", data=None)

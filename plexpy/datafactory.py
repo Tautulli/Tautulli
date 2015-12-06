@@ -108,9 +108,6 @@ class DataFactory(object):
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
 
-            # Sanitize player name
-            player = helpers.sanitize(item["player"])
-
             row = {"reference_id": item["reference_id"],
                    "id": item["id"],
                    "date": item["date"],
@@ -122,7 +119,7 @@ class DataFactory(object):
                    "user": item["user"],
                    "friendly_name": item["friendly_name"],
                    "platform": platform,
-                   "player": player,
+                   "player": item['player'],
                    "ip_address": item["ip_address"],
                    "media_type": item["media_type"],
                    "rating_key": item["rating_key"],
@@ -575,9 +572,6 @@ class DataFactory(object):
                     else:
                         thumb = item['grandparent_thumb']
 
-                    # Sanitize player name
-                    player = helpers.sanitize(item["player"])
-
                     row = {'row_id': item['id'],
                            'user': item['user'],
                            'friendly_name': item['friendly_name'],
@@ -588,7 +582,7 @@ class DataFactory(object):
                            'thumb': thumb,
                            'grandparent_thumb': item['grandparent_thumb'],
                            'last_watch': item['last_watch'],
-                           'player': player,
+                           'player': item['player']
                            }
                     last_watched.append(row)
 
