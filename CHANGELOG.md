@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.12 (2015-12-06)
+
+* Fix for "too many open files" error.
+
+
 ## v1.2.11 (2015-12-06)
 
 * Fix more regressions (sorry).
