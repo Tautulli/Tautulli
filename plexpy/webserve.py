@@ -1,7 +1,4 @@
-﻿#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users
+from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users, helpers
 from plexpy.helpers import checked, radio
 
 from mako.lookup import TemplateLookup
@@ -738,6 +735,9 @@ class WebInterface(object):
                 if not session['ip_address']:
                     ip_address = data_factory.get_session_ip(session['session_key'])
                     session['ip_address'] = ip_address
+                # Sanitize player name
+                session['player'] = helpers.sanitize(session['player'])
+
         except:
             return serve_template(templatename="current_activity.html", data=None)
 

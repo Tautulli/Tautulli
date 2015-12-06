@@ -430,3 +430,9 @@ def process_json_kwargs(json_kwargs):
         params = json.loads(json_kwargs)
 
     return params
+
+def sanitize(string):
+    if string:
+        return str(string).replace('<','&lt;').replace('>','&gt;')
+    else:
+        return ''
