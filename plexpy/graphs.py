@@ -76,10 +76,10 @@ class Graphs(object):
             series_2_value = 0
             series_3_value = 0
             for item in result:
-                if date_string == item[0]:
-                    series_1_value = item[1]
-                    series_2_value = item[2]
-                    series_3_value = item[3]
+                if date_string == item['date_played']:
+                    series_1_value = item['tv_duration']
+                    series_2_value = item['movie_duration']
+                    series_3_value = item['music_duration']
                     break
                 else:
                     series_1_value = 0
@@ -165,10 +165,10 @@ class Graphs(object):
             series_2_value = 0
             series_3_value = 0
             for item in result:
-                if day_item == item[1]:
-                    series_1_value = item[2]
-                    series_2_value = item[3]
-                    series_3_value = item[4]
+                if day_item == item['dayofweek']:
+                    series_1_value = item['tv_duration']
+                    series_2_value = item['movie_duration']
+                    series_3_value = item['music_duration']
                     break
                 else:
                     series_1_value = 0
@@ -240,10 +240,10 @@ class Graphs(object):
             series_2_value = 0
             series_3_value = 0
             for item in result:
-                if hour_item == item[0]:
-                    series_1_value = item[1]
-                    series_2_value = item[2]
-                    series_3_value = item[3]
+                if hour_item == item['hourofday']:
+                    series_1_value = item['tv_duration']
+                    series_2_value = item['movie_duration']
+                    series_3_value = item['music_duration']
                     break
                 else:
                     series_1_value = 0
@@ -316,10 +316,10 @@ class Graphs(object):
             series_2_value = 0
             series_3_value = 0
             for item in result:
-                if date_string == item[0]:
-                    series_1_value = item[1]
-                    series_2_value = item[2]
-                    series_3_value = item[3]
+                if date_string == item['datestring']:
+                    series_1_value = item['tv_duration']
+                    series_2_value = item['movie_duration']
+                    series_3_value = item['music_duration']
                     break
                 else:
                     series_1_value = 0
@@ -386,10 +386,10 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
-            categories.append(common.PLATFORM_NAME_OVERRIDES.get(item[0], item[0]))
-            series_1.append(item[1])
-            series_2.append(item[2])
-            series_3.append(item[3])
+            categories.append(common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform']))
+            series_1.append(item['tv_duration'])
+            series_2.append(item['movie_duration'])
+            series_3.append(item['music_duration'])
 
         series_1_output = {'name': 'TV',
                            'data': series_1}
@@ -453,10 +453,10 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
-            categories.append(item[0])
-            series_1.append(item[1])
-            series_2.append(item[2])
-            series_3.append(item[3])
+            categories.append(item['friendly_name'])
+            series_1.append(item['tv_duration'])
+            series_2.append(item['movie_duration'])
+            series_3.append(item['music_duration'])
 
         series_1_output = {'name': 'TV',
                            'data': series_1}
@@ -540,10 +540,10 @@ class Graphs(object):
             series_2_value = 0
             series_3_value = 0
             for item in result:
-                if date_string == item[0]:
-                    series_1_value = item[1]
-                    series_2_value = item[2]
-                    series_3_value = item[3]
+                if date_string == item['date_played']:
+                    series_1_value = item['dp_duration']
+                    series_2_value = item['ds_duration']
+                    series_3_value = item['tc_duration']
                     break
                 else:
                     series_1_value = 0
@@ -626,10 +626,10 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
-            categories.append(item[0])
-            series_1.append(item[1])
-            series_2.append(item[2])
-            series_3.append(item[3])
+            categories.append(item['resolution'])
+            series_1.append(item['dp_duration'])
+            series_2.append(item['ds_duration'])
+            series_3.append(item['tc_duration'])
 
         series_1_output = {'name': 'Direct Play',
                            'data': series_1}
@@ -723,10 +723,10 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
-            categories.append(item[0])
-            series_1.append(item[1])
-            series_2.append(item[2])
-            series_3.append(item[3])
+            categories.append(item['resolution'])
+            series_1.append(item['dp_duration'])
+            series_2.append(item['ds_duration'])
+            series_3.append(item['tc_duration'])
 
         series_1_output = {'name': 'Direct Play',
                            'data': series_1}
@@ -801,10 +801,10 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
-            categories.append(common.PLATFORM_NAME_OVERRIDES.get(item[0], item[0]))
-            series_1.append(item[1])
-            series_2.append(item[2])
-            series_3.append(item[3])
+            categories.append(common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform']))
+            series_1.append(item['dp_duration'])
+            series_2.append(item['ds_duration'])
+            series_3.append(item['tc_duration'])
 
         series_1_output = {'name': 'Direct Play',
                            'data': series_1}
@@ -882,10 +882,10 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
-            categories.append(item[0])
-            series_1.append(item[1])
-            series_2.append(item[2])
-            series_3.append(item[3])
+            categories.append(item['username'])
+            series_1.append(item['dp_duration'])
+            series_2.append(item['ds_duration'])
+            series_3.append(item['tc_duration'])
 
         series_1_output = {'name': 'Direct Play',
                            'data': series_1}
