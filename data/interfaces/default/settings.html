@@ -348,7 +348,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <h3>Friends List</h3>
                         </div>
                         <div class="form-group">
-                            <label for="refresh_users_interval">User List Refresh Interval</label>
+                            <label for="refresh_users_interval">Users List Refresh Interval</label>
                             <div class="row">
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="refresh_users_interval" name="refresh_users_interval" value="${config['refresh_users_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_users_interval_error" required>
@@ -359,9 +359,29 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh User List on Startup
+                                <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh Users List on Startup
                             </label>
-                            <p class="help-block">Refresh the user list when PlexPy starts.</p>
+                            <p class="help-block">Refresh the users list when PlexPy starts.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Libraries List</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="refresh_libraries_interval">Libraries List Refresh Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_libraries_interval" name="refresh_libraries_interval" value="${config['refresh_libraries_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_libraries_interval_error" required>
+                                </div>
+                                <div id="refresh_libraries_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in hours) PlexPy will request an updated libraries list from your Plex Media Server. 1 minimum, 24 maximum.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="refresh_libraries_on_startup" name="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}> Refresh Libraries List on Startup
+                            </label>
+                            <p class="help-block">Refresh the libraries list when PlexPy starts.</p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>

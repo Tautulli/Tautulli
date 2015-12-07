@@ -654,6 +654,35 @@ class DataFactory(object):
 
         return home_stats
 
+    def get_library_stats(self, library_cards=''):
+        monitor_db = database.MonitorDatabase()
+
+        library_stats = []
+
+        for id in library_cards:
+            if id.isdigit():
+                try:
+                    query = 'SELECT section_id, section_name, section_type, thumb, count, parent_count, child_count ' \
+                            'FROM library_sections ' \
+                            'WHERE section_id = %s' % id
+                    result = monitor_db.select(query)
+                except:
+                    logger.warn("Unable to execute database query for get_library_stats.")
+                    return None
+
+                for item in result:
+                    library = {'section_id': item['section_id'],
+                               'section_name': item['section_name'],
+                               'section_type': item['section_type'],
+                               'thumb': item['thumb'],
+                               'count': item['count'],
+                               'parent_count': item['parent_count'],
+                               'child_count': item['child_count']
+                               }
+                    library_stats.append(library)
+
+        return library_stats
+
     def get_stream_details(self, row_id=None):
         monitor_db = database.MonitorDatabase()
 

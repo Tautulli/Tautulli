@@ -175,6 +175,10 @@ def initialize(config_file):
         if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
             plextv.refresh_users()
 
+        # Refresh the libraries list on startup
+        if CONFIG.PMS_TOKEN and CONFIG.REFRESH_LIBRARIES_ON_STARTUP:
+            pmsconnect.refresh_libraries()
+
         # Store the original umask
         UMASK = os.umask(0)
         os.umask(UMASK)
@@ -311,8 +315,14 @@ def initialize_scheduler():
         else:
             hours = 0
 
+
         if CONFIG.PMS_TOKEN:
-            schedule_job(plextv.refresh_users, 'Refresh users list', hours=hours, minutes=0, seconds=0)
+            schedule_job(plextv.refresh_users, 'Refresh users list',
+                         hours=hours, minutes=0, seconds=0)
+
+        if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
+            schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
+                         hours=hours, minutes=0, seconds=0)
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
@@ -431,7 +441,9 @@ def dbcheck():
     # library_sections table :: This table keeps record of the servers library sections
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'section_id INTEGER UNIQUE, section_name TEXT, section_type TEXT)'
+        'server_id TEXT, section_id INTEGER UNIQUE, section_name TEXT, section_type TEXT, thumb TEXT, '
+        'count INTEGER, parent_count INTEGER, child_count INTEGER, '
+        'do_notify INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1)'
     )
 
     # Upgrade sessions table from earlier versions

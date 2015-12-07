@@ -9,23 +9,16 @@ Variable names:     data [array]
 
 data[array_index] :: Usable parameters
 
-data['type']            Returns the type of the library. Either 'movie', 'show', 'photo', or 'artist'.
-data['rows']            Returns an array containing stat data
+data            Returns an array containing stat data
 
-data[array_index]['rows'] :: Usable parameters
+data[array_index] :: Usable parameters
 
-title                   Returns the title of the library.
+section_name            Returns the title of the library.
+section_type            Returns the type of the library.
 thumb                   Returns the thumb of the library.
-count                   Returns the number of items in the library.
-count_type              Returns the sorting type for the library
-
-== Only if 'type' is 'show'
-episode_count           Return the number of episodes in the library.
-episode_count_type      Return the sorting type for the episodes.
-
-== Only if 'type' is 'artist'
-album_count             Return the number of episodes in the library.
-album_count_type        Return the sorting type for the episodes.
+count                   Returns the number of top level items in the library.
+parent_count            Returns the number of parent items in the library.
+child_count             Returns the number of child items in the library.
 
 DOCUMENTATION :: END
 </%doc>
@@ -37,37 +30,58 @@ DOCUMENTATION :: END
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
-                    % if library['type'] != 'photo':
+                    % if library['section_type'] != 'photo':
                     <h4>
-                        <a href="info?library_id=${library['rows']['key']}" title="${library['rows']['title']}">${library['rows']['title']}</a>
+                        <a href="info?library_id=${library['section_id']}" title="${library['section_name']}">${library['section_name']}</a>
                     </h4>
                     % else:
-                    <h4>${library['rows']['title']}</h4>
+                    <h4>${library['section_name']}</h4>
                     % endif
                 </div>
+                % if library['section_type'] == 'movie':
                 <div class="home-platforms-instance-playcount">
-                    <h5>${library['rows']['count_type']}</h5>
-                    <h3>${library['rows']['count']}</h3>
+                    <h5>All Movies</h5>
+                    <h3>${library['count']}</h3>
                     <p> items</p>
                 </div>
-                % if library['type'] == 'show':
-                <div class="home-platforms-instance-playcount" style="padding-left: 10px;">
-                    <h5>${library['rows']['episode_count_type']}</h5>
-                    <h3>${library['rows']['episode_count']}</h3>
+                % elif library['section_type'] == 'show':
+                <div class="home-platforms-instance-playcount">
+                    <h5>All Shows</h5>
+                    <h3>${library['count']}</h3>
                     <p> items</p>
                 </div>
-                % endif
-                % if library['type'] == 'artist':
                 <div class="home-platforms-instance-playcount" style="padding-left: 10px;">
-                    <h5>${library['rows']['album_count_type']}</h5>
-                    <h3>${library['rows']['album_count']}</h3>
+                    <h5>All Episodes</h5>
+                    <h3>${library['child_count']}</h3>
+                    <p> items</p>
+                </div>
+                % elif library['section_type'] == 'artist':
+                <div class="home-platforms-instance-playcount">
+                    <h5>All Artists</h5>
+                    <h3>${library['count']}</h3>
+                    <p> items</p>
+                </div>
+                <div class="home-platforms-instance-playcount" style="padding-left: 10px;">
+                    <h5>All Albums</h5>
+                    <h3>${library['parent_count']}</h3>
+                    <p> items</p>
+                </div>
+                % elif library['section_type'] == 'photo':
+                <div class="home-platforms-instance-playcount">
+                    <h5>All Albums</h5>
+                    <h3>${library['count']}</h3>
+                    <p> items</p>
+                </div>
+                <div class="home-platforms-instance-playcount" style="padding-left: 10px;">
+                    <h5>All Photos</h5>
+                    <h3>${library['child_count']}</h3>
                     <p> items</p>
                 </div>
                 % endif
             </div>
-            % if library['rows']['thumb']:
+            % if library['thumb']:
             <div class="home-platforms-instance-poster">
-                <div class="home-platforms-library-thumb" style="background-image: url(pms_image_proxy?img=${library['rows']['thumb']}&width=300&height=300&fallback=poster);"></div>
+                <div class="home-platforms-library-thumb" style="background-image: url(pms_image_proxy?img=${library['thumb']}&width=300&height=300&fallback=poster);"></div>
             </div>
             % else:
             <div class="home-platforms-instance-poster">

@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, users, http_handler, common
+from plexpy import logger, helpers, users, http_handler, common, database
 from urlparse import urlparse
 
 import plexpy
@@ -36,6 +36,42 @@ def get_server_friendly_name():
         plexpy.CONFIG.write()
 
     return server_name
+
+def refresh_libraries():
+    logger.info("Requesting libraries list refresh...")
+    library_sections = PmsConnect().get_library_details()
+
+    server_id = plexpy.CONFIG.PMS_IDENTIFIER
+
+    if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run']:
+        populate_cards = True
+    else:
+        populate_cards = False
+    
+    cards = []
+
+    if library_sections:
+        monitor_db = database.MonitorDatabase()
+
+        for section in library_sections:
+            section_keys = {'server_id': server_id,
+                            'section_id': section['key']}
+            section_values = {'server_id': server_id,
+                              'section_id': section['key'],
+                              'section_name': section['title'],
+                              'section_type': section['type'],
+                              'thumb': section['thumb'],
+                              'count': section['count'],
+                              'parent_count': section.get('parent_count', None),
+                              'child_count': section.get('child_count', None)
+                              }
+
+            monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
+
+        logger.info("Libraries list refreshed.")
+    else:
+        logger.warn("Unable to refresh libraries list.")
+
 
 class PmsConnect(object):
     """
@@ -1446,10 +1482,22 @@ class PmsConnect(object):
             sort_type = '&type=1'
         elif library_type == 'show':
             sort_type = '&type=2'
+        elif library_type == 'season':
+            sort_type = '&type=3'
         elif library_type == 'episode':
             sort_type = '&type=4'
+        elif library_type == 'artist':
+            sort_type = '&type=8'
         elif library_type == 'album':
-            list_type = 'albums'
+            sort_type = '&type=9'
+        elif library_type == 'track':
+            sort_type = '&type=10'
+        elif library_type == 'photo':
+            sort_type = ''
+        elif library_type == 'photoAlbum':
+            sort_type = '&type=14'
+        elif library_type == 'picture':
+            sort_type = '&type=13'
 
         library_data = self.get_library_list(section_key, list_type, count, sort_type, output_format='xml')
         
@@ -1492,7 +1540,7 @@ class PmsConnect(object):
 
     Output: array
     """
-    def get_library_stats(self, library_cards=''):
+    def get_library_details(self):
         server_libraries = self.get_server_children()
 
         server_library_stats = []
@@ -1503,35 +1551,57 @@ class PmsConnect(object):
             for library in libraries_list:
                 library_type = library['type']
                 section_key = library['key']
-                if section_key in library_cards:
-                    library_list = self.get_library_children(library_type, section_key)
-                else:
-                    continue
+                library_list = self.get_library_children(library_type, section_key)
 
                 if library_list['library_count'] != '0':
                     library_stats = {'key': library['key'],
                                      'title': library['title'],
+                                     'type': library_type,
                                      'thumb': library['thumb'],
                                      'count': library_list['library_count'],
                                      'count_type': library_list['count_type']
                                      }
 
                     if library_type == 'show':
-                        episode_list = self.get_library_children(library_type='episode', section_key=section_key)
-                        episode_stats = {'episode_count': episode_list['library_count'],
-                                         'episode_count_type': 'All Episodes'
-                                         }
-                        library_stats.update(episode_stats)
+                        parent_list = self.get_library_children(library_type='season', section_key=section_key)
+                        parent_stats = {'parent_count': parent_list['library_count'],
+                                        'parent_count_type': 'All Seasons'
+                                        }
+                        library_stats.update(parent_stats)
+
+                        child_list = self.get_library_children(library_type='episode', section_key=section_key)
+                        child_stats = {'child_count': child_list['library_count'],
+                                       'child_count_type': 'All Episodes'
+                                       }
+                        library_stats.update(child_stats)
 
                     if library_type == 'artist':
-                        album_list = self.get_library_children(library_type='album', section_key=section_key)
-                        album_stats = {'album_count': album_list['library_count'],
-                                       'album_count_type': 'All Albums'
-                                       }
-                        library_stats.update(album_stats)
+                        parent_list = self.get_library_children(library_type='album', section_key=section_key)
+                        parent_stats = {'parent_count': parent_list['library_count'],
+                                        'parent_count_type': 'All Seasons'
+                                        }
+                        library_stats.update(parent_stats)
 
-                    server_library_stats.append({'type': library_type,
-                                                 'rows': library_stats})
+                        child_list = self.get_library_children(library_type='track', section_key=section_key)
+                        child_stats = {'child_count': child_list['library_count'],
+                                       'child_count_type': 'All Albums'
+                                       }
+                        library_stats.update(child_stats)
+
+                    if library_type == 'photo':
+                        parent_list = self.get_library_children(library_type='photoAlbum', section_key=section_key)
+                        parent_stats = {'parent_count': parent_list['library_count'],
+                                        'parent_count_type': 'All Photo Albums'
+                                        }
+                        library_stats.update(parent_stats)
+
+                        child_list = self.get_library_children(library_type='picture', section_key=section_key)
+                        child_stats = {'child_count': child_list['library_count'],
+                                       'child_count_type': 'All Photos'
+                                       }
+                        library_stats.update(child_stats)
+
+                    server_library_stats.append(library_stats)
 
         return server_library_stats
 
