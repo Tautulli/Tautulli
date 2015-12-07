@@ -260,8 +260,6 @@ def initialize_scheduler():
     Start the scheduled background tasks. Re-schedule if interval settings changed.
     """
 
-
-
     with SCHED_LOCK:
 
         # Check if scheduler should be started
@@ -435,7 +433,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
         'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER, '
-        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER)'
+        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER, on_created INTEGER)'
     )
 
     # library_sections table :: This table keeps record of the servers library sections

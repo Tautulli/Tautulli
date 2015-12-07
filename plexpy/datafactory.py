@@ -158,7 +158,7 @@ class DataFactory(object):
 
         return dict
 
-    def get_home_stats(self, grouping=0, time_range='30', stats_type=0, stats_count='5', stats_cards='', notify_watched_percent='85'):
+    def get_home_stats(self, grouping=0, time_range='30', stats_type=0, stats_count='5', stats_cards=[], notify_watched_percent='85'):
         monitor_db = database.MonitorDatabase()
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
@@ -654,7 +654,7 @@ class DataFactory(object):
 
         return home_stats
 
-    def get_library_stats(self, library_cards=''):
+    def get_library_stats(self, library_cards=[]):
         monitor_db = database.MonitorDatabase()
 
         library_stats = []
@@ -1218,6 +1218,26 @@ class DataFactory(object):
                 continue
 
         return True
+
+    def get_library_sections(self):
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            query = 'SELECT section_id, section_name FROM library_sections'
+            result = monitor_db.select(query=query)
+        except:
+            logger.warn("Unable to execute database query for get_library_sections.")
+            return None
+
+        libraries = []
+        for item in result:
+            library = {'section_id': item['section_id'],
+                       'section_name': item['section_name']
+                       }
+            libraries.append(library)
+
+        return libraries
+
 
     def update_library_sections(self):
         from plexpy import pmsconnect

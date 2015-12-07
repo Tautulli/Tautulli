@@ -80,7 +80,7 @@ class WebInterface(object):
         config = {
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
-            "refresh_librareis_on_startup": checked(plexpy.CONFIG.REFRESH_LIBRARIES_ON_STARTUP),
+            "refresh_libraries_on_startup": checked(plexpy.CONFIG.REFRESH_LIBRARIES_ON_STARTUP),
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
@@ -133,7 +133,7 @@ class WebInterface(object):
         time_range = plexpy.CONFIG.HOME_STATS_LENGTH
         stats_type = plexpy.CONFIG.HOME_STATS_TYPE
         stats_count = plexpy.CONFIG.HOME_STATS_COUNT
-        stats_cards = plexpy.CONFIG.HOME_STATS_CARDS.split(', ')
+        stats_cards = plexpy.CONFIG.HOME_STATS_CARDS
         notify_watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
 
         stats_data = data_factory.get_home_stats(grouping=grouping,
@@ -149,7 +149,7 @@ class WebInterface(object):
     def library_stats(self, **kwargs):
         data_factory = datafactory.DataFactory()
 
-        library_cards = plexpy.CONFIG.HOME_LIBRARY_CARDS.split(', ')
+        library_cards = plexpy.CONFIG.HOME_LIBRARY_CARDS
 
         stats_data = data_factory.get_library_stats(library_cards=library_cards)
         
@@ -476,13 +476,13 @@ class WebInterface(object):
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
-            "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
-            "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
+            "home_stats_cards": json.dumps(plexpy.CONFIG.HOME_STATS_CARDS),
+            "home_library_cards": json.dumps(plexpy.CONFIG.HOME_LIBRARY_CARDS),
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT,
             "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES)
         }
-
+        
         return serve_template(templatename="settings.html", title="Settings", config=config)
 
     @cherrypy.expose
@@ -544,13 +544,19 @@ class WebInterface(object):
                 refresh_libraries = True
                 refresh_users = True
 
-        if 'home_stats_cards' in kwargs:
-            if kwargs['home_stats_cards'] != 'watch_statistics':
-                kwargs['home_stats_cards'] = ', '.join(kwargs['home_stats_cards'])
+        if 'home_stats_cards' not in kwargs:
+            kwargs['home_stats_cards'] = []
+        elif kwargs['home_stats_cards'] == 'first_run_wizard':
+            kwargs['home_stats_cards'] = plexpy.CONFIG.HOME_STATS_CARDS
+        elif type(kwargs['home_stats_cards']) != list:
+            kwargs['home_stats_cards'] = [kwargs['home_stats_cards']]
 
-        if 'home_library_cards' in kwargs:
-            if kwargs['home_library_cards'] != 'library_statistics':
-                kwargs['home_library_cards'] = ', '.join(kwargs['home_library_cards'])
+        if 'home_library_cards' not in kwargs:
+            kwargs['home_library_cards'] = []
+        elif kwargs['home_library_cards'] == 'first_run_wizard':
+            kwargs['home_library_cards'] = plexpy.CONFIG.HOME_LIBRARY_CARDS
+        elif type(kwargs['home_library_cards']) != list:
+            kwargs['home_library_cards'] = [kwargs['home_library_cards']]
 
         plexpy.CONFIG.process_kwargs(kwargs)
 
@@ -1279,10 +1285,10 @@ class WebInterface(object):
             logger.warn('Unable to retrieve data.')
 
     @cherrypy.expose
-    def get_server_children(self, **kwargs):
+    def get_library_sections(self, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_server_children()
+        data_factory = datafactory.DataFactory()
+        result = data_factory.get_library_sections()
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

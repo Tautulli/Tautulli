@@ -68,6 +68,12 @@ def refresh_libraries():
 
             monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
 
+            cards.append(section['key'])
+
+        if populate_cards:
+            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', cards)
+            plexpy.CONFIG.write()
+        
         logger.info("Libraries list refreshed.")
     else:
         logger.warn("Unable to refresh libraries list.")

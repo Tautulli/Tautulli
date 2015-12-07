@@ -102,7 +102,6 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <div class="row">
                                 <div class="col-md-6">
                                     <select multiple class="form-control" id="home_stats_cards" name="home_stats_cards" data-parsley-trigger="change">
-                                        <option id="card-watch_statistics" value="watch_statistics" class="hidden" selected>Watch Statistics</option>
                                         <option id="card-top_tv" value="top_tv">Most Watched TV</option>
                                         <option id="card-popular_tv" value="popular_tv">Most Popular TV</option>
                                         <option id="card-top_movies" value="top_movies">Most Watched Movie</option>
@@ -154,7 +153,6 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <div class="row">
                                 <div class="col-md-6">
                                     <select multiple class="form-control" id="home_library_cards" name="home_library_cards" data-parsley-trigger="change">
-                                        <option id="card-library_statistics" value="library_statistics" class="hidden" selected>Library Statistics</option>
                                     </select>
                                 </div>
                             </div>
@@ -1619,7 +1617,7 @@ $(document).ready(function() {
     var accordion_timeline = new Accordion($('#accordion-timeline'), false);
     var accordion_scripts = new Accordion($('#accordion-scripts'), false);
 
-    var cards = "${config['home_stats_cards']}".split(/[\s,]+/);
+    var cards = ${config['home_stats_cards']|n};
     cards.forEach(function (item) {
         $('#card-'+item).prop('selected', !$(this).prop('selected'));
     });
@@ -1633,20 +1631,19 @@ $(document).ready(function() {
     });
 
     $.ajax({
-        url: 'get_server_children',
+        url: 'get_library_sections',
         data: { },
         async: true,
-        complete: function (xhr, status) {
-            server_children_info = $.parseJSON(xhr.responseText);
-            libraries_list = server_children_info.libraries_list;
+        complete: function (data) {
+            libraries_list = $.parseJSON(data.responseText);
             for (var i in libraries_list) {
-                title = libraries_list[i].title;
-                key = libraries_list[i].key;
+                var title = libraries_list[i].section_name;
+                var key = libraries_list[i].section_id;
                 $('#home_library_cards').append('<option id="card-' + key + '" value="' + key + '">' + title + '</option>')
             }
-            var cards = "${config['home_library_cards']}".split(/[\s,]+/);
+            var cards = ${config['home_library_cards']|n};
             cards.forEach(function (item) {
-                $('#card-'+item).prop('selected', !$(this).prop('selected'));
+                $('#card-' + item).prop('selected', !$(this).prop('selected'));
             });
         }
     });
