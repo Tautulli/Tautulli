@@ -400,7 +400,7 @@ class ActivityProcessor(object):
                                                  'WHERE session_key = ?',
                                                  [session_key])
             if buffer_count:
-                return buffer_count
+                return buffer_count['buffer_count']
 
             return 0
 
@@ -417,6 +417,6 @@ class ActivityProcessor(object):
                                               'WHERE session_key = ?',
                                               [session_key])
             if last_time:
-                return last_time
+                return last_time['buffer_last_triggered']
 
             return None

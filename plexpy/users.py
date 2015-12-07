@@ -319,7 +319,7 @@ class Users(object):
                 query = 'select user_id FROM users WHERE username = ?'
                 result = monitor_db.select_single(query, args=[user])
                 if result:
-                    return result
+                    return result['user_id']
                 else:
                     return None
             except:

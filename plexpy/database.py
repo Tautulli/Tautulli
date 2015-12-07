@@ -111,7 +111,7 @@ class MonitorDatabase(object):
 
     def select_single(self, query, args=None):
 
-        sql_results = self.action(query, args).fetchone()[0]
+        sql_results = self.action(query, args).fetchone()
 
         if sql_results is None or sql_results == "":
             return ""
