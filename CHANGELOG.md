@@ -1,6 +1,11 @@
 # Changelog
 
-## v1.2.12 (2015-12-06)
+## v1.2.14 (2015-12-07)
+
+* Fix regression with PlexWatch db importer and buffer warnings.
+
+
+## v1.2.13 (2015-12-06)
 
 * Fix match newlines between tags in notification text.
 * Fix current activity not showing on PMS 0.9.12.
