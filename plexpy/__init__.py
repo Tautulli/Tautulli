@@ -439,8 +439,8 @@ def dbcheck():
     # library_sections table :: This table keeps record of the servers library sections
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'server_id TEXT, section_id INTEGER UNIQUE, section_name TEXT, section_type TEXT, thumb TEXT, '
-        'count INTEGER, parent_count INTEGER, child_count INTEGER, '
+        'server_id TEXT, section_id INTEGER UNIQUE, section_name TEXT, section_type TEXT, '
+        'thumb TEXT, custom_thumb_url TEXT, count INTEGER, parent_count INTEGER, child_count INTEGER, '
         'do_notify INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1)'
     )
 

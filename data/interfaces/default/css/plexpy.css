@@ -498,6 +498,16 @@ textarea.form-control:focus {
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
+.libraries-poster-face {
+    overflow: hidden;
+    float: left;
+    background-size: contain;
+    height: 40px;
+    width: 40px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+}
 a .poster-face:hover,
 a .cover-face:hover,
 a .users-poster-face:hover {
@@ -2127,7 +2137,8 @@ a .home-platforms-instance-list-oval:hover,
     float: right;
 }
 .colvis-button-bar,
-.refresh-users-button {
+.refresh-users-button,
+.refresh-libraries-button {
     float: right;
 }
 .nav-settings,
@@ -2359,17 +2370,21 @@ a .home-platforms-instance-list-oval:hover,
     background-size: cover;
     width: 80px;
 }
-.edit-user-toggles {
+.edit-user-toggles,
+.edit-library-toggles {
     padding-right: 10px;
 }
-.edit-user-toggles > input[type='checkbox'] {
+.edit-user-toggles > input[type='checkbox'],
+.edit-library-toggles > input[type='checkbox'] {
     display: none;
 }
-.edit-user-toggles > input[type='checkbox'] + label {
+.edit-user-toggles > input[type='checkbox'] + label,
+.edit-library-toggles > input[type='checkbox'] + label {
     color: #444;
     cursor: pointer;
 }
-.edit-user-toggles > input[type='checkbox']:checked + label {
+.edit-user-toggles > input[type='checkbox']:checked + label,
+.edit-library-toggles > input[type='checkbox']:checked + label {
     color: #fff;
     cursor: pointer;
 }
@@ -2418,7 +2433,8 @@ a .home-platforms-instance-list-oval:hover,
     left: 12px;
 }
 #users-to-delete > li,
-#users-to-purge > li {
+#users-to-purge > li,
+#libraries-to-purge > li {
     color: #e9a049;
 }
 #updatebar {
