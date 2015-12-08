@@ -214,13 +214,13 @@ def get_notify_state(session):
                                args=[session['session_key'], session['rating_key'], session['user']])
     notify_states = []
     for item in result:
-        notify_state = {'on_play': item[0],
-                        'on_stop': item[1],
-                        'on_pause': item[2],
-                        'on_resume': item[3],
-                        'on_buffer': item[4],
-                        'on_watched': item[5],
-                        'agent_id': item[6]}
+        notify_state = {'on_play': item['on_play'],
+                        'on_stop': item['on_stop'],
+                        'on_pause': item['on_pause'],
+                        'on_resume': item['on_resume'],
+                        'on_buffer': item['on_buffer'],
+                        'on_watched': item['on_watched'],
+                        'agent_id': item['agent_id']}
         notify_states.append(notify_state)
 
     return notify_states
@@ -234,8 +234,8 @@ def get_notify_state_timeline(timeline):
                                args=[timeline['rating_key']])
     notify_states = []
     for item in result:
-        notify_state = {'on_created': item[0],
-                        'agent_id': item[1]}
+        notify_state = {'on_created': item['on_created'],
+                        'agent_id': item['agent_id']}
         notify_states.append(notify_state)
 
     return notify_states
@@ -315,13 +315,13 @@ def build_notify_text(session=None, timeline=None, state=None):
     # Check for exclusion tags
     if metadata['media_type'] == 'movie':
         # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile('<tv>[^>]+.</tv>|<music>[^>]+.</music>', re.IGNORECASE|re.DOTALL)
+        pattern = re.compile('\n*<tv>[^>]+.</tv>\n*|\n*<music>[^>]+.</music>\n*', re.IGNORECASE|re.DOTALL)
     elif metadata['media_type'] == 'show' or metadata['media_type'] == 'episode':
         # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile('<movie>[^>]+.</movie>|<music>[^>]+.</music>', re.IGNORECASE|re.DOTALL)
+        pattern = re.compile('\n*<movie>[^>]+.</movie>\n*|\n*?<music>[^>]+.</music>\n*', re.IGNORECASE|re.DOTALL)
     elif metadata['media_type'] == 'artist' or metadata['media_type'] == 'track':
         # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile('<tv>[^>]+.</tv>|<movie>[^>]+.</movie>', re.IGNORECASE|re.DOTALL)
+        pattern = re.compile('\n*<tv>[^>]+.</tv>\n*|\n*<movie>[^>]+.</movie>\n*', re.IGNORECASE|re.DOTALL)
     else:
         pattern = None
 

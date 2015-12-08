@@ -95,7 +95,7 @@ class Users(object):
                    "friendly_name": item['friendly_name'],
                    "ip_address": item['ip_address'],
                    "platform": platform,
-                   "player": item['player'],
+                   "player": item["player"],
                    "last_watched": item['last_watched'],
                    "thumb": thumb,
                    "media_type": item['media_type'],
@@ -265,17 +265,17 @@ class Users(object):
         if user_id:
             monitor_db = database.MonitorDatabase()
             query = 'select username, ' \
-                    '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END),' \
+                    '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END) as friendly_name,' \
                     'do_notify, keep_history, custom_avatar_url as thumb ' \
                     'FROM users WHERE user_id = ?'
             result = monitor_db.select(query, args=[user_id])
             if result:
                 user_detail = {'user_id': user_id,
-                               'user': result[0][0],
-                               'friendly_name': result[0][1],
-                               'thumb': result[0][4],
-                               'do_notify': helpers.checked(result[0][2]),
-                               'keep_history': helpers.checked(result[0][3])
+                               'user': result[0]['username'],
+                               'friendly_name': result[0]['friendly_name'],
+                               'thumb': result[0]['thumb'],
+                               'do_notify': helpers.checked(result[0]['do_notify']),
+                               'keep_history': helpers.checked(result[0]['keep_history'])
                                }
                 return user_detail
             else:
@@ -289,17 +289,17 @@ class Users(object):
         elif user:
             monitor_db = database.MonitorDatabase()
             query = 'select user_id, ' \
-                    '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END),' \
+                    '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END) as friendly_name,' \
                     'do_notify, keep_history, custom_avatar_url as thumb  ' \
                     'FROM users WHERE username = ?'
             result = monitor_db.select(query, args=[user])
             if result:
-                user_detail = {'user_id': result[0][0],
+                user_detail = {'user_id': result[0]['user_id'],
                                'user': user,
-                               'friendly_name': result[0][1],
-                               'thumb': result[0][4],
-                               'do_notify': helpers.checked(result[0][2]),
-                               'keep_history': helpers.checked(result[0][3])}
+                               'friendly_name': result[0]['friendly_name'],
+                               'thumb': result[0]['thumb'],
+                               'do_notify': helpers.checked(result[0]['do_notify']),
+                               'keep_history': helpers.checked(result[0]['keep_history'])}
                 return user_detail
             else:
                 user_detail = {'user_id': None,
@@ -319,7 +319,7 @@ class Users(object):
                 query = 'select user_id FROM users WHERE username = ?'
                 result = monitor_db.select_single(query, args=[user])
                 if result:
-                    return result
+                    return result['user_id']
                 else:
                     return None
             except:
@@ -486,9 +486,9 @@ class Users(object):
                 result = monitor_db.select(query, args=[user])
 
             for item in result:
-                if item[0]:
-                    total_time = item[0]
-                    total_plays = item[1]
+                if item['total_time']:
+                    total_time = item['total_time']
+                    total_plays = item['total_plays']
                 else:
                     total_time = 0
                     total_plays = 0
@@ -529,11 +529,11 @@ class Users(object):
 
         for item in result:
             # Rename Mystery platform names
-            platform_type = common.PLATFORM_NAME_OVERRIDES.get(item[2], item[2])
+            platform_type = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
-            row = {'player_name': item[0],
+            row = {'player_name': item['player'],
                    'platform_type': platform_type,
-                   'total_plays': item[1],
+                   'total_plays': item['player_count'],
                    'result_id': result_id
                    }
             player_stats.append(row)

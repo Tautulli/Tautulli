@@ -1,7 +1,4 @@
-﻿#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# This file is part of PlexPy.
+﻿# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users
+from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users, helpers
 from plexpy.helpers import checked, radio, profile_func, tobool
 
 from mako.lookup import TemplateLookup
@@ -44,7 +41,7 @@ def serve_template(templatename, **kwargs):
     interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
     template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE)
 
-    _hplookup = TemplateLookup(directories=[template_dir])
+    _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'])
 
     server_name = plexpy.CONFIG.PMS_NAME
 
@@ -448,6 +445,7 @@ class WebInterface(object):
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
             "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
             "notify_consecutive": checked(plexpy.CONFIG.NOTIFY_CONSECUTIVE),
+            "notify_recently_added": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED),
             "notify_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT),
             "notify_recently_added_delay": plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY,
             "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
@@ -494,7 +492,7 @@ class WebInterface(object):
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable", 
             "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", 
-            "notify_recently_added_grandparent", "monitor_remote_access"
+            "notify_recently_added", "notify_recently_added_grandparent", "monitor_remote_access"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -519,6 +517,14 @@ class WebInterface(object):
             if (kwargs['monitoring_interval'] != str(plexpy.CONFIG.MONITORING_INTERVAL)) or \
                     (kwargs['refresh_users_interval'] != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL)):
                 reschedule = True
+        
+        if 'notify_recently_added' in kwargs and \
+            (kwargs['notify_recently_added'] != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED):
+            reschedule = True
+
+        if 'monitor_remote_access' in kwargs and \
+            (kwargs['monitor_remote_access'] != plexpy.CONFIG.MONITOR_REMOTE_ACCESS):
+            reschedule = True
 
         if 'pms_ip' in kwargs:
             if kwargs['pms_ip'] != plexpy.CONFIG.PMS_IP:
@@ -729,6 +735,7 @@ class WebInterface(object):
                 if not session['ip_address']:
                     ip_address = data_factory.get_session_ip(session['session_key'])
                     session['ip_address'] = ip_address
+
         except:
             return serve_template(templatename="current_activity.html", data=None)
 

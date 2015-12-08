@@ -115,7 +115,7 @@ DOCUMENTATION :: END
                 success: function(data) {
                     $("#edit-user-status-message").html(data);
                     if ($.trim(friendly_name) !== '') {
-                        $(".set-username").html(friendly_name);
+                        $('.set-username').html(document.createTextNode(friendly_name));
                     }
                     $("#user-profile-thumb").attr('src', thumb);
                 }

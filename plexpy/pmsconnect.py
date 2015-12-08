@@ -711,6 +711,12 @@ class PmsConnect(object):
 
         Output: List for dicts
 
+        kwargs: Used for filtering inside the dicts. Adding type="movie" will only list movies
+
+
+        Output: List for dicts
+
+        # Adding all_params=1 Makes the call insane slow.
         """
         # Add a cache?
 
@@ -901,6 +907,15 @@ class PmsConnect(object):
                 t_result = [d for d in t_result if all(d.get(k, None) == maybe_number(kwargs[k]) for k in kwargs)]
            
         if use_watched_older_then_sort:
+            t_result = [i for i in t_result if not i['viewCount'] or i['lastViewedAt'] <= watched_older_then]
+
+        if sort:
+            logger.debug('Sorted on %s' % sort)
+            t_result = sorted(t_result, key=lambda k: k[sort], reverse=True) 
+
+        return t_result
+
+
             t_result = [i for i in t_result if not i['viewCount'] or i['lastViewedAt'] <= watched_older_then]
 
         if sort:

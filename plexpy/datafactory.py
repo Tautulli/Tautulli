@@ -28,7 +28,7 @@ class DataFactory(object):
 
     def get_history(self, kwargs=None, custom_where=None, grouping=0, watched_percent=85):
         data_tables = datatables.DataTables()
-        
+
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
         columns = ['session_history.reference_id',
@@ -37,8 +37,8 @@ class DataFactory(object):
                    'MIN(started) AS started',
                    'MAX(stopped) AS stopped',
                    'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - \
-		            SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration', 
-                   'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter', 
+		            SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration',
+                   'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter',
                    'session_history.user_id',
                    'session_history.user',
                    '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) as friendly_name',
@@ -88,7 +88,7 @@ class DataFactory(object):
                     'error': 'Unable to execute database query.'}
 
         history = query['result']
-        
+
         rows = []
         for item in history:
             if item["media_type"] == 'episode' and item["parent_thumb"]:
@@ -119,7 +119,7 @@ class DataFactory(object):
                    "user": item["user"],
                    "friendly_name": item["friendly_name"],
                    "platform": platform,
-                   "player": item["player"],
+                   "player": item['player'],
                    "ip_address": item["ip_address"],
                    "media_type": item["media_type"],
                    "rating_key": item["rating_key"],
@@ -140,7 +140,7 @@ class DataFactory(object):
                    }
 
             rows.append(row)
-        
+
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
                 'data': rows,
@@ -183,19 +183,19 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    row = {'title': item[1],
-                           'total_plays': item[2],
-                           'total_duration': item[3],
+                    row = {'title': item['grandparent_title'],
+                           'total_plays': item['total_plays'],
+                           'total_duration': item['total_duration'],
                            'users_watched': '',
-                           'rating_key': item[4],
-                           'last_play': item[5],
-                           'grandparent_thumb': item[6],
+                           'rating_key': item['grandparent_rating_key'],
+                           'last_play': item['last_watch'],
+                           'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
                            'platform': '',
-                           'row_id': item[0]
+                           'row_id': item['id']
                            }
                     top_tv.append(row)
 
@@ -231,18 +231,18 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    row = {'title': item[1],
-                           'users_watched': item[2],
-                           'rating_key': item[3],
-                           'last_play': item[4],
-                           'total_plays': item[5],
-                           'grandparent_thumb': item[7],
+                    row = {'title': item['grandparent_title'],
+                           'users_watched': item['users_watched'],
+                           'rating_key': item['grandparent_rating_key'],
+                           'last_play': item['last_watch'],
+                           'total_plays': item['total_plays'],
+                           'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
                            'platform': '',
-                           'row_id': item[0]
+                           'row_id': item['id']
                            }
                     popular_tv.append(row)
 
@@ -275,19 +275,19 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    row = {'title': item[1],
-                           'total_plays': item[2],
-                           'total_duration': item[3],
+                    row = {'title': item['full_title'],
+                           'total_plays': item['total_plays'],
+                           'total_duration': item['total_duration'],
                            'users_watched': '',
-                           'rating_key': item[4],
-                           'last_play': item[5],
+                           'rating_key': item['rating_key'],
+                           'last_play': item['last_watch'],
                            'grandparent_thumb': '',
-                           'thumb': item[6],
+                           'thumb': item['thumb'],
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
                            'platform': '',
-                           'row_id': item[0]
+                           'row_id': item['id']
                            }
                     top_movies.append(row)
 
@@ -323,18 +323,18 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    row = {'title': item[1],
-                           'users_watched': item[2],
-                           'rating_key': item[3],
-                           'last_play': item[4],
-                           'total_plays': item[5],
+                    row = {'title': item['full_title'],
+                           'users_watched': item['users_watched'],
+                           'rating_key': item['rating_key'],
+                           'last_play': item['last_watch'],
+                           'total_plays': item['total_plays'],
                            'grandparent_thumb': '',
-                           'thumb': item[7],
+                           'thumb': item['thumb'],
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
                            'platform': '',
-                           'row_id': item[0]
+                           'row_id': item['id']
                            }
                     popular_movies.append(row)
 
@@ -367,19 +367,19 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    row = {'title': item[1],
-                           'total_plays': item[2],
-                           'total_duration': item[3],
+                    row = {'title': item['grandparent_title'],
+                           'total_plays': item['total_plays'],
+                           'total_duration': item['total_duration'],
                            'users_watched': '',
-                           'rating_key': item[4],
-                           'last_play': item[5],
-                           'grandparent_thumb': item[6],
+                           'rating_key': item['grandparent_rating_key'],
+                           'last_play': item['last_watch'],
+                           'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
                            'platform': '',
-                           'row_id': item[0]
+                           'row_id': item['id']
                            }
                     top_music.append(row)
 
@@ -415,18 +415,18 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    row = {'title': item[1],
-                           'users_watched': item[2],
-                           'rating_key': item[3],
-                           'last_play': item[4],
-                           'total_plays': item[5],
-                           'grandparent_thumb': item[7],
+                    row = {'title': item['grandparent_title'],
+                           'users_watched': item['users_watched'],
+                           'rating_key': item['grandparent_rating_key'],
+                           'last_play': item['last_watch'],
+                           'total_plays': item['total_plays'],
+                           'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
                            'platform': '',
-                           'row_id': item[0]
+                           'row_id': item['id']
                            }
                     popular_music.append(row)
 
@@ -460,17 +460,17 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    if not item[5] or item[5] == '':
+                    if not item['thumb'] or item['thumb'] == '':
                         user_thumb = common.DEFAULT_USER_THUMB
                     else:
-                        user_thumb = item[5]
+                        user_thumb = item['thumb']
 
-                    row = {'user': item[0],
-                           'user_id': item[6],
-                           'friendly_name': item[1],
-                           'total_plays': item[2],
-                           'total_duration': item[3],
-                           'last_play': item[4],
+                    row = {'user': item['user'],
+                           'user_id': item['user_id'],
+                           'friendly_name': item['friendly_name'],
+                           'total_plays': item['total_plays'],
+                           'total_duration': item['total_duration'],
+                           'last_play': item['last_watch'],
                            'user_thumb': user_thumb,
                            'grandparent_thumb': '',
                            'users_watched': '',
@@ -509,12 +509,12 @@ class DataFactory(object):
 
                 for item in result:
                     # Rename Mystery platform names
-                    platform_type = common.PLATFORM_NAME_OVERRIDES.get(item[0], item[0])
+                    platform_type = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
-                    row = {'platform': item[0],
-                           'total_plays': item[1],
-                           'total_duration': item[2],
-                           'last_play': item[3],
+                    row = {'platform': item['platform'],
+                           'total_plays': item['total_plays'],
+                           'total_duration': item['total_duration'],
+                           'last_play': item['last_watch'],
                            'platform_type': platform_type,
                            'title': '',
                            'thumb': '',
@@ -545,7 +545,7 @@ class DataFactory(object):
                             'session_history_metadata.thumb, ' \
                             'session_history_metadata.grandparent_thumb, ' \
                             'MAX(session_history.started) as last_watch, ' \
-                            'session_history.player as platform, ' \
+                            'session_history.player, ' \
                             '((CASE WHEN session_history.view_offset IS NULL THEN 0.1 ELSE \
                              session_history.view_offset * 1.0 END) / \
                              (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 ELSE \
@@ -567,22 +567,22 @@ class DataFactory(object):
                     return None
 
                 for item in result:
-                    if not item[8] or item[8] == '':
-                        thumb = item[7]
+                    if not item['grandparent_thumb'] or item['grandparent_thumb'] == '':
+                        thumb = item['thumb']
                     else:
-                        thumb = item[8]
+                        thumb = item['grandparent_thumb']
 
-                    row = {'row_id': item[0],
-                           'user': item[1],
-                           'friendly_name': item[2],
-                           'user_id': item[3],
-                           'user_thumb': item[4],
-                           'title': item[5],
-                           'rating_key': item[6],
+                    row = {'row_id': item['id'],
+                           'user': item['user'],
+                           'friendly_name': item['friendly_name'],
+                           'user_id': item['user_id'],
+                           'user_thumb': item['user_thumb'],
+                           'title': item['full_title'],
+                           'rating_key': item['rating_key'],
                            'thumb': thumb,
-                           'grandparent_thumb': item[8],
-                           'last_watch': item[9],
-                           'platform_type': item[10],
+                           'grandparent_thumb': item['grandparent_thumb'],
+                           'last_watch': item['last_watch'],
+                           'player': item['player']
                            }
                     last_watched.append(row)
 
@@ -609,26 +609,26 @@ class DataFactory(object):
         stream_output = {}
 
         for item in result:
-            stream_output = {'container': item[0],
-                             'bitrate': item[1],
-                             'video_resolution': item[2],
-                             'width': item[3],
-                             'height': item[4],
-                             'aspect_ratio': item[5],
-                             'video_framerate': item[6],
-                             'video_codec': item[7],
-                             'audio_codec': item[8],
-                             'audio_channels': item[9],
-                             'transcode_video_dec': item[10],
-                             'transcode_video_codec': item[11],
-                             'transcode_height': item[12],
-                             'transcode_width': item[13],
-                             'transcode_audio_dec': item[14],
-                             'transcode_audio_codec': item[15],
-                             'transcode_audio_channels': item[16],
-                             'media_type': item[17],
-                             'title': item[18],
-                             'grandparent_title': item[19]
+            stream_output = {'container': item['container'],
+                             'bitrate': item['bitrate'],
+                             'video_resolution': item['video_resolution'],
+                             'width': item['width'],
+                             'height': item['height'],
+                             'aspect_ratio': item['aspect_ratio'],
+                             'video_framerate': item['video_framerate'],
+                             'video_codec': item['video_codec'],
+                             'audio_codec': item['audio_codec'],
+                             'audio_channels': item['audio_channels'],
+                             'transcode_video_dec': item['video_decision'],
+                             'transcode_video_codec': item['transcode_video_codec'],
+                             'transcode_height': item['transcode_height'],
+                             'transcode_width': item['transcode_width'],
+                             'transcode_audio_dec': item['audio_decision'],
+                             'transcode_audio_codec': item['transcode_audio_codec'],
+                             'transcode_audio_channels': item['transcode_audio_channels'],
+                             'media_type': item['media_type'],
+                             'title': item['title'],
+                             'grandparent_title': item['grandparent_title']
                              }
 
         return stream_output
@@ -678,25 +678,25 @@ class DataFactory(object):
             return None
 
         for row in result:
-                if row[1] == 'episode' and row[8]:
-                    thumb = row[8]
-                elif row[1] == 'episode':
-                    thumb = row[9]
+                if row['media_type'] == 'episode' and row['parent_thumb']:
+                    thumb = row['parent_thumb']
+                elif row['media_type'] == 'episode':
+                    thumb = row['grandparent_thumb']
                 else:
-                    thumb = row[7]
+                    thumb = row['thumb']
 
-                recent_output = {'row_id': row[0],
-                                 'type': row[1],
-                                 'rating_key': row[2],
-                                 'title': row[4],
-                                 'parent_title': row[5],
-                                 'grandparent_title': row[6],
+                recent_output = {'row_id': row['id'],
+                                 'type': row['media_type'],
+                                 'rating_key': row['rating_key'],
+                                 'title': row['title'],
+                                 'parent_title': row['parent_title'],
+                                 'grandparent_title': row['grandparent_title'],
                                  'thumb': thumb,
-                                 'index': row[10],
-                                 'parent_index': row[11],
-                                 'year': row[12],
-                                 'time': row[13],
-                                 'user': row[14]
+                                 'index': row['media_index'],
+                                 'parent_index': row['parent_media_index'],
+                                 'year': row['year'],
+                                 'time': row['started'],
+                                 'user': row['user']
                                  }
                 recently_watched.append(recent_output)
 
@@ -962,7 +962,7 @@ class DataFactory(object):
                                  })
 
         key_list = grandparents
-        
+
         return key_list
 
     def update_rating_key(self, old_key_list='', new_key_list='', media_type=''):
@@ -984,48 +984,48 @@ class DataFactory(object):
         mapping = {}
         if old_key_list and new_key_list:
             mapping = get_pairs(old_key_list, new_key_list)
-        
+
         if mapping:
             logger.info(u"PlexPy DataFactory :: Updating rating keys in the database.")
             for old_key, new_key in mapping.iteritems():
                 # check rating_key (3 tables)
-                monitor_db.action('UPDATE session_history SET rating_key = ? WHERE rating_key = ?', 
+                monitor_db.action('UPDATE session_history SET rating_key = ? WHERE rating_key = ?',
                                   [new_key, old_key])
-                monitor_db.action('UPDATE session_history_media_info SET rating_key = ? WHERE rating_key = ?', 
+                monitor_db.action('UPDATE session_history_media_info SET rating_key = ? WHERE rating_key = ?',
                                   [new_key, old_key])
-                monitor_db.action('UPDATE session_history_metadata SET rating_key = ? WHERE rating_key = ?', 
+                monitor_db.action('UPDATE session_history_metadata SET rating_key = ? WHERE rating_key = ?',
                                   [new_key, old_key])
 
                 # check parent_rating_key (2 tables)
-                monitor_db.action('UPDATE session_history SET parent_rating_key = ? WHERE parent_rating_key = ?', 
+                monitor_db.action('UPDATE session_history SET parent_rating_key = ? WHERE parent_rating_key = ?',
                                   [new_key, old_key])
-                monitor_db.action('UPDATE session_history_metadata SET parent_rating_key = ? WHERE parent_rating_key = ?', 
+                monitor_db.action('UPDATE session_history_metadata SET parent_rating_key = ? WHERE parent_rating_key = ?',
                                   [new_key, old_key])
 
                 # check grandparent_rating_key (2 tables)
-                monitor_db.action('UPDATE session_history SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', 
+                monitor_db.action('UPDATE session_history SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?',
                                   [new_key, old_key])
-                monitor_db.action('UPDATE session_history_metadata SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', 
+                monitor_db.action('UPDATE session_history_metadata SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?',
                                   [new_key, old_key])
 
                 # check thumb (1 table)
                 monitor_db.action('UPDATE session_history_metadata SET thumb = replace(thumb, ?, ?) \
-                                  WHERE thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                                  WHERE thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key,
                                   [old_key, new_key])
 
                 # check parent_thumb (1 table)
                 monitor_db.action('UPDATE session_history_metadata SET parent_thumb = replace(parent_thumb, ?, ?) \
-                                  WHERE parent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                                  WHERE parent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key,
                                   [old_key, new_key])
 
                 # check grandparent_thumb (1 table)
                 monitor_db.action('UPDATE session_history_metadata SET grandparent_thumb = replace(grandparent_thumb, ?, ?) \
-                                  WHERE grandparent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key, 
+                                  WHERE grandparent_thumb LIKE "/library/metadata/%s/thumb/%%"' % old_key,
                                   [old_key, new_key])
 
                 # check art (1 table)
                 monitor_db.action('UPDATE session_history_metadata SET art = replace(art, ?, ?) \
-                                  WHERE art LIKE "/library/metadata/%s/art/%%"' % old_key, 
+                                  WHERE art LIKE "/library/metadata/%s/art/%%"' % old_key,
                                   [old_key, new_key])
 
             return 'Updated rating key in database.'
@@ -1046,6 +1046,6 @@ class DataFactory(object):
         ip_address = 'N/A'
 
         for item in result:
-            ip_address = item[0]
+            ip_address = item['ip_address']
 
         return ip_address
