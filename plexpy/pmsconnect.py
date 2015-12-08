@@ -916,15 +916,6 @@ class PmsConnect(object):
         return t_result
 
 
-            t_result = [i for i in t_result if not i['viewCount'] or i['lastViewedAt'] <= watched_older_then]
-
-        if sort:
-            logger.debug('Sorted on %s' % sort)
-            t_result = sorted(t_result, key=lambda k: k[sort], reverse=True) 
-
-        return t_result
-
-
     def get_current_activity(self):
         session_data = self.get_sessions(output_format='xml')
 
