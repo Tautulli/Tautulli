@@ -26,8 +26,7 @@ class Users(object):
 
         custom_where = ['users.deleted_user', 0]
 
-        columns = ['session_history.id',
-                   'users.user_id as user_id',
+        columns = ['users.user_id as user_id',
                    'users.custom_avatar_url as user_thumb',
                    '(case when users.friendly_name is null then users.username else \
                     users.friendly_name end) as friendly_name',
@@ -74,12 +73,12 @@ class Users(object):
 
         rows = []
         for item in users:
-            if item["media_type"] == 'episode' and item["parent_thumb"]:
-                thumb = item["parent_thumb"]
-            elif item["media_type"] == 'episode':
-                thumb = item["grandparent_thumb"]
+            if item['media_type'] == 'episode' and item['parent_thumb']:
+                thumb = item['parent_thumb']
+            elif item['media_type'] == 'episode':
+                thumb = item['grandparent_thumb']
             else:
-                thumb = item["thumb"]
+                thumb = item['thumb']
 
             if not item['user_thumb'] or item['user_thumb'] == '':
                 user_thumb = common.DEFAULT_USER_THUMB
@@ -87,25 +86,24 @@ class Users(object):
                 user_thumb = item['user_thumb']
 
             # Rename Mystery platform names
-            platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
+            platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
-            row = {"id": item['id'],
-                   "plays": item['plays'],
-                   "last_seen": item['last_seen'],
-                   "friendly_name": item['friendly_name'],
-                   "ip_address": item['ip_address'],
-                   "platform": platform,
-                   "player": item["player"],
-                   "last_watched": item['last_watched'],
-                   "thumb": thumb,
-                   "media_type": item['media_type'],
-                   "rating_key": item['rating_key'],
-                   "video_decision": item['video_decision'],
-                   "user_thumb": user_thumb,
-                   "user": item["user"],
-                   "user_id": item['user_id'],
-                   "do_notify": helpers.checked(item['do_notify']),
-                   "keep_history": helpers.checked(item['keep_history'])
+            row = {'plays': item['plays'],
+                   'last_seen': item['last_seen'],
+                   'friendly_name': item['friendly_name'],
+                   'ip_address': item['ip_address'],
+                   'platform': platform,
+                   'player': item['player'],
+                   'last_watched': item['last_watched'],
+                   'thumb': thumb,
+                   'media_type': item['media_type'],
+                   'rating_key': item['rating_key'],
+                   'video_decision': item['video_decision'],
+                   'user_thumb': user_thumb,
+                   'user': item['user'],
+                   'user_id': item['user_id'],
+                   'do_notify': helpers.checked(item['do_notify']),
+                   'keep_history': helpers.checked(item['keep_history'])
                    }
 
             rows.append(row)
