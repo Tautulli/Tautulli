@@ -13,11 +13,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import urllib2
+import time
+import concurrent.futures as cf
+from requests_futures.sessions import FuturesSession
+
 from plexpy import logger, helpers, users, http_handler, common
 from urlparse import urlparse
+from request import request_json
 
 import plexpy
-import urllib2
 
 def get_server_friendly_name():
     logger.info("Requesting name from server...")
@@ -692,11 +697,229 @@ class PmsConnect(object):
         output = {'metadata': metadata_list}
         return output
 
-    """
-    Return processed and validated session list.
 
-    Output: array
-    """
+    def get_watched_status(self, sort=None, sections='all', all_params=False, get_file_size=True, 
+                           exclude_path=None, watched_older_then=None, hide_watched=0, ignore_section='',
+                           *args, **kwargs):
+
+        """
+        Returns a list of all unwatched shows
+
+        named args: Used for enabled and disabling sorting/filtering
+        kwargs: Used for filtering inside the dicts. Adding type="movie" will only list movies
+
+
+        Output: List for dicts
+
+        # Adding all_params=1 Makes the call insane slow.
+        """
+        # Add a cache?
+
+        use_watched_older_then_sort = True
+        if watched_older_then is None:
+            use_watched_older_then_sort = False
+            watched_older_then = time.time()
+        else:
+            watched_older_then = int(watched_older_then)
+
+        if plexpy.CONFIG.PMS_URL:
+            url_parsed = urlparse(plexpy.CONFIG.PMS_URL)
+            hostname = url_parsed.hostname
+            port = url_parsed.port
+            self.protocol = url_parsed.scheme
+        else:
+            hostname = plexpy.CONFIG.PMS_IP
+            port = plexpy.CONFIG.PMS_PORT
+            self.protocol = 'http'
+
+        b_url = '%s://%s:%s' % (self.protocol, hostname, port) 
+
+        h = {'Accept': 'application/json',
+             'X-Plex-Token': plexpy.CONFIG.PMS_TOKEN
+            }
+
+        hide_watched = 'unwatched' if hide_watched else 'all'
+
+        def fetch(s=''):
+            result = request_json(b_url + s, headers=h)
+            if result:
+                return result
+
+        def maybe_number(v):
+            try:
+                v = int(v)
+            except:
+                try:
+                    v = float(v)
+                except:
+                    pass
+            return v
+
+        result = fetch('/library/sections/all').get('_children')
+
+        # Final results for data grab
+        f_result = []
+
+        # List of items and urls passed to req.f
+        files_urls = []
+
+        # dicts from req.f is stored here
+        futures_results = []
+
+        # Start fetching data
+        if result:
+            for sections in result:
+                if ignore_section != sections['title']:
+                    section = fetch('/library/sections/%s/%s' % (sections['key'], hide_watched))
+                    for item in section['_children']:
+                        
+                        d = {'title': item.get('title'),
+                            'type': item['type'],
+                            'ratingKey': item['ratingKey'],
+                            'updatedAt': item.get('updatedAt', 0),
+                            'addedAt': item.get('addedAt', 0),
+                            'viewCount': item.get('viewCount', 0),
+                            'files': [],
+                            'lastViewedAt': item.get('lastViewedAt', 0),
+                            'viewOffset': item.get('viewOffset', 0),
+                            'spaceUsed': 0, # custom 
+                            'isSeen': 0, # custom
+                            '_elementType': item['_elementType']
+                        }
+
+                        # Only movies has the files listed here
+                        if item['_elementType'] == 'Video':
+                            d['viewCount'] = item.get('viewCount', 0)
+                            if item.get('viewCount', 0) > 0:
+                                d['isSeen'] = 1
+
+
+                            # grab the file names and size
+                            if '_children' in item:
+                                for c in item['_children']:
+                                    if '_children' in c:
+                                        for part in c['_children']:
+                                            f = part.get('file')
+                                            s = part.get('size', 0)
+                                            d['spaceUsed'] += s
+                                            if f and s:
+                                                d['files'].append({'size': s, 'file': f})
+
+                            f_result.append(d)
+
+
+                        #elif item['_elementType'] == 'Track':
+                        #    # I dont think it returns a "Track" as all
+                        #    pass
+
+                        elif item['_elementType'] == 'Directory':
+
+                            if item['type'] == 'show' or item['type'] == 'artist':
+                                d['viewedLeafCount'] = item.get('viewedLeafCount', 0)
+                                d['leafCount'] = item.get('leafCount', 0)
+                                d['_elementType'] =  item['_elementType']
+                                if item['type'] == 'show':
+                                    # We are gonna assume a entire show is watched
+                                    # Might be false it someone watched the same ep 
+                                    # over and over
+                                    if d['viewedLeafCount'] >= d['leafCount'] and d['viewedLeafCount'] > 0:
+                                        d['viewCount'] = item['viewedLeafCount'] # only set to easy filter
+                                        d['isSeen'] = 1
+
+                                elif item['type'] == 'artist':
+                                    d['isSeen'] = 1 if d['viewCount'] > 0 else 0
+
+                                if get_file_size: # Runs faster without
+                                    files_urls.append((item, b_url + '/library/metadata/' + str(item['ratingKey']) + '/allLeaves'))
+                                else:
+                                    f_result.append(d)
+                                                    
+                            #elif item['type'] == 'artist':
+                            #    pass # Handled above left for future stuff
+                        
+
+        t_result = f_result
+
+        if get_file_size:
+            future_sess = FuturesSession(max_workers=8)
+            futs = {} # Future holder
+            for zomg in files_urls:
+                t = future_sess.get(zomg[1], timeout=5, headers=h)
+                futs[t] = zomg[0]
+            
+            for fut_obj in cf.as_completed(futs):
+                try:
+                    res = fut_obj.result()
+                    jsn = res.json()
+                    f_item = futs[fut_obj]
+                    # Add the same dict as movies..
+                    d = {'title': f_item.get('title'),
+                         'type': f_item['type'],
+                         'ratingKey': f_item['ratingKey'],
+                         'updatedAt': f_item.get('updatedAt', 0),
+                         'addedAt': f_item.get('addedAt', 0),
+                         'viewCount': f_item.get('viewCount', 0),
+                         'files': [],
+                         'lastViewedAt': f_item.get('lastViewedAt', 0),
+                         'viewOffset': f_item.get('viewOffset', 0),
+                         'spaceUsed': 0, # custom
+                         'isSeen': 0, # custom
+                    }
+                    if f_item['_elementType'] == 'Directory':
+                        if f_item['type'] in ['show', 'artist']:
+                            if f_item['type'] == 'show':
+                                # We are gonna assume the user has watched if
+                                d['isSeen'] = 1 if f_item['leafCount'] >= f_item['viewedLeafCount'] and f_item['viewedLeafCount'] > 0 else 0
+                                d['viewCount'] = f_item['viewedLeafCount']
+                            elif f_item['type'] == 'artist':
+                                d['isSeen'] = 1 if d['viewCount'] > 0 else 0
+                            if '_children' in jsn:
+                                for e in jsn['_children']:
+                                    if '_children' in e:
+                                        for c in e['_children']:
+                                            if '_children' in c:
+                                                for cc in c['_children']:
+                                                    f = cc.get('file')
+                                                    s = cc.get('size', 0)
+                                                    d['spaceUsed'] += s
+                                                    if f and s:
+                                                        d['files'].append({'size': s, 'file': f})
+                    futures_results.append(d)
+
+                except Exception as error:
+                       logger.error('Error while trying to get/process a future %s' % error)
+
+
+            t_result = t_result + futures_results
+
+        # If any user given kwargs was given filter on them.
+        if kwargs:
+            logger.debug('kwargs was given %s filtering the dicts based on them' % kwargs)
+            if not all_params:
+                t_result = [d for d in t_result for k,v in kwargs.iteritems() if d.get(k) == maybe_number(kwargs.get(k))]
+            else:
+                logger.debug('All kwargs is required to be in the list')
+                all_params_result = []
+
+                # Please fix, i would like to do this 
+                # faster but i don't know how to..
+                for item in t_result:
+                    if all([item.get(k) == maybe_number(kwargs.get(k)) for k,v in kwargs.iteritems() for i in t_result]):
+                        all_params_result.append(item)
+
+                if all_params_result:
+                    t_result = all_params_result
+
+        if use_watched_older_then_sort:
+            t_result = [i for i in t_result if not i['viewCount'] or i['lastViewedAt'] <= watched_older_then]
+
+        if sort:
+            logger.debug('Sorted on %s' % sort)
+            t_result = sorted(t_result, key=lambda k: k[sort], reverse=True) 
+
+        return t_result
+
+
     def get_current_activity(self):
         session_data = self.get_sessions(output_format='xml')
 
