@@ -706,12 +706,11 @@ class PmsConnect(object):
         Returns a list of all unwatched shows
 
         named args: Used for enabled and disabling sorting/filtering
-        kwargs: Used for filtering inside the dicts. Adding type="movie" will only list movies
+        kwargs: Used for filtering inside the dicts. Adding type="movie" will only returns movies
 
 
         Output: List for dicts
 
-        # Adding all_params=1 Makes the call insane slow.
         """
         # Add a cache?
 
@@ -896,20 +895,11 @@ class PmsConnect(object):
         if kwargs:
             logger.debug('kwargs was given %s filtering the dicts based on them' % kwargs)
             if not all_params:
-                t_result = [d for d in t_result for k,v in kwargs.iteritems() if d.get(k) == maybe_number(kwargs.get(k))]
+                t_result = [d for d in t_result if any(d.get(k) == maybe_number(kwargs[k]) for k in kwargs)]
             else:
                 logger.debug('All kwargs is required to be in the list')
-                all_params_result = []
-
-                # Please fix, i would like to do this 
-                # faster but i don't know how to..
-                for item in t_result:
-                    if all([item.get(k) == maybe_number(kwargs.get(k)) for k,v in kwargs.iteritems() for i in t_result]):
-                        all_params_result.append(item)
-
-                if all_params_result:
-                    t_result = all_params_result
-
+                t_result = [d for d in t_result if all(d.get(k, None) == maybe_number(kwargs[k]) for k in kwargs)]
+           
         if use_watched_older_then_sort:
             t_result = [i for i in t_result if not i['viewCount'] or i['lastViewedAt'] <= watched_older_then]
 
