@@ -13,7 +13,7 @@ dependencies:
 
 test:
   override:
-    - docker run -d -p 8989:8989 lngarrett/plexpy
+    - docker run -d -p 8181:8181 lngarrett/plexpy
     - sleep 60
     - curl http://localhost:8181
     
