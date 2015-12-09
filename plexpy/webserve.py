@@ -14,7 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users, helpers
-from plexpy.helpers import checked, radio
+from plexpy.helpers import checked, radio, profile_func, tobool
 
 from mako.lookup import TemplateLookup
 from mako import exceptions
@@ -922,6 +922,20 @@ class WebInterface(object):
             return result
         else:
             logger.warn('Unable to retrieve data.')
+
+    @profile_func
+    @cherrypy.tools.json_out()
+    @cherrypy.expose
+    def get_watched(self, sort=None, sections='all', all_params=False,
+                    get_file_size=True, exclude_path=None, watched_older_then=None,
+                    hide_watched=0, ignore_section='', **kwargs):
+        """ See get_watched_status for docs"""
+        all_params = tobool(all_params)
+        get_file_size = tobool(get_file_size)
+        hide_watched = tobool(hide_watched)
+        pms_connect = pmsconnect.PmsConnect()
+        t = pms_connect.get_watched_status(sort=sort, sections=sections, all_params=all_params, get_file_size=get_file_size, exclude_path=exclude_path, hide_watched=hide_watched, watched_older_then=None, ignore_section=ignore_section, **kwargs)
+        return t 
 
     @cherrypy.expose
     def get_episode_list_json(self, rating_key='', **kwargs):
