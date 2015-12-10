@@ -15,11 +15,15 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data != None:
-% if data == '0':
-<h3>Activity</h3>
+	% if data == '0':
+	<h3>no Activity</h3>
+	% else:
+		% if data == '1':
+		<h3>Activity <small>${data} stream</small></h3>
+		% else:
+		<h3>Activity <small>${data} streams</small></h3>
+		% endif
+	% endif
 % else:
-<h3>Activity <small>${data} stream(s)</small></h3>
-% endif
-% else:
-<h3>Activity</h3>
+<h3>no Activity</h3>
 % endif
