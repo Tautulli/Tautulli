@@ -2489,12 +2489,12 @@ table[id^='history_child'] thead th {
     overflow: hidden;
 }
 #search_form {
-    width: 350px;
+    width: 300px;
     padding: 8px 15px;
 }
 #search_form span.input-textbox {
     overflow: hidden;
-    width: 250px;
+    width: 200px;
     height: 34px;
     display: inline-flex;
     float: right;
@@ -2505,11 +2505,11 @@ table[id^='history_child'] thead th {
     margin-top: 0;
     float: right;
     position: relative;
-    right: -250px;
+    right: -200px;
     border-radius: 3px 0 0 3px;
 }
 #search_form #query.active {
-    width: 250px;
+    width: 200px;
     right: 0px;
 }
 #search_form #search_button.btn-inactive {
