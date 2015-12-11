@@ -385,9 +385,6 @@ class GROWL(object):
         self.enabled = plexpy.CONFIG.GROWL_ENABLED
         self.host = plexpy.CONFIG.GROWL_HOST
         self.password = plexpy.CONFIG.GROWL_PASSWORD
-        self.on_play = plexpy.CONFIG.GROWL_ON_PLAY
-        self.on_stop = plexpy.CONFIG.GROWL_ON_STOP
-        self.on_watched = plexpy.CONFIG.GROWL_ON_WATCHED
 
     def conf(self, options):
         return cherrypy.config['config'].get('Growl', options)
@@ -490,9 +487,6 @@ class PROWL(object):
         self.enabled = plexpy.CONFIG.PROWL_ENABLED
         self.keys = plexpy.CONFIG.PROWL_KEYS
         self.priority = plexpy.CONFIG.PROWL_PRIORITY
-        self.on_play = plexpy.CONFIG.PROWL_ON_PLAY
-        self.on_stop = plexpy.CONFIG.PROWL_ON_STOP
-        self.on_watched = plexpy.CONFIG.PROWL_ON_WATCHED
 
     def conf(self, options):
         return cherrypy.config['config'].get('Prowl', options)
@@ -565,9 +559,6 @@ class XBMC(object):
         self.hosts = plexpy.CONFIG.XBMC_HOST
         self.username = plexpy.CONFIG.XBMC_USERNAME
         self.password = plexpy.CONFIG.XBMC_PASSWORD
-        self.on_play = plexpy.CONFIG.XBMC_ON_PLAY
-        self.on_stop = plexpy.CONFIG.XBMC_ON_STOP
-        self.on_watched = plexpy.CONFIG.XBMC_ON_WATCHED
 
     def _sendhttp(self, host, command):
         url_command = urllib.urlencode(command)
@@ -648,9 +639,6 @@ class Plex(object):
         self.client_hosts = plexpy.CONFIG.PLEX_CLIENT_HOST
         self.username = plexpy.CONFIG.PLEX_USERNAME
         self.password = plexpy.CONFIG.PLEX_PASSWORD
-        self.on_play = plexpy.CONFIG.PLEX_ON_PLAY
-        self.on_stop = plexpy.CONFIG.PLEX_ON_STOP
-        self.on_watched = plexpy.CONFIG.PLEX_ON_WATCHED
 
     def _sendhttp(self, host, command):
 
@@ -728,9 +716,6 @@ class NMA(object):
     def __init__(self):
         self.api = plexpy.CONFIG.NMA_APIKEY
         self.nma_priority = plexpy.CONFIG.NMA_PRIORITY
-        self.on_play = plexpy.CONFIG.NMA_ON_PLAY
-        self.on_stop = plexpy.CONFIG.NMA_ON_STOP
-        self.on_watched = plexpy.CONFIG.NMA_ON_WATCHED
 
     def notify(self, subject=None, message=None):
         if not subject or not message:
@@ -790,9 +775,6 @@ class PUSHBULLET(object):
         self.apikey = plexpy.CONFIG.PUSHBULLET_APIKEY
         self.deviceid = plexpy.CONFIG.PUSHBULLET_DEVICEID
         self.channel_tag = plexpy.CONFIG.PUSHBULLET_CHANNEL_TAG
-        self.on_play = plexpy.CONFIG.PUSHBULLET_ON_PLAY
-        self.on_stop = plexpy.CONFIG.PUSHBULLET_ON_STOP
-        self.on_watched = plexpy.CONFIG.PUSHBULLET_ON_WATCHED
 
     def conf(self, options):
         return cherrypy.config['config'].get('PUSHBULLET', options)
@@ -869,9 +851,6 @@ class PUSHALOT(object):
 
     def __init__(self):
         self.api_key = plexpy.CONFIG.PUSHALOT_APIKEY
-        self.on_play = plexpy.CONFIG.PUSHALOT_ON_PLAY
-        self.on_stop = plexpy.CONFIG.PUSHALOT_ON_STOP
-        self.on_watched = plexpy.CONFIG.PUSHALOT_ON_WATCHED
 
     def notify(self, message, event):
         if not message or not event:
@@ -928,9 +907,6 @@ class PUSHOVER(object):
         self.keys = plexpy.CONFIG.PUSHOVER_KEYS
         self.priority = plexpy.CONFIG.PUSHOVER_PRIORITY
         self.sound = plexpy.CONFIG.PUSHOVER_SOUND
-        self.on_play = plexpy.CONFIG.PUSHOVER_ON_PLAY
-        self.on_stop = plexpy.CONFIG.PUSHOVER_ON_STOP
-        self.on_watched = plexpy.CONFIG.PUSHOVER_ON_WATCHED
 
         if plexpy.CONFIG.PUSHOVER_APITOKEN:
             self.application_token = plexpy.CONFIG.PUSHOVER_APITOKEN
@@ -1158,9 +1134,6 @@ class TwitterNotifier(object):
 class OSX_NOTIFY(object):
 
     def __init__(self):
-        self.on_play = plexpy.CONFIG.OSX_NOTIFY_ON_PLAY
-        self.on_stop = plexpy.CONFIG.OSX_NOTIFY_ON_STOP
-        self.on_watched = plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED
         try:
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
@@ -1247,9 +1220,6 @@ class BOXCAR(object):
         self.url = 'https://new.boxcar.io/api/notifications'
         self.token = plexpy.CONFIG.BOXCAR_TOKEN
         self.sound = plexpy.CONFIG.BOXCAR_SOUND
-        self.on_play = plexpy.CONFIG.BOXCAR_ON_PLAY
-        self.on_stop = plexpy.CONFIG.BOXCAR_ON_STOP
-        self.on_watched = plexpy.CONFIG.BOXCAR_ON_WATCHED
 
     def notify(self, title, message):
         if not title or not message:
@@ -1322,9 +1292,7 @@ class BOXCAR(object):
 class Email(object):
 
     def __init__(self):
-        self.on_play = plexpy.CONFIG.EMAIL_ON_PLAY
-        self.on_stop = plexpy.CONFIG.EMAIL_ON_STOP
-        self.on_watched = plexpy.CONFIG.EMAIL_ON_WATCHED
+        pass
 
     def notify(self, subject, message):
         if not subject or not message:
