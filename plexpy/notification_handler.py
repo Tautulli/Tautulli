@@ -408,6 +408,20 @@ def build_notify_text(session=None, timeline=None, state=None):
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
+    # Fix metadata params for notify recently added grandparent
+    if plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
+        show_name = metadata['title']
+        episode_name = ''
+        artist_name = metadata['title']
+        album_name = ''
+        track_name = ''
+    else:
+        show_name = metadata['grandparent_title']
+        episode_name = metadata['title']
+        artist_name = metadata['grandparent_title']
+        album_name = metadata['parent_title']
+        track_name = metadata['title']
+    
     available_params = {'server_name': server_name,
                         'server_uptime': server_uptime,
                         'user': user,
@@ -416,11 +430,11 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'ip_address': ip_address,
                         'media_type': metadata['media_type'],
                         'title': full_title,
-                        'show_name': metadata['grandparent_title'],
-                        'episode_name': metadata['title'],
-                        'artist_name': metadata['grandparent_title'],
-                        'album_name': metadata['parent_title'],
-                        'track_name': metadata['title'],
+                        'show_name': show_name,
+                        'episode_name': episode_name,
+                        'artist_name': artist_name,
+                        'album_name': album_name,
+                        'track_name': track_name,
                         'season_num': metadata['parent_index'].zfill(1),
                         'season_num00': metadata['parent_index'].zfill(2),
                         'episode_num': metadata['index'].zfill(1),
