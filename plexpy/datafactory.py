@@ -589,6 +589,38 @@ class DataFactory(object):
                 home_stats.append({'stat_id': stat,
                                    'rows': last_watched})
 
+            elif stat == 'most_concurrent':
+                try:
+                    query = 'SELECT started, stopped ' \
+                            'FROM session_history '
+                    result = monitor_db.select(query)
+                except:
+                    logger.warn("Unable to execute database query for get_home_stats: most_concurrent.")
+                    return None
+
+                times = {}
+                for item in result:
+                    times.update({str(item['stopped']) + 'A': -1, str(item['started']) + 'B': 1})
+
+                count = 0
+                last_start = 0
+                most_concurrent = {'count': count}
+
+                for key in sorted(times):
+                    if times[key] == 1:
+                        count += times[key]
+                        if count >= most_concurrent['count']:
+                            last_start = key
+                    else:
+                        if count >= most_concurrent['count']:
+                            most_concurrent = {'count': count,
+                                               'started': last_start[:-1],
+                                               'stopped': key[:-1]}
+                        count += times[key]
+
+                home_stats.append({'stat_id': stat,
+                                   'rows': [most_concurrent]})
+
         return home_stats
 
     def get_stream_details(self, row_id=None):

@@ -98,7 +98,8 @@ _CONFIG_DEFINITIONS = {
     'HOME_STATS_LENGTH': (int, 'General', 30),
     'HOME_STATS_TYPE': (int, 'General', 0),
     'HOME_STATS_COUNT': (int, 'General', 5),
-    'HOME_STATS_CARDS': (str, 'General', 'watch_statistics, top_tv, popular_tv, top_movies, popular_movies, top_music, popular_music, top_users, top_platforms, last_watched'),
+    'HOME_STATS_CARDS': (str, 'General', 'watch_statistics, top_tv, popular_tv, top_movies, popular_movies, ' \
+        'top_music, popular_music, last_watched, top_users, top_platforms, most_concurrent'),
     'HTTPS_CERT': (str, 'General', ''),
     'HTTPS_KEY': (str, 'General', ''),
     'HTTP_HOST': (str, 'General', '0.0.0.0'),
