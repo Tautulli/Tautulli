@@ -824,6 +824,31 @@ class PUSHBULLET(object):
 
         self.notify('Main Screen Activate', 'Test Message')
 
+    def get_devices(self):
+        if plexpy.CONFIG.PUSHBULLET_APIKEY:
+            http_handler = HTTPSConnection("api.pushbullet.com")
+            http_handler.request("GET", "/v2/devices",
+                                    headers={'Content-type': "application/json",
+                                             'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")})
+            response = http_handler.getresponse()
+            request_status = response.status
+        
+            if request_status == 200:
+                data = json.loads(response.read())
+                devices = data.get('devices', [])
+                devices = {d['iden']: d['nickname'] for d in devices if d['active']}
+                devices.update({'': ''})
+                return devices
+            elif request_status >= 400 and request_status < 500:
+                logger.info(u"Unable to retrieve Pushbullet devices list: %s" % response.reason)
+                return {'': ''}
+            else:
+                logger.info(u"Unable to retrieve Pushbullet devices list.")
+                return {'': ''}
+
+        else:
+            return {'': ''}
+
     def return_config_options(self):
         config_option = [{'label': 'Pushbullet API Key',
                           'value': self.apikey,
@@ -831,11 +856,13 @@ class PUSHBULLET(object):
                           'description': 'Your Pushbullet API key.',
                           'input_type': 'text'
                           },
-                         {'label': 'Device ID',
+                         {'label': 'Device',
                           'value': self.deviceid,
                           'name': 'pushbullet_deviceid',
-                          'description': 'A device ID (optional). If set, will override channel tag.',
-                          'input_type': 'text'
+                          'description': 'Set your Pushbullet device. If set, will override channel tag. ' \
+                              'Leave blank to notify on all devices.',
+                          'input_type': 'select',
+                          'select_options': self.get_devices()
                           },
                          {'label': 'Channel',
                           'value': self.channel_tag,

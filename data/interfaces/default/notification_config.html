@@ -84,15 +84,8 @@ from plexpy import helpers
 % endif
 
 <script>
-    $('#osxnotifyregister').click(function () {
-        var osx_notify_app = $("#osx_notify_app").val();
-        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { $('#ajaxMsg').html("<i class='fa fa-check'></i> " + data); });
-        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
-    })
 
-    $('#save-notification-item').click(function() {
-        doAjaxCall('set_notification_config', $(this), 'tabs', true);
-        // Reload modal to update certain fields
+    function reloadModal() {
         $.ajax({
             url: 'get_notification_agent_config',
             data: { config_id: '${config_id}' },
@@ -102,6 +95,18 @@ from plexpy import helpers
                 $("#notification-config-modal").html(xhr.responseText);
             }
         });
+    }
+
+    $('#osxnotifyregister').click(function () {
+        var osx_notify_app = $("#osx_notify_app").val();
+        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { $('#ajaxMsg').html("<i class='fa fa-check'></i> " + data); });
+        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
+    })
+
+    $('#save-notification-item').click(function () {
+        doAjaxCall('set_notification_config', $(this), 'tabs', true);
+        // Reload modal to update certain fields
+        reloadModal();
         return false;
     });
 
@@ -127,8 +132,14 @@ from plexpy import helpers
         $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
     });
 
+    $('#pushbullet_apikey').on('change', function () {
+        doAjaxCall('set_notification_config', $(this), 'tabs', true);
+        reloadModal();
+        return false;
+    });
+    
     // Never send checkbox values directly, always substitute value in hidden input.
-    $('.checkboxes').click(function() {
+    $('.checkboxes').click(function () {
         var configToggle = $(this).data('id');
         if ($(this).is(":checked")) {
             $("#"+configToggle).val(1);
