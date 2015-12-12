@@ -57,7 +57,7 @@ from plexpy import version
             </div>
             <div class="collapse navbar-collapse navbar-right" id="navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li>
+                    <li class="hidden-sm hidden-xs">
                         <form action="search" method="post" class="form" id="search_form">
                             <div class="input-group">
                                 <span class="input-textbox">
@@ -140,12 +140,12 @@ ${next.headerIncludes()}
         } else {
             e.preventDefault();
             $('#search_button').removeClass('btn-inactive');
-            $('#query').clearQueue().val('').animate({ right: '0', width: '250px' }).addClass('active').focus();
+            $('#query').clearQueue().val('').animate({ right: '0', width: '200px' }).addClass('active').focus();
         }
     })
     $('#query').on('blur', function (e) {
         if ($(this).val().trim() == '') {
-            $(this).delay(200).animate({ right: '-250px', width: '0' }, function () {
+            $(this).delay(200).animate({ right: '-200px', width: '0' }, function () {
                 $('#search_button').addClass('btn-inactive');
             }).removeClass('active');
         }
