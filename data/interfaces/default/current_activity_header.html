@@ -17,12 +17,10 @@ DOCUMENTATION :: END
 % if data != None:
 	% if data == '0':
 	<h3>Activity</h3>
+	% elif data == '1':
+	<h3>Activity <small>${data} stream</small></h3>
 	% else:
-		% if data == '1':
-		<h3>Activity <small>${data} stream</small></h3>
-		% else:
-		<h3>Activity <small>${data} streams</small></h3>
-		% endif
+	<h3>Activity <small>${data} streams</small></h3>
 	% endif
 % else:
 <h3>Activity</h3>
