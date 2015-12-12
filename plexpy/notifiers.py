@@ -13,32 +13,31 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, common, request
-from plexpy.helpers import checked, radio
-
-from xml.dom import minidom
-from httplib import HTTPSConnection
-from urlparse import parse_qsl
 from urlparse import urlparse
-from urllib import urlencode
-from pynma import pynma
-
 import base64
+import json
 import cherrypy
+from email.mime.text import MIMEText
+import email.utils
+from httplib import HTTPSConnection
+import os
+import shlex
+import smtplib
+import subprocess
+
+from urllib import urlencode
 import urllib
 import urllib2
-import plexpy
-import os.path
-import subprocess
-import gntp.notifier
-import json
+from urlparse import parse_qsl
 
+from pynma import pynma
+import gntp.notifier
 import oauth2 as oauth
 import pythontwitter as twitter
 
-from email.mime.text import MIMEText
-import smtplib
-import email.utils
+import plexpy
+from plexpy import logger, helpers, request
+from plexpy.helpers import checked
 
 AGENT_IDS = {"Growl": 0,
              "Prowl": 1,
@@ -399,7 +398,7 @@ def get_notification_agent_config(config_id):
         return []
 
 
-def send_notification(config_id, subject, body, notify_action=None):
+def send_notification(config_id, subject, body, **kwargs):
     if str(config_id).isdigit():
         config_id = int(config_id)
 
@@ -450,7 +449,7 @@ def send_notification(config_id, subject, body, notify_action=None):
             slackClient.notify(message=body, event=subject)
         elif config_id == 15:
             scripts = Scripts()
-            scripts.notify(message=body, subject=subject, notify_action=notify_action, script_args=script_args)
+            scripts.notify(message=body, subject=subject, **kwargs)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
@@ -531,7 +530,7 @@ class GROWL(object):
         logger.info(u"Growl notifications sent.")
 
     def updateLibrary(self):
-        #For uniformity reasons not removed
+        # For uniformity reasons not removed
         return
 
     def test(self, host, password):
@@ -557,6 +556,7 @@ class GROWL(object):
                          ]
 
         return config_option
+
 
 class PROWL(object):
     """
@@ -584,9 +584,10 @@ class PROWL(object):
                 'priority': plexpy.CONFIG.PROWL_PRIORITY}
 
         http_handler.request("POST",
-                                "/publicapi/add",
-                                headers={'Content-type': "application/x-www-form-urlencoded"},
-                                body=urlencode(data))
+                             "/publicapi/add",
+                             headers={'Content-type': "application/x-www-form-urlencoded"},
+                             body=urlencode(data))
+
         response = http_handler.getresponse()
         request_status = response.status
 
@@ -601,7 +602,7 @@ class PROWL(object):
                 return False
 
     def updateLibrary(self):
-        #For uniformity reasons not removed
+        # For uniformity reasons not removed
         return
 
     def test(self, keys, priority):
@@ -628,6 +629,7 @@ class PROWL(object):
                          ]
 
         return config_option
+
 
 class XBMC(object):
     """
@@ -754,7 +756,7 @@ class Plex(object):
 
         header = subject
         message = message
-        time = "3000" # in ms
+        time = "3000"  # in ms
 
         for host in hosts:
             logger.info('Sending notification command to Plex Media Server @ ' + host)
@@ -791,6 +793,7 @@ class Plex(object):
                          ]
 
         return config_option
+
 
 class NMA(object):
 
@@ -850,6 +853,7 @@ class NMA(object):
 
         return config_option
 
+
 class PUSHBULLET(object):
 
     def __init__(self):
@@ -877,10 +881,11 @@ class PUSHBULLET(object):
             data['channel_tag'] = self.channel_tag
 
         http_handler.request("POST",
-                                "/v2/pushes",
-                                headers={'Content-type': "application/json",
-                                         'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")},
-                                body=json.dumps(data))
+                             "/v2/pushes",
+                             headers={'Content-type': "application/json",
+                             'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")},
+                             body=json.dumps(data))
+
         response = http_handler.getresponse()
         request_status = response.status
         # logger.debug(u"PushBullet response status: %r" % request_status)
@@ -909,8 +914,9 @@ class PUSHBULLET(object):
         if plexpy.CONFIG.PUSHBULLET_APIKEY:
             http_handler = HTTPSConnection("api.pushbullet.com")
             http_handler.request("GET", "/v2/devices",
-                                    headers={'Content-type': "application/json",
-                                             'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")})
+                                 headers={'Content-type': "application/json",
+                                 'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")})
+
             response = http_handler.getresponse()
             request_status = response.status
 
@@ -955,6 +961,7 @@ class PUSHBULLET(object):
 
         return config_option
 
+
 class PUSHALOT(object):
 
     def __init__(self):
@@ -966,9 +973,9 @@ class PUSHALOT(object):
 
         pushalot_authorizationtoken = plexpy.CONFIG.PUSHALOT_APIKEY
 
-        #logger.debug(u"Pushalot event: " + event)
-        #logger.debug(u"Pushalot message: " + message)
-        #logger.debug(u"Pushalot api: " + pushalot_authorizationtoken)
+        # logger.debug(u"Pushalot event: " + event)
+        # logger.debug(u"Pushalot message: " + message)
+        # logger.debug(u"Pushalot api: " + pushalot_authorizationtoken)
 
         http_handler = HTTPSConnection("pushalot.com")
 
@@ -977,15 +984,15 @@ class PUSHALOT(object):
                 'Body': message.encode("utf-8")}
 
         http_handler.request("POST",
-                                "/api/sendmessage",
-                                headers={'Content-type': "application/x-www-form-urlencoded"},
-                                body=urlencode(data))
+                             "/api/sendmessage",
+                             headers={'Content-type': "application/x-www-form-urlencoded"},
+                             body=urlencode(data))
         response = http_handler.getresponse()
         request_status = response.status
 
-        #logger.debug(u"Pushalot response status: %r" % request_status)
-        #logger.debug(u"Pushalot response headers: %r" % response.getheaders())
-        #logger.debug(u"Pushalot response body: %r" % response.read())
+        # logger.debug(u"Pushalot response status: %r" % request_status)
+        # logger.debug(u"Pushalot response headers: %r" % response.getheaders())
+        # logger.debug(u"Pushalot response body: %r" % response.read())
 
         if request_status == 200:
                 logger.info(u"Pushalot notifications sent.")
@@ -1007,6 +1014,7 @@ class PUSHALOT(object):
                          ]
 
         return config_option
+
 
 class PUSHOVER(object):
 
@@ -1054,7 +1062,7 @@ class PUSHOVER(object):
                 return False
 
     def updateLibrary(self):
-        #For uniformity reasons not removed
+        # For uniformity reasons not removed
         return
 
     def test(self, keys, priority, sound):
@@ -1117,6 +1125,7 @@ class PUSHOVER(object):
                          ]
 
         return config_option
+
 
 class TwitterNotifier(object):
 
@@ -1215,23 +1224,24 @@ class TwitterNotifier(object):
                           'description': 'Step 1: Click Request button above. (Ensure you allow the browser pop-up).',
                           'input_type': 'button'
                           },
-                          {'label': 'Authorisation Key',
-                           'value': '',
-                           'name': 'twitter_key',
-                           'description': 'Step 2: Input the authorisation key you received from Step 1.',
-                           'input_type': 'text'
+                         {'label': 'Authorisation Key',
+                          'value': '',
+                          'name': 'twitter_key',
+                          'description': 'Step 2: Input the authorisation key you received from Step 1.',
+                          'input_type': 'text'
                           },
-                          {'label': 'Verify Key',
-                           'value': 'Verify Key',
-                           'name': 'twitterStep2',
-                           'description': 'Step 3: Verify the key.',
-                           'input_type': 'button'
+                         {'label': 'Verify Key',
+                          'value': 'Verify Key',
+                          'name': 'twitterStep2',
+                          'description': 'Step 3: Verify the key.',
+                          'input_type': 'button'
                           },
-                          {'input_type': 'nosave'
+                         {'input_type': 'nosave'
                           }
                          ]
 
         return config_option
+
 
 class OSX_NOTIFY(object):
 
@@ -1240,7 +1250,7 @@ class OSX_NOTIFY(object):
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
         except:
-            #logger.error(u"PlexPy Notifier :: Cannot load OSX Notifications agent.")
+            # logger.error(u"PlexPy Notifier :: Cannot load OSX Notifications agent.")
             pass
 
     def validate(self):
@@ -1257,7 +1267,7 @@ class OSX_NOTIFY(object):
         def wrapper(self, *args, **kwargs):
             return func(self, old_IMP, *args, **kwargs)
         new_IMP = self.objc.selector(wrapper, selector=old_IMP.selector,
-            signature=old_IMP.signature)
+                                     signature=old_IMP.signature)
         self.objc.classAddMethod(cls, SEL, new_IMP)
 
     def notify(self, title, subtitle=None, text=None, sound=True, image=None):
@@ -1287,7 +1297,7 @@ class OSX_NOTIFY(object):
             if image:
                 source_img = self.AppKit.NSImage.alloc().initByReferencingFile_(image)
                 notification.setContentImage_(source_img)
-                #notification.set_identityImage_(source_img)
+                # notification.set_identityImage_(source_img)
             notification.setHasActionButton_(False)
 
             notification_center = NSUserNotificationCenter.defaultUserNotificationCenter()
@@ -1315,6 +1325,7 @@ class OSX_NOTIFY(object):
                          ]
 
         return config_option
+
 
 class BOXCAR(object):
 
@@ -1376,7 +1387,7 @@ class BOXCAR(object):
                                              'flourish': 'Flourish',
                                              'harp': 'Harp',
                                              'light': 'Light',
-                                             'magic-chime':'Magic Chime',
+                                             'magic-chime': 'Magic Chime',
                                              'magic-coin': 'Magic Coin',
                                              'no-sound': 'No Sound',
                                              'notifier-1': 'Notifier (1)',
@@ -1391,6 +1402,7 @@ class BOXCAR(object):
                          ]
 
         return config_option
+
 
 class Email(object):
 
@@ -1552,9 +1564,11 @@ class IFTTT(object):
                                          ' as value1 and value2 respectively.',
                           'input_type': 'text'
                           }
+
                          ]
 
         return config_option
+
 
 class TELEGRAM(object):
 
@@ -1594,7 +1608,7 @@ class TELEGRAM(object):
                 return False
 
     def updateLibrary(self):
-        #For uniformity reasons not removed
+        # For uniformity reasons not removed
         return
 
     def test(self, bot_token, chat_id):
@@ -1713,18 +1727,19 @@ class Scripts(object):
         pass
 
     def conf(self, options):
-            return cherrypy.config['config'].get('Scripts', options)
+        return cherrypy.config['config'].get('Scripts', options)
 
     def updateLibrary(self):
         # For uniformity reasons not removed
         return
 
-    def test(self, subject, message, action):
-        self.notify(subject, message, action)
+    def test(self, subject, message, *args, **kwargs):
+        self.notify(subject, message, *args, **kwargs)
+        return
 
     def list_scripts(self):
         scriptdir = plexpy.CONFIG.SCRIPTS_FOLDER
-        scripts = {}
+        scripts = {'': ''}
 
         if scriptdir and not os.path.exists(scriptdir):
             os.makedirs(scriptdir)
@@ -1732,18 +1747,26 @@ class Scripts(object):
         for root, dirs, files in os.walk(scriptdir):
             for f in files:
                 name, ext = os.path.splitext(f)
-                ext = ext[1:]
-                if ext in ('rb', 'pl', 'bat', 'py', 'sh', 'cmd', 'php'):
-                    fp = os.path.join(scriptdir, f)
-                    scripts[fp] = fp
+                if ext in ('.rb', '.pl', '.bat', '.py', '.sh', '.cmd', '.php'):
+                    rfp = os.path.join(os.path.relpath(root, scriptdir), f)
+                    fp = os.path.join(root, f)
+                    scripts[fp] = rfp
 
         return scripts
 
-    def notify(self, subject, message, notify_action=None, script_args=''):
-        logger.debug('Ran notify script subject: %s message: %s, action: %s script_args: %s' % (subject, message, notify_action, script_args))
+    def notify(self, subject='', message='', notify_action='', script_args='', *args, **kwargs):
+        """
+            Args:
+                  subject(string, optional): Head text,
+                  message(string, optional): Body text,
+                  notify_action(string): 'play'
+                  script_args(list): ["python2", '-p', '-zomg']
+        """
+        logger.debug(u'Trying to run notify script subject: %s message: %s, action: %s script_args: %s' %
+                     (subject, message, notify_action, script_args))
 
         prefix = ''
-        script = ''
+        script = kwargs.get('script', '')  # for manual scripts
 
         if not plexpy.CONFIG.SCRIPTS_FOLDER:
             return
@@ -1779,6 +1802,15 @@ class Scripts(object):
         elif notify_action == 'created':
             script = plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT
 
+        elif notify_action == 'watched':
+            script = plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT
+
+        # Dont try to run the script
+        # if the action does not have one
+        if not script:
+            logger.debug(u'%s has no script, exiting..' % notify_action)
+            return
+
         name, ext = os.path.splitext(script)
 
         if ext == '.py':
@@ -1790,17 +1822,38 @@ class Scripts(object):
         elif ext == '.rb':
             prefix = 'ruby'
 
-        script = script.split()
+        if os.name == 'nt':
+            script = script.encode(plexpy.SYS_ENCODING, 'ignore')
+        script = [script]
 
         if prefix:
             script.insert(0, prefix)
 
-        if script_args:
-            script = script + script_args.split()
+        # for manual notifications
+        if script_args and isinstance(script_args, basestring):
+            # attemps for format it for the user
+            script_args = shlex.split(script_args)
+
+        # Windows handles unicode very badly.
+        # https://bugs.python.org/issue19264
+        if script_args and os.name == 'nt':
+            script_args = [s.encode(plexpy.SYS_ENCODING, 'ignore') for s in script_args]
+
+        # Allow overrides for shitty systems
+        if prefix and script_args:
+            if script_args[0] in ['python2', 'python', 'php', 'ruby', 'perl']:
+                script[0] = script_args[0]
+                del script_args[0]
+
+        script.extend(script_args)
+
+        logger.debug(u'Full script is %s' % script)
 
         try:
-            p = subprocess.Popen(script, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT, cwd=plexpy.CONFIG.SCRIPTS_FOLDER)
+            p = subprocess.Popen(script, stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT,
+                                 cwd=plexpy.CONFIG.SCRIPTS_FOLDER)
 
             out, error = p.communicate()
             status = p.returncode
@@ -1823,83 +1876,83 @@ class Scripts(object):
                           'description': 'Add your script folder.',
                           'input_type': 'text',
                           },
-                         {'label': 'Playback start',
+                         {'label': 'Playback Start',
                           'value': plexpy.CONFIG.SCRIPTS_ON_PLAY_SCRIPT,
                           'name': 'scripts_on_play_script',
                           'description': 'Pick the script for on play.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'Playback stop',
+                         {'label': 'Playback Stop',
                           'value': plexpy.CONFIG.SCRIPTS_ON_STOP_SCRIPT,
                           'name': 'scripts_on_stop_script',
                           'description': 'Pick the script for on stop.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'Playback pause',
+                         {'label': 'Playback Pause',
                           'value': plexpy.CONFIG.SCRIPTS_ON_PAUSE_SCRIPT,
                           'name': 'scripts_on_pause_script',
                           'description': 'Pick the script for on pause.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'Playback resume',
+                         {'label': 'Playback Resume',
                           'value': plexpy.CONFIG.SCRIPTS_ON_RESUME_SCRIPT,
                           'name': 'scripts_on_resume_script',
                           'description': 'Pick the script for on resume.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'On watched',
+                         {'label': 'Watched',
                           'value': plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT,
                           'name': 'scripts_on_watched_script',
                           'description': 'Pick the script for on watched.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'On buffer warning',
+                         {'label': 'Buffer Warnings',
                           'value': plexpy.CONFIG.SCRIPTS_ON_BUFFER_SCRIPT,
                           'name': 'scripts_on_buffer_script',
-                          'description': 'Pick the script for on buffer.',
+                          'description': 'Pick the script for buffer warnings.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'On recently added',
+                         {'label': 'Recently Added',
                           'value': plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT,
                           'name': 'scripts_on_created_script',
                           'description': 'Pick the script for recently added.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'On external connection down',
+                         {'label': 'Plex Remote Access Down',
                           'value': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT,
                           'name': 'scripts_on_extdown_script',
                           'description': 'Pick the script for external connection down.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'On external connection down',
+                         {'label': 'Plex Remote Access Up',
                           'value': plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT,
                           'name': 'scripts_on_extup_script',
                           'description': 'Pick the script for external connection up.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'On plex down',
+                         {'label': 'Plex Server Down',
                           'value': plexpy.CONFIG.SCRIPTS_ON_INTDOWN_SCRIPT,
                           'name': 'scripts_on_intdown_script',
                           'description': 'Pick the script for pms down',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'On plex up',
+                         {'label': 'Plex Server Up',
                           'value': plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT,
                           'name': 'scripts_on_intup_script',
-                          'description': 'Pick the script for pms down',
+                          'description': 'Pick the script for pms up',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           }
-]
+                         ]
 
         return config_option
