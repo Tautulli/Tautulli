@@ -63,6 +63,8 @@ _CONFIG_DEFINITIONS = {
     'EMAIL_ENABLED': (int, 'Email', 0),
     'EMAIL_FROM': (str, 'Email', ''),
     'EMAIL_TO': (str, 'Email', ''),
+    'EMAIL_CC': (str, 'Email', ''),
+    'EMAIL_BCC': (str, 'Email', ''),
     'EMAIL_SMTP_SERVER': (str, 'Email', ''),
     'EMAIL_SMTP_USER': (str, 'Email', ''),
     'EMAIL_SMTP_PASSWORD': (str, 'Email', ''),

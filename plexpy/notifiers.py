@@ -1357,6 +1357,12 @@ class Email(object):
         message['Subject'] = subject
         message['From'] = email.utils.formataddr(('PlexPy', plexpy.CONFIG.EMAIL_FROM))
         message['To'] = plexpy.CONFIG.EMAIL_TO
+        message['CC'] = plexpy.CONFIG.EMAIL_CC
+
+        recipients = [x.strip() for x in plexpy.CONFIG.EMAIL_TO.split(';')] \
+                   + [x.strip() for x in plexpy.CONFIG.EMAIL_CC.split(';')] \
+                   + [x.strip() for x in plexpy.CONFIG.EMAIL_BCC.split(';')]
+        recipients = filter(None, recipients)
 
         try:
             mailserver = smtplib.SMTP(plexpy.CONFIG.EMAIL_SMTP_SERVER, plexpy.CONFIG.EMAIL_SMTP_PORT)
@@ -1369,7 +1375,7 @@ class Email(object):
             if plexpy.CONFIG.EMAIL_SMTP_USER:
                 mailserver.login(plexpy.CONFIG.EMAIL_SMTP_USER, plexpy.CONFIG.EMAIL_SMTP_PASSWORD)
 
-            mailserver.sendmail(plexpy.CONFIG.EMAIL_FROM, plexpy.CONFIG.EMAIL_TO, message.as_string())
+            mailserver.sendmail(plexpy.CONFIG.EMAIL_FROM, recipients, message.as_string())
             mailserver.quit()
 
             logger.info(u"Email notifications sent.")
@@ -1383,13 +1389,25 @@ class Email(object):
         config_option = [{'label': 'From',
                           'value': plexpy.CONFIG.EMAIL_FROM,
                           'name': 'email_from',
-                          'description': 'Who should the sender be.',
+                          'description': 'The email address of the sender.',
                           'input_type': 'text'
                           },
                          {'label': 'To',
                           'value': plexpy.CONFIG.EMAIL_TO,
                           'name': 'email_to',
-                          'description': 'Who should the recipient be.',
+                          'description': 'The email address(es) of the recipients, separated by semicolons (;).',
+                          'input_type': 'text'
+                          },
+                         {'label': 'CC',
+                          'value': plexpy.CONFIG.EMAIL_CC,
+                          'name': 'email_cc',
+                          'description': 'The email address(es) to CC, separated by semicolons (;).',
+                          'input_type': 'text'
+                          },
+                         {'label': 'BCC',
+                          'value': plexpy.CONFIG.EMAIL_BCC,
+                          'name': 'email_bcc',
+                          'description': 'The email address(es) to BCC, separated by semicolons (;).',
                           'input_type': 'text'
                           },
                          {'label': 'SMTP Server',
