@@ -617,7 +617,7 @@ class WebInterface(object):
         if 'media_type' in kwargs:
             media_type = kwargs.get('media_type', "")
             if media_type != 'all':
-               custom_where.append(['session_history_metadata.media_type', media_type])
+               custom_where.append(['session_history.media_type', media_type])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
