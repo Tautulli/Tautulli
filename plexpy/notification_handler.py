@@ -370,15 +370,31 @@ def build_notify_text(session=None, timeline=None, state=None):
     duration = helpers.convert_milliseconds_to_minutes(metadata['duration'])
 
     # Default values
-    video_decision = ''
-    audio_decision = ''
-    transcode_decision = ''
-    stream_duration = 0
-    view_offset = 0
     user = ''
     platform = ''
     player = ''
     ip_address = 'N/A'
+    stream_duration = 0
+    view_offset = 0
+    container = ''
+    video_codec = ''
+    video_bitrate = ''
+    video_width = ''
+    video_height = ''
+    video_resolution = ''
+    video_framerate = ''
+    aspect_ratio = ''
+    audio_codec = ''
+    audio_channels = ''
+    transcode_decision = ''
+    video_decision = ''
+    audio_decision = ''
+    transcode_container = ''
+    transcode_video_codec = ''
+    transcode_video_width = ''
+    transcode_video_height = ''
+    transcode_audio_codec = ''
+    transcode_audio_channels = ''
 
     # Session values
     if session:
@@ -405,6 +421,22 @@ def build_notify_text(session=None, timeline=None, state=None):
         platform = session['platform']
         player = session['player']
         ip_address = session['ip_address'] if session['ip_address'] else 'N/A'
+        container = session['container']
+        video_codec = session['video_codec']
+        video_bitrate = session['bitrate']
+        video_width = session['width']
+        video_height = session['height']
+        video_resolution = session['video_resolution']
+        video_framerate = session['video_framerate']
+        aspect_ratio = session['aspect_ratio']
+        audio_codec = session['audio_codec']
+        audio_channels = session['audio_channels']
+        transcode_container = session['transcode_container']
+        transcode_video_codec = session['transcode_video_codec']
+        transcode_video_width = session['transcode_width']
+        transcode_video_height = session['transcode_height']
+        transcode_audio_codec = session['transcode_audio_codec']
+        transcode_audio_channels = session['transcode_audio_channels']
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
@@ -429,6 +461,29 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'player': player,
                         'ip_address': ip_address,
                         'media_type': metadata['media_type'],
+                        'stream_duration': stream_duration,
+                        'remaining_duration': duration - view_offset,
+                        'progress': view_offset,
+                        'progress_percent': progress_percent,
+                        'container': container,
+                        'video_codec': video_codec,
+                        'video_bitrate': video_bitrate,
+                        'video_width': video_width,
+                        'video_height': video_height,
+                        'video_resolution': video_resolution,
+                        'video_framerate': video_framerate,
+                        'aspect_ratio': aspect_ratio,
+                        'audio_codec': audio_codec,
+                        'audio_channels': audio_channels,
+                        'transcode_decision': transcode_decision,
+                        'video_decision': video_decision,
+                        'audio_decision': audio_decision,
+                        'transcode_container': transcode_container,
+                        'transcode_video_codec': transcode_video_codec,
+                        'transcode_video_width': transcode_video_width,
+                        'transcode_video_height': transcode_video_height,
+                        'transcode_audio_codec': transcode_audio_codec,
+                        'transcode_audio_channels': transcode_audio_channels,
                         'title': full_title,
                         'show_name': show_name,
                         'episode_name': episode_name,
@@ -439,9 +494,6 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'season_num00': metadata['parent_index'].zfill(2),
                         'episode_num': metadata['index'].zfill(1),
                         'episode_num00': metadata['index'].zfill(2),
-                        'video_decision': video_decision,
-                        'audio_decision': audio_decision,
-                        'transcode_decision': transcode_decision,
                         'year': metadata['year'],
                         'studio': metadata['studio'],
                         'content_rating': metadata['content_rating'],
@@ -452,11 +504,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'summary': metadata['summary'],
                         'tagline': metadata['tagline'],
                         'rating': metadata['rating'],
-                        'duration': duration,
-                        'stream_duration': stream_duration,
-                        'remaining_duration': duration - view_offset,
-                        'progress': view_offset,
-                        'progress_percent': progress_percent
+                        'duration': duration
                         }
 
     # Default subject text
