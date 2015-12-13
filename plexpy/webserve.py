@@ -1353,12 +1353,22 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_notification_agent_config(self, config_id, **kwargs):
-        config = notifiers.get_notification_agent_config(config_id=config_id)
+        if config_id.isdigit():
+            config = notifiers.get_notification_agent_config(config_id=config_id)
+            agents = notifiers.available_notification_agents()
+            for agent in agents:
+                if int(config_id) == agent['id']:
+                    this_agent = agent
+                    break
+                else:
+                    this_agent = None
+        else:
+            return None
 
         checkboxes = {'email_tls': checked(plexpy.CONFIG.EMAIL_TLS)}
 
         return serve_template(templatename="notification_config.html", title="Notification Configuration",
-                              config_id=config_id, data=config, checkboxes=checkboxes)
+                              agent=this_agent, data=config, checkboxes=checkboxes)
 
     @cherrypy.expose
     def get_notification_agent_triggers(self, config_id, **kwargs):

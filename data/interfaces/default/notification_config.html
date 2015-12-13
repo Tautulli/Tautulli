@@ -6,7 +6,7 @@ from plexpy import helpers
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-            <h4 class="modal-title" id="notification-config-modal-header">Set Config</h4>
+            <h4 class="modal-title" id="notification-config-modal-header">${agent['name']} Settings</h4>
         </div>
         <div class="modal-body">
             <div class="container-fluid">
@@ -88,7 +88,7 @@ from plexpy import helpers
     function reloadModal() {
         $.ajax({
             url: 'get_notification_agent_config',
-            data: { config_id: '${config_id}' },
+            data: { config_id: '${agent["id"]}' },
             cache: false,
             async: true,
             complete: function (xhr, status) {
