@@ -592,7 +592,9 @@ class DataFactory(object):
             elif stat == 'most_concurrent':
                 try:
                     query = 'SELECT started, stopped ' \
-                            'FROM session_history '
+                            'FROM session_history ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") ' \
+                            '>= datetime("now", "-%s days", "localtime") ' % time_range
                     result = monitor_db.select(query)
                 except:
                     logger.warn("Unable to execute database query for get_home_stats: most_concurrent.")
