@@ -68,7 +68,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.GROWL_ON_WATCHED,
                'on_created': plexpy.CONFIG.GROWL_ON_CREATED,
                'on_extdown': plexpy.CONFIG.GROWL_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.GROWL_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.GROWL_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.GROWL_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.GROWL_ON_INTUP
                },
               {'name': 'Prowl',
                'id': AGENT_IDS['Prowl'],
@@ -83,7 +85,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.PROWL_ON_WATCHED,
                'on_created': plexpy.CONFIG.PROWL_ON_CREATED,
                'on_extdown': plexpy.CONFIG.PROWL_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.PROWL_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.PROWL_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PROWL_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PROWL_ON_INTUP
                },
               {'name': 'XBMC',
                'id': AGENT_IDS['XBMC'],
@@ -98,7 +102,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.XBMC_ON_WATCHED,
                'on_created': plexpy.CONFIG.XBMC_ON_CREATED,
                'on_extdown': plexpy.CONFIG.XBMC_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.XBMC_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.XBMC_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.XBMC_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.XBMC_ON_INTUP
                },
               {'name': 'Plex',
                'id': AGENT_IDS['Plex'],
@@ -113,7 +119,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED,
                'on_created': plexpy.CONFIG.PLEX_ON_CREATED,
                'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PLEX_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PLEX_ON_INTUP
                },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
@@ -128,7 +136,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.NMA_ON_WATCHED,
                'on_created': plexpy.CONFIG.NMA_ON_CREATED,
                'on_extdown': plexpy.CONFIG.NMA_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.NMA_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.NMA_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.NMA_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.NMA_ON_INTUP
                },
               {'name': 'Pushalot',
                'id': AGENT_IDS['Pushalot'],
@@ -143,7 +153,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.PUSHALOT_ON_WATCHED,
                'on_created': plexpy.CONFIG.PUSHALOT_ON_CREATED,
                'on_extdown': plexpy.CONFIG.PUSHALOT_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.PUSHALOT_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.PUSHALOT_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PUSHALOT_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PUSHALOT_ON_INTUP
                },
               {'name': 'Pushbullet',
                'id': AGENT_IDS['Pushbullet'],
@@ -158,7 +170,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.PUSHBULLET_ON_WATCHED,
                'on_created': plexpy.CONFIG.PUSHBULLET_ON_CREATED,
                'on_extdown': plexpy.CONFIG.PUSHBULLET_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.PUSHBULLET_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.PUSHBULLET_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PUSHBULLET_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PUSHBULLET_ON_INTUP
                },
               {'name': 'Pushover',
                'id': AGENT_IDS['Pushover'],
@@ -173,7 +187,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.PUSHOVER_ON_WATCHED,
                'on_created': plexpy.CONFIG.PUSHOVER_ON_CREATED,
                'on_extdown': plexpy.CONFIG.PUSHOVER_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.PUSHOVER_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.PUSHOVER_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PUSHOVER_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PUSHOVER_ON_INTUP
                },
               {'name': 'Boxcar2',
                'id': AGENT_IDS['Boxcar2'],
@@ -188,7 +204,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.BOXCAR_ON_WATCHED,
                'on_created': plexpy.CONFIG.BOXCAR_ON_CREATED,
                'on_extdown': plexpy.CONFIG.BOXCAR_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.BOXCAR_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.BOXCAR_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.BOXCAR_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.BOXCAR_ON_INTUP
                },
               {'name': 'E-mail',
                'id': AGENT_IDS['Email'],
@@ -203,7 +221,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.EMAIL_ON_WATCHED,
                'on_created': plexpy.CONFIG.EMAIL_ON_CREATED,
                'on_extdown': plexpy.CONFIG.EMAIL_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.EMAIL_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.EMAIL_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.EMAIL_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.EMAIL_ON_INTUP
                },
               {'name': 'Twitter',
                'id': AGENT_IDS['Twitter'],
@@ -218,7 +238,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.TWITTER_ON_WATCHED,
                'on_created': plexpy.CONFIG.TWITTER_ON_CREATED,
                'on_extdown': plexpy.CONFIG.TWITTER_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.TWITTER_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.TWITTER_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.TWITTER_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.TWITTER_ON_INTUP
                },
               {'name': 'IFTTT',
                'id': AGENT_IDS['IFTTT'],
@@ -233,7 +255,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.IFTTT_ON_WATCHED,
                'on_created': plexpy.CONFIG.IFTTT_ON_CREATED,
                'on_extdown': plexpy.CONFIG.IFTTT_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.IFTTT_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.IFTTT_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.IFTTT_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.IFTTT_ON_INTUP
                },
               {'name': 'Telegram',
                'id': AGENT_IDS['Telegram'],
@@ -248,7 +272,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.TELEGRAM_ON_WATCHED,
                'on_created': plexpy.CONFIG.TELEGRAM_ON_CREATED,
                'on_extdown': plexpy.CONFIG.TELEGRAM_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.TELEGRAM_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.TELEGRAM_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.TELEGRAM_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.TELEGRAM_ON_INTUP
                }
               ]
 
@@ -268,7 +294,9 @@ def available_notification_agents():
                        'on_watched': plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED,
                        'on_created': plexpy.CONFIG.OSX_NOTIFY_ON_CREATED,
                        'on_extdown': plexpy.CONFIG.OSX_NOTIFY_ON_EXTDOWN,
-                       'on_intdown': plexpy.CONFIG.OSX_NOTIFY_ON_INTDOWN
+                       'on_intdown': plexpy.CONFIG.OSX_NOTIFY_ON_INTDOWN,
+                       'on_extup': plexpy.CONFIG.OSX_NOTIFY_ON_EXTUP,
+                       'on_intup': plexpy.CONFIG.OSX_NOTIFY_ON_INTUP
                        })
 
     return agents

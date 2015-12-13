@@ -199,6 +199,18 @@ def notify_timeline(timeline_data=None, notify_action=None):
                 notifiers.send_notification(config_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1])
+            if agent['on_extup'] and notify_action == 'extup':
+                # Build and send notification
+                notify_strings = build_server_notify_text(state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1])
+            if agent['on_intup'] and notify_action == 'intup':
+                # Build and send notification
+                notify_strings = build_server_notify_text(state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1])
     else:
         logger.debug(u"PlexPy Notifier :: Notify timeline called but incomplete data received.")
 
@@ -698,6 +710,10 @@ def build_server_notify_text(state=None):
     on_extdown_body = plexpy.CONFIG.NOTIFY_ON_EXTDOWN_BODY_TEXT
     on_intdown_subject = plexpy.CONFIG.NOTIFY_ON_INTDOWN_SUBJECT_TEXT
     on_intdown_body = plexpy.CONFIG.NOTIFY_ON_INTDOWN_BODY_TEXT
+    on_extup_subject = plexpy.CONFIG.NOTIFY_ON_EXTUP_SUBJECT_TEXT
+    on_extup_body = plexpy.CONFIG.NOTIFY_ON_EXTUP_BODY_TEXT
+    on_intup_subject = plexpy.CONFIG.NOTIFY_ON_INTUP_SUBJECT_TEXT
+    on_intup_body = plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT
 
     available_params = {'server_name': server_name,
                         'server_uptime': server_uptime}
@@ -741,6 +757,50 @@ def build_server_notify_text(state=None):
 
             try:
                 body_text = unicode(on_intdown_body).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    if state == 'extup':
+        # Default body text
+        body_text = 'The Plex Media Server remote access is back up.'
+
+        if on_extup_subject and on_extup_body:
+            try:
+                subject_text = unicode(on_extup_subject).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_extup_body).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    elif state == 'intup':
+        # Default body text
+        body_text = 'The Plex Media Server is back up.'
+
+        if on_intup_subject and on_intup_body:
+            try:
+                subject_text = unicode(on_intup_subject).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_intup_body).format(**available_params)
             except LookupError, e:
                 logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
             except:
