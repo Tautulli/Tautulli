@@ -13,110 +13,132 @@
         </div>
         <div class="button-bar hidden-xs">
             <div class="btn-group" data-toggle="buttons" id="yaxis-selection">
+                % if config['graph_type'] == 'duration':
+                <label class="btn btn-dark">
+                    <input type="radio" name="yaxis-options" id="yaxis-count" value="plays" autocomplete="off"> Play Count
+                </label>
+                <label class="btn btn-dark active">
+                    <input type="radio" name="yaxis-options" id="yaxis-duration" value="duration" autocomplete="off" checked> Play Duration
+                </label>
+                % else:
                 <label class="btn btn-dark active">
                     <input type="radio" name="yaxis-options" id="yaxis-count" value="plays" autocomplete="off" checked> Play Count
                 </label>
                 <label class="btn btn-dark">
                     <input type="radio" name="yaxis-options" id="yaxis-duration" value="duration" autocomplete="off"> Play Duration
                 </label>
+                % endif
             </div>
-            <div class="btn-group" data-toggle="buttons" id="days-selection">
-                <label class="btn btn-dark">
-                    <input type="radio" name="date-options" id="graph-7" value="7" autocomplete="off"> 7 days
-                </label>
-                <label class="btn btn-dark active">
-                    <input type="radio" name="date-options" id="graph-30" value="30" autocomplete="off" checked> 30 days
-                </label>
-                <label class="btn btn-dark">
-                    <input type="radio" name="date-options" id="graph-90" value="90" autocomplete="off"> 90 days
-                </label>
-                <label class="btn btn-dark">
-                    <input type="radio" name="date-options" id="graph-365" value="365" autocomplete="off"> 1 year
+            <div class="btn-group" id="days-selection">
+                <label>
+                    <input type="number" name="graph-days" id="graph-days" value="${config['graph_days']}" min="1" /> days
                 </label>
             </div>
         </div>
     </div>
     <div class='table-card-back'>
         <ul class="nav nav-pills" role="tablist" id="graph-tabs">
+            % if config['graph_tab'] == 'tabs-3':
+            <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" data-toggle="tab" role="tab">Plays by period</a></li>
+            <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" data-toggle="tab" role="tab">Stream Info</a></li>
+            <li role="presentation" class="active"><a href="#tabs-3" aria-controls="tabs-3" data-toggle="tab" role="tab">Play Totals</a></li>
+            % elif config['graph_tab'] == 'tabs-2':
+            <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" data-toggle="tab" role="tab">Plays by period</a></li>
+            <li role="presentation" class="active"><a href="#tabs-2" aria-controls="tabs-2" data-toggle="tab" role="tab">Stream Info</a></li>
+            <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" data-toggle="tab" role="tab">Play Totals</a></li>
+            % else:
             <li role="presentation" class="active"><a href="#tabs-1" aria-controls="tabs-1" data-toggle="tab" role="tab">Plays by period</a></li>
             <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" data-toggle="tab" role="tab">Stream Info</a></li>
             <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" data-toggle="tab" role="tab">Play Totals</a></li>
+            % endif
         </ul>
         <div class="tab-content">
+            % if config['graph_tab'] != 'tabs-2' and config['graph_tab'] != 'tabs-3':
             <div role="tabpanel" class="tab-pane active" id="tabs-1">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h4><i class="fa fa-history"></i> Daily <span class="yaxis-text">Play count</span> <small>Last <span class="days">30</span> days</small></h4>
-                        <p class="help-block">
-                            The total play count or duration of tv, movies, and music played per day. Click a graph point to open up a list of items played for that specific date.
-                        </p>
-                        <div class="graphs-instance">
-                            <div class="watch-chart" id="chart_div_plays_by_day">
-                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
-                                <br>
+            % else:
+            <div role="tabpanel" class="tab-pane" id="tabs-1">
+            % endif
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4><i class="fa fa-history"></i> Daily <span class="yaxis-text">Play count</span> <small>Last <span class="days">30</span> days</small></h4>
+                            <p class="help-block">
+                                The total play count or duration of tv, movies, and music played per day. Click a graph point to open up a list of items played for that specific date.
+                            </p>
+                            <div class="graphs-instance">
+                                <div class="watch-chart" id="chart_div_plays_by_day">
+                                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4><i class="fa fa-calendar"></i> <span class="yaxis-text">Play count</span> by day of week <small>Last <span class="days">30</span> days</small></h4>
+                            <p class="help-block">
+                                The combined total of tv, movies, and music played per day of the week.
+                            </p>
+                            <div class="graphs-instance">
+                                <div class="watch-chart" id="chart_div_plays_by_dayofweek" style="float: left;">
+                                    <div class="graphs-load">
+                                        <i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4><i class="fa fa-clock-o"></i> <span class="yaxis-text">Play count</span> by hour of day <small>Last <span class="days">30</span> days</small></h4>
+                            <p class="help-block">
+                                The combined total of tv, movies, and music played per hour of the day.
+                            </p>
+                            <div class="graphs-instance">
+                                <div class="watch-chart" id="chart_div_plays_by_hourofday">
+                                    <div class="graphs-load">
+                                        <i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4><i class="fa fa-television"></i> <span class="yaxis-text">Play count</span> by top 10 platforms <small>Last <span class="days">30</span> days</small></h4>
+                            <p class="help-block">
+                                The combined total of tv, movies, and music played by top 10 most active platforms.
+                            </p>
+                            <div class="graphs-instance">
+                                <div class="watch-chart" id="chart_div_plays_by_platform" style="float: left;">
+                                    <div class="graphs-load">
+                                        <i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4><i class="fa fa-user"></i> <span class="yaxis-text">Play count</span> by top 10 users <small>Last <span class="days">30</span> days</small></h4>
+                            <p class="help-block">
+                                The combined total of tv, movies, and music played by top 10 most active users.
+                            </p>
+                            <div class="graphs-instance">
+                                <div class="watch-chart" id="chart_div_plays_by_user">
+                                    <div class="graphs-load">
+                                        <i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                    </div>
+                                    <br>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <h4><i class="fa fa-calendar"></i> <span class="yaxis-text">Play count</span> by day of week <small>Last <span class="days">30</span> days</small></h4>
-                        <p class="help-block">
-                            The combined total of tv, movies, and music played per day of the week.
-                        </p>
-                        <div class="graphs-instance">
-                            <div class="watch-chart" id="chart_div_plays_by_dayofweek" style="float: left;">
-                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
-                                </div>
-                                <br>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <h4><i class="fa fa-clock-o"></i> <span class="yaxis-text">Play count</span> by hour of day <small>Last <span class="days">30</span> days</small></h4>
-                        <p class="help-block">
-                            The combined total of tv, movies, and music played per hour of the day.
-                        </p>
-                        <div class="graphs-instance">
-                            <div class="watch-chart" id="chart_div_plays_by_hourofday">
-                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
-                                </div>
-                                <br>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <h4><i class="fa fa-television"></i> <span class="yaxis-text">Play count</span> by top 10 platforms <small>Last <span class="days">30</span> days</small></h4>
-                        <p class="help-block">
-                            The combined total of tv, movies, and music played by top 10 most active platforms.
-                        </p>
-                        <div class="graphs-instance">
-                            <div class="watch-chart" id="chart_div_plays_by_platform" style="float: left;">
-                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
-                                </div>
-                                <br>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <h4><i class="fa fa-user"></i> <span class="yaxis-text">Play count</span> by top 10 users <small>Last <span class="days">30</span> days</small></h4>
-                        <p class="help-block">
-                            The combined total of tv, movies, and music played by top 10 most active users.
-                        </p>
-                        <div class="graphs-instance">
-                            <div class="watch-chart" id="chart_div_plays_by_user">
-                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...
-                                </div>
-                                <br>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
+            % if config['graph_tab'] == 'tabs-2':
+            <div role="tabpanel" class="tab-pane active" id="tabs-2">
+            % else:
             <div role="tabpanel" class="tab-pane" id="tabs-2">
+            % endif
                 <div class="row">
                     <div class="col-md-12">
                         <h4><i class="fa fa-video-camera"></i> Daily Stream type breakdown <small>Last <span class="days">30</span> days</small></h4>
@@ -189,7 +211,11 @@
                 </div>
             </div>
 
+            % if config['graph_tab'] == 'tabs-3':
+            <div role="tabpanel" class="tab-pane active" id="tabs-3">
+            % else:
             <div role="tabpanel" class="tab-pane" id="tabs-3">
+            % endif
                 <div class="row">
                     <div class="col-md-12">
                         <h4><i class="fa fa-calendar"></i> Plays by Month <small>Last 12 months</small></h4>
@@ -263,36 +289,12 @@
 <script>
     $(document).ready(function () {
 
-        // Save graph state to cookies
-        $('input[name=yaxis-options]').change(function() {
-            setCookie('graphType', $(this).val(), 365, '/');
-        });
-        $('input[name=date-options]').change(function() {
-            setCookie('graphDate', $(this).val(), 365, '/');
-        });
-        $('a[data-toggle=tab]').click(function() {
-            setCookie('graphTab', $(this).attr('href'), 365, '/');
-        });
+        // Initial values for graph from config
+        var yaxis = "${config['graph_type']}";
+        var current_range = ${config['graph_days']};
+        var current_tab = "${'#' + config['graph_tab']}";
         
-        // Initial values for graph if no saved state
-        var yaxis = 'plays';
-        var current_range = 30;
-        var current_tab = '#tabs-1';
-            
-        // Read saved graph state from cookies and set initial values
-        if(getCookie('graphType')) {
-            var yaxis = getCookie('graphType');
-            $('input[name=yaxis-options][value=' + yaxis + ']').prop('checked', true).trigger('click');
-        }
-        if(getCookie('graphDate')) {
-            var current_range = getCookie('graphDate');
-            $('input[name=date-options][value=' + current_range + ']').prop('checked', true).trigger('click');
-            $('.days').html(current_range);
-        }
-        if(getCookie('graphTab')) {
-            var current_tab = getCookie('graphTab');
-            $('a[data-toggle=tab][href=' + current_tab + ']').trigger('click');
-        }
+        $('.days').html(current_range);
 
         var music_visible = (${config['music_logging_enable']} == 1 ? true : false);
 
@@ -476,40 +478,61 @@
         }
 
         // Set initial state
-        loadGraphsTab1(current_range, yaxis);
+        if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
+        if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
+        if (current_tab == '#tabs-3') { loadGraphsTab3(yaxis); }
 
         // Tab1 opened
         $('#graph-tabs a[href="#tabs-1"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
-            $('#days-selection').show();
             loadGraphsTab1(current_range, yaxis);
+            $.ajax({
+                url: 'set_graph_config',
+                data: { graph_tab: current_tab.replace('#','') },
+                async: true
+            });
         })
 
         // Tab2 opened
         $('#graph-tabs a[href="#tabs-2"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
-            $('#days-selection').show();
             loadGraphsTab2(current_range, yaxis);
+            $.ajax({
+                url: 'set_graph_config',
+                data: { graph_tab: current_tab.replace('#','') },
+                async: true
+            });
         })
 
         // Tab3 opened
         $('#graph-tabs a[href="#tabs-3"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
-            $('#days-selection').hide();
-            console.log('loading....');
             loadGraphsTab3(yaxis);
+            $.ajax({
+                url: 'set_graph_config',
+                data: { graph_tab: current_tab.replace('#','') },
+                async: true
+            });
         })
 
-
         // Date range changed
-        $('#days-selection').on('change', function() {
-            current_range = $('input[name=date-options]:checked', '#days-selection').val();
+        $('#graph-days').on('change', function() {
+            current_range = $(this).val();
+            if (current_range < 1) {
+                $(this).val(7);
+                current_range = 7;
+            }
             if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
             if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
             $('.days').html(current_range);
+            $.ajax({
+                url: 'set_graph_config',
+                data: { graph_days: current_range},
+                async: true
+            });
         });
 
         // Y-axis changed
@@ -518,6 +541,11 @@
             if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
             if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
             if (current_tab == '#tabs-3') { loadGraphsTab3(yaxis); }
+            $.ajax({
+                url: 'set_graph_config',
+                data: { graph_type: yaxis},
+                async: true
+            });
         });
 
         function setGraphFormat(type) {

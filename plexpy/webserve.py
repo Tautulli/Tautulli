@@ -175,6 +175,9 @@ class WebInterface(object):
     def graphs(self):
 
         config = {
+            "graph_type": plexpy.CONFIG.GRAPH_TYPE,
+            "graph_days": plexpy.CONFIG.GRAPH_DAYS,
+            "graph_tab": plexpy.CONFIG.GRAPH_TAB,
             "music_logging_enable": plexpy.CONFIG.MUSIC_LOGGING_ENABLE
         }
 
@@ -954,6 +957,20 @@ class WebInterface(object):
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)
+
+    @cherrypy.expose
+    def set_graph_config(self, graph_type=None, graph_days=None, graph_tab=None):
+        if graph_type:
+            plexpy.CONFIG.__setattr__('GRAPH_TYPE', graph_type)
+            plexpy.CONFIG.write()
+        if graph_days:
+            plexpy.CONFIG.__setattr__('GRAPH_DAYS', graph_days)
+            plexpy.CONFIG.write()
+        if graph_tab:
+            plexpy.CONFIG.__setattr__('GRAPH_TAB', graph_tab)
+            plexpy.CONFIG.write()
+
+        return "Updated graphs config values."
 
     @cherrypy.expose
     def get_plays_by_date(self, time_range='30', y_axis='plays', **kwargs):
