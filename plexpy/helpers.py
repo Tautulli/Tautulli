@@ -13,23 +13,59 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from operator import itemgetter
-from xml.dom import minidom
 from IPy import IP
-
-import unicodedata
-import plexpy
 import datetime
 import fnmatch
-import shutil
-import time
-import sys
-import re
-import os
+from functools import wraps
 import json
-import xmltodict
+import os
 import math
+from operator import itemgetter
+import re
+import shutil
 import socket
+import sys
+import time
+from xml.dom import minidom
+import unicodedata
+
+import xmltodict
+import plexpy
+from api2 import API2
+
+
+def addtoapi(*dargs, **dkwargs):
+    """ Helper decorator that adds function to the API class.
+        is used to reuse as much code as possible
+
+        args:
+            dargs: (string, optional) Used to rename a function
+
+        Example:
+            @addtoapi("i_was_renamed", "im_a_second_alias")
+            @addtoapi()
+
+    """
+    def rd(function):
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            return function(*args, **kwargs)
+
+        if dargs:
+            # To rename the function if it sucks.. and
+            # allow compat with old api.
+            for n in dargs:
+                if function.__doc__ and len(function.__doc__):
+                    function.__doc__ = function.__doc__.strip()
+                setattr(API2, n, function)
+            return wrapper
+
+        if function.__doc__ and len(function.__doc__):
+            function.__doc__ = function.__doc__.strip()
+        setattr(API2, function.__name__, function)
+        return wrapper
+
+    return rd
 
 def multikeysort(items, columns):
     comparers = [((itemgetter(col[1:].strip()), -1) if col.startswith('-') else (itemgetter(col.strip()), 1)) for col in columns]
@@ -174,7 +210,7 @@ def human_duration(s, sig='dhms'):
         if sig >= 'dh' and h > 0:
             h = h + 1 if sig == 'dh' and m >= 30 else h
             hd_list.append(str(h) + ' hrs')
-            
+
         if sig >= 'dhm' and m > 0:
             m = m + 1 if sig == 'dhm' and s >= 30 else m
             hd_list.append(str(m) + ' mins')
