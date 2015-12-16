@@ -1291,6 +1291,7 @@ class BOXCAR(object):
             req = urllib2.Request(self.url)
             handle = urllib2.urlopen(req, data)
             handle.close()
+            logger.info(u"Boxcar2 notifications sent.")
             return True
 
         except urllib2.URLError as e:
