@@ -175,6 +175,9 @@ class WebInterface(object):
     def graphs(self):
 
         config = {
+            "graph_type": plexpy.CONFIG.GRAPH_TYPE,
+            "graph_days": plexpy.CONFIG.GRAPH_DAYS,
+            "graph_tab": plexpy.CONFIG.GRAPH_TAB,
             "music_logging_enable": plexpy.CONFIG.MUSIC_LOGGING_ENABLE
         }
 
@@ -467,6 +470,10 @@ class WebInterface(object):
             "notify_on_extdown_body_text": plexpy.CONFIG.NOTIFY_ON_EXTDOWN_BODY_TEXT,
             "notify_on_intdown_subject_text": plexpy.CONFIG.NOTIFY_ON_INTDOWN_SUBJECT_TEXT,
             "notify_on_intdown_body_text": plexpy.CONFIG.NOTIFY_ON_INTDOWN_BODY_TEXT,
+            "notify_on_extup_subject_text": plexpy.CONFIG.NOTIFY_ON_EXTUP_SUBJECT_TEXT,
+            "notify_on_extup_body_text": plexpy.CONFIG.NOTIFY_ON_EXTUP_BODY_TEXT,
+            "notify_on_intup_subject_text": plexpy.CONFIG.NOTIFY_ON_INTUP_SUBJECT_TEXT,
+            "notify_on_intup_body_text": plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
@@ -613,7 +620,7 @@ class WebInterface(object):
         if 'media_type' in kwargs:
             media_type = kwargs.get('media_type', "")
             if media_type != 'all':
-               custom_where.append(['session_history_metadata.media_type', media_type])
+               custom_where.append(['session_history.media_type', media_type])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
@@ -950,6 +957,20 @@ class WebInterface(object):
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(history)
+
+    @cherrypy.expose
+    def set_graph_config(self, graph_type=None, graph_days=None, graph_tab=None):
+        if graph_type:
+            plexpy.CONFIG.__setattr__('GRAPH_TYPE', graph_type)
+            plexpy.CONFIG.write()
+        if graph_days:
+            plexpy.CONFIG.__setattr__('GRAPH_DAYS', graph_days)
+            plexpy.CONFIG.write()
+        if graph_tab:
+            plexpy.CONFIG.__setattr__('GRAPH_TAB', graph_tab)
+            plexpy.CONFIG.write()
+
+        return "Updated graphs config values."
 
     @cherrypy.expose
     def get_plays_by_date(self, time_range='30', y_axis='plays', **kwargs):
@@ -1353,12 +1374,22 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_notification_agent_config(self, config_id, **kwargs):
-        config = notifiers.get_notification_agent_config(config_id=config_id)
+        if config_id.isdigit():
+            config = notifiers.get_notification_agent_config(config_id=config_id)
+            agents = notifiers.available_notification_agents()
+            for agent in agents:
+                if int(config_id) == agent['id']:
+                    this_agent = agent
+                    break
+                else:
+                    this_agent = None
+        else:
+            return None
 
         checkboxes = {'email_tls': checked(plexpy.CONFIG.EMAIL_TLS)}
 
         return serve_template(templatename="notification_config.html", title="Notification Configuration",
-                              config_id=config_id, data=config, checkboxes=checkboxes)
+                              agent=this_agent, data=config, checkboxes=checkboxes)
 
     @cherrypy.expose
     def get_notification_agent_triggers(self, config_id, **kwargs):

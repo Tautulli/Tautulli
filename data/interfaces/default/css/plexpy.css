@@ -2521,3 +2521,37 @@ table[id^='history_child'] thead th {
     -o-transition: background 0.3s;
     transition: background 0.3s;
 }
+
+.notification-params {
+    margin-top: 10px;
+    background-color: #282828;
+}
+.notification-params th {
+    padding-left: 10px;
+    height: 30px;
+}
+.notification-params td {
+    height: 25px;
+}
+.notification-params td:first-child {
+    padding-left: 10px;
+    width: 200px;
+}
+.notification-params td:not(:first-child) {
+    padding-right: 10px;
+}
+.notification-params tr:nth-child(odd) td {
+    background-color: rgba(255,255,255,0.035);
+}
+.notification-params tr:nth-child(even) td {
+    background-color: rgba(255,255,255,0.010);
+}
+
+#days-selection label {
+    margin-bottom: 0;
+}
+#graph-days {
+    margin: 0;
+    width: 75px;
+    height: 34px;
+}

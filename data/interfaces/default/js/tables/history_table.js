@@ -18,7 +18,7 @@ history_table_options = {
         "lengthMenu":"Show _MENU_ entries per page",
         "info":"Showing _START_ to _END_ of _TOTAL_ history items",
         "infoEmpty":"Showing 0 to 0 of 0 entries",
-        "infoFiltered":"(filtered from _MAX_ total entries)",
+        "infoFiltered":"<span class='hidden-md hidden-sm hidden-xs'>(filtered from _MAX_ total entries)</span>",
         "emptyTable": "No data in table"
     },
     "pagingType": "bootstrap",
@@ -265,6 +265,9 @@ history_table_options = {
                 createChildTable(this, rowData)
             }
         });
+
+        $("#history_table_info").append('<span class="hidden-md hidden-sm hidden-xs"> with a duration of ' + settings.json.filter_duration +
+            ' (filtered from ' + settings.json.total_duration + ' total)</span>');
     },
     "preDrawCallback": function(settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";

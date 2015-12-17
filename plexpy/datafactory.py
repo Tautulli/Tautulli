@@ -45,7 +45,7 @@ class DataFactory(object):
                    'platform',
                    'player',
                    'ip_address',
-                   'session_history_metadata.media_type',
+                   'session_history.media_type',
                    'session_history_metadata.rating_key',
                    'session_history_metadata.parent_rating_key',
                    'session_history_metadata.grandparent_rating_key',
@@ -80,7 +80,7 @@ class DataFactory(object):
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
         except:
-            logger.warn("Unable to execute database query.")
+            logger.warn("Unable to execute database query for get_history.")
             return {'recordsFiltered': 0,
                     'recordsTotal': 0,
                     'draw': 0,
@@ -89,8 +89,13 @@ class DataFactory(object):
 
         history = query['result']
 
+        filter_duration = 0
+        total_duration = self.get_total_duration(custom_where=custom_where)
+
         rows = []
         for item in history:
+            filter_duration += int(item['duration'])
+
             if item["media_type"] == 'episode' and item["parent_thumb"]:
                 thumb = item["parent_thumb"]
             elif item["media_type"] == 'episode':
@@ -144,7 +149,9 @@ class DataFactory(object):
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
                 'data': rows,
-                'draw': query['draw']
+                'draw': query['draw'],
+                'filter_duration': helpers.human_duration(filter_duration, sig='dhm'),
+                'total_duration': helpers.human_duration(total_duration, sig='dhm')
         }
 
         return dict
@@ -588,6 +595,40 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'rows': last_watched})
+
+            elif stat == 'most_concurrent':
+                try:
+                    query = 'SELECT started, stopped ' \
+                            'FROM session_history ' \
+                            'WHERE datetime(stopped, "unixepoch", "localtime") ' \
+                            '>= datetime("now", "-%s days", "localtime") ' % time_range
+                    result = monitor_db.select(query)
+                except:
+                    logger.warn("Unable to execute database query for get_home_stats: most_concurrent.")
+                    return None
+
+                times = {}
+                for item in result:
+                    times.update({str(item['stopped']) + 'A': -1, str(item['started']) + 'B': 1})
+
+                count = 0
+                last_start = 0
+                most_concurrent = {'count': count}
+
+                for key in sorted(times):
+                    if times[key] == 1:
+                        count += times[key]
+                        if count >= most_concurrent['count']:
+                            last_start = key
+                    else:
+                        if count >= most_concurrent['count']:
+                            most_concurrent = {'count': count,
+                                               'started': last_start[:-1],
+                                               'stopped': key[:-1]}
+                        count += times[key]
+
+                home_stats.append({'stat_id': stat,
+                                   'rows': [most_concurrent]})
 
         return home_stats
 
@@ -1049,3 +1090,26 @@ class DataFactory(object):
             ip_address = item['ip_address']
 
         return ip_address
+
+    def get_total_duration(self, custom_where=None):
+        monitor_db = database.MonitorDatabase()
+
+        # Split up custom wheres
+        if custom_where:
+            where = 'WHERE ' + ' AND '.join([w[0] + ' = "' + w[1] + '"' for w in custom_where])
+        else:
+            where = ''
+        
+        try:
+            query = 'SELECT SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - ' \
+		            'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS total_duration ' \
+                    'FROM session_history %s ' % where
+            result = monitor_db.select(query)
+        except:
+            logger.warn("Unable to execute database query for get_total_duration.")
+            return None
+
+        for item in result:
+            total_duration = item['total_duration']
+
+        return total_duration

@@ -146,7 +146,7 @@ def now():
     now = datetime.datetime.now()
     return now.strftime("%Y-%m-%d %H:%M:%S")
 
-def human_duration(s):
+def human_duration(s, sig='dhms'):
 
     hd = ''
 
@@ -157,20 +157,24 @@ def human_duration(s):
         s = int(((s % 84600) % 3600) % 60)
 
         hd_list = []
-        if d > 0:
+        if sig >= 'd' and d > 0:
+            d = d + 1 if sig == 'd' and h >= 12 else d
             hd_list.append(str(d) + ' days')
-        if h > 0:
+
+        if sig >= 'dh' and h > 0:
+            h = h + 1 if sig == 'dh' and m >= 30 else h
             hd_list.append(str(h) + ' hrs')
-        if m > 0:
+            
+        if sig >= 'dhm' and m > 0:
+            m = m + 1 if sig == 'dhm' and s >= 30 else m
             hd_list.append(str(m) + ' mins')
-        if s > 0:
+
+        if sig >= 'dhms' and s > 0:
             hd_list.append(str(s) + ' secs')
 
         hd = ' '.join(hd_list)
 
-        return hd
-    else:
-        return hd
+    return hd
 
 def get_age(date):
 
