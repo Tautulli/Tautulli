@@ -353,7 +353,7 @@ def get_notification_agent_config(config_id):
         return []
 
 def send_notification(config_id, subject, body):
-    if config_id:
+    if str(config_id).isdigit():
         config_id = int(config_id)
 
         if config_id == 0:
@@ -460,7 +460,7 @@ class GROWL(object):
 
         # Send it, including an image
         image_file = os.path.join(str(plexpy.PROG_DIR),
-            "data/images/plexpylogo.png")
+            "data/interfaces/default/images/favicon.png")
 
         with open(image_file, 'rb') as f:
             image = f.read()
