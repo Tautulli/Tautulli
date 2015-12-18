@@ -737,20 +737,20 @@ a:hover .dashboard-activity-poster {
     transition: all 0s;
 }
 .dashboard-activity-progress .bufferbar {
-    padding-right: 2px;
+    padding-right: 3px;
     font-size: x-small;
     text-align: right;
-    padding-top: 6px;
+    color: rgba(255, 255, 255, 0);
     background-color: #444;
     position: absolute;
     height: 6px;
     overflow: hidden;
 }
 .dashboard-activity-progress .bar {
-    padding-right: 2px;
+    padding-right: 3px;
     font-size: x-small;
     text-align: right;
-    padding-top: 6px;
+    color: rgba(255, 255, 255, 0);
     background-color: #faa732;
     background-image: -moz-linear-gradient(top, #fbb450, #f89406);
     background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fbb450), to(#f89406));
@@ -763,29 +763,34 @@ a:hover .dashboard-activity-poster {
     height: 6px;
     overflow: hidden;
 }
-.dashboard-activity-progress:hover .bar { 
-	height: 14px; 
-	padding-top: 0px;
-	transform-origin: top;
-    transition: all .2s ease;
-	border-radius: 0px 0px 3px 3px;
-}
-.dashboard-activity-progress:hover .dashboard-activity-progress-bar { 
+.dashboard-instance.hover .dashboard-activity-progress-bar { 
 	height: 14px; 
 	transform-origin: top;
     transition: all .2s ease;
 	border-radius: 0px 0px 3px 3px;
 }
-.dashboard-activity-progress:hover .bufferbar { 
+.dashboard-instance.hover .bar { 
 	height: 14px; 
-	padding-top: 0px;
 	transform-origin: top;
     transition: all .2s ease;
 	border-radius: 0px 0px 3px 3px;
+    color: rgba(255, 255, 255, 1);
+    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
+    background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
+    background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
 }
-
-.dashboard-activity-progress:hover+.dashboard-activity-metadata-wrapper { 
-	margin-top: 8px;
+.dashboard-instance.hover .bufferbar { 
+	height: 14px; 
+	transform-origin: top;
+    transition: all .2s ease;
+	border-radius: 0px 0px 3px 3px;
+    color: rgba(255, 255, 255, 1);
+    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
+    background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
+    background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
+}
+.dashboard-instance.hover .dashboard-activity-metadata-wrapper { 
+	margin-top: 11px;
 	transform-origin: top;
     transition: all .2s ease;
 }

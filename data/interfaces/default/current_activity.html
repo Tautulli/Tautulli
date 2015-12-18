@@ -280,6 +280,13 @@ DOCUMENTATION :: END
         e.preventDefault();
         $($(this).attr('data-target')).toggle();
     });
+
+    // Add hover class to dashboard-instance
+    $('.dashboard-activity-poster').hover(function() {
+        $(this).closest('.dashboard-instance').addClass('hover');
+    }, function() {
+        $(this).closest('.dashboard-instance').removeClass('hover');
+    });
 </script>
 % else:
 <div class="text-muted">Nothing is currently being watched.</div><br>
