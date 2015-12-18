@@ -737,6 +737,9 @@ a:hover .dashboard-activity-poster {
     transition: all 0s;
 }
 .dashboard-activity-progress .bufferbar {
+    padding-right: 2px;
+    font-size: x-small;
+    text-align: right;
     padding-top: 6px;
     background-color: #444;
     position: absolute;
@@ -744,6 +747,9 @@ a:hover .dashboard-activity-poster {
     overflow: hidden;
 }
 .dashboard-activity-progress .bar {
+    padding-right: 2px;
+    font-size: x-small;
+    text-align: right;
     padding-top: 6px;
     background-color: #faa732;
     background-image: -moz-linear-gradient(top, #fbb450, #f89406);
@@ -756,6 +762,32 @@ a:hover .dashboard-activity-poster {
     position: absolute;
     height: 6px;
     overflow: hidden;
+}
+.dashboard-activity-progress:hover .bar { 
+	height: 14px; 
+	padding-top: 0px;
+	transform-origin: top;
+    transition: all .2s ease;
+	border-radius: 0px 0px 3px 3px;
+}
+.dashboard-activity-progress:hover .dashboard-activity-progress-bar { 
+	height: 14px; 
+	transform-origin: top;
+    transition: all .2s ease;
+	border-radius: 0px 0px 3px 3px;
+}
+.dashboard-activity-progress:hover .bufferbar { 
+	height: 14px; 
+	padding-top: 0px;
+	transform-origin: top;
+    transition: all .2s ease;
+	border-radius: 0px 0px 3px 3px;
+}
+
+.dashboard-activity-progress:hover+.dashboard-activity-metadata-wrapper { 
+	margin-top: 8px;
+	transform-origin: top;
+    transition: all .2s ease;
 }
 .dashboard-activity-metadata-wrapper {
     position: relative;
