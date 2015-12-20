@@ -44,6 +44,11 @@ player                  Returns the player name for the associated stat.
 == Only if 'stat_id' is 'last_watched' ==
 last_watch              Returns the time the media item was last watched.
 
+== Only if 'stat_id' is 'most_concurrent' ==
+count                   Returns the count of the most concurrent streams.
+started                 Returns the start time of the most concurrent streams.
+stopped                 Returns the stop time of the most concurrent streams.
+
 DOCUMENTATION :: END
 </%doc>
 
@@ -780,6 +785,30 @@ DOCUMENTATION :: END
                 </div>
             </ul>
             % endif
+        </li>
+    </div>
+    % elif top_stat['stat_id'] == 'most_concurrent' and top_stat['rows']:
+    <div class="home-platforms-instance">
+        <li>
+            <div class="home-platforms-instance-info">
+                <div class="home-platforms-instance-name">
+                    <h4>Most Concurrent Streams</h4>
+                </div>
+                <div class="home-platforms-instance-playcount">
+                    <h4>
+                        <span id="most-concurrent-start">
+                            <script>
+                                $('#most-concurrent-start').text(moment(${top_stat['rows'][0]['started']},"X").format(date_format + ' ' + time_format));
+                            </script>
+                        </span>
+                    </h4>
+                    <h3>${top_stat['rows'][0]['count']}</h3>
+                    <p> streams</p>
+                </div>
+            </div>
+            <div class="home-platforms-instance-poster">
+                <div class="home-platforms-instance-box" style="background-image: url(interfaces/default/images/home-stat_most-concurrent.png);"></div>
+            </div>
         </li>
     </div>
     % endif

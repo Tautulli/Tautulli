@@ -199,6 +199,18 @@ def notify_timeline(timeline_data=None, notify_action=None):
                 notifiers.send_notification(config_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1])
+            if agent['on_extup'] and notify_action == 'extup':
+                # Build and send notification
+                notify_strings = build_server_notify_text(state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1])
+            if agent['on_intup'] and notify_action == 'intup':
+                # Build and send notification
+                notify_strings = build_server_notify_text(state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1])
     else:
         logger.debug(u"PlexPy Notifier :: Notify timeline called but incomplete data received.")
 
@@ -370,15 +382,31 @@ def build_notify_text(session=None, timeline=None, state=None):
     duration = helpers.convert_milliseconds_to_minutes(metadata['duration'])
 
     # Default values
-    video_decision = ''
-    audio_decision = ''
-    transcode_decision = ''
-    stream_duration = 0
-    view_offset = 0
     user = ''
     platform = ''
     player = ''
     ip_address = 'N/A'
+    stream_duration = 0
+    view_offset = 0
+    container = ''
+    video_codec = ''
+    video_bitrate = ''
+    video_width = ''
+    video_height = ''
+    video_resolution = ''
+    video_framerate = ''
+    aspect_ratio = ''
+    audio_codec = ''
+    audio_channels = ''
+    transcode_decision = ''
+    video_decision = ''
+    audio_decision = ''
+    transcode_container = ''
+    transcode_video_codec = ''
+    transcode_video_width = ''
+    transcode_video_height = ''
+    transcode_audio_codec = ''
+    transcode_audio_channels = ''
 
     # Session values
     if session:
@@ -405,9 +433,39 @@ def build_notify_text(session=None, timeline=None, state=None):
         platform = session['platform']
         player = session['player']
         ip_address = session['ip_address'] if session['ip_address'] else 'N/A'
+        container = session['container']
+        video_codec = session['video_codec']
+        video_bitrate = session['bitrate']
+        video_width = session['width']
+        video_height = session['height']
+        video_resolution = session['video_resolution']
+        video_framerate = session['video_framerate']
+        aspect_ratio = session['aspect_ratio']
+        audio_codec = session['audio_codec']
+        audio_channels = session['audio_channels']
+        transcode_container = session['transcode_container']
+        transcode_video_codec = session['transcode_video_codec']
+        transcode_video_width = session['transcode_width']
+        transcode_video_height = session['transcode_height']
+        transcode_audio_codec = session['transcode_audio_codec']
+        transcode_audio_channels = session['transcode_audio_channels']
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
+    # Fix metadata params for notify recently added grandparent
+    if plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
+        show_name = metadata['title']
+        episode_name = ''
+        artist_name = metadata['title']
+        album_name = ''
+        track_name = ''
+    else:
+        show_name = metadata['grandparent_title']
+        episode_name = metadata['title']
+        artist_name = metadata['grandparent_title']
+        album_name = metadata['parent_title']
+        track_name = metadata['title']
+    
     available_params = {'server_name': server_name,
                         'server_uptime': server_uptime,
                         'user': user,
@@ -415,19 +473,39 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'player': player,
                         'ip_address': ip_address,
                         'media_type': metadata['media_type'],
+                        'stream_duration': stream_duration,
+                        'remaining_duration': duration - view_offset,
+                        'progress': view_offset,
+                        'progress_percent': progress_percent,
+                        'container': container,
+                        'video_codec': video_codec,
+                        'video_bitrate': video_bitrate,
+                        'video_width': video_width,
+                        'video_height': video_height,
+                        'video_resolution': video_resolution,
+                        'video_framerate': video_framerate,
+                        'aspect_ratio': aspect_ratio,
+                        'audio_codec': audio_codec,
+                        'audio_channels': audio_channels,
+                        'transcode_decision': transcode_decision,
+                        'video_decision': video_decision,
+                        'audio_decision': audio_decision,
+                        'transcode_container': transcode_container,
+                        'transcode_video_codec': transcode_video_codec,
+                        'transcode_video_width': transcode_video_width,
+                        'transcode_video_height': transcode_video_height,
+                        'transcode_audio_codec': transcode_audio_codec,
+                        'transcode_audio_channels': transcode_audio_channels,
                         'title': full_title,
-                        'show_name': metadata['grandparent_title'],
-                        'episode_name': metadata['title'],
-                        'artist_name': metadata['grandparent_title'],
-                        'album_name': metadata['parent_title'],
-                        'track_name': metadata['title'],
+                        'show_name': show_name,
+                        'episode_name': episode_name,
+                        'artist_name': artist_name,
+                        'album_name': album_name,
+                        'track_name': track_name,
                         'season_num': metadata['parent_index'].zfill(1),
                         'season_num00': metadata['parent_index'].zfill(2),
                         'episode_num': metadata['index'].zfill(1),
                         'episode_num00': metadata['index'].zfill(2),
-                        'video_decision': video_decision,
-                        'audio_decision': audio_decision,
-                        'transcode_decision': transcode_decision,
                         'year': metadata['year'],
                         'studio': metadata['studio'],
                         'content_rating': metadata['content_rating'],
@@ -438,11 +516,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'summary': metadata['summary'],
                         'tagline': metadata['tagline'],
                         'rating': metadata['rating'],
-                        'duration': duration,
-                        'stream_duration': stream_duration,
-                        'remaining_duration': duration - view_offset,
-                        'progress': view_offset,
-                        'progress_percent': progress_percent
+                        'duration': duration
                         }
 
     # Default subject text
@@ -636,6 +710,10 @@ def build_server_notify_text(state=None):
     on_extdown_body = plexpy.CONFIG.NOTIFY_ON_EXTDOWN_BODY_TEXT
     on_intdown_subject = plexpy.CONFIG.NOTIFY_ON_INTDOWN_SUBJECT_TEXT
     on_intdown_body = plexpy.CONFIG.NOTIFY_ON_INTDOWN_BODY_TEXT
+    on_extup_subject = plexpy.CONFIG.NOTIFY_ON_EXTUP_SUBJECT_TEXT
+    on_extup_body = plexpy.CONFIG.NOTIFY_ON_EXTUP_BODY_TEXT
+    on_intup_subject = plexpy.CONFIG.NOTIFY_ON_INTUP_SUBJECT_TEXT
+    on_intup_body = plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT
 
     available_params = {'server_name': server_name,
                         'server_uptime': server_uptime}
@@ -679,6 +757,50 @@ def build_server_notify_text(state=None):
 
             try:
                 body_text = unicode(on_intdown_body).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    if state == 'extup':
+        # Default body text
+        body_text = 'The Plex Media Server remote access is back up.'
+
+        if on_extup_subject and on_extup_body:
+            try:
+                subject_text = unicode(on_extup_subject).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_extup_body).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text]
+        else:
+            return [subject_text, body_text]
+    elif state == 'intup':
+        # Default body text
+        body_text = 'The Plex Media Server is back up.'
+
+        if on_intup_subject and on_intup_body:
+            try:
+                subject_text = unicode(on_intup_subject).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_intup_body).format(**available_params)
             except LookupError, e:
                 logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification body. Using fallback." % e)
             except:

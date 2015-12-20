@@ -36,6 +36,11 @@ def check_active_sessions(ws_request=False):
         global int_ping_count
 
         if session_list:
+            if int_ping_count >= 3:
+                logger.info(u"PlexPy Monitor :: The Plex Media Server is back up.")
+                # Fire off notifications
+                threading.Thread(target=notification_handler.notify_timeline,
+                                    kwargs=dict(notify_action='intup')).start()
             int_ping_count = 0
 
             media_container = session_list['sessions']
@@ -248,7 +253,7 @@ def check_server_response():
         server_response = pms_connect.get_server_response()
 
         global ext_ping_count
-        
+
         # Check for remote access
         if server_response:
         
@@ -267,6 +272,11 @@ def check_server_response():
                             % str(ext_ping_count))
             # Reset external ping counter
             else:
+                if ext_ping_count >= 3:
+                    logger.info(u"PlexPy Monitor :: Plex remote access is back up.")
+                    # Fire off notifications
+                    threading.Thread(target=notification_handler.notify_timeline,
+                                        kwargs=dict(notify_action='extup')).start()
                 ext_ping_count = 0
 
         if ext_ping_count == 3:

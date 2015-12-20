@@ -86,9 +86,9 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Table History
+                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Table and Watch Statistics History
                             </label>
-                            <p class="help-block">Group successive play history by the same user as a single entry in tables.</p>
+                            <p class="help-block">Group successive play history by the same user as a single entry in the tables and watch statistics.</p>
                         </div>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
@@ -109,9 +109,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         <option id="card-popular_movies" value="popular_movies">Most Popular Movie</option>
                                         <option id="card-top_music" value="top_music">Most Listened Music</option>
                                         <option id="card-popular_music" value="popular_music">Most Popular Music</option>
+                                        <option id="card-last_watched" value="last_watched">Last Watched</option>
                                         <option id="card-top_users" value="top_users">Most Active User</option>
                                         <option id="card-top_platforms" value="top_platforms">Most Active Platform</option>
-                                        <option id="card-last_watched" value="last_watched">Last Watched</option>
+                                        <option id="card-most_concurrent" value="most_concurrent">Most Concurrent Streams</option>
                                     </select>
                                 </div>
                             </div>
@@ -294,7 +295,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label>
                                 <input type="checkbox" id="pms_is_remote" name="pms_is_remote" value="1" ${config['pms_is_remote']}> Remote Server
                             </label>
-                            <p class="help-block">Check this is your Plex Server is not on the same local network as PlexPy.</p>
+                            <p class="help-block">Check this if your Plex Server is not on the same local network as PlexPy.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -533,7 +534,8 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label>
                                 <input type="checkbox" name="notify_recently_added_grandparent" id="notify_recently_added_grandparent" value="1" ${config['notify_recently_added_grandparent']}> Group notifications for recently added TV Shows or Music
                             </label>
-                            <p class="help-block">Enable to only get one TV Show or Artist notification for recently added Episodes or Tracks. Movies are unaffected.</p>
+                            <p class="help-block">Enable to only get one TV Show or Artist notification for a batch of recently added Episodes or Tracks. Movies are unaffected.<br />
+                                Note: No Season/Episode or Album/Track metadata will be available.</p>
                         </div>
                         <div class="form-group">
                             <label for="notify_recently_added_delay">Notification Delay</label>
@@ -709,6 +711,40 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         <div class="form-group">
                                             <label for="notify_on_intdown_body_text">Message Body</label>
                                             <textarea class="form-control" id="notify_on_intdown_body_text" name="notify_on_intdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_intdown_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Back Up<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_extup_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_extup_subject_text" name="notify_on_extup_subject_text" value="${config['notify_on_extup_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_extup_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_extup_body_text" name="notify_on_extup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extup_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Server Back Up<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_intup_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_intup_subject_text" name="notify_on_intup_subject_text" value="${config['notify_on_intup_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_intup_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_intup_body_text" name="notify_on_intup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_intup_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -928,154 +964,247 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
                             class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Notification string substitutions</h4>
+                    <h4 class="modal-title">Notification String Substitutions</h4>
                 </div>
                 <div class="modal-body">
                     <div>
                         <p class="help-block">
-                            If a value for a selected parameter cannot be provided nothing will be outputted for it.
+                            If the value for a selected parameter cannot be provided, it will display as blank.
                         </p>
-                        <table>
+                        <table class="notification-params">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Server Details
+                                    </th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 <tr>
-                                    <td width="150"><strong>{server_name}</strong></td>
+                                    <td><strong>{server_name}</strong></td>
                                     <td>The name of your Plex Server.</td>
                                 </tr>
                                 <tr>
-                                    <td width="150"><strong>{server_uptime}</strong></td>
+                                    <td><strong>{server_uptime}</strong></td>
                                     <td>The uptime (in days, hours, mins, secs) of your Plex Server.</td>
                                 </tr>
+                            </tbody>
+                        </table>
+                        <table class="notification-params">
+                            <thead>
                                 <tr>
-                                    <td width="150"><strong>{user}</strong></td>
+                                    <th>
+                                        Stream Details
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>{user}</strong></td>
                                     <td>The username of the person streaming.</td>
                                 </tr>
                                 <tr>
-                                    <td width="150"><strong>{platform}</strong></td>
+                                    <td><strong>{platform}</strong></td>
                                     <td>The type of client being used for playback.</td>
                                 </tr>
                                 <tr>
-                                    <td width="150"><strong>{player}</strong></td>
+                                    <td><strong>{player}</strong></td>
                                     <td>The name of the device being used for playback.</td>
                                 </tr>
                                 <tr>
-                                    <td width="150"><strong>{ip_address}</strong></td>
+                                    <td><strong>{ip_address}</strong></td>
                                     <td>The IP address of the device being used for playback. (PMS 0.9.14 and above)</td>
                                 </tr>
                                 <tr>
-                                    <td width="150"><strong>{media_type}</strong></td>
+                                    <td><strong>{media_type}</strong></td>
                                     <td>The type of media being played (movie, episode, track).</td>
                                 </tr>
                                 <tr>
-                                    <td width="150"><strong>{title}</strong></td>
-                                    <td>The full title of the item being played.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{show_name}</strong></td>
-                                    <td>The title of the TV series being played.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{episode_name}</strong></td>
-                                    <td>The title of the episode being played.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{artist_name}</strong></td>
-                                    <td>The name of the artist being played.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{album_name}</strong></td>
-                                    <td>The title of the album being played.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{track_name}</strong></td>
-                                    <td>The title of the track being played.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{season_num}</strong></td>
-                                    <td>The season number for the media item if item is episode.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{season_num00}</strong></td>
-                                    <td>The two digit season number.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{episode_num}</strong></td>
-                                    <td>The episode number for the media item if item is episode.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{episode_num00}</strong></td>
-                                    <td>The two digit episode number.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{video_decision}</strong></td>
-                                    <td>The video transcode decisions for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{audio_decision}</strong></td>
-                                    <td>The audio transcode decisions for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{transcode_decision}</strong></td>
-                                    <td>The stream transcode decisions for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{year}</strong></td>
-                                    <td>The release year for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{studio}</strong></td>
-                                    <td>The studio for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{content_rating}</strong></td>
-                                    <td>The content rating for the media item. (e.g. TV-MA, TV-PG, etc.)</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{directors}</strong></td>
-                                    <td>A list of directors for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{writers}</strong></td>
-                                    <td>A list of writers for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{actors}</strong></td>
-                                    <td>A list of actors for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{genres}</strong></td>
-                                    <td>A list of genres for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{summary}</strong></td>
-                                    <td>A short plot summary for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{tagline}</strong></td>
-                                    <td>A tagline for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{rating}</strong></td>
-                                    <td>The rating (out of 10) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{duration}</strong></td>
-                                    <td>The duration (in minutes) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td width="150"><strong>{stream_duration}</strong></td>
+                                    <td><strong>{stream_duration}</strong></td>
                                     <td>The stream duration (in minutes) for the item.</td>
                                 </tr>
                                 <tr>
-                                    <td width="150"><strong>{remaining_duration}</strong></td>
+                                    <td><strong>{remaining_duration}</strong></td>
                                     <td>The remaining duration (in minutes) for the item.</td>
                                 </tr>
                                 <tr>
-                                    <td width="150"><strong>{progress}</strong></td>
+                                    <td><strong>{progress}</strong></td>
                                     <td>The last reported offset (in minutes) for the item.</td>
                                 </tr>
                                 <tr>
-                                    <td width="150"><strong>{progress_percent}</strong></td>
+                                    <td><strong>{progress_percent}</strong></td>
                                     <td>The last reported progress percent for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{container}</strong></td>
+                                    <td>The media container of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_codec}</strong></td>
+                                    <td>The video codec of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_bitrate}</strong></td>
+                                    <td>The video bitrate of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_width}</strong></td>
+                                    <td>The video width of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_height}</strong></td>
+                                    <td>The video height of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_resolution}</strong></td>
+                                    <td>The video resolution of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_framerate}</strong></td>
+                                    <td>The video framerate of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{aspect_ratio}</strong></td>
+                                    <td>The aspect ratio of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{audio_codec}</strong></td>
+                                    <td>The audio codec of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{audio_channels}</strong></td>
+                                    <td>The audio channels of the original media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_decision}</strong></td>
+                                    <td>The stream transcode decisions for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{video_decision}</strong></td>
+                                    <td>The video transcode decisions for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{audio_decision}</strong></td>
+                                    <td>The audio transcode decisions for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_container}</strong></td>
+                                    <td>The media container of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_video_codec}</strong></td>
+                                    <td>The video codec of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_video_width}</strong></td>
+                                    <td>The video width of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_video_height}</strong></td>
+                                    <td>The video height of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_audio_codec}</strong></td>
+                                    <td>The audio codec of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_audio_channels}</strong></td>
+                                    <td>The audio channels of the transcoded media.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="notification-params">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Metadata Details
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>{title}</strong></td>
+                                    <td>The full title of the item being played.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{show_name}</strong></td>
+                                    <td>The title of the TV series being played.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{episode_name}</strong></td>
+                                    <td>The title of the episode being played.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{artist_name}</strong></td>
+                                    <td>The name of the artist being played.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{album_name}</strong></td>
+                                    <td>The title of the album being played.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{track_name}</strong></td>
+                                    <td>The title of the track being played.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{season_num}</strong></td>
+                                    <td>The season number for the media item if item is episode.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{season_num00}</strong></td>
+                                    <td>The two digit season number.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{episode_num}</strong></td>
+                                    <td>The episode number for the media item if item is episode.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{episode_num00}</strong></td>
+                                    <td>The two digit episode number.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{year}</strong></td>
+                                    <td>The release year for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{studio}</strong></td>
+                                    <td>The studio for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{content_rating}</strong></td>
+                                    <td>The content rating for the media item. (e.g. TV-MA, TV-PG, etc.)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{directors}</strong></td>
+                                    <td>A list of directors for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{writers}</strong></td>
+                                    <td>A list of writers for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{actors}</strong></td>
+                                    <td>A list of actors for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{genres}</strong></td>
+                                    <td>A list of genres for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{summary}</strong></td>
+                                    <td>A short plot summary for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{tagline}</strong></td>
+                                    <td>A tagline for the media item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{rating}</strong></td>
+                                    <td>The rating (out of 10) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{duration}</strong></td>
+                                    <td>The duration (in minutes) for the item.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1090,7 +1219,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Notification exclusion tags</h4>
+                    <h4 class="modal-title">Notification Exclusion Tags</h4>
                 </div>
                 <div class="modal-body">
                     <div>
@@ -1099,21 +1228,24 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div>
                             <p class="help-block">All text inside a <strong>movie</strong> tag will only be sent when the media item being played back is a movie.</p>
-                            <pre>Example: {user} has started playing {title} &lt;movie&gt;({year})&lt;/movie&gt;</pre>
+                            <p><strong style="color: #fff;">Example:</strong></p>
+                            <pre>{user} has started playing {title} &lt;movie&gt;({year})&lt;/movie&gt;</pre>
                         </div>
                         <div class="wellheader">
                             <h4>TV Tag <strong>&lt;tv&gt;&lt;/tv&gt;</strong></h4>
                         </div>
                         <div>
                             <p class="help-block">All text inside a <strong>tv</strong> tag will only be sent when the media item being played back is an episode.</p>
-                            <pre>Example: {user} has started playing {title} &lt;tv&gt;(S{season_num}E{episode_num})&lt;/tv&gt;</pre>
+                            <p><strong style="color: #fff;">Example:</strong></p>
+                            <pre>{user} has started playing {title} &lt;tv&gt;(S{season_num}E{episode_num})&lt;/tv&gt;</pre>
                         </div>
                         <div class="wellheader">
                             <h4>Music Tag <strong>&lt;music&gt;&lt;/music&gt;</strong></h4>
                         </div>
                         <div>
                             <p class="help-block">All text inside a <strong>music</strong> tag will only be sent when the media item being played back is a music track.</p>
-                            <pre>Example: {user} has started playing {title} &lt;music&gt;(Track {episode_num})&lt;/music&gt;</pre>
+                            <p><strong style="color: #fff;">Example:</strong></p>
+                            <pre>{user} has started playing {title} &lt;music&gt;(Track {episode_num})&lt;/music&gt;</pre>
                         </div>
                     </div>
                 </div>

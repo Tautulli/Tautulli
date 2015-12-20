@@ -487,7 +487,8 @@ textarea.form-control:focus {
 .users-poster-face {
     overflow: hidden;
     float: left;
-    background-size: contain;
+    background-size: cover;
+    background-position: center;
     height: 40px;
     width: 40px;
     -webkit-border-radius: 50%;
@@ -737,14 +738,20 @@ a:hover .dashboard-activity-poster {
     transition: all 0s;
 }
 .dashboard-activity-progress .bufferbar {
-    padding-top: 6px;
+    padding-right: 3px;
+    font-size: x-small;
+    text-align: right;
+    color: rgba(255, 255, 255, 0);
     background-color: #444;
     position: absolute;
     height: 6px;
     overflow: hidden;
 }
 .dashboard-activity-progress .bar {
-    padding-top: 6px;
+    padding-right: 3px;
+    font-size: x-small;
+    text-align: right;
+    color: rgba(255, 255, 255, 0);
     background-color: #faa732;
     background-image: -moz-linear-gradient(top, #fbb450, #f89406);
     background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fbb450), to(#f89406));
@@ -756,6 +763,37 @@ a:hover .dashboard-activity-poster {
     position: absolute;
     height: 6px;
     overflow: hidden;
+}
+.dashboard-instance.hover .dashboard-activity-progress-bar { 
+	height: 14px; 
+	transform-origin: top;
+    transition: all .2s ease;
+	border-radius: 0px 0px 3px 3px;
+}
+.dashboard-instance.hover .bar { 
+	height: 14px; 
+	transform-origin: top;
+    transition: all .2s ease;
+	border-radius: 0px 0px 3px 3px;
+    color: rgba(255, 255, 255, 1);
+    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
+    background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
+    background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
+}
+.dashboard-instance.hover .bufferbar { 
+	height: 14px; 
+	transform-origin: top;
+    transition: all .2s ease;
+	border-radius: 0px 0px 3px 3px;
+    color: rgba(255, 255, 255, 1);
+    background-image: -webkit-linear-gradient(left,rgba(0,0,0,0.25),0%,rgba(0,0,0,0),50px);
+    background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
+    background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
+}
+.dashboard-instance.hover .dashboard-activity-metadata-wrapper { 
+	margin-top: 11px;
+	transform-origin: top;
+    transition: all .2s ease;
 }
 .dashboard-activity-metadata-wrapper {
     position: relative;
@@ -1500,7 +1538,8 @@ a:hover .item-children-poster {
     float: left;
     margin-top: 15px;
     margin-right: 15px;
-    background-size: contain;
+    background-size: cover;
+    background-position: center;
     height: 80px;
     width: 80px;
     -webkit-border-radius: 50%;
@@ -2489,12 +2528,12 @@ table[id^='history_child'] thead th {
     overflow: hidden;
 }
 #search_form {
-    width: 350px;
+    width: 300px;
     padding: 8px 15px;
 }
 #search_form span.input-textbox {
     overflow: hidden;
-    width: 250px;
+    width: 200px;
     height: 34px;
     display: inline-flex;
     float: right;
@@ -2505,11 +2544,11 @@ table[id^='history_child'] thead th {
     margin-top: 0;
     float: right;
     position: relative;
-    right: -250px;
+    right: -200px;
     border-radius: 3px 0 0 3px;
 }
 #search_form #query.active {
-    width: 250px;
+    width: 200px;
     right: 0px;
 }
 #search_form #search_button.btn-inactive {
@@ -2520,4 +2559,38 @@ table[id^='history_child'] thead th {
     -ms-transition: background 0.3s;
     -o-transition: background 0.3s;
     transition: background 0.3s;
+}
+
+.notification-params {
+    margin-top: 10px;
+    background-color: #282828;
+}
+.notification-params th {
+    padding-left: 10px;
+    height: 30px;
+}
+.notification-params td {
+    height: 25px;
+}
+.notification-params td:first-child {
+    padding-left: 10px;
+    width: 200px;
+}
+.notification-params td:not(:first-child) {
+    padding-right: 10px;
+}
+.notification-params tr:nth-child(odd) td {
+    background-color: rgba(255,255,255,0.035);
+}
+.notification-params tr:nth-child(even) td {
+    background-color: rgba(255,255,255,0.010);
+}
+
+#days-selection label {
+    margin-bottom: 0;
+}
+#graph-days {
+    margin: 0;
+    width: 75px;
+    height: 34px;
 }

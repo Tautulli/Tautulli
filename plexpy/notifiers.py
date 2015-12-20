@@ -68,7 +68,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.GROWL_ON_WATCHED,
                'on_created': plexpy.CONFIG.GROWL_ON_CREATED,
                'on_extdown': plexpy.CONFIG.GROWL_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.GROWL_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.GROWL_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.GROWL_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.GROWL_ON_INTUP
                },
               {'name': 'Prowl',
                'id': AGENT_IDS['Prowl'],
@@ -83,7 +85,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.PROWL_ON_WATCHED,
                'on_created': plexpy.CONFIG.PROWL_ON_CREATED,
                'on_extdown': plexpy.CONFIG.PROWL_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.PROWL_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.PROWL_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PROWL_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PROWL_ON_INTUP
                },
               {'name': 'XBMC',
                'id': AGENT_IDS['XBMC'],
@@ -98,7 +102,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.XBMC_ON_WATCHED,
                'on_created': plexpy.CONFIG.XBMC_ON_CREATED,
                'on_extdown': plexpy.CONFIG.XBMC_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.XBMC_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.XBMC_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.XBMC_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.XBMC_ON_INTUP
                },
               {'name': 'Plex',
                'id': AGENT_IDS['Plex'],
@@ -113,7 +119,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED,
                'on_created': plexpy.CONFIG.PLEX_ON_CREATED,
                'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PLEX_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PLEX_ON_INTUP
                },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
@@ -128,7 +136,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.NMA_ON_WATCHED,
                'on_created': plexpy.CONFIG.NMA_ON_CREATED,
                'on_extdown': plexpy.CONFIG.NMA_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.NMA_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.NMA_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.NMA_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.NMA_ON_INTUP
                },
               {'name': 'Pushalot',
                'id': AGENT_IDS['Pushalot'],
@@ -143,7 +153,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.PUSHALOT_ON_WATCHED,
                'on_created': plexpy.CONFIG.PUSHALOT_ON_CREATED,
                'on_extdown': plexpy.CONFIG.PUSHALOT_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.PUSHALOT_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.PUSHALOT_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PUSHALOT_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PUSHALOT_ON_INTUP
                },
               {'name': 'Pushbullet',
                'id': AGENT_IDS['Pushbullet'],
@@ -158,7 +170,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.PUSHBULLET_ON_WATCHED,
                'on_created': plexpy.CONFIG.PUSHBULLET_ON_CREATED,
                'on_extdown': plexpy.CONFIG.PUSHBULLET_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.PUSHBULLET_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.PUSHBULLET_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PUSHBULLET_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PUSHBULLET_ON_INTUP
                },
               {'name': 'Pushover',
                'id': AGENT_IDS['Pushover'],
@@ -173,7 +187,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.PUSHOVER_ON_WATCHED,
                'on_created': plexpy.CONFIG.PUSHOVER_ON_CREATED,
                'on_extdown': plexpy.CONFIG.PUSHOVER_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.PUSHOVER_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.PUSHOVER_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PUSHOVER_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PUSHOVER_ON_INTUP
                },
               {'name': 'Boxcar2',
                'id': AGENT_IDS['Boxcar2'],
@@ -188,7 +204,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.BOXCAR_ON_WATCHED,
                'on_created': plexpy.CONFIG.BOXCAR_ON_CREATED,
                'on_extdown': plexpy.CONFIG.BOXCAR_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.BOXCAR_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.BOXCAR_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.BOXCAR_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.BOXCAR_ON_INTUP
                },
               {'name': 'E-mail',
                'id': AGENT_IDS['Email'],
@@ -203,7 +221,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.EMAIL_ON_WATCHED,
                'on_created': plexpy.CONFIG.EMAIL_ON_CREATED,
                'on_extdown': plexpy.CONFIG.EMAIL_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.EMAIL_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.EMAIL_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.EMAIL_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.EMAIL_ON_INTUP
                },
               {'name': 'Twitter',
                'id': AGENT_IDS['Twitter'],
@@ -218,7 +238,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.TWITTER_ON_WATCHED,
                'on_created': plexpy.CONFIG.TWITTER_ON_CREATED,
                'on_extdown': plexpy.CONFIG.TWITTER_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.TWITTER_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.TWITTER_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.TWITTER_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.TWITTER_ON_INTUP
                },
               {'name': 'IFTTT',
                'id': AGENT_IDS['IFTTT'],
@@ -233,7 +255,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.IFTTT_ON_WATCHED,
                'on_created': plexpy.CONFIG.IFTTT_ON_CREATED,
                'on_extdown': plexpy.CONFIG.IFTTT_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.IFTTT_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.IFTTT_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.IFTTT_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.IFTTT_ON_INTUP
                },
               {'name': 'Telegram',
                'id': AGENT_IDS['Telegram'],
@@ -248,7 +272,9 @@ def available_notification_agents():
                'on_watched': plexpy.CONFIG.TELEGRAM_ON_WATCHED,
                'on_created': plexpy.CONFIG.TELEGRAM_ON_CREATED,
                'on_extdown': plexpy.CONFIG.TELEGRAM_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.TELEGRAM_ON_INTDOWN
+               'on_intdown': plexpy.CONFIG.TELEGRAM_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.TELEGRAM_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.TELEGRAM_ON_INTUP
                }
               ]
 
@@ -268,7 +294,9 @@ def available_notification_agents():
                        'on_watched': plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED,
                        'on_created': plexpy.CONFIG.OSX_NOTIFY_ON_CREATED,
                        'on_extdown': plexpy.CONFIG.OSX_NOTIFY_ON_EXTDOWN,
-                       'on_intdown': plexpy.CONFIG.OSX_NOTIFY_ON_INTDOWN
+                       'on_intdown': plexpy.CONFIG.OSX_NOTIFY_ON_INTDOWN,
+                       'on_extup': plexpy.CONFIG.OSX_NOTIFY_ON_EXTUP,
+                       'on_intup': plexpy.CONFIG.OSX_NOTIFY_ON_INTUP
                        })
 
     return agents
@@ -325,7 +353,7 @@ def get_notification_agent_config(config_id):
         return []
 
 def send_notification(config_id, subject, body):
-    if config_id:
+    if str(config_id).isdigit():
         config_id = int(config_id)
 
         if config_id == 0:
@@ -385,9 +413,6 @@ class GROWL(object):
         self.enabled = plexpy.CONFIG.GROWL_ENABLED
         self.host = plexpy.CONFIG.GROWL_HOST
         self.password = plexpy.CONFIG.GROWL_PASSWORD
-        self.on_play = plexpy.CONFIG.GROWL_ON_PLAY
-        self.on_stop = plexpy.CONFIG.GROWL_ON_STOP
-        self.on_watched = plexpy.CONFIG.GROWL_ON_WATCHED
 
     def conf(self, options):
         return cherrypy.config['config'].get('Growl', options)
@@ -435,7 +460,7 @@ class GROWL(object):
 
         # Send it, including an image
         image_file = os.path.join(str(plexpy.PROG_DIR),
-            "data/images/plexpylogo.png")
+            "data/interfaces/default/images/favicon.png")
 
         with open(image_file, 'rb') as f:
             image = f.read()
@@ -490,9 +515,6 @@ class PROWL(object):
         self.enabled = plexpy.CONFIG.PROWL_ENABLED
         self.keys = plexpy.CONFIG.PROWL_KEYS
         self.priority = plexpy.CONFIG.PROWL_PRIORITY
-        self.on_play = plexpy.CONFIG.PROWL_ON_PLAY
-        self.on_stop = plexpy.CONFIG.PROWL_ON_STOP
-        self.on_watched = plexpy.CONFIG.PROWL_ON_WATCHED
 
     def conf(self, options):
         return cherrypy.config['config'].get('Prowl', options)
@@ -565,9 +587,6 @@ class XBMC(object):
         self.hosts = plexpy.CONFIG.XBMC_HOST
         self.username = plexpy.CONFIG.XBMC_USERNAME
         self.password = plexpy.CONFIG.XBMC_PASSWORD
-        self.on_play = plexpy.CONFIG.XBMC_ON_PLAY
-        self.on_stop = plexpy.CONFIG.XBMC_ON_STOP
-        self.on_watched = plexpy.CONFIG.XBMC_ON_WATCHED
 
     def _sendhttp(self, host, command):
         url_command = urllib.urlencode(command)
@@ -648,9 +667,6 @@ class Plex(object):
         self.client_hosts = plexpy.CONFIG.PLEX_CLIENT_HOST
         self.username = plexpy.CONFIG.PLEX_USERNAME
         self.password = plexpy.CONFIG.PLEX_PASSWORD
-        self.on_play = plexpy.CONFIG.PLEX_ON_PLAY
-        self.on_stop = plexpy.CONFIG.PLEX_ON_STOP
-        self.on_watched = plexpy.CONFIG.PLEX_ON_WATCHED
 
     def _sendhttp(self, host, command):
 
@@ -728,9 +744,6 @@ class NMA(object):
     def __init__(self):
         self.api = plexpy.CONFIG.NMA_APIKEY
         self.nma_priority = plexpy.CONFIG.NMA_PRIORITY
-        self.on_play = plexpy.CONFIG.NMA_ON_PLAY
-        self.on_stop = plexpy.CONFIG.NMA_ON_STOP
-        self.on_watched = plexpy.CONFIG.NMA_ON_WATCHED
 
     def notify(self, subject=None, message=None):
         if not subject or not message:
@@ -790,9 +803,6 @@ class PUSHBULLET(object):
         self.apikey = plexpy.CONFIG.PUSHBULLET_APIKEY
         self.deviceid = plexpy.CONFIG.PUSHBULLET_DEVICEID
         self.channel_tag = plexpy.CONFIG.PUSHBULLET_CHANNEL_TAG
-        self.on_play = plexpy.CONFIG.PUSHBULLET_ON_PLAY
-        self.on_stop = plexpy.CONFIG.PUSHBULLET_ON_STOP
-        self.on_watched = plexpy.CONFIG.PUSHBULLET_ON_WATCHED
 
     def conf(self, options):
         return cherrypy.config['config'].get('PUSHBULLET', options)
@@ -842,6 +852,31 @@ class PUSHBULLET(object):
 
         self.notify('Main Screen Activate', 'Test Message')
 
+    def get_devices(self):
+        if plexpy.CONFIG.PUSHBULLET_APIKEY:
+            http_handler = HTTPSConnection("api.pushbullet.com")
+            http_handler.request("GET", "/v2/devices",
+                                    headers={'Content-type': "application/json",
+                                             'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")})
+            response = http_handler.getresponse()
+            request_status = response.status
+        
+            if request_status == 200:
+                data = json.loads(response.read())
+                devices = data.get('devices', [])
+                devices = {d['iden']: d['nickname'] for d in devices if d['active']}
+                devices.update({'': ''})
+                return devices
+            elif request_status >= 400 and request_status < 500:
+                logger.info(u"Unable to retrieve Pushbullet devices list: %s" % response.reason)
+                return {'': ''}
+            else:
+                logger.info(u"Unable to retrieve Pushbullet devices list.")
+                return {'': ''}
+
+        else:
+            return {'': ''}
+
     def return_config_options(self):
         config_option = [{'label': 'Pushbullet API Key',
                           'value': self.apikey,
@@ -849,11 +884,13 @@ class PUSHBULLET(object):
                           'description': 'Your Pushbullet API key.',
                           'input_type': 'text'
                           },
-                         {'label': 'Device ID',
+                         {'label': 'Device',
                           'value': self.deviceid,
                           'name': 'pushbullet_deviceid',
-                          'description': 'A device ID (optional). If set, will override channel tag.',
-                          'input_type': 'text'
+                          'description': 'Set your Pushbullet device. If set, will override channel tag. ' \
+                              'Leave blank to notify on all devices.',
+                          'input_type': 'select',
+                          'select_options': self.get_devices()
                           },
                          {'label': 'Channel',
                           'value': self.channel_tag,
@@ -869,9 +906,6 @@ class PUSHALOT(object):
 
     def __init__(self):
         self.api_key = plexpy.CONFIG.PUSHALOT_APIKEY
-        self.on_play = plexpy.CONFIG.PUSHALOT_ON_PLAY
-        self.on_stop = plexpy.CONFIG.PUSHALOT_ON_STOP
-        self.on_watched = plexpy.CONFIG.PUSHALOT_ON_WATCHED
 
     def notify(self, message, event):
         if not message or not event:
@@ -928,9 +962,6 @@ class PUSHOVER(object):
         self.keys = plexpy.CONFIG.PUSHOVER_KEYS
         self.priority = plexpy.CONFIG.PUSHOVER_PRIORITY
         self.sound = plexpy.CONFIG.PUSHOVER_SOUND
-        self.on_play = plexpy.CONFIG.PUSHOVER_ON_PLAY
-        self.on_stop = plexpy.CONFIG.PUSHOVER_ON_STOP
-        self.on_watched = plexpy.CONFIG.PUSHOVER_ON_WATCHED
 
         if plexpy.CONFIG.PUSHOVER_APITOKEN:
             self.application_token = plexpy.CONFIG.PUSHOVER_APITOKEN
@@ -1158,9 +1189,6 @@ class TwitterNotifier(object):
 class OSX_NOTIFY(object):
 
     def __init__(self):
-        self.on_play = plexpy.CONFIG.OSX_NOTIFY_ON_PLAY
-        self.on_stop = plexpy.CONFIG.OSX_NOTIFY_ON_STOP
-        self.on_watched = plexpy.CONFIG.OSX_NOTIFY_ON_WATCHED
         try:
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
@@ -1247,9 +1275,6 @@ class BOXCAR(object):
         self.url = 'https://new.boxcar.io/api/notifications'
         self.token = plexpy.CONFIG.BOXCAR_TOKEN
         self.sound = plexpy.CONFIG.BOXCAR_SOUND
-        self.on_play = plexpy.CONFIG.BOXCAR_ON_PLAY
-        self.on_stop = plexpy.CONFIG.BOXCAR_ON_STOP
-        self.on_watched = plexpy.CONFIG.BOXCAR_ON_WATCHED
 
     def notify(self, title, message):
         if not title or not message:
@@ -1266,6 +1291,7 @@ class BOXCAR(object):
             req = urllib2.Request(self.url)
             handle = urllib2.urlopen(req, data)
             handle.close()
+            logger.info(u"Boxcar2 notifications sent.")
             return True
 
         except urllib2.URLError as e:
@@ -1322,9 +1348,7 @@ class BOXCAR(object):
 class Email(object):
 
     def __init__(self):
-        self.on_play = plexpy.CONFIG.EMAIL_ON_PLAY
-        self.on_stop = plexpy.CONFIG.EMAIL_ON_STOP
-        self.on_watched = plexpy.CONFIG.EMAIL_ON_WATCHED
+        pass
 
     def notify(self, subject, message):
         if not subject or not message:
@@ -1334,6 +1358,12 @@ class Email(object):
         message['Subject'] = subject
         message['From'] = email.utils.formataddr(('PlexPy', plexpy.CONFIG.EMAIL_FROM))
         message['To'] = plexpy.CONFIG.EMAIL_TO
+        message['CC'] = plexpy.CONFIG.EMAIL_CC
+
+        recipients = [x.strip() for x in plexpy.CONFIG.EMAIL_TO.split(';')] \
+                   + [x.strip() for x in plexpy.CONFIG.EMAIL_CC.split(';')] \
+                   + [x.strip() for x in plexpy.CONFIG.EMAIL_BCC.split(';')]
+        recipients = filter(None, recipients)
 
         try:
             mailserver = smtplib.SMTP(plexpy.CONFIG.EMAIL_SMTP_SERVER, plexpy.CONFIG.EMAIL_SMTP_PORT)
@@ -1346,7 +1376,7 @@ class Email(object):
             if plexpy.CONFIG.EMAIL_SMTP_USER:
                 mailserver.login(plexpy.CONFIG.EMAIL_SMTP_USER, plexpy.CONFIG.EMAIL_SMTP_PASSWORD)
 
-            mailserver.sendmail(plexpy.CONFIG.EMAIL_FROM, plexpy.CONFIG.EMAIL_TO, message.as_string())
+            mailserver.sendmail(plexpy.CONFIG.EMAIL_FROM, recipients, message.as_string())
             mailserver.quit()
 
             logger.info(u"Email notifications sent.")
@@ -1360,13 +1390,25 @@ class Email(object):
         config_option = [{'label': 'From',
                           'value': plexpy.CONFIG.EMAIL_FROM,
                           'name': 'email_from',
-                          'description': 'Who should the sender be.',
+                          'description': 'The email address of the sender.',
                           'input_type': 'text'
                           },
                          {'label': 'To',
                           'value': plexpy.CONFIG.EMAIL_TO,
                           'name': 'email_to',
-                          'description': 'Who should the recipient be.',
+                          'description': 'The email address(es) of the recipients, separated by semicolons (;).',
+                          'input_type': 'text'
+                          },
+                         {'label': 'CC',
+                          'value': plexpy.CONFIG.EMAIL_CC,
+                          'name': 'email_cc',
+                          'description': 'The email address(es) to CC, separated by semicolons (;).',
+                          'input_type': 'text'
+                          },
+                         {'label': 'BCC',
+                          'value': plexpy.CONFIG.EMAIL_BCC,
+                          'name': 'email_bcc',
+                          'description': 'The email address(es) to BCC, separated by semicolons (;).',
                           'input_type': 'text'
                           },
                          {'label': 'SMTP Server',

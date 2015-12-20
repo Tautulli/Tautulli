@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.2.15 (2015-12-20)
+
+* Fix navbar covering current activity on smaller screens.
+* Fix metadata for grouped recently added notifications.
+* Fix Growl notification agent not working.
+* Change graph days selection.
+* Change watch statistics to match table history grouping.
+* Add automatic discovery of Pushbullet devices.
+* Add Most Concurrent Streams watch statistic.
+* Add precentage to current activity progress bars.
+* Add a bunch of stream details to notification options.
+* Add notification for Plex Remote Access/Plex Media Server back up.
+* Add CC/BCC and multiple recipients to email notification agent.
+* Add total watch time to history table footer.
+
+
 ## v1.2.14 (2015-12-07)
 
 * Fix regression with PlexWatch db importer and buffer warnings.

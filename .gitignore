@@ -21,6 +21,7 @@ cache/*
 *.crt
 *.key
 *.csr
+*.pem
 
 # OS generated files #
 ######################
