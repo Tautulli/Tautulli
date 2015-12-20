@@ -607,25 +607,27 @@ class DataFactory(object):
                     logger.warn("Unable to execute database query for get_home_stats: most_concurrent.")
                     return None
 
-                times = {}
+                times = []
                 for item in result:
-                    times.update({str(item['stopped']) + 'A': -1, str(item['started']) + 'B': 1})
+                    times.append({'time': str(item['started']) + 'B', 'count': 1})
+                    times.append({'time': str(item['stopped']) + 'A', 'count': -1})
+                times = sorted(times, key=lambda k: k['time']) 
 
                 count = 0
                 last_start = 0
                 most_concurrent = {'count': count}
 
-                for key in sorted(times):
-                    if times[key] == 1:
-                        count += times[key]
+                for d in times:
+                    if d['count'] == 1:
+                        count += d['count']
                         if count >= most_concurrent['count']:
-                            last_start = key
+                            last_start = d['time']
                     else:
                         if count >= most_concurrent['count']:
                             most_concurrent = {'count': count,
                                                'started': last_start[:-1],
-                                               'stopped': key[:-1]}
-                        count += times[key]
+                                               'stopped': d['time'][:-1]}
+                        count += d['count']
 
                 home_stats.append({'stat_id': stat,
                                    'rows': [most_concurrent]})
