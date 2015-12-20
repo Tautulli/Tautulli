@@ -128,13 +128,15 @@ class WebInterface(object):
     def home_stats(self, **kwargs):
         data_factory = datafactory.DataFactory()
 
+        grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
         time_range = plexpy.CONFIG.HOME_STATS_LENGTH
         stats_type = plexpy.CONFIG.HOME_STATS_TYPE
         stats_count = plexpy.CONFIG.HOME_STATS_COUNT
         stats_cards = plexpy.CONFIG.HOME_STATS_CARDS.split(', ')
         notify_watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
 
-        stats_data = data_factory.get_home_stats(time_range=time_range,
+        stats_data = data_factory.get_home_stats(grouping=grouping,
+                                                 time_range=time_range,
                                                  stats_type=stats_type,
                                                  stats_count=stats_count,
                                                  stats_cards=stats_cards,
@@ -613,7 +615,7 @@ class WebInterface(object):
             custom_where.append(['session_history.grandparent_rating_key', rating_key])
         if 'start_date' in kwargs:
             start_date = kwargs.get('start_date', "")
-            custom_where.append(['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date])
+            custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime"))', start_date])
         if 'reference_id' in kwargs:
             reference_id = kwargs.get('reference_id', "")
             custom_where.append(['session_history.reference_id', reference_id])
