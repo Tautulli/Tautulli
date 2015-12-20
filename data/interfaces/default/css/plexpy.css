@@ -487,7 +487,8 @@ textarea.form-control:focus {
 .users-poster-face {
     overflow: hidden;
     float: left;
-    background-size: contain;
+    background-size: cover;
+    background-position: center;
     height: 40px;
     width: 40px;
     -webkit-border-radius: 50%;
@@ -1537,7 +1538,8 @@ a:hover .item-children-poster {
     float: left;
     margin-top: 15px;
     margin-right: 15px;
-    background-size: contain;
+    background-size: cover;
+    background-position: center;
     height: 80px;
     width: 80px;
     -webkit-border-radius: 50%;
