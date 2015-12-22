@@ -587,23 +587,25 @@ class DataFactory(object):
                 times = sorted(times, key=lambda k: k['time']) 
 
                 count = 0
+                last_count = 0
                 last_start = 0
-                most_concurrent = {'count': count}
+                most_concurrent = []
 
                 for d in times:
                     if d['count'] == 1:
                         count += d['count']
-                        if count >= most_concurrent['count']:
+                        if count >= last_count:
                             last_start = d['time']
                     else:
-                        if count >= most_concurrent['count']:
-                            most_concurrent = {'count': count,
-                                               'started': last_start[:-1],
-                                               'stopped': d['time'][:-1]}
+                        if count >= last_count:
+                            last_count = count
+                            most_concurrent = [{'count': count,
+                                                'started': last_start[:-1],
+                                                'stopped': d['time'][:-1]}]
                         count += d['count']
 
                 home_stats.append({'stat_id': stat,
-                                   'rows': [most_concurrent]})
+                                   'rows': most_concurrent})
 
         return home_stats
 
