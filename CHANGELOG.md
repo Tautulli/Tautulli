@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.16 (2015-12-22)
+
+* Fix Most Concurrent stream stat for emtpy databases
+* Change logs to 50 lines by default
+
+
 ## v1.2.15 (2015-12-20)
 
 * Fix navbar covering current activity on smaller screens.
