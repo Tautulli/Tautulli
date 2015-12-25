@@ -476,6 +476,7 @@ class WebInterface(object):
             "notify_on_extup_body_text": plexpy.CONFIG.NOTIFY_ON_EXTUP_BODY_TEXT,
             "notify_on_intup_subject_text": plexpy.CONFIG.NOTIFY_ON_INTUP_SUBJECT_TEXT,
             "notify_on_intup_body_text": plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT,
+            "notify_scripts_args_text": plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
@@ -1419,6 +1420,12 @@ class WebInterface(object):
 
         return serve_template(templatename="notification_triggers_modal.html", title="Notification Triggers",
                               data=this_agent)
+
+    @cherrypy.expose
+    def testScripts(self, *args, **kwargs):
+        ''' Used for manual testing for now cba with adding buttion '''
+        script = notifiers.Scripts()
+        return script.test(*args)
 
     @cherrypy.expose
     def delete_history_rows(self, row_id, **kwargs):

@@ -54,7 +54,9 @@ AGENT_IDS = {"Growl": 0,
              "Twitter": 11,
              "IFTTT": 12,
              "Telegram": 13,
-             "Slack":14}
+             "Slack": 14,
+             "Scripts": 15}
+
 
 def available_notification_agents():
     agents = [{'name': 'Growl',
@@ -294,7 +296,25 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.SLACK_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.SLACK_ON_EXTUP,
                'on_intup': plexpy.CONFIG.SLACK_ON_INTUP
-               }
+               },
+              {'name': 'Scripts',
+               'id': AGENT_IDS['Scripts'],
+               'config_prefix': 'scripts',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.SCRIPTS_ENABLED),
+               'on_play': plexpy.CONFIG.SCRIPTS_ON_PLAY,
+               'on_stop': plexpy.CONFIG.SCRIPTS_ON_STOP,
+               'on_pause': plexpy.CONFIG.SCRIPTS_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.SCRIPTS_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.SCRIPTS_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.SCRIPTS_ON_WATCHED,
+               'on_created': plexpy.CONFIG.SCRIPTS_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN,
+               'on_extup': plexpy.CONFIG.SCRIPTS_ON_EXTUP,
+               'on_intdown': plexpy.CONFIG.SCRIPTS_ON_INTDOWN,
+               'on_intup': plexpy.CONFIG.SCRIPTS_ON_INTUP
+              }
+
               ]
 
     # OSX Notifications should only be visible if it can be used
@@ -319,6 +339,7 @@ def available_notification_agents():
                        })
 
     return agents
+
 
 def get_notification_agent_config(config_id):
     if config_id:
@@ -364,17 +385,21 @@ def get_notification_agent_config(config_id):
             iftttClient = IFTTT()
             return iftttClient.return_config_options()
         elif config_id == 13:
-          telegramClient = TELEGRAM()
-          return telegramClient.return_config_options()
+            telegramClient = TELEGRAM()
+            return telegramClient.return_config_options()
         elif config_id == 14:
             slackClient = SLACK()
             return slackClient.return_config_options()
+        elif config_id == 15:
+            script = Scripts()
+            return script.return_config_options()
         else:
             return []
     else:
         return []
 
-def send_notification(config_id, subject, body):
+
+def send_notification(config_id, subject, body, notify_action=None):
     if str(config_id).isdigit():
         config_id = int(config_id)
 
@@ -418,11 +443,14 @@ def send_notification(config_id, subject, body):
             iftttClient = IFTTT()
             iftttClient.notify(subject=subject, message=body)
         elif config_id == 13:
-          telegramClient = TELEGRAM()
-          telegramClient.notify(message=body, event=subject)
+            telegramClient = TELEGRAM()
+            telegramClient.notify(message=body, event=subject)
         elif config_id == 14:
             slackClient = SLACK()
             slackClient.notify(message=body, event=subject)
+        elif config_id == 15:
+            scripts = Scripts()
+            scripts.notify(message=body, subject=subject, notify_action=notify_action, script_args=script_args)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
@@ -640,19 +668,19 @@ class XBMC(object):
 
         header = subject
         message = message
-        time = "3000" # in ms
+        time = "3000"  # in ms
 
         for host in hosts:
             logger.info('Sending notification command to XMBC @ ' + host)
             try:
                 version = self._sendjson(host, 'Application.GetProperties', {'properties': ['version']})['version']['major']
 
-                if version < 12: #Eden
+                if version < 12:  # Eden
                     notification = header + "," + message + "," + time
                     notifycommand = {'command': 'ExecBuiltIn', 'parameter': 'Notification(' + notification + ')'}
                     request = self._sendhttp(host, notifycommand)
 
-                else: #Frodo
+                else:  # Frodo
                     params = {'title': header, 'message': message, 'displaytime': int(time)}
                     request = self._sendjson(host, 'GUI.ShowNotification', params)
 
@@ -684,6 +712,7 @@ class XBMC(object):
                          ]
 
         return config_option
+
 
 class Plex(object):
     def __init__(self):
@@ -1042,7 +1071,7 @@ class PUSHOVER(object):
             http_handler.request("GET", "/1/sounds.json?token=" + self.application_token)
             response = http_handler.getresponse()
             request_status = response.status
-            
+
             if request_status == 200:
                 data = json.loads(response.read())
                 sounds = data.get('sounds', {})
@@ -1054,7 +1083,7 @@ class PUSHOVER(object):
             else:
                 logger.info(u"Unable to retrieve Pushover notification sounds list.")
                 return {'': ''}
-        
+
         else:
             return {'': ''}
 
@@ -1674,5 +1703,203 @@ class SLACK(object):
                            'input_type': 'text'
                           }
                          ]
+
+        return config_option
+
+
+class Scripts(object):
+
+    def __init__(self, **kwargs):
+        pass
+
+    def conf(self, options):
+            return cherrypy.config['config'].get('Scripts', options)
+
+    def updateLibrary(self):
+        # For uniformity reasons not removed
+        return
+
+    def test(self, subject, message, action):
+        self.notify(subject, message, action)
+
+    def list_scripts(self):
+        scriptdir = plexpy.CONFIG.SCRIPTS_FOLDER
+        scripts = {}
+
+        if scriptdir and not os.path.exists(scriptdir):
+            os.makedirs(scriptdir)
+
+        for root, dirs, files in os.walk(scriptdir):
+            for f in files:
+                name, ext = os.path.splitext(f)
+                ext = ext[1:]
+                if ext in ('rb', 'pl', 'bat', 'py', 'sh', 'cmd', 'php'):
+                    fp = os.path.join(scriptdir, f)
+                    scripts[fp] = fp
+
+        return scripts
+
+    def notify(self, subject, message, notify_action=None, script_args=''):
+        logger.debug('Ran notify script subject: %s message: %s, action: %s script_args: %s' % (subject, message, notify_action, script_args))
+
+        prefix = ''
+        script = ''
+
+        if not plexpy.CONFIG.SCRIPTS_FOLDER:
+            return
+
+        # Make sure we use the correct script..
+        if notify_action == 'play':
+            script = plexpy.CONFIG.SCRIPTS_ON_PLAY_SCRIPT
+
+        elif notify_action == 'stop':
+            script = plexpy.CONFIG.SCRIPTS_ON_STOP_SCRIPT
+
+        elif notify_action == 'pause':
+            script = plexpy.CONFIG.SCRIPTS_ON_PAUSE_SCRIPT
+
+        elif notify_action == 'resume':
+            script = plexpy.CONFIG.SCRIPTS_ON_RESUME_SCRIPT
+
+        elif notify_action == 'buffer':
+            script = plexpy.CONFIG.SCRIPTS_ON_BUFFER_SCRIPT
+
+        elif notify_action == 'extdown':
+            script = plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT
+
+        elif notify_action == 'extup':
+            script = plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT
+
+        elif notify_action == 'intdown':
+            script = plexpy.CONFIG.SCRIPTS_ON_INTDOWN_SCRIPT
+
+        elif notify_action == 'intup':
+            script = plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT
+
+        elif notify_action == 'created':
+            script = plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT
+
+        name, ext = os.path.splitext(script)
+
+        if ext == '.py':
+            prefix = 'python'
+        elif ext == '.php':
+            prefix = 'php'
+        elif ext == '.pl':
+            prefix = 'perl'
+        elif ext == '.rb':
+            prefix = 'ruby'
+
+        script = script.split()
+
+        if prefix:
+            script.insert(0, prefix)
+
+        if script_args:
+            script = script + script_args.split()
+
+        try:
+            p = subprocess.Popen(script, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT, cwd=plexpy.CONFIG.SCRIPTS_FOLDER)
+
+            out, error = p.communicate()
+            status = p.returncode
+
+            if out and status:
+                out = out.strip()
+                logger.debug(u'%s returned %s' % (script, out))
+
+            if error:
+                error = error.strip()
+                logger.error(u'%s' % error)
+
+        except OSError as out:
+            logger.error(u'Failed to run %s error %s' % (script, out))
+
+    def return_config_options(self):
+        config_option = [{'label': 'Script folder',
+                          'value': plexpy.CONFIG.SCRIPTS_FOLDER,
+                          'name': 'scripts_folder',
+                          'description': 'Add your script folder.',
+                          'input_type': 'text',
+                          },
+                         {'label': 'Playback start',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_PLAY_SCRIPT,
+                          'name': 'scripts_on_play_script',
+                          'description': 'Pick the script for on play.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'Playback stop',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_STOP_SCRIPT,
+                          'name': 'scripts_on_stop_script',
+                          'description': 'Pick the script for on stop.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'Playback pause',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_PAUSE_SCRIPT,
+                          'name': 'scripts_on_pause_script',
+                          'description': 'Pick the script for on pause.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'Playback resume',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_RESUME_SCRIPT,
+                          'name': 'scripts_on_resume_script',
+                          'description': 'Pick the script for on resume.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'On watched',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT,
+                          'name': 'scripts_on_watched_script',
+                          'description': 'Pick the script for on watched.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'On buffer warning',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_BUFFER_SCRIPT,
+                          'name': 'scripts_on_buffer_script',
+                          'description': 'Pick the script for on buffer.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'On recently added',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT,
+                          'name': 'scripts_on_created_script',
+                          'description': 'Pick the script for recently added.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'On external connection down',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT,
+                          'name': 'scripts_on_extdown_script',
+                          'description': 'Pick the script for external connection down.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'On external connection down',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT,
+                          'name': 'scripts_on_extup_script',
+                          'description': 'Pick the script for external connection up.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'On plex down',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_INTDOWN_SCRIPT,
+                          'name': 'scripts_on_intdown_script',
+                          'description': 'Pick the script for pms down',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'On plex up',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT,
+                          'name': 'scripts_on_intup_script',
+                          'description': 'Pick the script for pms down',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          }
+]
 
         return config_option

@@ -21,7 +21,7 @@ import time
 
 def notify(stream_data=None, notify_action=None):
     from plexpy import users
-    
+
     if stream_data and notify_action:
         # Check if notifications enabled for user
         user_data = users.Users()
@@ -41,7 +41,10 @@ def notify(stream_data=None, notify_action=None):
                     notify_strings = build_notify_text(session=stream_data, state=notify_action)
                     notifiers.send_notification(config_id=agent['id'],
                                                 subject=notify_strings[0],
-                                                body=notify_strings[1])
+                                                body=notify_strings[1],
+                                                notify_action=notify_action,
+                                                script_args=notify_strings[2])
+                    
                     # Set the notification state in the db
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -51,7 +54,9 @@ def notify(stream_data=None, notify_action=None):
                     notify_strings = build_notify_text(session=stream_data, state=notify_action)
                     notifiers.send_notification(config_id=agent['id'],
                                                 subject=notify_strings[0],
-                                                body=notify_strings[1])
+                                                body=notify_strings[1],
+                                                notify_action=notify_action,
+                                                script_args=notify_strings[2])
 
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -61,7 +66,9 @@ def notify(stream_data=None, notify_action=None):
                     notify_strings = build_notify_text(session=stream_data, state=notify_action)
                     notifiers.send_notification(config_id=agent['id'],
                                                 subject=notify_strings[0],
-                                                body=notify_strings[1])
+                                                body=notify_strings[1],
+                                                notify_action=notify_action,
+                                                script_args=notify_strings[2])
 
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -71,7 +78,9 @@ def notify(stream_data=None, notify_action=None):
                     notify_strings = build_notify_text(session=stream_data, state=notify_action)
                     notifiers.send_notification(config_id=agent['id'],
                                                 subject=notify_strings[0],
-                                                body=notify_strings[1])
+                                                body=notify_strings[1],
+                                                notify_action=notify_action,
+                                                script_args=notify_strings[2])
 
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -80,7 +89,9 @@ def notify(stream_data=None, notify_action=None):
                     notify_strings = build_notify_text(session=stream_data, state=notify_action)
                     notifiers.send_notification(config_id=agent['id'],
                                                 subject=notify_strings[0],
-                                                body=notify_strings[1])
+                                                body=notify_strings[1],
+                                                notify_action=notify_action,
+                                                script_args=notify_strings[2])
 
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -94,7 +105,10 @@ def notify(stream_data=None, notify_action=None):
                         notify_strings = build_notify_text(session=stream_data, state=notify_action)
                         notifiers.send_notification(config_id=agent['id'],
                                                     subject=notify_strings[0],
-                                                    body=notify_strings[1])
+                                                    body=notify_strings[1],
+                                                    notify_action=notify_action,
+                                                    script_args=notify_strings[2])
+
                         # Set the notification state in the db
                         set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -106,7 +120,10 @@ def notify(stream_data=None, notify_action=None):
                                 notify_strings = build_notify_text(session=stream_data, state=notify_action)
                                 notifiers.send_notification(config_id=agent['id'],
                                                             subject=notify_strings[0],
-                                                            body=notify_strings[1])
+                                                            body=notify_strings[1],
+                                                            notify_action=notify_action,
+                                                            script_args=notify_strings[2])
+
                                 # Set the notification state in the db
                                 set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -118,7 +135,10 @@ def notify(stream_data=None, notify_action=None):
                     notify_strings = build_notify_text(session=stream_data, state=notify_action)
                     notifiers.send_notification(config_id=agent['id'],
                                                 subject=notify_strings[0],
-                                                body=notify_strings[1])
+                                                body=notify_strings[1],
+                                                notify_action=notify_action,
+                                                script_args=notify_strings[2])
+
                     # Set the notification state in the db
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -127,7 +147,10 @@ def notify(stream_data=None, notify_action=None):
                     notify_strings = build_notify_text(session=stream_data, state=notify_action)
                     notifiers.send_notification(config_id=agent['id'],
                                                 subject=notify_strings[0],
-                                                body=notify_strings[1])
+                                                body=notify_strings[1],
+                                                notify_action=notify_action,
+                                                script_args=notify_strings[2])
+
                     # Set the notification state in the db
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -136,7 +159,10 @@ def notify(stream_data=None, notify_action=None):
                     notify_strings = build_notify_text(session=stream_data, state=notify_action)
                     notifiers.send_notification(config_id=agent['id'],
                                                 subject=notify_strings[0],
-                                                body=notify_strings[1])
+                                                body=notify_strings[1],
+                                                notify_action=notify_action,
+                                                script_args=notify_strings[2])
+
                     # Set the notification state in the db
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -145,7 +171,10 @@ def notify(stream_data=None, notify_action=None):
                     notify_strings = build_notify_text(session=stream_data, state=notify_action)
                     notifiers.send_notification(config_id=agent['id'],
                                                 subject=notify_strings[0],
-                                                body=notify_strings[1])
+                                                body=notify_strings[1],
+                                                notify_action=notify_action,
+                                                script_args=notify_strings[2])
+
                     # Set the notification state in the db
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -154,7 +183,10 @@ def notify(stream_data=None, notify_action=None):
                     notify_strings = build_notify_text(session=stream_data, state=notify_action)
                     notifiers.send_notification(config_id=agent['id'],
                                                 subject=notify_strings[0],
-                                                body=notify_strings[1])
+                                                body=notify_strings[1],
+                                                notify_action=notify_action,
+                                                script_args=notify_strings[2])
+
                     # Set the notification state in the db
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
 
@@ -521,6 +553,16 @@ def build_notify_text(session=None, timeline=None, state=None):
 
     # Default subject text
     subject_text = 'PlexPy (%s)' % server_name
+    # Default scripts args
+    script_args = ''
+
+    try:
+        # Add script arguments
+        script_args = unicode(plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT).format(**available_params)
+    except LookupError as e:
+        logger.error(u"PlexPy Notifier :: Unable to parse field %s in notification subject. Using fallback." % e)
+    except:
+        logger.error(u"PlexPy Notifier :: Unable to parse custom notification subject. Using fallback.")
 
     if state == 'play':
         # Default body text
@@ -543,9 +585,9 @@ def build_notify_text(session=None, timeline=None, state=None):
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
 
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
         else:
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
     elif state == 'stop':
         # Default body text
         body_text = '%s (%s) has stopped %s' % (session['friendly_name'],
@@ -567,9 +609,9 @@ def build_notify_text(session=None, timeline=None, state=None):
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
 
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
         else:
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
     elif state == 'pause':
         # Default body text
         body_text = '%s (%s) has paused %s' % (session['friendly_name'],
@@ -591,9 +633,9 @@ def build_notify_text(session=None, timeline=None, state=None):
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
 
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
         else:
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
     elif state == 'resume':
         # Default body text
         body_text = '%s (%s) has resumed %s' % (session['friendly_name'],
@@ -615,9 +657,9 @@ def build_notify_text(session=None, timeline=None, state=None):
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
 
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
         else:
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
     elif state == 'buffer':
         # Default body text
         body_text = '%s (%s) is buffering %s' % (session['friendly_name'],
@@ -639,9 +681,9 @@ def build_notify_text(session=None, timeline=None, state=None):
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
 
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
         else:
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
     elif state == 'watched':
         # Default body text
         body_text = '%s (%s) has watched %s' % (session['friendly_name'],
@@ -663,9 +705,9 @@ def build_notify_text(session=None, timeline=None, state=None):
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
 
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
         else:
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
     elif state == 'created':
         # Default body text
         body_text = '%s was recently added to Plex.' % full_title
@@ -685,9 +727,9 @@ def build_notify_text(session=None, timeline=None, state=None):
             except:
                 logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
 
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
         else:
-            return [subject_text, body_text]
+            return [subject_text, body_text, script_args]
     else:
         return None
 
@@ -716,7 +758,8 @@ def build_server_notify_text(state=None):
     on_intup_body = plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT
 
     available_params = {'server_name': server_name,
-                        'server_uptime': server_uptime}
+                        'server_uptime': server_uptime,
+                        'action': state}
 
     # Default text
     subject_text = 'PlexPy (%s)' % server_name
