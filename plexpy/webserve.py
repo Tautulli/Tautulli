@@ -554,6 +554,9 @@ class WebInterface(object):
 
         # Get new server URLs for SSL communications.
         plextv.get_real_pms_url()
+		
+		# Get new server friendly name
+        pmsconnect.get_server_friendly_name()
 
         # Reconfigure scheduler if intervals changed
         if reschedule:
