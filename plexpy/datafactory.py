@@ -171,11 +171,11 @@ class DataFactory(object):
                 top_tv = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, ' \
-                            'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, ' \
-                            'SUM(CASE WHEN t.stopped > 0 THEN (t.stopped - t.started) ' \
-                            '   - (CASE WHEN t.paused_counter IS NULL THEN 0 ELSE t.paused_counter END) ELSE 0 END) ' \
-                            '   AS total_duration ' \
-                            'FROM (SELECT * FROM session_history ' \
+                            'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
+                            'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
+                            '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
+                            '       AS d ' \
+                            '   FROM session_history ' \
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
@@ -215,11 +215,11 @@ class DataFactory(object):
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
-                            'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, ' \
-                            'SUM(CASE WHEN t.stopped > 0 THEN (t.stopped - t.started) ' \
-                            '   - (CASE WHEN t.paused_counter IS NULL THEN 0 ELSE t.paused_counter END) ELSE 0 END) ' \
-                            '   AS total_duration ' \
-                            'FROM (SELECT * FROM session_history ' \
+                            'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
+                            'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
+                            '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
+                            '       AS d ' \
+                            '   FROM session_history ' \
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
@@ -256,11 +256,11 @@ class DataFactory(object):
                 top_movies = []
                 try:
                     query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, ' \
-                            'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, ' \
-                            'SUM(CASE WHEN t.stopped > 0 THEN (t.stopped - t.started) ' \
-                            '   - (CASE WHEN t.paused_counter IS NULL THEN 0 ELSE t.paused_counter END) ELSE 0 END) ' \
-                            '   AS total_duration ' \
-                            'FROM (SELECT * FROM session_history ' \
+                            'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
+                            'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
+                            '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
+                            '       AS d ' \
+                            '   FROM session_history ' \
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
@@ -299,11 +299,11 @@ class DataFactory(object):
                 try:
                     query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
-                            'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, ' \
-                            'SUM(CASE WHEN t.stopped > 0 THEN (t.stopped - t.started) ' \
-                            '   - (CASE WHEN t.paused_counter IS NULL THEN 0 ELSE t.paused_counter END) ELSE 0 END) ' \
-                            '   AS total_duration ' \
-                            'FROM (SELECT * FROM session_history ' \
+                            'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
+                            'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
+                            '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
+                            '       AS d ' \
+                            '   FROM session_history ' \
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
@@ -340,11 +340,11 @@ class DataFactory(object):
                 top_music = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, ' \
-                            'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, ' \
-                            'SUM(CASE WHEN t.stopped > 0 THEN (t.stopped - t.started) ' \
-                            '   - (CASE WHEN t.paused_counter IS NULL THEN 0 ELSE t.paused_counter END) ELSE 0 END) ' \
-                            '   AS total_duration ' \
-                            'FROM (SELECT * FROM session_history ' \
+                            'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
+                            'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
+                            '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
+                            '       AS d ' \
+                            '   FROM session_history ' \
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
@@ -384,11 +384,11 @@ class DataFactory(object):
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
-                            'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, ' \
-                            'SUM(CASE WHEN t.stopped > 0 THEN (t.stopped - t.started) ' \
-                            '   - (CASE WHEN t.paused_counter IS NULL THEN 0 ELSE t.paused_counter END) ELSE 0 END) ' \
-                            '   AS total_duration ' \
-                            'FROM (SELECT * FROM session_history ' \
+                            'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
+                            'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
+                            '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
+                            '       AS d ' \
+                            '   FROM session_history ' \
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
@@ -427,11 +427,11 @@ class DataFactory(object):
                     query = 'SELECT t.user, t.user_id, t.custom_avatar_url as thumb, ' \
                             '(CASE WHEN t.friendly_name IS NULL THEN t.username ELSE t.friendly_name END) ' \
                             '   AS friendly_name, ' \
-                            'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, ' \
-                            'SUM(CASE WHEN t.stopped > 0 THEN (t.stopped - t.started) ' \
-                            '   - (CASE WHEN t.paused_counter IS NULL THEN 0 ELSE t.paused_counter END) ELSE 0 END) ' \
-                            '   AS total_duration ' \
-                            'FROM (SELECT * FROM session_history ' \
+                            'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
+                            'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
+                            '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
+                            '       AS d ' \
+                            '   FROM session_history ' \
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   LEFT OUTER JOIN users ON session_history.user_id = users.user_id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
@@ -477,11 +477,11 @@ class DataFactory(object):
 
                 try:
                     query = 'SELECT t.platform, ' \
-                            'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, ' \
-                            'SUM(CASE WHEN t.stopped > 0 THEN (t.stopped - t.started) ' \
-                            '   - (CASE WHEN t.paused_counter IS NULL THEN 0 ELSE t.paused_counter END) ELSE 0 END) ' \
-                            '   AS total_duration ' \
-                            'FROM (SELECT * FROM session_history ' \
+                            'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
+                            'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
+                            '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
+                            '       AS d ' \
+                            '   FROM session_history ' \
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
