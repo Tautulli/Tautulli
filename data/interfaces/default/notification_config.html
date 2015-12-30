@@ -158,12 +158,7 @@ from plexpy import helpers
         });
     });
 
-    $('#testSlack').click(function() {
-      $.get("/test_slack", function(data) { $('#ajaxMsg').html("<i class='fa fa-check'></i>" + data); });
-      $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
-    });
-
-    $('#pushbullet_apikey').on('change', function () {
+    $('#pushbullet_apikey, #pushover_apitoken').on('change', function () {
         doAjaxCall('set_notification_config', $(this), 'tabs', true);
         reloadModal();
         return false;

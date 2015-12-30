@@ -983,14 +983,10 @@ class PUSHOVER(object):
 
     def __init__(self):
         self.enabled = plexpy.CONFIG.PUSHOVER_ENABLED
+        self.application_token = plexpy.CONFIG.PUSHOVER_APITOKEN
         self.keys = plexpy.CONFIG.PUSHOVER_KEYS
         self.priority = plexpy.CONFIG.PUSHOVER_PRIORITY
         self.sound = plexpy.CONFIG.PUSHOVER_SOUND
-
-        if plexpy.CONFIG.PUSHOVER_APITOKEN:
-            self.application_token = plexpy.CONFIG.PUSHOVER_APITOKEN
-        else:
-            self.application_token = "aVny3NZFwZaXC642c831b4wd7KUhQS"
 
     def conf(self, options):
         return cherrypy.config['config'].get('Pushover', options)
@@ -1041,25 +1037,35 @@ class PUSHOVER(object):
         self.notify('Main Screen Activate', 'Test Message')
 
     def get_sounds(self):
-        http_handler = HTTPSConnection("api.pushover.net")
-        http_handler.request("GET", "/1/sounds.json?token=" + self.application_token)
-        response = http_handler.getresponse()
-        request_status = response.status
-
-        if request_status == 200:
-            data = json.loads(response.read())
-            sounds = data.get('sounds', {})
-            sounds.update({'': ''})
-            return sounds
-        elif request_status >= 400 and request_status < 500:
-            logger.info(u"Unable to retrieve Pushover notification sounds list: %s" % response.reason)
-            return {'': ''}
+        if plexpy.CONFIG.PUSHOVER_APITOKEN:
+            http_handler = HTTPSConnection("api.pushover.net")
+            http_handler.request("GET", "/1/sounds.json?token=" + self.application_token)
+            response = http_handler.getresponse()
+            request_status = response.status
+            
+            if request_status == 200:
+                data = json.loads(response.read())
+                sounds = data.get('sounds', {})
+                sounds.update({'': ''})
+                return sounds
+            elif request_status >= 400 and request_status < 500:
+                logger.info(u"Unable to retrieve Pushover notification sounds list: %s" % response.reason)
+                return {'': ''}
+            else:
+                logger.info(u"Unable to retrieve Pushover notification sounds list.")
+                return {'': ''}
+        
         else:
-            logger.info(u"Unable to retrieve Pushover notification sounds list.")
             return {'': ''}
 
     def return_config_options(self):
-        config_option = [{'label': 'Pushover User or Group Key',
+        config_option = [{'label': 'Pushover API Token',
+                          'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
+                          'name': 'pushover_apitoken',
+                          'description': 'Your Pushover API token.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Pushover User or Group Key',
                           'value': self.keys,
                           'name': 'pushover_keys',
                           'description': 'Your Pushover user or group key.',
@@ -1078,12 +1084,6 @@ class PUSHOVER(object):
                           'description': 'Set the notification sound. Leave blank for the default sound.',
                           'input_type': 'select',
                           'select_options': self.get_sounds()
-                          },
-                         {'label': 'Pushover API Token',
-                          'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
-                          'name': 'pushover_apitoken',
-                          'description': 'Your Pushover API token. Leave blank to use PlexPy default.',
-                          'input_type': 'text'
                           }
                          ]
 
