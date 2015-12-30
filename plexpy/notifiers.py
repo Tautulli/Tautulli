@@ -1198,12 +1198,6 @@ class TwitterNotifier(object):
                            'description': 'Step 3: Verify the key.',
                            'input_type': 'button'
                           },
-                          {'label': 'Test Twitter',
-                           'value': 'Test Twitter',
-                           'name': 'testTwitter',
-                           'description': 'Test if Twitter notifications are working. See logs for troubleshooting.',
-                           'input_type': 'button'
-                          },
                           {'input_type': 'nosave'
                           }
                          ]
@@ -1522,12 +1516,6 @@ class IFTTT(object):
                           'description': 'The Ifttt maker event to fire. The notification subject and body will be sent'
                                          ' as value1 and value2 respectively.',
                           'input_type': 'text'
-                          },
-                         {'label': 'Test Event',
-                           'value': 'Test Event',
-                           'name': 'testIFTTT',
-                           'description': 'Test if IFTTT notifications are working. See logs for troubleshooting.',
-                           'input_type': 'button'
                           }
                          ]
 
