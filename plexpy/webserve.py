@@ -1335,19 +1335,23 @@ class WebInterface(object):
         return serve_template(templatename="plexwatch_import.html", title="Import PlexWatch Database")
 
     @cherrypy.expose
-    def get_server_id(self, hostname=None, port=None, **kwargs):
+    def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, **kwargs):
         from plexpy import http_handler
 
         if hostname and port:
-            request_handler = http_handler.HTTPHandler(host=hostname,
-                                                       port=port,
-                                                       token=None)
-            uri = '/identity'
-            request = request_handler.make_request(uri=uri,
-                                                   proto='http',
-                                                   request_type='GET',
-                                                   output_format='',
-                                                   no_token=True)
+            # Set PMS attributes to get the real PMS url
+            plexpy.CONFIG.__setattr__('PMS_IP', hostname)
+            plexpy.CONFIG.__setattr__('PMS_PORT', port)
+            plexpy.CONFIG.__setattr__('PMS_IDENTIFIER', identifier)
+            plexpy.CONFIG.__setattr__('PMS_SSL', ssl)
+            plexpy.CONFIG.__setattr__('PMS_IS_REMOTE', remote)
+            plexpy.CONFIG.write()
+            
+            plextv.get_real_pms_url()
+            
+            pms_connect = pmsconnect.PmsConnect()
+            request = pms_connect.get_local_server_identity()
+            
             if request:
                 cherrypy.response.headers['Content-type'] = 'application/xml'
                 return request
