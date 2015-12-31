@@ -1616,6 +1616,32 @@ class SLACK(object):
     def notify(self, message, event):
         if not message or not event:
             return
+        http_handler = HTTPSConnection("hooks.slack.com")
+
+        data = {'text': event.encode('utf-8') + ': ' + message.encode("utf-8")}
+        data['channel'] = self.channel if self.channel != ''
+        data['username'] = self.username if self.username != ''
+        data['icon_emoji'] = self.icon_emoji if self.icon_emoji != ''
+
+        url = urlparse(self.slack_hook).path
+
+        http_handler.request("POST",
+                                url,
+                                headers={'Content-type': "application/x-www-form-urlencoded"},
+                                body=urlencode(data))
+
+        response = http_handler.getresponse()
+        request_status = response.status
+
+        if request_status == 200:
+                logger.info(u"Slack notifications sent.")
+                return True
+        elif request_status >= 400 and request_status < 500:
+                logger.info(u"Slack request failed: %s" % response.reason)
+                return False
+        else:
+                logger.info(u"Slack notification failed serverside.")
+                return False
 
     def updateLibrary(self):
         #For uniformity reasons not removed
@@ -1630,7 +1656,6 @@ class SLACK(object):
 
         self.notify('Main Screen Activate', 'Test Message')
 
-    # TODO description text
     def return_config_options(self):
         config_option = [{'label': 'Slack Hook',
                           'value': self.slack_hook,
