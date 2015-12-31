@@ -66,9 +66,9 @@ from plexpy import helpers
                     % endfor
                     </div>
                     </form>
-                    <div class="col-md-12">
+                    <div class="col-md-12" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
                         <h4>Test ${agent['name']}</h4>
-                        <p class="help-block">Test if ${agent['name']} notifications are working. See logs for troubleshooting.</p>
+                        <p class="help-block">Test if ${agent['name']} notifications are working. See <a href="/logs">logs</a> for troubleshooting.</p>
                         <div class="form-group">
                             <label for="test_subject">Subject Line</label>
                             <input class="form-control" type="text" id="test_subject" name="test_subject" value="PlexPy">

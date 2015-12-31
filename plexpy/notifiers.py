@@ -1374,7 +1374,7 @@ class Email(object):
 
         message = MIMEText(message, 'plain', "utf-8")
         message['Subject'] = subject
-        message['From'] = email.utils.formataddr(('PlexPy', plexpy.CONFIG.EMAIL_FROM))
+        message['From'] = email.utils.formataddr((plexpy.CONFIG.EMAIL_FROM_NAME, plexpy.CONFIG.EMAIL_FROM))
         message['To'] = plexpy.CONFIG.EMAIL_TO
         message['CC'] = plexpy.CONFIG.EMAIL_CC
 
@@ -1405,7 +1405,13 @@ class Email(object):
             return False
 
     def return_config_options(self):
-        config_option = [{'label': 'From',
+        config_option = [{'label': 'From Name',
+                          'value': plexpy.CONFIG.EMAIL_FROM_NAME,
+                          'name': 'email_from_name',
+                          'description': 'The name of the sender.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'From',
                           'value': plexpy.CONFIG.EMAIL_FROM,
                           'name': 'email_from',
                           'description': 'The email address of the sender.',
