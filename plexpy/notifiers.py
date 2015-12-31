@@ -1613,6 +1613,48 @@ class SLACK(object):
     def conf(self, options):
         return cherrypy.config['config'].get('Telegram', options)
 
-    def notify(self, message, event)
+    def notify(self, message, event):
         if not message or not event:
             return
+
+    def updateLibrary(self):
+        #For uniformity reasons not removed
+        return
+
+    def test(self, slack_hook, channel, username, icon_emoji):
+        self.enabled = True
+        self.slack_hook = slack_hook
+        self.channel = channel
+        self.username = username
+        self.icon_emoji = icon_emoji
+
+        self.notify('Main Screen Activate', 'Test Message')
+
+    # TODO description text
+    def return_config_options(self):
+        config_option = [{'label': 'Slack Hook',
+                          'value': self.slack_hook,
+                          'name': 'slack_hook',
+                          'description': 'Your Slack incoming webhook.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Slack Channel',
+                          'value': self.channel,
+                          'name': 'slack_channel',
+                          'description': 'Your slack channel name. The channel in which the messages will be sent.',
+                          'input_type': 'text'
+                          },
+                          {'label': 'Slack Username',
+                           'value': self.username,
+                           'name': 'slack_username',
+                           'description': 'Slack username which will be shown',
+                           'input_type': 'text'
+                          },
+                          {'label': 'Slack Icon Emoji',
+                           'value': self.icon_emoji,
+                           'name': 'Slack Icon',
+                           'input_type': 'text'
+                          }
+                         ]
+
+        return config_option
