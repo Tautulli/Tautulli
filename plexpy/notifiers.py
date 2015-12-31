@@ -1652,6 +1652,7 @@ class SLACK(object):
                           },
                           {'label': 'Slack Icon Emoji',
                            'value': self.icon_emoji,
+                           'description': 'Slack Icon emoji',
                            'name': 'Slack Icon',
                            'input_type': 'text'
                           }
