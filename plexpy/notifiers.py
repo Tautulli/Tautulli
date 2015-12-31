@@ -52,7 +52,8 @@ AGENT_IDS = {"Growl": 0,
              "Email": 10,
              "Twitter": 11,
              "IFTTT": 12,
-             "Telegram": 13}
+             "Telegram": 13,
+             "Slack":14}
 
 def available_notification_agents():
     agents = [{'name': 'Growl',
@@ -275,7 +276,24 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.TELEGRAM_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.TELEGRAM_ON_EXTUP,
                'on_intup': plexpy.CONFIG.TELEGRAM_ON_INTUP
-               }
+               },
+               {'name': 'Slack',
+                'id': AGENT_IDS['Slack'],
+                'config_prefix': 'slack',
+                'has_config': True,
+                'state': checked(plexpy.CONFIG.SLACK_ENABLED),
+                'on_play': plexpy.CONFIG.SLACK_ON_PLAY,
+                'on_stop': plexpy.CONFIG.SLACK_ON_STOP,
+                'on_resume': plexpy.CONFIG.SLACK_ON_RESUME,
+                'on_pause': plexpy.CONFIG.SLACK_ON_PAUSE,
+                'on_buffer': plexpy.CONFIG.SLACK_ON_BUFFER,
+                'on_watched': plexpy.CONFIG.SLACK_ON_WATCHED,
+                'on_created': plexpy.CONFIG.SLACK_ON_CREATED,
+                'on_extdown': plexpy.CONFIG.SLACK_ON_EXTDOWN,
+                'on_intdown': plexpy.CONFIG.SLACK_ON_INTDOWN,
+                'on_extup': plexpy.CONFIG.SLACK_ON_EXTUP,
+                'on_intup': plexpy.CONFIG.SLACK_ON_INTUP
+                }
               ]
 
     # OSX Notifications should only be visible if it can be used
@@ -347,6 +365,9 @@ def get_notification_agent_config(config_id):
         elif config_id == 13:
           telegramClient = TELEGRAM()
           return telegramClient.return_config_options()
+        elif config_id == 14:
+            slackClient = SLACK()
+            return slackClient.return_config_options()
         else:
             return []
     else:
@@ -398,6 +419,9 @@ def send_notification(config_id, subject, body):
         elif config_id == 13:
           telegramClient = TELEGRAM()
           telegramClient.notify(message=body, event=subject)
+        elif config_id == 13:
+            slackClient = SLACK()
+            slackClient.notify(message=body, event=subject)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
@@ -860,7 +884,7 @@ class PUSHBULLET(object):
                                              'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")})
             response = http_handler.getresponse()
             request_status = response.status
-        
+
             if request_status == 200:
                 data = json.loads(response.read())
                 devices = data.get('devices', [])
@@ -1021,7 +1045,7 @@ class PUSHOVER(object):
         http_handler.request("GET", "/1/sounds.json?token=" + self.application_token)
         response = http_handler.getresponse()
         request_status = response.status
-        
+
         if request_status == 200:
             data = json.loads(response.read())
             sounds = data.get('sounds', {})
@@ -1574,3 +1598,21 @@ class TELEGRAM(object):
                          ]
 
         return config_option
+
+class SLACK(object):
+    """
+    Slack Notifications
+    """
+    def __init__(self):
+        self.enabled = plexpy.CONFIG.SLACK_ENABLED
+        self.slack_hook = plexpy.CONFIG.SLACK_HOOK
+        self.channel = plexpy.CONFIG.SLACK_CHANNEL
+        self.username = plexpy.CONFIG.SLACK_USERNAME
+        self.icon_emoji = plexpy.CONFIG.SLACK_ICON_EMOJI
+
+    def conf(self, options):
+        return cherrypy.config['config'].get('Telegram', options)
+
+    def notify(self, message, event)
+        if not message or not event:
+            return
