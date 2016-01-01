@@ -132,12 +132,17 @@ from plexpy import helpers
         $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
     });
 
+    $('#testSlack').click(function() {
+      $.get("/test_slack", function(data) { $('#ajaxMsg').html("<i class='fa fa-check'></i>" + data); });
+      $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
+    });
+
     $('#pushbullet_apikey').on('change', function () {
         doAjaxCall('set_notification_config', $(this), 'tabs', true);
         reloadModal();
         return false;
     });
-    
+
     // Never send checkbox values directly, always substitute value in hidden input.
     $('.checkboxes').click(function () {
         var configToggle = $(this).data('id');

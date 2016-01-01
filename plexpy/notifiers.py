@@ -19,6 +19,7 @@ from plexpy.helpers import checked, radio
 from xml.dom import minidom
 from httplib import HTTPSConnection
 from urlparse import parse_qsl
+from urlparse import urlparse
 from urllib import urlencode
 from pynma import pynma
 
@@ -277,23 +278,23 @@ def available_notification_agents():
                'on_extup': plexpy.CONFIG.TELEGRAM_ON_EXTUP,
                'on_intup': plexpy.CONFIG.TELEGRAM_ON_INTUP
                },
-               {'name': 'Slack',
-                'id': AGENT_IDS['Slack'],
-                'config_prefix': 'slack',
-                'has_config': True,
-                'state': checked(plexpy.CONFIG.SLACK_ENABLED),
-                'on_play': plexpy.CONFIG.SLACK_ON_PLAY,
-                'on_stop': plexpy.CONFIG.SLACK_ON_STOP,
-                'on_resume': plexpy.CONFIG.SLACK_ON_RESUME,
-                'on_pause': plexpy.CONFIG.SLACK_ON_PAUSE,
-                'on_buffer': plexpy.CONFIG.SLACK_ON_BUFFER,
-                'on_watched': plexpy.CONFIG.SLACK_ON_WATCHED,
-                'on_created': plexpy.CONFIG.SLACK_ON_CREATED,
-                'on_extdown': plexpy.CONFIG.SLACK_ON_EXTDOWN,
-                'on_intdown': plexpy.CONFIG.SLACK_ON_INTDOWN,
-                'on_extup': plexpy.CONFIG.SLACK_ON_EXTUP,
-                'on_intup': plexpy.CONFIG.SLACK_ON_INTUP
-                }
+              {'name': 'Slack',
+               'id': AGENT_IDS['Slack'],
+               'config_prefix': 'slack',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.SLACK_ENABLED),
+               'on_play': plexpy.CONFIG.SLACK_ON_PLAY,
+               'on_stop': plexpy.CONFIG.SLACK_ON_STOP,
+               'on_resume': plexpy.CONFIG.SLACK_ON_RESUME,
+               'on_pause': plexpy.CONFIG.SLACK_ON_PAUSE,
+               'on_buffer': plexpy.CONFIG.SLACK_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.SLACK_ON_WATCHED,
+               'on_created': plexpy.CONFIG.SLACK_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.SLACK_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.SLACK_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.SLACK_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.SLACK_ON_INTUP
+               }
               ]
 
     # OSX Notifications should only be visible if it can be used
@@ -419,14 +420,13 @@ def send_notification(config_id, subject, body):
         elif config_id == 13:
           telegramClient = TELEGRAM()
           telegramClient.notify(message=body, event=subject)
-        elif config_id == 13:
+        elif config_id == 14:
             slackClient = SLACK()
             slackClient.notify(message=body, event=subject)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
         logger.debug(u"PlexPy Notifier :: Notification requested but no agent id received.")
-
 
 class GROWL(object):
     """
@@ -1469,7 +1469,6 @@ class Email(object):
 
         return config_option
 
-
 class IFTTT(object):
 
     def __init__(self):
@@ -1556,7 +1555,7 @@ class TELEGRAM(object):
         http_handler.request("POST",
                                 "/bot%s/%s" % (self.bot_token, "sendMessage"),
                                 headers={'Content-type': "application/x-www-form-urlencoded"},
-                                body=urlencode(data))
+                                payload=urlencode(data))
 
         response = http_handler.getresponse()
         request_status = response.status
@@ -1611,7 +1610,7 @@ class SLACK(object):
         self.icon_emoji = plexpy.CONFIG.SLACK_ICON_EMOJI
 
     def conf(self, options):
-        return cherrypy.config['config'].get('Telegram', options)
+        return cherrypy.config['config'].get('Slack', options)
 
     def notify(self, message, event):
         if not message or not event:
@@ -1619,16 +1618,17 @@ class SLACK(object):
         http_handler = HTTPSConnection("hooks.slack.com")
 
         data = {'text': event.encode('utf-8') + ': ' + message.encode("utf-8")}
-        data['channel'] = self.channel if self.channel != ''
-        data['username'] = self.username if self.username != ''
-        data['icon_emoji'] = self.icon_emoji if self.icon_emoji != ''
+        if self.channel != '': data['channel'] = self.channel
+        if self.username != '': data['username'] = self.username
+        if self.icon_emoji != '':
+            data['icon_emoji'] = self.icon_emoji
 
         url = urlparse(self.slack_hook).path
 
         http_handler.request("POST",
                                 url,
                                 headers={'Content-type': "application/x-www-form-urlencoded"},
-                                body=urlencode(data))
+                                body=json.dumps(data))
 
         response = http_handler.getresponse()
         request_status = response.status
@@ -1647,14 +1647,9 @@ class SLACK(object):
         #For uniformity reasons not removed
         return
 
-    def test(self, slack_hook, channel, username, icon_emoji):
+    def test(self):
         self.enabled = True
-        self.slack_hook = slack_hook
-        self.channel = channel
-        self.username = username
-        self.icon_emoji = icon_emoji
-
-        self.notify('Main Screen Activate', 'Test Message')
+        return self.notify('Main Screen Activate', 'Test Message')
 
     def return_config_options(self):
         config_option = [{'label': 'Slack Hook',
@@ -1666,7 +1661,7 @@ class SLACK(object):
                          {'label': 'Slack Channel',
                           'value': self.channel,
                           'name': 'slack_channel',
-                          'description': 'Your slack channel name. The channel in which the messages will be sent.',
+                          'description': 'Your slack channel name. (Begin with \'#\')',
                           'input_type': 'text'
                           },
                           {'label': 'Slack Username',
@@ -1675,12 +1670,18 @@ class SLACK(object):
                            'description': 'Slack username which will be shown',
                            'input_type': 'text'
                           },
-                          {'label': 'Slack Icon Emoji',
+                          {'label': 'Slack Icon',
                            'value': self.icon_emoji,
-                           'description': 'Slack Icon emoji',
-                           'name': 'Slack Icon',
+                           'description': 'Your icon you wish to show, use Slack emoji or image url',
+                           'name': 'slack_icon_emoji',
                            'input_type': 'text'
-                          }
+                          },
+                          {'label': 'Test Event',
+                            'value': 'Test Event',
+                            'name': 'testSlack',
+                            'description': 'Test if Slack notifications are working. See logs for troubleshooting.',
+                            'input_type': 'button'
+                           }
                          ]
 
         return config_option
