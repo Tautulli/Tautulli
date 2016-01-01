@@ -1725,6 +1725,7 @@ a:hover .item-children-poster {
     padding-left: 80px;
     width: 100%;
     height: 120px;
+    overflow: hidden;
 }
 .home-platforms-instance-name {
     color: #fff;
