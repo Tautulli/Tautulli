@@ -1621,7 +1621,10 @@ class SLACK(object):
         if self.channel != '': data['channel'] = self.channel
         if self.username != '': data['username'] = self.username
         if self.icon_emoji != '':
-            data['icon_emoji'] = self.icon_emoji
+            if urlparse(self.icon_emoji).scheme == '':
+                data['icon_emoji'] = self.icon_emoji
+            else:
+                data['icon_url'] = self.icon_url
 
         url = urlparse(self.slack_hook).path
 
