@@ -22,45 +22,114 @@ from plexpy import version
     <link rel="icon" type="image/x-icon" href="interfaces/default/images/favicon.ico"/>
     <link rel="shortcut icon" href="interfaces/default/images/favicon.png">
 
-<platform name="ios">
-              <!-- iOS 8.0+ -->
-              <!-- iPhone 6 Plus  -->
-              <icon src="interfaces/default/images/res/ios/icon-60@3x.png" width="180" height="180" />
-              <!-- iOS 7.0+ -->
-              <!-- iPhone / iPod Touch  -->
-              <icon src="interfaces/default/images/res/ios/icon-60.png" width="60" height="60" />
-              <icon src="interfaces/default/images/res/ios/icon-60@2x.png" width="120" height="120" />
-              <!-- iPad -->
-              <icon src="interfaces/default/images/res/ios/icon-76.png" width="76" height="76" />
-              <icon src="interfaces/default/images/res/ios/icon-76@2x.png" width="152" height="152" />
-              <!-- iOS 6.1 -->
-              <!-- Spotlight Icon -->
-              <icon src="interfaces/default/images/res/ios/icon-40.png" width="40" height="40" />
-              <icon src="interfaces/default/images/res/ios/icon-40@2x.png" width="80" height="80" />
-              <!-- iPhone / iPod Touch -->
-              <icon src="interfaces/default/images/res/ios/icon.png" width="57" height="57" />
-              <icon src="interfaces/default/images/res/ios/icon@2x.png" width="114" height="114" />
-              <!-- iPad -->
-              <icon src="interfaces/default/images/res/ios/icon-72.png" width="72" height="72" />
-              <icon src="interfaces/default/images/res/ios/icon-72@2x.png" width="144" height="144" />
-              <!-- iPhone Spotlight and Settings Icon -->
-              <icon src="interfaces/default/images/res/ios/icon-small.png" width="29" height="29" />
-              <icon src="interfaces/default/images/res/ios/icon-small@2x.png" width="58" height="58" />
-              <!-- iPad Spotlight and Settings Icon -->
-              <icon src="interfaces/default/images/res/ios/icon-50.png" width="50" height="50" />
-              <icon src="interfaces/default/images/res/ios/icon-50@2x.png" width="100" height="100" />
-    <!-- images are determined by width and height. The following are supported -->
-    <splash src="interfaces/default/images/res/screen/ios/Default~iphone.png" width="320" height="480"/>
-    <splash src="interfaces/default/images/res/screen/ios/Default@2x~iphone.png" width="640" height="960"/>
-    <splash src="interfaces/default/images/res/screen/ios/Default-Portrait~ipad.png" width="768" height="1024"/>
-    <splash src="interfaces/default/images/res/screen/ios/Default-Portrait@2x~ipad.png" width="1536" height="2048"/>
-    <splash src="interfaces/default/images/res/screen/ios/Default-Landscape~ipad.png" width="1024" height="768"/>
-    <splash src="interfaces/default/images/res/screen/ios/Default-Landscape@2x~ipad.png" width="2048" height="1536"/>
-    <splash src="interfaces/default/images/res/screen/ios/Default-568h@2x~iphone.png" width="640" height="1136"/>
-    <splash src="interfaces/default/images/res/screen/ios/Default-667h.png" width="750" height="1334"/>
-    <splash src="interfaces/default/images/res/screen/ios/Default-736h.png" width="1242" height="2208"/>
-    <splash src="interfaces/default/images/res/screen/ios/Default-Landscape-736h.png" width="2208" height="1242"/>
-</platform>
+    <!-- Allow web app to be run in full-screen mode. -->
+    <meta name="apple-mobile-web-app-capable"
+          content="yes">
+    <!-- Configure the status bar. -->
+    <meta name="apple-mobile-web-app-status-bar-style"
+          content="black">
+    <!-- Set the viewport. -->
+    <meta name="viewport"
+          content="initial-scale=1">
+    <!-- Disable automatic phone number detection. -->
+    <meta name="format-detection"
+          content="telephone=no">
+
+    <!-- ICONS -->
+    <!-- iPad retina icon -->
+    <link href="interfaces/default/images/res/ios/icon-76@2x.png" sizes="152x152" rel="apple-touch-icon-precomposed">
+    <!-- iPad retina icon (iOS < 7) -->
+    <link href="interfaces/default/images/res/ios/icon-72@2x.png" sizes="144x144" rel="apple-touch-icon-precomposed">
+    <!-- iPad non-retina icon -->
+    <link href="interfaces/default/images/res/ios/icon-76.png" sizes="76x76" rel="apple-touch-icon-precomposed">
+    <!-- iPad non-retina icon (iOS < 7) -->
+    <link href="interfaces/default/images/res/ios/icon-72.png" sizes="72x72" rel="apple-touch-icon-precomposed">
+    <!-- iPhone 6 Plus icon -->
+    <link href="interfaces/default/images/res/ios/icon-60@2x.png" sizes="120x120" rel="apple-touch-icon-precomposed">
+    <!-- iPhone retina icon (iOS < 7) -->
+    <link href="interfaces/default/images/res/ios/icon@2x.png" sizes="114x114" rel="apple-touch-icon-precomposed">
+    <!-- iPhone non-retina icon (iOS < 7) -->
+    <link href="interfaces/default/images/res/ios/icon.png" sizes="57x57" rel="apple-touch-icon-precomposed">
+    <!-- iPhone / iPod Touch  -->
+    <link href="interfaces/default/images/res/ios/icon-60@3x.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+    <link href="interfaces/default/images/res/ios/icon-60@x.png" sizes="60x60" rel="apple-touch-icon-precomposed">
+    <!-- Spotlight Icon -->
+    <link href="interfaces/default/images/res/ios/icon-40.png" sizes="40x40" rel="apple-touch-icon-precomposed">
+    <link href="interfaces/default/images/res/ios/icon-40@2x.png" sizes="80x80" rel="apple-touch-icon-precomposed">
+    <!-- iPhone Spotlight and Settings Icon -->
+    <link href="interfaces/default/images/res/ios/icon-small.png" sizes="29x29" rel="apple-touch-icon-precomposed">
+    <link href="interfaces/default/images/res/ios/icon-small@2x.png" sizes="58x58" rel="apple-touch-icon-precomposed">
+    <!-- iPad Spotlight and Settings Icon -->
+    <link href="interfaces/default/images/res/ios/icon-50.png" sizes="50x50" rel="apple-touch-icon-precomposed">
+    <link href="interfaces/default/images/res/ios/icon-50@2x.png" sizes="100x100" rel="apple-touch-icon-precomposed">
+            
+    <!-- STARTUP IMAGES -->
+    <!-- iPad retina portrait startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-Portrait@2x~ipad.png"
+          media="(device-width: 768px) and (device-height: 1024px)
+                 and (-webkit-device-pixel-ratio: 2)
+                 and (orientation: portrait)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPad retina landscape startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-Landscape@2x~ipad.png"
+          media="(device-width: 768px) and (device-height: 1024px)
+                 and (-webkit-device-pixel-ratio: 2)
+                 and (orientation: landscape)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPad non-retina portrait startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-Portrait~ipad.png"
+          media="(device-width: 768px) and (device-height: 1024px)
+                 and (-webkit-device-pixel-ratio: 1)
+                 and (orientation: portrait)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPad non-retina landscape startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-Landscape~ipad.png"
+          media="(device-width: 768px) and (device-height: 1024px)
+                 and (-webkit-device-pixel-ratio: 1)
+                 and (orientation: landscape)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone 6 Plus portrait startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-736h.png"
+          media="(device-width: 414px) and (device-height: 736px)
+                 and (-webkit-device-pixel-ratio: 3)
+                 and (orientation: portrait)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone 6 Plus landscape startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-Landscape-736h.png"
+          media="(device-width: 414px) and (device-height: 736px)
+                 and (-webkit-device-pixel-ratio: 3)
+                 and (orientation: landscape)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone 6 startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-667h.png"
+          media="(device-width: 375px) and (device-height: 667px)
+                 and (-webkit-device-pixel-ratio: 2)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone 5 startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-568h@2x~iphone.png"
+          media="(device-width: 320px) and (device-height: 568px)
+                 and (-webkit-device-pixel-ratio: 2)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone < 5 retina startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default@2x~iphone.png"
+          media="(device-width: 320px) and (device-height: 480px)
+                 and (-webkit-device-pixel-ratio: 2)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone < 5 non-retina startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default~iphone.png"
+          media="(device-width: 320px) and (device-height: 480px)
+                 and (-webkit-device-pixel-ratio: 1)"
+          rel="apple-touch-startup-image">
+
 </head>
 
 <body class="content">
