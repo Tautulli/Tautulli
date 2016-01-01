@@ -1658,27 +1658,21 @@ class SLACK(object):
                          {'label': 'Slack Channel',
                           'value': self.channel,
                           'name': 'slack_channel',
-                          'description': 'Your slack channel name. (Begin with \'#\')',
+                          'description': 'Your Slack channel name (begin with \'#\'). Leave blank for webhook integration default.',
                           'input_type': 'text'
                           },
                           {'label': 'Slack Username',
                            'value': self.username,
                            'name': 'slack_username',
-                           'description': 'Slack username which will be shown',
+                           'description': 'The Slack username which will be shown. Leave blank for webhook integration default.',
                            'input_type': 'text'
                           },
                           {'label': 'Slack Icon',
                            'value': self.icon_emoji,
-                           'description': 'Your icon you wish to show, use Slack emoji or image url',
+                           'description': 'The icon you wish to show, use Slack emoji or image url. Leave blank for webhook integration default.',
                            'name': 'slack_icon_emoji',
                            'input_type': 'text'
-                          },
-                          {'label': 'Test Event',
-                            'value': 'Test Event',
-                            'name': 'testSlack',
-                            'description': 'Test if Slack notifications are working. See logs for troubleshooting.',
-                            'input_type': 'button'
-                           }
+                          }
                          ]
 
         return config_option
