@@ -235,8 +235,8 @@ fieldset[disabled] .btn-bright:active,
 .btn-bright.disabled.active,
 .btn-bright[disabled].active,
 fieldset[disabled] .btn-bright.active {
-  background-color: #5cb85c;
-  border-color: #4cae4c;
+  background-color: #c9302c;
+  border-color: #ac2925;
 }
 .btn-bright .badge {
   color: #fff;

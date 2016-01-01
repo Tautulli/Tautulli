@@ -1563,8 +1563,7 @@ $(document).ready(function() {
 
     $('#osxnotifyregister').click(function () {
         var osx_notify_app = $("#osx_notify_reg").val();
-        $.get("/osxnotifyregister", {'app': osx_notify_app}, function (data) { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>"+data+"</div>"); });
-        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut()
+        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { showMsg("<div class='msg'><span class='ui-icon ui-icon-check'></span>" + data + "</div>", false, true, 3000); });
     })
 
     $.ajax({
