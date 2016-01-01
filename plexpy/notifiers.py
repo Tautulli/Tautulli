@@ -1555,7 +1555,7 @@ class TELEGRAM(object):
         http_handler.request("POST",
                                 "/bot%s/%s" % (self.bot_token, "sendMessage"),
                                 headers={'Content-type': "application/x-www-form-urlencoded"},
-                                payload=urlencode(data))
+                                body=urlencode(data))
 
         response = http_handler.getresponse()
         request_status = response.status
