@@ -983,14 +983,10 @@ class PUSHOVER(object):
 
     def __init__(self):
         self.enabled = plexpy.CONFIG.PUSHOVER_ENABLED
+        self.application_token = plexpy.CONFIG.PUSHOVER_APITOKEN
         self.keys = plexpy.CONFIG.PUSHOVER_KEYS
         self.priority = plexpy.CONFIG.PUSHOVER_PRIORITY
         self.sound = plexpy.CONFIG.PUSHOVER_SOUND
-
-        if plexpy.CONFIG.PUSHOVER_APITOKEN:
-            self.application_token = plexpy.CONFIG.PUSHOVER_APITOKEN
-        else:
-            self.application_token = "aVny3NZFwZaXC642c831b4wd7KUhQS"
 
     def conf(self, options):
         return cherrypy.config['config'].get('Pushover', options)
@@ -1041,25 +1037,35 @@ class PUSHOVER(object):
         self.notify('Main Screen Activate', 'Test Message')
 
     def get_sounds(self):
-        http_handler = HTTPSConnection("api.pushover.net")
-        http_handler.request("GET", "/1/sounds.json?token=" + self.application_token)
-        response = http_handler.getresponse()
-        request_status = response.status
-
-        if request_status == 200:
-            data = json.loads(response.read())
-            sounds = data.get('sounds', {})
-            sounds.update({'': ''})
-            return sounds
-        elif request_status >= 400 and request_status < 500:
-            logger.info(u"Unable to retrieve Pushover notification sounds list: %s" % response.reason)
-            return {'': ''}
+        if plexpy.CONFIG.PUSHOVER_APITOKEN:
+            http_handler = HTTPSConnection("api.pushover.net")
+            http_handler.request("GET", "/1/sounds.json?token=" + self.application_token)
+            response = http_handler.getresponse()
+            request_status = response.status
+            
+            if request_status == 200:
+                data = json.loads(response.read())
+                sounds = data.get('sounds', {})
+                sounds.update({'': ''})
+                return sounds
+            elif request_status >= 400 and request_status < 500:
+                logger.info(u"Unable to retrieve Pushover notification sounds list: %s" % response.reason)
+                return {'': ''}
+            else:
+                logger.info(u"Unable to retrieve Pushover notification sounds list.")
+                return {'': ''}
+        
         else:
-            logger.info(u"Unable to retrieve Pushover notification sounds list.")
             return {'': ''}
 
     def return_config_options(self):
-        config_option = [{'label': 'Pushover User or Group Key',
+        config_option = [{'label': 'Pushover API Token',
+                          'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
+                          'name': 'pushover_apitoken',
+                          'description': 'Your Pushover API token.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Pushover User or Group Key',
                           'value': self.keys,
                           'name': 'pushover_keys',
                           'description': 'Your Pushover user or group key.',
@@ -1078,12 +1084,6 @@ class PUSHOVER(object):
                           'description': 'Set the notification sound. Leave blank for the default sound.',
                           'input_type': 'select',
                           'select_options': self.get_sounds()
-                          },
-                         {'label': 'Pushover API Token',
-                          'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
-                          'name': 'pushover_apitoken',
-                          'description': 'Your Pushover API token. Leave blank to use PlexPy default.',
-                          'input_type': 'text'
                           }
                          ]
 
@@ -1196,12 +1196,6 @@ class TwitterNotifier(object):
                            'value': 'Verify Key',
                            'name': 'twitterStep2',
                            'description': 'Step 3: Verify the key.',
-                           'input_type': 'button'
-                          },
-                          {'label': 'Test Twitter',
-                           'value': 'Test Twitter',
-                           'name': 'testTwitter',
-                           'description': 'Test if Twitter notifications are working. See logs for troubleshooting.',
                            'input_type': 'button'
                           },
                           {'input_type': 'nosave'
@@ -1380,7 +1374,7 @@ class Email(object):
 
         message = MIMEText(message, 'plain', "utf-8")
         message['Subject'] = subject
-        message['From'] = email.utils.formataddr(('PlexPy', plexpy.CONFIG.EMAIL_FROM))
+        message['From'] = email.utils.formataddr((plexpy.CONFIG.EMAIL_FROM_NAME, plexpy.CONFIG.EMAIL_FROM))
         message['To'] = plexpy.CONFIG.EMAIL_TO
         message['CC'] = plexpy.CONFIG.EMAIL_CC
 
@@ -1411,7 +1405,13 @@ class Email(object):
             return False
 
     def return_config_options(self):
-        config_option = [{'label': 'From',
+        config_option = [{'label': 'From Name',
+                          'value': plexpy.CONFIG.EMAIL_FROM_NAME,
+                          'name': 'email_from_name',
+                          'description': 'The name of the sender.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'From',
                           'value': plexpy.CONFIG.EMAIL_FROM,
                           'name': 'email_from',
                           'description': 'The email address of the sender.',
@@ -1522,12 +1522,6 @@ class IFTTT(object):
                           'description': 'The Ifttt maker event to fire. The notification subject and body will be sent'
                                          ' as value1 and value2 respectively.',
                           'input_type': 'text'
-                          },
-                         {'label': 'Test Event',
-                           'value': 'Test Event',
-                           'name': 'testIFTTT',
-                           'description': 'Test if IFTTT notifications are working. See logs for troubleshooting.',
-                           'input_type': 'button'
                           }
                          ]
 
@@ -1664,27 +1658,21 @@ class SLACK(object):
                          {'label': 'Slack Channel',
                           'value': self.channel,
                           'name': 'slack_channel',
-                          'description': 'Your slack channel name. (Begin with \'#\')',
+                          'description': 'Your Slack channel name (begin with \'#\'). Leave blank for webhook integration default.',
                           'input_type': 'text'
                           },
                           {'label': 'Slack Username',
                            'value': self.username,
                            'name': 'slack_username',
-                           'description': 'Slack username which will be shown',
+                           'description': 'The Slack username which will be shown. Leave blank for webhook integration default.',
                            'input_type': 'text'
                           },
                           {'label': 'Slack Icon',
                            'value': self.icon_emoji,
-                           'description': 'Your icon you wish to show, use Slack emoji or image url',
+                           'description': 'The icon you wish to show, use Slack emoji or image url. Leave blank for webhook integration default.',
                            'name': 'slack_icon_emoji',
                            'input_type': 'text'
-                          },
-                          {'label': 'Test Event',
-                            'value': 'Test Event',
-                            'name': 'testSlack',
-                            'description': 'Test if Slack notifications are working. See logs for troubleshooting.',
-                            'input_type': 'button'
-                           }
+                          }
                          ]
 
         return config_option

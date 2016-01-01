@@ -61,6 +61,7 @@ _CONFIG_DEFINITIONS = {
     'CONFIG_VERSION': (str, 'General', '0'),
     'DO_NOT_OVERRIDE_GIT_BRANCH': (int, 'General', 0),
     'EMAIL_ENABLED': (int, 'Email', 0),
+    'EMAIL_FROM_NAME': (str, 'Email', 'PlexPy'),
     'EMAIL_FROM': (str, 'Email', ''),
     'EMAIL_TO': (str, 'Email', ''),
     'EMAIL_CC': (str, 'Email', ''),

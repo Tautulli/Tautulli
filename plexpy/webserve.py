@@ -554,8 +554,8 @@ class WebInterface(object):
 
         # Get new server URLs for SSL communications.
         plextv.get_real_pms_url()
-
-		# Get new server friendly name
+        
+        # Get new server friendly name
         pmsconnect.get_server_friendly_name()
 
         # Reconfigure scheduler if intervals changed
@@ -660,6 +660,30 @@ class WebInterface(object):
         return a.fetchData()
 
     @cherrypy.expose
+    def test_notifier(self, config_id=None, subject='PlexPy', body='Test notification', **kwargs):
+        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+
+        if config_id.isdigit():
+            agents = notifiers.available_notification_agents()
+            for agent in agents:
+                if int(config_id) == agent['id']:
+                    this_agent = agent
+                    break
+                else:
+                    this_agent = None
+            
+            if this_agent:
+                logger.debug("Sending test %s notification." % this_agent['name'])
+                notifiers.send_notification(this_agent['id'], subject, body)
+                return "Notification sent."
+            else:
+                logger.debug("Unable to send test notification, invalid notification agent ID %s." % config_id)
+                return "Invalid notification agent ID %s." % config_id
+        else:
+            logger.debug("Unable to send test notification, no notification agent ID received.")
+            return "No notification agent ID received."
+            
+    @cherrypy.expose
     def twitterStep1(self):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
         tweet = notifiers.TwitterNotifier()
@@ -675,37 +699,6 @@ class WebInterface(object):
             return "Key verification successful"
         else:
             return "Unable to verify key"
-
-    @cherrypy.expose
-    def testTwitter(self):
-        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
-        tweet = notifiers.TwitterNotifier()
-        result = tweet.test_notify()
-        if result:
-            return "Tweet successful, check your twitter to make sure it worked"
-        else:
-            return "Error sending tweet"
-
-    @cherrypy.expose
-    def test_ifttt(self):
-        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
-        event = notifiers.IFTTT()
-        result = event.test()
-        if result:
-            return "Notification successful."
-        else:
-            return "Error sending event."
-
-    @cherrypy.expose
-    def test_slack(self):
-        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
-        event = notifiers.SLACK()
-        result = event.test()
-        
-        if result:
-            return "Notification successful."
-        else:
-            return "Error sending event."
 
     @cherrypy.expose
     def osxnotifyregister(self, app):
@@ -1335,19 +1328,23 @@ class WebInterface(object):
         return serve_template(templatename="plexwatch_import.html", title="Import PlexWatch Database")
 
     @cherrypy.expose
-    def get_server_id(self, hostname=None, port=None, **kwargs):
+    def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, **kwargs):
         from plexpy import http_handler
 
         if hostname and port:
-            request_handler = http_handler.HTTPHandler(host=hostname,
-                                                       port=port,
-                                                       token=None)
-            uri = '/identity'
-            request = request_handler.make_request(uri=uri,
-                                                   proto='http',
-                                                   request_type='GET',
-                                                   output_format='',
-                                                   no_token=True)
+            # Set PMS attributes to get the real PMS url
+            plexpy.CONFIG.__setattr__('PMS_IP', hostname)
+            plexpy.CONFIG.__setattr__('PMS_PORT', port)
+            plexpy.CONFIG.__setattr__('PMS_IDENTIFIER', identifier)
+            plexpy.CONFIG.__setattr__('PMS_SSL', ssl)
+            plexpy.CONFIG.__setattr__('PMS_IS_REMOTE', remote)
+            plexpy.CONFIG.write()
+            
+            plextv.get_real_pms_url()
+            
+            pms_connect = pmsconnect.PmsConnect()
+            request = pms_connect.get_local_server_identity()
+            
             if request:
                 cherrypy.response.headers['Content-type'] = 'application/xml'
                 return request
