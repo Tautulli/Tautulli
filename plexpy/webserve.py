@@ -499,8 +499,8 @@ class WebInterface(object):
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause", "refresh_users_on_startup",
-            "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable", 
-            "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", 
+            "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
+            "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive",
             "notify_recently_added", "notify_recently_added_grandparent", "monitor_remote_access"
         ]
         for checked_config in checked_configs:
@@ -526,7 +526,7 @@ class WebInterface(object):
             if (kwargs['monitoring_interval'] != str(plexpy.CONFIG.MONITORING_INTERVAL)) or \
                     (kwargs['refresh_users_interval'] != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL)):
                 reschedule = True
-        
+
         if 'notify_recently_added' in kwargs and \
             (kwargs['notify_recently_added'] != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED):
             reschedule = True
@@ -554,7 +554,7 @@ class WebInterface(object):
 
         # Get new server URLs for SSL communications.
         plextv.get_real_pms_url()
-		
+
 		# Get new server friendly name
         pmsconnect.get_server_friendly_name()
 
@@ -691,6 +691,17 @@ class WebInterface(object):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
         event = notifiers.IFTTT()
         result = event.test()
+        if result:
+            return "Notification successful."
+        else:
+            return "Error sending event."
+
+    @cherrypy.expose
+    def test_slack(self):
+        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+        event = notifiers.SLACK()
+        result = event.test()
+        
         if result:
             return "Notification successful."
         else:
@@ -1457,7 +1468,7 @@ class WebInterface(object):
     @cherrypy.expose
     def undelete_user(self, user_id=None, username=None, **kwargs):
         data_factory = datafactory.DataFactory()
-        
+
         if user_id:
             delete_row = data_factory.undelete_user(user_id=user_id)
 

@@ -19,6 +19,7 @@ from plexpy.helpers import checked, radio
 from xml.dom import minidom
 from httplib import HTTPSConnection
 from urlparse import parse_qsl
+from urlparse import urlparse
 from urllib import urlencode
 from pynma import pynma
 
@@ -52,7 +53,8 @@ AGENT_IDS = {"Growl": 0,
              "Email": 10,
              "Twitter": 11,
              "IFTTT": 12,
-             "Telegram": 13}
+             "Telegram": 13,
+             "Slack":14}
 
 def available_notification_agents():
     agents = [{'name': 'Growl',
@@ -275,6 +277,23 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.TELEGRAM_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.TELEGRAM_ON_EXTUP,
                'on_intup': plexpy.CONFIG.TELEGRAM_ON_INTUP
+               },
+              {'name': 'Slack',
+               'id': AGENT_IDS['Slack'],
+               'config_prefix': 'slack',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.SLACK_ENABLED),
+               'on_play': plexpy.CONFIG.SLACK_ON_PLAY,
+               'on_stop': plexpy.CONFIG.SLACK_ON_STOP,
+               'on_resume': plexpy.CONFIG.SLACK_ON_RESUME,
+               'on_pause': plexpy.CONFIG.SLACK_ON_PAUSE,
+               'on_buffer': plexpy.CONFIG.SLACK_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.SLACK_ON_WATCHED,
+               'on_created': plexpy.CONFIG.SLACK_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.SLACK_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.SLACK_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.SLACK_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.SLACK_ON_INTUP
                }
               ]
 
@@ -347,6 +366,9 @@ def get_notification_agent_config(config_id):
         elif config_id == 13:
           telegramClient = TELEGRAM()
           return telegramClient.return_config_options()
+        elif config_id == 14:
+            slackClient = SLACK()
+            return slackClient.return_config_options()
         else:
             return []
     else:
@@ -398,11 +420,13 @@ def send_notification(config_id, subject, body):
         elif config_id == 13:
           telegramClient = TELEGRAM()
           telegramClient.notify(message=body, event=subject)
+        elif config_id == 14:
+            slackClient = SLACK()
+            slackClient.notify(message=body, event=subject)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
         logger.debug(u"PlexPy Notifier :: Notification requested but no agent id received.")
-
 
 class GROWL(object):
     """
@@ -860,7 +884,7 @@ class PUSHBULLET(object):
                                              'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")})
             response = http_handler.getresponse()
             request_status = response.status
-        
+
             if request_status == 200:
                 data = json.loads(response.read())
                 devices = data.get('devices', [])
@@ -1021,7 +1045,7 @@ class PUSHOVER(object):
         http_handler.request("GET", "/1/sounds.json?token=" + self.application_token)
         response = http_handler.getresponse()
         request_status = response.status
-        
+
         if request_status == 200:
             data = json.loads(response.read())
             sounds = data.get('sounds', {})
@@ -1445,7 +1469,6 @@ class Email(object):
 
         return config_option
 
-
 class IFTTT(object):
 
     def __init__(self):
@@ -1571,6 +1594,97 @@ class TELEGRAM(object):
                           'description': 'Your Telegram Chat ID, Group ID, or channel username. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
                           'input_type': 'text'
                           }
+                         ]
+
+        return config_option
+
+class SLACK(object):
+    """
+    Slack Notifications
+    """
+    def __init__(self):
+        self.enabled = plexpy.CONFIG.SLACK_ENABLED
+        self.slack_hook = plexpy.CONFIG.SLACK_HOOK
+        self.channel = plexpy.CONFIG.SLACK_CHANNEL
+        self.username = plexpy.CONFIG.SLACK_USERNAME
+        self.icon_emoji = plexpy.CONFIG.SLACK_ICON_EMOJI
+
+    def conf(self, options):
+        return cherrypy.config['config'].get('Slack', options)
+
+    def notify(self, message, event):
+        if not message or not event:
+            return
+        http_handler = HTTPSConnection("hooks.slack.com")
+
+        data = {'text': event.encode('utf-8') + ': ' + message.encode("utf-8")}
+        if self.channel != '': data['channel'] = self.channel
+        if self.username != '': data['username'] = self.username
+        if self.icon_emoji != '':
+            if urlparse(self.icon_emoji).scheme == '':
+                data['icon_emoji'] = self.icon_emoji
+            else:
+                data['icon_url'] = self.icon_url
+
+        url = urlparse(self.slack_hook).path
+
+        http_handler.request("POST",
+                                url,
+                                headers={'Content-type': "application/x-www-form-urlencoded"},
+                                body=json.dumps(data))
+
+        response = http_handler.getresponse()
+        request_status = response.status
+
+        if request_status == 200:
+                logger.info(u"Slack notifications sent.")
+                return True
+        elif request_status >= 400 and request_status < 500:
+                logger.info(u"Slack request failed: %s" % response.reason)
+                return False
+        else:
+                logger.info(u"Slack notification failed serverside.")
+                return False
+
+    def updateLibrary(self):
+        #For uniformity reasons not removed
+        return
+
+    def test(self):
+        self.enabled = True
+        return self.notify('Main Screen Activate', 'Test Message')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Slack Hook',
+                          'value': self.slack_hook,
+                          'name': 'slack_hook',
+                          'description': 'Your Slack incoming webhook.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Slack Channel',
+                          'value': self.channel,
+                          'name': 'slack_channel',
+                          'description': 'Your slack channel name. (Begin with \'#\')',
+                          'input_type': 'text'
+                          },
+                          {'label': 'Slack Username',
+                           'value': self.username,
+                           'name': 'slack_username',
+                           'description': 'Slack username which will be shown',
+                           'input_type': 'text'
+                          },
+                          {'label': 'Slack Icon',
+                           'value': self.icon_emoji,
+                           'description': 'Your icon you wish to show, use Slack emoji or image url',
+                           'name': 'slack_icon_emoji',
+                           'input_type': 'text'
+                          },
+                          {'label': 'Test Event',
+                            'value': 'Test Event',
+                            'name': 'testSlack',
+                            'description': 'Test if Slack notifications are working. See logs for troubleshooting.',
+                            'input_type': 'button'
+                           }
                          ]
 
         return config_option
