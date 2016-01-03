@@ -725,7 +725,7 @@ class DataFactory(object):
 
         return stream_output
 
-    def get_recently_watched(self, user=None, user_id=None, limit='10'):
+    def get_recently_watched(self, user=None, user_id=None, library_id=None, limit='10'):
         monitor_db = database.MonitorDatabase()
         recently_watched = []
 
@@ -755,6 +755,17 @@ class DataFactory(object):
                         ' ELSE session_history.rating_key END) ' \
                         'ORDER BY started DESC LIMIT ?'
                 result = monitor_db.select(query, args=[user, limit])
+            elif library_id:
+                query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, session_history.parent_rating_key, ' \
+                        'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
+                        'year, started, user ' \
+                        'FROM session_history_metadata ' \
+                        'JOIN session_history ON session_history_metadata.id = session_history.id ' \
+                        'WHERE library_id = ? ' \
+                        'GROUP BY (CASE WHEN session_history.media_type = "track" THEN session_history.parent_rating_key ' \
+                        ' ELSE session_history.rating_key END) ' \
+                        'ORDER BY started DESC LIMIT ?'
+                result = monitor_db.select(query, args=[library_id, limit])
             else:
                 query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, session_history.parent_rating_key, ' \
                         'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
@@ -1177,7 +1188,9 @@ class DataFactory(object):
         try:
             query = 'SELECT SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - ' \
                     'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS total_duration ' \
-                    'FROM session_history %s ' % where
+                    'FROM session_history ' \
+                    'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
+                    '%s ' % where
             result = monitor_db.select(query)
         except:
             logger.warn("Unable to execute database query for get_total_duration.")

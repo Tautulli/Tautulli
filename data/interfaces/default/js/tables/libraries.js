@@ -37,9 +37,13 @@ libraries_list_table_options = {
             "data": "library_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === '') {
-                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(interfaces/default/images/gravatar-default-80x80.png);"></div></a>');
-                } else {
                     $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(pms_image_proxy?img=' + rowData['library_thumb'] + '&width=80&height=80&fallback=poster);"></div></a>');
+                } else {
+                    if (rowData['custom_thumb']) {
+                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['custom_thumb'] + ');"></div></a>');
+                    } else {
+                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(pms_image_proxy?img=' + rowData['library_thumb'] + '&width=80&height=80&fallback=poster);"></div></a>');
+                    }
                 }
             },
             "orderable": false,
@@ -213,6 +217,11 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
     if ($('#keep_history-' + rowData['section_id']).is(':checked')) {
         keep_history = 1;
     }
+    if (rowData['custom_thumb']) {
+        custom_thumb = rowData['custom_thumb']
+    } else {
+        custom_thumb = rowData['library_thumb']
+    }
     
     $.ajax({
         url: 'edit_library',
@@ -220,7 +229,7 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
             section_id: rowData['section_id'],
             do_notify: do_notify,
             keep_history: keep_history,
-            custom_thumb: rowData['library_thumb']
+            custom_thumb: custom_thumb
         },
         cache: false,
         async: true,

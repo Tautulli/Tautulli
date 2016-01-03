@@ -1,0 +1,365 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           library.html
+Version:            0.1
+Variable names:     data [list]
+
+data :: Usable parameters
+
+section_id          Returns the library id of the library.
+section_name        Returns the name of the library.
+section_type        Returns the type of the library.
+library_thumb       Returns the thumbnail for the library.
+count               Returns the item count for the library.
+parent_count        Returns the parent item count for the library.
+child_count         Returns the child item count for the library.
+do_notify           Returns bool value for whether to send notifications for the library.
+keep_history        Returns bool value for whether to keep history for the library.
+
+DOCUMENTATION :: END
+
+</%doc>
+
+<%inherit file="base.html"/>
+
+<%def name="headIncludes()">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
+<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+</%def>
+
+% if data != None:
+<%def name="body()">
+<div class="container-fluid">
+    <div class="row">
+        <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['library_art']}&width=1920&height=1080)"></div>
+        <div class="summary-container">
+            <div class="summary-navbar">
+                <div class="col-md-12">
+                    <div class="summary-navbar-list">
+                        <ul class="list-unstyled breadcrumb">
+                            <li class="active">${data['section_name']}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="summary-content-wrapper">
+                <div class="col-md-12">
+                    <div class="table-card-back">
+                        <div class="user-info-wrapper">
+                            % if data['custom_thumb']:
+                            <div class="library-info-poster-face" id="user-gravatar" style="background-image: url(${data['custom_thumb']});">
+                            % else:
+                            <div class="library-info-poster-face" id="user-gravatar" style="background-image: url(pms_image_proxy?img=${data['library_thumb']}&width=80&height=80&fallback=poster);">
+                            % endif
+                            </div>
+                            <div class="user-info-username">
+                                <span class="set-username">${data['section_name']}</span>
+                                <span id="edit-library-tooltip" data-target="tooltip" title="Edit library details">
+                                    <a href="#" data-toggle="modal" data-target="#edit-library-modal" id="toggle-edit-library-modal"><i class="fa fa-pencil"></i></a>
+                                </span>
+                            </div>
+                            <div class="user-info-nav">
+                                <ul class="user-info-nav">
+                                    <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
+                                    <li><a id="history-tab-btn" href="#libraryHistory" data-toggle="tab">History</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="edit-library-modal" class="modal fade" tabindex="-1" role="dialog"
+                     aria-labelledby="edit-library-modal">
+                </div>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="profile">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-card-header">
+                                        <div class="header-bar">
+                                            <span><i class="fa fa-line-chart"></i> Global Stats</span>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <div id="library-time-stats" class="user-overview-stats-wrapper">
+                                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                                            <br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-card-header">
+                                        <div class="header-bar">
+                                            <span><i class="fa fa-group"></i> User Stats</span>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <div id="library-user-stats" class="user-player">
+                                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                                            <br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-card-header">
+                                        <div class="header-bar">
+                                            <span><i class="fa fa-history"></i> Recently Watched</span>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <div id="library-recently-watched">
+                                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                                            <br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="libraryHistory">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-history"></i> Watch History for <strong>
+                                                    <span class="set-username">${data['section_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            <div class="colvis-button-bar hidden-xs" id="button-bar-history"></div>
+                                            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                                                <i class="fa fa-trash-o"></i> Delete mode
+                                            </button>
+                                            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display" id="history_table" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align='left' id="delete">Delete</th>
+                                                    <th align='left' id="time">Time</th>
+                                                    <th align='left' id="friendly_name">User</th>
+                                                    <th align='left' id="ip_address">IP Address</th>
+                                                    <th align='left' id="platform">Platform</th>
+                                                    <th align='left' id="player">Player</th>
+                                                    <th align='left' id="title">Title</th>
+                                                    <th align='left' id="started">Started</th>
+                                                    <th align='left' id="paused_counter">Paused</th>
+                                                    <th align='left' id="stopped">Stopped</th>
+                                                    <th align='left' id="duration">Duration</th>
+                                                    <th align='left' id="percent_complete"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
+                    </div>
+                    <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
+                    </div>
+                    <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+                                </div>
+                                <div class="modal-body" style="text-align: center;">
+                                    <p>Are you REALLY sure you want to delete <strong><span id="deleteCount"></span></strong> history item(s)?</p>
+                                    <p>This is permanent and cannot be undone!</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<footer></footer>
+</%def>
+
+<%def name="javascriptIncludes()">
+<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.colVis.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
+<script src="interfaces/default/js/moment-with-locale.js"></script>
+<script src="interfaces/default/js/tables/history_table.js"></script>
+<script>
+    $(document).ready(function () {
+
+        % if data['section_id']:
+        var section_id = ${data['section_id']};
+        % else:
+        var section_id = null;
+        % endif
+
+        var section_name = '${data['section_name'].replace("'", "\\'")}';
+
+        $("#edit-library-tooltip").tooltip();
+
+        // Populate watch time stats
+        $.ajax({
+            url: 'get_library_watch_time_stats',
+            async: true,
+            data: { library_id: section_id },
+            complete: function(xhr, status) {
+                $("#library-time-stats").html(xhr.responseText);
+            }
+        });
+
+        // Populate user stats
+        $.ajax({
+            url: 'get_library_user_stats',
+            async: true,
+            data: { library_id: section_id },
+            complete: function(xhr, status) {
+                $("#library-user-stats").html(xhr.responseText);
+            }
+        });
+
+        function loadHistoryTable() {
+            // Build watch history table
+            history_table_options.ajax = {
+                url: 'get_history',
+                type: 'post',
+                data: function ( d ) {
+                    return {
+                        'json_data': JSON.stringify( d ),
+                        'section_id': section_id
+                    };
+                }
+            }
+            history_table = $('#history_table').DataTable(history_table_options);
+            //history_table.column(2).visible(false);
+
+            var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
+            $(colvis.button()).appendTo('#button-bar-history');
+
+            clearSearchButton('history_table', history_table);
+        }
+
+        $( "#history-tab-btn" ).one( "click", function() {
+            loadHistoryTable();
+        });
+
+        // Load edit library modal
+        $("#toggle-edit-library-modal").click(function() {
+            $("#edit-library-tooltip").tooltip('hide');
+            $.ajax({
+                url: 'edit_library_dialog',
+                data: { section_id: section_id },
+                cache: false,
+                async: true,
+                complete: function(xhr, status) {
+                    $("#edit-library-modal").html(xhr.responseText);
+                }
+            });
+        });
+
+        $('#row-edit-mode').on('click', function() {
+            $('#row-edit-mode-alert').fadeIn(200);
+
+            if ($(this).hasClass('active')) {
+                if (history_to_delete.length > 0) {
+                    $('#deleteCount').text(history_to_delete.length);
+                    $('#confirm-modal').modal();
+                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                        for (var i = 0; i < history_to_delete.length; i++) {
+                            $.ajax({
+                                url: 'delete_history_rows',
+                                data: { row_id: history_to_delete[i] },
+                                async: true,
+                                success: function (data) {
+                                    var msg = "History deleted";
+                                    showMsg(msg, false, true, 2000);
+                                }
+                            });
+                        }
+                        history_table.draw();
+                    });
+                }
+
+                $('.delete-control').each(function () {
+                    $(this).addClass('hidden');
+                    $('#row-edit-mode-alert').fadeOut(200);
+                });
+
+            } else {
+                history_to_delete = [];
+                $('.delete-control').each(function() {
+                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                    $(this).removeClass('hidden');
+                });
+            }
+        });
+
+        function recentlyWatched() {
+            var widthVal = $('body').find("#library-recently-watched").width();
+            var tmp = (widthVal-32) / 180;
+
+            if (tmp > 0) {
+                containerSize = parseInt(tmp);
+            } else {
+                containerSize = 1;
+            }
+
+            // Populate recently watched
+            $.ajax({
+                url: 'get_library_recently_watched',
+                async: true,
+                data: {
+                    library_id: section_id,
+                    limit: containerSize
+                },
+                complete: function(xhr, status) {
+                    $("#library-recently-watched").html(xhr.responseText);
+                }
+            });
+        }
+
+        recentlyWatched();
+        $(window).resize(function() {
+            recentlyWatched();
+        });
+    });
+</script>
+<script>
+    $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
+</script>
+</%def>
+% else:
+<div class="clear"></div>
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span10 offset1">
+            <h3>Error retrieving library information. Please see the logs for more details.</h3>
+        </div>
+    </div>
+</div>
+% endif

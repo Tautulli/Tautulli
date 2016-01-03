@@ -30,13 +30,9 @@ DOCUMENTATION :: END
         <li>
             <div class="home-platforms-instance-info">
                 <div class="home-platforms-instance-name">
-                    % if library['section_type'] != 'photo':
                     <h4>
-                        <a href="info?library_id=${library['section_id']}" title="${library['section_name']}">${library['section_name']}</a>
+                        <a href="library?section_id=${library['section_id']}" title="${library['section_name']}">${library['section_name']}</a>
                     </h4>
-                    % else:
-                    <h4>${library['section_name']}</h4>
-                    % endif
                 </div>
                 % if library['section_type'] == 'movie':
                 <div class="home-platforms-instance-playcount">

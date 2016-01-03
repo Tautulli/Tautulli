@@ -30,8 +30,10 @@ class Libraries(object):
                    'library_sections.count as count',
                    'library_sections.parent_count',
                    'library_sections.child_count',
-                   '(CASE WHEN library_sections.custom_thumb_url IS NULL THEN library_sections.thumb ELSE ' \
-                   'custom_thumb_url END) AS library_thumb',
+                   'library_sections.thumb AS library_thumb',
+                   '(CASE WHEN library_sections.custom_thumb_url == library_sections.thumb \
+                    THEN NULL ELSE custom_thumb_url END) AS custom_thumb',
+                   'library_sections.art',
                    'COUNT(session_history.id) as plays',
                    'MAX(session_history.started) as last_accessed',
                    'session_history_metadata.full_title as last_watched',
@@ -91,6 +93,8 @@ class Libraries(object):
                    'count': item['count'],
                    'parent_count': item['parent_count'],
                    'library_thumb': item['library_thumb'],
+                   'custom_thumb': item['custom_thumb'],
+                   'library_art': item['art'],
                    'child_count': item['child_count'],
                    'do_notify': helpers.checked(item['do_notify']),
                    'keep_history': helpers.checked(item['keep_history'])
@@ -106,93 +110,6 @@ class Libraries(object):
         
         return dict
 
-    def get_user_unique_ips(self, kwargs=None, custom_where=None):
-        data_tables = datatables.DataTables()
-
-        # Change custom_where column name due to ambiguous column name after JOIN
-        custom_where[0][0] = 'custom_user_id' if custom_where[0][0] == 'user_id' else custom_where[0][0]
-
-        columns = ['session_history.id',
-                   'session_history.started as last_seen',
-                   'session_history.ip_address as ip_address',
-                   'COUNT(session_history.id) as play_count',
-                   'session_history.platform as platform',
-                   'session_history.player as player',
-                   'session_history_metadata.full_title as last_watched',
-                   'session_history_metadata.thumb',
-                   'session_history_metadata.parent_thumb',
-                   'session_history_metadata.grandparent_thumb',
-                   'session_history_metadata.media_type',
-                   'session_history.rating_key as rating_key',
-                   'session_history_media_info.video_decision',
-                   'session_history.user as user',
-                   'session_history.user_id as custom_user_id',
-                   '(case when users.friendly_name is null then users.username else \
-                    users.friendly_name end) as friendly_name'
-                   ]
-
-        try:
-            query = data_tables.ssp_query(table_name='session_history',
-                                          columns=columns,
-                                          custom_where=custom_where,
-                                          group_by=['ip_address'],
-                                          join_types=['JOIN',
-                                                      'JOIN',
-                                                      'JOIN'],
-                                          join_tables=['users',
-                                                       'session_history_metadata',
-                                                       'session_history_media_info'],
-                                          join_evals=[['session_history.user_id', 'users.user_id'],
-                                                      ['session_history.id', 'session_history_metadata.id'],
-                                                      ['session_history.id', 'session_history_media_info.id']],
-                                          kwargs=kwargs)
-        except:
-            logger.warn("Unable to execute database query.")
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': 'null',
-                    'error': 'Unable to execute database query.'}
-
-        results = query['result']
-
-        rows = []
-        for item in results:
-            if item["media_type"] == 'episode' and item["parent_thumb"]:
-                thumb = item["parent_thumb"]
-            elif item["media_type"] == 'episode':
-                thumb = item["grandparent_thumb"]
-            else:
-                thumb = item["thumb"]
-
-            # Rename Mystery platform names
-            platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
-
-            row = {"id": item['id'],
-                   "last_seen": item['last_seen'],
-                   "ip_address": item['ip_address'],
-                   "play_count": item['play_count'],
-                   "platform": platform,
-                   "player": item['player'],
-                   "last_watched": item['last_watched'],
-                   "thumb": thumb,
-                   "media_type": item['media_type'],
-                   "rating_key": item['rating_key'],
-                   "video_decision": item['video_decision'],
-                   "friendly_name": item['friendly_name']
-                   }
-
-            rows.append(row)
-
-        dict = {'recordsFiltered': query['filteredCount'],
-                'recordsTotal': query['totalCount'],
-                'data': rows,
-                'draw': query['draw']
-        }
-
-        return dict
-
-    # TODO: The getter and setter for this needs to become a config getter/setter for more than just friendlyname
     def set_library_config(self, section_id=None, do_notify=1, keep_history=1, custom_thumb=''):
         if section_id:
             monitor_db = database.MonitorDatabase()
@@ -206,255 +123,110 @@ class Libraries(object):
             except:
                 logger.warn("Unable to execute database query for set_user_friendly_name.")
 
-    def set_user_profile_url(self, user=None, user_id=None, profile_url=None):
-        if user_id:
-            if profile_url.strip() == '':
-                profile_url = None
-
-            monitor_db = database.MonitorDatabase()
-
-            control_value_dict = {"user_id": user_id}
-            new_value_dict = {"custom_avatar_url": profile_url}
-            try:
-                monitor_db.upsert('users', new_value_dict, control_value_dict)
-            except Exception, e:
-                logger.debug(u"Uncaught exception %s" % e)
-        if user:
-            if profile_url.strip() == '':
-                profile_url = None
-
-            monitor_db = database.MonitorDatabase()
-
-            control_value_dict = {"username": user}
-            new_value_dict = {"custom_avatar_url": profile_url}
-            try:
-                monitor_db.upsert('users', new_value_dict, control_value_dict)
-            except Exception, e:
-                logger.debug(u"Uncaught exception %s" % e)
-
-    def get_user_friendly_name(self, user=None, user_id=None):
-        if user_id:
-            monitor_db = database.MonitorDatabase()
-            query = 'select username, ' \
-                    '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END) as friendly_name,' \
-                    'do_notify, keep_history, custom_avatar_url as thumb ' \
-                    'FROM users WHERE user_id = ?'
-            result = monitor_db.select(query, args=[user_id])
-            if result:
-                user_detail = {'user_id': user_id,
-                               'user': result[0]['username'],
-                               'friendly_name': result[0]['friendly_name'],
-                               'thumb': result[0]['thumb'],
-                               'do_notify': helpers.checked(result[0]['do_notify']),
-                               'keep_history': helpers.checked(result[0]['keep_history'])
-                               }
-                return user_detail
-            else:
-                user_detail = {'user_id': user_id,
-                               'user': '',
-                               'friendly_name': '',
-                               'do_notify': '',
-                               'thumb': '',
-                               'keep_history': ''}
-                return user_detail
-        elif user:
-            monitor_db = database.MonitorDatabase()
-            query = 'select user_id, ' \
-                    '(CASE WHEN friendly_name IS NULL THEN username ELSE friendly_name END) as friendly_name,' \
-                    'do_notify, keep_history, custom_avatar_url as thumb  ' \
-                    'FROM users WHERE username = ?'
-            result = monitor_db.select(query, args=[user])
-            if result:
-                user_detail = {'user_id': result[0]['user_id'],
-                               'user': user,
-                               'friendly_name': result[0]['friendly_name'],
-                               'thumb': result[0]['thumb'],
-                               'do_notify': helpers.checked(result[0]['do_notify']),
-                               'keep_history': helpers.checked(result[0]['keep_history'])}
-                return user_detail
-            else:
-                user_detail = {'user_id': None,
-                               'user': user,
-                               'friendly_name': '',
-                               'do_notify': '',
-                               'thumb': '',
-                               'keep_history': ''}
-                return user_detail
-
-        return None
-
-    def get_user_id(self, user=None):
-        if user:
-            try:
-                monitor_db = database.MonitorDatabase()
-                query = 'select user_id FROM users WHERE username = ?'
-                result = monitor_db.select_single(query, args=[user])
-                if result:
-                    return result
-                else:
-                    return None
-            except:
-                return None
-
-        return None
-
-    def get_user_details(self, user=None, user_id=None):
-        from plexpy import plextv
+    def get_library_details(self, section_id=None):
+        from plexpy import pmsconnect
 
         monitor_db = database.MonitorDatabase()
 
-        if user:
-            query = 'SELECT user_id, username, friendly_name, email, ' \
-                    'custom_avatar_url as thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
-                    'FROM users ' \
-                    'WHERE username = ? ' \
-                    'UNION ALL ' \
-                    'SELECT null, user, null, null, null, null, null, null, null ' \
-                    'FROM session_history ' \
-                    'WHERE user = ? ' \
-                    'GROUP BY user ' \
-                    'LIMIT 1'
-            result = monitor_db.select(query, args=[user, user])
-        elif user_id:
-            query = 'SELECT user_id, username, friendly_name, email, ' \
-                    'custom_avatar_url as thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
-                    'FROM users ' \
-                    'WHERE user_id = ? ' \
-                    'UNION ALL ' \
-                    'SELECT user_id, user, null, null, null, null, null, null, null ' \
-                    'FROM session_history ' \
-                    'WHERE user_id = ? ' \
-                    'GROUP BY user ' \
-                    'LIMIT 1'
-            result = monitor_db.select(query, args=[user_id, user_id])
+        if section_id:
+            query = 'SELECT section_id, section_name, section_type, count, parent_count, child_count, ' \
+                    'thumb AS library_thumb, (CASE WHEN library_sections.custom_thumb_url == library_sections.thumb ' \
+                    '    THEN NULL ELSE custom_thumb_url END) AS custom_thumb, art, do_notify, keep_history ' \
+                    'FROM library_sections ' \
+                    'WHERE section_id = ? '
+            result = monitor_db.select(query, args=[section_id])
         else:
             result = None
 
         if result:
-            user_details = {}
+            library_details = {}
             for item in result:
-                if not item['friendly_name']:
-                    friendly_name = item['username']
-                else:
-                    friendly_name = item['friendly_name']
-                if not item['thumb'] or item['thumb'] == '':
-                    user_thumb = common.DEFAULT_USER_THUMB
-                else:
-                    user_thumb = item['thumb']
-
-                user_details = {"user_id": item['user_id'],
-                                "username": item['username'],
-                                "friendly_name": friendly_name,
-                                "email": item['email'],
-                                "thumb": user_thumb,
-                                "is_home_user": item['is_home_user'],
-                                "is_allow_sync": item['is_allow_sync'],
-                                "is_restricted": item['is_restricted'],
-                                "do_notify": item['do_notify']
-                                }
-            return user_details
+                library_details = {'section_id': item['section_id'],
+                                   'section_name': item['section_name'],
+                                   'section_type': item['section_type'],
+                                   'library_thumb': item['library_thumb'],
+                                   'custom_thumb': item['custom_thumb'],
+                                   'library_art': item['art'],
+                                   'count': item['count'],
+                                   'parent_count': item['parent_count'],
+                                   'child_count': item['child_count'],
+                                   'do_notify': item['do_notify'],
+                                   'keep_history': item['keep_history']
+                                   }
+            return library_details
         else:
-            logger.warn(u"PlexPy :: Unable to retrieve user from local database. Requesting user list refresh.")
+            logger.warn(u"PlexPy :: Unable to retrieve library from local database. Requesting library list refresh.")
             # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
-            if user:
-                # Refresh users
-                plextv.refresh_users()
-                query = 'SELECT user_id, username, friendly_name, email, ' \
-                        'custom_avatar_url as thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
-                        'FROM users ' \
-                        'WHERE username = ? ' \
-                        'UNION ALL ' \
-                        'SELECT null, user, null, null, null, null, null, null, null ' \
-                        'FROM session_history ' \
-                        'WHERE user = ? ' \
-                        'GROUP BY user ' \
-                        'LIMIT 1'
-                result = monitor_db.select(query, args=[user, user])
-            elif user_id:
-                # Refresh users
-                plextv.refresh_users()
-                query = 'SELECT user_id, username, friendly_name, email, ' \
-                        'custom_avatar_url as thumb, is_home_user, is_allow_sync, is_restricted, do_notify ' \
-                        'FROM users ' \
-                        'WHERE user_id = ? ' \
-                        'UNION ALL ' \
-                        'SELECT user_id, user, null, null, null, null, null, null, null ' \
-                        'FROM session_history ' \
-                        'WHERE user_id = ? ' \
-                        'GROUP BY user ' \
-                        'LIMIT 1'
-                result = monitor_db.select(query, args=[user_id, user_id])
+            if section_id:
+                # Refresh libraries
+                pmsconnect.refresh_libraries()
+                query = 'SELECT section_id, section_name, section_type, count, parent_count, child_count, ' \
+                        'thumb AS library_thumb, (CASE WHEN library_sections.custom_thumb_url == library_sections.thumb ' \
+                        '    THEN NULL ELSE custom_thumb_url END) AS custom_thumb, art, do_notify, keep_history ' \
+                        'FROM library_sections ' \
+                        'WHERE section_id = ? '
+                result = monitor_db.select(query, args=[section_id])
             else:
                 result = None
 
             if result:
-                user_details = {}
+                library_details = {}
                 for item in result:
-                    if not item['friendly_name']:
-                        friendly_name = item['username']
-                    else:
-                        friendly_name = item['friendly_name']
-                    if not item['thumb'] or item['thumb'] == '':
-                        user_thumb = common.DEFAULT_USER_THUMB
-                    else:
-                        user_thumb = item['thumb']
 
-                    user_details = {"user_id": item['user_id'],
-                                    "username": item['username'],
-                                    "friendly_name": friendly_name,
-                                    "email": item['email'],
-                                    "thumb": user_thumb,
-                                    "is_home_user": item['is_home_user'],
-                                    "is_allow_sync": item['is_allow_sync'],
-                                    "is_restricted": item['is_restricted'],
-                                    "do_notify": item['do_notify']
-                                    }
+                    library_details = {'section_id': item['section_id'],
+                                       'section_name': item['section_name'],
+                                       'section_type': item['section_type'],
+                                       'library_thumb': item['library_thumb'],
+                                       'custom_thumb': item['custom_thumb'],
+                                       'library_art': item['art'],
+                                       'count': item['count'],
+                                       'parent_count': item['parent_count'],
+                                       'child_count': item['child_count'],
+                                       'do_notify': item['do_notify'],
+                                       'keep_history': item['keep_history']
+                                       }
                 return user_details
             else:
-                # If there is no user data we must return something
+                # If there is no library data we must return something
                 # Use "Local" user to retain compatibility with PlexWatch database value
-                return {"user_id": None,
-                        "username": 'Local',
-                        "friendly_name": 'Local',
-                        "email": '',
-                        "thumb": '',
-                        "is_home_user": 0,
-                        "is_allow_sync": 0,
-                        "is_restricted": 0,
-                        "do_notify": 0
+                return {'section_id': None,
+                        'section_name': '',
+                        'section_type': '',
+                        'library_thumb': '',
+                        'custom_thumb': '',
+                        'library_art': '',
+                        'count': 0,
+                        'parent_count': 0,
+                        'child_count': 0,
+                        'do_notify': 0,
+                        'keep_history': 0
                         }
 
-    def get_user_watch_time_stats(self, user=None, user_id=None):
+    def get_library_watch_time_stats(self, library_id=None):
         monitor_db = database.MonitorDatabase()
 
         time_queries = [1, 7, 30, 0]
-        user_watch_time_stats = []
+        library_watch_time_stats = []
 
         for days in time_queries:
             if days > 0:
-                if user_id:
+                if library_id:
                     query = 'SELECT (SUM(stopped - started) - ' \
                             'SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
-                            'COUNT(id) AS total_plays ' \
+                            'COUNT(session_history.id) AS total_plays ' \
                             'FROM session_history ' \
+                            'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                            'AND user_id = ?' % days
-                    result = monitor_db.select(query, args=[user_id])
-                elif user:
-                    query = 'SELECT (SUM(stopped - started) - ' \
-                            'SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
-                            'COUNT(id) AS total_plays ' \
-                            'FROM session_history ' \
-                            'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                            'AND user = ?' % days
-                    result = monitor_db.select(query, args=[user])
+                            'AND library_id = ?' % days
+                    result = monitor_db.select(query, args=[library_id])
             else:
                 query = 'SELECT (SUM(stopped - started) - ' \
                         'SUM(CASE WHEN paused_counter is null THEN 0 ELSE paused_counter END)) as total_time, ' \
-                        'COUNT(id) AS total_plays ' \
+                        'COUNT(session_history.id) AS total_plays ' \
                         'FROM session_history ' \
-                        'WHERE user = ?'
-                result = monitor_db.select(query, args=[user])
+                        'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
+                        'WHERE library_id = ?'
+                result = monitor_db.select(query, args=[library_id])
 
             for item in result:
                 if item['total_time']:
@@ -469,73 +241,64 @@ class Libraries(object):
                        'total_plays': total_plays
                        }
 
-                user_watch_time_stats.append(row)
+                library_watch_time_stats.append(row)
 
-        return user_watch_time_stats
+        return library_watch_time_stats
 
-    def get_user_player_stats(self, user=None, user_id=None):
+    def get_library_user_stats(self, library_id=None):
         monitor_db = database.MonitorDatabase()
 
-        player_stats = []
-        result_id = 0
+        user_stats = []
 
         try:
-            if user_id:
-                query = 'SELECT player, COUNT(player) as player_count, platform ' \
+            if library_id:
+                query = 'SELECT (CASE WHEN users.friendly_name IS NULL THEN users.username ' \
+                        'ELSE users.friendly_name END) AS user, users.user_id, users.thumb, COUNT(user) AS user_count ' \
                         'FROM session_history ' \
-                        'WHERE user_id = ? ' \
-                        'GROUP BY player ' \
-                        'ORDER BY player_count DESC'
-                result = monitor_db.select(query, args=[user_id])
-            else:
-                query = 'SELECT player, COUNT(player) as player_count, platform ' \
-                        'FROM session_history ' \
-                        'WHERE user = ? ' \
-                        'GROUP BY player ' \
-                        'ORDER BY player_count DESC'
-                result = monitor_db.select(query, args=[user])
+                        'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
+                        'JOIN users ON users.user_id = session_history.user_id ' \
+                        'WHERE library_id = ? ' \
+                        'GROUP BY user ' \
+                        'ORDER BY user_count DESC'
+                result = monitor_db.select(query, args=[library_id])
         except:
-            logger.warn("Unable to execute database query.")
+            logger.warn("Unable to execute database query for get_library_user_stats.")
             return None
-
+        
         for item in result:
-            # Rename Mystery platform names
-            platform_type = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
-
-            row = {'player_name': item['player'],
-                   'platform_type': platform_type,
-                   'total_plays': item['player_count'],
-                   'result_id': result_id
+            row = {'user': item['user'],
+                   'user_id': item['user_id'],
+                   'thumb': item['thumb'],
+                   'total_plays': item['user_count']
                    }
-            player_stats.append(row)
-            result_id += 1
+            user_stats.append(row)
+        
+        return user_stats
 
-        return player_stats
-
-    def delete_all_library_history(self, library_id=None):
+    def delete_all_library_history(self, section_id=None):
         monitor_db = database.MonitorDatabase()
 
-        if library_id.isdigit():
-            logger.info(u"PlexPy Libraries :: Deleting all history for library id %s from database." % library_id)
+        if section_id.isdigit():
+            logger.info(u"PlexPy Libraries :: Deleting all history for library id %s from database." % section_id)
             session_history_media_info_del = \
                 monitor_db.action('DELETE FROM '
                                   'session_history_media_info '
                                   'WHERE session_history_media_info.id IN (SELECT session_history_media_info.id '
                                   'FROM session_history_media_info '
                                   'JOIN session_history_metadata ON session_history_media_info.id = session_history_metadata.id '
-                                  'WHERE session_history_metadata.library_id = ?)', [library_id])
+                                  'WHERE session_history_metadata.library_id = ?)', [section_id])
             session_history_del = \
                 monitor_db.action('DELETE FROM '
                                   'session_history '
                                   'WHERE session_history.id IN (SELECT session_history.id '
                                   'FROM session_history '
                                   'JOIN session_history_metadata ON session_history.id = session_history_metadata.id '
-                                  'WHERE session_history_metadata.library_id = ?)', [library_id])
+                                  'WHERE session_history_metadata.library_id = ?)', [section_id])
             session_history_metadata_del = \
                 monitor_db.action('DELETE FROM '
                                   'session_history_metadata '
-                                  'WHERE session_history_metadata.library_id = ?', [library_id])
+                                  'WHERE session_history_metadata.library_id = ?', [section_id])
 
-            return 'Deleted all items for library_id %s.' % library_id
+            return 'Deleted all items for library_id %s.' % section_id
         else:
             return 'Unable to delete items. Input library_id not valid.'

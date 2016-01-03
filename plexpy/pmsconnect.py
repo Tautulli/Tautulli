@@ -61,6 +61,7 @@ def refresh_libraries():
                               'section_name': section['title'],
                               'section_type': section['type'],
                               'thumb': section['thumb'],
+                              'art': section['art'],
                               'count': section['count'],
                               'parent_count': section.get('parent_count', None),
                               'child_count': section.get('child_count', None)
@@ -1460,7 +1461,8 @@ class PmsConnect(object):
                     libraries_output = {'key': helpers.get_xml_attr(result, 'key'),
                                         'type': helpers.get_xml_attr(result, 'type'),
                                         'title': helpers.get_xml_attr(result, 'title'),
-                                        'thumb': helpers.get_xml_attr(result, 'thumb')
+                                        'thumb': helpers.get_xml_attr(result, 'thumb'),
+                                        'art': helpers.get_xml_attr(result, 'art')
                                         }
                     libraries_list.append(libraries_output)
 
@@ -1564,6 +1566,7 @@ class PmsConnect(object):
                                      'title': library['title'],
                                      'type': library_type,
                                      'thumb': library['thumb'],
+                                     'art': library['art'],
                                      'count': library_list['library_count'],
                                      'count_type': library_list['count_type']
                                      }

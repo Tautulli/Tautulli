@@ -267,6 +267,32 @@ class WebInterface(object):
                 return status_message
 
     @cherrypy.expose
+    def library(self, section_id=None):
+        library_data = libraries.Libraries()
+        if section_id:
+            try:
+                library_details = library_data.get_library_details(section_id=section_id)
+            except:
+                logger.warn("Unable to retrieve user details for library_id %s " % section_id)
+        else:
+            logger.debug(u"Library page requested but no parameters received.")
+            raise cherrypy.HTTPRedirect("home")
+
+        return serve_template(templatename="library.html", title="Library", data=library_details)
+
+    @cherrypy.expose
+    def edit_library_dialog(self, section_id=None, **kwargs):
+        library_data = libraries.Libraries()
+        if section_id:
+            result = library_data.get_library_details(section_id=section_id)
+            status_message = ''
+        else:
+            result = None
+            status_message = 'An error occured.'
+        
+        return serve_template(templatename="edit_library.html", title="Edit Library", data=result, status_message=status_message)
+
+    @cherrypy.expose
     def edit_library(self, section_id=None, **kwargs):
         do_notify = kwargs.get('do_notify', 0)
         keep_history = kwargs.get('keep_history', 0)
@@ -670,9 +696,9 @@ class WebInterface(object):
         if 'reference_id' in kwargs:
             reference_id = kwargs.get('reference_id', "")
             custom_where.append(['session_history.reference_id', reference_id])
-        if 'library_id' in kwargs:
-            library_id = kwargs.get('library_id', "")
-            custom_where.append(['session_history_metadata.library_id', library_id])
+        if 'section_id' in kwargs:
+            section_id = kwargs.get('section_id', "")
+            custom_where.append(['session_history_metadata.library_id', section_id])
         if 'media_type' in kwargs:
             media_type = kwargs.get('media_type', "")
             if media_type != 'all':
@@ -888,7 +914,7 @@ class WebInterface(object):
             return None
 
     @cherrypy.expose
-    def info(self, library_id=None, rating_key=None, source=None, **kwargs):
+    def info(self, rating_key=None, source=None, **kwargs):
         # Make sure our library sections are up to date.
         data_factory = datafactory.DataFactory()
         data_factory.update_library_sections()
@@ -905,11 +931,6 @@ class WebInterface(object):
         if source == 'history':
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(rating_key=rating_key)
-        elif library_id:
-            pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_library_metadata_details(library_id=library_id)
-            if result:
-                metadata = result['metadata']
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=rating_key)
@@ -973,10 +994,36 @@ class WebInterface(object):
                                   title="Recently Watched")
 
     @cherrypy.expose
+    def get_library_recently_watched(self, library_id=None, limit='10', **kwargs):
+
+        data_factory = datafactory.DataFactory()
+        result = data_factory.get_recently_watched(library_id=library_id, limit=limit)
+
+        if result:
+            return serve_template(templatename="user_recently_watched.html", data=result,
+                                  title="Recently Watched")
+        else:
+            logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="user_recently_watched.html", data=None,
+                                  title="Recently Watched")
+
+    @cherrypy.expose
     def get_user_watch_time_stats(self, user=None, user_id=None, **kwargs):
 
         user_data = users.Users()
         result = user_data.get_user_watch_time_stats(user_id=user_id, user=user)
+
+        if result:
+            return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
+        else:
+            logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
+
+    @cherrypy.expose
+    def get_library_watch_time_stats(self, library_id=None, **kwargs):
+
+        library_data = libraries.Libraries()
+        result = library_data.get_library_watch_time_stats(library_id=library_id)
 
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
@@ -996,6 +1043,18 @@ class WebInterface(object):
         else:
             logger.warn('Unable to retrieve data.')
             return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
+
+    @cherrypy.expose
+    def get_library_user_stats(self, library_id=None, **kwargs):
+        
+        library_data = libraries.Libraries()
+        result = library_data.get_library_user_stats(library_id=library_id)
+        
+        if result:
+            return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
+        else:
+            logger.warn('Unable to retrieve data.')
+            return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
     def get_item_children(self, rating_key='', **kwargs):
@@ -1594,11 +1653,11 @@ class WebInterface(object):
             return json.dumps({'message': 'no data received'})
 
     @cherrypy.expose
-    def delete_all_library_history(self, library_id, **kwargs):
+    def delete_all_library_history(self, section_id, **kwargs):
         library_data = libraries.Libraries()
 
-        if library_id:
-            delete_row = library_data.delete_all_library_history(library_id=library_id)
+        if section_id:
+            delete_row = library_data.delete_all_library_history(section_id=section_id)
 
             if delete_row:
                 cherrypy.response.headers['Content-type'] = 'application/json'

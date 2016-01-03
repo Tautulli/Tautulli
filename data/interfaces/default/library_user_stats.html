@@ -1,0 +1,43 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           library_user_stats.html
+Version:            0.1
+Variable names:     data [array]
+
+data[array_index] :: Usable parameters
+
+== Global keys ==
+user                    Returns the name of the user.
+user_id                 Returns the user id of the user.
+thumb                   Returns the avatar of the user.
+total_plays             Returns the play count for the user.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data != None:
+% for a in data:
+<ul class="list-unstyled">
+    <div class="user-player-instance">
+        <li>
+            <a href="user?user_id=${a['user_id']}" title="${a['user']}">
+                <div class="library-user-instance-box" style="background-image: url(${a['thumb']});"></div>
+            </a>
+            <div class=" user-player-instance-name">
+                <a href="user?user_id=${a['user_id']}" title="${a['user']}">${a['user']}</a>
+            </div>
+            <div class="user-player-instance-playcount">
+                <h3>${a['total_plays']}</h3>
+                <p> plays</p>
+            </div>
+        </li>
+    </div>
+</ul>
+% endfor
+% else:
+<div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
+</div><br>
+% endif

@@ -103,7 +103,7 @@
                         for (var i = 0; i < libraries_to_purge.length; i++) {
                             $.ajax({
                                 url: 'delete_all_library_history',
-                                data: { library_id: libraries_to_purge[i] },
+                                data: { section_id: libraries_to_purge[i] },
                                 cache: false,
                                 async: true,
                                 success: function (data) {
