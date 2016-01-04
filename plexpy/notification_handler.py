@@ -453,7 +453,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     progress_percent = helpers.get_percent(view_offset, duration)
 
     # Fix metadata params for notify recently added grandparent
-    if plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
+    if state == 'created' and plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
         show_name = metadata['title']
         episode_name = ''
         artist_name = metadata['title']
