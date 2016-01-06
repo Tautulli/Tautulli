@@ -26,12 +26,12 @@ def extract_plexwatch_xml(xml=None):
     try:
         xml_parse = minidom.parseString(clean_xml)
     except:
-        logger.warn("Error parsing XML for Plexwatch database.")
+        logger.warn(u"PlexPy Importer :: Error parsing XML for Plexwatch database.")
         return None
 
     xml_head = xml_parse.getElementsByTagName('opt')
     if not xml_head:
-        logger.warn("Error parsing XML for Plexwatch database.")
+        logger.warn(u"PlexPy Importer :: Error parsing XML for Plexwatch database.")
         return None
 
     for a in xml_head:
@@ -205,23 +205,23 @@ def validate_database(database=None, table_name=None):
     try:
         connection = sqlite3.connect(database, timeout=20)
     except sqlite3.OperationalError:
-        logger.error('PlexPy Importer :: Invalid database specified.')
+        logger.error(u"PlexPy Importer :: Invalid database specified.")
         return 'Invalid database specified.'
     except ValueError:
-        logger.error('PlexPy Importer :: Invalid database specified.')
+        logger.error(u"PlexPy Importer :: Invalid database specified.")
         return 'Invalid database specified.'
     except:
-        logger.error('PlexPy Importer :: Uncaught exception.')
+        logger.error(u"PlexPy Importer :: Uncaught exception.")
         return 'Uncaught exception.'
 
     try:
         connection.execute('SELECT ratingKey from %s' % table_name)
         connection.close()
     except sqlite3.OperationalError:
-        logger.error('PlexPy Importer :: Invalid database specified.')
+        logger.error(u"PlexPy Importer :: Invalid database specified.")
         return 'Invalid database specified.'
     except:
-        logger.error('PlexPy Importer :: Uncaught exception.')
+        logger.error(u"PlexPy Importer :: Uncaught exception.")
         return 'Uncaught exception.'
 
     return 'success'
@@ -232,16 +232,16 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
         connection = sqlite3.connect(database, timeout=20)
         connection.row_factory = sqlite3.Row
     except sqlite3.OperationalError:
-        logger.error('PlexPy Importer :: Invalid filename.')
+        logger.error(u"PlexPy Importer :: Invalid filename.")
         return None
     except ValueError:
-        logger.error('PlexPy Importer :: Invalid filename.')
+        logger.error(u"PlexPy Importer :: Invalid filename.")
         return None
 
     try:
         connection.execute('SELECT ratingKey from %s' % table_name)
     except sqlite3.OperationalError:
-        logger.error('PlexPy Importer :: Database specified does not contain the required fields.')
+        logger.error(u"PlexPy Importer :: Database specified does not contain the required fields.")
         return None
 
     logger.debug(u"PlexPy Importer :: PlexWatch data import in progress...")

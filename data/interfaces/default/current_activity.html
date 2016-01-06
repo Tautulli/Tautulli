@@ -72,9 +72,9 @@ DOCUMENTATION :: END
     <a href="info?rating_key=${a['rating_key']}">
     % endif
         <div class="dashboard-activity-poster">
-            % if a['media_type'] == 'movie' and not a['indexes']:
+            % if (a['media_type'] == 'movie' and not a['indexes']) or (a['indexes'] and not a['view_offset']):
             <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
-            % elif a['media_type'] == 'episode' and not a['indexes']:
+            % elif (a['media_type'] == 'episode' and not a['indexes']) or (a['indexes'] and not a['view_offset']):
             <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
             % elif a['indexes']:
             <div class="dashboard-activity-poster-face bif" style="background-image: url(pms_image_proxy?img=${a['bif_thumb']}&width=500&height=280); display: none;"></div>

@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, pmsconnect, plextv, notification_handler, database, helpers, activity_processor
+from plexpy import logger, pmsconnect, plextv, notification_handler, database, helpers, activity_processor, libraries
 
 import threading
 import plexpy
@@ -46,16 +46,7 @@ def check_active_sessions(ws_request=False):
             media_container = session_list['sessions']
 
             # Check our temp table for what we must do with the new streams
-            db_streams = monitor_db.select('SELECT started, session_key, rating_key, media_type, title, parent_title, '
-                                           'grandparent_title, user_id, user, friendly_name, ip_address, player, '
-                                           'platform, machine_id, parent_rating_key, grandparent_rating_key, state, '
-                                           'view_offset, duration, video_decision, audio_decision, width, height, '
-                                           'container, video_codec, audio_codec, bitrate, video_resolution, '
-                                           'video_framerate, aspect_ratio, audio_channels, transcode_protocol, '
-                                           'transcode_container, transcode_video_codec, transcode_audio_codec, '
-                                           'transcode_audio_channels, transcode_width, transcode_height, '
-                                           'paused_counter, last_paused '
-                                           'FROM sessions')
+            db_streams = monitor_db.select('SELECT * FROM sessions')
             for stream in db_streams:
                 if any(d['session_key'] == str(stream['session_key']) and d['rating_key'] == str(stream['rating_key'])
                        for d in media_container):
@@ -182,7 +173,7 @@ def check_active_sessions(ws_request=False):
         if int_ping_count == 3:
             # Fire off notifications
             threading.Thread(target=notification_handler.notify_timeline,
-                                kwargs=dict(notify_action='intdown')).start()
+                             kwargs=dict(notify_action='intdown')).start()
 
 
 def check_recently_added():
@@ -196,10 +187,16 @@ def check_recently_added():
         pms_connect = pmsconnect.PmsConnect()
         recently_added_list = pms_connect.get_recently_added_details(count='10')
 
+        library_data = libraries.Libraries()
         if recently_added_list:
             recently_added = recently_added_list['recently_added']
 
             for item in recently_added:
+                library_details = library_data.get_details(section_id=item['library_id'])
+
+                if not library_details['do_notify_created']:
+                    continue
+
                 metadata = []
                 
                 if 0 < time_threshold - int(item['added_at']) <= time_interval:
@@ -220,8 +217,12 @@ def check_recently_added():
                                          % str(item['rating_key']))
 
                 if metadata:
+
                     if not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
                         for item in metadata:
+
+                            library_details = library_data.get_details(section_id=item['library_id'])
+
                             if 0 < time_threshold - int(item['added_at']) <= time_interval:
                                 logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
                                 # Fire off notifications

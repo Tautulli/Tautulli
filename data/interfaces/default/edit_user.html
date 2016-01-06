@@ -10,21 +10,30 @@ Variable names:     data [list]
 data :: Usable parameters
 
 == Global keys ==
-user                Return the real Plex username
-user_id             Return the Plex user_id
-friendly_name       Returns the friendly edited Plex username
-do_notify           Returns bool value for whether the user should trigger notifications
-keep_history        Returns bool value for whether the user's activity should be logged
+user_id             Returns the user id of the user.
+username            Returns the user's username.
+friendly_name       Returns the friendly name of the user.
+email               Returns the user's email address.
+user_thumb          Returns the thumbnail for the user.
+is_home_user        Returns bool value for whether the user is part of a Plex Home.
+is_allow_sync       Returns bool value for whether the user has sync rights.
+is_restricted       Returns bool value for whether the user account is restricted.
+do_notify           Returns bool value for whether to send notifications for the user.
+keep_history        Returns bool value for whether to keep history for the user.
 
 DOCUMENTATION :: END
 </%doc>
 
-% if data is not None:
+<%!
+    from plexpy import helpers
+%>
+
+% if data != None:
 <div class="modal-dialog" role="document">
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-            <h4 class="modal-title">Edit user <strong>${data['user']}</strong></h4>
+            <h4 class="modal-title">Edit user <strong>${data['username']}</strong></h4>
         </div>
         <div class="modal-body" id="modal-text">
             <fieldset>
@@ -41,20 +50,20 @@ DOCUMENTATION :: END
                     <label for="profile_url">Profile Picture URL</label>
                     <div class="row">
                         <div class="col-md-8">
-                            <input type="text" class="form-control" id="profile_url" name="profile_url" value="${data['thumb']}">
+                            <input type="text" class="form-control" id="custom_avatar_url" name="custom_avatar_url" value="${data['user_thumb']}">
                         </div>
                     </div>
-                    <p class="help-block">Change the users profile picture in PlexPy. To reset to default, leave this field empty and save then perform a user refresh.</p>
+                    <p class="help-block">Change the users profile picture in PlexPy. To reset to default, leave this field empty and save.</p>
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="do_notify" name="do_notify" value="1" ${data['do_notify']}> Enable notifications
+                        <input type="checkbox" id="do_notify" name="do_notify" value="1" ${helpers.checked(data['do_notify'])}> Enable notifications
                     </label>
                     <p class="help-block">Uncheck this if you do not want to receive notifications for this user's activity.</p>
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${data['keep_history']}> Keep history
+                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])}> Keep history
                     </label>
                     <p class="help-block">Uncheck this if you do not want this keep any history on this user's activity.</p>
                 </div>
@@ -69,7 +78,7 @@ DOCUMENTATION :: END
         <div class="modal-footer">
             <div>
                 <span id="edit-user-status-message"></span>
-                <input type="button" id="save_user_name" class="btn btn-bright" value="Save">
+                <input type="button" id="save_user" class="btn btn-bright" value="Save">
             </div>
         </div>
     </div>
@@ -93,10 +102,10 @@ DOCUMENTATION :: END
     </div>
 </div>
 <script>
-    // Set new friendly name
-    $("#save_user_name").click(function() {
+    // Set user options
+    $("#save_user").on('click', function () {
         var friendly_name = $("#friendly_name").val();
-        var thumb = $("#profile_url").val();
+        var custom_thumb = $("#custom_avatar_url").val();
         var do_notify = 0;
         var keep_history = 0;
         if ($("#do_notify").is(":checked")) {
@@ -106,35 +115,21 @@ DOCUMENTATION :: END
             keep_history = 1;
         }
 
-        % if data['user_id']:
-            $.ajax({
-                url: 'edit_user',
-                data: {user_id: '${data['user_id']}', friendly_name: friendly_name, do_notify: do_notify, keep_history: keep_history, thumb: thumb},
-                cache: false,
-                async: true,
-                success: function(data) {
-                    $("#edit-user-status-message").html(data);
-                    if ($.trim(friendly_name) !== '') {
-                        $('.set-username').html(document.createTextNode(friendly_name));
-                    }
-                    $("#user-profile-thumb").attr('src', thumb);
-                }
-            });
-        % else:
-            $.ajax({
-                url: 'edit_user',
-                data: {user: '${data['user']}', friendly_name: friendly_name, do_notify: do_notify, keep_history: keep_history, thumb: thumb},
-                cache: false,
-                async: true,
-                success: function(data) {
-                    $("#edit-user-status-message").html(data);
-                    if ($.trim(friendly_name) !== '') {
-                        $(".set-username").html(friendly_name);
-                    }
-                    $("#user-profile-thumb").attr('src', thumb);
-                }
-            });
-        % endif
+        $.ajax({
+            url: 'edit_user',
+            data: {
+                user_id: '${data["user_id"]}',
+                friendly_name: friendly_name,
+                custom_thumb: custom_thumb,
+                do_notify: do_notify,
+                keep_history: keep_history
+            },
+            cache: false,
+            async: true,
+            success: function(data) {
+                location.reload();
+            }
+        });
     });
 
     $("#delete-all-history").on('click', function() {
@@ -142,7 +137,7 @@ DOCUMENTATION :: END
         $('#confirm-modal').one('click', '#confirm-purge', function () {
             $.ajax({
                 url: 'delete_all_user_history',
-                data: {user_id: '${data['user_id']}'},
+                data: { user_id: '${data["user_id"]}' },
                 cache: false,
                 async: true,
                 success: function(data) {
@@ -155,7 +150,8 @@ DOCUMENTATION :: END
     $(document).ready(function() {
         // Move #confirm-modal to parent container
         if(!($('#edit-user-modal').next().is('#confirm-modal'))) {
-            $('#confirm-modal').appendTo($('#edit-user-modal').parent()); }
+            $('#confirm-modal').appendTo($('#edit-user-modal').parent());
+        }
         $('#edit-user-modal > #confirm-modal').remove();
 
         $('#edit-user-modal').css('z-index', '1050');
@@ -179,5 +175,4 @@ DOCUMENTATION :: END
         });
     });
 </script>
-
 % endif

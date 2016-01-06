@@ -13,6 +13,8 @@ section_id          Returns the library id of the library.
 section_name        Returns the name of the library.
 section_type        Returns the type of the library.
 library_thumb       Returns the thumbnail for the library.
+custom_thumb        Returns the custom thumbnail for the library.
+library_art         Returns the artwork for the library.
 count               Returns the item count for the library.
 parent_count        Returns the parent item count for the library.
 child_count         Returns the child item count for the library.
@@ -31,8 +33,8 @@ DOCUMENTATION :: END
 <link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
 </%def>
 
-% if data != None:
 <%def name="body()">
+% if data:
 <div class="container-fluid">
     <div class="row">
         <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['library_art']}&width=1920&height=1080)"></div>
@@ -50,12 +52,11 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="table-card-back">
                         <div class="user-info-wrapper">
-                            % if data['custom_thumb']:
-                            <div class="library-info-poster-face" id="user-gravatar" style="background-image: url(${data['custom_thumb']});">
+                            % if data['library_thumb'][:4] == 'http':
+                            <div class="library-info-poster-face" style="background-image: url(${data['library_thumb']});"></div>
                             % else:
-                            <div class="library-info-poster-face" id="user-gravatar" style="background-image: url(pms_image_proxy?img=${data['library_thumb']}&width=80&height=80&fallback=poster);">
+                            <div class="library-info-poster-face" style="background-image: url(pms_image_proxy?img=${data['library_thumb']}&width=80&height=80&fallback=cover);"></div>
                             % endif
-                            </div>
                             <div class="user-info-username">
                                 <span class="set-username">${data['section_name']}</span>
                                 <span id="edit-library-tooltip" data-target="tooltip" title="Edit library details">
@@ -201,6 +202,27 @@ DOCUMENTATION :: END
     </div>
 </div>
 <footer></footer>
+% else:
+<div class="container-fluid">
+    <div class="row">
+        <div class="summary-container">
+            <div class="summary-navbar">
+                <div class="col-md-12">
+                    <div class="summary-navbar-list">
+                    </div>
+                </div>
+            </div>
+            <div class="summary-content-wrapper">
+                <div class='col-md-12'>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <i class="fa fa-exclamation-triangle"></i> Error retrieving library information. Please see the logs for more details.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+% endif
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -208,12 +230,13 @@ DOCUMENTATION :: END
 <script src="interfaces/default/js/dataTables.colVis.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
+% if data:
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/history_table.js"></script>
 <script>
     $(document).ready(function () {
 
-        % if data['section_id']:
+        % if str(data['section_id']).isdigit():
         var section_id = ${data['section_id']};
         % else:
         var section_id = null;
@@ -348,18 +371,7 @@ DOCUMENTATION :: END
             recentlyWatched();
         });
     });
-</script>
-<script>
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
 </script>
-</%def>
-% else:
-<div class="clear"></div>
-<div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span10 offset1">
-            <h3>Error retrieving library information. Please see the logs for more details.</h3>
-        </div>
-    </div>
-</div>
 % endif
+</%def>

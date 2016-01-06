@@ -377,7 +377,7 @@ def dbcheck():
     # sessions table :: This is a temp table that logs currently active sessions
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'session_key INTEGER, rating_key INTEGER, media_type TEXT, started INTEGER, '
+        'session_key INTEGER, rating_key INTEGER, library_id INTEGER, media_type TEXT, started INTEGER, '
         'paused_counter INTEGER DEFAULT 0, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, '
         'ip_address TEXT, machine_id TEXT, player TEXT, platform TEXT, title TEXT, parent_title TEXT, '
         'grandparent_title TEXT, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
@@ -441,7 +441,8 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'server_id TEXT, section_id INTEGER UNIQUE, section_name TEXT, section_type TEXT, '
         'thumb TEXT, custom_thumb_url TEXT, art TEXT, count INTEGER, parent_count INTEGER, child_count INTEGER, '
-        'do_notify INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1)'
+        'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
+        'deleted_section INTEGER DEFAULT 0)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -589,6 +590,15 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN last_paused INTEGER'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT library_id from sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN library_id INTEGER'
         )
 
     # Upgrade session_history table from earlier versions

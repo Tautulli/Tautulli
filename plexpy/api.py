@@ -323,7 +323,7 @@ class Api(object):
             custom_where = [['strftime("%Y-%m-%d", datetime(date, "unixepoch", "localtime"))', start_date]]
 
         data_factory = datafactory.DataFactory()
-        history = data_factory.get_history(kwargs=kwargs, custom_where=custom_where)
+        history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where)
 
         self.data = history
         return self.data

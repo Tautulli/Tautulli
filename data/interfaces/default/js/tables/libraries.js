@@ -1,3 +1,4 @@
+var libraries_to_delete = [];
 var libraries_to_purge = [];
 
 libraries_list_table_options = {
@@ -23,9 +24,12 @@ libraries_list_table_options = {
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
                 $(td).html('<div class="edit-library-toggles">' +
+                    '<button class="btn btn-xs btn-warning delete-library" data-id="' + rowData['section_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
                     '<button class="btn btn-xs btn-warning purge-library" data-id="' + rowData['section_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
                     '<input type="checkbox" id="do_notify-' + rowData['section_id'] + '" name="do_notify" value="1" ' + rowData['do_notify'] + '><label class="edit-tooltip" for="do_notify-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle Notifications"><i class="fa fa-bell fa-lg fa-fw"></i></label>&nbsp' +
-                    '<input type="checkbox" id="keep_history-' + rowData['section_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp');
+                    '<input type="checkbox" id="keep_history-' + rowData['section_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="do_notify_created-' + rowData['section_id'] + '" name="do_notify_created" value="1" ' + rowData['do_notify_created'] + '><label class="edit-tooltip" for="do_notify_created-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle Recently Added"><i class="fa fa-download fa-lg fa-fw"></i></label>&nbsp' +
+                    '</div>');
             },
             "width": "7%",
             "className": "edit-control no-wrap hidden",
@@ -37,10 +41,10 @@ libraries_list_table_options = {
             "data": "library_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === '') {
-                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(pms_image_proxy?img=' + rowData['library_thumb'] + '&width=80&height=80&fallback=poster);"></div></a>');
+                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(interfaces/default/images/cover.png);"></div></a>');
                 } else {
-                    if (rowData['custom_thumb']) {
-                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['custom_thumb'] + ');"></div></a>');
+                    if (rowData['library_thumb'].substring(0, 4) == "http") {
+                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['library_thumb'] + ');"></div></a>');
                     } else {
                         $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(pms_image_proxy?img=' + rowData['library_thumb'] + '&width=80&height=80&fallback=poster);"></div></a>');
                     }
@@ -56,7 +60,9 @@ libraries_list_table_options = {
             "data": "section_name",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    $(td).html('<div data-id="' + rowData['section_id'] + '"><a href="library?section_id=' + rowData['section_id'] + '">' + cellData + '</a></div>');
+                    $(td).html('<div data-id="' + rowData['section_id'] + '">' +
+                        '<a href="library?section_id=' + rowData['section_id'] + '">' + cellData + '</a>' +
+                        '</div>');
                 } else {
                     $(td).html(cellData);
                 }
@@ -198,8 +204,11 @@ libraries_list_table_options = {
         showMsg(msg, false, false, 0)
     },
     "rowCallback": function (row, rowData) {
+        if ($.inArray(rowData['section_id'], libraries_to_delete) !== -1) {
+            $(row).find('button.delete-library[data-id="' + rowData['section_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+        }
         if ($.inArray(rowData['section_id'], libraries_to_purge) !== -1) {
-            $(row).find('button[data-id="' + rowData['section_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+            $(row).find('button.purge-library[data-id="' + rowData['section_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
     }
 }
@@ -210,9 +219,13 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
     var rowData = row.data();
 
     var do_notify = 0;
+    var do_notify_created = 0;
     var keep_history = 0;
     if ($('#do_notify-' + rowData['section_id']).is(':checked')) {
         do_notify = 1;
+    }
+    if ($('#do_notify_created-' + rowData['section_id']).is(':checked')) {
+        do_notify_created = 1;
     }
     if ($('#keep_history-' + rowData['section_id']).is(':checked')) {
         keep_history = 1;
@@ -228,6 +241,7 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
         data: {
             section_id: rowData['section_id'],
             do_notify: do_notify,
+            do_notify_created: do_notify_created,
             keep_history: keep_history,
             custom_thumb: custom_thumb
         },
@@ -240,17 +254,44 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
     });
 });
 
+$('#libraries_list_table').on('click', 'td.edit-control > .edit-library-toggles > button.delete-library', function () {
+    var tr = $(this).parents('tr');
+    var row = libraries_list_table.row(tr);
+    var rowData = row.data();
+
+    var index_delete = $.inArray(rowData['section_id'], libraries_to_delete);
+    var index_purge = $.inArray(rowData['section_id'], libraries_to_purge);
+
+    if (index_delete === -1) {
+        libraries_to_delete.push(rowData['section_id']);
+        if (index_purge === -1) {
+            tr.find('button.purge-library').click();
+        }
+    } else {
+        libraries_to_delete.splice(index_delete, 1);
+        if (index_purge != -1) {
+            tr.find('button.purge-library').click();
+        }
+    }
+    $(this).toggleClass('btn-warning').toggleClass('btn-danger');
+
+});
+
 $('#libraries_list_table').on('click', 'td.edit-control > .edit-library-toggles > button.purge-library', function () {
     var tr = $(this).parents('tr');
     var row = libraries_list_table.row(tr);
     var rowData = row.data();
 
+    var index_delete = $.inArray(rowData['section_id'], libraries_to_delete);
     var index_purge = $.inArray(rowData['section_id'], libraries_to_purge);
 
     if (index_purge === -1) {
         libraries_to_purge.push(rowData['section_id']);
     } else {
         libraries_to_purge.splice(index_purge, 1);
+        if (index_delete != -1) {
+            tr.find('button.delete-library').click();
+        }
     }
     $(this).toggleClass('btn-warning').toggleClass('btn-danger');
 });

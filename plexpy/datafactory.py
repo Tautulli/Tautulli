@@ -26,7 +26,7 @@ class DataFactory(object):
     def __init__(self):
         pass
 
-    def get_history(self, kwargs=None, custom_where=None, grouping=0, watched_percent=85):
+    def get_datatables_history(self, kwargs=None, custom_where=None, grouping=0, watched_percent=85):
         data_tables = datatables.DataTables()
 
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
@@ -81,8 +81,8 @@ class DataFactory(object):
                                                       ['session_history.id', 'session_history_metadata.id'],
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
-        except:
-            logger.warn("Unable to execute database query for get_history.")
+        except Exception as e:
+            logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_history: %s." % e)
             return {'recordsFiltered': 0,
                     'recordsTotal': 0,
                     'draw': 0,
@@ -185,8 +185,8 @@ class DataFactory(object):
                             'ORDER BY %s DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query for get_home_stats: top_tv.")
+                except Exception as e:
+                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: top_tv: %s." % e)
                     return None
 
                 for item in result:
@@ -229,8 +229,8 @@ class DataFactory(object):
                             'ORDER BY users_watched DESC, %s DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query for get_home_stats: popular_tv.")
+                except Exception as e:
+                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: popular_tv: %s." % e)
                     return None
 
                 for item in result:
@@ -270,8 +270,8 @@ class DataFactory(object):
                             'ORDER BY %s DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query for get_home_stats: top_movies.")
+                except Exception as e:
+                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: top_movies: %s." % e)
                     return None
 
                 for item in result:
@@ -313,8 +313,8 @@ class DataFactory(object):
                             'ORDER BY users_watched DESC, %s DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query for get_home_stats: popular_movies.")
+                except Exception as e:
+                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: popular_movies: %s." % e)
                     return None
 
                 for item in result:
@@ -354,8 +354,8 @@ class DataFactory(object):
                             'ORDER BY %s DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query for get_home_stats: top_music.")
+                except Exception as e:
+                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: top_music: %s." % e)
                     return None
 
                 for item in result:
@@ -398,8 +398,8 @@ class DataFactory(object):
                             'ORDER BY users_watched DESC, %s DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query for get_home_stats: popular_music.")
+                except Exception as e:
+                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: popular_music: %s." % e)
                     return None
 
                 for item in result:
@@ -424,13 +424,13 @@ class DataFactory(object):
             elif stat == 'top_users':
                 top_users = []
                 try:
-                    query = 'SELECT t.user, t.user_id, t.custom_avatar_url as thumb, ' \
+                    query = 'SELECT t.user, t.user_id, t.user_thumb, t.custom_thumb, ' \
                             '(CASE WHEN t.friendly_name IS NULL THEN t.username ELSE t.friendly_name END) ' \
                             '   AS friendly_name, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                            '       AS d ' \
+                            '       AS d, users.thumb AS user_thumb, users.custom_avatar_url AS custom_thumb ' \
                             '   FROM session_history ' \
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   LEFT OUTER JOIN users ON session_history.user_id = users.user_id ' \
@@ -441,15 +441,17 @@ class DataFactory(object):
                             'ORDER BY %s DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query for get_home_stats: top_users.")
+                except Exception as e:
+                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: top_users: %s." % e)
                     return None
 
                 for item in result:
-                    if not item['thumb'] or item['thumb'] == '':
-                        user_thumb = common.DEFAULT_USER_THUMB
+                    if item['custom_thumb'] and item['custom_thumb'] != item['user_thumb']:
+                        user_thumb = item['custom_thumb']
+                    elif item['user_thumb']:
+                        user_thumb = item['user_thumb']
                     else:
-                        user_thumb = item['thumb']
+                        user_thumb = common.DEFAULT_USER_THUMB
 
                     row = {'user': item['user'],
                            'user_id': item['user_id'],
@@ -490,8 +492,8 @@ class DataFactory(object):
                             'ORDER BY %s DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query for get_home_stats: top_platforms.")
+                except Exception as e:
+                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: top_platforms: %s." % e)
                     return None
 
                 for item in result:
@@ -542,8 +544,8 @@ class DataFactory(object):
                             'ORDER BY last_watch DESC ' \
                             'LIMIT %s' % (time_range, group_by, notify_watched_percent, stats_count)
                     result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query for get_home_stats: last_watched.")
+                except Exception as e:
+                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: last_watched: %s." % e)
                     return None
 
                 for item in result:
@@ -645,8 +647,8 @@ class DataFactory(object):
                     result = monitor_db.select(query)
                     if result:
                         most_concurrent.append(calc_most_concurrent(title, result))
-                except:
-                    logger.warn("Unable to execute database query for get_home_stats: most_concurrent.")
+                except Exception as e:
+                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: most_concurrent: %s." % e)
                     return None
 
                 home_stats.append({'stat_id': stat,
@@ -664,10 +666,10 @@ class DataFactory(object):
                 try:
                     query = 'SELECT section_id, section_name, section_type, thumb, count, parent_count, child_count ' \
                             'FROM library_sections ' \
-                            'WHERE section_id = %s' % id
+                            'WHERE section_id = %s ' % id
                     result = monitor_db.select(query)
-                except:
-                    logger.warn("Unable to execute database query for get_library_stats.")
+                except Exception as e:
+                    logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_library_stats: %s." % e)
                     return None
 
                 for item in result:
@@ -724,86 +726,6 @@ class DataFactory(object):
                              }
 
         return stream_output
-
-    def get_recently_watched(self, user=None, user_id=None, library_id=None, limit='10'):
-        monitor_db = database.MonitorDatabase()
-        recently_watched = []
-
-        if not limit.isdigit():
-            limit = '10'
-
-        try:
-            if user_id:
-                query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, session_history.parent_rating_key, ' \
-                        'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
-                        'year, started, user ' \
-                        'FROM session_history_metadata ' \
-                        'JOIN session_history ON session_history_metadata.id = session_history.id ' \
-                        'WHERE user_id = ? ' \
-                        'GROUP BY (CASE WHEN session_history.media_type = "track" THEN session_history.parent_rating_key ' \
-                        ' ELSE session_history.rating_key END) ' \
-                        'ORDER BY started DESC LIMIT ?'
-                result = monitor_db.select(query, args=[user_id, limit])
-            elif user:
-                query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, session_history.parent_rating_key, ' \
-                        'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
-                        'year, started, user ' \
-                        'FROM session_history_metadata ' \
-                        'JOIN session_history ON session_history_metadata.id = session_history.id ' \
-                        'WHERE user = ? ' \
-                        'GROUP BY (CASE WHEN session_history.media_type = "track" THEN session_history.parent_rating_key ' \
-                        ' ELSE session_history.rating_key END) ' \
-                        'ORDER BY started DESC LIMIT ?'
-                result = monitor_db.select(query, args=[user, limit])
-            elif library_id:
-                query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, session_history.parent_rating_key, ' \
-                        'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
-                        'year, started, user ' \
-                        'FROM session_history_metadata ' \
-                        'JOIN session_history ON session_history_metadata.id = session_history.id ' \
-                        'WHERE library_id = ? ' \
-                        'GROUP BY (CASE WHEN session_history.media_type = "track" THEN session_history.parent_rating_key ' \
-                        ' ELSE session_history.rating_key END) ' \
-                        'ORDER BY started DESC LIMIT ?'
-                result = monitor_db.select(query, args=[library_id, limit])
-            else:
-                query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, session_history.parent_rating_key, ' \
-                        'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
-                        'year, started, user ' \
-                        'FROM session_history_metadata ' \
-                        'JOIN session_history ON session_history_metadata.id = session_history.id ' \
-                        'GROUP BY (CASE WHEN session_history.media_type = "track" THEN session_history.parent_rating_key ' \
-                        ' ELSE session_history.rating_key END) ' \
-                        'ORDER BY started DESC LIMIT ?'
-                result = monitor_db.select(query, args=[limit])
-        except:
-            logger.warn("Unable to execute database query for get_recently_watched.")
-            return None
-
-        for row in result:
-                if row['media_type'] == 'episode' and row['parent_thumb']:
-                    thumb = row['parent_thumb']
-                elif row['media_type'] == 'episode':
-                    thumb = row['grandparent_thumb']
-                else:
-                    thumb = row['thumb']
-
-                recent_output = {'row_id': row['id'],
-                                 'type': row['media_type'],
-                                 'rating_key': row['rating_key'],
-                                 'title': row['title'],
-                                 'parent_title': row['parent_title'],
-                                 'grandparent_title': row['grandparent_title'],
-                                 'thumb': thumb,
-                                 'media_index': row['media_index'],
-                                 'parent_media_index': row['parent_media_index'],
-                                 'year': row['year'],
-                                 'time': row['started'],
-                                 'user': row['user']
-                                 }
-                recently_watched.append(recent_output)
-
-        return recently_watched
 
     def get_metadata_details(self, rating_key):
         monitor_db = database.MonitorDatabase()
@@ -866,89 +788,52 @@ class DataFactory(object):
                         'directors': directors,
                         'genres': genres,
                         'actors': actors,
-                        'library_title': item['section_name'],
+                        'library_name': item['section_name'],
                         'library_id': item['library_id']
                         }
 
         return metadata
 
-    def delete_session_history_rows(self, row_id=None):
+    def get_total_duration(self, custom_where=None):
         monitor_db = database.MonitorDatabase()
 
-        if row_id.isdigit():
-            logger.info(u"PlexPy DataFactory :: Deleting row id %s from the session history database." % row_id)
-            session_history_del = \
-                monitor_db.action('DELETE FROM session_history WHERE id = ?', [row_id])
-            session_history_media_info_del = \
-                monitor_db.action('DELETE FROM session_history_media_info WHERE id = ?', [row_id])
-            session_history_metadata_del = \
-                monitor_db.action('DELETE FROM session_history_metadata WHERE id = ?', [row_id])
-
-            return 'Deleted rows %s.' % row_id
+        # Split up custom wheres
+        if custom_where:
+            where = 'WHERE ' + ' AND '.join([w[0] + ' = "' + w[1] + '"' for w in custom_where])
         else:
-            return 'Unable to delete rows. Input row not valid.'
+            where = ''
+        
+        try:
+            query = 'SELECT SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - ' \
+                    'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS total_duration ' \
+                    'FROM session_history ' \
+                    'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
+                    '%s ' % where
+            result = monitor_db.select(query)
+        except Exception as e:
+            logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_total_duration: %s." % e)
+            return None
 
-    def delete_all_user_history(self, user_id=None):
+        for item in result:
+            total_duration = item['total_duration']
+
+        return total_duration
+
+    def get_session_ip(self, session_key=''):
         monitor_db = database.MonitorDatabase()
 
-        if user_id.isdigit():
-            logger.info(u"PlexPy DataFactory :: Deleting all history for user id %s from database." % user_id)
-            session_history_media_info_del = \
-                monitor_db.action('DELETE FROM '
-                                  'session_history_media_info '
-                                  'WHERE session_history_media_info.id IN (SELECT session_history_media_info.id '
-                                  'FROM session_history_media_info '
-                                  'JOIN session_history ON session_history_media_info.id = session_history.id '
-                                  'WHERE session_history.user_id = ?)', [user_id])
-            session_history_metadata_del = \
-                monitor_db.action('DELETE FROM '
-                                  'session_history_metadata '
-                                  'WHERE session_history_metadata.id IN (SELECT session_history_metadata.id '
-                                  'FROM session_history_metadata '
-                                  'JOIN session_history ON session_history_metadata.id = session_history.id '
-                                  'WHERE session_history.user_id = ?)', [user_id])
-            session_history_del = \
-                monitor_db.action('DELETE FROM '
-                                  'session_history '
-                                  'WHERE session_history.user_id = ?', [user_id])
-
-            return 'Deleted all items for user_id %s.' % user_id
+        if session_key:
+            query = 'SELECT ip_address FROM sessions WHERE session_key = %d' % int(session_key)
+            result = monitor_db.select(query)
         else:
-            return 'Unable to delete items. Input user_id not valid.'
+            return None
 
-    def delete_user(self, user_id=None):
-        monitor_db = database.MonitorDatabase()
+        ip_address = 'N/A'
 
-        if user_id.isdigit():
-            self.delete_all_user_history(user_id)
-            logger.info(u"PlexPy DataFactory :: Deleting user with id %s from database." % user_id)
-            monitor_db.action('UPDATE users SET deleted_user = 1 WHERE user_id = ?', [user_id])
-            monitor_db.action('UPDATE users SET keep_history = 0 WHERE user_id = ?', [user_id])
-            monitor_db.action('UPDATE users SET do_notify = 0 WHERE user_id = ?', [user_id])
+        for item in result:
+            ip_address = item['ip_address']
 
-            return 'Deleted user with id %s.' % user_id
-        else:
-            return 'Unable to delete user. Input user_id not valid.'
-
-    def undelete_user(self, user_id=None, username=None):
-        monitor_db = database.MonitorDatabase()
-
-        if user_id and user_id.isdigit():
-            logger.info(u"PlexPy DataFactory :: Re-adding user with id %s to database." % user_id)
-            monitor_db.action('UPDATE users SET deleted_user = 0 WHERE user_id = ?', [user_id])
-            monitor_db.action('UPDATE users SET keep_history = 1 WHERE user_id = ?', [user_id])
-            monitor_db.action('UPDATE users SET do_notify = 1 WHERE user_id = ?', [user_id])
-
-            return 'Re-added user with id %s.' % user_id
-        elif username:
-            logger.info(u"PlexPy DataFactory :: Re-adding user with username %s to database." % username)
-            monitor_db.action('UPDATE users SET deleted_user = 0 WHERE username = ?', [username])
-            monitor_db.action('UPDATE users SET keep_history = 1 WHERE username = ?', [username])
-            monitor_db.action('UPDATE users SET do_notify = 1 WHERE username = ?', [username])
-
-            return 'Re-added user with username %s.' % username
-        else:
-            return 'Unable to re-add user. Input user_id or username not valid.'
+        return ip_address
 
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()
@@ -1037,8 +922,8 @@ class DataFactory(object):
 
             grandparent_rating_key = result[0]['grandparent_rating_key']
 
-        except:
-            logger.warn("Unable to execute database query for get_rating_keys_list.")
+        except Exception as e:
+            logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_rating_keys_list: %s." % e)
             return {}
 
         query = 'SELECT rating_key, parent_rating_key, grandparent_rating_key, title, parent_title, grandparent_title, ' \
@@ -1080,6 +965,22 @@ class DataFactory(object):
         key_list = grandparents
 
         return key_list
+
+    def delete_session_history_rows(self, row_id=None):
+        monitor_db = database.MonitorDatabase()
+
+        if row_id.isdigit():
+            logger.info(u"PlexPy DataFactory :: Deleting row id %s from the session history database." % row_id)
+            session_history_del = \
+                monitor_db.action('DELETE FROM session_history WHERE id = ?', [row_id])
+            session_history_media_info_del = \
+                monitor_db.action('DELETE FROM session_history_media_info WHERE id = ?', [row_id])
+            session_history_metadata_del = \
+                monitor_db.action('DELETE FROM session_history_metadata WHERE id = ?', [row_id])
+
+            return 'Deleted rows %s.' % row_id
+        else:
+            return 'Unable to delete rows. Input row not valid.'
 
     def update_metadata(self, old_key_list='', new_key_list='', media_type=''):
         from plexpy import pmsconnect
@@ -1134,8 +1035,6 @@ class DataFactory(object):
             return 'Updated metadata in database.'
         else:
             return 'Unable to update metadata in database. No changes were made.'
-        # for debugging
-        #return mapping
 
     def update_metadata_details(self, old_rating_key='', new_rating_key='', metadata=None):
 
@@ -1176,31 +1075,6 @@ class DataFactory(object):
 
             monitor_db.action(query=query, args=args)
 
-    def get_total_duration(self, custom_where=None):
-        monitor_db = database.MonitorDatabase()
-
-        # Split up custom wheres
-        if custom_where:
-            where = 'WHERE ' + ' AND '.join([w[0] + ' = "' + w[1] + '"' for w in custom_where])
-        else:
-            where = ''
-        
-        try:
-            query = 'SELECT SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - ' \
-                    'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS total_duration ' \
-                    'FROM session_history ' \
-                    'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
-                    '%s ' % where
-            result = monitor_db.select(query)
-        except:
-            logger.warn("Unable to execute database query for get_total_duration.")
-            return None
-
-        for item in result:
-            total_duration = item['total_duration']
-
-        return total_duration
-
     def update_library_ids(self):
         from plexpy import pmsconnect
 
@@ -1210,8 +1084,8 @@ class DataFactory(object):
         try:
             query = 'SELECT id, rating_key FROM session_history_metadata WHERE library_id IS NULL'
             result = monitor_db.select(query=query)
-        except:
-            logger.warn("Unable to execute database query for update_library_id.")
+        except Exception as e:
+            logger.warn(u"PlexPy DataFactory :: Unable to execute database query for update_library_id: %s." % e)
             return None
 
         for item in result:
@@ -1231,59 +1105,3 @@ class DataFactory(object):
                 continue
 
         return True
-
-    def get_library_sections(self):
-        monitor_db = database.MonitorDatabase()
-
-        try:
-            query = 'SELECT section_id, section_name FROM library_sections'
-            result = monitor_db.select(query=query)
-        except:
-            logger.warn("Unable to execute database query for get_library_sections.")
-            return None
-
-        libraries = []
-        for item in result:
-            library = {'section_id': item['section_id'],
-                       'section_name': item['section_name']
-                       }
-            libraries.append(library)
-
-        return libraries
-
-
-    def update_library_sections(self):
-        from plexpy import pmsconnect
-
-        pms_connect = pmsconnect.PmsConnect()
-        library_sections = pms_connect.get_server_children()
-
-        if library_sections:
-            if library_sections['libraries_count'] != '0':
-                monitor_db = database.MonitorDatabase()
-
-                for section in library_sections['libraries_list']:
-                    section_keys = {'section_id': section['key']}
-                    section_values = {'section_id': section['key'],
-                                      'section_name': section['title'],
-                                      'section_type': section['type']}
-
-                    monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
-
-        return True
-
-    def get_session_ip(self, session_key=''):
-        monitor_db = database.MonitorDatabase()
-
-        if session_key:
-            query = 'SELECT ip_address FROM sessions WHERE session_key = %d' % int(session_key)
-            result = monitor_db.select(query)
-        else:
-            return None
-
-        ip_address = 'N/A'
-
-        for item in result:
-            ip_address = item['ip_address']
-
-        return ip_address

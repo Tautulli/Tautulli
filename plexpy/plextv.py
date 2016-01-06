@@ -16,7 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, users, http_handler, database
+from plexpy import logger, helpers, http_handler, database, users
 import xmltodict
 import json
 from xml.dom import minidom
@@ -26,7 +26,7 @@ import plexpy
 
 
 def refresh_users():
-    logger.info("Requesting users list refresh...")
+    logger.info(u"PlexPy PlexTV :: Requesting users list refresh...")
     result = PlexTV().get_full_users_list()
     monitor_db = database.MonitorDatabase()
 
@@ -55,13 +55,13 @@ def refresh_users():
 
             monitor_db.upsert('users', new_value_dict, control_value_dict)
 
-        logger.info("Users list refreshed.")
+        logger.info(u"PlexPy PlexTV :: Users list refreshed.")
     else:
-        logger.warn("Unable to refresh users list.")
+        logger.warn(u"PlexPy PlexTV :: Unable to refresh users list.")
 
 
 def get_real_pms_url():
-    logger.info("Requesting URLs for server...")
+    logger.info(u"PlexPy PlexTV :: Requesting URLs for server...")
 
     # Reset any current PMS_URL value
     plexpy.CONFIG.__setattr__('PMS_URL', '')
@@ -85,15 +85,15 @@ def get_real_pms_url():
                 if plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '0':
                         plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
                         plexpy.CONFIG.write()
-                        logger.info("Server URL retrieved.")
+                        logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
                 if not plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '1':
                         plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
                         plexpy.CONFIG.write()
-                        logger.info("Server URL retrieved.")
+                        logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
         else:
             plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
             plexpy.CONFIG.write()
-            logger.warn("Unable to retrieve server URLs. Using user-defined value.")
+            logger.warn(u"PlexPy PlexTV :: Unable to retrieve server URLs. Using user-defined value.")
     else:
         plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
         plexpy.CONFIG.write()
@@ -213,7 +213,7 @@ class PlexTV(object):
 
         try:
             xml_parse = minidom.parseString(own_account)
-        except Exception, e:
+        except Exception as e:
             logger.warn("Error parsing XML for Plex account details: %s" % e)
             return []
         except:
@@ -238,7 +238,7 @@ class PlexTV(object):
 
         try:
             xml_parse = minidom.parseString(friends_list)
-        except Exception, e:
+        except Exception as e:
             logger.warn("Error parsing XML for Plex friends list: %s" % e)
         except:
             logger.warn("Error parsing XML for Plex friends list.")
@@ -269,7 +269,7 @@ class PlexTV(object):
 
         try:
             xml_parse = minidom.parseString(sync_list)
-        except Exception, e:
+        except Exception as e:
             logger.warn("Error parsing XML for Plex sync lists: %s" % e)
             return []
         except:
@@ -383,7 +383,7 @@ class PlexTV(object):
 
         try:
             xml_parse = minidom.parseString(plextv_resources)
-        except Exception, e:
+        except Exception as e:
             logger.warn("Error parsing XML for Plex resources: %s" % e)
             return []
         except:
@@ -430,6 +430,25 @@ class PlexTV(object):
 
         return server_urls
 
+    def get_server_times(self):
+        servers = self.get_plextv_server_list(output_format='xml')
+        server_times = []
+
+        try:
+            xml_head = servers.getElementsByTagName('Server')
+        except:
+            logger.warn("Error parsing XML for Plex servers.")
+            return []
+
+        for a in xml_head:
+            if helpers.get_xml_attr(a, 'machineIdentifier') == plexpy.CONFIG.PMS_IDENTIFIER:
+                server_times.append({"created_at": helpers.get_xml_attr(a, 'createdAt'),
+                                     "updated_at": helpers.get_xml_attr(a, 'updatedAt')
+                                     })
+                break
+
+        return server_times
+
     def discover(self):
         """ Query plex for all servers online. Returns the ones you own in a selectize format """
         result = self.get_plextv_resources(include_https=True, output_format='raw')
@@ -464,22 +483,3 @@ class PlexTV(object):
             return clean_servers
 
         return json.dumps(clean_servers, indent=4)
-
-    def get_server_times(self):
-        servers = self.get_plextv_server_list(output_format='xml')
-        server_times = []
-
-        try:
-            xml_head = servers.getElementsByTagName('Server')
-        except:
-            logger.warn("Error parsing XML for Plex servers.")
-            return []
-
-        for a in xml_head:
-            if helpers.get_xml_attr(a, 'machineIdentifier') == plexpy.CONFIG.PMS_IDENTIFIER:
-                server_times.append({"created_at": helpers.get_xml_attr(a, 'createdAt'),
-                                     "updated_at": helpers.get_xml_attr(a, 'updatedAt')
-                                     })
-                break
-
-        return server_times

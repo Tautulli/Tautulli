@@ -13,10 +13,12 @@ user_id             Returns the user id of the user.
 username            Returns the user's username.
 friendly_name       Returns the friendly name of the user.
 email               Returns the user's email address.
-thumb               Returns the thumbnail for the user.
+user_thumb          Returns the thumbnail for the user.
 is_home_user        Returns bool value for whether the user is part of a Plex Home.
 is_allow_sync       Returns bool value for whether the user has sync rights.
 is_restricted       Returns bool value for whether the user account is restricted.
+do_notify           Returns bool value for whether to send notifications for the user.
+keep_history        Returns bool value for whether to keep history for the user.
 
 DOCUMENTATION :: END
 
@@ -33,223 +35,261 @@ from plexpy import helpers
 <link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
 </%def>
 
-% if user != None:
 <%def name="body()">
+% if data:
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-12">
-            <div class="table-card-back">
-                <div class="user-info-wrapper">
-                    <div class="user-info-poster-face" id="user-gravatar" style="background-image: url(${data['thumb']});">
-                    </div>
-                    <div class="user-info-username">
-                        <span class="set-username">${data['friendly_name']}</span> <span id="edit-user-tooltip" data-target="tooltip" title="Edit user details"><a href="#" data-toggle="modal" data-target="#edit-user-modal" id="toggle-edit-user-modal"><i class="fa fa-pencil"></i></a></span>
-                    </div>
-                    <div class="user-info-nav">
-                        <ul class="user-info-nav">
-                            <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
-                            <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
-                            <li><a id="history-tab-btn" href="#userHistory" data-toggle="tab">History</a></li>
-                            <li><a id="sync-tab-btn" href="#userSyncItems" data-toggle="tab">Synced Items</a></li>
-                        </ul>
+        <div class="summary-container">
+            <div class="summary-navbar">
+                <div class="col-md-12">
+                    <div class="summary-navbar-list">
+                        <ul class="list-unstyled breadcrumb"></ul>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <div id="edit-user-modal" class="modal fade" tabindex="-1" role="dialog"
-         aria-labelledby="edit-user-modal">
-    </div>
-</div>
-<div class="tab-content">
-    <div class="tab-pane active" id="profile">
-        <div class="container-fluid">
-            <div class="row">
+            <div class="summary-content-wrapper">
                 <div class="col-md-12">
-                    <div class="table-card-header">
-                        <div class="header-bar">
-                            <span><i class="fa fa-line-chart"></i> Global Stats</span>
-                        </div>
-                    </div>
                     <div class="table-card-back">
-                        <div id="user-time-stats" class="user-overview-stats-wrapper">
-                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                            <br>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="table-card-header">
-                        <div class="header-bar">
-                            <span><i class="fa fa-television"></i> Player Stats</span>
-                        </div>
-                    </div>
-                    <div class="table-card-back">
-                        <div id="user-player-stats" class="user-player">
-                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                            <br>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="table-card-header">
-                        <div class="header-bar">
-                            <span><i class="fa fa-history"></i> Recently Watched</span>
-                        </div>
-                    </div>
-                    <div class="table-card-back">
-                        <div id="user-recently-watched">
-                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                            <br>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="tab-pane" id="userAddresses">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="table-card-header">
-                        <div class="header-bar">
-                            <span><i class="fa fa-map-marker"></i> IP Addresses for <strong>
+                        <div class="user-info-wrapper">
+                            <div class="user-info-poster-face" style="background-image: url(${data['user_thumb']});"></div>
+                            <div class="user-info-username">
                                 <span class="set-username">${data['friendly_name']}</span>
-                            </strong></span>
+                                <span id="edit-user-tooltip" data-target="tooltip" title="Edit user details">
+                                    <a href="#" data-toggle="modal" data-target="#edit-user-modal" id="toggle-edit-user-modal"><i class="fa fa-pencil"></i></a>
+                                </span>
+                            </div>
+                            <div class="user-info-nav">
+                                <ul class="user-info-nav">
+                                    <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
+                                    <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
+                                    <li><a id="history-tab-btn" href="#userHistory" data-toggle="tab">History</a></li>
+                                    <li><a id="sync-tab-btn" href="#userSyncItems" data-toggle="tab">Synced Items</a></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                    <div class="table-card-back">
-                        <table id="user_ip_table" class="display" width="100%">
-                            <thead>
-                            <tr>
-                                <th align="left">Last Seen</th>
-                                <th align="left">IP Address</th>
-                                <th align="left">Last Platform</th>
-                                <th align="left">Last Player</th>
-                                <th align="left">Last Watched</th>
-                                <th align="left">Play Count</th>
-                            </tr>
-                            </thead>
-                        </table>
-                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="tab-pane" id="userHistory">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class='table-card-header'>
-                        <div class="header-bar">
-                            <span><i class="fa fa-history"></i> Watch History for <strong>
-                                <span class="set-username">${data['friendly_name']}</span>
-                            </strong></span>
-                        </div>
-                        <div class="button-bar">
-                            <div class="colvis-button-bar hidden-xs" id="button-bar-history"></div>
-                            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                                <i class="fa fa-trash-o"></i> Delete mode
-                            </button>
-                            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
-                        </div>
-                    </div>
-                    <div class="table-card-back">
-                        <table class="display" id="history_table" width="100%">
-                            <thead>
-                            <tr>
-                                <th align='left' id="delete">Delete</th>
-                                <th align='left' id="time">Time</th>
-                                <th align='left' id="friendly_name">User</th>
-                                <th align='left' id="ip_address">IP Address</th>
-                                <th align='left' id="platform">Platform</th>
-                                <th align='left' id="player">Player</th>
-                                <th align='left' id="title">Title</th>
-                                <th align='left' id="started">Started</th>
-                                <th align='left' id="paused_counter">Paused</th>
-                                <th align='left' id="stopped">Stopped</th>
-                                <th align='left' id="duration">Duration</th>
-                                <th align='left' id="percent_complete"></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
+                <div id="edit-user-modal" class="modal fade" tabindex="-1" role="dialog"
+                        aria-labelledby="edit-user-modal">
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="tab-pane" id="userSyncItems">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class='table-card-header'>
-                        <div class="header-bar">
-                            <span><i class="fa fa-cloud-download"></i> Synced Items for <strong>
-                                <span class="set-username">${data['friendly_name']}</span>
-                            </strong></span>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="profile">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-card-header">
+                                        <div class="header-bar">
+                                            <span><i class="fa fa-line-chart"></i> Global Stats</span>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <div id="user-time-stats" class="user-overview-stats-wrapper">
+                                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                                            <br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="colvis-button-bar hidden-xs" id="button-bar-sync">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-card-header">
+                                        <div class="header-bar">
+                                            <span><i class="fa fa-television"></i> Player Stats</span>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <div id="user-player-stats" class="user-player">
+                                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                                            <br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-card-header">
+                                        <div class="header-bar">
+                                            <span><i class="fa fa-history"></i> Recently Watched</span>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <div id="user-recently-watched">
+                                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                                            <br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="table-card-back">
-                        <table class="display" id="sync_table" width="100%">
-                            <thead>
-                            <tr>
-                                <th align='left' id="state">State</th>
-                                <th align='left' id="username">Username</th>
-                                <th align='left' id="sync_title">Title</th>
-                                <th align='left' id="type">Type</th>
-                                <th align='left' id="sync_platform">Platform</th>
-                                <th align='left' id="device">Device</th>
-                                <th align='left' id="size">Total Size</th>
-                                <th align='left' id="items">Total Items</th>
-                                <th align='left' id="converted">Converted</th>
-                                <th align='left' id="downloaded">Downloaded</th>
-                                <th align='left' id="sync_percent_complete">Complete</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
+                    <div class="tab-pane" id="userAddresses">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-card-header">
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-map-marker"></i> IP Addresses for <strong>
+                                                    <span class="set-username">${data['friendly_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table id="user_ip_table" class="display" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left">Last Seen</th>
+                                                    <th align="left">IP Address</th>
+                                                    <th align="left">Last Platform</th>
+                                                    <th align="left">Last Player</th>
+                                                    <th align="left">Last Watched</th>
+                                                    <th align="left">Play Count</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
-    </div>
-    <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
-    </div>
-    <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
-                </div>
-                <div class="modal-body" style="text-align: center;">
-                    <p>Are you REALLY sure you want to delete <strong><span id="deleteCount"></span></strong> history item(s)?</p>
-                    <p>This is permanent and cannot be undone!</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Delete</button>
+                    <div class="tab-pane" id="userHistory">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-history"></i> Watch History for <strong>
+                                                    <span class="set-username">${data['friendly_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            <div class="colvis-button-bar hidden-xs" id="button-bar-history"></div>
+                                            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                                                <i class="fa fa-trash-o"></i> Delete mode
+                                            </button>
+                                            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display" id="history_table" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align='left' id="delete">Delete</th>
+                                                    <th align='left' id="time">Time</th>
+                                                    <th align='left' id="friendly_name">User</th>
+                                                    <th align='left' id="ip_address">IP Address</th>
+                                                    <th align='left' id="platform">Platform</th>
+                                                    <th align='left' id="player">Player</th>
+                                                    <th align='left' id="title">Title</th>
+                                                    <th align='left' id="started">Started</th>
+                                                    <th align='left' id="paused_counter">Paused</th>
+                                                    <th align='left' id="stopped">Stopped</th>
+                                                    <th align='left' id="duration">Duration</th>
+                                                    <th align='left' id="percent_complete"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="userSyncItems">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-cloud-download"></i> Synced Items for <strong>
+                                                    <span class="set-username">${data['friendly_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="colvis-button-bar hidden-xs" id="button-bar-sync">
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display" id="sync_table" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align='left' id="state">State</th>
+                                                    <th align='left' id="username">Username</th>
+                                                    <th align='left' id="sync_title">Title</th>
+                                                    <th align='left' id="type">Type</th>
+                                                    <th align='left' id="sync_platform">Platform</th>
+                                                    <th align='left' id="device">Device</th>
+                                                    <th align='left' id="size">Total Size</th>
+                                                    <th align='left' id="items">Total Items</th>
+                                                    <th align='left' id="converted">Converted</th>
+                                                    <th align='left' id="downloaded">Downloaded</th>
+                                                    <th align='left' id="sync_percent_complete">Complete</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
+                    </div>
+                    <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
+                    </div>
+                    <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+                                </div>
+                                <div class="modal-body" style="text-align: center;">
+                                    <p>Are you REALLY sure you want to delete <strong><span id="deleteCount"></span></strong> history item(s)?</p>
+                                    <p>This is permanent and cannot be undone!</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 <footer></footer>
+% else:
+<div class="container-fluid">
+    <div class="row">
+        <div class="summary-container">
+            <div class="summary-navbar">
+                <div class="col-md-12">
+                    <div class="summary-navbar-list">
+                    </div>
+                </div>
+            </div>
+            <div class="summary-content-wrapper">
+                <div class='col-md-12'>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <i class="fa fa-exclamation-triangle"></i> Error retrieving user information. Please see the logs for more details.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+% endif
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -257,6 +297,7 @@ from plexpy import helpers
 <script src="interfaces/default/js/dataTables.colVis.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
+% if data:
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/history_table.js"></script>
 <script src="interfaces/default/js/tables/user_ips.js"></script>
@@ -264,10 +305,10 @@ from plexpy import helpers
 <script>
     $(document).ready(function () {
 
-        % if data['user_id']:
-            var user_id = ${data['user_id']};
+        % if str(data['user_id']).isdigit():
+        var user_id = ${data['user_id']};
         % else:
-            var user_id = null;
+        var user_id = null;
         % endif
 
         var username = '${data['username'].replace("'", "\\'")}';
@@ -303,7 +344,6 @@ from plexpy import helpers
                     return {
                         'json_data': JSON.stringify( d ),
                         'user_id': user_id,
-                        'user': username,
                         'media_type': media_type
                     };
                 }
@@ -313,7 +353,7 @@ from plexpy import helpers
 
             var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
             $(colvis.button()).appendTo('#button-bar-history');
-            
+
             clearSearchButton('history_table', history_table);
 
             $('#history_table_filter').prepend('<div class="btn-group" data-toggle="buttons" id="media_type-selection" style="padding-right: 15px;"> \
@@ -348,27 +388,25 @@ from plexpy import helpers
         $( "#ip-tab-btn" ).one( "click", function() {
             // Build user IP table
             user_ip_table_options.ajax = {
-                "url": "get_user_ips",
+                url: 'get_user_ips',
                 type: 'post',
                 data: function ( d ) {
                     return { 'json_data': JSON.stringify( d ),
-                             'user_id': user_id,
-                             'user': username
+                        'user_id': user_id
                     };
                 }
             }
             user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
-            
+
             clearSearchButton('user_ip_table', user_ip_table);
         });
 
         $( "#sync-tab-btn" ).one( "click", function() {
             // Build user sync table
             sync_table_options.ajax = {
-                "url": "get_sync",
-                "data": function(d) {
-                   d.user_id = user_id;
-                   d.user = username;
+                url: 'get_sync',
+                data: function(d) {
+                    d.user_id = user_id;
                 }
             }
             sync_table = $('#sync_table').DataTable(sync_table_options);
@@ -376,7 +414,7 @@ from plexpy import helpers
 
             var colvis_sync = new $.fn.dataTable.ColVis( sync_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' } );
             $( colvis_sync.button() ).appendTo('#button-bar-sync');
-            
+
             clearSearchButton('sync_table', sync_table);
         });
 
@@ -385,7 +423,7 @@ from plexpy import helpers
             $("#edit-user-tooltip").tooltip('hide');
             $.ajax({
                 url: 'edit_user_dialog',
-                data: { user_id: user_id, user: username },
+                data: { user_id: user_id },
                 cache: false,
                 async: true,
                 complete: function(xhr, status) {
@@ -441,37 +479,25 @@ from plexpy import helpers
                 containerSize = 1;
             }
 
-            % if data['user_id']:
-                var user_id = ${data['user_id']};
-            % else:
-                var user_id = null;
-            % endif
-
             // Populate recently watched
             $.ajax({
                 url: 'get_user_recently_watched',
                 async: true,
-                data: { user_id: user_id, user: username, limit: containerSize },
+                data: {
+                    user_id: user_id,
+                    limit: containerSize
+                },
                 complete: function(xhr, status) {
                     $("#user-recently-watched").html(xhr.responseText);
                 }
             });
         }
-        
+
         recentlyWatched();
         $(window).resize(function() {
             recentlyWatched();
         });
     });
 </script>
-</%def>
-% else:
-<div class="clear"></div>
-<div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span10 offset1">
-            <h3>Error retrieving user information. Please see the logs for more details.</h3>
-        </div>
-    </div>
-</div>
 % endif
+</%def>

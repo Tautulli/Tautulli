@@ -177,13 +177,13 @@
             cache: false,
             async: true,
             success: function(data) {
-                showMsg('<i class="fa fa-check"></i>&nbspUsers list refresh started...',false,true,2000,false)
+                showMsg('<i class="fa fa-check"></i>&nbspUsers list refresh started...', false, true, 2000, false);
             },
             complete: function (data) {
-                showMsg('<i class="fa fa-check"></i>&nbspUsers list refreshed.', false, true, 2000, false)
+                showMsg('<i class="fa fa-check"></i>&nbspUsers list refreshed.', false, true, 2000, false);
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh users list.',false,true,2000,true)
+                showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh users list.', false, true, 2000, true);
             }
         });
     });

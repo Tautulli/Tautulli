@@ -20,7 +20,7 @@ import plexpy
 import urllib2
 
 def get_server_friendly_name():
-    logger.info("Requesting name from server...")
+    logger.info(u"PlexPy Pmsconnect :: Requesting name from server...")
     server_name = PmsConnect().get_server_pref(pref='FriendlyName')
     
     # If friendly name is blank
@@ -34,11 +34,12 @@ def get_server_friendly_name():
     if server_name and server_name != plexpy.CONFIG.PMS_NAME:
         plexpy.CONFIG.__setattr__('PMS_NAME', server_name)
         plexpy.CONFIG.write()
+        logger.info(u"PlexPy Pmsconnect :: Server name retrieved.")
 
     return server_name
 
 def refresh_libraries():
-    logger.info("Requesting libraries list refresh...")
+    logger.info(u"PlexPy Pmsconnect :: Requesting libraries list refresh...")
     library_sections = PmsConnect().get_library_details()
 
     server_id = plexpy.CONFIG.PMS_IDENTIFIER
@@ -48,7 +49,7 @@ def refresh_libraries():
     else:
         populate_cards = False
     
-    cards = []
+    library_keys = []
 
     if library_sections:
         monitor_db = database.MonitorDatabase()
@@ -64,20 +65,21 @@ def refresh_libraries():
                               'art': section['art'],
                               'count': section['count'],
                               'parent_count': section.get('parent_count', None),
-                              'child_count': section.get('child_count', None)
+                              'child_count': section.get('child_count', None),
                               }
 
             monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
 
-            cards.append(section['key'])
+            library_keys.append(section['key'])
+
 
         if populate_cards:
-            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', cards)
+            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
             plexpy.CONFIG.write()
         
-        logger.info("Libraries list refreshed.")
+        logger.info(u"PlexPy Pmsconnect :: Libraries list refreshed.")
     else:
-        logger.warn("Unable to refresh libraries list.")
+        logger.warn(u"PlexPy Pmsconnect :: Unable to refresh libraries list.")
 
 
 class PmsConnect(object):
@@ -100,14 +102,14 @@ class PmsConnect(object):
                                                         port=port,
                                                         token=plexpy.CONFIG.PMS_TOKEN)
 
-    """
-    Return current sessions.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_sessions(self, output_format=''):
+        """
+        Return current sessions.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/status/sessions'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -116,15 +118,15 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return metadata for request item.
-
-    Parameters required:    rating_key { Plex ratingKey }
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_metadata(self, rating_key='', output_format=''):
+        """
+        Return metadata for request item.
+
+        Parameters required:    rating_key { Plex ratingKey }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/library/metadata/' + rating_key
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -133,15 +135,15 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return metadata for children of the request item.
-
-    Parameters required:    rating_key { Plex ratingKey }
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_metadata_children(self, rating_key='', output_format=''):
+        """
+        Return metadata for children of the request item.
+
+        Parameters required:    rating_key { Plex ratingKey }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/library/metadata/' + rating_key + '/children'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -150,15 +152,15 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return list of recently added items.
-
-    Parameters required:    count { number of results to return }
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_recently_added(self, count='0', output_format=''):
+        """
+        Return list of recently added items.
+
+        Parameters required:    count { number of results to return }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -167,15 +169,15 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return list of children in requested library item.
-
-    Parameters required:    rating_key { ratingKey of parent }
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_children_list(self, rating_key='', output_format=''):
+        """
+        Return list of children in requested library item.
+
+        Parameters required:    rating_key { ratingKey of parent }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/library/metadata/' + rating_key + '/children'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -184,14 +186,14 @@ class PmsConnect(object):
         
         return request
 
-    """
-    Return list of local servers.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_server_list(self, output_format=''):
+        """
+        Return list of local servers.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/servers'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -200,14 +202,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return the local servers preferences.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_server_prefs(self, output_format=''):
+        """
+        Return the local servers preferences.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/:/prefs'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -216,14 +218,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return the local server identity.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_local_server_identity(self, output_format=''):
+        """
+        Return the local server identity.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/identity'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -232,14 +234,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return list of libraries on server.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_libraries_list(self, output_format=''):
+        """
+        Return list of libraries on server.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/library/sections'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -248,14 +250,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return list of items in library on server.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_library_list(self, section_key='', list_type='all', count='0', sort_type='', output_format=''):
+        """
+        Return list of items in library on server.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/library/sections/' + section_key + '/' + list_type +'?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count + sort_type
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -264,15 +266,15 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return sync item details.
-
-    Parameters required:    sync_id { unique sync id for item }
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_sync_item(self, sync_id=None, output_format=''):
+        """
+        Return sync item details.
+
+        Parameters required:    sync_id { unique sync id for item }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/sync/items/' + sync_id
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -281,14 +283,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return sync transcode queue.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_sync_transcode_queue(self, output_format=''):
+        """
+        Return sync transcode queue.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/sync/transcodeQueue'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -297,14 +299,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return search results.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_search(self, query='', track='', output_format=''):
+        """
+        Return search results.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/search?query=' + urllib2.quote(query.encode('utf8')) + track
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -313,14 +315,14 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Return account details.
-
-    Optional parameters:    output_format { dict, json }
-
-    Output: array
-    """
     def get_account(self, output_format=''):
+        """
+        Return account details.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
         uri = '/myplex/account'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
@@ -329,34 +331,35 @@ class PmsConnect(object):
 
         return request
 
-    """
-    Refresh Plex remote access port mapping.
-
-    Optional parameters:    None
-
-    Output: None
-    """
     def put_refresh_reachability(self):
+        """
+        Refresh Plex remote access port mapping.
+
+        Optional parameters:    None
+
+        Output: None
+        """
         uri = '/myplex/refreshReachability'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='PUT')
 
         return request
-    """
-    Return processed and validated list of recently added items.
 
-    Parameters required:    count { number of results to return }
-
-    Output: array
-    """
     def get_recently_added_details(self, count='0'):
+        """
+        Return processed and validated list of recently added items.
+
+        Parameters required:    count { number of results to return }
+
+        Output: array
+        """
         recent = self.get_recently_added(count, output_format='xml')
 
         try:
             xml_head = recent.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_recently_added.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_recently_added: %s." % e)
             return []
 
         recents_list = []
@@ -377,7 +380,7 @@ class PmsConnect(object):
                                     'title': helpers.get_xml_attr(item, 'title'),
                                     'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
                                     'library_id': helpers.get_xml_attr(item, 'librarySectionID'),
-                                    'library_title': helpers.get_xml_attr(item, 'librarySectionTitle'),
+                                    'library_name': helpers.get_xml_attr(item, 'librarySectionTitle'),
                                     'thumb': helpers.get_xml_attr(item, 'thumb'),
                                     'added_at': helpers.get_xml_attr(item, 'addedAt')
                                     }
@@ -394,7 +397,7 @@ class PmsConnect(object):
                                         'title': helpers.get_xml_attr(item, 'title'),
                                         'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
                                         'library_id': helpers.get_xml_attr(item, 'librarySectionID'),
-                                        'library_title': helpers.get_xml_attr(item, 'librarySectionTitle'),
+                                        'library_name': helpers.get_xml_attr(item, 'librarySectionTitle'),
                                         'year': helpers.get_xml_attr(item, 'year'),
                                         'thumb': helpers.get_xml_attr(item, 'thumb'),
                                         'added_at': helpers.get_xml_attr(item, 'addedAt')
@@ -406,20 +409,20 @@ class PmsConnect(object):
         output = {'recently_added': sorted(recents_list, key=lambda k: k['added_at'], reverse=True)}
         return output
 
-    """
-    Return processed and validated metadata list for requested item.
-
-    Parameters required:    rating_key { Plex ratingKey }
-
-    Output: array
-    """
     def get_metadata_details(self, rating_key=''):
+        """
+        Return processed and validated metadata list for requested item.
+
+        Parameters required:    rating_key { Plex ratingKey }
+
+        Output: array
+        """
         metadata = self.get_metadata(str(rating_key), output_format='xml')
 
         try:
             xml_head = metadata.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_metadata.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_metadata: %s: %s." % e)
             return []
 
         metadata_list = []
@@ -440,11 +443,11 @@ class PmsConnect(object):
                 metadata_main = a.getElementsByTagName('Track')[0]
                 metadata_type = helpers.get_xml_attr(metadata_main, 'type')
             else:
-                logger.debug(u"Metadata failed")
+                logger.debug(u"PlexPy Pmsconnect :: Metadata failed")
                 return None
 
             library_id = helpers.get_xml_attr(a, 'librarySectionID')
-            library_title = helpers.get_xml_attr(a, 'librarySectionTitle')
+            library_name = helpers.get_xml_attr(a, 'librarySectionTitle')
 
         genres = []
         actors = []
@@ -470,7 +473,7 @@ class PmsConnect(object):
         if metadata_type == 'movie':
             metadata = {'media_type': metadata_type,
                         'library_id': library_id,
-                        'library_title': library_title,
+                        'library_name': library_name,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
@@ -505,7 +508,7 @@ class PmsConnect(object):
         elif metadata_type == 'show':
             metadata = {'media_type': metadata_type,
                         'library_id': library_id,
-                        'library_title': library_title,
+                        'library_name': library_name,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
@@ -542,7 +545,7 @@ class PmsConnect(object):
             show_details = self.get_metadata_details(parent_rating_key)
             metadata = {'media_type': metadata_type,
                         'library_id': library_id,
-                        'library_title': library_title,
+                        'library_name': library_name,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
@@ -579,7 +582,7 @@ class PmsConnect(object):
             show_details = self.get_metadata_details(grandparent_rating_key)
             metadata = {'media_type': metadata_type,
                         'library_id': library_id,
-                        'library_title': library_title,
+                        'library_name': library_name,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
@@ -614,7 +617,7 @@ class PmsConnect(object):
         elif metadata_type == 'artist':
             metadata = {'media_type': metadata_type,
                         'library_id': library_id,
-                        'library_title': library_title,
+                        'library_name': library_name,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
@@ -651,7 +654,7 @@ class PmsConnect(object):
             artist_details = self.get_metadata_details(parent_rating_key)
             metadata = {'media_type': metadata_type,
                         'library_id': library_id,
-                        'library_title': library_title,
+                        'library_name': library_name,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
@@ -688,7 +691,7 @@ class PmsConnect(object):
             album_details = self.get_metadata_details(parent_rating_key)
             metadata = {'media_type': metadata_type,
                         'library_id': library_id,
-                        'library_title': library_title,
+                        'library_name': library_name,
                         'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
@@ -725,20 +728,20 @@ class PmsConnect(object):
 
         return metadata_list
 
-    """
-    Return processed and validated metadata list for all children of requested item.
-
-    Parameters required:    rating_key { Plex ratingKey }
-
-    Output: array
-    """
     def get_metadata_children_details(self, rating_key=''):
+        """
+        Return processed and validated metadata list for all children of requested item.
+
+        Parameters required:    rating_key { Plex ratingKey }
+
+        Output: array
+        """
         metadata = self.get_metadata_children(str(rating_key), output_format='xml')
 
         try:
             xml_head = metadata.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_metadata_children.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_metadata_children: %s." % e)
 
         metadata_list = []
 
@@ -767,20 +770,20 @@ class PmsConnect(object):
         output = {'metadata': metadata_list}
         return output
 
-    """
-    Return processed and validated metadata list for requested library.
-
-    Parameters required:    library_id { Plex library key }
-
-    Output: array
-    """
     def get_library_metadata_details(self, library_id=''):
+        """
+        Return processed and validated metadata list for requested library.
+
+        Parameters required:    library_id { Plex library key }
+
+        Output: array
+        """
         libraries_data = self.get_libraries_list(output_format='xml')
 
         try:
             xml_head = libraries_data.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_library_metadata_details.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_library_metadata_details: %s." % e)
             return []
 
         metadata_list = []
@@ -814,18 +817,18 @@ class PmsConnect(object):
         
         return metadata_list
 
-    """
-    Return processed and validated session list.
-
-    Output: array
-    """
     def get_current_activity(self):
+        """
+        Return processed and validated session list.
+
+        Output: array
+        """
         session_data = self.get_sessions(output_format='xml')
 
         try:
             xml_head = session_data.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_sessions.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_sessions: %s." % e)
             return []
 
         session_list = []
@@ -863,15 +866,15 @@ class PmsConnect(object):
 
         return output
 
-    """
-    Return selected data from current sessions.
-    This function processes and validates session data
-
-    Parameters required:    stream_type { track or video }
-                            session { the session dictionary }
-    Output: dict
-    """
     def get_session_each(self, stream_type='', session=None):
+        """
+        Return selected data from current sessions.
+        This function processes and validates session data
+
+        Parameters required:    stream_type { track or video }
+                                session { the session dictionary }
+        Output: dict
+        """
         session_output = None
         user_data = users.Users()
 
@@ -905,7 +908,7 @@ class PmsConnect(object):
                 transcode_container = ''
                 transcode_protocol = ''
 
-            user_details = user_data.get_user_details(
+            user_details = user_data.get_details(
                 user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
 
             if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Track'):
@@ -914,6 +917,7 @@ class PmsConnect(object):
                 machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
 
             session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                              'library_id': helpers.get_xml_attr(session, 'librarySectionID'), 
                               'media_index': helpers.get_xml_attr(session, 'index'),
                               'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
                               'art': helpers.get_xml_attr(session, 'art'),
@@ -924,7 +928,7 @@ class PmsConnect(object):
                               'user': user_details['username'],
                               'user_id': user_details['user_id'],
                               'friendly_name': user_details['friendly_name'],
-                              'user_thumb': user_details['thumb'],
+                              'user_thumb': user_details['user_thumb'],
                               'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split(':')[-1],
                               'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
                               'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
@@ -1025,7 +1029,7 @@ class PmsConnect(object):
             else:
                 use_indexes = 0
 
-            user_details = user_data.get_user_details(
+            user_details = user_data.get_details(
                 user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
 
             if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Video'):
@@ -1035,6 +1039,7 @@ class PmsConnect(object):
 
             if helpers.get_xml_attr(session, 'type') == 'episode':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                                  'library_id': helpers.get_xml_attr(session, 'librarySectionID'), 
                                   'media_index': helpers.get_xml_attr(session, 'index'),
                                   'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
                                   'art': helpers.get_xml_attr(session, 'art'),
@@ -1045,7 +1050,7 @@ class PmsConnect(object):
                                   'user': user_details['username'],
                                   'user_id': user_details['user_id'],
                                   'friendly_name': user_details['friendly_name'],
-                                  'user_thumb': user_details['thumb'],
+                                  'user_thumb': user_details['user_thumb'],
                                   'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split(':')[-1],
                                   'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
                                   'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
@@ -1092,6 +1097,7 @@ class PmsConnect(object):
 
             elif helpers.get_xml_attr(session, 'type') == 'movie':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                                  'library_id': helpers.get_xml_attr(session, 'librarySectionID'), 
                                   'media_index': helpers.get_xml_attr(session, 'index'),
                                   'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
                                   'art': helpers.get_xml_attr(session, 'art'),
@@ -1102,7 +1108,7 @@ class PmsConnect(object):
                                   'user': user_details['username'],
                                   'user_id': user_details['user_id'],
                                   'friendly_name': user_details['friendly_name'],
-                                  'user_thumb': user_details['thumb'],
+                                  'user_thumb': user_details['user_thumb'],
                                   'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split(':')[-1],
                                   'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
                                   'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
@@ -1149,6 +1155,7 @@ class PmsConnect(object):
 
             elif helpers.get_xml_attr(session, 'type') == 'clip':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                                  'library_id': helpers.get_xml_attr(session, 'librarySectionID'), 
                                   'media_index': helpers.get_xml_attr(session, 'index'),
                                   'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
                                   'art': helpers.get_xml_attr(session, 'art'),
@@ -1159,7 +1166,7 @@ class PmsConnect(object):
                                   'user': user_details['username'],
                                   'user_id': user_details['user_id'],
                                   'friendly_name': user_details['friendly_name'],
-                                  'user_thumb': user_details['thumb'],
+                                  'user_thumb': user_details['user_thumb'],
                                   'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split(':')[-1],
                                   'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
                                   'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
@@ -1230,7 +1237,7 @@ class PmsConnect(object):
                 transcode_container = ''
                 transcode_protocol = ''
 
-            user_details = user_data.get_user_details(
+            user_details = user_data.get_details(
                 user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
 
             if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Photo'):
@@ -1239,6 +1246,7 @@ class PmsConnect(object):
                 machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
 
             session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                              'library_id': helpers.get_xml_attr(session, 'librarySectionID'), 
                               'media_index': helpers.get_xml_attr(session, 'index'),
                               'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
                               'art': helpers.get_xml_attr(session, 'art'),
@@ -1249,7 +1257,7 @@ class PmsConnect(object):
                               'user': user_details['username'],
                               'user_id': user_details['user_id'],
                               'friendly_name': user_details['friendly_name'],
-                              'user_thumb': user_details['thumb'],
+                              'user_thumb': user_details['user_thumb'],
                               'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split(':')[-1],
                               'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
                               'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
@@ -1292,7 +1300,7 @@ class PmsConnect(object):
                               }
 
         else:
-            logger.warn(u"No known stream types found in session list.")
+            logger.warn(u"PlexPy Pmsconnect :: No known stream types found in session list.")
 
         # Rename Mystery platform names
         session_output['platform'] = common.PLATFORM_NAME_OVERRIDES.get(session_output['platform'],
@@ -1300,18 +1308,18 @@ class PmsConnect(object):
 
         return session_output
 
-    """
-    Return processed and validated children list.
-
-    Output: array
-    """
     def get_item_children(self, rating_key=''):
+        """
+        Return processed and validated children list.
+
+        Output: array
+        """
         children_data = self.get_children_list(rating_key, output_format='xml')
 
         try:
             xml_head = children_data.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_children_list.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_children_list: %s." % e)
             return []
 
         children_list = []
@@ -1319,7 +1327,7 @@ class PmsConnect(object):
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    logger.debug(u"No children data.")
+                    logger.debug(u"PlexPy Pmsconnect :: No children data.")
                     children_list = {'children_count': '0',
                                      'children_list': []
                                      }
@@ -1353,18 +1361,18 @@ class PmsConnect(object):
 
         return output
 
-    """
-    Return the list of local servers.
-
-    Output: array
-    """
     def get_servers_info(self):
+        """
+        Return the list of local servers.
+
+        Output: array
+        """
         recent = self.get_server_list(output_format='xml')
 
         try:
             xml_head = recent.getElementsByTagName('Server')
-        except:
-            logger.warn("Unable to parse XML for get_server_list.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_server_list: %s." % e)
             return []
 
         server_info = []
@@ -1380,18 +1388,18 @@ class PmsConnect(object):
 
         return server_info
 
-    """
-    Return the local machine identity.
-
-    Output: dict
-    """
     def get_server_identity(self):
+        """
+        Return the local machine identity.
+
+        Output: dict
+        """
         identity = self.get_local_server_identity(output_format='xml')
 
         try:
             xml_head = identity.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_local_server_identity.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_local_server_identity: %s." % e)
             return []
 
         server_identity = {}
@@ -1402,21 +1410,21 @@ class PmsConnect(object):
 
         return server_identity
 
-    """
-    Return a specified server preference.
-
-    Parameters required:    pref { name of preference }
-
-    Output: string
-    """
     def get_server_pref(self, pref=None):
+        """
+        Return a specified server preference.
+
+        Parameters required:    pref { name of preference }
+
+        Output: string
+        """
         if pref:
             prefs = self.get_server_prefs(output_format='xml')
 
             try:
                 xml_head = prefs.getElementsByTagName('Setting')
-            except:
-                logger.warn("Unable to parse XML for get_local_server_name.")
+            except Exception as e:
+                logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_local_server_name: %s." % e)
                 return ''
 
             pref_value = 'None'
@@ -1427,21 +1435,21 @@ class PmsConnect(object):
 
             return pref_value
         else:
-            logger.debug(u"Server preferences queried but no parameter received.")
+            logger.debug(u"PlexPy Pmsconnect :: Server preferences queried but no parameter received.")
             return None
 
-    """
-    Return processed and validated server libraries list.
-
-    Output: array
-    """
     def get_server_children(self):
+        """
+        Return processed and validated server libraries list.
+
+        Output: array
+        """
         libraries_data = self.get_libraries_list(output_format='xml')
 
         try:
             xml_head = libraries_data.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_libraries_list.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_libraries_list: %s." % e)
             return []
 
         libraries_list = []
@@ -1449,7 +1457,7 @@ class PmsConnect(object):
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    logger.debug(u"No libraries data.")
+                    logger.debug(u"PlexPy Pmsconnect :: No libraries data.")
                     libraries_list = {'libraries_count': '0',
                                       'libraries_list': []
                                       }
@@ -1473,15 +1481,15 @@ class PmsConnect(object):
         
         return output
 
-    """
-    Return processed and validated server library items list.
-
-    Parameters required:    library_type { movie, show, episode, artist }
-                            section_key { unique library key }
-
-    Output: array
-    """
     def get_library_children(self, library_type='', section_key='', list_type='all', sort_type = ''):
+        """
+        Return processed and validated server library items list.
+
+        Parameters required:    library_type { movie, show, episode, artist }
+                                section_key { unique library key }
+
+        Output: array
+        """
 
         # Currently only grab the library with 1 items so 'size' is not 0
         count = '1'
@@ -1511,8 +1519,8 @@ class PmsConnect(object):
         
         try:
             xml_head = library_data.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_library_children.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_library_children: %s." % e)
             return []
 
         library_list = []
@@ -1520,7 +1528,7 @@ class PmsConnect(object):
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    logger.debug(u"No library data.")
+                    logger.debug(u"PlexPy Pmsconnect :: No library data.")
                     library_list = {'library_count': '0',
                                     'library_list': []
                                     }
@@ -1543,12 +1551,12 @@ class PmsConnect(object):
 
         return output
 
-    """
-    Return processed and validated library statistics.
-
-    Output: array
-    """
     def get_library_details(self):
+        """
+        Return processed and validated library statistics.
+
+        Output: array
+        """
         server_libraries = self.get_server_children()
 
         server_library_stats = []
@@ -1614,16 +1622,16 @@ class PmsConnect(object):
 
         return server_library_stats
 
-    """
-    Return image data as array.
-    Array contains the image content type and image binary
-
-    Parameters required:    img { Plex image location }
-    Optional parameters:    width { the image width }
-                            height { the image height }
-    Output: array
-    """
     def get_image(self, img=None, width=None, height=None):
+        """
+        Return image data as array.
+        Array contains the image content type and image binary
+
+        Parameters required:    img { Plex image location }
+        Optional parameters:    width { the image width }
+                                height { the image height }
+        Output: array
+        """
         if img:
             if width.isdigit() and height.isdigit():
                 uri = '/photo/:/transcode?url=http://127.0.0.1:32400' + img + '&width=' + width + '&height=' + height
@@ -1637,15 +1645,15 @@ class PmsConnect(object):
 
             return [request, content_type]
         else:
-            logger.error("Image proxy queries but no input received.")
+            logger.error(u"PlexPy Pmsconnect :: Image proxy queries but no input received.")
             return None
 
-    """
-    Return processed list of search results.
-
-    Output: array
-    """
     def get_search_results(self, query=''):
+        """
+        Return processed list of search results.
+
+        Output: array
+        """
         search_results = self.get_search(query=query, output_format='xml')
         search_results_tracks = self.get_search(query=query, track='&type=10', output_format='xml')
 
@@ -1659,8 +1667,8 @@ class PmsConnect(object):
                 xml_head += search_results_tracks.getElementsByTagName('MediaContainer')
             except:
                 pass
-        except:
-            logger.warn("Unable to parse XML for get_search_result_details.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_search_result_details: %s." % e)
             return []
         
         search_results_count = 0
@@ -1678,7 +1686,7 @@ class PmsConnect(object):
             if a.getAttribute('size'):
                 totalSize += int(a.getAttribute('size'))
         if totalSize == 0:
-            logger.debug(u"No search results.")
+            logger.debug(u"PlexPy Pmsconnect :: No search results.")
             search_results_list = {'results_count': search_results_count,
                                     'results_list': []
                                     }
@@ -1733,12 +1741,12 @@ class PmsConnect(object):
 
         return output
 
-    """
-    Return processed list of grandparent/parent/child rating keys.
-
-    Output: array
-    """
     def get_rating_keys_list(self, rating_key='', media_type=''):
+        """
+        Return processed list of grandparent/parent/child rating keys.
+
+        Output: array
+        """
 
         if media_type == 'movie':
             key_list = {0: {'rating_key': int(rating_key)}}
@@ -1750,7 +1758,7 @@ class PmsConnect(object):
             match_type = 'index'
 
         library_id = None
-        library_title = None
+        library_name = None
 
         # get grandparent rating key
         if media_type == 'season' or media_type == 'album':
@@ -1758,9 +1766,9 @@ class PmsConnect(object):
                 metadata = self.get_metadata_details(rating_key=rating_key)
                 rating_key = metadata['metadata']['parent_rating_key']
                 library_id = metadata['metadata']['library_id']
-                library_title = metadata['metadata']['library_title']
-            except:
-                logger.warn("Unable to get parent_rating_key for get_rating_keys_list.")
+                library_name = metadata['metadata']['library_name']
+            except Exception as e:
+                logger.warn(u"PlexPy Pmsconnect :: Unable to get parent_rating_key for get_rating_keys_list: %s." % e)
                 return {}
 
         elif media_type == 'episode' or media_type == 'track':
@@ -1768,9 +1776,9 @@ class PmsConnect(object):
                 metadata = self.get_metadata_details(rating_key=rating_key)
                 rating_key = metadata['metadata']['grandparent_rating_key']
                 library_id = metadata['metadata']['library_id']
-                library_title = metadata['metadata']['library_title']
-            except:
-                logger.warn("Unable to get grandparent_rating_key for get_rating_keys_list.")
+                library_name = metadata['metadata']['library_name']
+            except Exception as e:
+                logger.warn(u"PlexPy Pmsconnect :: Unable to get grandparent_rating_key for get_rating_keys_list: %s." % e)
                 return {}
 
         # get parent_rating_keys
@@ -1778,8 +1786,8 @@ class PmsConnect(object):
 
         try:
             xml_head = metadata.getElementsByTagName('MediaContainer')
-        except:
-            logger.warn("Unable to parse XML for get_rating_keys_list.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_rating_keys_list: %s." % e)
             return {}
 
         for a in xml_head:
@@ -1806,8 +1814,8 @@ class PmsConnect(object):
 
                     try:
                         xml_head = metadata.getElementsByTagName('MediaContainer')
-                    except:
-                        logger.warn("Unable to parse XML for get_rating_keys_list.")
+                    except Exception as e:
+                        logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_rating_keys_list: %s." % e)
                         return {}
 
                     for a in xml_head:
@@ -1843,7 +1851,7 @@ class PmsConnect(object):
                     {'rating_key': int(rating_key),
                      'children': parents },
                     'library_id': library_id,
-                    'library_title': library_title
+                    'library_name': library_name
                     }
 
         return key_list
@@ -1855,8 +1863,8 @@ class PmsConnect(object):
         
         try:
             xml_head = account_data.getElementsByTagName('MyPlex')
-        except:
-            logger.warn("Unable to parse XML for get_server_response.")
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_server_response: %s." % e)
             return None
         
         server_response = {}

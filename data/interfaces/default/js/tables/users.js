@@ -23,12 +23,12 @@ users_list_table_options = {
             "targets": [0],
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
-                $(td).html('<div class="edit-user-toggles"><button class="btn btn-xs btn-warning delete-user" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
+                $(td).html('<div class="edit-user-toggles">' + 
+                    '<button class="btn btn-xs btn-warning delete-user" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
                     '<button class="btn btn-xs btn-warning purge-user" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
                     '<input type="checkbox" id="do_notify-' + rowData['user_id'] + '" name="do_notify" value="1" ' + rowData['do_notify'] + '><label class="edit-tooltip" for="do_notify-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Notifications"><i class="fa fa-bell fa-lg fa-fw"></i></label>&nbsp' +
-                    '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp');
-                    // Show/hide user currently doesn't work
-                    //'<input type="checkbox" id="show_hide-' + rowData['user_id'] + '" name="show_hide" value="1" checked><label class="edit-tooltip" for="show_hide-' + rowData['user_id'] + '" data-toggle="tooltip" title="Show/Hide User"><i class="fa fa-eye fa-lg fa-fw"></i></label>');
+                    '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
+                    '</div>');
             },
             "width": "7%",
             "className": "edit-control no-wrap hidden",
@@ -42,7 +42,7 @@ users_list_table_options = {
                 if (cellData === '') {
                     $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(interfaces/default/images/gravatar-default-80x80.png);"></div></a>');
                 } else {
-                    $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(' + cellData + ');"></div></a>');
+                    $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(' + rowData['user_thumb'] + ');"></div></a>');
                 }
             },
             "orderable": false,
@@ -55,13 +55,10 @@ users_list_table_options = {
             "data": "friendly_name",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    if (rowData['user_id'] > 0) {
-                        $(td).html('<div class="edit-user-name" data-id="' + rowData['user_id'] + '"><a href="user?user_id=' + rowData['user_id'] + '">' + cellData + '</a>' +
-                            '<input type="text" class="hidden" value="' + cellData + '"></div>');
-                    } else {
-                        $(td).html('<div class="edit-user-name" data-id="' + rowData['user_id'] + '"><a href="user?user=' + rowData['user'] + '">' + cellData + '</a>' +
-                            '<input type="text" class="hidden" value="' + cellData + '"></div>');
-                    }
+                    $(td).html('<div class="edit-user-name" data-id="' + rowData['user_id'] + '">' +
+                        '<a href="user?user_id=' + rowData['user_id'] + '">' + cellData + '</a>' +
+                        '<input type="text" class="hidden" value="' + cellData + '">' +
+                        '</div>');
                 } else {
                     $(td).html(cellData);
                 }
@@ -206,8 +203,11 @@ users_list_table_options = {
         showMsg(msg, false, false, 0)
     },
     "rowCallback": function (row, rowData) {
+        if ($.inArray(rowData['user_id'], users_to_delete) !== -1) {
+            $(row).find('button.delete-user[data-id="' + rowData['user_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+        }
         if ($.inArray(rowData['user_id'], users_to_purge) !== -1) {
-            $(row).find('button[data-id="' + rowData['user_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+            $(row).find('button.purge-user[data-id="' + rowData['user_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
     }
 }

@@ -28,7 +28,7 @@ year                    Returns the movie release year.
 DOCUMENTATION :: END
 </%doc>
 
-% if data != None:
+% if data:
 <div class="dashboard-recent-media-row">
     <ul class="dashboard-recent-media list-unstyled">
         % for item in data:
@@ -84,6 +84,6 @@ DOCUMENTATION :: END
     </ul>
 </div>
 % else:
-<div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
+<div class="text-muted">Unable to retrieve data from database.
 </div><br>
 % endif

@@ -14,6 +14,8 @@ section_id          Returns the library id of the library.
 section_name        Returns the name of the library.
 section_type        Returns the type of the library.
 library_thumb       Returns the thumbnail for the library.
+custom_thumb        Returns the custom thumbnail for the library.
+library_art         Returns the artwork for the library.
 count               Returns the item count for the library.
 parent_count        Returns the parent item count for the library.
 child_count         Returns the child item count for the library.
@@ -40,11 +42,7 @@ DOCUMENTATION :: END
                     <label for="profile_url">Library Picture URL</label>
                     <div class="row">
                         <div class="col-md-8">
-                            % if data['custom_thumb']:
-                            <input type="text" class="form-control" id="custom_thumb_url" name="custom_thumb_url" value="${data['custom_thumb']}">
-                            % else:
                             <input type="text" class="form-control" id="custom_thumb_url" name="custom_thumb_url" value="${data['library_thumb']}">
-                            % endif
                         </div>
                     </div>
                     <p class="help-block">Change the library's picture in PlexPy. To reset to default, leave this field empty and save.</p>
@@ -60,6 +58,12 @@ DOCUMENTATION :: END
                         <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])}> Keep history
                     </label>
                     <p class="help-block">Uncheck this if you do not want this keep any history on this library's activity.</p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="do_notify_created" name="do_notify_created" value="1" ${helpers.checked(data['do_notify_created'])}> Enable recently added notifications
+                    </label>
+                    <p class="help-block">Uncheck this if you do not want to receive recently added notifications for this library.</p>
                 </div>
                 % if data['section_id']:
                 <div class="form-group">
@@ -96,13 +100,17 @@ DOCUMENTATION :: END
     </div>
 </div>
 <script>
-    // Set new friendly name
-    $("#save_library").click(function () {
+    // Save library options
+    $("#save_library").on('click', function () {
         var custom_thumb = $("#custom_thumb_url").val();
         var do_notify = 0;
+        var do_notify_created = 0;
         var keep_history = 0;
         if ($("#do_notify").is(":checked")) {
             do_notify = 1;
+        }
+        if ($("#do_notify_created").is(":checked")) {
+            do_notify_created = 1;
         }
         if ($("#keep_history").is(":checked")) {
             keep_history = 1;
@@ -112,9 +120,10 @@ DOCUMENTATION :: END
             url: 'edit_library',
             data: {
                 section_id: '${data["section_id"]}',
+                custom_thumb: custom_thumb,
                 do_notify: do_notify,
-                keep_history: keep_history,
-                custom_thumb: custom_thumb
+                do_notify_created: do_notify_created,
+                keep_history: keep_history
             },
             cache: false,
             async: true,
@@ -167,5 +176,4 @@ DOCUMENTATION :: END
         });
     });
 </script>
-
 % endif

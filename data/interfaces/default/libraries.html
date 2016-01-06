@@ -43,15 +43,16 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                        <h4 class="modal-title" id="myModalLabel">Confirm Purge</h4>
+                        <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
                     </div>
                     <div class="modal-body" style="text-align: center;">
+                        <ul id="libraries-to-delete" class="list-unstyled"></ul>
                         <ul id="libraries-to-purge" class="list-unstyled"></ul>
                         <p>This is permanent and cannot be undone!</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-purge">Confirm</button>
+                        <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Confirm</button>
                     </div>
                 </div>
             </div>
@@ -83,13 +84,25 @@
 
         $('#row-edit-mode').on('click', function () {
             $('#row-edit-mode-alert').fadeIn(200);
-            $('#libraries_to_purge').html('');
+            $('#libraries-to-delete').html('');
+            $('#libraries-to-purge').html('');
 
             if ($(this).hasClass('active')) {
                 if (libraries_to_purge.length > 0) {
                     $('.edit-control').each(function () {
                         $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     });
+
+                    libraries_to_purge = $.grep(libraries_to_purge, function (value) {
+                        return $.inArray(value, libraries_to_delete) < 0;
+                    });
+
+                    if (libraries_to_delete.length > 0) {
+                        $('#libraries-to-delete').prepend('<p>Are you REALLY sure you want to delete the following libraries:</p>')
+                        for (var i = 0; i < libraries_to_delete.length; i++) {
+                            $('#libraries-to-delete').append('<li>' + $('div[data-id=' + libraries_to_delete[i] + ']').text() + '</li>');
+                        }
+                    }
 
                     if (libraries_to_purge.length > 0) {
                         $('#libraries-to-purge').prepend('<p>Are you REALLY sure you want to purge all history for the following libraries:</p>')
@@ -99,7 +112,19 @@
                     }
 
                     $('#confirm-modal').modal();
-                    $('#confirm-modal').one('click', '#confirm-purge', function () {
+                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                        for (var i = 0; i < libraries_to_delete.length; i++) {
+                            $.ajax({
+                                url: 'delete_library',
+                                data: { section_id: libraries_to_delete[i] },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    var msg = "Library deleted";
+                                    showMsg(msg, false, true, 2000);
+                                }
+                            });
+                        }
                         for (var i = 0; i < libraries_to_purge.length; i++) {
                             $.ajax({
                                 url: 'delete_all_library_history',
@@ -122,6 +147,7 @@
                 });
 
             } else {
+                libraries_to_delete = [];
                 libraries_to_purge = [];
                 $('.edit-control').each(function () {
                     $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
@@ -137,13 +163,13 @@
             cache: false,
             async: true,
             success: function (data) {
-                showMsg('<i class="fa fa-refresh"></i>&nbspLibraries list refresh started...', false, true, 2000, false)
+                showMsg('<i class="fa fa-refresh"></i>&nbspLibraries list refresh started...', false, true, 2000, false);
             },
             complete: function (data) {
-                showMsg('<i class="fa fa-check"></i>&nbspLibraries list refreshed.', false, true, 2000, false)
+                showMsg('<i class="fa fa-check"></i>&nbspLibraries list refreshed.', false, true, 2000, false);
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh libraries list.',false,true,2000,true)
+                showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh libraries list.', false, true, 2000, true);
             }
         });
     });

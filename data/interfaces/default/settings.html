@@ -800,7 +800,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             % for agent in available_notification_agents:
                             <li>
                                 <span>
-                                    % if agent['on_play'] or agent['on_stop'] or agent['on_pause'] or agent['on_resume'] or agent['on_buffer'] or agent['on_watched'] or agent['on_created'] or agent['on_extdown'] or agent['on_intdown']:
+                                    % if any(k[:2] == 'on' and v == 1 for k, v in agent.iteritems()):
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left active" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
                                     % else:
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
@@ -1166,6 +1166,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{title}</strong></td>
                                     <td>The full title of the item being played.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{library_name}</strong></td>
+                                    <td>The library title of the item being played.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{show_name}</strong></td>

@@ -18,7 +18,7 @@ total_plays             Returns the play count for the user.
 DOCUMENTATION :: END
 </%doc>
 
-% if data != None:
+% if data:
 % for a in data:
 <ul class="list-unstyled">
     <div class="user-player-instance">
@@ -38,6 +38,6 @@ DOCUMENTATION :: END
 </ul>
 % endfor
 % else:
-<div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
+<div class="text-muted">Unable to retrieve data from database.
 </div><br>
 % endif
