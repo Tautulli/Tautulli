@@ -2610,7 +2610,6 @@ table[id^='history_child'] thead th {
     -o-transition: background 0.3s;
     transition: background 0.3s;
 }
-
 .notification-params {
     margin-top: 10px;
     background-color: #282828;
@@ -2635,7 +2634,6 @@ table[id^='history_child'] thead th {
 .notification-params tr:nth-child(even) td {
     background-color: rgba(255,255,255,0.010);
 }
-
 #days-selection label {
     margin-bottom: 0;
 }
@@ -2643,4 +2641,34 @@ table[id^='history_child'] thead th {
     margin: 0;
     width: 75px;
     height: 34px;
+}
+.card-sortable {
+    height: 36px;
+    padding: 0 20px 0 0;
+    line-height: 34px;
+    cursor: move;
+    cursor: -webkit-grab;
+    cursor: grab;
+    border-bottom: 1px solid #232323;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+.card {
+    position: relative;
+    background-color: #282828;
+    border-top: 1px solid #2d2d2d;
+}
+.card label {
+    font-weight: normal;
+}
+.card-handle {
+    display: inline-block;
+    width: 30px;
+    margin-right: 10px;
+    color: #444;
+    text-align: center;
+    background-color: #2f2f2f;
 }

@@ -1069,20 +1069,18 @@ class WebInterface(object):
             if kwargs['pms_ip'] != plexpy.CONFIG.PMS_IP:
                 refresh_libraries = True
                 refresh_users = True
+        
+        # Remove config with 'hscard-' prefix and change home_stats_cards to list
+        for k in kwargs.keys():
+            if k.startswith('hscard-'):
+                del kwargs[k]
+        kwargs['home_stats_cards'] = kwargs['home_stats_cards'].split(',')
 
-        if 'home_stats_cards' not in kwargs:
-            kwargs['home_stats_cards'] = []
-        elif kwargs['home_stats_cards'] == 'first_run_wizard':
-            kwargs['home_stats_cards'] = plexpy.CONFIG.HOME_STATS_CARDS
-        elif type(kwargs['home_stats_cards']) != list:
-            kwargs['home_stats_cards'] = [kwargs['home_stats_cards']]
-
-        if 'home_library_cards' not in kwargs:
-            kwargs['home_library_cards'] = []
-        elif kwargs['home_library_cards'] == 'first_run_wizard':
-            kwargs['home_library_cards'] = plexpy.CONFIG.HOME_LIBRARY_CARDS
-        elif type(kwargs['home_library_cards']) != list:
-            kwargs['home_library_cards'] = [kwargs['home_library_cards']]
+        # Remove config with 'hlcard-' prefix and change home_library_cards to list
+        for k in kwargs.keys():
+            if k.startswith('hlcard-'):
+                del kwargs[k]
+        kwargs['home_library_cards'] = kwargs['home_library_cards'].split(',')
 
         plexpy.CONFIG.process_kwargs(kwargs)
 

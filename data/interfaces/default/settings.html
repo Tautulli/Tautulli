@@ -98,24 +98,78 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
 
                         <div class="form-group">
-                            <label for="home_stats_cards">Cards</label>
+                            <label for="sortable_home_stats_cards">Cards</label>
+                            <p class="help-block">
+                                Select the cards to show in the watch statistics on the home page. Select none to disable.<br>
+                                Drag the items below to reorder your homepage content.
+                            </p>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <select multiple class="form-control" id="home_stats_cards" name="home_stats_cards" data-parsley-trigger="change">
-                                        <option id="card-top_tv" value="top_tv">Most Watched TV</option>
-                                        <option id="card-popular_tv" value="popular_tv">Most Popular TV</option>
-                                        <option id="card-top_movies" value="top_movies">Most Watched Movie</option>
-                                        <option id="card-popular_movies" value="popular_movies">Most Popular Movie</option>
-                                        <option id="card-top_music" value="top_music">Most Listened Music</option>
-                                        <option id="card-popular_music" value="popular_music">Most Popular Music</option>
-                                        <option id="card-last_watched" value="last_watched">Last Watched</option>
-                                        <option id="card-top_users" value="top_users">Most Active User</option>
-                                        <option id="card-top_platforms" value="top_platforms">Most Active Platform</option>
-                                        <option id="card-most_concurrent" value="most_concurrent">Most Concurrent Streams</option>
-                                    </select>
+                                    <ul class="list-unstyled" id="sortable_home_stats_cards" data-parsley-trigger="change">
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_tv" name="hscard-top_tv" value="top_tv"> Most Watched TV
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_tv" name="hscard-popular_tv" value="popular_tv"> Most Popular TV
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_movies" name="hscard-top_movies" value="top_movies"> Most Watched Movie
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_movies" name="hscard-popular_movies" value="popular_movies"> Most Popular Movie
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_music" name="hscard-top_music" value="top_music"> Most Listened Music
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_music" name="hscard-popular_music" value="popular_music"> Most Popular Music
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-last_watched" name="hscard-last_watched" value="last_watched"> Last Watched
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_users" name="hscard-top_users" value="top_users"> Most Active User
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_platforms" name="hscard-top_platforms" value="top_platforms"> Most Active Platform
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-most_concurrent" name="hscard-most_concurrent" value="most_concurrent"> Most Concurrent Streams
+                                            </label>
+                                        </li>
+                                    </ul>
+                                    <input type="text" id="home_stats_cards" name="home_stats_cards" style="display: none;" />
                                 </div>
                             </div>
-                            <p class="help-block">Select the cards to show in the watch statistics on the home page. Select none to disable.</p>
                         </div>
                         <div class="form-group">
                             <label for="home_stats_length">Time Frame</label>
@@ -150,13 +204,17 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
 
                         <div class="form-group">
                             <label for="home_library_cards">Cards</label>
+                            <p class="help-block">
+                                Select the cards to show in the library statistics on the home page. Select none to disable.<br>
+                                Drag the items below to reorder your homepage content.
+                            </p>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <select multiple class="form-control" id="home_library_cards" name="home_library_cards" data-parsley-trigger="change">
-                                    </select>
+                                    <ul class="list-unstyled" id="sortable_home_library_cards" data-parsley-trigger="change">
+                                    </ul>
+                                    <input type="text" id="home_library_cards" name="home_library_cards" style="display: none;" />
                                 </div>
                             </div>
-                            <p class="help-block">Select the cards to show in the library statistics on the home page. Select none to disable.</p>
                         </div>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
@@ -1335,6 +1393,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/parsley.min.js"></script>
+<script src="interfaces/default/js/Sortable.min.js"></script>
 <script>
 $(document).ready(function() {
 
@@ -1621,18 +1680,43 @@ $(document).ready(function() {
     var accordion_timeline = new Accordion($('#accordion-timeline'), false);
     var accordion_scripts = new Accordion($('#accordion-scripts'), false);
 
-    var cards = ${config['home_stats_cards']|n};
-    cards.forEach(function (item) {
-        $('#card-'+item).prop('selected', !$(this).prop('selected'));
+
+    // Sortable home_stats_cards
+    function set_home_stats_cards() {
+        var home_stats_cards = [];
+        var hscards = $('[id^=hscard-]').serializeArray();
+        $.each(hscards, function(i, card) {
+            home_stats_cards.push(card.value);
+        });
+        $('#home_stats_cards').val(home_stats_cards);
+    };
+
+    var config_cards = ${config['home_stats_cards'] | n};
+    config_cards.reverse().forEach(function (item) {
+        $('#hscard-' + item).prop('checked', !$(this).prop('checked'))
+        $('#hscard-' + item).closest('li.card').prependTo('#sortable_home_stats_cards');
     });
-    $('#home_stats_cards').on('mousedown', function(e) {
-        e.preventDefault();
-        var scroll = this.scrollTop;
-        e.target.selected = !e.target.selected;
-        this.scrollTop = scroll;
-    }).on('mousemove', function(e) {
-        e.preventDefault()
+
+    Sortable.create(sortable_home_stats_cards, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_stats_cards();
+        }
     });
+
+    $('[id^=hscard-]').change(function() { set_home_stats_cards(); });
+    set_home_stats_cards()
+
+
+    // Sortable home_library_cards
+    function set_home_library_cards() {
+        var home_library_cards = [];
+        var hlcards = $('[id^=hlcard-]').serializeArray();
+        $.each(hlcards, function(i, card) {
+            home_library_cards.push(card.value);
+        });
+        $('#home_library_cards').val(home_library_cards);
+    };
 
     $.ajax({
         url: 'get_library_sections',
@@ -1643,22 +1727,32 @@ $(document).ready(function() {
             for (var i in libraries_list) {
                 var title = libraries_list[i].section_name;
                 var key = libraries_list[i].section_id;
-                $('#home_library_cards').append('<option id="card-' + key + '" value="' + key + '">' + title + '</option>')
+                $('#sortable_home_library_cards').append(
+                    '<li class="card card-sortable">' + 
+                        '<div class="card-handle"><i class="fa fa-bars"></i></div>' + 
+                        '<label>' + 
+                            '<input type="checkbox" id="hlcard-' + key + '" name="hlcard-' + key + '" value="' + key + '"> ' + title + 
+                        '</label>' + 
+                    '</li>'
+                );
             }
-            var cards = ${config['home_library_cards']|n};
-            cards.forEach(function (item) {
-                $('#card-' + item).prop('selected', !$(this).prop('selected'));
+            var config_cards = ${config['home_library_cards'] | n};
+            config_cards.reverse().forEach(function (item) {
+                $('#hlcard-' + item).prop('checked', !$(this).prop('checked'));
+                $('#hlcard-' + item).closest('li.card').prependTo('#sortable_home_library_cards');
             });
+            $('[id^=hlcard-]').change(function() { set_home_library_cards(); });
+            set_home_library_cards()
         }
     });
-    $('#home_library_cards').on('mousedown', function(e) {
-        e.preventDefault();
-        var scroll = this.scrollTop;
-        e.target.selected = !e.target.selected;
-        this.scrollTop = scroll;
-    }).on('mousemove', function(e) {
-        e.preventDefault()
+
+    Sortable.create(sortable_home_library_cards, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_library_cards();
+        }
     });
+
 
     // auto resizing textarea for custom notification message body
     $('textarea[data-autoresize]').each(function() {
