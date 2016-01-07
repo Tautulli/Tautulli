@@ -10,15 +10,22 @@ Variable names:     data [array]
 data[array_index] :: Usable parameters
 
 == Global keys ==
+media_type              Returns the type of media. Either 'movie' or 'episode' or 'album'.
 rating_key              Returns the unique identifier for the media item.
-media_type              Returns the media type of media. Either 'movie' or 'season' or 'album'.
+parent_rating_key       Returns the unique identifier for the season or artist.
+grandparent_rating_key  Returns the unique identifier for the show.
+title                   Returns the name of the movie, episode, album.
+parent_title            Returns the name of the artist.
+grandparent_title       Returns the name of the show.
+media_index             Returns the index number of the episode.
+parent_media_index      Returns the index number of the season.
+library_id              Returns the library section number of the media item.
+library_name            Returns the library section name of the media item.
+year                    Returns the release year of the movie, episode, or album.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
+parent_thumb            Returns the location of the artist's thumbnail. Use with pms_image_proxy.
+grandparent_thumb       Returns the location of the show's thumbnail. Use with pms_image_proxy.
 added_at                Returns the time when the media was added to the library.
-title                   Returns the name of the movie or season.
-parent_title            Returns the name of the TV Show a season belongs too.
-
-== Only if 'media_type' is 'movie' ==
-year                    Returns the movie release year.
 
 DOCUMENTATION :: END
 </%doc>

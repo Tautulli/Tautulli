@@ -219,7 +219,7 @@ class WebInterface(object):
 
         try:
             pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_recently_added_details(count)
+            result = pms_connect.get_recently_added_details(count=count)
         except IOError, e:
             return serve_template(templatename="recently_added.html", data=None)
 
@@ -334,6 +334,18 @@ class WebInterface(object):
         else:
             logger.warn(u"Unable to retrieve data for get_library_recently_watched.")
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
+
+    @cherrypy.expose
+    def get_library_recently_added(self, library_id=None, limit='10', **kwargs):
+
+        library_data = pmsconnect.PmsConnect()
+        result = library_data.get_recently_added_details(library_id=library_id, count=limit)
+
+        if result:
+            return serve_template(templatename="library_recently_added.html", data=result['recently_added'], title="Recently Added")
+        else:
+            logger.warn(u"Unable to retrieve data for get_library_recently_added.")
+            return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
 
     @cherrypy.expose
     def delete_all_library_history(self, section_id, **kwargs):

@@ -352,7 +352,7 @@ class Libraries(object):
                     thumb = row['thumb']
 
                 recent_output = {'row_id': row['id'],
-                                 'type': row['media_type'],
+                                 'media_type': row['media_type'],
                                  'rating_key': row['rating_key'],
                                  'title': row['title'],
                                  'parent_title': row['parent_title'],

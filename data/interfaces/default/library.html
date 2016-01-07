@@ -128,6 +128,23 @@ DOCUMENTATION :: END
                                 </div>
                             </div>
                         </div>
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-card-header">
+                                        <div class="header-bar">
+                                            <span><i class="fa fa-history"></i> Recently Added</span>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <div id="library-recently-added">
+                                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                                            <br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="tab-pane" id="libraryHistory">
                         <div class="container-fluid">
@@ -366,9 +383,35 @@ DOCUMENTATION :: END
             });
         }
 
+        function recentlyAdded() {
+            var widthVal = $('body').find("#library-recently-added").width();
+            var tmp = (widthVal-32) / 180;
+
+            if (tmp > 0) {
+                containerSize = parseInt(tmp);
+            } else {
+                containerSize = 1;
+            }
+
+            // Populate recently added
+            $.ajax({
+                url: 'get_library_recently_added',
+                async: true,
+                data: {
+                    library_id: section_id,
+                    limit: containerSize
+                },
+                complete: function(xhr, status) {
+                    $("#library-recently-added").html(xhr.responseText);
+                }
+            });
+        }
+
         recentlyWatched();
+        recentlyAdded();
         $(window).resize(function() {
             recentlyWatched();
+            recentlyAdded();
         });
     });
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });

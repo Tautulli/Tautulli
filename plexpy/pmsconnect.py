@@ -169,6 +169,23 @@ class PmsConnect(object):
 
         return request
 
+    def get_library_recently_added(self, section_key='', count='0', output_format=''):
+        """
+        Return list of recently added items.
+
+        Parameters required:    count { number of results to return }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
+        uri = '/library/sections/' + section_key + '/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
     def get_children_list(self, rating_key='', output_format=''):
         """
         Return list of children in requested library item.
@@ -346,7 +363,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_recently_added_details(self, count='0'):
+    def get_recently_added_details(self, library_id='', count='0'):
         """
         Return processed and validated list of recently added items.
 
@@ -354,7 +371,10 @@ class PmsConnect(object):
 
         Output: array
         """
-        recent = self.get_recently_added(count, output_format='xml')
+        if library_id:
+            recent = self.get_library_recently_added(library_id, count, output_format='xml')
+        else:
+            recent = self.get_recently_added(count, output_format='xml')
 
         try:
             xml_head = recent.getElementsByTagName('MediaContainer')
@@ -373,15 +393,21 @@ class PmsConnect(object):
             if a.getElementsByTagName('Directory'):
                 recents_main = a.getElementsByTagName('Directory')
                 for item in recents_main:
-                    recent_type = helpers.get_xml_attr(item, 'type')
-                    recent_items = {'media_type': recent_type,
+                    recent_items = {'media_type': helpers.get_xml_attr(item, 'type'),
                                     'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
                                     'parent_rating_key': helpers.get_xml_attr(item, 'parentRatingKey'),
+                                    'grandparent_rating_key': helpers.get_xml_attr(item, 'grandparentRatingKey'),
                                     'title': helpers.get_xml_attr(item, 'title'),
                                     'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
+                                    'grandparent_title': helpers.get_xml_attr(item, 'grandparentTitle'),
+                                    'media_index': helpers.get_xml_attr(item, 'index'),
+                                    'parent_media_index': helpers.get_xml_attr(item, 'parentIndex'),
                                     'library_id': helpers.get_xml_attr(item, 'librarySectionID'),
                                     'library_name': helpers.get_xml_attr(item, 'librarySectionTitle'),
+                                    'year': helpers.get_xml_attr(item, 'year'),
                                     'thumb': helpers.get_xml_attr(item, 'thumb'),
+                                    'parent_thumb': helpers.get_xml_attr(item, 'parentThumb'),
+                                    'grandparent_thumb': helpers.get_xml_attr(item, 'grandparentThumb'),
                                     'added_at': helpers.get_xml_attr(item, 'addedAt')
                                     }
                     recents_list.append(recent_items)
@@ -389,22 +415,24 @@ class PmsConnect(object):
             if a.getElementsByTagName('Video'):
                 recents_main = a.getElementsByTagName('Video')
                 for item in recents_main:
-                    recent_type = helpers.get_xml_attr(item, 'type')
-
-                    if recent_type == 'movie':
-                        recent_items = {'media_type': recent_type,
-                                        'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
-                                        'title': helpers.get_xml_attr(item, 'title'),
-                                        'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
-                                        'library_id': helpers.get_xml_attr(item, 'librarySectionID'),
-                                        'library_name': helpers.get_xml_attr(item, 'librarySectionTitle'),
-                                        'year': helpers.get_xml_attr(item, 'year'),
-                                        'thumb': helpers.get_xml_attr(item, 'thumb'),
-                                        'added_at': helpers.get_xml_attr(item, 'addedAt')
-                                        }
-                        recents_list.append(recent_items)
-                    else:
-                        pass
+                    recent_items = {'media_type': helpers.get_xml_attr(item, 'type'),
+                                    'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
+                                    'parent_rating_key': helpers.get_xml_attr(item, 'parentRatingKey'),
+                                    'grandparent_rating_key': helpers.get_xml_attr(item, 'grandparentRatingKey'),
+                                    'title': helpers.get_xml_attr(item, 'title'),
+                                    'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
+                                    'grandparent_title': helpers.get_xml_attr(item, 'grandparentTitle'),
+                                    'media_index': helpers.get_xml_attr(item, 'index'),
+                                    'parent_media_index': helpers.get_xml_attr(item, 'parentIndex'),
+                                    'library_id': helpers.get_xml_attr(item, 'librarySectionID'),
+                                    'library_name': helpers.get_xml_attr(item, 'librarySectionTitle'),
+                                    'year': helpers.get_xml_attr(item, 'year'),
+                                    'thumb': helpers.get_xml_attr(item, 'thumb'),
+                                    'parent_thumb': helpers.get_xml_attr(item, 'parentThumb'),
+                                    'grandparent_thumb': helpers.get_xml_attr(item, 'grandparentThumb'),
+                                    'added_at': helpers.get_xml_attr(item, 'addedAt')
+                                    }
+                    recents_list.append(recent_items)
 
         output = {'recently_added': sorted(recents_list, key=lambda k: k['added_at'], reverse=True)}
         return output
@@ -1481,7 +1509,7 @@ class PmsConnect(object):
         
         return output
 
-    def get_library_children(self, library_type='', section_key='', list_type='all', sort_type = ''):
+    def get_library_children(self, library_type='', section_key='', list_type='all', count='1', sort_type = ''):
         """
         Return processed and validated server library items list.
 
@@ -1490,9 +1518,6 @@ class PmsConnect(object):
 
         Output: array
         """
-
-        # Currently only grab the library with 1 items so 'size' is not 0
-        count = '1'
 
         if library_type == 'movie':
             sort_type = '&type=1'
