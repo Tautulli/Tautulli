@@ -250,7 +250,7 @@ def read_changelog():
         logfile = open(changelog_file, "r")
     except IOError, e:
         logger.error('PlexPy Version Checker :: Unable to open changelog file. %s' % e)
-        return None
+        return '<h4>Unable to open changelog file</h4>'
 
     if logfile:
         output = ''
