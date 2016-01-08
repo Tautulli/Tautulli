@@ -16,6 +16,7 @@
 from plexpy import logger, database, helpers, common
 
 import datetime
+import locale
 
 
 class Graphs(object):
@@ -311,7 +312,7 @@ class Graphs(object):
             dt = datetime.datetime(*month_item[:6])
             date_string = dt.strftime('%Y-%m')
 
-            categories.append(dt.strftime('%b %Y'))
+            categories.append(dt.strftime('%b %Y').decode(locale.getlocale()[1]))
             series_1_value = 0
             series_2_value = 0
             series_3_value = 0
