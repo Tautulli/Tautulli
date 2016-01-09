@@ -2325,6 +2325,9 @@ a .home-platforms-instance-list-oval:hover,
     width: 250px;
     z-index: 9999;
 }
+.dataTables_paginate li {
+    margin: 0;
+}
 .tooltip.top .tooltip-arrow {
     border-top-color: #fff;
 }
