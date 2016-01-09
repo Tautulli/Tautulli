@@ -570,39 +570,80 @@ class DataFactory(object):
                                    'rows': last_watched})
 
             elif stat == 'most_concurrent':
+
+                def calc_most_concurrent(title, result):
+                    '''
+                    Function to calculate most concurrent streams
+                    Input: Stat title, SQLite query result
+                    Output: Dict {title, count, started, stopped}
+                    '''
+                    times = []
+                    for item in result:
+                        times.append({'time': str(item['started']) + 'B', 'count': 1})
+                        times.append({'time': str(item['stopped']) + 'A', 'count': -1})
+                    times = sorted(times, key=lambda k: k['time']) 
+
+                    count = 0
+                    last_count = 0
+                    last_start = 0
+                    concurrent = {'title': title,
+                                  'count': 0,
+                                  'started': None,
+                                  'stopped': None
+                                  }
+
+                    for d in times:
+                        if d['count'] == 1:
+                            count += d['count']
+                            if count >= last_count:
+                                last_start = d['time']
+                        else:
+                            if count >= last_count:
+                                last_count = count
+                                concurrent['count'] = count
+                                concurrent['started'] = last_start[:-1]
+                                concurrent['stopped'] = d['time'][:-1]
+                            count += d['count']
+
+                    return concurrent
+
+                most_concurrent = []
+
                 try:
-                    query = 'SELECT started, stopped ' \
-                            'FROM session_history ' \
-                            'WHERE datetime(stopped, "unixepoch", "localtime") ' \
-                            '>= datetime("now", "-%s days", "localtime") ' % time_range
+                    base_query = 'SELECT session_history.started, session_history.stopped ' \
+                                 'FROM session_history ' \
+                                 'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
+                                 'WHERE datetime(stopped, "unixepoch", "localtime") ' \
+                                 '>= datetime("now", "-%s days", "localtime") ' % time_range
+
+                    title = 'Concurrent Streams'
+                    query = base_query
                     result = monitor_db.select(query)
+                    most_concurrent.append(calc_most_concurrent(title, result))
+
+                    title = 'Concurrent Transcodes'
+                    query = base_query \
+                          + 'AND (session_history_media_info.video_decision = "transcode" ' \
+                            'OR session_history_media_info.audio_decision = "transcode") '
+                    result = monitor_db.select(query)
+                    most_concurrent.append(calc_most_concurrent(title, result))
+
+                    title = 'Concurrent Direct Streams'
+                    query = base_query \
+                          + 'AND (session_history_media_info.video_decision != "transcode" ' \
+                            'AND session_history_media_info.audio_decision = "copy") '
+                    result = monitor_db.select(query)
+                    most_concurrent.append(calc_most_concurrent(title, result))
+
+                    title = 'Concurrent Direct Plays'
+                    query = base_query \
+                          + 'AND (session_history_media_info.video_decision = "direct play" ' \
+                            'OR session_history_media_info.audio_decision = "direct play") '
+                    result = monitor_db.select(query)
+                    most_concurrent.append(calc_most_concurrent(title, result))
                 except:
                     logger.warn("Unable to execute database query for get_home_stats: most_concurrent.")
                     return None
-
-                times = []
-                for item in result:
-                    times.append({'time': str(item['started']) + 'B', 'count': 1})
-                    times.append({'time': str(item['stopped']) + 'A', 'count': -1})
-                times = sorted(times, key=lambda k: k['time']) 
-
-                count = 0
-                last_count = 0
-                last_start = 0
-                most_concurrent = []
-
-                for d in times:
-                    if d['count'] == 1:
-                        count += d['count']
-                        if count >= last_count:
-                            last_start = d['time']
-                    else:
-                        if count >= last_count:
-                            last_count = count
-                            most_concurrent = [{'count': count,
-                                                'started': last_start[:-1],
-                                                'stopped': d['time'][:-1]}]
-                        count += d['count']
 
                 home_stats.append({'stat_id': stat,
                                    'rows': most_concurrent})

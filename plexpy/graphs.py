@@ -479,14 +479,14 @@ class Graphs(object):
         try:
             if y_axis == 'plays':
                 query = 'SELECT date(session_history.started, "unixepoch", "localtime") as date_played, ' \
-                        'SUM(case when session_history_media_info.video_decision = "direct play" ' \
-                        'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play") ' \
+                        'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
+                        'or session_history_media_info.audio_decision = "direct play") ' \
                         'then 1 else 0 end) as dp_count, ' \
-                        'SUM(case when session_history_media_info.video_decision = "copy" ' \
-                        'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy") ' \
+                        'SUM(case when (session_history_media_info.video_decision != "transcode" ' \
+                        'and session_history_media_info.audio_decision = "copy") ' \
                         'then 1 else 0 end) as ds_count, ' \
-                        'SUM(case when session_history_media_info.video_decision = "transcode" ' \
-                        'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode") ' \
+                        'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
+                        'or session_history_media_info.audio_decision = "transcode") ' \
                         'then 1 else 0 end) as tc_count ' \
                         'FROM session_history ' \
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
@@ -500,15 +500,15 @@ class Graphs(object):
             else:
                 query = 'SELECT date(session_history.started, "unixepoch", "localtime") as date_played, ' \
                         'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
-                        'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play")) ' \
+                        'or session_history_media_info.audio_decision = "direct play") ' \
                         'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                         ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_count, ' \
-                        'SUM(case when (session_history_media_info.video_decision = "copy" ' \
-                        'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy")) ' \
+                        'SUM(case when (session_history_media_info.video_decision != "transcode" ' \
+                        'and session_history_media_info.audio_decision = "copy") ' \
                         'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                         ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_count, ' \
                         'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
-                        'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode")) ' \
+                        'or session_history_media_info.audio_decision = "transcode") ' \
                         'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                         ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_count ' \
                         'FROM session_history ' \
@@ -574,14 +574,14 @@ class Graphs(object):
 
         if y_axis == 'plays':
             query = 'SELECT session_history_media_info.video_resolution AS resolution, ' \
-                    'SUM(case when session_history_media_info.video_decision = "direct play" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play") ' \
+                    'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
+                    'or session_history_media_info.audio_decision = "direct play") ' \
                     'then 1 else 0 end) as dp_count, ' \
-                    'SUM(case when session_history_media_info.video_decision = "copy" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy") ' \
+                    'SUM(case when (session_history_media_info.video_decision != "transcode" ' \
+                    'and session_history_media_info.audio_decision = "copy") ' \
                     'then 1 else 0 end) as ds_count, ' \
-                    'SUM(case when session_history_media_info.video_decision = "transcode" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode") ' \
+                    'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
+                    'or session_history_media_info.audio_decision = "transcode") ' \
                     'then 1 else 0 end) as tc_count, ' \
                     'COUNT(session_history.id) as total_count ' \
                     'FROM session_history ' \
@@ -597,15 +597,15 @@ class Graphs(object):
         else:
             query = 'SELECT session_history_media_info.video_resolution AS resolution,' \
                     'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play")) ' \
+                    'or session_history_media_info.audio_decision = "direct play") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_count, ' \
-                    'SUM(case when (session_history_media_info.video_decision = "copy" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy")) ' \
+                    'SUM(case when (session_history_media_info.video_decision != "transcode" ' \
+                    'and session_history_media_info.audio_decision = "copy") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode")) ' \
+                    'or session_history_media_info.audio_decision = "transcode") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_count, ' \
                     'SUM(case when stopped > 0 then (stopped - started) ' \
@@ -661,14 +661,14 @@ class Graphs(object):
                     'when session_history_media_info.transcode_height <= 1440 then "QHD" ' \
                     'when session_history_media_info.transcode_height <= 2160 then "4K" ' \
                     'else "unknown" end) else session_history_media_info.video_resolution end) as resolution, ' \
-                    'SUM(case when session_history_media_info.video_decision = "direct play" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play") ' \
+                    'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
+                    'or session_history_media_info.audio_decision = "direct play") ' \
                     'then 1 else 0 end) as dp_count, ' \
-                    'SUM(case when session_history_media_info.video_decision = "copy" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy") ' \
+                    'SUM(case when (session_history_media_info.video_decision != "transcode" ' \
+                    'and session_history_media_info.audio_decision = "copy") ' \
                     'then 1 else 0 end) as ds_count, ' \
-                    'SUM(case when session_history_media_info.video_decision = "transcode" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode") ' \
+                    'SUM(case when (session_history_media_info.video_decision = "transcode" '\
+                    'or session_history_media_info.audio_decision = "transcode") ' \
                     'then 1 else 0 end) as tc_count, ' \
                     'COUNT(session_history.id) as total_count ' \
                     'FROM session_history ' \
@@ -694,15 +694,15 @@ class Graphs(object):
                     'when session_history_media_info.transcode_height <= 2160 then "4K" ' \
                     'else "unknown" end) else session_history_media_info.video_resolution end) as resolution, ' \
                     'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play")) ' \
+                    'or session_history_media_info.audio_decision = "direct play") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_count, ' \
-                    'SUM(case when (session_history_media_info.video_decision = "copy" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy")) ' \
+                    'SUM(case when (session_history_media_info.video_decision != "transcode" ' \
+                    'and session_history_media_info.audio_decision = "copy") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode")) ' \
+                    'or session_history_media_info.audio_decision = "transcode") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_count, ' \
                     'SUM(case when stopped > 0 then (stopped - started) ' \
@@ -749,14 +749,14 @@ class Graphs(object):
         if y_axis == 'plays':
             query = 'SELECT ' \
                     'session_history.platform as platform, ' \
-                    'SUM(case when session_history_media_info.video_decision = "direct play" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play") ' \
+                    'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
+                    'or session_history_media_info.audio_decision = "direct play") ' \
                     'then 1 else 0 end) as dp_count, ' \
-                    'SUM(case when session_history_media_info.video_decision = "copy" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy") ' \
+                    'SUM(case when (session_history_media_info.video_decision != "transcode" ' \
+                    'and session_history_media_info.audio_decision = "copy") ' \
                     'then 1 else 0 end) as ds_count, ' \
-                    'SUM(case when session_history_media_info.video_decision = "transcode" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode") ' \
+                    'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
+                    'or session_history_media_info.audio_decision = "transcode") ' \
                     'then 1 else 0 end) as tc_count, ' \
                     'COUNT(session_history.id) as total_count ' \
                     'FROM session_history ' \
@@ -772,15 +772,15 @@ class Graphs(object):
             query = 'SELECT ' \
                     'session_history.platform as platform, ' \
                     'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play")) ' \
+                    'or session_history_media_info.audio_decision = "direct play") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_count, ' \
-                    'SUM(case when (session_history_media_info.video_decision = "copy" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy")) ' \
+                    'SUM(case when (session_history_media_info.video_decision != "transcode" ' \
+                    'and session_history_media_info.audio_decision = "copy") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode")) ' \
+                    'and session_history_media_info.audio_decision = "transcode") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_count, ' \
                     'SUM(case when session_history.stopped > 0 ' \
@@ -828,14 +828,14 @@ class Graphs(object):
         if y_axis == 'plays':
             query = 'SELECT ' \
                     'CASE WHEN users.friendly_name is null then users.username else users.friendly_name end as username, ' \
-                    'SUM(case when session_history_media_info.video_decision = "direct play" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play") ' \
+                    'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
+                    'or session_history_media_info.audio_decision = "direct play") ' \
                     'then 1 else 0 end) as dp_count, ' \
-                    'SUM(case when session_history_media_info.video_decision = "copy" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy") ' \
+                    'SUM(case when (session_history_media_info.video_decision != "transcode" ' \
+                    'and session_history_media_info.audio_decision = "copy") ' \
                     'then 1 else 0 end) as ds_count, ' \
-                    'SUM(case when session_history_media_info.video_decision = "transcode" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode") ' \
+                    'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
+                    'or session_history_media_info.audio_decision = "transcode") ' \
                     'then 1 else 0 end) as tc_count, ' \
                     'COUNT(session_history.id) as total_count ' \
                     'FROM session_history ' \
@@ -852,15 +852,15 @@ class Graphs(object):
             query = 'SELECT ' \
                     'CASE WHEN users.friendly_name is null then users.username else users.friendly_name end as username, ' \
                     'SUM(case when (session_history_media_info.video_decision = "direct play" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "direct play")) ' \
+                    'or session_history_media_info.audio_decision = "direct play") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as dp_count, ' \
-                    'SUM(case when (session_history_media_info.video_decision = "copy" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "copy")) ' \
+                    'SUM(case when (session_history_media_info.video_decision != "transcode" ' \
+                    'and session_history_media_info.audio_decision = "copy") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as ds_count, ' \
                     'SUM(case when (session_history_media_info.video_decision = "transcode" ' \
-                    'or (session_history_media_info.video_decision = "" and session_history_media_info.audio_decision = "transcode")) ' \
+                    'and session_history_media_info.audio_decision = "transcode") ' \
                     'and session_history.stopped > 0 then (session_history.stopped - session_history.started) ' \
                     ' - (case when paused_counter is NULL then 0 else paused_counter end) else 0 end) as tc_count, ' \
                     'SUM(case when session_history.stopped > 0 ' \
