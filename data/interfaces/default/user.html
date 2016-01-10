@@ -181,18 +181,18 @@ from plexpy import helpers
                                         <table class="display" id="history_table" width="100%">
                                             <thead>
                                                 <tr>
-                                                    <th align='left' id="delete">Delete</th>
-                                                    <th align='left' id="time">Time</th>
-                                                    <th align='left' id="friendly_name">User</th>
-                                                    <th align='left' id="ip_address">IP Address</th>
-                                                    <th align='left' id="platform">Platform</th>
-                                                    <th align='left' id="player">Player</th>
-                                                    <th align='left' id="title">Title</th>
-                                                    <th align='left' id="started">Started</th>
-                                                    <th align='left' id="paused_counter">Paused</th>
-                                                    <th align='left' id="stopped">Stopped</th>
-                                                    <th align='left' id="duration">Duration</th>
-                                                    <th align='left' id="percent_complete"></th>
+                                                    <th align="left" id="delete">Delete</th>
+                                                    <th align="left" id="time">Time</th>
+                                                    <th align="left" id="friendly_name">User</th>
+                                                    <th align="left" id="ip_address">IP Address</th>
+                                                    <th align="left" id="platform">Platform</th>
+                                                    <th align="left" id="player">Player</th>
+                                                    <th align="left" id="title">Title</th>
+                                                    <th align="left" id="started">Started</th>
+                                                    <th align="left" id="paused_counter">Paused</th>
+                                                    <th align="left" id="stopped">Stopped</th>
+                                                    <th align="left" id="duration">Duration</th>
+                                                    <th align="left" id="percent_complete"></th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -221,17 +221,17 @@ from plexpy import helpers
                                         <table class="display" id="sync_table" width="100%">
                                             <thead>
                                                 <tr>
-                                                    <th align='left' id="state">State</th>
-                                                    <th align='left' id="username">Username</th>
-                                                    <th align='left' id="sync_title">Title</th>
-                                                    <th align='left' id="type">Type</th>
-                                                    <th align='left' id="sync_platform">Platform</th>
-                                                    <th align='left' id="device">Device</th>
-                                                    <th align='left' id="size">Total Size</th>
-                                                    <th align='left' id="items">Total Items</th>
-                                                    <th align='left' id="converted">Converted</th>
-                                                    <th align='left' id="downloaded">Downloaded</th>
-                                                    <th align='left' id="sync_percent_complete">Complete</th>
+                                                    <th align="left" id="state">State</th>
+                                                    <th align="left" id="username">Username</th>
+                                                    <th align="left" id="sync_title">Title</th>
+                                                    <th align="left" id="type">Type</th>
+                                                    <th align="left" id="sync_platform">Platform</th>
+                                                    <th align="left" id="device">Device</th>
+                                                    <th align="left" id="size">Total Size</th>
+                                                    <th align="left" id="items">Total Items</th>
+                                                    <th align="left" id="converted">Converted</th>
+                                                    <th align="left" id="downloaded">Downloaded</th>
+                                                    <th align="left" id="sync_percent_complete">Complete</th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -342,9 +342,9 @@ from plexpy import helpers
                 type: 'post',
                 data: function ( d ) {
                     return {
-                        'json_data': JSON.stringify( d ),
-                        'user_id': user_id,
-                        'media_type': media_type
+                        json_data: JSON.stringify( d ),
+                        user_id: user_id,
+                        media_type: media_type
                     };
                 }
             }
@@ -391,8 +391,9 @@ from plexpy import helpers
                 url: 'get_user_ips',
                 type: 'post',
                 data: function ( d ) {
-                    return { 'json_data': JSON.stringify( d ),
-                        'user_id': user_id
+                    return { 
+                        json_data: JSON.stringify( d ),
+                        user_id: user_id
                     };
                 }
             }

@@ -7,6 +7,17 @@
 
 <%def name="body()">
 <div class='container-fluid'>
+    % if config['update_section_ids'] == 1:
+    <div id="update_section_ids_mssage" style="text-align: center; margin-top: 20px;">
+        <i class="fa fa-exclamation-triangle"></i> PlexPy needs to update the Library IDs in your databse. Click the "<strong>Refresh libraries</strong>" button below to begin the update.
+    </div>
+    % elif config['update_section_ids'] == -1:
+    <div id="update_section_ids_mssage" style="text-align: center; margin-top: 20px;">
+        <i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes depending on the size of your database.
+        <br />
+        You may leave this page and come back later.
+    </div>
+    % endif
     <div class='table-card-header'>
         <div class="header-bar">
             <span><i class="fa fa-book"></i> All Libraries</span>
@@ -20,7 +31,7 @@
         </div>
     </div>
     <div class='table-card-back'>
-        <table id="libraries_list_table" class="display" width="100%">
+        <table id="libraries_list_table" class="display no-fixed" width="100%">
             <thead>
             <tr>
                 <th align="left" id="edit_row">Edit</th>
@@ -74,7 +85,9 @@
             url: 'get_library_list',
             type: 'POST',
             data: function ( d ) {
-                return { 'json_data': JSON.stringify( d ) };
+                return { 
+                    json_data: JSON.stringify(d)
+                };
             }
         }
 
@@ -157,7 +170,15 @@
         });
     });
 
-    $("#refresh-libraries-list").click(function() {
+    $("#refresh-libraries-list").click(function () {
+        if ("${config['update_section_ids']}" == "1") {
+            $('#update_section_ids_mssage').html(
+                '<i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes depending on the size of your database.' +
+                '<br />' + 
+                'You may leave this page and come back later.');
+            $(this).prop('disabled', true);
+        }
+
         $.ajax({
             url: 'refresh_libraries_list',
             cache: false,
@@ -173,5 +194,9 @@
             }
         });
     });
+
+    if ("${config['update_section_ids']}" == "-1") {
+        $("#refresh-libraries-list").prop('disabled', true);
+    }
 </script>
 </%def>

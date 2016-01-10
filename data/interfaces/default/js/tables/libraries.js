@@ -14,7 +14,7 @@ libraries_list_table_options = {
     "processing": false,
     "serverSide": true,
     "pageLength": 10,
-    "order": [ 1, 'asc'],
+    "order": [ 2, 'asc'],
     "autoWidth": true,
     "stateSave": true,
     "pagingType": "bootstrap",
@@ -40,14 +40,14 @@ libraries_list_table_options = {
             "targets": [1],
             "data": "library_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData === '') {
-                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(interfaces/default/images/cover.png);"></div></a>');
-                } else {
+                if (cellData !== null && cellData !== '') {
                     if (rowData['library_thumb'].substring(0, 4) == "http") {
                         $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['library_thumb'] + ');"></div></a>');
                     } else {
                         $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(pms_image_proxy?img=' + rowData['library_thumb'] + '&width=80&height=80&fallback=poster);"></div></a>');
                     }
+                } else {
+                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(interfaces/default/images/cover.png);"></div></a>');
                 }
             },
             "orderable": false,
@@ -59,12 +59,12 @@ libraries_list_table_options = {
             "targets": [2],
             "data": "section_name",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
+                if (cellData !== null && cellData !== '') {
                     $(td).html('<div data-id="' + rowData['section_id'] + '">' +
                         '<a href="library?section_id=' + rowData['section_id'] + '">' + cellData + '</a>' +
                         '</div>');
                 } else {
-                    $(td).html(cellData);
+                    $(td).html('n/a');
                 }
             },
             "width": "10%",
@@ -74,7 +74,7 @@ libraries_list_table_options = {
             "targets": [3],
             "data": "section_type",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
+                if (cellData !== null && cellData !== '') {
                     $(td).html(cellData);
                 }
             },
@@ -85,10 +85,8 @@ libraries_list_table_options = {
             "targets": [4],
             "data": "count",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== null) {
+                if (cellData !== null && cellData !== '') {
                     $(td).html(cellData);
-                } else {
-                    $(td).html('n/a');
                 }
 
             },
@@ -99,10 +97,8 @@ libraries_list_table_options = {
             "targets": [5],
             "data": "parent_count",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== null) {
+                if (cellData !== null && cellData !== '') {
                     $(td).html(cellData);
-                } else {
-                    $(td).html('n/a');
                 }
 
             },
@@ -113,10 +109,8 @@ libraries_list_table_options = {
             "targets": [6],
             "data": "child_count",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== null) {
+                if (cellData !== null && cellData !== '') {
                     $(td).html(cellData);
-                } else {
-                    $(td).html('n/a');
                 }
 
             },
@@ -126,11 +120,11 @@ libraries_list_table_options = {
         {
             "targets": [7],
             "data": "last_accessed",
-            "render": function (data, type, full) {
-                if (data) {
-                    return moment(data, "X").fromNow();
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(moment(cellData, "X").fromNow());
                 } else {
-                    return "never";
+                    $(td).html("never");
                 }
             },
             "searchable": false,
@@ -141,7 +135,7 @@ libraries_list_table_options = {
             "targets": [8],
             "data":"last_watched",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
+                if (cellData !== null && cellData !== '') {
                     var media_type = '';
                     var thumb_popover = ''
                     if (rowData['media_type'] === 'movie') {
@@ -158,9 +152,9 @@ libraries_list_table_options = {
                         $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type']) {
                         $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
-                    } else {
-                        $(td).html('n/a');
                     }
+                } else {
+                    $(td).html('n/a');
                 }
             },
             "width": "25%",

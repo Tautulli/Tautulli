@@ -67,6 +67,7 @@ DOCUMENTATION :: END
                                 <ul class="user-info-nav">
                                     <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
                                     <li><a id="history-tab-btn" href="#libraryHistory" data-toggle="tab">History</a></li>
+                                    <li><a id="media-info-tab-btn" href="#libraryMediaInfo" data-toggle="tab">Media Info</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -170,18 +171,62 @@ DOCUMENTATION :: END
                                         <table class="display" id="history_table" width="100%">
                                             <thead>
                                                 <tr>
-                                                    <th align='left' id="delete">Delete</th>
-                                                    <th align='left' id="time">Time</th>
-                                                    <th align='left' id="friendly_name">User</th>
-                                                    <th align='left' id="ip_address">IP Address</th>
-                                                    <th align='left' id="platform">Platform</th>
-                                                    <th align='left' id="player">Player</th>
-                                                    <th align='left' id="title">Title</th>
-                                                    <th align='left' id="started">Started</th>
-                                                    <th align='left' id="paused_counter">Paused</th>
-                                                    <th align='left' id="stopped">Stopped</th>
-                                                    <th align='left' id="duration">Duration</th>
-                                                    <th align='left' id="percent_complete"></th>
+                                                    <th align="left" id="delete">Delete</th>
+                                                    <th align="left" id="time">Time</th>
+                                                    <th align="left" id="friendly_name">User</th>
+                                                    <th align="left" id="ip_address">IP Address</th>
+                                                    <th align="left" id="platform">Platform</th>
+                                                    <th align="left" id="player">Player</th>
+                                                    <th align="left" id="title">Title</th>
+                                                    <th align="left" id="started">Started</th>
+                                                    <th align="left" id="paused_counter">Paused</th>
+                                                    <th align="left" id="stopped">Stopped</th>
+                                                    <th align="left" id="duration">Duration</th>
+                                                    <th align="left" id="percent_complete"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="libraryMediaInfo">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-history"></i> All Media Info for <strong>
+                                                    <span class="set-username">${data['section_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" style="margin-right: 5px;">
+                                                <i class="fa fa-refresh"></i> Refresh media info
+                                            </button>
+                                            <div class="colvis-button-bar hidden-xs" id="button-bar-media-info"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display" id="media_info_table" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="added_at">Added At</th>
+                                                    <th align="left" id="title">Title</th>
+                                                    <th align="left" id="container">Container</th>
+                                                    <th align="left" id="bitrate">Bitrate</th>
+                                                    <th align="left" id="video_codec">Video Codec</th>
+                                                    <th align="left" id="video_resolution">Video Resolution</th>
+                                                    <th align="left" id="video_resolution">Video Framerate</th>
+                                                    <th align="left" id="audio_codec">Audio Codec</th>
+                                                    <th align="left" id="audio_channels">Audio Channels</th>
+                                                    <th align="left" id="file_size">File Size</th>
+                                                    <th align="left" id="last_watched">Last Watched</th>
+                                                    <th align="left" id="total_plays">Total Plays</th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -250,6 +295,7 @@ DOCUMENTATION :: END
 % if data:
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/history_table.js"></script>
+<script src="interfaces/default/js/tables/media_info_table.js"></script>
 <script>
     $(document).ready(function () {
 
@@ -267,7 +313,7 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'get_library_watch_time_stats',
             async: true,
-            data: { library_id: section_id },
+            data: { section_id: section_id },
             complete: function(xhr, status) {
                 $("#library-time-stats").html(xhr.responseText);
             }
@@ -277,7 +323,7 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'get_library_user_stats',
             async: true,
-            data: { library_id: section_id },
+            data: { section_id: section_id },
             complete: function(xhr, status) {
                 $("#library-user-stats").html(xhr.responseText);
             }
@@ -290,8 +336,8 @@ DOCUMENTATION :: END
                 type: 'post',
                 data: function ( d ) {
                     return {
-                        'json_data': JSON.stringify( d ),
-                        'section_id': section_id
+                        json_data: JSON.stringify( d ),
+                        section_id: section_id
                     };
                 }
             }
@@ -304,8 +350,43 @@ DOCUMENTATION :: END
             clearSearchButton('history_table', history_table);
         }
 
+        function loadMediaInfoTable() {
+            // Build media info table
+            media_info_table_options.ajax = {
+                url: 'get_library_media_info2',
+                type: 'post',
+                data: function ( d ) {
+                    return { 
+                        json_data: JSON.stringify( d ),
+                        section_id: section_id
+                    };
+                }
+            }
+            media_info_table = $('#media_info_table').DataTable(media_info_table_options);
+
+            var colvis = new $.fn.dataTable.ColVis(media_info_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+            $(colvis.button()).appendTo('#button-bar-media-info');
+
+            clearSearchButton('media_info_table', media_info_table);
+        }
+
         $( "#history-tab-btn" ).one( "click", function() {
             loadHistoryTable();
+        });
+        $( "#media-info-tab-btn" ).one( "click", function() {
+            loadMediaInfoTable();
+        });        
+        
+        $("#refresh-media-info-table").click(function () {
+            $.ajax({
+                url: 'delete_datatable_media_info_cache',
+                cache: false,
+                async: true,
+                data: { section_id: section_id },
+                complete: function(xhr, status) {
+                    media_info_table.draw()
+                }
+            });
         });
 
         // Load edit library modal
@@ -374,7 +455,7 @@ DOCUMENTATION :: END
                 url: 'get_library_recently_watched',
                 async: true,
                 data: {
-                    library_id: section_id,
+                    section_id: section_id,
                     limit: containerSize
                 },
                 complete: function(xhr, status) {
@@ -398,7 +479,7 @@ DOCUMENTATION :: END
                 url: 'get_library_recently_added',
                 async: true,
                 data: {
-                    library_id: section_id,
+                    section_id: section_id,
                     limit: containerSize
                 },
                 complete: function(xhr, status) {
@@ -413,8 +494,9 @@ DOCUMENTATION :: END
             recentlyWatched();
             recentlyAdded();
         });
+
+        $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
     });
-    $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
 </script>
 % endif
 </%def>

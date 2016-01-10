@@ -31,7 +31,7 @@ def notify(stream_data=None, notify_action=None):
         user_details = user_data.get_details(user_id=stream_data['user_id'])
 
         library_data = libraries.Libraries()
-        library_details = library_data.get_details(section_id=stream_data['library_id'])
+        library_details = library_data.get_details(section_id=stream_data['section_id'])
 
         if not user_details['do_notify']:
             # logger.debug(u"PlexPy NotificationHandler :: Notifications for user '%s' is disabled." % user_details['username'])

@@ -234,7 +234,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     def libraries(self):
-        return serve_template(templatename="libraries.html", title="Libraries")
+        config = {
+            "update_section_ids": plexpy.CONFIG.UPDATE_SECTION_IDS
+        }
+
+        return serve_template(templatename="libraries.html", title="Libraries", config=config)
 
     @cherrypy.expose
     def get_library_list(self, **kwargs):
@@ -300,10 +304,10 @@ class WebInterface(object):
                 return status_message
 
     @cherrypy.expose
-    def get_library_watch_time_stats(self, library_id=None, **kwargs):
+    def get_library_watch_time_stats(self, section_id=None, **kwargs):
 
         library_data = libraries.Libraries()
-        result = library_data.get_watch_time_stats(library_id=library_id)
+        result = library_data.get_watch_time_stats(section_id=section_id)
 
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
@@ -312,10 +316,10 @@ class WebInterface(object):
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
-    def get_library_user_stats(self, library_id=None, **kwargs):
+    def get_library_user_stats(self, section_id=None, **kwargs):
         
         library_data = libraries.Libraries()
-        result = library_data.get_user_stats(library_id=library_id)
+        result = library_data.get_user_stats(section_id=section_id)
         
         if result:
             return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
@@ -324,10 +328,10 @@ class WebInterface(object):
             return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
-    def get_library_recently_watched(self, library_id=None, limit='10', **kwargs):
+    def get_library_recently_watched(self, section_id=None, limit='10', **kwargs):
 
         library_data = libraries.Libraries()
-        result = library_data.get_recently_watched(library_id=library_id, limit=limit)
+        result = library_data.get_recently_watched(section_id=section_id, limit=limit)
 
         if result:
             return serve_template(templatename="user_recently_watched.html", data=result, title="Recently Watched")
@@ -336,16 +340,49 @@ class WebInterface(object):
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
 
     @cherrypy.expose
-    def get_library_recently_added(self, library_id=None, limit='10', **kwargs):
+    def get_library_recently_added(self, section_id=None, limit='10', **kwargs):
 
-        library_data = pmsconnect.PmsConnect()
-        result = library_data.get_recently_added_details(library_id=library_id, count=limit)
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_recently_added_details(section_id=section_id, count=limit)
 
         if result:
             return serve_template(templatename="library_recently_added.html", data=result['recently_added'], title="Recently Added")
         else:
             logger.warn(u"Unable to retrieve data for get_library_recently_added.")
             return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
+
+    @cherrypy.expose
+    def get_library_media_info(self, section_id=None, **kwargs):
+        
+        library_data = libraries.Libraries()
+        result = library_data.get_datatables_media_info(section_id=section_id, kwargs=kwargs)
+
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps(result)
+
+    @cherrypy.expose
+    def get_library_media_info2(self, section_id=None, section_type=None, rating_key=None, **kwargs):
+        
+        library_data = libraries.Libraries()
+        result = library_data.get_datatables_media_info2(section_id=section_id,
+                                                         section_type=section_type,
+                                                         rating_key=rating_key,
+                                                         kwargs=kwargs)
+
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps(result)
+
+    @cherrypy.expose
+    def get_library_unwatched(self, section_id=None, section_type=None, **kwargs):
+        
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_library_children(section_id=section_id,
+                                                  section_type=section_type,
+                                                  get_media_info=True,
+                                                  kwargs=kwargs)
+
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps(result)
 
     @cherrypy.expose
     def delete_all_library_history(self, section_id, **kwargs):
@@ -395,6 +432,35 @@ class WebInterface(object):
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps({'message': 'no data received'})
 
+    @cherrypy.expose
+    def update_section_ids(self, **kwargs):
+
+        logger.debug(u"Updating section_id's in database.")
+        library_data = libraries.Libraries()
+        result = library_data.update_section_ids()
+
+        if result:
+            logger.debug(u"Updated all section_id's in database.")
+            plexpy.CONFIG.UPDATE_SECTION_IDS = 0
+            plexpy.CONFIG.write()
+            return "Section ids updated."
+        else:
+            logger.debug(u"Unable to update section_id's in database.")
+            return "Unable to update section ids in database."
+
+    @cherrypy.expose
+    def delete_datatable_media_info_cache(self, section_id, **kwargs):
+        library_data = libraries.Libraries()
+
+        if section_id:
+            delete_row = library_data.delete_datatable_media_info_cache(section_id=section_id)
+
+            if delete_row:
+                cherrypy.response.headers['Content-type'] = 'application/json'
+                return json.dumps({'message': delete_row})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
 
     ##### Users #####
 
@@ -595,7 +661,7 @@ class WebInterface(object):
             custom_where.append(['session_history.reference_id', reference_id])
         if 'section_id' in kwargs:
             section_id = kwargs.get('section_id', "")
-            custom_where.append(['session_history_metadata.library_id', section_id])
+            custom_where.append(['session_history_metadata.section_id', section_id])
         if 'media_type' in kwargs:
             media_type = kwargs.get('media_type', "")
             if media_type != 'all':
@@ -1348,14 +1414,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     def info(self, rating_key=None, source=None, **kwargs):
-        # temporary until I find a beter place to put this
-        #data_factory.update_library_ids()
-
         metadata = None
 
         config = {
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
-            "update_library_ids": plexpy.CONFIG.UPDATE_LIBRARY_IDS
+            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER
         }
 
         if source == 'history':
@@ -1371,7 +1433,6 @@ class WebInterface(object):
             return serve_template(templatename="info.html", data=metadata, title="Info", config=config)
         else:
             return self.update_metadata(rating_key)
-            #raise cherrypy.InternalRedirect("/update_metadata?rating_key=" + rating_key)
 
     @cherrypy.expose
     def get_item_children(self, rating_key='', **kwargs):
@@ -1493,24 +1554,7 @@ class WebInterface(object):
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps({'message': 'no data received'})
 
-    @cherrypy.expose
-    def update_history_rating_key(self, old_rating_key, new_rating_key, media_type, **kwargs):
-        data_factory = datafactory.DataFactory()
-        pms_connect = pmsconnect.PmsConnect()
 
-        old_key_list = data_factory.get_rating_keys_list(rating_key=old_rating_key, media_type=media_type)
-        new_key_list = pms_connect.get_rating_keys_list(rating_key=new_rating_key, media_type=media_type)
-
-        update_db = data_factory.update_rating_key(old_key_list=old_key_list,
-                                                   new_key_list=new_key_list,
-                                                   media_type=media_type)
-
-        if update_db:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': update_db})
-        else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
 
     # test code
     @cherrypy.expose
@@ -1536,22 +1580,6 @@ class WebInterface(object):
             return json.dumps(result)
         else:
             logger.warn(u"Unable to retrieve data for get_old_rating_keys.")
-
-    @cherrypy.expose
-    def update_library_ids(self, **kwargs):
-
-        logger.debug(u"Updating library_id's in database.")
-        data_factory = datafactory.DataFactory()
-        result = data_factory.update_library_ids()
-
-        if result:
-            logger.debug(u"Updated all library_id's in database.")
-            plexpy.CONFIG.UPDATE_LIBRARY_IDS = 0
-            plexpy.CONFIG.write()
-            return "Library ids updated."
-        else:
-            logger.debug(u"Unable to update library_id's in database.")
-            return "Unable to update library ids in database."
 
 
     ##### API #####

@@ -124,8 +124,9 @@ class DataTables(object):
 
             order += ', '
 
+        order = order.rstrip(', ')
         if order:
-            order = 'ORDER BY ' + order.rstrip(', ')
+            order = 'ORDER BY ' + order
 
         # Build where parameters
         if parameters['search']['value']:

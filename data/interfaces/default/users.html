@@ -20,7 +20,7 @@
         </div>
     </div>
     <div class='table-card-back'>
-        <table id="users_list_table" class="display" width="100%">
+        <table id="users_list_table" class="display no-fixed" width="100%">
             <thead>
             <tr>
                 <th align="left" id="edit_row">Edit</th>
@@ -77,7 +77,9 @@
             url: 'get_user_list',
             type: 'POST',
             data: function ( d ) {
-                return { 'json_data': JSON.stringify( d ) };
+                return {
+                    json_data: JSON.stringify(d)
+                };
             }
         }
 

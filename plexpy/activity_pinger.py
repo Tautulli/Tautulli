@@ -192,7 +192,7 @@ def check_recently_added():
             recently_added = recently_added_list['recently_added']
 
             for item in recently_added:
-                library_details = library_data.get_details(section_id=item['library_id'])
+                library_details = library_data.get_details(section_id=item['section_id'])
 
                 if not library_details['do_notify_created']:
                     continue
@@ -221,7 +221,7 @@ def check_recently_added():
                     if not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
                         for item in metadata:
 
-                            library_details = library_data.get_details(section_id=item['library_id'])
+                            library_details = library_data.get_details(section_id=item['section_id'])
 
                             if 0 < time_threshold - int(item['added_at']) <= time_interval:
                                 logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))

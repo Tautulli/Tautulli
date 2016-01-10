@@ -54,13 +54,13 @@ users_list_table_options = {
             "targets": [2],
             "data": "friendly_name",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
+                if (cellData !== null && cellData !== '') {
                     $(td).html('<div class="edit-user-name" data-id="' + rowData['user_id'] + '">' +
                         '<a href="user?user_id=' + rowData['user_id'] + '">' + cellData + '</a>' +
                         '<input type="text" class="hidden" value="' + cellData + '">' +
                         '</div>');
                 } else {
-                    $(td).html(cellData);
+                    $(td).html('n/a');
                 }
             },
             "width": "10%",
@@ -69,11 +69,11 @@ users_list_table_options = {
         {
             "targets": [3],
             "data": "last_seen",
-            "render": function ( data, type, full ) {
-                if (data) {
-                    return moment(data, "X").fromNow();
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(moment(cellData, "X").fromNow());
                 } else {
-                    return "never";
+                    $(td).html("never");
                 }
             },
             "searchable": false,
@@ -105,7 +105,7 @@ users_list_table_options = {
             "targets": [5],
             "data": "platform",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
+                if (cellData !== null && cellData !== '') {
                     $(td).html(cellData);
                 } else {
                     $(td).html('n/a');
@@ -118,7 +118,7 @@ users_list_table_options = {
             "targets": [6],
             "data":"player",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData) {
+                if (cellData !== null && cellData !== '') {
                     var transcode_dec = '';
                     if (rowData['video_decision'] === 'transcode') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server fa-fw"></i></span>';
@@ -139,7 +139,7 @@ users_list_table_options = {
             "targets": [7],
             "data":"last_watched",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
+                if (cellData !== null && cellData !== '') {
                     var media_type = '';
                     var thumb_popover = ''
                     if (rowData['media_type'] === 'movie') {
@@ -156,9 +156,9 @@ users_list_table_options = {
                         $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type']) {
                         $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
-                    } else {
-                        $(td).html('n/a');
                     }
+                } else {
+                    $(td).html('n/a');
                 }
             },
             "width": "30%",

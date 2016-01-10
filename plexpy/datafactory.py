@@ -98,12 +98,12 @@ class DataFactory(object):
         for item in history:
             filter_duration += int(item['duration'])
 
-            if item["media_type"] == 'episode' and item["parent_thumb"]:
-                thumb = item["parent_thumb"]
-            elif item["media_type"] == 'episode':
-                thumb = item["grandparent_thumb"]
+            if item['media_type'] == 'episode' and item['parent_thumb']:
+                thumb = item['parent_thumb']
+            elif item['media_type'] == 'episode':
+                thumb = item['grandparent_thumb']
             else:
-                thumb = item["thumb"]
+                thumb = item['thumb']
 
             if item['percent_complete'] >= watched_percent:
                 watched_status = 1
@@ -113,37 +113,37 @@ class DataFactory(object):
                 watched_status = 0
 
             # Rename Mystery platform names
-            platform = common.PLATFORM_NAME_OVERRIDES.get(item["platform"], item["platform"])
+            platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
-            row = {"reference_id": item["reference_id"],
-                   "id": item["id"],
-                   "date": item["date"],
-                   "started": item["started"],
-                   "stopped": item["stopped"],
-                   "duration": item["duration"],
-                   "paused_counter": item["paused_counter"],
-                   "user_id": item["user_id"],
-                   "user": item["user"],
-                   "friendly_name": item["friendly_name"],
-                   "platform": platform,
-                   "player": item['player'],
-                   "ip_address": item["ip_address"],
-                   "media_type": item["media_type"],
-                   "rating_key": item["rating_key"],
-                   "parent_rating_key": item["parent_rating_key"],
-                   "grandparent_rating_key": item["grandparent_rating_key"],
-                   "full_title": item["full_title"],
-                   "parent_title": item["parent_title"],
-                   "year": item["year"],
-                   "media_index": item["media_index"],
-                   "parent_media_index": item["parent_media_index"],
-                   "thumb": thumb,
-                   "video_decision": item["video_decision"],
-                   "audio_decision": item["audio_decision"],
-                   "percent_complete": int(round(item['percent_complete'])),
-                   "watched_status": watched_status,
-                   "group_count": item["group_count"],
-                   "group_ids": item["group_ids"]
+            row = {'reference_id': item['reference_id'],
+                   'id': item['id'],
+                   'date': item['date'],
+                   'started': item['started'],
+                   'stopped': item['stopped'],
+                   'duration': item['duration'],
+                   'paused_counter': item['paused_counter'],
+                   'user_id': item['user_id'],
+                   'user': item['user'],
+                   'friendly_name': item['friendly_name'],
+                   'platform': platform,
+                   'player': item['player'],
+                   'ip_address': item['ip_address'],
+                   'media_type': item['media_type'],
+                   'rating_key': item['rating_key'],
+                   'parent_rating_key': item['parent_rating_key'],
+                   'grandparent_rating_key': item['grandparent_rating_key'],
+                   'full_title': item['full_title'],
+                   'parent_title': item['parent_title'],
+                   'year': item['year'],
+                   'media_index': item['media_index'],
+                   'parent_media_index': item['parent_media_index'],
+                   'thumb': thumb,
+                   'video_decision': item['video_decision'],
+                   'audio_decision': item['audio_decision'],
+                   'percent_complete': int(round(item['percent_complete'])),
+                   'watched_status': watched_status,
+                   'group_count': item['group_count'],
+                   'group_ids': item['group_ids']
                    }
 
             rows.append(row)
@@ -154,7 +154,7 @@ class DataFactory(object):
                 'draw': query['draw'],
                 'filter_duration': helpers.human_duration(filter_duration, sig='dhm'),
                 'total_duration': helpers.human_duration(total_duration, sig='dhm')
-        }
+                }
 
         return dict
 
@@ -736,7 +736,7 @@ class DataFactory(object):
                     'session_history_metadata.parent_title, session_history_metadata.grandparent_title, ' \
                     'session_history_metadata.full_title, library_sections.section_name, ' \
                     'session_history_metadata.media_index, session_history_metadata.parent_media_index, ' \
-                    'session_history_metadata.library_id, session_history_metadata.thumb, ' \
+                    'session_history_metadata.section_id, session_history_metadata.thumb, ' \
                     'session_history_metadata.parent_thumb, session_history_metadata.grandparent_thumb, ' \
                     'session_history_metadata.art, session_history_metadata.media_type, session_history_metadata.year, ' \
                     'session_history_metadata.originally_available_at, session_history_metadata.added_at, ' \
@@ -746,7 +746,7 @@ class DataFactory(object):
                     'session_history_metadata.guid, session_history_metadata.directors, session_history_metadata.writers, ' \
                     'session_history_metadata.actors, session_history_metadata.genres, session_history_metadata.studio ' \
                     'FROM session_history_metadata ' \
-                    'JOIN library_sections ON session_history_metadata.library_id = library_sections.section_id ' \
+                    'JOIN library_sections ON session_history_metadata.section_id = library_sections.section_id ' \
                     'WHERE session_history_metadata.rating_key = ?'
             result = monitor_db.select(query=query, args=[rating_key])
         else:
@@ -789,7 +789,7 @@ class DataFactory(object):
                         'genres': genres,
                         'actors': actors,
                         'library_name': item['section_name'],
-                        'library_id': item['library_id']
+                        'section_id': item['section_id']
                         }
 
         return metadata
@@ -1056,7 +1056,7 @@ class DataFactory(object):
             # Update the session_history_metadata table
             query = 'UPDATE session_history_metadata SET rating_key = ?, parent_rating_key = ?, ' \
                     'grandparent_rating_key = ?, title = ?, parent_title = ?, grandparent_title = ?, full_title = ?, ' \
-                    'media_index = ?, parent_media_index = ?, library_id = ?, thumb = ?, parent_thumb = ?, ' \
+                    'media_index = ?, parent_media_index = ?, section_id = ?, thumb = ?, parent_thumb = ?, ' \
                     'grandparent_thumb = ?, art = ?, media_type = ?, year = ?, originally_available_at = ?, ' \
                     'added_at = ?, updated_at = ?, last_viewed_at = ?, content_rating = ?, summary = ?, ' \
                     'tagline = ?, rating = ?, duration = ?, guid = ?, directors = ?, writers = ?, actors = ?, ' \
@@ -1065,7 +1065,7 @@ class DataFactory(object):
 
             args = [metadata['rating_key'], metadata['parent_rating_key'], metadata['grandparent_rating_key'],
                     metadata['title'], metadata['parent_title'], metadata['grandparent_title'], full_title,
-                    metadata['media_index'], metadata['parent_media_index'], metadata['library_id'], metadata['thumb'],
+                    metadata['media_index'], metadata['parent_media_index'], metadata['section_id'], metadata['thumb'],
                     metadata['parent_thumb'], metadata['grandparent_thumb'], metadata['art'], metadata['media_type'],
                     metadata['year'], metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
                     metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['tagline'], 
@@ -1074,34 +1074,3 @@ class DataFactory(object):
                     old_rating_key]
 
             monitor_db.action(query=query, args=args)
-
-    def update_library_ids(self):
-        from plexpy import pmsconnect
-
-        pms_connect = pmsconnect.PmsConnect()
-        monitor_db = database.MonitorDatabase()
-
-        try:
-            query = 'SELECT id, rating_key FROM session_history_metadata WHERE library_id IS NULL'
-            result = monitor_db.select(query=query)
-        except Exception as e:
-            logger.warn(u"PlexPy DataFactory :: Unable to execute database query for update_library_id: %s." % e)
-            return None
-
-        for item in result:
-            id = item['id']
-            rating_key = item['rating_key']
-
-            result = pms_connect.get_metadata_details(rating_key=rating_key)
-
-            if result:
-                metadata = result['metadata']
-
-                section_keys = {'id': id}
-                section_values = {'library_id': metadata['library_id']}
-
-                monitor_db.upsert('session_history_metadata', key_dict=section_keys, value_dict=section_values)
-            else:
-                continue
-
-        return True

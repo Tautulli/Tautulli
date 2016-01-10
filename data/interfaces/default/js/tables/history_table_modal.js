@@ -39,7 +39,7 @@ history_table_modal_options = {
             },
             "searchable": false,
             "className": "no-wrap",
-            "width": "5%"
+            "width": "10%"
         },
         {
             "targets": [1],
@@ -53,7 +53,7 @@ history_table_modal_options = {
             },
             "searchable": false,
             "className": "no-wrap",
-            "width": "5%"
+            "width": "10%"
         },
         {
             "targets": [2],
@@ -69,7 +69,8 @@ history_table_modal_options = {
                     $(td).html(cellData);
                 }
             },
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap hidden-xs",
+            "width": "15%"
         },
         {
             "targets": [3],
@@ -87,7 +88,8 @@ history_table_modal_options = {
                     $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp' + cellData + '</div></a></div>');
                 }
             },
-            "className": "no-wrap hidden-sm hidden-xs modal-control"
+            "className": "no-wrap hidden-sm hidden-xs modal-control",
+            "width": "20%"
         },
         {
             "targets": [4],
@@ -113,7 +115,8 @@ history_table_modal_options = {
                         $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
                     }
                 }
-            }
+            },
+            "width": "30%"
         }
     ],
     "drawCallback": function (settings) {

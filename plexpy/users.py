@@ -73,6 +73,11 @@ class Users(object):
 
         rows = []
         for item in users:
+            if item['friendly_name']:
+                friendly_name = item['friendly_name']
+            else:
+                friendly_name = item['username']
+                
             if item['media_type'] == 'episode' and item['parent_thumb']:
                 thumb = item['parent_thumb']
             elif item['media_type'] == 'episode':
@@ -114,7 +119,7 @@ class Users(object):
                 'recordsTotal': query['totalCount'],
                 'data': rows,
                 'draw': query['draw']
-        }
+                }
 
         return dict
 
@@ -199,7 +204,7 @@ class Users(object):
                 'recordsTotal': query['totalCount'],
                 'data': rows,
                 'draw': query['draw']
-        }
+                }
 
         return dict
 

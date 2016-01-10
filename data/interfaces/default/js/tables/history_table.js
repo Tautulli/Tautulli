@@ -56,7 +56,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
-            "width": "8%",
+            "width": "7%",
             "className": "no-wrap expand-history"
         },
         {
@@ -73,7 +73,7 @@ history_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "8%",
+            "width": "7%",
             "className": "no-wrap hidden-xs"
         },
         {
@@ -95,7 +95,7 @@ history_table_options = {
                     $(td).html('n/a');
                 }
             },
-            "width": "8%",
+            "width": "7%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control-ip"
         },
         {
@@ -106,7 +106,7 @@ history_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "8%",
+            "width": "7%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
         },
         {
@@ -153,7 +153,7 @@ history_table_options = {
                     }
                 }
             },
-            "width": "35%"
+            "width": "33%"
         },
         {
             "targets": [7],
@@ -226,7 +226,7 @@ history_table_options = {
             "searchable": false,
             "orderable": false,
             "className": "no-wrap hidden-md hidden-sm hidden-xs",
-            "width": "1%"
+            "width": "2%"
         },
     ],
     "drawCallback": function (settings) {
@@ -260,7 +260,7 @@ history_table_options = {
             var rowData = this.data();
             if (rowData['group_count'] != 1 && rowData['reference_id'] in history_child_table) {
                 // if grouped row and a child table was already created
-                $(this.node()).find('i.fa').toggleClass('fa-plus-circle').toggleClass('fa-minus-circle');
+                $(this.node()).find('i.fa.fa-plus-circle').toggleClass('fa-plus-circle').toggleClass('fa-minus-circle');
                 this.child(childTableFormat(rowData)).show();
                 createChildTable(this, rowData)
             }
@@ -426,13 +426,13 @@ function childTableOptions(rowData) {
     history_child_options.pageLength = 10;
     history_child_options.bStateSave = false;
     history_child_options.ajax = {
-        "url": "get_history",
-        type: "post",
+        url: 'get_history',
+        type: 'post',
         data: function (d) {
             return {
-                'json_data': JSON.stringify(d),
-                'grouping': false,
-                'reference_id': rowData['reference_id']
+                json_data: JSON.stringify(d),
+                grouping: false,
+                reference_id: rowData['reference_id']
             };
         }
     }
@@ -469,7 +469,7 @@ function childTableOptions(rowData) {
 // Format the detailed history child table
 function childTableFormat(rowData) {
     return '<div class="slider">' +
-            '<table id="history_child-' + rowData['reference_id'] + '">' +
+            '<table id="history_child-' + rowData['reference_id'] + '" width="100%">' +
             '<thead>' +
             '<tr>' +
                 '<th align="left" id="delete_row">Delete</th>' +

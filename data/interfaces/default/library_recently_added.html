@@ -19,7 +19,7 @@ parent_title            Returns the name of the artist.
 grandparent_title       Returns the name of the show.
 media_index             Returns the index number of the episode.
 parent_media_index      Returns the index number of the season.
-library_id              Returns the library section number of the media item.
+section_id              Returns the library section number of the media item.
 library_name            Returns the library section name of the media item.
 year                    Returns the release year of the movie, episode, or album.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
@@ -39,7 +39,11 @@ DOCUMENTATION :: END
             <a href="info?rating_key=${item['rating_key']}">
                 <div class="dashboard-recent-media-poster">
                     % if item['media_type'] == 'episode':
+                    % if item['parent_thumb']:
                     <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['parent_thumb']}&width=300&height=450&fallback=poster);">
+                    % else:
+                    <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['grandparent_thumb']}&width=300&height=450&fallback=poster);">
+                    % endif
                     % elif item['media_type'] == 'movie':
                     <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
                     % endif

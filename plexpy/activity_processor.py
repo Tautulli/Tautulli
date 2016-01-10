@@ -29,7 +29,7 @@ class ActivityProcessor(object):
     def write_session(self, session=None, notify=True):
         if session:
             values = {'session_key': session['session_key'],
-                      'library_id': session['library_id'],
+                      'section_id': session['section_id'],
                       'rating_key': session['rating_key'],
                       'media_type': session['media_type'],
                       'state': session['state'],
@@ -104,7 +104,7 @@ class ActivityProcessor(object):
         user_details = user_data.get_details(user_id=session['user_id'])
 
         library_data = libraries.Libraries()
-        library_details = library_data.get_details(section_id=session['library_id'])
+        library_details = library_data.get_details(section_id=session['section_id'])
 
         if session:
             logging_enabled = False
@@ -257,7 +257,7 @@ class ActivityProcessor(object):
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history_metadata table...")
                 query = 'INSERT INTO session_history_metadata (id, rating_key, parent_rating_key, ' \
                         'grandparent_rating_key, title, parent_title, grandparent_title, full_title, media_index, ' \
-                        'parent_media_index, library_id, thumb, parent_thumb, grandparent_thumb, art, media_type, ' \
+                        'parent_media_index, section_id, thumb, parent_thumb, grandparent_thumb, art, media_type, ' \
                         'year, originally_available_at, added_at, updated_at, last_viewed_at, content_rating, ' \
                         'summary, tagline, rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
                         '(last_insert_rowid(), ' \
@@ -265,7 +265,7 @@ class ActivityProcessor(object):
 
                 args = [session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
                         session['title'], session['parent_title'], session['grandparent_title'], full_title,
-                        metadata['media_index'], metadata['parent_media_index'], metadata['library_id'], metadata['thumb'],
+                        metadata['media_index'], metadata['parent_media_index'], metadata['section_id'], metadata['thumb'],
                         metadata['parent_thumb'], metadata['grandparent_thumb'], metadata['art'], session['media_type'],
                         metadata['year'], metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
                         metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['tagline'], 

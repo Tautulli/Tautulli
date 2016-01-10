@@ -54,29 +54,29 @@ DOCUMENTATION :: END
                     <div class="summary-navbar-list">
                         <ul class="list-unstyled breadcrumb">
                         % if data['media_type'] == 'movie':
-                        <li><a href="library?section_id=${data['library_id']}">${data['library_name']}</a></li>
+                        <li><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['media_type'] == 'show':
-                        <li><a href="library?section_id=${data['library_id']}">${data['library_name']}</a></li>
+                        <li><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['media_type'] == 'season':
-                        <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['library_id']}">${data['library_name']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
                         <li class="active">Season ${data['media_index']}</li>
                         % elif data['media_type'] == 'episode':
-                        <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['library_id']}">${data['library_name']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li class="hidden-xs hidden-sm"><a href="info?rating_key=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">Season ${data['parent_media_index']}</a></li>
                         <li class="active">Episode ${data['media_index']} - ${data['title']}</li>
                         % elif data['media_type'] == 'artist':
-                        <li><a href="library?section_id=${data['library_id']}">${data['library_name']}</a></li>
+                        <li><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['media_type'] == 'album':
-                        <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['library_id']}">${data['library_name']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
                         <li class="active">${data['title']}</li>
                         % elif data['media_type'] == 'track':
-                        <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['library_id']}">${data['library_name']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="library?section_id=${data['section_id']}">${data['library_name']}</a></li>
                         <li class="hidden-xs hidden-sm"><a href="info?rating_key=${data['grandparent_rating_key']}">${data['grandparent_title']}</a></li>
                         <li><a href="info?rating_key=${data['parent_rating_key']}">${data['parent_title']}</a></li>
                         <li class="active">Track ${data['media_index']} - ${data['title']}</li>
@@ -288,14 +288,6 @@ DOCUMENTATION :: END
                 </div>
                 % endif
                 <div class='col-md-12'>
-                    <!-- Need to find a place to put this -->
-                    % if data['media_type'] == 'library' and config['update_library_ids'] == 1:
-                    <div id="update_library_ids_mssage" style="text-align: center; margin-top: 20px;">
-                        <i class="fa fa-refresh fa-spin"></i> Updating library ids in the database. This could take a few minutes depending on the size of your database.
-                        <br />
-                        The history table will refresh automatically when the update is complete. Please wait...
-                    </div>
-                    % endif
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Watch History for <strong>${data['title']}</strong></span>
@@ -370,41 +362,17 @@ DOCUMENTATION :: END
 % if data:
 <script src="interfaces/default/js/tables/history_table.js"></script>
 <!-- Need to find a place to put this -->
-% if data['media_type'] == 'library':
+% if data['media_type'] == 'show' or data['media_type'] == 'artist':
 <script>
     function get_history() {
         history_table_options.ajax = {
             url: 'get_history',
             type: 'post',
             data: function ( d ) {
-                return { 'json_data': JSON.stringify( d ),
-                    'library_id': "${data['library_id']}" };
-            }
-        }
-    }
-    if ("${config['update_library_ids']}" == "1") {
-        $.ajax({
-            url: 'update_library_ids',
-            type: 'post',
-            cache: false,
-            async: true,
-            data: { },
-            complete: function (xhr, status) {
-                $('#update_library_ids_mssage').remove();
-                history_table.draw();
-            }
-        });
-    }
-</script>
-% elif data['media_type'] == 'show' or data['media_type'] == 'artist':
-<script>
-    function get_history() {
-        history_table_options.ajax = {
-            url: 'get_history',
-            type: 'post',
-            data: function ( d ) {
-                return { 'json_data': JSON.stringify( d ),
-                    'grandparent_rating_key': "${data['rating_key']}" };
+                return { 
+                    json_data: JSON.stringify( d ),
+                    grandparent_rating_key: "${data['rating_key']}"
+                };
             }
         }
     }
@@ -416,8 +384,10 @@ DOCUMENTATION :: END
             url: 'get_history',
             type: 'post',
             data: function ( d ) {
-                return { 'json_data': JSON.stringify( d ),
-                    'parent_rating_key': "${data['rating_key']}" };
+                return { 
+                    json_data: JSON.stringify( d ),
+                    parent_rating_key: "${data['rating_key']}"
+                };
             }
         }
     }
@@ -429,8 +399,10 @@ DOCUMENTATION :: END
             url: 'get_history',
             type: 'post',
             data: function ( d ) {
-                return { 'json_data': JSON.stringify( d ),
-                    'rating_key': "${data['rating_key']}" };
+                return { 
+                    json_data: JSON.stringify( d ),
+                    rating_key: "${data['rating_key']}"
+                };
             }
         }
     }
