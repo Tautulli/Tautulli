@@ -2,10 +2,10 @@
 <browserconfig>
   <msapplication>
     <tile>
-      <square70x70logo src="interfaces/default/images/res/ie10/tiny.png"/>
-      <square150x150logo src="interfaces/default/images/res/ie10/square.png"/>
-      <wide310x150logo src="interfaces/default/images/res/ie10/wide.png"/>
-      <square310x310logo src="interfaces/default/images/res/ie10/large.png"/>
+      <square70x70logo src="../images/res/ie10/tiny.png"/>
+      <square150x150logo src="../images/res/ie10/square.png"/>
+      <wide310x150logo src="../images/res/ie10/wide.png"/>
+      <square310x310logo src="../images/res/ie10/large.png"/>
       <TileColor>#1F1F1F</TileColor>
     </tile>
   </msapplication>

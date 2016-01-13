@@ -2470,8 +2470,7 @@ a .home-platforms-instance-list-oval:hover,
     left: 0;
     overflow-x: hidden;
     overflow-y: scroll;
-	-webkit-overflow-scrolling: touch;
-    
+    -webkit-overflow-scrolling: touch;
 }
 ::-webkit-scrollbar {
     width: 15px;
