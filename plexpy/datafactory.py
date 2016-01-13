@@ -619,28 +619,32 @@ class DataFactory(object):
                     title = 'Concurrent Streams'
                     query = base_query
                     result = monitor_db.select(query)
-                    most_concurrent.append(calc_most_concurrent(title, result))
+                    if result:
+                        most_concurrent.append(calc_most_concurrent(title, result))
 
                     title = 'Concurrent Transcodes'
                     query = base_query \
                           + 'AND (session_history_media_info.video_decision = "transcode" ' \
                             'OR session_history_media_info.audio_decision = "transcode") '
                     result = monitor_db.select(query)
-                    most_concurrent.append(calc_most_concurrent(title, result))
+                    if result:
+                        most_concurrent.append(calc_most_concurrent(title, result))
 
                     title = 'Concurrent Direct Streams'
                     query = base_query \
                           + 'AND (session_history_media_info.video_decision != "transcode" ' \
                             'AND session_history_media_info.audio_decision = "copy") '
                     result = monitor_db.select(query)
-                    most_concurrent.append(calc_most_concurrent(title, result))
+                    if result:
+                        most_concurrent.append(calc_most_concurrent(title, result))
 
                     title = 'Concurrent Direct Plays'
                     query = base_query \
                           + 'AND (session_history_media_info.video_decision = "direct play" ' \
                             'OR session_history_media_info.audio_decision = "direct play") '
                     result = monitor_db.select(query)
-                    most_concurrent.append(calc_most_concurrent(title, result))
+                    if result:
+                        most_concurrent.append(calc_most_concurrent(title, result))
                 except:
                     logger.warn("Unable to execute database query for get_home_stats: most_concurrent.")
                     return None

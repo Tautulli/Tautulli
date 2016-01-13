@@ -72,6 +72,7 @@ DOCUMENTATION :: END
 % if data:
 % if data[0]['stat_id']:
 <ul class="list-unstyled">
+    % if any(top_stat['rows'] for top_stat in data):
     % for top_stat in data:
     % if top_stat['stat_id'] == 'top_tv' and top_stat['rows']:
     <div class="home-platforms-instance">
@@ -852,6 +853,9 @@ DOCUMENTATION :: END
     </div>
     % endif
     % endfor
+    % else:
+    <div class="text-muted">No stats to show for the selected period.</div><br>
+    % endif
 </ul>
 <script>
     var topZIndex = 2;
@@ -867,7 +871,7 @@ DOCUMENTATION :: END
     });
 </script>
 % else:
-<div class="text-muted">No stats for selected period.</div><br>
+<div class="text-muted">No stats to show for the selected period.</div><br>
 % endif
 % else:
 <div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
