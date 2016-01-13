@@ -76,10 +76,11 @@ def get_real_pms_url():
         result = PlexTV().get_server_urls(include_https=False)
         process_urls = True
     else:
+        result = PlexTV().get_server_urls(include_https=False)
         process_urls = False
 
     if process_urls:
-        if len(result) > 0:
+        if result:
             for item in result:
                 if plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '0':
                         plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
@@ -407,6 +408,25 @@ class PlexTV(object):
                                       }
 
                     server_urls.append(server_details)
+            # Else try to match the PMS_IP and PMS_PORT
+            else:
+                connections = a.getElementsByTagName('Connection')
+                for connection in connections:
+                    if helpers.get_xml_attr(connection, 'address') == plexpy.CONFIG.PMS_IP and \
+                        int(helpers.get_xml_attr(connection, 'port')) == plexpy.CONFIG.PMS_PORT:
+
+                        plexpy.CONFIG.PMS_IDENTIFIER = helpers.get_xml_attr(a, 'clientIdentifier')
+
+                        logger.info(u"PlexPy PlexTV :: PMS identifier changed from %s to %s." % \
+                                    (server_id, plexpy.CONFIG.PMS_IDENTIFIER))
+
+                        server_details = {"protocol": helpers.get_xml_attr(connection, 'protocol'),
+                                          "address": helpers.get_xml_attr(connection, 'address'),
+                                          "port": helpers.get_xml_attr(connection, 'port'),
+                                          "uri": helpers.get_xml_attr(connection, 'uri'),
+                                          "local": helpers.get_xml_attr(connection, 'local')
+                                          }
+                        break
 
         return server_urls
 
