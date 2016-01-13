@@ -476,6 +476,7 @@ class WebInterface(object):
             "notify_on_extup_body_text": plexpy.CONFIG.NOTIFY_ON_EXTUP_BODY_TEXT,
             "notify_on_intup_subject_text": plexpy.CONFIG.NOTIFY_ON_INTUP_SUBJECT_TEXT,
             "notify_on_intup_body_text": plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT,
+            "notify_scripts_args_text": plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
@@ -554,7 +555,7 @@ class WebInterface(object):
 
         # Get new server URLs for SSL communications.
         plextv.get_real_pms_url()
-        
+
         # Get new server friendly name
         pmsconnect.get_server_friendly_name()
 
@@ -662,6 +663,7 @@ class WebInterface(object):
     @cherrypy.expose
     def test_notifier(self, config_id=None, subject='PlexPy', body='Test notification', **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+        print kwargs
 
         if config_id.isdigit():
             agents = notifiers.available_notification_agents()
@@ -671,10 +673,10 @@ class WebInterface(object):
                     break
                 else:
                     this_agent = None
-            
+
             if this_agent:
                 logger.debug("Sending test %s notification." % this_agent['name'])
-                notifiers.send_notification(this_agent['id'], subject, body)
+                notifiers.send_notification(this_agent['id'], subject, body, **kwargs)
                 return "Notification sent."
             else:
                 logger.debug("Unable to send test notification, invalid notification agent ID %s." % config_id)
@@ -682,7 +684,7 @@ class WebInterface(object):
         else:
             logger.debug("Unable to send test notification, no notification agent ID received.")
             return "No notification agent ID received."
-            
+
     @cherrypy.expose
     def twitterStep1(self):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
@@ -1339,12 +1341,12 @@ class WebInterface(object):
             plexpy.CONFIG.__setattr__('PMS_SSL', ssl)
             plexpy.CONFIG.__setattr__('PMS_IS_REMOTE', remote)
             plexpy.CONFIG.write()
-            
+
             plextv.get_real_pms_url()
-            
+
             pms_connect = pmsconnect.PmsConnect()
             request = pms_connect.get_local_server_identity()
-            
+
             if request:
                 cherrypy.response.headers['Content-type'] = 'application/xml'
                 return request
@@ -1419,6 +1421,12 @@ class WebInterface(object):
 
         return serve_template(templatename="notification_triggers_modal.html", title="Notification Triggers",
                               data=this_agent)
+
+    @cherrypy.expose
+    def testScripts(self, *args, **kwargs):
+        ''' Used for manual testing for now cba with adding buttion '''
+        script = notifiers.Scripts()
+        return script.test(*args, **kwargs)
 
     @cherrypy.expose
     def delete_history_rows(self, row_id, **kwargs):

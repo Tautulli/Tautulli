@@ -751,7 +751,22 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </ul>
                             </li>
                         </ul>
+                        <ul id="accordion-scripts" class="accordion list-unstyled">
+                            <li>
+                                <div class="link"><i class="glyphicon glyphicon-console"></i>&nbsp;Script <i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_scripts_args_text">Script arguments</label>
+                                            <input class="form-control" type="text" id="notify_scripts_args_text" name="notify_scripts_args_text" value="${config['notify_scripts_args_text']}" data-parsley-trigger="change">
+                                            <p class="help-block">Set arguments passed to the script</p>
+                                        </div>
+                                    
+                                    </li>
+                                </ul>
+                            </li>
 
+                        </ul>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-10">
@@ -1110,6 +1125,14 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{transcode_audio_channels}</strong></td>
                                     <td>The audio channels of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{streams}</strong></td>
+                                    <td>The number of concurrent streams.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{action}</strong></td>
+                                    <td>The action that trigged the notification.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1575,6 +1598,7 @@ $(document).ready(function() {
 
     var accordion_session = new Accordion($('#accordion-session'), false);
     var accordion_timeline = new Accordion($('#accordion-timeline'), false);
+    var accordion_scripts = new Accordion($('#accordion-scripts'), false);
 
     var cards = "${config['home_stats_cards']}".split(/[\s,]+/);
     cards.forEach(function (item) {

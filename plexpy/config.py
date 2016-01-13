@@ -1,6 +1,4 @@
 ﻿import plexpy.logger
-import itertools
-import os
 import re
 from configobj import ConfigObj
 
@@ -13,8 +11,6 @@ def bool_int(value):
         if value.lower() in ('', '0', 'false', 'f', 'no', 'n', 'off'):
             value = 0
     return int(bool(value))
-
-
 
 _CONFIG_DEFINITIONS = {
     'DATE_FORMAT': (str, 'General', 'YYYY-MM-DD'),
@@ -194,6 +190,7 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_ON_EXTUP_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server remote access is back up.'),
     'NOTIFY_ON_INTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
     'NOTIFY_ON_INTUP_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server is back up.'),
+    'NOTIFY_SCRIPTS_ARGS_TEXT': (unicode, 'Monitoring', ''),
     'OSX_NOTIFY_APP': (str, 'OSX_Notify', '/Applications/PlexPy'),
     'OSX_NOTIFY_ENABLED': (int, 'OSX_Notify', 0),
     'OSX_NOTIFY_ON_PLAY': (int, 'OSX_Notify', 0),
@@ -298,6 +295,30 @@ _CONFIG_DEFINITIONS = {
     'SLACK_ON_INTDOWN': (int, 'Slack', 0),
     'SLACK_ON_EXTUP': (int, 'Slack', 0),
     'SLACK_ON_INTUP': (int, 'Slack', 0),
+    'SCRIPTS_ENABLED': (int, 'Scripts', 0),
+    'SCRIPTS_FOLDER': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_PLAY': (int, 'Scripts', 0),
+    'SCRIPTS_ON_STOP': (int, 'Scripts', 0),
+    'SCRIPTS_ON_PAUSE': (int, 'Scripts', 0),
+    'SCRIPTS_ON_RESUME': (int, 'Scripts', 0),
+    'SCRIPTS_ON_BUFFER': (int, 'Scripts', 0),
+    'SCRIPTS_ON_WATCHED': (int, 'Scripts', 0),
+    'SCRIPTS_ON_CREATED': (int, 'Scripts', 0),
+    'SCRIPTS_ON_EXTDOWN': (int, 'Scripts', 0),
+    'SCRIPTS_ON_EXTUP': (int, 'Scripts', 0),
+    'SCRIPTS_ON_INTDOWN': (int, 'Scripts', 0),
+    'SCRIPTS_ON_INTUP': (int, 'Scripts', 0),
+    'SCRIPTS_ON_PLAY_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_STOP_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_PAUSE_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_RESUME_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_BUFFER_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_WATCHED_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_CREATED_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_EXTDOWN_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_EXTUP_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_INTDOWN_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_INTUP_SCRIPT': (unicode, 'Scripts', ''),
     'TELEGRAM_BOT_TOKEN': (str, 'Telegram', ''),
     'TELEGRAM_ENABLED': (int, 'Telegram', 0),
     'TELEGRAM_CHAT_ID': (str, 'Telegram', ''),
@@ -351,6 +372,8 @@ _CONFIG_DEFINITIONS = {
     'XBMC_ON_EXTUP': (int, 'XBMC', 0),
     'XBMC_ON_INTUP': (int, 'XBMC', 0)
 }
+
+
 # pylint:disable=R0902
 # it might be nice to refactor for fewer instance variables
 class Config(object):
