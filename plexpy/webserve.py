@@ -663,7 +663,6 @@ class WebInterface(object):
     @cherrypy.expose
     def test_notifier(self, config_id=None, subject='PlexPy', body='Test notification', **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
-        print kwargs
 
         if config_id.isdigit():
             agents = notifiers.available_notification_agents()
@@ -1421,12 +1420,6 @@ class WebInterface(object):
 
         return serve_template(templatename="notification_triggers_modal.html", title="Notification Triggers",
                               data=this_agent)
-
-    @cherrypy.expose
-    def testScripts(self, *args, **kwargs):
-        ''' Used for manual testing for now cba with adding buttion '''
-        script = notifiers.Scripts()
-        return script.test(*args, **kwargs)
 
     @cherrypy.expose
     def delete_history_rows(self, row_id, **kwargs):

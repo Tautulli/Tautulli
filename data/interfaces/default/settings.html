@@ -1015,6 +1015,14 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td><strong>{streams}</strong></td>
+                                    <td>The number of concurrent streams.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{action}</strong></td>
+                                    <td>The action that triggered the notification.</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{user}</strong></td>
                                     <td>The username of the person streaming.</td>
                                 </tr>
@@ -1125,14 +1133,6 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{transcode_audio_channels}</strong></td>
                                     <td>The audio channels of the transcoded media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{streams}</strong></td>
-                                    <td>The number of concurrent streams.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{action}</strong></td>
-                                    <td>The action that trigged the notification.</td>
                                 </tr>
                             </tbody>
                         </table>

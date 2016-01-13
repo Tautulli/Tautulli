@@ -81,37 +81,28 @@ from plexpy import helpers
                         </div>
                         %if agent['name'] == 'Scripts':
                             <div class="form-group">
-                                <label for="test_script">Script path</label>
-                                <select class="form-control" id="test_script" name="test_script" >
-                                    % for key, value in sorted(data[1]['select_options'].iteritems()):
-                                    <option value="${key}">${value}</option>
-                                    % endfor
-                                </select>
-                                <p class="help-block">Pick your script</p>
-                            </div>
-                            <div class="form-group">
                                 <label for="test_script_action">Script action</label>
                                 <select class="form-control" id="test_script_action" name="test_script_action">
                                     <option value=""></option>
-                                    <option value="buffer">Buffer warning</option>
-                                    <option value="watched">Watched</option>
                                     <option value="play">Playback start</option>
-                                    <option value="pause">Playback stopp</option>
-                                    <option value="resume">Playback resume</option>
                                     <option value="stop">Playback stop</option>
-                                    <option value="extdown">Plex Server Remote Down</option>
-                                    <option value="extup">Plex Server Remote Up</option>
-                                    <option value="intdown">Plex Server Down</option>
-                                    <option value="intup">Plex Server Up</option>
+                                    <option value="pause">Playback pause</option>
+                                    <option value="resume">Playback resume</option>
+                                    <option value="watched">Watched</option>
+                                    <option value="buffer">Buffer warnings</option>
                                     <option value="created">Recently added</option>
+                                    <option value="extdown">Plex remote access down</option>
+                                    <option value="intdown">Plex server down</option>
+                                    <option value="extup">Plex remote access back up</option>
+                                    <option value="intup">Plex server back up</option>
                                 </select>
-                                <p class="help-block">Pick your action</p>
+                                <p class="help-block">Choose a notification action.</p>
 
                             </div>
                             <div class="form-group">
                                 <label for="test_script_args">Script args</label>
                                 <input class="form-control" type="text" id="test_script_args" name="test_script_args" value="">
-                                <p class="help-block">Set a custom script args: -zomg --x.</p>
+                                <p class="help-block">Set custom script arguments: -zomg --x.</p>
                             </div>
                         % endif
                         <div class="form-group">
@@ -185,7 +176,6 @@ from plexpy import helpers
                     subject: $('#test_subject').val(),
                     body: $('#test_body').val(),
                     notify_action: $('#test_script_action').val(),
-                    script: $('#test_script').val(),
                     script_args: $('#test_script_args').val() },
             cache: false,
             async: true,
@@ -196,13 +186,7 @@ from plexpy import helpers
         });
     });
 
-    $('#pushbullet_apikey, #pushover_apitoken').on('change', function () {
-        doAjaxCall('set_notification_config', $(this), 'tabs', true);
-        reloadModal();
-        return false;
-    });
-
-    $('#scripts_folder').on('change', function () {
+    $('#pushbullet_apikey, #pushover_apitoken, #scripts_folder').on('change', function () {
         doAjaxCall('set_notification_config', $(this), 'tabs', true);
         reloadModal();
         return false;

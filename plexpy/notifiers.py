@@ -1762,9 +1762,9 @@ class Scripts(object):
                   notify_action(string): 'play'
                   script_args(list): ["python2", '-p', '-zomg']
         """
-        logger.debug(u'Trying to run notify script subject: %s message: %s, action: %s script_args: %s' %
+        logger.debug(u"PlexPy Notifiers :: Trying to run notify script, subject: %s, message: %s, action: %s, script_args: %s" %
                      (subject, message, notify_action, script_args))
-
+        
         prefix = ''
         script = kwargs.get('script', '')  # for manual scripts
 
@@ -1808,7 +1808,7 @@ class Scripts(object):
         # Dont try to run the script
         # if the action does not have one
         if not script:
-            logger.debug(u'%s has no script, exiting..' % notify_action)
+            logger.debug(u"PlexPy Notifiers :: Action %s has no script, exiting..." % notify_action)
             return
 
         name, ext = os.path.splitext(script)
@@ -1847,7 +1847,7 @@ class Scripts(object):
 
         script.extend(script_args)
 
-        logger.debug(u'Full script is %s' % script)
+        logger.debug(u"PlexPy Notifiers :: Full script is: %s" % ' '.join(script))
 
         try:
             p = subprocess.Popen(script, stdin=subprocess.PIPE,
@@ -1860,14 +1860,16 @@ class Scripts(object):
 
             if out and status:
                 out = out.strip()
-                logger.debug(u'%s returned %s' % (script, out))
+                logger.debug(u"PlexPy Notifiers :: Script returned %s" % out)
 
             if error:
                 error = error.strip()
-                logger.error(u'%s' % error)
+                logger.error(u"PlexPy Notifiers :: Script error: %s" % error)
+            else:
+                logger.info(u"PlexPy Notifiers :: Script notification sent.")
 
-        except OSError as out:
-            logger.error(u'Failed to run %s error %s' % (script, out))
+        except OSError as e:
+            logger.error(u"PlexPy Notifiers :: Failed to run script: %s" % e)
 
     def return_config_options(self):
         config_option = [{'label': 'Script folder',

@@ -516,6 +516,8 @@ def build_notify_text(session=None, timeline=None, state=None):
 
     available_params = {'server_name': server_name,
                         'server_uptime': server_uptime,
+                        'streams': stream_count,
+                        'action': state,
                         'user': user,
                         'platform': platform,
                         'player': player,
@@ -564,9 +566,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'summary': metadata['summary'],
                         'tagline': metadata['tagline'],
                         'rating': metadata['rating'],
-                        'duration': duration,
-                        'action': state,
-                        'streams': stream_count
+                        'duration': duration
                         }
 
     # Default subject text
@@ -780,6 +780,7 @@ def build_server_notify_text(state=None):
     on_extup_body = plexpy.CONFIG.NOTIFY_ON_EXTUP_BODY_TEXT
     on_intup_subject = plexpy.CONFIG.NOTIFY_ON_INTUP_SUBJECT_TEXT
     on_intup_body = plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT
+    script_args_text = plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT
 
     available_params = {'server_name': server_name,
                         'server_uptime': server_uptime,
@@ -790,7 +791,6 @@ def build_server_notify_text(state=None):
 
     # Default scripts args
     script_args = []
-    script_args_text = plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT
 
     # Regex to match {param} but not "{param}"
     params_to_quote = re.compile(r'(?<!\")([\{][^}]+[\}])(?!\"\})')
