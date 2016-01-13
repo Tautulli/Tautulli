@@ -695,9 +695,26 @@ class WebInterface(object):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
         tweet = notifiers.TwitterNotifier()
         result = tweet._get_credentials(key)
-        logger.info(u"result: " + str(result))
+        # logger.info(u"result: " + str(result))
         if result:
             return "Key verification successful"
+        else:
+            return "Unable to verify key"
+
+    @cherrypy.expose
+    def facebookStep1(self):
+        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+        facebook = notifiers.FacebookNotifier()
+        return facebook._get_authorization()
+
+    @cherrypy.expose
+    def facebookStep2(self, code):
+        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+        facebook = notifiers.FacebookNotifier()
+        result = facebook._get_credentials(code)
+        # logger.info(u"result: " + str(result))
+        if result:
+            return "Key verification successful, you may close this page now."
         else:
             return "Unable to verify key"
 

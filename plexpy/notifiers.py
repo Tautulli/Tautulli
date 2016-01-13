@@ -34,6 +34,7 @@ from pynma import pynma
 import gntp.notifier
 import oauth2 as oauth
 import pythontwitter as twitter
+import pythonfacebook as facebook   
 
 import plexpy
 from plexpy import logger, helpers, request
@@ -54,9 +55,10 @@ AGENT_IDS = {"Growl": 0,
              "IFTTT": 12,
              "Telegram": 13,
              "Slack": 14,
-             "Scripts": 15}
+             "Scripts": 15,
+             "Facebook": 16}
 
-
+             
 def available_notification_agents():
     agents = [{'name': 'Growl',
                'id': AGENT_IDS['Growl'],
@@ -312,8 +314,24 @@ def available_notification_agents():
                'on_extup': plexpy.CONFIG.SCRIPTS_ON_EXTUP,
                'on_intdown': plexpy.CONFIG.SCRIPTS_ON_INTDOWN,
                'on_intup': plexpy.CONFIG.SCRIPTS_ON_INTUP
-              }
-
+              },
+              {'name': 'Facebook',
+               'id': AGENT_IDS['Facebook'],
+               'config_prefix': 'facebook',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.FACEBOOK_ENABLED),
+               'on_play': plexpy.CONFIG.FACEBOOK_ON_PLAY,
+               'on_stop': plexpy.CONFIG.FACEBOOK_ON_STOP,
+               'on_pause': plexpy.CONFIG.FACEBOOK_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.FACEBOOK_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.FACEBOOK_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.FACEBOOK_ON_WATCHED,
+               'on_created': plexpy.CONFIG.FACEBOOK_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.FACEBOOK_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.FACEBOOK_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.FACEBOOK_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.FACEBOOK_ON_INTUP
+               }
               ]
 
     # OSX Notifications should only be visible if it can be used
@@ -341,7 +359,7 @@ def available_notification_agents():
 
 
 def get_notification_agent_config(config_id):
-    if config_id:
+    if str(config_id).isdigit():
         config_id = int(config_id)
 
         if config_id == 0:
@@ -392,6 +410,9 @@ def get_notification_agent_config(config_id):
         elif config_id == 15:
             script = Scripts()
             return script.return_config_options()
+        elif config_id == 16:
+            facebook = FacebookNotifier()
+            return facebook.return_config_options()
         else:
             return []
     else:
@@ -450,10 +471,14 @@ def send_notification(config_id, subject, body, **kwargs):
         elif config_id == 15:
             scripts = Scripts()
             scripts.notify(message=body, subject=subject, **kwargs)
+        elif config_id == 16:
+            facebook = FacebookNotifier()
+            facebook.notify(subject=subject, message=body)
         else:
             logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
     else:
         logger.debug(u"PlexPy Notifier :: Notification requested but no agent id received.")
+
 
 class GROWL(object):
     """
@@ -1181,14 +1206,14 @@ class TwitterNotifier(object):
         oauth_consumer = oauth.Consumer(key=self.consumer_key, secret=self.consumer_secret)
         # logger.debug('oauth_consumer: ' + str(oauth_consumer))
         oauth_client = oauth.Client(oauth_consumer, token)
-        logger.info('oauth_client: ' + str(oauth_client))
+        # logger.info('oauth_client: ' + str(oauth_client))
         resp, content = oauth_client.request(self.ACCESS_TOKEN_URL, method='POST', body='oauth_verifier=%s' % key)
-        logger.info('resp, content: ' + str(resp) + ',' + str(content))
+        # logger.info('resp, content: ' + str(resp) + ',' + str(content))
 
         access_token = dict(parse_qsl(content))
-        logger.info('access_token: ' + str(access_token))
+        # logger.info('access_token: ' + str(access_token))
 
-        logger.info('resp[status] = ' + str(resp['status']))
+        # logger.info('resp[status] = ' + str(resp['status']))
         if resp['status'] != '200':
             logger.info('The request for a token with did not succeed: ' + str(resp['status']), logger.ERROR)
             return False
@@ -1197,6 +1222,7 @@ class TwitterNotifier(object):
             logger.info('Access Token secret: %s' % access_token['oauth_token_secret'])
             plexpy.CONFIG.TWITTER_USERNAME = access_token['oauth_token']
             plexpy.CONFIG.TWITTER_PASSWORD = access_token['oauth_token_secret']
+            plexpy.CONFIG.write()
             return True
 
     def _send_tweet(self, message=None):
@@ -1205,35 +1231,42 @@ class TwitterNotifier(object):
         access_token_key = plexpy.CONFIG.TWITTER_USERNAME
         access_token_secret = plexpy.CONFIG.TWITTER_PASSWORD
 
-        logger.info(u"Sending tweet: " + message)
+        # logger.info(u"Sending tweet: " + message)
 
         api = twitter.Api(username, password, access_token_key, access_token_secret)
 
         try:
             api.PostUpdate(message)
+            logger.info(u"Twitter notifications sent.")
         except Exception as e:
-            logger.info(u"Error Sending Tweet: %s" % e)
+            logger.info(u"Error sending Tweet: %s" % e)
             return False
 
         return True
 
     def return_config_options(self):
-        config_option = [{'label': 'Request Authorisation',
-                          'value': 'Request Authorisation',
+        config_option = [{'label': 'Instructions',
+                          'description': 'Step 1: Click the <strong>Request Authorization</strong> button below.<br>\
+                                          Step 2: Input the <strong>Authorization Key</strong> you received from Step 1 below.<br>\
+                                          Step 3: Click the <strong>Verify Key</strong> button below.',
+                          'input_type': 'help'
+                          },
+                         {'label': 'Request Authorization',
+                          'value': 'Request Authorization',
                           'name': 'twitterStep1',
-                          'description': 'Step 1: Click Request button above. (Ensure you allow the browser pop-up).',
+                          'description': 'Request Twitter authorization. (Ensure you allow the browser pop-up).',
                           'input_type': 'button'
                           },
-                         {'label': 'Authorisation Key',
+                         {'label': 'Authorization Key',
                           'value': '',
                           'name': 'twitter_key',
-                          'description': 'Step 2: Input the authorisation key you received from Step 1.',
+                          'description': 'Your Twitter authorization key.',
                           'input_type': 'text'
                           },
                          {'label': 'Verify Key',
                           'value': 'Verify Key',
                           'name': 'twitterStep2',
-                          'description': 'Step 3: Verify the key.',
+                          'description': 'Verify your Twitter authorization key.',
                           'input_type': 'button'
                           },
                          {'input_type': 'nosave'
@@ -1635,6 +1668,7 @@ class TELEGRAM(object):
 
         return config_option
 
+
 class SLACK(object):
     """
     Slack Notifications
@@ -1954,6 +1988,123 @@ class Scripts(object):
                           'description': 'Pick the script for pms up',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
+                          }
+                         ]
+
+        return config_option
+
+    
+class FacebookNotifier(object):
+
+    def __init__(self):
+        self.app_id = plexpy.CONFIG.FACEBOOK_APP_ID
+        self.app_secret = plexpy.CONFIG.FACEBOOK_APP_SECRET
+        self.group_id = plexpy.CONFIG.FACEBOOK_GROUP
+        
+        if plexpy.CONFIG.ENABLE_HTTPS:
+            protocol = 'https'
+        else:
+            protocol = 'http'
+            
+        if plexpy.CONFIG.HTTP_HOST == '0.0.0.0':
+            host = 'localhost'
+        else:
+            host = plexpy.CONFIG.HTTP_HOST
+
+        self.redirect_url = '%s://%s:%i/facebookStep2' % (protocol, host, plexpy.CONFIG.HTTP_PORT)
+
+
+    def notify(self, subject, message):
+        if not subject or not message:
+            return
+        else:
+            self._post_facebook(subject + ': ' + message)
+
+    def test_notify(self):
+        return self._post_facebook("This is a test notification from PlexPy at " + helpers.now())
+
+    def _get_authorization(self):
+        return facebook.auth_url(app_id=self.app_id,
+                                 canvas_url=self.redirect_url,
+                                 perms=['user_managed_groups','publish_actions'])
+
+    def _get_credentials(self, code):
+        logger.info('Requesting access token from Facebook')
+        
+        try:
+            # Request user access token
+            api = facebook.GraphAPI(version='2.5')
+            response = api.get_access_token_from_code(code=code,
+                                                      redirect_uri=self.redirect_url,
+                                                      app_id=self.app_id,
+                                                      app_secret=self.app_secret)
+            access_token = response['access_token']
+            
+            # Request extended user access token
+            api = facebook.GraphAPI(access_token=access_token, version='2.5')
+            response = api.extend_access_token(app_id=self.app_id,
+                                               app_secret=self.app_secret)
+            access_token = response['access_token']
+            
+            plexpy.CONFIG.FACEBOOK_TOKEN = access_token
+            plexpy.CONFIG.write()
+        except Exception as e:
+            logger.info(u"Error requesting Facebook access token: %s" % e)
+            return False
+        
+        return True
+
+    def _post_facebook(self, message=None):
+        access_token = plexpy.CONFIG.FACEBOOK_TOKEN
+        group_id = plexpy.CONFIG.FACEBOOK_GROUP
+
+        if group_id:
+            api = facebook.GraphAPI(access_token=access_token, version='2.5')
+
+            try:
+                api.put_wall_post(profile_id=group_id, message=message)
+                logger.info(u"Facebook notifications sent.")
+            except Exception as e:
+                logger.info(u"Error sending Facebook post: %s" % e)
+                return False
+
+            return True
+        else:
+            logger.info('Error sending Facebook post: No Facebook Group ID provided.')
+            return False
+
+    def return_config_options(self):
+        config_option = [{'label': 'Instructions',
+                          'description': '<strong>Facebook notifications are experimental!</strong><br><br> \
+                                          Step 1: Visit <a href="https://developers.facebook.com/apps/" target="_blank">Facebook Developers</a> to create a new app using <strong>advanced setup</strong>.<br>\
+                                          Step 2: Go to <strong>Settings > Advanced</strong> and fill in <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (i.e. http://localhost:8181).<br>\
+                                          Step 3: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
+                                          Step 4: Click the <strong>Request Authorization</strong> button below.',
+                          'input_type': 'help'
+                          },
+                         {'label': 'Facebook App ID',
+                          'value': self.app_id,
+                          'name': 'facebook_app_id',
+                          'description': 'Your Facebook app ID.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Facebook App Secret',
+                          'value': self.app_secret,
+                          'name': 'facebook_app_secret',
+                          'description': 'Your Facebook app secret.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Request Authorization',
+                          'value': 'Request Authorization',
+                          'name': 'facebookStep1',
+                          'description': 'Request Facebook authorization. (Ensure you allow the browser pop-up).',
+                          'input_type': 'button'
+                          },
+                         {'label': 'Facebook Group ID',
+                          'value': self.group_id,
+                          'name': 'facebook_group',
+                          'description': 'Your Facebook Group ID.',
+                          'input_type': 'text'
                           }
                          ]
 
