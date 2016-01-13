@@ -1725,6 +1725,7 @@ a:hover .item-children-poster {
     padding-left: 80px;
     width: 100%;
     height: 120px;
+    overflow: hidden;
 }
 .home-platforms-instance-name {
     color: #fff;
@@ -2468,7 +2469,8 @@ a .home-platforms-instance-list-oval:hover,
     bottom: 0;
     left: 0;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
     
 }
 ::-webkit-scrollbar {
