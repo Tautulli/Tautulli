@@ -75,6 +75,22 @@ from plexpy import helpers
                     <div class="col-md-12" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
                         <h4>Test ${agent['name']}</h4>
                         <p class="help-block">Test if ${agent['name']} notifications are working. See <a href="/logs">logs</a> for troubleshooting.</p>
+                        % if agent['name'] == 'Scripts':
+                        <div class="form-group">
+                            <label for="test_script">Script</label>
+                            <select class="form-control" id="test_script" name="test_script">
+                                % for key, value in sorted(data[2]['select_options'].iteritems()):
+                                <option value="${key}">${value}</option>
+                                % endfor
+                            </select>
+                            <p class="help-block">Choose the script to test.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="test_script_args">Script Arguments</label>
+                            <input class="form-control" type="text" id="test_script_args" name="test_script_args" value="">
+                            <p class="help-block">Set custom arguments passed to the script.</p>
+                        </div>
+                        % else:
                         <div class="form-group">
                             <label for="test_subject">Subject Line</label>
                             <input class="form-control" type="text" id="test_subject" name="test_subject" value="PlexPy">
@@ -85,31 +101,6 @@ from plexpy import helpers
                             <input class="form-control" type="text" id="test_body" name="test_body" value="Test notification">
                             <p class="help-block">Set a custom body.</p>
                         </div>
-                        %if agent['name'] == 'Scripts':
-                            <div class="form-group">
-                                <label for="test_script_action">Script action</label>
-                                <select class="form-control" id="test_script_action" name="test_script_action">
-                                    <option value=""></option>
-                                    <option value="play">Playback start</option>
-                                    <option value="stop">Playback stop</option>
-                                    <option value="pause">Playback pause</option>
-                                    <option value="resume">Playback resume</option>
-                                    <option value="watched">Watched</option>
-                                    <option value="buffer">Buffer warnings</option>
-                                    <option value="created">Recently added</option>
-                                    <option value="extdown">Plex remote access down</option>
-                                    <option value="intdown">Plex server down</option>
-                                    <option value="extup">Plex remote access back up</option>
-                                    <option value="intup">Plex server back up</option>
-                                </select>
-                                <p class="help-block">Choose a notification action.</p>
-
-                            </div>
-                            <div class="form-group">
-                                <label for="test_script_args">Script args</label>
-                                <input class="form-control" type="text" id="test_script_args" name="test_script_args" value="">
-                                <p class="help-block">Set custom script arguments: -zomg --x.</p>
-                            </div>
                         % endif
                         <div class="form-group">
                             <div class="row">
@@ -199,11 +190,13 @@ from plexpy import helpers
         doAjaxCall('set_notification_config', $(this), 'tabs', true);
         $.ajax({
             url: 'test_notifier',
-            data: { config_id: '${agent["id"]}',
-                    subject: $('#test_subject').val(),
-                    body: $('#test_body').val(),
-                    notify_action: $('#test_script_action').val(),
-                    script_args: $('#test_script_args').val() },
+            data: {
+                config_id: '${agent["id"]}',
+                subject: $('#test_subject').val(),
+                body: $('#test_body').val(),
+                script: $('#test_script').val(),
+                script_args: $('#test_script_args').val()
+            },
             cache: false,
             async: true,
             complete: function (xhr, status) {

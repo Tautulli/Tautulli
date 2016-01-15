@@ -1758,7 +1758,7 @@ class SLACK(object):
 class Scripts(object):
 
     def __init__(self, **kwargs):
-        pass
+        self.script_exts = ('.bat', '.cmd', '.exe', '.php', '.pl', '.py', '.pyw', '.rb', '.sh')
 
     def conf(self, options):
         return cherrypy.config['config'].get('Scripts', options)
@@ -1781,14 +1781,14 @@ class Scripts(object):
         for root, dirs, files in os.walk(scriptdir):
             for f in files:
                 name, ext = os.path.splitext(f)
-                if ext in ('.rb', '.pl', '.bat', '.py', '.sh', '.cmd', '.php'):
+                if ext in self.script_exts:
                     rfp = os.path.join(os.path.relpath(root, scriptdir), f)
                     fp = os.path.join(root, f)
                     scripts[fp] = rfp
 
         return scripts
 
-    def notify(self, subject='', message='', notify_action='', script_args='', *args, **kwargs):
+    def notify(self, subject='', message='', notify_action='', script_args=[], *args, **kwargs):
         """
             Args:
                   subject(string, optional): Head text,
@@ -1796,12 +1796,9 @@ class Scripts(object):
                   notify_action(string): 'play'
                   script_args(list): ["python2", '-p', '-zomg']
         """
-        logger.debug(u"PlexPy Notifiers :: Trying to run notify script, subject: %s, message: %s, action: %s, script_args: %s" %
-                     (subject, message, notify_action, script_args))
+        logger.debug(u"PlexPy Notifiers :: Trying to run notify script, action: %s, arguments: %s" %
+                     (notify_action if notify_action else None, script_args if script_args else None))
         
-        prefix = ''
-        script = kwargs.get('script', '')  # for manual scripts
-
         if not plexpy.CONFIG.SCRIPTS_FOLDER:
             return
 
@@ -1839,31 +1836,42 @@ class Scripts(object):
         elif notify_action == 'watched':
             script = plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT
 
-        # Dont try to run the script
-        # if the action does not have one
-        if not script:
-            logger.debug(u"PlexPy Notifiers :: Action %s has no script, exiting..." % notify_action)
+        else:
+            # For manual scripts
+            script = kwargs.get('script', '')
+
+        # Don't try to run the script if the action does not have one
+        if notify_action and not script:
+            logger.debug(u"PlexPy Notifiers :: No script selected for action %s, exiting..." % notify_action)
+            return
+        elif not script:
+            logger.debug(u"PlexPy Notifiers :: No script selected, exiting...")
             return
 
         name, ext = os.path.splitext(script)
 
         if ext == '.py':
             prefix = 'python'
+        elif ext == '.pyw':
+            prefix = 'pythonw'
         elif ext == '.php':
             prefix = 'php'
         elif ext == '.pl':
             prefix = 'perl'
         elif ext == '.rb':
             prefix = 'ruby'
+        else:
+            prefix = ''
 
         if os.name == 'nt':
             script = script.encode(plexpy.SYS_ENCODING, 'ignore')
-        script = [script]
 
         if prefix:
-            script.insert(0, prefix)
+            script = [prefix, script]
+        else:
+            script = [script]
 
-        # for manual notifications
+        # For manual notifications
         if script_args and isinstance(script_args, basestring):
             # attemps for format it for the user
             script_args = shlex.split(script_args)
@@ -1875,13 +1883,13 @@ class Scripts(object):
 
         # Allow overrides for shitty systems
         if prefix and script_args:
-            if script_args[0] in ['python2', 'python', 'php', 'ruby', 'perl']:
+            if script_args[0] in ['python2', 'python', 'pythonw', 'php', 'ruby', 'perl']:
                 script[0] = script_args[0]
                 del script_args[0]
 
         script.extend(script_args)
 
-        logger.debug(u"PlexPy Notifiers :: Full script is: %s" % ' '.join(script))
+        logger.debug(u"PlexPy Notifiers :: Full script is: %s" % script)
 
         try:
             p = subprocess.Popen(script, stdin=subprocess.PIPE,
@@ -1894,7 +1902,7 @@ class Scripts(object):
 
             if out and status:
                 out = out.strip()
-                logger.debug(u"PlexPy Notifiers :: Script returned %s" % out)
+                logger.debug(u"PlexPy Notifiers :: Script returned: %s" % out)
 
             if error:
                 error = error.strip()
@@ -1906,7 +1914,12 @@ class Scripts(object):
             logger.error(u"PlexPy Notifiers :: Failed to run script: %s" % e)
 
     def return_config_options(self):
-        config_option = [{'label': 'Script folder',
+        config_option = [{'label': 'Warning',
+                          'description': '<strong>Script notifications are currently experimental!</strong><br><br>\
+                                          Supported file types: ' + ', '.join(self.script_exts),
+                          'input_type': 'help'
+                          },
+                         {'label': 'Script folder',
                           'value': plexpy.CONFIG.SCRIPTS_FOLDER,
                           'name': 'scripts_folder',
                           'description': 'Add your script folder.',
@@ -1915,77 +1928,77 @@ class Scripts(object):
                          {'label': 'Playback Start',
                           'value': plexpy.CONFIG.SCRIPTS_ON_PLAY_SCRIPT,
                           'name': 'scripts_on_play_script',
-                          'description': 'Pick the script for on play.',
+                          'description': 'Choose the script for on play.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Playback Stop',
                           'value': plexpy.CONFIG.SCRIPTS_ON_STOP_SCRIPT,
                           'name': 'scripts_on_stop_script',
-                          'description': 'Pick the script for on stop.',
+                          'description': 'Choose the script for on stop.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Playback Pause',
                           'value': plexpy.CONFIG.SCRIPTS_ON_PAUSE_SCRIPT,
                           'name': 'scripts_on_pause_script',
-                          'description': 'Pick the script for on pause.',
+                          'description': 'Choose the script for on pause.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Playback Resume',
                           'value': plexpy.CONFIG.SCRIPTS_ON_RESUME_SCRIPT,
                           'name': 'scripts_on_resume_script',
-                          'description': 'Pick the script for on resume.',
+                          'description': 'Choose the script for on resume.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Watched',
                           'value': plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT,
                           'name': 'scripts_on_watched_script',
-                          'description': 'Pick the script for on watched.',
+                          'description': 'Choose the script for on watched.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Buffer Warnings',
                           'value': plexpy.CONFIG.SCRIPTS_ON_BUFFER_SCRIPT,
                           'name': 'scripts_on_buffer_script',
-                          'description': 'Pick the script for buffer warnings.',
+                          'description': 'Choose the script for buffer warnings.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Recently Added',
                           'value': plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT,
                           'name': 'scripts_on_created_script',
-                          'description': 'Pick the script for recently added.',
+                          'description': 'Choose the script for recently added.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Plex Remote Access Down',
                           'value': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT,
                           'name': 'scripts_on_extdown_script',
-                          'description': 'Pick the script for external connection down.',
-                          'input_type': 'select',
-                          'select_options': self.list_scripts()
-                          },
-                         {'label': 'Plex Remote Access Up',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT,
-                          'name': 'scripts_on_extup_script',
-                          'description': 'Pick the script for external connection up.',
+                          'description': 'Choose the script for Plex remote access down.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Plex Server Down',
                           'value': plexpy.CONFIG.SCRIPTS_ON_INTDOWN_SCRIPT,
                           'name': 'scripts_on_intdown_script',
-                          'description': 'Pick the script for pms down',
+                          'description': 'Choose the script for Plex server down.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'Plex Server Up',
+                         {'label': 'Plex Remote Access Back Up',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT,
+                          'name': 'scripts_on_extup_script',
+                          'description': 'Choose the script for Plex remote access back up.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'Plex Server Back Up',
                           'value': plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT,
                           'name': 'scripts_on_intup_script',
-                          'description': 'Pick the script for pms up',
+                          'description': 'Choose the script for Plex server back up.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           }
@@ -2075,7 +2088,7 @@ class FacebookNotifier(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
-                          'description': '<strong>Facebook notifications are experimental!</strong><br><br> \
+                          'description': '<strong>Facebook notifications are currently experimental!</strong><br><br> \
                                           Step 1: Visit <a href="https://developers.facebook.com/apps/" target="_blank">Facebook Developers</a> to create a new app using <strong>advanced setup</strong>.<br>\
                                           Step 2: Go to <strong>Settings > Advanced</strong> and fill in <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (i.e. http://localhost:8181).<br>\
                                           Step 3: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
