@@ -54,7 +54,7 @@ class ActivityHandler(object):
         monitor_proc.write_session(session=self.get_live_session(), notify=False)
 
     def on_start(self):
-        if self.is_valid_session():
+        if self.is_valid_session() and self.get_live_session():
             logger.debug(u"PlexPy ActivityHandler :: Session %s has started." % str(self.get_session_key()))
 
             # Fire off notifications
