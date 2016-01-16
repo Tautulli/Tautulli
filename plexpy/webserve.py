@@ -353,15 +353,6 @@ class WebInterface(object):
             return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
 
     @cherrypy.expose
-    def get_library_media_info(self, section_id=None, **kwargs):
-        
-        library_data = libraries.Libraries()
-        result = library_data.get_datatables_media_info(section_id=section_id, kwargs=kwargs)
-
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(result)
-
-    @cherrypy.expose
     def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, **kwargs):
         
         library_data = libraries.Libraries()

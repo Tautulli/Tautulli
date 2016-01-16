@@ -281,7 +281,7 @@ $('#media_info_table').on('click', '> tbody > tr > td.expand-media-info a', func
 
 // Initialize the detailed media info child table options using the parent table options
 function childTableOptionsMedia(rowData) {
-    switch (rowData['section_type']) {
+    switch (rowData['media_type']) {
         case 'show':
             section_type = 'season';
             break;

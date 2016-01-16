@@ -197,7 +197,44 @@ class Libraries(object):
             logger.warn(u"PlexPy Libraries :: Datatable media info called by invalid rating_key provided.")
             return default_return
 
+        # Get the library details
+        library_details = self.get_details(section_id=section_id)
+        if library_details['section_id'] == None:
+            logger.debug(u"PlexPy Libraries :: Library section_id %s not found." % section_id)
+            return default_return
+
+        if not section_type:
+            section_type = library_details['section_type']
+
+        # Get play counts from the database
+        monitor_db = database.MonitorDatabase()
+
+        if section_type == 'show' or section_type == 'artist':
+            group_by = 'grandparent_rating_key'
+        elif section_type == 'season' or section_type == 'album':
+            group_by = 'parent_rating_key'
+        else:
+            group_by = 'rating_key'
+
+        try:
+            query = 'SELECT MAX(session_history.started) AS last_watched, COUNT(session_history.id) AS play_count, ' \
+                    'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key ' \
+                    'FROM session_history ' \
+                    'JOIN session_history_metadata ON session_history.id = session_history_metadata.id ' \
+                    'WHERE session_history_metadata.section_id = ? ' \
+                    'GROUP BY session_history.%s ' % group_by
+            result = monitor_db.select(query, args=[section_id])
+        except Exception as e:
+            logger.warn(u"PlexPy Libraries :: Unable to execute database query for get_datatables_media_info2: %s." % e)
+            return default_return
+
+        watched_list = {}
+        for item in result:
+            watched_list[str(item[group_by])] = {'last_watched': item['last_watched'],
+                                                 'play_count': item['play_count']}
+
         rows = []
+        # Import media info cache from json file
         if rating_key:
             try:
                 inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s_%s.json' % (section_id, rating_key))
@@ -219,46 +256,9 @@ class Libraries(object):
                 #logger.debug(u"PlexPy Libraries :: Refreshing data and creating new JSON file for section_id %s." % section_id)
                 pass
 
+        # If no cache was imported, get all library children items
         if not rows:
-            # Get the library details
-            library_details = self.get_details(section_id=section_id)
-            if library_details['section_id'] == None:
-                logger.warn(u"PlexPy Libraries :: Library section_id %s not found." % section_id)
-                return default_return
-
-            if not section_type:
-                section_type = library_details['section_type']
-
-            # Get play counts from the database
-            monitor_db = database.MonitorDatabase()
-
-            if section_type == 'show' or section_type == 'artist':
-                group_by = 'grandparent_rating_key'
-            elif section_type == 'season' or section_type == 'album':
-                group_by = 'parent_rating_key'
-            else:
-                group_by = 'rating_key'
-
-            try:
-                query = 'SELECT MAX(session_history.started) AS last_watched, COUNT(session_history.id) AS play_count, ' \
-                        'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key ' \
-                        'FROM session_history ' \
-                        'JOIN session_history_metadata ON session_history.id = session_history_metadata.id ' \
-                        'WHERE session_history_metadata.section_id = ? ' \
-                        'GROUP BY session_history.%s ' % group_by
-                result = monitor_db.select(query, args=[section_id])
-            except Exception as e:
-                logger.warn(u"PlexPy Libraries :: Unable to execute database query for get_datatables_media_info2: %s." % e)
-                return default_return
-
-            watched_list = {}
-            for item in result:
-                watched_list[str(item[group_by])] = {'last_watched': item['last_watched'],
-                                                     'play_count': item['play_count']}
-
-            # Get all library children items
             pms_connect = pmsconnect.PmsConnect()
-
 
             if rating_key:
                 library_children = pms_connect.get_library_children(rating_key=rating_key,
@@ -267,7 +267,7 @@ class Libraries(object):
                 library_children = pms_connect.get_library_children(section_id=section_id,
                                                                     section_type=section_type,
                                                                     get_media_info=True)
-
+            
             if library_children:
                 library_count = library_children['library_count']
                 children_list = library_children['childern_list']
@@ -277,14 +277,6 @@ class Libraries(object):
         
             rows = []
             for item in children_list:
-                watched_item = watched_list.get(item['rating_key'], None)
-                if watched_item:
-                    last_watched = watched_item['last_watched']
-                    play_count = watched_item['play_count']
-                else:
-                    last_watched = None
-                    play_count = None
-
                 row = {'section_id': library_details['section_id'],
                        'section_type': library_details['section_type'],
                        'added_at': item['added_at'],
@@ -304,15 +296,14 @@ class Libraries(object):
                        'video_framerate': item.get('video_framerate', ''),
                        'audio_codec': item.get('audio_codec', ''),
                        'audio_channels': item.get('audio_channels', ''),
-                       'file_size': item.get('file_size', ''),
-                       'last_watched': last_watched,
-                       'play_count': play_count
+                       'file_size': item.get('file_size', '')
                        }
                 rows.append(row)
 
             if not rows:
                 return default_return
 
+            # Cache the media info to a json file
             if rating_key:
                 outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s_%s.json' % (section_id, rating_key))
                 with open(outFilePath, 'w') as outFile:
@@ -321,7 +312,17 @@ class Libraries(object):
                 outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s.json' % section_id)
                 with open(outFilePath, 'w') as outFile:
                     json.dump(rows, outFile)
-        
+
+        # Update the last_watched and play_count
+        for item in rows:
+            watched_item = watched_list.get(item['rating_key'], None)
+            if watched_item:
+                item['last_watched'] = watched_item['last_watched']
+                item['play_count'] = watched_item['play_count']
+            else:
+                item['last_watched'] = None
+                item['play_count'] = None
+
         results = []
         
         # Get datatables JSON data            
