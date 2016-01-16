@@ -436,18 +436,14 @@ class WebInterface(object):
     @cherrypy.expose
     def update_section_ids(self, **kwargs):
 
-        logger.debug(u"Updating section_id's in database.")
-        library_data = libraries.Libraries()
-        result = library_data.update_section_ids()
+        logger.debug(u"Manual database section_id update called.")
+
+        result = libraries.update_section_ids()
 
         if result:
-            logger.debug(u"Updated all section_id's in database.")
-            plexpy.CONFIG.UPDATE_SECTION_IDS = 0
-            plexpy.CONFIG.write()
-            return "Section ids updated."
+            return "Updated all section_id's in database."
         else:
-            logger.debug(u"Unable to update section_id's in database.")
-            return "Unable to update section ids in database."
+            return "Unable to update section_id's in database. See logs for details."
 
     @cherrypy.expose
     def delete_datatable_media_info_cache(self, section_id, **kwargs):

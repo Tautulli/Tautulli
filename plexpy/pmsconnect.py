@@ -39,8 +39,6 @@ def get_server_friendly_name():
     return server_name
 
 def refresh_libraries():
-    from plexpy import activity_pinger
-
     logger.info(u"PlexPy Pmsconnect :: Requesting libraries list refresh...")
     library_sections = PmsConnect().get_library_details()
 
@@ -76,32 +74,9 @@ def refresh_libraries():
 
         if plexpy.CONFIG.UPDATE_SECTION_IDS == 1:
             from plexpy import libraries
+            import threading
 
-            plexpy.CONFIG.UPDATE_SECTION_IDS = -1
-
-            logger.info(u"PlexPy Pmsconnect :: Updating section_id's in database.")
-
-            logger.debug(u"PlexPy Pmsconnect :: Disabling monitoring while update in progress.")
-            plexpy.schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
-                                hours=0, minutes=0, seconds=0)
-            plexpy.schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-                                hours=0, minutes=0, seconds=0)
-            plexpy.schedule_job(activity_pinger.check_server_response, 'Check for server response',
-                                hours=0, minutes=0, seconds=0)
-
-            result = libraries.Libraries().update_section_ids()
-
-            if result:
-                logger.debug(u"PlexPy Pmsconnect :: Updated all section_id's in database.")
-                plexpy.CONFIG.__setattr__('UPDATE_SECTION_IDS', 0)
-                plexpy.CONFIG.write()
-            else:
-                logger.debug(u"PlexPy Pmsconnect :: Unable to update section_id's in database.")
-                plexpy.CONFIG.__setattr__('UPDATE_SECTION_IDS', 1)
-                plexpy.CONFIG.write()
-
-            logger.debug(u"PlexPy Pmsconnect :: Re-enabling monitoring.")
-            plexpy.initialize_scheduler()
+            threading.Thread(target=libraries.update_section_ids).start()
 
         logger.info(u"PlexPy Pmsconnect :: Libraries list refreshed.")
     else:

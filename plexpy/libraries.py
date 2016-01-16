@@ -16,6 +16,66 @@
 from plexpy import logger, datatables, common, database, helpers
 import plexpy
 
+def update_section_ids():
+    from plexpy import pmsconnect, activity_pinger
+
+    plexpy.CONFIG.UPDATE_SECTION_IDS = -1
+
+    logger.info(u"PlexPy Libraries :: Updating section_id's in database.")
+
+    logger.debug(u"PlexPy Libraries :: Disabling monitoring while update in progress.")
+    plexpy.schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
+                        hours=0, minutes=0, seconds=0)
+    plexpy.schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
+                        hours=0, minutes=0, seconds=0)
+    plexpy.schedule_job(activity_pinger.check_server_response, 'Check for server response',
+                        hours=0, minutes=0, seconds=0)
+
+    monitor_db = database.MonitorDatabase()
+
+    try:
+        query = 'SELECT id, rating_key FROM session_history_metadata WHERE section_id IS NULL'
+        result = monitor_db.select(query=query)
+    except Exception as e:
+        logger.warn(u"PlexPy Libraries :: Unable to execute database query for update_section_ids: %s." % e)
+
+        logger.debug(u"PlexPy Libraries :: Unable to update section_id's in database.")
+        plexpy.CONFIG.__setattr__('UPDATE_SECTION_IDS', 1)
+        plexpy.CONFIG.write()
+
+        logger.debug(u"PlexPy Libraries :: Re-enabling monitoring.")
+        plexpy.initialize_scheduler()
+        return None
+
+    pms_connect = pmsconnect.PmsConnect()
+
+    error_keys = []
+    for item in result:
+        id = item['id']
+        rating_key = item['rating_key']
+        metadata = pms_connect.get_metadata_details(rating_key=rating_key)
+
+        if metadata:
+            metadata = metadata['metadata']
+            section_keys = {'id': id}
+            section_values = {'section_id': metadata['section_id']}
+            monitor_db.upsert('session_history_metadata', key_dict=section_keys, value_dict=section_values)
+        else:
+            error_keys.append(rating_key)
+
+    if error_keys:
+        logger.debug(u"PlexPy Libraries :: Updated all section_id's in database except for rating_keys: %s." %
+                     ', '.join(str(key) for key in error_keys))
+    else:
+        logger.debug(u"PlexPy Libraries :: Updated all section_id's in database.")
+
+    plexpy.CONFIG.__setattr__('UPDATE_SECTION_IDS', 0)
+    plexpy.CONFIG.write()
+
+    logger.debug(u"PlexPy Libraries :: Re-enabling monitoring.")
+    plexpy.initialize_scheduler()
+
+    return True
 
 class Libraries(object):
 
@@ -654,37 +714,6 @@ class Libraries(object):
                 return 'Unable to re-add library, section_id or section_name not valid.'
         except Exception as e:
             logger.warn(u"PlexPy Libraries :: Unable to execute database query for undelete: %s." % e)
-
-    def update_section_ids(self):
-        from plexpy import pmsconnect
-
-        pms_connect = pmsconnect.PmsConnect()
-        monitor_db = database.MonitorDatabase()
-
-        try:
-            query = 'SELECT id, rating_key FROM session_history_metadata WHERE section_id IS NULL'
-            result = monitor_db.select(query=query)
-        except Exception as e:
-            logger.warn(u"PlexPy Libraries :: Unable to execute database query for update_section_ids: %s." % e)
-            return None
-
-        for item in result:
-            id = item['id']
-            rating_key = item['rating_key']
-
-            result = pms_connect.get_metadata_details(rating_key=rating_key)
-
-            if result:
-                metadata = result['metadata']
-
-                section_keys = {'id': id}
-                section_values = {'section_id': metadata['section_id']}
-
-                monitor_db.upsert('session_history_metadata', key_dict=section_keys, value_dict=section_values)
-            else:
-                continue
-
-        return True
 
     def delete_datatable_media_info_cache(self, section_id=None):
         import os

@@ -282,7 +282,7 @@ def initialize_scheduler():
         else:
             seconds = 0
 
-        if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
+        if CONFIG.PMS_IP and CONFIG.PMS_TOKEN and CONFIG.UPDATE_SECTION_IDS != -1:
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex Server URLs',
                          hours=12, minutes=0, seconds=0)
             schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex Server Name',
