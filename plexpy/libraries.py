@@ -120,104 +120,7 @@ class Libraries(object):
         
         return dict
 
-    def get_datatables_media_info(self, section_id=None, kwargs=None):
-        data_tables = datatables.DataTables()
-
-        custom_where = ['library_sections.section_id', section_id]
-
-        columns = ['session_history.id',
-                   'session_history.started AS last_watched',
-                   'COUNT(DISTINCT session_history.reference_id) AS play_count',
-                   'session_history_metadata.rating_key',
-                   'session_history_metadata.parent_rating_key',
-                   'session_history_metadata.grandparent_rating_key',
-                   'session_history_metadata.full_title',
-                   'session_history_metadata.year',
-                   'session_history_metadata.media_index',
-                   'session_history_metadata.parent_media_index',
-                   'session_history_metadata.thumb',
-                   'session_history_metadata.parent_thumb',
-                   'session_history_metadata.grandparent_thumb',
-                   'session_history_metadata.media_type',
-                   'session_history_metadata.added_at',
-                   'session_history_media_info.container',
-                   'session_history_media_info.bitrate',
-                   'session_history_media_info.video_codec',
-                   'session_history_media_info.video_resolution',
-                   'session_history_media_info.video_framerate',
-                   'session_history_media_info.audio_codec',
-                   'session_history_media_info.audio_channels',
-                   'session_history_media_info.duration AS file_size'
-                   ]
-
-        try:
-            query = data_tables.ssp_query(table_name='session_history',
-                                          columns=columns,
-                                          custom_where=[custom_where],
-                                          group_by=['session_history_metadata.rating_key'],
-                                          join_types=['JOIN',
-                                                      'JOIN',
-                                                      'JOIN'],
-                                          join_tables=['library_sections',
-                                                       'session_history_metadata',
-                                                       'session_history_media_info'],
-                                          join_evals=[['session_history_metadata.section_id', 'library_sections.section_id'],
-                                                      ['session_history.id', 'session_history_metadata.id'],
-                                                      ['session_history.id', 'session_history_media_info.id']],
-                                          kwargs=kwargs)
-        except Exception as e:
-            logger.warn(u"PlexPy Libraries :: Unable to execute database query for get_datatables_media_info: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': 'null',
-                    'error': 'Unable to execute database query.'}
-
-        results = query['result']
-
-        rows = []
-        for item in results:
-            if item['media_type'] == 'episode' and item['parent_thumb']:
-                thumb = item['parent_thumb']
-            elif item['media_type'] == 'episode':
-                thumb = item['grandparent_thumb']
-            else:
-                thumb = item['thumb']
-
-            row = {'id': item['id'],
-                   'last_watched': item['last_watched'],
-                   'added_at': item['added_at'],
-                   'play_count': item['play_count'],
-                   'media_type': item['media_type'],
-                   'rating_key': item['rating_key'],
-                   'parent_rating_key': item['parent_rating_key'],
-                   'grandparent_rating_key': item['grandparent_rating_key'],
-                   'full_title': item['full_title'],
-                   'year': item['year'],
-                   'media_index': item['media_index'],
-                   'parent_media_index': item['parent_media_index'],
-                   'thumb': thumb,
-                   'container': item['container'],
-                   'bitrate': item['bitrate'],
-                   'video_codec': item['video_codec'],
-                   'video_resolution': item['video_resolution'],
-                   'video_framerate': item['video_framerate'],
-                   'audio_codec': item['audio_codec'],
-                   'audio_channels': item['audio_channels'],
-                   'file_size': item['file_size']
-                   }
-
-            rows.append(row)
-
-        dict = {'recordsFiltered': query['filteredCount'],
-                'recordsTotal': query['totalCount'],
-                'data': rows,
-                'draw': query['draw']
-                }
-
-        return dict
-
-    def get_datatables_media_info2(self, section_id=None, section_type=None, rating_key=None, kwargs=None):
+    def get_datatables_media_info(self, section_id=None, section_type=None, rating_key=None, kwargs=None):
         from plexpy import pmsconnect
         import json, os
 
@@ -347,6 +250,9 @@ class Libraries(object):
                        }
                 rows.append(row)
 
+            if not rows:
+                return default_return
+
             if rating_key:
                 outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s_%s.json' % (section_id, rating_key))
                 with open(outFilePath, 'w') as outFile:
@@ -367,11 +273,10 @@ class Libraries(object):
         search_value = json_data['search']['value'].lower()
         if search_value:
             searchable_columns = [d['data'] for d in json_data['columns'] if d['searchable']]
-            for row in rows:
-                for k,v in row.iteritems():
-                    if k in searchable_columns and search_value in v.lower():
-                        results.append(row)
-                        break
+            for k,v in [row.iteritems() for row in rows]:
+                if k in searchable_columns and search_value in v.lower():
+                    results.append(row)
+                    break
         else:
             results = rows
 
@@ -384,9 +289,9 @@ class Libraries(object):
             sort_key = json_data['columns'][int(order['column'])]['data']
             reverse = True if order['dir'] == 'desc' else False
             if rating_key and sort_key == 'title':
-                results = sorted(results, key=lambda k: int(k['media_index']), reverse=reverse)
+                results = sorted(results, key=lambda k: helpers.cast_to_int(k['media_index']), reverse=reverse)
             elif sort_key == 'file_size' or sort_key == 'bitrate':
-                results = sorted(results, key=lambda k: int(k[sort_key]), reverse=reverse)
+                results = sorted(results, key=lambda k: helpers.cast_to_int(k[sort_key]), reverse=reverse)
             else:
                 results = sorted(results, key=lambda k: k[sort_key], reverse=reverse)
 

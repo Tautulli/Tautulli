@@ -70,7 +70,7 @@ def refresh_libraries():
             library_keys.append(section['section_id'])
 
 
-        if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run']:
+        if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run_wizard']:
             plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
             plexpy.CONFIG.write()
 
@@ -1619,17 +1619,16 @@ class PmsConnect(object):
             
             # Get show/season info from xml_head
 
+            item_main = []
             if a.getElementsByTagName('Directory'):
-                item_main = a.getElementsByTagName('Directory')
-                item_main = [d for d in item_main if helpers.get_xml_attr(d, 'ratingKey')]
-            elif a.getElementsByTagName('Video'):
-                item_main = a.getElementsByTagName('Video')
-            elif a.getElementsByTagName('Track'):
-                item_main = a.getElementsByTagName('Track')
-            elif a.getElementsByTagName('Photo'):
-                item_main = a.getElementsByTagName('Photo')
-            else:
-                item_main = []
+                dir_main = a.getElementsByTagName('Directory')
+                item_main += [d for d in dir_main if helpers.get_xml_attr(d, 'ratingKey')]
+            if a.getElementsByTagName('Video'):
+                item_main += a.getElementsByTagName('Video')
+            if a.getElementsByTagName('Track'):
+                item_main += a.getElementsByTagName('Track')
+            if a.getElementsByTagName('Photo'):
+                item_main += a.getElementsByTagName('Photo')
 
             for item in item_main:
                 item_info = {'section_id': helpers.get_xml_attr(a, 'librarySectionID'),

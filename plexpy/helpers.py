@@ -364,12 +364,17 @@ def create_https_certificates(ssl_cert, ssl_key):
     return True
 
 
+def cast_to_int(s):
+    try:
+        return int(s)
+    except ValueError:
+        return -1
+
 def cast_to_float(s):
     try:
         return float(s)
     except ValueError:
         return -1
-
 
 def convert_xml_to_json(xml):
     o = xmltodict.parse(xml)

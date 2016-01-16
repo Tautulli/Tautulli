@@ -47,6 +47,9 @@ media_info_table_options = {
                     } else if (rowData['media_type'] === 'album') {
                         expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Tracks"><i class="fa fa-plus-circle fa-fw"></i></span>';
                         $(td).html('<div><a href="#"><div style="float: left;">' + expand_details + '&nbsp;' + date + '</div></a></div>');
+                    } else if (rowData['media_type'] === 'photo' && rowData['parent_rating_key'] == '') {
+                        expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Photos"><i class="fa fa-plus-circle fa-fw"></i></span>';
+                        $(td).html('<div><a href="#"><div style="float: left;">' + expand_details + '&nbsp;' + date + '</div></a></div>');
                     } else {
                         $(td).html('<div style="float: left;"><i class="fa fa-fw"></i>&nbsp;' + date + '</div>');
                     }
@@ -92,7 +95,7 @@ media_info_table_options = {
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80">T' + rowData['media_index'] + ' - ' + cellData + '</span>'
                         $(td).html('<div class="history-title"><a href="info?rating_key=' + rowData['rating_key'] + '"><div style="float: left; padding-left: 30px;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else {
-                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                        $(td).html(cellData);
                     }
                 }
             },
@@ -291,6 +294,9 @@ function childTableOptionsMedia(rowData) {
         case 'album':
             section_type = 'track';
             break;
+        case 'photo':
+            section_type = 'picture';
+            break;
     }
 
     media_info_table_options = media_info_table_options;
@@ -301,7 +307,7 @@ function childTableOptionsMedia(rowData) {
     media_info_table_options.pageLength = 10;
     media_info_table_options.bStateSave = false;
     media_info_table_options.ajax = {
-        url: 'get_library_media_info2',
+        url: 'get_library_media_info',
         type: 'post',
         data: function (d) {
             return {

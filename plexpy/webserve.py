@@ -176,7 +176,7 @@ class WebInterface(object):
         try:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_current_activity()
-        except IOError, e:
+        except:
             return serve_template(templatename="current_activity_header.html", data=None)
 
         if result:
@@ -362,14 +362,14 @@ class WebInterface(object):
         return json.dumps(result)
 
     @cherrypy.expose
-    def get_library_media_info2(self, section_id=None, section_type=None, rating_key=None, **kwargs):
+    def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, **kwargs):
         
         library_data = libraries.Libraries()
-        result = library_data.get_datatables_media_info2(section_id=section_id,
-                                                         section_type=section_type,
-                                                         rating_key=rating_key,
-                                                         kwargs=kwargs)
-
+        result = library_data.get_datatables_media_info(section_id=section_id,
+                                                        section_type=section_type,
+                                                        rating_key=rating_key,
+                                                        kwargs=kwargs)
+        
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(result)
 
@@ -1147,16 +1147,24 @@ class WebInterface(object):
                 refresh_users = True
         
         # Remove config with 'hscard-' prefix and change home_stats_cards to list
-        for k in kwargs.keys():
-            if k.startswith('hscard-'):
-                del kwargs[k]
-        kwargs['home_stats_cards'] = kwargs['home_stats_cards'].split(',')
+        if 'home_stats_cards' in kwargs:
+            for k in kwargs.keys():
+                if k.startswith('hscard-'):
+                    del kwargs[k]
+            kwargs['home_stats_cards'] = kwargs['home_stats_cards'].split(',')
+
+            if kwargs['home_stats_cards'] == ['first_run_wizard']:
+                kwargs['home_stats_cards'] = plexpy.CONFIG.HOME_STATS_CARDS
 
         # Remove config with 'hlcard-' prefix and change home_library_cards to list
-        for k in kwargs.keys():
-            if k.startswith('hlcard-'):
-                del kwargs[k]
-        kwargs['home_library_cards'] = kwargs['home_library_cards'].split(',')
+        if 'home_library_cards' in kwargs:
+            for k in kwargs.keys():
+                if k.startswith('hlcard-'):
+                    del kwargs[k]
+            kwargs['home_library_cards'] = kwargs['home_library_cards'].split(',')
+
+            if kwargs['home_library_cards'] == ['first_run_wizard']:
+                refresh_libraries = True
 
         plexpy.CONFIG.process_kwargs(kwargs)
 

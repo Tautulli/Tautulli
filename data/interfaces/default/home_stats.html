@@ -70,7 +70,6 @@ DOCUMENTATION :: END
 %>
 
 % if data:
-% if data[0]['stat_id']:
 <ul class="list-unstyled">
     % if any(top_stat['rows'] for top_stat in data):
     % for top_stat in data:
@@ -872,8 +871,4 @@ DOCUMENTATION :: END
 </script>
 % else:
 <div class="text-muted">No stats to show for the selected period.</div><br>
-% endif
-% else:
-<div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
-</div><br>
 % endif

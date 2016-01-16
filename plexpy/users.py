@@ -97,7 +97,7 @@ class Users(object):
 
             row = {'user_id': item['user_id'],
                    'username': item['username'],
-                   'friendly_name': item['friendly_name'],
+                   'friendly_name': friendly_name,
                    'user_thumb': user_thumb,
                    'plays': item['plays'],
                    'last_seen': item['last_seen'],
