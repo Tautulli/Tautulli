@@ -2703,3 +2703,6 @@ table[id^='media_info_child'] table[id^='media_info_child'] thead th {
     text-align: center;
     background-color: #2f2f2f;
 }
+.selectize-input input[type='text'] {
+    height: 20px;
+}

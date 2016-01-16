@@ -106,15 +106,16 @@ class WebInterface(object):
         Returns the servers that you own as a
         list of dicts (formatted for selectize)
         """
-        # Need to set token so result dont return http 401
+        # Need to set token so result doesn't return http 401
         plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
         plexpy.CONFIG.write()
 
-        result = plextv.PlexTV()
-        servers = result.discover()
+        plex_tv = plextv.PlexTV()
+        servers = plex_tv.discover()
+
         if servers:
             cherrypy.response.headers['Content-type'] = 'application/json'
-            return servers
+            return json.dumps(servers)
 
 
     ##### Home #####
@@ -1235,7 +1236,7 @@ class WebInterface(object):
             
             if this_agent:
                 logger.debug(u"Sending test %s notification." % this_agent['name'])
-                notifiers.send_notification(this_agent['id'], subject, body)
+                notifiers.send_notification(this_agent['id'], subject, body, **kwargs)
                 return "Notification sent."
             else:
                 logger.debug(u"Unable to send test notification, invalid notification agent ID %s." % config_id)
@@ -1378,7 +1379,7 @@ class WebInterface(object):
     @cherrypy.expose
     def generateAPI(self):
         apikey = hashlib.sha224(str(random.getrandbits(256))).hexdigest()[0:32]
-        logger.info(u"New API generated")
+        logger.info(u"New API key generated.")
         return apikey
 
     @cherrypy.expose

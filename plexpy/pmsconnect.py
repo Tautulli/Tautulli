@@ -39,6 +39,8 @@ def get_server_friendly_name():
     return server_name
 
 def refresh_libraries():
+    from plexpy import activity_pinger
+
     logger.info(u"PlexPy Pmsconnect :: Requesting libraries list refresh...")
     library_sections = PmsConnect().get_library_details()
 

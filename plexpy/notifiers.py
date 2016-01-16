@@ -2044,7 +2044,7 @@ class FacebookNotifier(object):
             self._post_facebook(subject + ': ' + message)
 
     def test_notify(self):
-        return self._post_facebook("This is a test notification from PlexPy at " + helpers.now())
+        return self._post_facebook(u"PlexPy Notifiers :: This is a test notification from PlexPy at " + helpers.now())
 
     def _get_authorization(self):
         return facebook.auth_url(app_id=self.app_id,
@@ -2052,7 +2052,7 @@ class FacebookNotifier(object):
                                  perms=['user_managed_groups','publish_actions'])
 
     def _get_credentials(self, code):
-        logger.info('Requesting access token from Facebook')
+        logger.info(u"PlexPy Notifiers :: Requesting access token from Facebook")
         
         try:
             # Request user access token
@@ -2072,7 +2072,7 @@ class FacebookNotifier(object):
             plexpy.CONFIG.FACEBOOK_TOKEN = access_token
             plexpy.CONFIG.write()
         except Exception as e:
-            logger.info(u"Error requesting Facebook access token: %s" % e)
+            logger.info(u"PlexPy Notifiers :: Error requesting Facebook access token: %s" % e)
             return False
         
         return True
@@ -2086,21 +2086,23 @@ class FacebookNotifier(object):
 
             try:
                 api.put_wall_post(profile_id=group_id, message=message)
-                logger.info(u"Facebook notifications sent.")
+                logger.info(u"PlexPy Notifiers :: Facebook notifications sent.")
             except Exception as e:
-                logger.info(u"Error sending Facebook post: %s" % e)
+                logger.info(u"PlexPy Notifiers :: Error sending Facebook post: %s" % e)
                 return False
 
             return True
         else:
-            logger.info('Error sending Facebook post: No Facebook Group ID provided.')
+            logger.info(u"PlexPy Notifiers :: Error sending Facebook post: No Facebook Group ID provided.")
             return False
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
                           'description': '<strong>Facebook notifications are currently experimental!</strong><br><br> \
-                                          Step 1: Visit <a href="https://developers.facebook.com/apps/" target="_blank">Facebook Developers</a> to create a new app using <strong>advanced setup</strong>.<br>\
-                                          Step 2: Go to <strong>Settings > Advanced</strong> and fill in <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (i.e. http://localhost:8181).<br>\
+                                          Step 1: Visit <a href="https://developers.facebook.com/apps/" target="_blank"> \
+                                          Facebook Developers</a> to create a new app using <strong>advanced setup</strong>.<br>\
+                                          Step 2: Go to <strong>Settings > Advanced</strong> and fill in \
+                                          <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (i.e. http://localhost:8181).<br>\
                                           Step 3: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
                                           Step 4: Click the <strong>Request Authorization</strong> button below.',
                           'input_type': 'help'
