@@ -242,8 +242,9 @@ class Libraries(object):
                     rows = json.load(inFile)
                     library_count = len(rows)
             except IOError as e:
-                logger.debug(u"PlexPy Libraries :: No JSON file for rating_key %s." % rating_key)
-                logger.debug(u"PlexPy Libraries :: Refreshing data and creating new JSON file for rating_key %s." % rating_key)
+                #logger.debug(u"PlexPy Libraries :: No JSON file for rating_key %s." % rating_key)
+                #logger.debug(u"PlexPy Libraries :: Refreshing data and creating new JSON file for rating_key %s." % rating_key)
+                pass
         elif section_id:
             try:
                 inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s.json' % section_id)
@@ -251,8 +252,9 @@ class Libraries(object):
                     rows = json.load(inFile)
                     library_count = len(rows)
             except IOError as e:
-                logger.debug(u"PlexPy Libraries :: No JSON file for library section_id %s." % section_id)
-                logger.debug(u"PlexPy Libraries :: Refreshing data and creating new JSON file for section_id %s." % section_id)
+                #logger.debug(u"PlexPy Libraries :: No JSON file for library section_id %s." % section_id)
+                #logger.debug(u"PlexPy Libraries :: Refreshing data and creating new JSON file for section_id %s." % section_id)
+                pass
 
         if not rows:
             # Get the library details
@@ -312,13 +314,6 @@ class Libraries(object):
         
             rows = []
             for item in children_list:
-                thumb = item['thumb']
-
-                if item['media_type'] == 'episode' or item['media_type'] == 'track':
-                    full_title = 'E%s - %s' % (item['media_index'], item['title'])
-                else:
-                    full_title = item['title']
-
                 watched_item = watched_list.get(item['rating_key'], None)
                 if watched_item:
                     last_watched = watched_item['last_watched']
@@ -329,18 +324,16 @@ class Libraries(object):
 
                 row = {'section_id': library_details['section_id'],
                        'section_type': library_details['section_type'],
-                       'last_watched': last_watched,
                        'added_at': item['added_at'],
                        'media_type': item['media_type'],
                        'rating_key': item['rating_key'],
                        'parent_rating_key': item['parent_rating_key'],
                        'grandparent_rating_key': item['grandparent_rating_key'],
-                       'full_title': full_title,
                        'title': item['title'],
                        'year': item['year'],
                        'media_index': item['media_index'],
                        'parent_media_index': item['parent_media_index'],
-                       'thumb': thumb,
+                       'thumb': item['thumb'],
                        'container': item.get('container', ''),
                        'bitrate': item.get('bitrate', ''),
                        'video_codec': item.get('video_codec', ''),
@@ -349,6 +342,7 @@ class Libraries(object):
                        'audio_codec': item.get('audio_codec', ''),
                        'audio_channels': item.get('audio_channels', ''),
                        'file_size': item.get('file_size', ''),
+                       'last_watched': last_watched,
                        'play_count': play_count
                        }
                 rows.append(row)
@@ -384,17 +378,22 @@ class Libraries(object):
         filtered_count = len(results)
 
         # Sort results
+        results = sorted(results, key=lambda k: k['title'])
         sort_order = json_data['order']
         for order in reversed(sort_order):
             sort_key = json_data['columns'][int(order['column'])]['data']
             reverse = True if order['dir'] == 'desc' else False
             if rating_key and sort_key == 'title':
                 results = sorted(results, key=lambda k: int(k['media_index']), reverse=reverse)
+            elif sort_key == 'file_size' or sort_key == 'bitrate':
+                results = sorted(results, key=lambda k: int(k[sort_key]), reverse=reverse)
             else:
                 results = sorted(results, key=lambda k: k[sort_key], reverse=reverse)
 
         # Paginate results
         results = results[json_data['start']:(json_data['start'] + json_data['length'])]
+
+        ## Find some way to add total disk space used?
 
         dict = {'recordsFiltered': filtered_count,
                 'recordsTotal': library_count,
@@ -402,7 +401,6 @@ class Libraries(object):
                 'draw': int(json_data['draw'])
                 }
         
-        ## Add total disk space used
         return dict
 
     def set_config(self, section_id=None, custom_thumb='', do_notify=1, keep_history=1, do_notify_created=1):

@@ -883,14 +883,11 @@ class WebInterface(object):
     @cherrypy.expose
     def get_sync(self, machine_id=None, user_id=None, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
-        server_id = pms_connect.get_server_identity()
+        if not machine_id:
+            machine_id = plexpy.CONFIG.PMS_IDENTIFIER
 
         plex_tv = plextv.PlexTV()
-        if not machine_id:
-            result = plex_tv.get_synced_items(machine_id=server_id['machine_identifier'], user_id=user_id)
-        else:
-            result = plex_tv.get_synced_items(machine_id=machine_id, user_id=user_id)
+        result = plex_tv.get_synced_items(machine_id=machine_id, user_id=user_id)
 
         if result:
             output = {"data": result}

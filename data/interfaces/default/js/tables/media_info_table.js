@@ -397,7 +397,7 @@ function createChildTableMedia(row, rowData) {
     });
 
     // Child table expand detailed media info
-    $('table[id^=media_info_child]').on('click', '> tbody > tr > td.expand-media-info a', function () {
+    $('table[id^=media_info_child-' + rowData['rating_key'] + ']').on('click', '> tbody > tr > td.expand-media-info a', function () {
         var table_id = $(this).closest('table').data('id');
         var tr = $(this).closest('tr');
         var row = media_info_child_table[table_id].row(tr);

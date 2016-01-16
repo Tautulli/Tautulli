@@ -292,8 +292,8 @@ class PlexTV(object):
                 for device in sync_device:
                     device_user_id = helpers.get_xml_attr(device, 'userID')
                     try:
-                        device_username = user_data.get_user_details(user_id=device_user_id)['username']
-                        device_friendly_name = user_data.get_user_details(user_id=device_user_id)['friendly_name']
+                        device_username = user_data.get_details(user_id=device_user_id)['username']
+                        device_friendly_name = user_data.get_details(user_id=device_user_id)['friendly_name']
                     except:
                         device_username = ''
                         device_friendly_name = ''

@@ -25,6 +25,7 @@ history_table_modal_options = {
     "serverSide": true,
     "pageLength": 10,
     "lengthChange": false,
+    "autoWidth": false,
     "order": [ 0, 'desc'],
     "columnDefs": [
         {
@@ -37,9 +38,9 @@ history_table_modal_options = {
                     $(td).html(moment(cellData,"X").format(time_format));
                 }
             },
-            "searchable": false,
+            "width": "10%",
             "className": "no-wrap",
-            "width": "10%"
+            "searchable": false
         },
         {
             "targets": [1],
@@ -51,9 +52,9 @@ history_table_modal_options = {
                     $(td).html(moment(cellData,"X").format(time_format));
                 }
             },
-            "searchable": false,
+            "width": "10%",
             "className": "no-wrap",
-            "width": "10%"
+            "searchable": false
         },
         {
             "targets": [2],
@@ -69,8 +70,8 @@ history_table_modal_options = {
                     $(td).html(cellData);
                 }
             },
-            "className": "no-wrap hidden-xs",
-            "width": "15%"
+            "width": "15%",
+            "className": "no-wrap hidden-xs"
         },
         {
             "targets": [3],
@@ -88,8 +89,8 @@ history_table_modal_options = {
                     $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp' + cellData + '</div></a></div>');
                 }
             },
-            "className": "no-wrap hidden-sm hidden-xs modal-control",
-            "width": "20%"
+            "width": "25%",
+            "className": "no-wrap hidden-sm hidden-xs modal-control"
         },
         {
             "targets": [4],
@@ -116,7 +117,7 @@ history_table_modal_options = {
                     }
                 }
             },
-            "width": "30%"
+            "width": "40%"
         }
     ],
     "drawCallback": function (settings) {

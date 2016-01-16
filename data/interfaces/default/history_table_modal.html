@@ -35,7 +35,7 @@
         $('#date-header').html(moment('${data}','YYYY-MM-DD').format('ddd MMM Do YYYY'));
         history_table_modal_options.ajax = {
             url: 'get_history',
-            type: "post",
+            type: 'post',
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify(d),

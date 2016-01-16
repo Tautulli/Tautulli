@@ -441,15 +441,15 @@ DOCUMENTATION :: END
         });
 
         function recentlyWatched() {
-            var widthVal = $('body').find("#library-recently-watched").width();
-            var tmp = (widthVal-32) / 180;
+            var widthVal = $("#library-recently-watched").width();
+            var tmp = (widthVal-25) / 175;
 
             if (tmp > 0) {
-                containerSize = parseInt(tmp);
+                var containerSize = parseInt(tmp);
             } else {
-                containerSize = 1;
+                var containerSize = 1;
             }
-
+            
             // Populate recently watched
             $.ajax({
                 url: 'get_library_recently_watched',
@@ -465,15 +465,15 @@ DOCUMENTATION :: END
         }
 
         function recentlyAdded() {
-            var widthVal = $('body').find("#library-recently-added").width();
-            var tmp = (widthVal-32) / 180;
+            var widthVal = $("#library-recently-added").width();
+            var tmp = (widthVal-25) / 175;
 
             if (tmp > 0) {
-                containerSize = parseInt(tmp);
+                var containerSize = parseInt(tmp);
             } else {
-                containerSize = 1;
+                var containerSize = 1;
             }
-
+            
             // Populate recently added
             $.ajax({
                 url: 'get_library_recently_added',

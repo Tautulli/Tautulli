@@ -1632,21 +1632,20 @@ class PmsConnect(object):
                 item_main = []
 
             for item in item_main:
-                item_info = {'section_id': helpers.get_xml_attr(item, 'key'),
-                             'section_type': helpers.get_xml_attr(item, 'type'),
+                item_info = {'section_id': helpers.get_xml_attr(a, 'librarySectionID'),
                              'media_type': helpers.get_xml_attr(item, 'type'),
                              'rating_key': helpers.get_xml_attr(item, 'ratingKey'),
                              'parent_rating_key': helpers.get_xml_attr(item, 'parentRatingKey'),
-                             'grandparent_rating_key': helpers.get_xml_attr(item, 'grandparentRatingKey'),
+                             'grandparent_rating_key': helpers.get_xml_attr(a, 'grandparentRatingKey'),
                              'title': helpers.get_xml_attr(item, 'title'),
-                             'parent_title': helpers.get_xml_attr(item, 'parentTitle'),
-                             'grandparent_title': helpers.get_xml_attr(item, 'grandparentTitle'),
+                             'parent_title': helpers.get_xml_attr(a, 'parentTitle'),
+                             'grandparent_title': helpers.get_xml_attr(a, 'grandparentTitle'),
                              'media_index': helpers.get_xml_attr(item, 'index'),
-                             'parent_media_index': helpers.get_xml_attr(item, 'parentIndex'),
+                             'parent_media_index': helpers.get_xml_attr(a, 'parentIndex'),
                              'year': helpers.get_xml_attr(item, 'year'),
                              'thumb': helpers.get_xml_attr(item, 'thumb'),
-                             'parent_thumb': helpers.get_xml_attr(item, 'parentThumb'),
-                             'grandparent_thumb': helpers.get_xml_attr(item, 'grandparentThumb'),
+                             'parent_thumb': helpers.get_xml_attr(a, 'thumb'),
+                             'grandparent_thumb': helpers.get_xml_attr(a, 'grandparentThumb'),
                              'added_at': helpers.get_xml_attr(item, 'addedAt')
                              }
 
