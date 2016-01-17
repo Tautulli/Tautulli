@@ -97,6 +97,7 @@ _CONFIG_DEFINITIONS = {
     'FACEBOOK_ON_INTUP': (int, 'Facebook', 0),
     'FIRST_RUN_COMPLETE': (int, 'General', 0),
     'FREEZE_DB': (int, 'General', 0),
+    'GET_FILE_SIZES': (dict, 'General', {'section_ids': [], 'rating_keys': []}),
     'GIT_BRANCH': (str, 'General', 'master'),
     'GIT_PATH': (str, 'General', ''),
     'GIT_USER': (str, 'General', 'drzoidberg33'),

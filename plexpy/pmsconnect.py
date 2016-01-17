@@ -457,7 +457,7 @@ class PmsConnect(object):
         output = {'recently_added': sorted(recents_list, key=lambda k: k['added_at'], reverse=True)}
         return output
 
-    def get_metadata_details(self, rating_key=''):
+    def get_metadata_details(self, rating_key='', get_media_info=False):
         """
         Return processed and validated metadata list for requested item.
 
@@ -774,9 +774,24 @@ class PmsConnect(object):
         else:
             return None
 
+        if get_media_info:
+            item_media = metadata_main.getElementsByTagName('Media')
+            for media in item_media:
+                media_info = {'container': helpers.get_xml_attr(media, 'container'),
+                              'bitrate': helpers.get_xml_attr(media, 'bitrate'),
+                              'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
+                              'video_resolution': helpers.get_xml_attr(media, 'videoResolution'),
+                              'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
+                              'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
+                              'audio_channels': helpers.get_xml_attr(media, 'audioChannels'),
+                              'file': helpers.get_xml_attr(media.getElementsByTagName('Part')[0], 'file'),
+                              'file_size': helpers.get_xml_attr(media.getElementsByTagName('Part')[0], 'size'),
+                              }
+                metadata.update(media_info)
+
         return metadata_list
 
-    def get_metadata_children_details(self, rating_key=''):
+    def get_metadata_children_details(self, rating_key='', get_children=False, get_media_info=False):
         """
         Return processed and validated metadata list for all children of requested item.
 
@@ -790,20 +805,21 @@ class PmsConnect(object):
             xml_head = metadata.getElementsByTagName('MediaContainer')
         except Exception as e:
             logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_metadata_children: %s." % e)
+            return {'metadata': []}
 
         metadata_list = []
 
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
-                    metadata_list = {'metadata': None}
+                    metadata_list = {'metadata': []}
                     return metadata_list
 
             if a.getElementsByTagName('Video'):
                 metadata_main = a.getElementsByTagName('Video')
                 for item in metadata_main:
                     child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
-                    metadata = self.get_metadata_details(str(child_rating_key))
+                    metadata = self.get_metadata_details(str(child_rating_key), get_media_info)
                     if metadata:
                         metadata_list.append(metadata['metadata'])
 
@@ -811,10 +827,19 @@ class PmsConnect(object):
                 metadata_main = a.getElementsByTagName('Track')
                 for item in metadata_main:
                     child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
-                    metadata = self.get_metadata_details(str(child_rating_key))
+                    metadata = self.get_metadata_details(str(child_rating_key), get_media_info)
                     if metadata:
                         metadata_list.append(metadata['metadata'])
-                    
+            
+            elif get_children and a.getElementsByTagName('Directory'):
+                dir_main = a.getElementsByTagName('Directory')
+                metadata_main = [d for d in dir_main if helpers.get_xml_attr(d, 'ratingKey')]
+                for item in metadata_main:
+                    child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
+                    metadata = self.get_metadata_children_details(str(child_rating_key), get_children, get_media_info)
+                    if metadata:
+                        metadata_list.extend(metadata['metadata'])
+            
         output = {'metadata': metadata_list}
         return output
 
@@ -1529,7 +1554,7 @@ class PmsConnect(object):
         
         return output
 
-    def get_library_children(self, section_id='', section_type='', list_type='all', count='', rating_key='', get_media_info=False):
+    def get_library_children_details(self, section_id='', section_type='', list_type='all', count='', rating_key='', get_media_info=False):
         """
         Return processed and validated server library items list.
 
@@ -1662,7 +1687,7 @@ class PmsConnect(object):
             for library in libraries_list:
                 section_type = library['section_type']
                 section_id = library['section_id']
-                children_list = self.get_library_children(section_id=section_id, section_type=section_type, count='1')
+                children_list = self.get_library_children_details(section_id=section_id, section_type=section_type, count='1')
 
                 if children_list['library_count'] != '0':
                     library_stats = {'section_id': library['section_id'],
@@ -1674,29 +1699,29 @@ class PmsConnect(object):
                                      }
 
                     if section_type == 'show':
-                        parent_list = self.get_library_children(section_id=section_id, section_type='season', count='1')
+                        parent_list = self.get_library_children_details(section_id=section_id, section_type='season', count='1')
                         parent_stats = {'parent_count': parent_list['library_count']}
                         library_stats.update(parent_stats)
 
-                        child_list = self.get_library_children(section_id=section_id, section_type='episode', count='1')
+                        child_list = self.get_library_children_details(section_id=section_id, section_type='episode', count='1')
                         child_stats = {'child_count': child_list['library_count']}
                         library_stats.update(child_stats)
 
                     if section_type == 'artist':
-                        parent_list = self.get_library_children(section_id=section_id, section_type='album', count='1')
+                        parent_list = self.get_library_children_details(section_id=section_id, section_type='album', count='1')
                         parent_stats = {'parent_count': parent_list['library_count']}
                         library_stats.update(parent_stats)
 
-                        child_list = self.get_library_children(section_id=section_id, section_type='track', count='1')
+                        child_list = self.get_library_children_details(section_id=section_id, section_type='track', count='1')
                         child_stats = {'child_count': child_list['library_count']}
                         library_stats.update(child_stats)
 
                     if section_type == 'photo':
-                        parent_list = self.get_library_children(section_id=section_id, section_type='photoAlbum', count='1')
+                        parent_list = self.get_library_children_details(section_id=section_id, section_type='photoAlbum', count='1')
                         parent_stats = {'parent_count': parent_list['library_count']}
                         library_stats.update(parent_stats)
 
-                        child_list = self.get_library_children(section_id=section_id, section_type='picture', count='1')
+                        child_list = self.get_library_children_details(section_id=section_id, section_type='picture', count='1')
                         child_stats = {'child_count': child_list['library_count']}
                         library_stats.update(child_stats)
 

@@ -8,11 +8,11 @@
 <%def name="body()">
 <div class='container-fluid'>
     % if config['update_section_ids'] == 1:
-    <div id="update_section_ids_mssage" style="text-align: center; margin-top: 20px;">
+    <div id="update_section_ids_message" style="text-align: center; margin-top: 20px;">
         <i class="fa fa-exclamation-triangle"></i> PlexPy needs to update the Library IDs in your databse. Click the "<strong>Refresh libraries</strong>" button below to begin the update.
     </div>
     % elif config['update_section_ids'] == -1:
-    <div id="update_section_ids_mssage" style="text-align: center; margin-top: 20px;">
+    <div id="update_section_ids_message" style="text-align: center; margin-top: 20px;">
         <i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes depending on the size of your database.
         <br />
         You may leave this page and come back later.
@@ -23,7 +23,11 @@
             <span><i class="fa fa-book"></i> All Libraries</span>
         </div>
         <div class="button-bar">
+            % if config['update_section_ids'] == -1:
+            <button class="btn btn-dark refresh-libraries-button" id="refresh-libraries-list" disabled><i class="fa fa-refresh"></i> Refresh libraries</button>
+            % else:
             <button class="btn btn-dark refresh-libraries-button" id="refresh-libraries-list"><i class="fa fa-refresh"></i> Refresh libraries</button>
+            % endif
             <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
                 <i class="fa fa-pencil"></i> Edit mode
             </button>&nbsp
@@ -172,7 +176,7 @@
 
     $("#refresh-libraries-list").click(function () {
         if ("${config['update_section_ids']}" == "1") {
-            $('#update_section_ids_mssage').html(
+            $('#update_section_ids_message').html(
                 '<i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes depending on the size of your database.' +
                 '<br />' + 
                 'You may leave this page and come back later.');
@@ -194,9 +198,5 @@
             }
         });
     });
-
-    if ("${config['update_section_ids']}" == "-1") {
-        $("#refresh-libraries-list").prop('disabled', true);
-    }
 </script>
 </%def>

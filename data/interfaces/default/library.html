@@ -196,6 +196,15 @@ DOCUMENTATION :: END
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-12">
+                                    % if data['section_id'] in config['get_file_sizes']['section_ids']:
+                                    <div id="get_file_sizes_message" style="text-align: center; margin-top: 20px;">
+                                    % else:
+                                    <div id="get_file_sizes_message" style="text-align: center; margin-top: 20px; display: none;">
+                                    % endif
+                                        <i class="fa fa-refresh fa-spin"></i> PlexPy is getting the file sizes for the library's media info. This could take a few minutes depending on the size of your library.
+                                        <br />
+                                        You may leave this page and come back later.
+                                    </div>
                                     <div class='table-card-header'>
                                         <div class="header-bar">
                                             <span>
@@ -205,9 +214,15 @@ DOCUMENTATION :: END
                                             </span>
                                         </div>
                                         <div class="button-bar">
+                                            % if data['section_id'] in config['get_file_sizes']['section_ids']:
+                                            <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" style="margin-right: 5px;" disabled>
+                                                <i class="fa fa-refresh"></i> Refresh media info
+                                            </button>
+                                            % else:
                                             <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" style="margin-right: 5px;">
                                                 <i class="fa fa-refresh"></i> Refresh media info
                                             </button>
+                                            % endif
                                             <div class="colvis-button-bar hidden-xs" id="button-bar-media-info"></div>
                                         </div>
                                     </div>
@@ -293,20 +308,20 @@ DOCUMENTATION :: END
 <script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
 % if data:
+<script>
+    % if str(data['section_id']).isdigit():
+    var section_id = ${data['section_id']};
+    % else:
+    var section_id = null;
+    % endif
+    var section_name = '${data['section_name'].replace("'", "\\'")}';
+    var refresh_table = false;
+</script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/history_table.js"></script>
 <script src="interfaces/default/js/tables/media_info_table.js"></script>
 <script>
     $(document).ready(function () {
-
-        % if str(data['section_id']).isdigit():
-        var section_id = ${data['section_id']};
-        % else:
-        var section_id = null;
-        % endif
-
-        var section_name = '${data['section_name'].replace("'", "\\'")}';
-
         $("#edit-library-tooltip").tooltip();
 
         // Populate watch time stats
@@ -357,7 +372,8 @@ DOCUMENTATION :: END
                 data: function ( d ) {
                     return { 
                         json_data: JSON.stringify( d ),
-                        section_id: section_id
+                        section_id: section_id,
+                        refresh: refresh_table
                     };
                 }
             }
@@ -377,15 +393,11 @@ DOCUMENTATION :: END
         });        
         
         $("#refresh-media-info-table").click(function () {
-            $.ajax({
-                url: 'delete_datatable_media_info_cache',
-                cache: false,
-                async: true,
-                data: { section_id: section_id },
-                complete: function(xhr, status) {
-                    media_info_table.draw()
-                }
-            });
+            media_info_child_table = {};
+            refresh_table = true;
+            refresh_child_tables = true;
+            media_info_table.draw();
+            refresh_table = false;
         });
 
         // Load edit library modal

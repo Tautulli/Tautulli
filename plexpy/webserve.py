@@ -257,18 +257,22 @@ class WebInterface(object):
 
     @cherrypy.expose
     def library(self, section_id=None):
+        config = {
+            "get_file_sizes": plexpy.CONFIG.GET_FILE_SIZES
+        }
+
         library_data = libraries.Libraries()
         if section_id:
             try:
                 library_details = library_data.get_details(section_id=section_id)
             except:
                 logger.warn(u"Unable to retrieve library details for section_id %s " % section_id)
-                return serve_template(templatename="library.html", title="Library", data=None)
+                return serve_template(templatename="library.html", title="Library", data=None, config=config)
         else:
             logger.debug(u"Library page requested but no section_id received.")
-            return serve_template(templatename="library.html", title="Library", data=None)
+            return serve_template(templatename="library.html", title="Library", data=None, config=config)
 
-        return serve_template(templatename="library.html", title="Library", data=library_details)
+        return serve_template(templatename="library.html", title="Library", data=library_details, config=config)
 
     @cherrypy.expose
     def edit_library_dialog(self, section_id=None, **kwargs):
@@ -353,22 +357,56 @@ class WebInterface(object):
             return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
 
     @cherrypy.expose
-    def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, **kwargs):
+    def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, refresh='', **kwargs):
         
+        if refresh == 'true':
+           refresh = True
+        else:
+           refresh = False
+
         library_data = libraries.Libraries()
         result = library_data.get_datatables_media_info(section_id=section_id,
                                                         section_type=section_type,
                                                         rating_key=rating_key,
+                                                        refresh=refresh,
                                                         kwargs=kwargs)
         
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(result)
 
     @cherrypy.expose
+    def get_media_info_file_sizes(self, section_id=None, rating_key=None):
+        get_file_sizes = plexpy.CONFIG.GET_FILE_SIZES
+        section_ids = set(get_file_sizes['section_ids'])
+        rating_keys = set(get_file_sizes['rating_keys'])
+        
+        if (section_id and section_id not in section_ids) or (rating_key and rating_key not in rating_keys):
+            if section_id:
+                section_ids.add(section_id)
+            elif rating_key:
+                rating_keys.add(rating_key)
+            plexpy.CONFIG.GET_FILE_SIZES = {'section_ids': list(section_ids), 'rating_keys': list(rating_keys)}
+
+            library_data = libraries.Libraries()
+            result = library_data.get_media_info_file_sizes(section_id=section_id,
+                                                            rating_key=rating_key)
+
+            if section_id:
+                section_ids.remove(section_id)
+            elif rating_key:
+                rating_keys.remove(rating_key)
+            plexpy.CONFIG.GET_FILE_SIZES = {'section_ids': list(section_ids), 'rating_keys': list(rating_keys)}
+        else:
+            result = False
+        
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps({'success': result})
+
+    @cherrypy.expose
     def get_library_unwatched(self, section_id=None, section_type=None, **kwargs):
         
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_library_children(section_id=section_id,
+        result = pms_connect.get_library_children_details(section_id=section_id,
                                                   section_type=section_type,
                                                   get_media_info=True,
                                                   kwargs=kwargs)
@@ -438,17 +476,22 @@ class WebInterface(object):
 
     @cherrypy.expose
     def delete_datatable_media_info_cache(self, section_id, **kwargs):
-        library_data = libraries.Libraries()
+        get_file_sizes = plexpy.CONFIG.GET_FILE_SIZES
+        section_ids = set(get_file_sizes['section_ids'])
 
-        if section_id:
-            delete_row = library_data.delete_datatable_media_info_cache(section_id=section_id)
+        if section_id not in section_ids:
+            if section_id:
+                library_data = libraries.Libraries()
+                delete_row = library_data.delete_datatable_media_info_cache(section_id=section_id)
 
-            if delete_row:
+                if delete_row:
+                    cherrypy.response.headers['Content-type'] = 'application/json'
+                    return json.dumps({'message': delete_row})
+            else:
                 cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': delete_row})
+                return json.dumps({'message': 'no data received'})
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return  json.dumps({'message': 'Cannot refresh library while getting file sizes.'})
 
     ##### Users #####
 
@@ -1406,7 +1449,7 @@ class WebInterface(object):
     ##### Info #####
 
     @cherrypy.expose
-    def info(self, rating_key=None, source=None, **kwargs):
+    def info(self, rating_key=None, source=None, query=None, **kwargs):
         metadata = None
 
         config = {
@@ -1425,7 +1468,7 @@ class WebInterface(object):
         if metadata:
             return serve_template(templatename="info.html", data=metadata, title="Info", config=config)
         else:
-            return self.update_metadata(rating_key)
+            return self.update_metadata(rating_key, query)
 
     @cherrypy.expose
     def get_item_children(self, rating_key='', **kwargs):
@@ -1518,7 +1561,7 @@ class WebInterface(object):
 
         data_factory = datafactory.DataFactory()
         query = data_factory.get_search_query(rating_key=rating_key)
-        if query_string:
+        if query and query_string:
             query['query_string'] = query_string
 
         if query:

@@ -10,6 +10,9 @@ $.ajax({
     }
 });
 
+var get_file_sizes = false;
+var refresh_child_tables = false;
+
 media_info_table_options = {
     "destroy": true,
     "language": {
@@ -99,7 +102,7 @@ media_info_table_options = {
                     }
                 }
             },
-            "width": "26%"
+            "width": "24%"
         },
         {
             "targets": [2],
@@ -184,10 +187,12 @@ media_info_table_options = {
             "data": "file_size",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
-                    $(td).html(Math.round(cellData / 1024 / 1000).toString() + ' MB');
+                    $(td).html(Math.round(cellData / 1024 / 1024).toString() + ' MiB');
+                } else {
+                    if (rowData['section_type'] != 'photo') { get_file_sizes = true; }
                 }
             },
-            "width": "5%",
+            "width": "7%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs",
             "searchable": false
         },
@@ -244,6 +249,25 @@ media_info_table_options = {
                 createChildTableMedia(this, rowData)
             }
         });
+
+        if (get_file_sizes) {
+            $('#get_file_sizes_message').show();
+            $('#refresh-media-info-table').prop('disabled', true);
+            $.ajax({
+                url: 'get_media_info_file_sizes',
+                async: true,
+                data: { section_id: section_id },
+                complete: function (xhr, status) {
+                    response = JSON.parse(xhr.responseText)
+                    if (response.success == true) {
+                        $('#get_file_sizes_message').hide();
+                        $('#refresh-media-info-table').prop('disabled', false);
+                        media_info_table.draw();
+                    }
+                }
+            });
+            get_file_sizes = false;
+        }
     },
     "preDrawCallback": function(settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
@@ -314,7 +338,8 @@ function childTableOptionsMedia(rowData) {
                 json_data: JSON.stringify(d),
                 section_id: rowData['section_id'],
                 section_type: section_type,
-                rating_key: rowData['rating_key']
+                rating_key: rowData['rating_key'],
+                refresh: refresh_child_tables
             };
         }
     }
@@ -343,6 +368,26 @@ function childTableOptionsMedia(rowData) {
                     createChildTableMedia(this, childrowData)
                 }
             });
+
+        if (get_file_sizes) {
+            $('#refresh-media-info-table').prop('disabled', true);
+            $.ajax({
+                url: 'get_media_info_file_sizes',
+                async: true,
+                data: {
+                    section_id: section_id,
+                    rating_key: rowData['rating_key']
+                },
+                complete: function (xhr, status) {
+                    response = JSON.parse(xhr.responseText)
+                    if (response.success == true) {
+                        $('#refresh-media-info-table').prop('disabled', false);
+                        media_info_child_table[rowData['rating_key']].draw();
+                    }
+                }
+            });
+            get_file_sizes = false;
+        }
         }
 
         $(this).closest('div.slider').slideDown();

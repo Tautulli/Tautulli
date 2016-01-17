@@ -49,7 +49,7 @@ def update_section_ids():
 
     pms_connect = pmsconnect.PmsConnect()
 
-    error_keys = []
+    error_keys = set()
     for item in result:
         id = item['id']
         rating_key = item['rating_key']
@@ -61,7 +61,7 @@ def update_section_ids():
             section_values = {'section_id': metadata['section_id']}
             monitor_db.upsert('session_history_metadata', key_dict=section_keys, value_dict=section_values)
         else:
-            error_keys.append(rating_key)
+            error_keys.add(rating_key)
 
     if error_keys:
         logger.debug(u"PlexPy Libraries :: Updated all section_id's in database except for rating_keys: %s." %
@@ -180,7 +180,7 @@ class Libraries(object):
         
         return dict
 
-    def get_datatables_media_info(self, section_id=None, section_type=None, rating_key=None, kwargs=None):
+    def get_datatables_media_info(self, section_id=None, section_type=None, rating_key=None, refresh=False, kwargs=None):
         from plexpy import pmsconnect
         import json, os
 
@@ -209,6 +209,11 @@ class Libraries(object):
         # Get play counts from the database
         monitor_db = database.MonitorDatabase()
 
+        if plexpy.CONFIG.GROUP_HISTORY_TABLES:
+            count_by = 'reference_id'
+        else:
+            count_by = 'id'
+
         if section_type == 'show' or section_type == 'artist':
             group_by = 'grandparent_rating_key'
         elif section_type == 'season' or section_type == 'album':
@@ -217,12 +222,12 @@ class Libraries(object):
             group_by = 'rating_key'
 
         try:
-            query = 'SELECT MAX(session_history.started) AS last_watched, COUNT(session_history.id) AS play_count, ' \
+            query = 'SELECT MAX(session_history.started) AS last_watched, COUNT(DISTINCT session_history.%s) AS play_count, ' \
                     'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key ' \
                     'FROM session_history ' \
                     'JOIN session_history_metadata ON session_history.id = session_history_metadata.id ' \
                     'WHERE session_history_metadata.section_id = ? ' \
-                    'GROUP BY session_history.%s ' % group_by
+                    'GROUP BY session_history.%s ' % (count_by, group_by)
             result = monitor_db.select(query, args=[section_id])
         except Exception as e:
             logger.warn(u"PlexPy Libraries :: Unable to execute database query for get_datatables_media_info2: %s." % e)
@@ -257,16 +262,17 @@ class Libraries(object):
                 pass
 
         # If no cache was imported, get all library children items
-        if not rows:
+        cached_rating_keys = [d['rating_key'] for d in rows]
+        if refresh or not rows:
             pms_connect = pmsconnect.PmsConnect()
 
             if rating_key:
-                library_children = pms_connect.get_library_children(rating_key=rating_key,
-                                                                    get_media_info=True)
+                library_children = pms_connect.get_library_children_details(rating_key=rating_key,
+                                                                            get_media_info=True)
             elif section_id:
-                library_children = pms_connect.get_library_children(section_id=section_id,
-                                                                    section_type=section_type,
-                                                                    get_media_info=True)
+                library_children = pms_connect.get_library_children_details(section_id=section_id,
+                                                                            section_type=section_type,
+                                                                            get_media_info=True)
             
             if library_children:
                 library_count = library_children['library_count']
@@ -275,30 +281,30 @@ class Libraries(object):
                 logger.warn(u"PlexPy Libraries :: Unable to get a list of library items.")
                 return default_return
         
-            rows = []
             for item in children_list:
-                row = {'section_id': library_details['section_id'],
-                       'section_type': library_details['section_type'],
-                       'added_at': item['added_at'],
-                       'media_type': item['media_type'],
-                       'rating_key': item['rating_key'],
-                       'parent_rating_key': item['parent_rating_key'],
-                       'grandparent_rating_key': item['grandparent_rating_key'],
-                       'title': item['title'],
-                       'year': item['year'],
-                       'media_index': item['media_index'],
-                       'parent_media_index': item['parent_media_index'],
-                       'thumb': item['thumb'],
-                       'container': item.get('container', ''),
-                       'bitrate': item.get('bitrate', ''),
-                       'video_codec': item.get('video_codec', ''),
-                       'video_resolution': item.get('video_resolution', ''),
-                       'video_framerate': item.get('video_framerate', ''),
-                       'audio_codec': item.get('audio_codec', ''),
-                       'audio_channels': item.get('audio_channels', ''),
-                       'file_size': item.get('file_size', '')
-                       }
-                rows.append(row)
+                if item['rating_key'] not in cached_rating_keys:
+                    row = {'section_id': library_details['section_id'],
+                           'section_type': library_details['section_type'],
+                           'added_at': item['added_at'],
+                           'media_type': item['media_type'],
+                           'rating_key': item['rating_key'],
+                           'parent_rating_key': item['parent_rating_key'],
+                           'grandparent_rating_key': item['grandparent_rating_key'],
+                           'title': item['title'],
+                           'year': item['year'],
+                           'media_index': item['media_index'],
+                           'parent_media_index': item['parent_media_index'],
+                           'thumb': item['thumb'],
+                           'container': item.get('container', ''),
+                           'bitrate': item.get('bitrate', ''),
+                           'video_codec': item.get('video_codec', ''),
+                           'video_resolution': item.get('video_resolution', ''),
+                           'video_framerate': item.get('video_framerate', ''),
+                           'audio_codec': item.get('audio_codec', ''),
+                           'audio_channels': item.get('audio_channels', ''),
+                           'file_size': item.get('file_size', '')
+                           }
+                    rows.append(row)
 
             if not rows:
                 return default_return
@@ -334,10 +340,11 @@ class Libraries(object):
         search_value = json_data['search']['value'].lower()
         if search_value:
             searchable_columns = [d['data'] for d in json_data['columns'] if d['searchable']]
-            for k,v in [row.iteritems() for row in rows]:
-                if k in searchable_columns and search_value in v.lower():
-                    results.append(row)
-                    break
+            for row in rows:
+                for k,v in row.iteritems():
+                    if k in searchable_columns and search_value in v.lower():
+                        results.append(row)
+                        break
         else:
             results = rows
 
@@ -369,6 +376,85 @@ class Libraries(object):
         
         return dict
 
+    def get_media_info_file_sizes(self, section_id=None, rating_key=None):
+        from plexpy import pmsconnect
+        import json, os
+
+        if section_id and not str(section_id).isdigit():
+            logger.warn(u"PlexPy Libraries :: Datatable media info file size called by invalid section_id provided.")
+            return False
+        elif rating_key and not str(rating_key).isdigit():
+            logger.warn(u"PlexPy Libraries :: Datatable media info file size called by invalid rating_key provided.")
+            return False
+
+        # Get the library details
+        library_details = self.get_details(section_id=section_id)
+        if library_details['section_id'] == None:
+            logger.debug(u"PlexPy Libraries :: Library section_id %s not found." % section_id)
+            return False
+        if library_details['section_type'] == 'photo':
+            return False
+
+        rows = []
+        # Import media info cache from json file
+        if rating_key:
+            #logger.debug(u"PlexPy Libraries :: Getting file sizes for rating_key %s." % rating_key)
+            try:
+                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s_%s.json' % (section_id, rating_key))
+                with open(inFilePath, 'r') as inFile:
+                    rows = json.load(inFile)
+            except IOError as e:
+                #logger.debug(u"PlexPy Libraries :: No JSON file for rating_key %s." % rating_key)
+                #logger.debug(u"PlexPy Libraries :: Refreshing data and creating new JSON file for rating_key %s." % rating_key)
+                pass
+        elif section_id:
+            logger.debug(u"PlexPy Libraries :: Getting file sizes for section_id %s." % section_id)
+            try:
+                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s.json' % section_id)
+                with open(inFilePath, 'r') as inFile:
+                    rows = json.load(inFile)
+            except IOError as e:
+                #logger.debug(u"PlexPy Libraries :: No JSON file for library section_id %s." % section_id)
+                #logger.debug(u"PlexPy Libraries :: Refreshing data and creating new JSON file for section_id %s." % section_id)
+                pass
+
+        # Get the total file size for each item
+        for item in rows:
+            if item['rating_key'] and not item['file_size']:
+                file_size = 0
+            
+                pms_connect = pmsconnect.PmsConnect()
+                child_metadata = pms_connect.get_metadata_children_details(rating_key=item['rating_key'],
+                                                                           get_children=True,
+                                                                           get_media_info=True)
+                metadata_list = child_metadata['metadata']
+
+                for child_metadata in metadata_list:
+                    child_file_size = helpers.cast_to_int(child_metadata['file_size'])
+                    if child_file_size > 0:
+                        file_size += child_file_size
+
+                item['file_size'] = file_size
+
+        # Cache the media info to a json file
+        if rating_key:
+            outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s_%s.json' % (section_id, rating_key))
+            with open(outFilePath, 'w') as outFile:
+                json.dump(rows, outFile)
+        elif section_id:
+            outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s.json' % section_id)
+            with open(outFilePath, 'w') as outFile:
+                json.dump(rows, outFile)
+
+        if rating_key:
+            #logger.debug(u"PlexPy Libraries :: File sizes updated for rating_key %s." % rating_key)
+            pass
+        elif section_id:
+            logger.debug(u"PlexPy Libraries :: File sizes updated for section_id %s." % section_id)
+
+        return True
+
+    
     def set_config(self, section_id=None, custom_thumb='', do_notify=1, keep_history=1, do_notify_created=1):
         if section_id:
             monitor_db = database.MonitorDatabase()
