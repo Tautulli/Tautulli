@@ -119,6 +119,8 @@ def initialize(options):
         cherrypy.server.start()
     except IOError:
         sys.stderr.write('Failed to start on port: %i. Is something else running?\n' % (options['http_port']))
-        sys.exit(1)
+        return False
 
     cherrypy.server.wait()
+
+    return True

@@ -176,7 +176,7 @@ def main():
                         "module to enable HTTPS. HTTPS will be disabled.")
             plexpy.CONFIG.ENABLE_HTTPS = False
 
-    # Try to start the server. Will exit here is address is already in use.
+    # Try to start the server on the next 5 ports. Will exit here is address is already in use.
     web_config = {
         'http_port': http_port,
         'http_host': plexpy.CONFIG.HTTP_HOST,
@@ -188,7 +188,16 @@ def main():
         'http_username': plexpy.CONFIG.HTTP_USERNAME,
         'http_password': plexpy.CONFIG.HTTP_PASSWORD,
     }
-    webstart.initialize(web_config)
+    web_start = False
+    while not web_start and web_config['http_port'] < http_port + 5:
+        web_start = webstart.initialize(web_config)
+        web_config['http_port'] += 1
+
+    if web_start:
+        http_port = web_config['http_port']
+        plexpy.CONFIG.HTTP_PORT = http_port
+    else:
+        sys.exit(1)
 
     # Start the background threads
     plexpy.start()
