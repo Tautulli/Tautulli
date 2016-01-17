@@ -262,7 +262,8 @@ class Libraries(object):
                 pass
 
         # If no cache was imported, get all library children items
-        cached_rating_keys = [d['rating_key'] for d in rows]
+        cached_items = {d['rating_key']: d['file_size'] for d in rows}
+
         if refresh or not rows:
             pms_connect = pmsconnect.PmsConnect()
 
@@ -280,31 +281,33 @@ class Libraries(object):
             else:
                 logger.warn(u"PlexPy Libraries :: Unable to get a list of library items.")
                 return default_return
-        
+            
             for item in children_list:
-                if item['rating_key'] not in cached_rating_keys:
-                    row = {'section_id': library_details['section_id'],
-                           'section_type': library_details['section_type'],
-                           'added_at': item['added_at'],
-                           'media_type': item['media_type'],
-                           'rating_key': item['rating_key'],
-                           'parent_rating_key': item['parent_rating_key'],
-                           'grandparent_rating_key': item['grandparent_rating_key'],
-                           'title': item['title'],
-                           'year': item['year'],
-                           'media_index': item['media_index'],
-                           'parent_media_index': item['parent_media_index'],
-                           'thumb': item['thumb'],
-                           'container': item.get('container', ''),
-                           'bitrate': item.get('bitrate', ''),
-                           'video_codec': item.get('video_codec', ''),
-                           'video_resolution': item.get('video_resolution', ''),
-                           'video_framerate': item.get('video_framerate', ''),
-                           'audio_codec': item.get('audio_codec', ''),
-                           'audio_channels': item.get('audio_channels', ''),
-                           'file_size': item.get('file_size', '')
-                           }
-                    rows.append(row)
+                cached_file_size = cached_items.get(item['rating_key'], None)
+                file_size = cached_file_size if cached_file_size else item.get('file_size', '')
+
+                row = {'section_id': library_details['section_id'],
+                       'section_type': library_details['section_type'],
+                       'added_at': item['added_at'],
+                       'media_type': item['media_type'],
+                       'rating_key': item['rating_key'],
+                       'parent_rating_key': item['parent_rating_key'],
+                       'grandparent_rating_key': item['grandparent_rating_key'],
+                       'title': item['title'],
+                       'year': item['year'],
+                       'media_index': item['media_index'],
+                       'parent_media_index': item['parent_media_index'],
+                       'thumb': item['thumb'],
+                       'container': item.get('container', ''),
+                       'bitrate': item.get('bitrate', ''),
+                       'video_codec': item.get('video_codec', ''),
+                       'video_resolution': item.get('video_resolution', ''),
+                       'video_framerate': item.get('video_framerate', ''),
+                       'audio_codec': item.get('audio_codec', ''),
+                       'audio_channels': item.get('audio_channels', ''),
+                       'file_size': file_size
+                       }
+                rows.append(row)
 
             if not rows:
                 return default_return
@@ -434,7 +437,7 @@ class Libraries(object):
                 metadata_list = child_metadata['metadata']
 
                 for child_metadata in metadata_list:
-                    child_file_size = helpers.cast_to_int(child_metadata['file_size'])
+                    child_file_size = helpers.cast_to_int(child_metadata.get('file_size', 0))
                     if child_file_size > 0:
                         file_size += child_file_size
 

@@ -71,19 +71,8 @@ img {
     -moz-box-shadow: 0 0 0 3px rgba(0,0,0,.2);
     box-shadow: 0 0 0 3px rgba(0,0,0,.2);
 }
-.navbar-header {
-    position: absolute;
-    top: 0;
-    left: 15px;
-    width: 100%;
-}
 .navbar-brand {
     padding: 5px 5px;
-}
-.navbar-right {
-    position: absolute;
-    top: 0;
-    right: 15px;
 }
 .nav > li > a {
     color: #999;
@@ -2575,9 +2564,6 @@ table.display,
 table.display tr.shown + tr table[id^='history_child'],
 table.display tr.shown + tr table[id^='media_info_child'],
 table.display tr.shown + tr table[id^='media_info_child'] tr.shown + tr table[id^='media_info_child'] {
-    table-layout: fixed;
-}
-table.display.no-fixed {
     table-layout: auto;
 }
 table.display tr.shown + tr div.slider {
