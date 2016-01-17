@@ -73,7 +73,7 @@ history_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "7%",
+            "width": "9%",
             "className": "no-wrap hidden-xs"
         },
         {
@@ -95,7 +95,7 @@ history_table_options = {
                     $(td).html('n/a');
                 }
             },
-            "width": "7%",
+            "width": "8%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control-ip"
         },
         {
@@ -106,7 +106,7 @@ history_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "7%",
+            "width": "10%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
         },
         {

@@ -150,7 +150,7 @@ def human_duration(s, sig='dhms'):
 
     hd = ''
 
-    if str(s).isdigit():
+    if str(s).isdigit() and s > 0:
         d = int(s / 84600)
         h = int((s % 84600) / 3600)
         m = int(((s % 84600) % 3600) / 60)
@@ -173,6 +173,8 @@ def human_duration(s, sig='dhms'):
             hd_list.append(str(s) + ' secs')
 
         hd = ' '.join(hd_list)
+    else:
+        hd = '0'
 
     return hd
 

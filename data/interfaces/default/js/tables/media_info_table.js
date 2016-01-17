@@ -187,7 +187,7 @@ media_info_table_options = {
             "data": "file_size",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
-                    $(td).html(Math.round(cellData / 1024 / 1024).toString() + ' MiB');
+                    $(td).html(Math.round(cellData / Math.pow(1024, 2)).toString() + ' MiB');
                 } else {
                     if (rowData['section_type'] != 'photo') { get_file_sizes = true; }
                 }
@@ -268,6 +268,10 @@ media_info_table_options = {
             });
             get_file_sizes = false;
         }
+
+        $("#media_info_table_info").append('<span class="hidden-md hidden-sm hidden-xs"> with a total file size of ' +
+            Math.round(settings.json.filtered_file_size / Math.pow(1024, 3)).toString() + ' GiB' +
+            ' (filtered from ' + Math.round(settings.json.total_file_size / Math.pow(1024, 3)).toString() + ' GiB)</span>');
     },
     "preDrawCallback": function(settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";

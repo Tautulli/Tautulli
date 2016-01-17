@@ -814,6 +814,7 @@ class DataFactory(object):
             logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_total_duration: %s." % e)
             return None
 
+        total_duration = 0
         for item in result:
             total_duration = item['total_duration']
 

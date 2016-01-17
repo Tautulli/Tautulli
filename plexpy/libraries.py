@@ -363,15 +363,19 @@ class Libraries(object):
             else:
                 results = sorted(results, key=lambda k: k[sort_key], reverse=reverse)
 
+        total_file_size = sum([helpers.cast_to_int(d['file_size']) for d in results])
+
         # Paginate results
         results = results[json_data['start']:(json_data['start'] + json_data['length'])]
 
-        ## Find some way to add total disk space used?
+        filtered_file_size = sum([helpers.cast_to_int(d['file_size']) for d in results])
 
         dict = {'recordsFiltered': filtered_count,
                 'recordsTotal': library_count,
                 'data': results,
-                'draw': int(json_data['draw'])
+                'draw': int(json_data['draw']),
+                'filtered_file_size': filtered_file_size,
+                'total_file_size': total_file_size
                 }
         
         return dict
