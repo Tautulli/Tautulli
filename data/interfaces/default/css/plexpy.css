@@ -1216,6 +1216,7 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     width: 250px;
     height: 1px;
     margin: 0 40px 20px 25px;
+    position: relative;
 }
 .summary-content {
     position: relative;
@@ -1238,6 +1239,18 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     color: #fff;
     margin-left: 2px;
     margin-right: 10px;
+}
+.summary-content-media-info-wrapper {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    text-align: center;
+}
+.summary-content-media-info {
+    max-width: 75pt;
+    max-height: 20px;
+    margin: 0 10px;
 }
 .summary-content-summary {
     overflow: hidden;
@@ -2525,8 +2538,7 @@ a .home-platforms-instance-list-oval:hover,
     right: 0;
     bottom: 0;
     left: 0;
-    overflow-x: hidden;
-    overflow-y: scroll;
+    overflow: auto;
     -webkit-overflow-scrolling: touch;
 }
 ::-webkit-scrollbar {

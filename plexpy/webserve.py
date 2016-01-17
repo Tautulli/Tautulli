@@ -1461,7 +1461,7 @@ class WebInterface(object):
             metadata = data_factory.get_metadata_details(rating_key=rating_key)
         else:
             pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_metadata_details(rating_key=rating_key)
+            result = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
             if result:
                 metadata = result['metadata']
         

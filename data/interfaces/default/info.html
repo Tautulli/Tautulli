@@ -137,12 +137,52 @@ DOCUMENTATION :: END
             </div>
             <div class="summary-content-wrapper">
                 <div class="col-md-9">
-                    % if data['media_type'] == 'movie' or data['media_type'] == 'show' or data['media_type'] == 'season':
+                    % if data['media_type'] == 'movie':
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 310px;">
+                        <div class="summary-content-media-info-wrapper">
+                            % if data['video_resolution']:
+                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['video_resolution']}.png" />
+                            % endif
+                            % if data['audio_codec']:
+                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_codec']}.png" />
+                            % endif
+                            % if data['audio_channels']:
+                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_channels']}ch.png" />
+                            % endif
+                        </div>
+                    </div>
+                    % elif data['media_type'] == 'show' or data['media_type'] == 'season':
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 275px;"></div>
                     % elif data['media_type'] == 'episode':
-                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 40px;"></div>
-                    % elif data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 75px;">
+                        <div class="summary-content-media-info-wrapper">
+                            % if data['video_resolution']:
+                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['video_resolution']}.png" />
+                            % endif
+                            % if data['audio_codec']:
+                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_codec']}.png" />
+                            % endif
+                            % if data['audio_channels']:
+                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_channels']}ch.png" />
+                            % endif
+                        </div>
+                    </div>
+                    % elif data['media_type'] == 'artist' or data['media_type'] == 'album':
                     <div class="summary-content-padding hidden-xs hidden-sm" style="height: 150px;"></div>
+                    % elif data['media_type'] == 'track':
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 185px;">
+                        <div class="summary-content-media-info-wrapper">
+                            % if data['video_resolution']:
+                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['video_resolution']}.png" />
+                            % endif
+                            % if data['audio_codec']:
+                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_codec']}.png" />
+                            % endif
+                            % if data['audio_channels']:
+                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_channels']}ch.png" />
+                            % endif
+                        </div>
+                    </div>
                     % else:
                     <div class="summary-content-padding hidden-xs hidden-sm"></div>
                     % endif

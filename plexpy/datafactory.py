@@ -744,9 +744,14 @@ class DataFactory(object):
                     'session_history_metadata.content_rating, session_history_metadata.summary, ' \
                     'session_history_metadata.tagline, session_history_metadata.rating, session_history_metadata.duration, ' \
                     'session_history_metadata.guid, session_history_metadata.directors, session_history_metadata.writers, ' \
-                    'session_history_metadata.actors, session_history_metadata.genres, session_history_metadata.studio ' \
+                    'session_history_metadata.actors, session_history_metadata.genres, session_history_metadata.studio, ' \
+                    'session_history_media_info.container, session_history_media_info.bitrate, ' \
+                    'session_history_media_info.video_codec, session_history_media_info.video_resolution, ' \
+                    'session_history_media_info.video_framerate, session_history_media_info.audio_codec, ' \
+                    'session_history_media_info.audio_channels ' \
                     'FROM session_history_metadata ' \
                     'JOIN library_sections ON session_history_metadata.section_id = library_sections.section_id ' \
+                    'JOIN session_history_media_info ON session_history_metadata.id = session_history_media_info.id ' \
                     'WHERE session_history_metadata.rating_key = ?'
             result = monitor_db.select(query=query, args=[rating_key])
         else:
@@ -789,7 +794,14 @@ class DataFactory(object):
                         'genres': genres,
                         'actors': actors,
                         'library_name': item['section_name'],
-                        'section_id': item['section_id']
+                        'section_id': item['section_id'],
+                        'container': item['container'],
+                        'bitrate': item['bitrate'],
+                        'video_codec': item['video_codec'],
+                        'video_resolution': item['video_resolution'],
+                        'video_framerate': item['video_framerate'],
+                        'audio_codec': item['audio_codec'],
+                        'audio_channels': item['audio_channels']
                         }
 
         return metadata
