@@ -2410,18 +2410,30 @@ a .home-platforms-instance-list-oval:hover,
     background: #fff;
     border: 0;
     font-weight: bold;
+    border-radius: 2px;
 }
-.history-title .popover.right {
-    margin-left: 12px;
-    z-index: 5;
+.history-thumbnail-popover {
+    z-index: 2;
+    padding: 0;
+    border: 0;
 }
-.history-title .popover.right .popover-content {
-    padding: 5px 8px;
+.history-thumbnail-popover.popover.right {
+    margin-left: 15px;
+}
+.history-thumbnail-popover .popover-content {
+    color: #000;
+    padding: 0;
 }
 .history-thumbnail {
     background-position: center;
     background-size: cover;
     width: 80px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
 }
 .edit-user-toggles,
 .edit-library-toggles {
@@ -2443,12 +2455,6 @@ a .home-platforms-instance-list-oval:hover,
 }
 .edit-user-name > input[type='text'] {
     margin: 0;
-}
-.popover {
-    z-index: 2;
-}
-.popover .popover-content {
-    color: #000;
 }
 .noTransition
 {
