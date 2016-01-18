@@ -1236,9 +1236,11 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     left: 0;
     text-align: center;
 }
-.summary-content-media-info {
+.summary-content-media-flag {
+    width: auto;
+    height: auto;
     max-width: 75pt;
-    max-height: 20px;
+    max-height: 15px;
     margin: 0 10px;
 }
 .summary-content-summary {

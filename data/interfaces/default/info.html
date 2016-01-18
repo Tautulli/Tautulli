@@ -35,6 +35,25 @@ originally_available_at Returns the air date of the item.
 DOCUMENTATION :: END
 </%doc>
 
+<%!
+    from plexpy import common
+    import re
+
+    # Get audio codec file
+    def af(codec):
+        for pattern, file in common.MEDIA_FLAGS_AUDIO.iteritems():
+            if re.match(pattern, codec):
+                return file
+        return codec
+
+    # Get audio codec file
+    def vf(codec):
+        for pattern, file in common.MEDIA_FLAGS_VIDEO.iteritems():
+            if re.match(pattern, codec):
+                return file
+        return codec
+%>
+
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
@@ -138,56 +157,48 @@ DOCUMENTATION :: END
             <div class="summary-content-wrapper">
                 <div class="col-md-9">
                     % if data['media_type'] == 'movie':
-                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 310px;">
-                        <div class="summary-content-media-info-wrapper">
-                            % if data['video_resolution']:
-                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['video_resolution']}.png" />
-                            % endif
-                            % if data['audio_codec']:
-                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_codec']}.png" />
-                            % endif
-                            % if data['audio_channels']:
-                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_channels']}ch.png" />
-                            % endif
-                        </div>
-                    </div>
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 305px;">
                     % elif data['media_type'] == 'show' or data['media_type'] == 'season':
-                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 275px;"></div>
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 270px;">
                     % elif data['media_type'] == 'episode':
-                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 75px;">
-                        <div class="summary-content-media-info-wrapper">
-                            % if data['video_resolution']:
-                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['video_resolution']}.png" />
-                            % endif
-                            % if data['audio_codec']:
-                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_codec']}.png" />
-                            % endif
-                            % if data['audio_channels']:
-                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_channels']}ch.png" />
-                            % endif
-                        </div>
-                    </div>
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 70px;">
                     % elif data['media_type'] == 'artist' or data['media_type'] == 'album':
-                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 150px;"></div>
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 150px;">
                     % elif data['media_type'] == 'track':
-                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 185px;">
+                    <div class="summary-content-padding hidden-xs hidden-sm" style="height: 180px;">
+                    % else:
+                    <div class="summary-content-padding hidden-xs hidden-sm">
+                    % endif
+                        % if data['media_type'] == 'movie' or data['media_type'] == 'episode' or data['media_type'] == 'track':
                         <div class="summary-content-media-info-wrapper">
+                            % if data['video_codec']:
+                            <img class="summary-content-media-flag" title="${data['video_codec']}" src="interfaces/default/images/media_flags/video_codec/${data['video_codec'] | vf}.png" />
+                            % endif
                             % if data['video_resolution']:
-                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['video_resolution']}.png" />
+                            <img class="summary-content-media-flag" title="${data['video_resolution']}" src="interfaces/default/images/media_flags/video_resolution/${data['video_resolution']}.png" />
                             % endif
                             % if data['audio_codec']:
-                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_codec']}.png" />
+                            <img class="summary-content-media-flag" title="${data['audio_codec']}" src="interfaces/default/images/media_flags/audio_codec/${data['audio_codec'] | af}.png" />
                             % endif
                             % if data['audio_channels']:
-                            <img class="summary-content-media-info" src="interfaces/default/images/media_info/${data['audio_channels']}ch.png" />
+                            <img class="summary-content-media-flag" title="${data['audio_channels']}" src="interfaces/default/images/media_flags/audio_channels/${data['audio_channels']}.png" />
                             % endif
                         </div>
+                        % endif
                     </div>
-                    % else:
-                    <div class="summary-content-padding hidden-xs hidden-sm"></div>
-                    % endif
                     <div class="summary-content">
                         <div class="summary-content-details-wrapper">
+                            % if data['rating']:
+                            <div class="star-rating hidden-xs hidden-sm">
+                                <span class="star"><i class="star-icon glyphicon star"></i>
+                                <span class="empty-icon"></span></span>
+                                
+                                <i class="star-icon glyphicon star"></i>
+                                <i class="star-icon glyphicon star"></i>
+                                <i class="star-icon glyphicon star"></i>
+                                <i class="star-icon glyphicon star"></i>
+                            </div>
+                            % endif
                             % if data['rating']:
                             <div id="stars" class="rateit hidden-xs hidden-sm" data-rateit-value=""
                                  data-rateit-ispreset="true" data-rateit-readonly="true"></div>
