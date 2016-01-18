@@ -108,9 +108,9 @@ DOCUMENTATION :: END
                 <div class="col-md-9">
                     <div class="summary-content-poster hidden-xs hidden-sm">
                         % if data['media_type'] == 'track':
-                        <a href="http://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details/%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}" target="Plex/Web" title="View in Plex/Web">
+                        <a href="http://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details/%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}" target="Plex" title="View in Plex Web">
                         % else:
-                        <a href="http://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details/%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="Plex/Web" title="View in Plex/Web">
+                        <a href="http://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details/%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="Plex" title="View in Plex Web">
                         % endif
                             % if data['media_type'] == 'episode':
                             <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=poster);">
@@ -189,19 +189,15 @@ DOCUMENTATION :: END
                     <div class="summary-content">
                         <div class="summary-content-details-wrapper">
                             % if data['rating']:
-                            <div class="star-rating hidden-xs hidden-sm">
-                                <span class="star"><i class="star-icon glyphicon star"></i>
-                                <span class="empty-icon"></span></span>
-                                
-                                <i class="star-icon glyphicon star"></i>
-                                <i class="star-icon glyphicon star"></i>
-                                <i class="star-icon glyphicon star"></i>
-                                <i class="star-icon glyphicon star"></i>
+                            <div class="star-rating hidden-xs hidden-sm" title="${data['rating']}">
+                                % for i in range(0,5):
+                                % if round(float(data['rating']) / 2) > i:
+                                <i class="star-icon fa fa-star"></i>
+                                % else:
+                                <i class="star-icon-o fa fa-star-o"></i>
+                                % endif
+                                % endfor
                             </div>
-                            % endif
-                            % if data['rating']:
-                            <div id="stars" class="rateit hidden-xs hidden-sm" data-rateit-value=""
-                                 data-rateit-ispreset="true" data-rateit-readonly="true"></div>
                             % endif
                             <div class="summary-content-details-tag">
                                 % if data['directors']:
@@ -516,13 +512,6 @@ DOCUMENTATION :: END
         complete: function(xhr, status) {
         $("#children-list").html(xhr.responseText); }
     });
-</script>
-% endif
-% if data['rating']:
-<script>
-    // Convert rating to 5 star rating type
-    var starRating = Math.round(${data['rating']} / 2);
-    $('#stars').attr('data-rateit-value', starRating);
 </script>
 % endif
 <script>

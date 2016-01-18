@@ -1241,7 +1241,7 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     height: auto;
     max-width: 75pt;
     max-height: 15px;
-    margin: 0 10px;
+    margin: 0 5px;
 }
 .summary-content-summary {
     overflow: hidden;
@@ -1319,31 +1319,25 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     line-height: 18px;
     color: #fff;
 }
-.rateit {
-    display: -moz-inline-box;
+.star-rating {
     display: inline-block;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -o-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
+    font-size: 15px;
     overflow: hidden;
     white-space: nowrap;
-    float: right;
     margin-top: 3px;
     height: 21px;
+    position: absolute;
+    right: 0;
 }
-.rateit .rateit-range {
-    background: url(../images/star-gray-32.png);
-    background-size: contain;
-    height: 16px;
+.star-rating .star-icon {
+    width: auto;
+    margin-left: 2px;
+    color: #F9AA03;
 }
-.rateit .rateit-selected {
-    background: url(../images/star-32.png);
-    background-size: contain;
-    height: 16px;
+.star-rating .star-icon-o {
+    width: auto;
+    margin-left: 2px;
+    color: #999;
 }
 #children-list, #search-results-list {
     position: relative;
