@@ -653,7 +653,7 @@ class Libraries(object):
                         'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                         'JOIN users ON users.user_id = session_history.user_id ' \
                         'WHERE section_id = ? ' \
-                        'GROUP BY user ' \
+                        'GROUP BY users.user_id ' \
                         'ORDER BY user_count DESC'
                 result = monitor_db.select(query, args=[section_id])
             else:
