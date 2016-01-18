@@ -282,6 +282,7 @@ class Libraries(object):
                 logger.warn(u"PlexPy Libraries :: Unable to get a list of library items.")
                 return default_return
             
+            new_rows = []
             for item in children_list:
                 cached_file_size = cached_items.get(item['rating_key'], None)
                 file_size = cached_file_size if cached_file_size else item.get('file_size', '')
@@ -307,8 +308,9 @@ class Libraries(object):
                        'audio_channels': item.get('audio_channels', ''),
                        'file_size': file_size
                        }
-                rows.append(row)
+                new_rows.append(row)
 
+            rows = new_rows
             if not rows:
                 return default_return
 
