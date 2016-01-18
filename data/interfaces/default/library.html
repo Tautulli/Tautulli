@@ -196,7 +196,7 @@ DOCUMENTATION :: END
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-12">
-                                    % if data['section_id'] in config['get_file_sizes']['section_ids']:
+                                    % if config['get_file_sizes'] and data['section_id'] in config['get_file_sizes_hold']['section_ids']:
                                     <div id="get_file_sizes_message" style="text-align: center; margin-top: 20px;">
                                     % else:
                                     <div id="get_file_sizes_message" style="text-align: center; margin-top: 20px; display: none;">
@@ -214,7 +214,7 @@ DOCUMENTATION :: END
                                             </span>
                                         </div>
                                         <div class="button-bar">
-                                            % if data['section_id'] in config['get_file_sizes']['section_ids']:
+                                            % if config['get_file_sizes'] and data['section_id'] in config['get_file_sizes_hold']['section_ids']:
                                             <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" style="margin-right: 5px;" disabled>
                                                 <i class="fa fa-refresh"></i> Refresh media info
                                             </button>
@@ -316,6 +316,12 @@ DOCUMENTATION :: END
     % endif
     var section_name = '${data['section_name'].replace("'", "\\'")}';
     var refresh_table = false;
+
+    % if config['get_file_sizes']:
+    var get_file_sizes = false;
+    % else:
+    var get_file_sizes = null;
+    % endif
 </script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/history_table.js"></script>

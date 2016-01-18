@@ -10,7 +10,6 @@ $.ajax({
     }
 });
 
-var get_file_sizes = false;
 var refresh_child_tables = false;
 
 media_info_table_options = {
@@ -24,7 +23,7 @@ media_info_table_options = {
         "emptyTable": "No data in table"
     },
     "pagingType": "bootstrap",
-    "stateSave": true,
+    "stateSave": false,
     "processing": false,
     "serverSide": true,
     "pageLength": 25,
@@ -102,7 +101,7 @@ media_info_table_options = {
                     }
                 }
             },
-            "width": "24%"
+            "width": "20%"
         },
         {
             "targets": [2],
@@ -112,7 +111,7 @@ media_info_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "5%",
+            "width": "6%",
             "className": "no-wrap hidden-sm hidden-xs"
         },
         {
@@ -123,7 +122,7 @@ media_info_table_options = {
                     $(td).html(cellData + ' kbps');
                 }
             },
-            "width": "5%",
+            "width": "6%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs",
             "searchable": false
         },
@@ -189,7 +188,9 @@ media_info_table_options = {
                 if (cellData !== null && cellData !== '') {
                     $(td).html(Math.round(cellData / Math.pow(1024, 2)).toString() + ' MiB');
                 } else {
-                    if (rowData['section_type'] != 'photo') { get_file_sizes = true; }
+                    if (rowData['section_type'] != 'photo' && get_file_sizes != null) {
+                        get_file_sizes = true;
+                    }
                 }
             },
             "width": "7%",
@@ -375,6 +376,7 @@ function childTableOptionsMedia(rowData) {
                     createChildTableMedia(this, childrowData)
                 }
             });
+        }
 
         if (get_file_sizes) {
             $('#refresh-media-info-table').prop('disabled', true);
@@ -394,7 +396,6 @@ function childTableOptionsMedia(rowData) {
                 }
             });
             get_file_sizes = false;
-        }
         }
 
         $(this).closest('div.slider').slideDown();

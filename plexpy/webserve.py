@@ -258,7 +258,8 @@ class WebInterface(object):
     @cherrypy.expose
     def library(self, section_id=None):
         config = {
-            "get_file_sizes": plexpy.CONFIG.GET_FILE_SIZES
+            "get_file_sizes": plexpy.CONFIG.GET_FILE_SIZES,
+            "get_file_sizes_hold": plexpy.CONFIG.GET_FILE_SIZES_HOLD
         }
 
         library_data = libraries.Libraries()
@@ -376,16 +377,16 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_media_info_file_sizes(self, section_id=None, rating_key=None):
-        get_file_sizes = plexpy.CONFIG.GET_FILE_SIZES
-        section_ids = set(get_file_sizes['section_ids'])
-        rating_keys = set(get_file_sizes['rating_keys'])
+        get_file_sizes_hold = plexpy.CONFIG.GET_FILE_SIZES_HOLD
+        section_ids = set(get_file_sizes_hold['section_ids'])
+        rating_keys = set(get_file_sizes_hold['rating_keys'])
         
         if (section_id and section_id not in section_ids) or (rating_key and rating_key not in rating_keys):
             if section_id:
                 section_ids.add(section_id)
             elif rating_key:
                 rating_keys.add(rating_key)
-            plexpy.CONFIG.GET_FILE_SIZES = {'section_ids': list(section_ids), 'rating_keys': list(rating_keys)}
+            plexpy.CONFIG.GET_FILE_SIZES_HOLD = {'section_ids': list(section_ids), 'rating_keys': list(rating_keys)}
 
             library_data = libraries.Libraries()
             result = library_data.get_media_info_file_sizes(section_id=section_id,
@@ -395,7 +396,7 @@ class WebInterface(object):
                 section_ids.remove(section_id)
             elif rating_key:
                 rating_keys.remove(rating_key)
-            plexpy.CONFIG.GET_FILE_SIZES = {'section_ids': list(section_ids), 'rating_keys': list(rating_keys)}
+            plexpy.CONFIG.GET_FILE_SIZES_HOLD = {'section_ids': list(section_ids), 'rating_keys': list(rating_keys)}
         else:
             result = False
         
@@ -476,8 +477,8 @@ class WebInterface(object):
 
     @cherrypy.expose
     def delete_datatable_media_info_cache(self, section_id, **kwargs):
-        get_file_sizes = plexpy.CONFIG.GET_FILE_SIZES
-        section_ids = set(get_file_sizes['section_ids'])
+        get_file_sizes_hold = plexpy.CONFIG.GET_FILE_SIZES_HOLD
+        section_ids = set(get_file_sizes_hold['section_ids'])
 
         if section_id not in section_ids:
             if section_id:
@@ -1049,6 +1050,7 @@ class WebInterface(object):
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
+            "get_file_sizes": checked(plexpy.CONFIG.GET_FILE_SIZES),
             "grouping_global_history": checked(plexpy.CONFIG.GROUPING_GLOBAL_HISTORY),
             "grouping_user_history": checked(plexpy.CONFIG.GROUPING_USER_HISTORY),
             "grouping_charts": checked(plexpy.CONFIG.GROUPING_CHARTS),
@@ -1122,7 +1124,7 @@ class WebInterface(object):
         # Handle the variable config options. Note - keys with False values aren't getting passed
 
         checked_configs = [
-            "launch_browser", "enable_https", "api_enabled", "freeze_db", "check_github",
+            "launch_browser", "enable_https", "api_enabled", "freeze_db", "check_github", "get_file_sizes", 
             "grouping_global_history", "grouping_user_history", "grouping_charts", "pms_use_bif", "pms_ssl",
             "movie_notify_enable", "tv_notify_enable", "music_notify_enable", "monitoring_use_websocket",
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",

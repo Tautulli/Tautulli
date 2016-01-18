@@ -453,6 +453,13 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">If you have media indexing enabled on your server, use these on the activity pane.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes [experimental]
+                            </label>
+                            <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.<br />
+                            This is currently experimental.</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>PlexWatch Import Tool</h3>
@@ -478,9 +485,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart)
+                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) [experimental]
                             </label>
-                            <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens. This is currently experimental. Encrypted websocket is not currently supported.</p>
+                            <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens.<br />
+                            This is currently experimental. Encrypted websocket is not currently supported.</p>
                         </div>
                         <div class="checkbox">
                             <label>

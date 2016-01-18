@@ -242,7 +242,7 @@ class Libraries(object):
         # Import media info cache from json file
         if rating_key:
             try:
-                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s_%s.json' % (section_id, rating_key))
+                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s.json' % (section_id, rating_key))
                 with open(inFilePath, 'r') as inFile:
                     rows = json.load(inFile)
                     library_count = len(rows)
@@ -252,7 +252,7 @@ class Libraries(object):
                 pass
         elif section_id:
             try:
-                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s.json' % section_id)
+                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s.json' % section_id)
                 with open(inFilePath, 'r') as inFile:
                     rows = json.load(inFile)
                     library_count = len(rows)
@@ -314,13 +314,19 @@ class Libraries(object):
 
             # Cache the media info to a json file
             if rating_key:
-                outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s_%s.json' % (section_id, rating_key))
-                with open(outFilePath, 'w') as outFile:
-                    json.dump(rows, outFile)
+                try:
+                    outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s.json' % (section_id, rating_key))
+                    with open(outFilePath, 'w') as outFile:
+                        json.dump(rows, outFile)
+                except IOError as e:
+                    logger.debug(u"PlexPy Libraries :: Unable to create cache file for rating_key %s." % rating_key)
             elif section_id:
-                outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s.json' % section_id)
-                with open(outFilePath, 'w') as outFile:
-                    json.dump(rows, outFile)
+                try:
+                    outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s.json' % section_id)
+                    with open(outFilePath, 'w') as outFile:
+                        json.dump(rows, outFile)
+                except IOError as e:
+                    logger.debug(u"PlexPy Libraries :: Unable to create cache file for section_id %s." % section_id)
 
         # Update the last_watched and play_count
         for item in rows:
@@ -407,7 +413,7 @@ class Libraries(object):
         if rating_key:
             #logger.debug(u"PlexPy Libraries :: Getting file sizes for rating_key %s." % rating_key)
             try:
-                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s_%s.json' % (section_id, rating_key))
+                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s.json' % (section_id, rating_key))
                 with open(inFilePath, 'r') as inFile:
                     rows = json.load(inFile)
             except IOError as e:
@@ -417,7 +423,7 @@ class Libraries(object):
         elif section_id:
             logger.debug(u"PlexPy Libraries :: Getting file sizes for section_id %s." % section_id)
             try:
-                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s.json' % section_id)
+                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s.json' % section_id)
                 with open(inFilePath, 'r') as inFile:
                     rows = json.load(inFile)
             except IOError as e:
@@ -426,32 +432,37 @@ class Libraries(object):
                 pass
 
         # Get the total file size for each item
+        pms_connect = pmsconnect.PmsConnect()
+
         for item in rows:
             if item['rating_key'] and not item['file_size']:
                 file_size = 0
             
-                pms_connect = pmsconnect.PmsConnect()
                 child_metadata = pms_connect.get_metadata_children_details(rating_key=item['rating_key'],
                                                                            get_children=True,
                                                                            get_media_info=True)
                 metadata_list = child_metadata['metadata']
 
                 for child_metadata in metadata_list:
-                    child_file_size = helpers.cast_to_int(child_metadata.get('file_size', 0))
-                    if child_file_size > 0:
-                        file_size += child_file_size
+                    file_size += helpers.cast_to_int(child_metadata.get('file_size', 0))
 
                 item['file_size'] = file_size
 
         # Cache the media info to a json file
         if rating_key:
-            outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s_%s.json' % (section_id, rating_key))
-            with open(outFilePath, 'w') as outFile:
-                json.dump(rows, outFile)
+            try:
+                outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s.json' % (section_id, rating_key))
+                with open(outFilePath, 'w') as outFile:
+                    json.dump(rows, outFile)
+            except IOError as e:
+                logger.debug(u"PlexPy Libraries :: Unable to create cache file with file sizes for rating_key %s." % rating_key)
         elif section_id:
-            outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info-%s.json' % section_id)
-            with open(outFilePath, 'w') as outFile:
-                json.dump(rows, outFile)
+            try:
+                outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s.json' % section_id)
+                with open(outFilePath, 'w') as outFile:
+                    json.dump(rows, outFile)
+            except IOError as e:
+                logger.debug(u"PlexPy Libraries :: Unable to create cache file with file sizes for section_id %s." % section_id)
 
         if rating_key:
             #logger.debug(u"PlexPy Libraries :: File sizes updated for rating_key %s." % rating_key)
@@ -460,7 +471,6 @@ class Libraries(object):
             logger.debug(u"PlexPy Libraries :: File sizes updated for section_id %s." % section_id)
 
         return True
-
     
     def set_config(self, section_id=None, custom_thumb='', do_notify=1, keep_history=1, do_notify_created=1):
         if section_id:
