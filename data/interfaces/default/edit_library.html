@@ -1,0 +1,179 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           edit_library.html
+Version:            0.1
+Variable names:     data [list]
+
+data :: Usable parameters
+
+== Global keys ==
+section_id          Returns the library id of the library.
+section_name        Returns the name of the library.
+section_type        Returns the type of the library.
+library_thumb       Returns the thumbnail for the library.
+custom_thumb        Returns the custom thumbnail for the library.
+library_art         Returns the artwork for the library.
+count               Returns the item count for the library.
+parent_count        Returns the parent item count for the library.
+child_count         Returns the child item count for the library.
+do_notify           Returns bool value for whether to send notifications for the library.
+keep_history        Returns bool value for whether to keep history for the library.
+
+DOCUMENTATION :: END
+</%doc>
+
+<%!
+    from plexpy import helpers
+%>
+
+% if data != None:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title">Edit library <strong>${data['section_name']}</strong></h4>
+        </div>
+        <div class="modal-body" id="modal-text">
+            <fieldset>
+                <div class="form-group">
+                    <label for="profile_url">Library Picture URL</label>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="custom_thumb_url" name="custom_thumb_url" value="${data['library_thumb']}">
+                        </div>
+                    </div>
+                    <p class="help-block">Change the library's picture in PlexPy. To reset to default, leave this field empty and save.</p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="do_notify" name="do_notify" value="1" ${helpers.checked(data['do_notify'])}> Enable notifications
+                    </label>
+                    <p class="help-block">Uncheck this if you do not want to receive notifications for this library's activity.</p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])}> Keep history
+                    </label>
+                    <p class="help-block">Uncheck this if you do not want this keep any history on this library's activity.</p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="do_notify_created" name="do_notify_created" value="1" ${helpers.checked(data['do_notify_created'])}> Enable recently added notifications
+                    </label>
+                    <p class="help-block">Uncheck this if you do not want to receive recently added notifications for this library.</p>
+                </div>
+                % if data['section_id']:
+                <div class="form-group">
+                    <button class="btn btn-danger" id="delete-all-history">Purge</button>
+                    <p class="help-block">DANGER ZONE! Click the purge button to remove all history logged for this library. This is permanent!</p>
+                </div>
+                % endif
+            </fieldset>
+        </div>
+        <div class="modal-footer">
+            <div>
+                <span id="edit-library-status-message"></span>
+                <input type="button" id="save_library" class="btn btn-bright" value="Save">
+            </div>
+        </div>
+    </div>
+</div>
+<div id="confirm-modal-purge" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-purge">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title" id="myModalLabel">Confirm Purge</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p>Are you REALLY sure you want to purge all history for this library?</p>
+                <p>This is permanent and cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-purge">Purge</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Save library options
+    $("#save_library").on('click', function () {
+        var custom_thumb = $("#custom_thumb_url").val();
+        var do_notify = 0;
+        var do_notify_created = 0;
+        var keep_history = 0;
+        if ($("#do_notify").is(":checked")) {
+            do_notify = 1;
+        }
+        if ($("#do_notify_created").is(":checked")) {
+            do_notify_created = 1;
+        }
+        if ($("#keep_history").is(":checked")) {
+            keep_history = 1;
+        }
+
+        $.ajax({
+            url: 'edit_library',
+            data: {
+                section_id: '${data["section_id"]}',
+                custom_thumb: custom_thumb,
+                do_notify: do_notify,
+                do_notify_created: do_notify_created,
+                keep_history: keep_history
+            },
+            cache: false,
+            async: true,
+            success: function (data) {
+                location.reload();
+            }
+        });
+    });
+
+    $("#delete-all-history").on('click', function() {
+        $('#confirm-modal-purge').modal();
+        $('#confirm-modal-purge').one('click', '#confirm-purge', function () {
+            $.ajax({
+                url: 'delete_all_library_history',
+                data: { section_id: '${data["section_id"]}' },
+                cache: false,
+                async: true,
+                success: function(data) {
+                    location.reload();
+                }
+            });
+        });
+    });
+        
+    $(document).ready(function() {
+        // Move #confirm-modal to parent container
+        if (!($('#edit-library-modal').next().is('#confirm-modal-purge'))) {
+            $('#confirm-modal-purge').appendTo($('#edit-library-modal').parent());
+        }
+        $('#edit-library-modal > #confirm-modal-purge').remove();
+
+        $('#edit-library-modal').css('z-index', '1050');
+        $('.modal-backdrop').not('.modal-backdrop-stack').css('z-index', '1049');
+        $('.modal-backdrop').not('.modal-backdrop-stack').addClass('modal-backdrop-stack');
+
+        $('#confirm-modal-purge').on('show.bs.modal', function () {
+            // Fix position to match parent modal
+            var currentPadding = parseInt($('body').css('padding-right'));
+            $(this).children('.modal-dialog').css('left', -currentPadding/2);
+            $('#edit-library-modal').css('overflow-y', 'hidden');
+        });
+        $('#confirm-modal-purge').on('shown.bs.modal', function () {
+            $(this).css('z-index', '1060');
+            $('.modal-backdrop').not('.modal-backdrop-stack').css('z-index', '1059');
+            $('.modal-backdrop').not('.modal-backdrop-stack').addClass('modal-backdrop-stack'); 
+        });
+        $('#confirm-modal-purge').on('hidden.bs.modal', function () {
+            $('body').addClass('modal-open');
+            $('#edit-library-modal').css('overflow-y', 'auto');
+        });
+    });
+</script>
+% endif

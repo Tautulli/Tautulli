@@ -35,8 +35,8 @@ duration                Returns the standard runtime of the media.
 content_rating          Returns the age rating for the media.
 summary                 Returns a brief description of the media plot.
 grandparent_title       Returns the name of the show, or artist.
-parent_index            Returns the index number of the season.
-index                   Returns the index number of the episode, or track.
+parent_media_index      Returns the index number of the season.
+media_index             Returns the index number of the episode, or track.
 parent_thumb            Returns the location of the item's thumbnail. Use with pms_image_proxy.
 writers                 Returns an array of writers.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
@@ -62,7 +62,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['movie']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
                 </div>
@@ -84,7 +84,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['show']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
                 </div>
@@ -106,13 +106,13 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['season']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
                 </div>
                 <div class="item-children-instance-text-wrapper season-item">
                     <h3 title="${child['parent_title']}">${child['parent_title']}</h3>
-                    <h3 class="text-muted">S${child['index']}</h3>
+                    <h3 class="text-muted">S${child['media_index']}</h3>
                 </div>
             </a>
         </li>
@@ -128,14 +128,14 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['episode']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face episode-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
                 </div>
                 <div class="item-children-instance-text-wrapper episode-item">
                     <h3 title="${child['grandparent_title']}">${child['grandparent_title']}</h3>
                     <h3 title="${child['title']}">${child['title']}</h3>
-                    <h3 class="text-muted">S${child['parent_index']} &middot; E${child['index']}</h3>
+                    <h3 class="text-muted">S${child['parent_media_index']} &middot; E${child['media_index']}</h3>
                 </div>
             </a>
         </li>
@@ -151,7 +151,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['artist']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300);"></div>
                 </div>
@@ -172,7 +172,7 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['album']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300);"></div>
                 </div>
@@ -194,12 +194,12 @@ DOCUMENTATION :: END
     <ul class="item-children-instance list-unstyled">
         % for child in data['results_list']['track']:
         <li>
-            <a href="info?item_id=${child['rating_key']}" id="${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['parent_thumb']}&width=300&height=300);">
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
-                                Track ${child['index']}
+                                Track ${child['media_index']}
                             </div>
                         </div>
                     </div>

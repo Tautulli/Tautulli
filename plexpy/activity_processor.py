@@ -29,6 +29,7 @@ class ActivityProcessor(object):
     def write_session(self, session=None, notify=True):
         if session:
             values = {'session_key': session['session_key'],
+                      'section_id': session['section_id'],
                       'rating_key': session['rating_key'],
                       'media_type': session['media_type'],
                       'state': session['state'],
@@ -97,10 +98,13 @@ class ActivityProcessor(object):
                         self.db.upsert('sessions', ip_address, keys)
 
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
-        from plexpy import users
+        from plexpy import users, libraries
 
         user_data = users.Users()
-        user_details = user_data.get_user_friendly_name(user=session['user'])
+        user_details = user_data.get_details(user_id=session['user_id'])
+
+        library_data = libraries.Libraries()
+        library_details = library_data.get_details(section_id=session['section_id'])
 
         if session:
             logging_enabled = False
@@ -155,7 +159,10 @@ class ActivityProcessor(object):
 
             if not user_details['keep_history'] and not is_import:
                 logging_enabled = False
-                logger.debug(u"PlexPy ActivityProcessor :: History logging for user '%s' is disabled." % session['user'])
+                logger.debug(u"PlexPy ActivityProcessor :: History logging for user '%s' is disabled." % user_details['username'])
+            elif not library_details['keep_history'] and not is_import:
+                logging_enabled = False
+                logger.debug(u"PlexPy ActivityProcessor :: History logging for library '%s' is disabled." % library_details['section_name'])
 
             if logging_enabled:
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history table...")
@@ -250,19 +257,20 @@ class ActivityProcessor(object):
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history_metadata table...")
                 query = 'INSERT INTO session_history_metadata (id, rating_key, parent_rating_key, ' \
                         'grandparent_rating_key, title, parent_title, grandparent_title, full_title, media_index, ' \
-                        'parent_media_index, thumb, parent_thumb, grandparent_thumb, art, media_type, year, ' \
-                        'originally_available_at, added_at, updated_at, last_viewed_at, content_rating, summary, ' \
-                        'tagline, rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
+                        'parent_media_index, section_id, thumb, parent_thumb, grandparent_thumb, art, media_type, ' \
+                        'year, originally_available_at, added_at, updated_at, last_viewed_at, content_rating, ' \
+                        'summary, tagline, rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
                         '(last_insert_rowid(), ' \
-                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
                 args = [session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
                         session['title'], session['parent_title'], session['grandparent_title'], full_title,
-                        metadata['index'], metadata['parent_index'], metadata['thumb'], metadata['parent_thumb'],
-                        metadata['grandparent_thumb'], metadata['art'], session['media_type'], metadata['year'],
-                        metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
+                        metadata['media_index'], metadata['parent_media_index'], metadata['section_id'], metadata['thumb'],
+                        metadata['parent_thumb'], metadata['grandparent_thumb'], metadata['art'], session['media_type'],
+                        metadata['year'], metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
                         metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['tagline'], 
-                        metadata['rating'], metadata['duration'], metadata['guid'], directors, writers, actors, genres, metadata['studio']]
+                        metadata['rating'], metadata['duration'], metadata['guid'], directors, writers, actors, genres,
+                        metadata['studio']]
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history_metadata transaction...")
                 self.db.action(query=query, args=args)
@@ -330,15 +338,7 @@ class ActivityProcessor(object):
 
     def get_session_by_key(self, session_key=None):
         if str(session_key).isdigit():
-            result = self.db.select('SELECT started, session_key, rating_key, media_type, title, parent_title, '
-                                    'grandparent_title, user_id, user, friendly_name, ip_address, player, '
-                                    'platform, machine_id, parent_rating_key, grandparent_rating_key, state, '
-                                    'view_offset, duration, video_decision, audio_decision, width, height, '
-                                    'container, video_codec, audio_codec, bitrate, video_resolution, '
-                                    'video_framerate, aspect_ratio, audio_channels, transcode_protocol, '
-                                    'transcode_container, transcode_video_codec, transcode_audio_codec, '
-                                    'transcode_audio_channels, transcode_width, transcode_height, '
-                                    'paused_counter, last_paused '
+            result = self.db.select('SELECT * '
                                     'FROM sessions WHERE session_key = ? LIMIT 1', args=[session_key])
             for session in result:
                 if session:

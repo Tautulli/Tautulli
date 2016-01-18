@@ -54,7 +54,7 @@
 <script>
     $(document).ready(function() {
         sync_table_options.ajax = {
-            "url": "get_sync"
+            url: 'get_sync'
         }
         sync_table = $('#sync_table').DataTable(sync_table_options);
         var colvis = new $.fn.dataTable.ColVis( sync_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' } );

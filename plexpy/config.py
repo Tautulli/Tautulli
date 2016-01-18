@@ -97,6 +97,8 @@ _CONFIG_DEFINITIONS = {
     'FACEBOOK_ON_INTUP': (int, 'Facebook', 0),
     'FIRST_RUN_COMPLETE': (int, 'General', 0),
     'FREEZE_DB': (int, 'General', 0),
+    'GET_FILE_SIZES': (int, 'General', 0),
+    'GET_FILE_SIZES_HOLD': (dict, 'General', {'section_ids': [], 'rating_keys': []}),
     'GIT_BRANCH': (str, 'General', 'master'),
     'GIT_PATH': (str, 'General', ''),
     'GIT_USER': (str, 'General', 'drzoidberg33'),
@@ -118,12 +120,12 @@ _CONFIG_DEFINITIONS = {
     'GROWL_ON_INTDOWN': (int, 'Growl', 0),
     'GROWL_ON_EXTUP': (int, 'Growl', 0),
     'GROWL_ON_INTUP': (int, 'Growl', 0),
-    'HOME_LIBRARY_CARDS': (str, 'General', 'library_statistics_first'),
+    'HOME_LIBRARY_CARDS': (list, 'General', ['first_run']),
     'HOME_STATS_LENGTH': (int, 'General', 30),
     'HOME_STATS_TYPE': (int, 'General', 0),
     'HOME_STATS_COUNT': (int, 'General', 5),
-    'HOME_STATS_CARDS': (str, 'General', 'watch_statistics, top_tv, popular_tv, top_movies, popular_movies, ' \
-        'top_music, popular_music, last_watched, top_users, top_platforms, most_concurrent'),
+    'HOME_STATS_CARDS': (list, 'General', ['top_tv', 'popular_tv', 'top_movies', 'popular_movies', 'top_music', \
+        'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent']),
     'HTTPS_CERT': (str, 'General', ''),
     'HTTPS_KEY': (str, 'General', ''),
     'HTTP_HOST': (str, 'General', '0.0.0.0'),
@@ -293,6 +295,8 @@ _CONFIG_DEFINITIONS = {
     'PUSHOVER_ON_INTDOWN': (int, 'Pushover', 0),
     'PUSHOVER_ON_EXTUP': (int, 'Pushover', 0),
     'PUSHOVER_ON_INTUP': (int, 'Pushover', 0),
+    'REFRESH_LIBRARIES_INTERVAL': (int, 'Monitoring', 12),
+    'REFRESH_LIBRARIES_ON_STARTUP': (int, 'Monitoring', 1),
     'REFRESH_USERS_INTERVAL': (int, 'Monitoring', 12),
     'REFRESH_USERS_ON_STARTUP': (int, 'Monitoring', 1),
     'SLACK_ENABLED': (int, 'Slack', 0),
@@ -370,6 +374,7 @@ _CONFIG_DEFINITIONS = {
     'TWITTER_ON_EXTUP': (int, 'Twitter', 0),
     'TWITTER_ON_INTUP': (int, 'Twitter', 0),
     'UPDATE_DB_INTERVAL': (int, 'General', 24),
+    'UPDATE_SECTION_IDS': (int, 'General', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'XBMC_ENABLED': (int, 'XBMC', 0),
@@ -505,3 +510,17 @@ class Config(object):
                 self.MOVIE_LOGGING_ENABLE = 0
                 self.TV_LOGGING_ENABLE = 0
             self.CONFIG_VERSION = '1'
+        if self.CONFIG_VERSION == '1':
+            # Change home_stats_cards to list
+            if self.HOME_STATS_CARDS:
+                home_stats_cards = ''.join(self.HOME_STATS_CARDS).split(', ')
+                if 'watch_statistics' in home_stats_cards:
+                    home_stats_cards.remove('watch_statistics')
+                    self.HOME_STATS_CARDS = home_stats_cards
+            # Change home_library_cards to list
+            if self.HOME_LIBRARY_CARDS:
+                home_library_cards = ''.join(self.HOME_LIBRARY_CARDS).split(', ')
+                if 'library_statistics' in home_library_cards:
+                    home_library_cards.remove('library_statistics')
+                    self.HOME_LIBRARY_CARDS = home_library_cards
+            self.CONFIG_VERSION = '2'
