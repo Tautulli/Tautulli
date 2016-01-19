@@ -95,12 +95,12 @@ def initialize(config_file):
                 'HTTP_PORT out of bounds: 21 < %s < 65535', CONFIG.HTTP_PORT)
             CONFIG.HTTP_PORT = 8181
 
-        if CONFIG.HTTPS_CERT == '':
+        if CONFIG.HTTPS_CERT.startswith(os.path.abspath(DATA_DIR)):
             CONFIG.HTTPS_CERT = os.path.join(DATA_DIR, 'server.crt')
-        if CONFIG.HTTPS_KEY == '':
+        if CONFIG.HTTPS_KEY.startswith(os.path.abspath(DATA_DIR)):
             CONFIG.HTTPS_KEY = os.path.join(DATA_DIR, 'server.key')
 
-        if not CONFIG.LOG_DIR:
+        if not CONFIG.LOG_DIR.startswith(os.path.abspath(DATA_DIR)):
             CONFIG.LOG_DIR = os.path.join(DATA_DIR, 'logs')
 
         if not os.path.exists(CONFIG.LOG_DIR):
@@ -117,7 +117,7 @@ def initialize(config_file):
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR,
                           verbose=VERBOSE)
 
-        if not CONFIG.CACHE_DIR:
+        if not CONFIG.CACHE_DIR.startswith(os.path.abspath(DATA_DIR)):
             # Put the cache dir in the data dir for now
             CONFIG.CACHE_DIR = os.path.join(DATA_DIR, 'cache')
         if not os.path.exists(CONFIG.CACHE_DIR):
