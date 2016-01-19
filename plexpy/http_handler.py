@@ -56,12 +56,12 @@ class HTTPHandler(object):
             if proto.upper() == 'HTTPS':
                 if not self.ssl_verify and hasattr(ssl, '_create_unverified_context'):
                     context = ssl._create_unverified_context()
-                    handler = HTTPSConnection(host=self.host, port=self.port, timeout=10, context=context)
+                    handler = HTTPSConnection(host=self.host, port=self.port, timeout=20, context=context)
                     logger.warn(u"PlexPy HTTP Handler :: Unverified HTTPS request made. This connection is not secure.")
                 else:
-                    handler = HTTPSConnection(host=self.host, port=self.port, timeout=10)
+                    handler = HTTPSConnection(host=self.host, port=self.port, timeout=20)
             else:
-                handler = HTTPConnection(host=self.host, port=self.port, timeout=10)
+                handler = HTTPConnection(host=self.host, port=self.port, timeout=20)
 
             token_string = ''
             if not no_token:

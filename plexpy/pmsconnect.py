@@ -1598,7 +1598,7 @@ class PmsConnect(object):
         try:
             xml_head = library_data.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_library_children: %s." % e)
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_library_children_details: %s." % e)
             return []
 
         childern_list = []
@@ -1689,7 +1689,7 @@ class PmsConnect(object):
                 section_id = library['section_id']
                 children_list = self.get_library_children_details(section_id=section_id, section_type=section_type, count='1')
 
-                if children_list['library_count'] != '0':
+                if children_list and children_list['library_count'] != '0':
                     library_stats = {'section_id': library['section_id'],
                                      'section_name': library['section_name'],
                                      'section_type': section_type,
@@ -1700,30 +1700,36 @@ class PmsConnect(object):
 
                     if section_type == 'show':
                         parent_list = self.get_library_children_details(section_id=section_id, section_type='season', count='1')
-                        parent_stats = {'parent_count': parent_list['library_count']}
-                        library_stats.update(parent_stats)
+                        if parent_list:
+                            parent_stats = {'parent_count': parent_list['library_count']}
+                            library_stats.update(parent_stats)
 
                         child_list = self.get_library_children_details(section_id=section_id, section_type='episode', count='1')
-                        child_stats = {'child_count': child_list['library_count']}
-                        library_stats.update(child_stats)
+                        if child_list:
+                            child_stats = {'child_count': child_list['library_count']}
+                            library_stats.update(child_stats)
 
                     if section_type == 'artist':
                         parent_list = self.get_library_children_details(section_id=section_id, section_type='album', count='1')
-                        parent_stats = {'parent_count': parent_list['library_count']}
-                        library_stats.update(parent_stats)
+                        if parent_list:
+                            parent_stats = {'parent_count': parent_list['library_count']}
+                            library_stats.update(parent_stats)
 
                         child_list = self.get_library_children_details(section_id=section_id, section_type='track', count='1')
-                        child_stats = {'child_count': child_list['library_count']}
-                        library_stats.update(child_stats)
+                        if child_list:
+                            child_stats = {'child_count': child_list['library_count']}
+                            library_stats.update(child_stats)
 
                     if section_type == 'photo':
                         parent_list = self.get_library_children_details(section_id=section_id, section_type='photoAlbum', count='1')
-                        parent_stats = {'parent_count': parent_list['library_count']}
-                        library_stats.update(parent_stats)
+                        if parent_list:
+                            parent_stats = {'parent_count': parent_list['library_count']}
+                            library_stats.update(parent_stats)
 
                         child_list = self.get_library_children_details(section_id=section_id, section_type='picture', count='1')
-                        child_stats = {'child_count': child_list['library_count']}
-                        library_stats.update(child_stats)
+                        if child_list:
+                            child_stats = {'child_count': child_list['library_count']}
+                            library_stats.update(child_stats)
 
                     server_library_stats.append(library_stats)
 
