@@ -422,8 +422,8 @@ def dbcheck():
     # users table :: This table keeps record of the friends list
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL UNIQUE, '
-        'friendly_name TEXT, thumb TEXT, email TEXT, custom_avatar_url TEXT, is_home_user INTEGER DEFAULT NULL, '
+        'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
+        'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
         'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0)'
     )
@@ -439,15 +439,15 @@ def dbcheck():
     # library_sections table :: This table keeps record of the servers library sections
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'server_id TEXT, section_id INTEGER UNIQUE, section_name TEXT, section_type TEXT, '
+        'server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, '
         'thumb TEXT, custom_thumb_url TEXT, art TEXT, count INTEGER, parent_count INTEGER, child_count INTEGER, '
         'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
-        'deleted_section INTEGER DEFAULT 0)'
+        'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
     )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT started from sessions')
+        c_db.execute('SELECT started FROM sessions')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
@@ -468,7 +468,7 @@ def dbcheck():
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT title from sessions')
+        c_db.execute('SELECT title FROM sessions')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
@@ -492,7 +492,7 @@ def dbcheck():
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT ip_address from sessions')
+        c_db.execute('SELECT ip_address FROM sessions')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
@@ -573,7 +573,7 @@ def dbcheck():
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT buffer_count from sessions')
+        c_db.execute('SELECT buffer_count FROM sessions')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
@@ -585,7 +585,7 @@ def dbcheck():
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT last_paused from sessions')
+        c_db.execute('SELECT last_paused FROM sessions')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
@@ -594,7 +594,7 @@ def dbcheck():
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT section_id from sessions')
+        c_db.execute('SELECT section_id FROM sessions')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
@@ -603,7 +603,7 @@ def dbcheck():
 
     # Upgrade session_history table from earlier versions
     try:
-        c_db.execute('SELECT reference_id from session_history')
+        c_db.execute('SELECT reference_id FROM session_history')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table session_history.")
         c_db.execute(
@@ -626,7 +626,7 @@ def dbcheck():
 
     # Upgrade session_history_metadata table from earlier versions
     try:
-        c_db.execute('SELECT full_title from session_history_metadata')
+        c_db.execute('SELECT full_title FROM session_history_metadata')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table session_history_metadata.")
         c_db.execute(
@@ -635,7 +635,7 @@ def dbcheck():
 
     # Upgrade session_history_metadata table from earlier versions
     try:
-        c_db.execute('SELECT tagline from session_history_metadata')
+        c_db.execute('SELECT tagline FROM session_history_metadata')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table session_history_metadata.")
         c_db.execute(
@@ -644,7 +644,7 @@ def dbcheck():
 
     # Upgrade session_history_metadata table from earlier versions
     try:
-        c_db.execute('SELECT section_id from session_history_metadata')
+        c_db.execute('SELECT section_id FROM session_history_metadata')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table session_history_metadata.")
         c_db.execute(
@@ -653,7 +653,7 @@ def dbcheck():
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT do_notify from users')
+        c_db.execute('SELECT do_notify FROM users')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table users.")
         c_db.execute(
@@ -662,7 +662,7 @@ def dbcheck():
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT keep_history from users')
+        c_db.execute('SELECT keep_history FROM users')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table users.")
         c_db.execute(
@@ -671,7 +671,7 @@ def dbcheck():
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT custom_avatar_url from users')
+        c_db.execute('SELECT custom_avatar_url FROM users')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table users.")
         c_db.execute(
@@ -680,7 +680,7 @@ def dbcheck():
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT deleted_user from users')
+        c_db.execute('SELECT deleted_user FROM users')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table users.")
         c_db.execute(
@@ -689,7 +689,7 @@ def dbcheck():
 
     # Upgrade notify_log table from earlier versions
     try:
-        c_db.execute('SELECT on_pause from notify_log')
+        c_db.execute('SELECT on_pause FROM notify_log')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table notify_log.")
         c_db.execute(
@@ -704,12 +704,82 @@ def dbcheck():
 
     # Upgrade notify_log table from earlier versions
     try:
-        c_db.execute('SELECT on_created from notify_log')
+        c_db.execute('SELECT on_created FROM notify_log')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table notify_log.")
         c_db.execute(
             'ALTER TABLE notify_log ADD COLUMN on_created INTEGER'
         )
+
+    # Upgrade library_sections table from earlier versions (remove UNIQUE constraint on section_id)
+    try:
+        result = c_db.execute('PRAGMA index_xinfo("sqlite_autoindex_library_sections_1")')
+        if result and 'server_id' not in [row[2] for row in result]:
+            logger.debug(u"Altering database. Removing unique constraint on section_id from library_sections table.")
+            c_db.execute(
+                'CREATE TABLE library_sections_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, '
+                'thumb TEXT, custom_thumb_url TEXT, art TEXT, count INTEGER, parent_count INTEGER, child_count INTEGER, '
+                'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
+                'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
+            )
+            c_db.execute(
+                'INSERT INTO library_sections_temp (id, server_id, section_id, section_name, section_type, '
+                'thumb, custom_thumb_url, art, count, parent_count, child_count, do_notify, do_notify_created, '
+                'keep_history, deleted_section) '
+                'SELECT id, server_id, section_id, section_name, section_type, '
+                'thumb, custom_thumb_url, art, count, parent_count, child_count, do_notify, do_notify_created, '
+                'keep_history, deleted_section '
+                'FROM library_sections'
+            )
+            c_db.execute(
+                'DROP TABLE library_sections'
+            )
+            c_db.execute(
+                'ALTER TABLE library_sections_temp RENAME TO library_sections'
+            )
+    except sqlite3.OperationalError:
+        logger.debug(u"Unable to remove section_id unique constraint from library_sections.")
+        try:
+            c_db.execute(
+                'DROP TABLE library_sections_temp'
+            )
+        except:
+            pass
+
+    # Upgrade users table from earlier versions (remove UNIQUE constraint on username)
+    try:
+        result = c_db.execute('PRAGMA index_xinfo("sqlite_autoindex_users_2")')
+        if result and 'username' in [row[2] for row in result]:
+            logger.debug(u"Altering database. Removing unique constraint on username from users table.")
+            c_db.execute(
+                'CREATE TABLE users_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
+                'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
+                'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
+                'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0)'
+            )
+            c_db.execute(
+                'INSERT INTO users_temp (id, user_id, username, friendly_name, thumb, custom_avatar_url, '
+                'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user) '
+                'SELECT id, user_id, username, friendly_name, thumb, custom_avatar_url, '
+                'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user '
+                'FROM users'
+            )
+            c_db.execute(
+                'DROP TABLE users'
+            )
+            c_db.execute(
+                'ALTER TABLE users_temp RENAME TO users'
+            )
+    except sqlite3.OperationalError:
+        logger.debug(u"Unable to remove username unique constraint from users.")
+        try:
+            c_db.execute(
+                'DROP TABLE users_temp'
+            )
+        except:
+            pass
 
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')

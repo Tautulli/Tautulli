@@ -113,7 +113,7 @@ class Libraries(object):
             query = data_tables.ssp_query(table_name='library_sections',
                                           columns=columns,
                                           custom_where=[custom_where],
-                                          group_by=['library_sections.section_id'],
+                                          group_by=['library_sections.server_id', 'library_sections.section_id'],
                                           join_types=['LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN'],
