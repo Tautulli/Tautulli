@@ -1786,7 +1786,7 @@ class Scripts(object):
         scripts = {'': ''}
 
         if scriptdir and not os.path.exists(scriptdir):
-            os.makedirs(scriptdir)
+            return scripts
 
         for root, dirs, files in os.walk(scriptdir):
             for f in files:
