@@ -27,8 +27,8 @@ class Users(object):
         custom_where = ['users.deleted_user', 0]
 
         columns = ['users.user_id',
-                   'users.username',
-                   'users.friendly_name',
+                   '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
+                    THEN users.username ELSE users.friendly_name END) AS friendly_name',
                    'users.thumb AS user_thumb',
                    'users.custom_avatar_url AS custom_thumb',
                    'COUNT(session_history.id) AS plays',
@@ -73,11 +73,6 @@ class Users(object):
 
         rows = []
         for item in users:
-            if item['friendly_name']:
-                friendly_name = item['friendly_name']
-            else:
-                friendly_name = item['username']
-                
             if item['media_type'] == 'episode' and item['parent_thumb']:
                 thumb = item['parent_thumb']
             elif item['media_type'] == 'episode':
@@ -96,8 +91,7 @@ class Users(object):
             platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
             row = {'user_id': item['user_id'],
-                   'username': item['username'],
-                   'friendly_name': friendly_name,
+                   'friendly_name': item['friendly_name'],
                    'user_thumb': user_thumb,
                    'plays': item['plays'],
                    'last_seen': item['last_seen'],
