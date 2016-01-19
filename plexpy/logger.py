@@ -51,6 +51,17 @@ class LogListHandler(logging.Handler):
         plexpy.LOG_LIST.insert(0, (helpers.now(), message, record.levelname, record.threadName))
 
 
+class NoThreadFilter(logging.Filter):
+    """
+    Log filter for the current thread
+    """
+    def __init__(self, threadName):
+        self.threadName = threadName
+
+    def filter(self, record):
+        return not record.threadName == self.threadName
+
+
 @contextlib.contextmanager
 def listener():
     """

@@ -18,6 +18,7 @@ import plexpy
 
 def update_section_ids():
     from plexpy import pmsconnect, activity_pinger
+    import threading
 
     plexpy.CONFIG.UPDATE_SECTION_IDS = -1
 
@@ -39,13 +40,19 @@ def update_section_ids():
     except Exception as e:
         logger.warn(u"PlexPy Libraries :: Unable to execute database query for update_section_ids: %s." % e)
 
-        logger.debug(u"PlexPy Libraries :: Unable to update section_id's in database.")
+        logger.warn(u"PlexPy Libraries :: Unable to update section_id's in database.")
         plexpy.CONFIG.__setattr__('UPDATE_SECTION_IDS', 1)
         plexpy.CONFIG.write()
 
         logger.debug(u"PlexPy Libraries :: Re-enabling monitoring.")
         plexpy.initialize_scheduler()
         return None
+
+    # Add thread filter to the logger
+    logger.debug(u"PlexPy Libraries :: Disabling logging in the current thread while update in progress.")
+    thread_filter = logger.NoThreadFilter(threading.current_thread().name)
+    for handler in logger.logger.handlers:
+        handler.addFilter(thread_filter)
 
     pms_connect = pmsconnect.PmsConnect()
 
@@ -63,11 +70,16 @@ def update_section_ids():
         else:
             error_keys.add(rating_key)
 
+    # Remove thread filter from the logger
+    for handler in logger.logger.handlers:
+        handler.removeFilter(thread_filter)
+    logger.debug(u"PlexPy Libraries :: Re-enabling logging in the current thread.")
+
     if error_keys:
-        logger.debug(u"PlexPy Libraries :: Updated all section_id's in database except for rating_keys: %s." %
+        logger.info(u"PlexPy Libraries :: Updated all section_id's in database except for rating_keys: %s." %
                      ', '.join(str(key) for key in error_keys))
     else:
-        logger.debug(u"PlexPy Libraries :: Updated all section_id's in database.")
+        logger.info(u"PlexPy Libraries :: Updated all section_id's in database.")
 
     plexpy.CONFIG.__setattr__('UPDATE_SECTION_IDS', 0)
     plexpy.CONFIG.write()
