@@ -1299,6 +1299,7 @@ class WebInterface(object):
         else:
             return "Unable to verify key"
 
+    @cherrypy.expose
     def facebookStep1(self):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
         facebook = notifiers.FacebookNotifier()
