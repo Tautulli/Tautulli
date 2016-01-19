@@ -95,9 +95,9 @@ def initialize(config_file):
                 'HTTP_PORT out of bounds: 21 < %s < 65535', CONFIG.HTTP_PORT)
             CONFIG.HTTP_PORT = 8181
 
-        if CONFIG.HTTPS_CERT.startswith(os.path.abspath(DATA_DIR)):
+        if not CONFIG.HTTPS_CERT.startswith(os.path.abspath(DATA_DIR)):
             CONFIG.HTTPS_CERT = os.path.join(DATA_DIR, 'server.crt')
-        if CONFIG.HTTPS_KEY.startswith(os.path.abspath(DATA_DIR)):
+        if not CONFIG.HTTPS_KEY.startswith(os.path.abspath(DATA_DIR)):
             CONFIG.HTTPS_KEY = os.path.join(DATA_DIR, 'server.key')
 
         if not CONFIG.LOG_DIR.startswith(os.path.abspath(DATA_DIR)):
