@@ -1493,7 +1493,7 @@ class WebInterface(object):
             cherrypy.response.headers['Content-type'] = result[1]
             return result[0]
         except:
-            logger.warn(u"Image proxy queried but errors occured.")
+            logger.warn(u"Image proxy queried but errors occurred.")
             if fallback == 'poster':
                 logger.info(u"Trying fallback image...")
                 try:
