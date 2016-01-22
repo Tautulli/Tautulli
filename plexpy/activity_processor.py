@@ -103,8 +103,10 @@ class ActivityProcessor(object):
         user_data = users.Users()
         user_details = user_data.get_details(user_id=session['user_id'])
 
+        section_id = session['section_id'] if not is_import else import_metadata['section_id']
+
         library_data = libraries.Libraries()
-        library_details = library_data.get_details(section_id=session['section_id'])
+        library_details = library_data.get_details(section_id=section_id)
 
         if session:
             logging_enabled = False
