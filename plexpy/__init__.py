@@ -708,12 +708,13 @@ def shutdown(restart=False, update=False):
 
     if restart:
         logger.info('PlexPy is restarting...')
-        popen_list = [sys.executable, FULL_PATH]
-        popen_list += ARGS
-        if '--nolaunch' not in popen_list:
-            popen_list += ['--nolaunch']
-        logger.info('Restarting PlexPy with %s', popen_list)
-        subprocess.Popen(popen_list, cwd=os.getcwd())
+        exe = sys.executable
+        args = [exe, FULL_PATH]
+        args += ARGS
+        if '--nolaunch' not in args:
+            args += ['--nolaunch']
+        logger.info('Restarting PlexPy with %s %s', exe, ' '.join(args))
+        os.execv(exe, args)
 
     os._exit(0)
 
