@@ -81,7 +81,7 @@ user_ip_table_options = {
         },
         {
             "targets": [4],
-            "data":"last_watched",
+            "data":"last_played",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     var media_type = '';

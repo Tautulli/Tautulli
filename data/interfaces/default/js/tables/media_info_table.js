@@ -199,7 +199,7 @@ media_info_table_options = {
         },
         {
             "targets": [10],
-            "data": "last_watched",
+            "data": "last_played",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
                     date = moment(cellData, "X").format(date_format);
@@ -427,7 +427,7 @@ function childTableFormatMedia(rowData) {
                 '<th align="left" id="audio_codec">Audio Codec</th>' + 
                 '<th align="left" id="audio_channels">Audio Channels</th>' + 
                 '<th align="left" id="file_size">File Size</th>' + 
-                '<th align="left" id="last_watched">Last Watched</th>' + 
+                '<th align="left" id="last_played">Last Played</th>' + 
                 '<th align="left" id="total_plays">Total Plays</th>' +
             '</tr>' +
             '</thead>' +

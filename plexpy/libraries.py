@@ -111,7 +111,7 @@ class Libraries(object):
                    'COUNT(session_history.id) AS plays',
                    'MAX(session_history.started) AS last_accessed',
                    'MAX(session_history.id) AS id',
-                   'session_history_metadata.full_title AS last_watched',
+                   'session_history_metadata.full_title AS last_played',
                    'session_history_metadata.thumb',
                    'session_history_metadata.parent_thumb',
                    'session_history_metadata.grandparent_thumb',
@@ -174,7 +174,7 @@ class Libraries(object):
                    'plays': item['plays'],
                    'last_accessed': item['last_accessed'],
                    'id': item['id'],
-                   'last_watched': item['last_watched'],
+                   'last_played': item['last_played'],
                    'thumb': thumb,
                    'media_type': item['media_type'],
                    'rating_key': item['rating_key'],
@@ -236,7 +236,7 @@ class Libraries(object):
             group_by = 'rating_key'
 
         try:
-            query = 'SELECT MAX(session_history.started) AS last_watched, COUNT(DISTINCT session_history.%s) AS play_count, ' \
+            query = 'SELECT MAX(session_history.started) AS last_played, COUNT(DISTINCT session_history.%s) AS play_count, ' \
                     'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key ' \
                     'FROM session_history ' \
                     'JOIN session_history_metadata ON session_history.id = session_history_metadata.id ' \
@@ -249,7 +249,7 @@ class Libraries(object):
 
         watched_list = {}
         for item in result:
-            watched_list[str(item[group_by])] = {'last_watched': item['last_watched'],
+            watched_list[str(item[group_by])] = {'last_played': item['last_played'],
                                                  'play_count': item['play_count']}
 
         rows = []
@@ -344,14 +344,14 @@ class Libraries(object):
                 except IOError as e:
                     logger.debug(u"PlexPy Libraries :: Unable to create cache file for section_id %s." % section_id)
 
-        # Update the last_watched and play_count
+        # Update the last_played and play_count
         for item in rows:
             watched_item = watched_list.get(item['rating_key'], None)
             if watched_item:
-                item['last_watched'] = watched_item['last_watched']
+                item['last_played'] = watched_item['last_played']
                 item['play_count'] = watched_item['play_count']
             else:
-                item['last_watched'] = None
+                item['last_played'] = None
                 item['play_count'] = None
 
         results = []

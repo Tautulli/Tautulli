@@ -137,7 +137,7 @@ users_list_table_options = {
         },
         {
             "targets": [7],
-            "data":"last_watched",
+            "data":"last_played",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
                     var media_type = '';
