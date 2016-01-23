@@ -16,7 +16,6 @@
 
 import re
 import time
-import re
 
 from plexpy import logger, config, notifiers, database, helpers, plextv, pmsconnect
 import plexpy
@@ -525,6 +524,8 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'server_uptime': server_uptime,
                         'streams': stream_count,
                         'action': state,
+                        'datestamp': time.strftime(helpers.parse_js_date(plexpy.CONFIG.DATE_FORMAT)),
+                        'timestamp': time.strftime(helpers.parse_js_date(plexpy.CONFIG.TIME_FORMAT)),
                         'user': user,
                         'platform': platform,
                         'player': player,
@@ -792,7 +793,9 @@ def build_server_notify_text(state=None):
 
     available_params = {'server_name': server_name,
                         'server_uptime': server_uptime,
-                        'action': state}
+                        'action': state,
+                        'datestamp': time.strftime(helpers.parse_js_date(plexpy.CONFIG.DATE_FORMAT)),
+                        'timestamp': time.strftime(helpers.parse_js_date(plexpy.CONFIG.TIME_FORMAT))}
 
     # Default text
     subject_text = 'PlexPy (%s)' % server_name
