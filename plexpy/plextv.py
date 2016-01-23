@@ -341,12 +341,11 @@ class PlexTV(object):
                             settings_video_quality = helpers.get_xml_attr(settings, 'videoQuality')
                             settings_video_resolution = helpers.get_xml_attr(settings, 'videoResolution')
 
-                        if helpers.get_xml_attr(item.getElementsByTagName('Location')[0], 'uri').endswith('%2Fchildren'):
-                            clean_uri = helpers.get_xml_attr(item.getElementsByTagName('Location')[0], 'uri')[:-11]
-                        else:
-                            clean_uri = helpers.get_xml_attr(item.getElementsByTagName('Location')[0], 'uri')
+                        for location in item.getElementsByTagName('Location'):
+                            clean_uri = helpers.get_xml_attr(location, 'uri').split('%2F')
 
-                        rating_key = clean_uri.rpartition('%2F')[-1]
+                        rating_key = next((clean_uri[(idx + 1) % len(clean_uri)] 
+                                           for idx, item in enumerate(clean_uri) if item == 'metadata'), None)
 
                         sync_details = {"device_name": helpers.sanitize(device_name),
                                         "platform": helpers.sanitize(device_platform),
