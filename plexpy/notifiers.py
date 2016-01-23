@@ -475,9 +475,9 @@ def send_notification(config_id, subject, body, **kwargs):
             facebook = FacebookNotifier()
             facebook.notify(subject=subject, message=body)
         else:
-            logger.debug(u"PlexPy Notifier :: Unknown agent id received.")
+            logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
-        logger.debug(u"PlexPy Notifier :: Notification requested but no agent id received.")
+        logger.debug(u"PlexPy Notifiers :: Notification requested but no agent id received.")
 
 
 class GROWL(object):
@@ -525,10 +525,10 @@ class GROWL(object):
         try:
             growl.register()
         except gntp.notifier.errors.NetworkError:
-            logger.warn(u"PlexPy Notifier :: Growl notification failed: network error")
+            logger.warn(u"PlexPy Notifiers :: Growl notification failed: network error")
             return
         except gntp.notifier.errors.AuthError:
-            logger.warn(u"PlexPy Notifier :: Growl notification failed: authentication error")
+            logger.warn(u"PlexPy Notifiers :: Growl notification failed: authentication error")
             return
 
         # Fix message
@@ -548,9 +548,9 @@ class GROWL(object):
                 description=message,
                 icon=image
             )
-            logger.info(u"PlexPy Notifier :: Growl notification sent.")
+            logger.info(u"PlexPy Notifiers :: Growl notification sent.")
         except gntp.notifier.errors.NetworkError:
-            logger.warn(u"PlexPy Notifier :: Growl notification failed: network error")
+            logger.warn(u"PlexPy Notifiers :: Growl notification failed: network error")
             return
 
 
@@ -617,13 +617,13 @@ class PROWL(object):
         request_status = response.status
 
         if request_status == 200:
-            logger.info(u"PlexPy Notifier :: Prowl notification sent.")
+            logger.info(u"PlexPy Notifiers :: Prowl notification sent.")
             return True
         elif request_status == 401:
-            logger.warn(u"PlexPy Notifier :: Prowl notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Prowl notification failed: %s" % response.reason)
             return False
         else:
-            logger.warn(u"PlexPy Notifier :: Prowl notification failed.")
+            logger.warn(u"PlexPy Notifiers :: Prowl notification failed.")
             return False
 
     def updateLibrary(self):
@@ -698,7 +698,7 @@ class XBMC(object):
         time = "3000"  # in ms
 
         for host in hosts:
-            logger.info(u"PlexPy Notifier :: Sending notification command to XMBC @ " + host)
+            logger.info(u"PlexPy Notifiers :: Sending notification command to XMBC @ " + host)
             try:
                 version = self._sendjson(host, 'Application.GetProperties', {'properties': ['version']})['version']['major']
 
@@ -714,10 +714,10 @@ class XBMC(object):
                 if not request:
                     raise Exception
                 else:
-                    logger.info(u"PlexPy Notifier :: XBMC notification sent.")
+                    logger.info(u"PlexPy Notifiers :: XBMC notification sent.")
 
             except Exception:
-                logger.warn(u"PlexPy Notifier :: XBMC notification filed.")
+                logger.warn(u"PlexPy Notifiers :: XBMC notification filed.")
 
     def return_config_options(self):
         config_option = [{'label': 'XBMC Host:Port',
@@ -765,12 +765,12 @@ class Plex(object):
             base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
             req.add_header("Authorization", "Basic %s" % base64string)
 
-        # logger.info(u"PlexPy Notifier :: Plex url: %s" % url)
+        # logger.info(u"PlexPy Notifiers :: Plex url: %s" % url)
 
         try:
             handle = urllib2.urlopen(req)
         except Exception as e:
-            logger.error(u"PlexPy Notifier :: Error opening Plex url: %s" % e)
+            logger.error(u"PlexPy Notifiers :: Error opening Plex url: %s" % e)
             return
 
         response = handle.read().decode(plexpy.SYS_ENCODING)
@@ -786,7 +786,7 @@ class Plex(object):
         time = "3000"  # in ms
 
         for host in hosts:
-            logger.info(u"PlexPy Notifier :: Sending notification command to Plex Media Server @ " + host)
+            logger.info(u"PlexPy Notifiers :: Sending notification command to Plex Media Server @ " + host)
             try:
                 notification = header + "," + message + "," + time
                 notifycommand = {'command': 'ExecBuiltIn', 'parameter': 'Notification(' + notification + ')'}
@@ -795,10 +795,10 @@ class Plex(object):
                 if not request:
                     raise Exception
                 else:
-                    logger.info(u"PlexPy Notifier :: Plex notification sent.")
+                    logger.info(u"PlexPy Notifiers :: Plex notification sent.")
 
             except:
-                logger.warn(u"PlexPy Notifier :: Plex notification failed.")
+                logger.warn(u"PlexPy Notifiers :: Plex notification failed.")
 
     def return_config_options(self):
         config_option = [{'label': 'Plex Client Host:Port',
@@ -859,10 +859,10 @@ class NMA(object):
         response = p.push(title, event, message, priority=nma_priority, batch_mode=batch)
 
         if not response[api][u'code'] == u'200':
-            logger.warn(u"PlexPy Notifier :: NotifyMyAndroid notification failed.")
+            logger.warn(u"PlexPy Notifiers :: NotifyMyAndroid notification failed.")
             return False
         else:
-            logger.info(u"PlexPy Notifier :: NotifyMyAndroid notification sent.")
+            logger.info(u"PlexPy Notifiers :: NotifyMyAndroid notification sent.")
             return True
 
     def return_config_options(self):
@@ -923,13 +923,13 @@ class PUSHBULLET(object):
         # logger.debug(u"PushBullet response body: %r" % response.read())
 
         if request_status == 200:
-            logger.info(u"PlexPy Notifier :: PushBullet notification sent.")
+            logger.info(u"PlexPy Notifiers :: PushBullet notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifier :: PushBullet notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: PushBullet notification failed: %s" % response.reason)
             return False
         else:
-            logger.warn(u"PlexPy Notifier :: PushBullet notification failed.")
+            logger.warn(u"PlexPy Notifiers :: PushBullet notification failed.")
             return False
 
     def test(self, apikey, deviceid):
@@ -957,10 +957,10 @@ class PUSHBULLET(object):
                 devices.update({'': ''})
                 return devices
             elif request_status >= 400 and request_status < 500:
-                logger.warn(u"PlexPy Notifier :: Unable to retrieve Pushbullet devices list: %s" % response.reason)
+                logger.warn(u"PlexPy Notifiers :: Unable to retrieve Pushbullet devices list: %s" % response.reason)
                 return {'': ''}
             else:
-                logger.warn(u"PlexPy Notifier :: Unable to retrieve Pushbullet devices list.")
+                logger.warn(u"PlexPy Notifiers :: Unable to retrieve Pushbullet devices list.")
                 return {'': ''}
 
         else:
@@ -1025,13 +1025,13 @@ class PUSHALOT(object):
         # logger.debug(u"Pushalot response body: %r" % response.read())
 
         if request_status == 200:
-            logger.info(u"PlexPy Notifier :: Pushalot notification sent.")
+            logger.info(u"PlexPy Notifiers :: Pushalot notification sent.")
             return True
         elif request_status == 410:
-            logger.warn(u"PlexPy Notifier :: Pushalot notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Pushalot notification failed: %s" % response.reason)
             return False
         else:
-            logger.warn(u"PlexPy Notifier :: Pushalot notification failed.")
+            logger.warn(u"PlexPy Notifiers :: Pushalot notification failed.")
             return False
 
     def return_config_options(self):
@@ -1082,13 +1082,13 @@ class PUSHOVER(object):
         # logger.debug(u"Pushover response body: %r" % response.read())
 
         if request_status == 200:
-            logger.info(u"PlexPy Notifier :: Pushover notification sent.")
+            logger.info(u"PlexPy Notifiers :: Pushover notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifier :: Pushover notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Pushover notification failed: %s" % response.reason)
             return False
         else:
-            logger.warn(u"PlexPy Notifier :: Pushover notification failed.")
+            logger.warn(u"PlexPy Notifiers :: Pushover notification failed.")
             return False
 
     def updateLibrary(self):
@@ -1116,10 +1116,10 @@ class PUSHOVER(object):
                 sounds.update({'': ''})
                 return sounds
             elif request_status >= 400 and request_status < 500:
-                logger.warn(u"PlexPy Notifier :: Unable to retrieve Pushover notification sounds list: %s" % response.reason)
+                logger.warn(u"PlexPy Notifiers :: Unable to retrieve Pushover notification sounds list: %s" % response.reason)
                 return {'': ''}
             else:
-                logger.warn(u"PlexPy Notifier :: Unable to retrieve Pushover notification sounds list.")
+                logger.warn(u"PlexPy Notifiers :: Unable to retrieve Pushover notification sounds list.")
                 return {'': ''}
 
         else:
@@ -1182,12 +1182,12 @@ class TwitterNotifier(object):
         oauth_consumer = oauth.Consumer(key=self.consumer_key, secret=self.consumer_secret)
         oauth_client = oauth.Client(oauth_consumer)
 
-        logger.info("PlexPy Notifier :: Requesting temp token from Twitter")
+        logger.info("PlexPy Notifiers :: Requesting temp token from Twitter")
 
         resp, content = oauth_client.request(self.REQUEST_TOKEN_URL, 'GET')
 
         if resp['status'] != '200':
-            logger.warn("PlexPy Notifier :: Invalid respond from Twitter requesting temp token: %s" % resp['status'])
+            logger.warn("PlexPy Notifiers :: Invalid respond from Twitter requesting temp token: %s" % resp['status'])
         else:
             request_token = dict(parse_qsl(content))
 
@@ -1220,11 +1220,11 @@ class TwitterNotifier(object):
 
         # logger.debug(u"resp[status] = " + str(resp['status']))
         if resp['status'] != '200':
-            logger.error(u"PlexPy Notifier :: The request for a Twitter token did not succeed: " + str(resp['status']), logger.ERROR)
+            logger.error(u"PlexPy Notifiers :: The request for a Twitter token did not succeed: " + str(resp['status']), logger.ERROR)
             return False
         else:
-            # logger.info(u"PlexPy Notifier :: Your Twitter Access Token key: %s" % access_token['oauth_token'])
-            # logger.info(u"PlexPy Notifier :: Access Token secret: %s" % access_token['oauth_token_secret'])
+            # logger.info(u"PlexPy Notifiers :: Your Twitter Access Token key: %s" % access_token['oauth_token'])
+            # logger.info(u"PlexPy Notifiers :: Access Token secret: %s" % access_token['oauth_token_secret'])
             plexpy.CONFIG.TWITTER_USERNAME = access_token['oauth_token']
             plexpy.CONFIG.TWITTER_PASSWORD = access_token['oauth_token_secret']
             plexpy.CONFIG.write()
@@ -1236,15 +1236,15 @@ class TwitterNotifier(object):
         access_token_key = plexpy.CONFIG.TWITTER_USERNAME
         access_token_secret = plexpy.CONFIG.TWITTER_PASSWORD
 
-        # logger.info(u"PlexPy Notifier :: Sending tweet: " + message)
+        # logger.info(u"PlexPy Notifiers :: Sending tweet: " + message)
 
         api = twitter.Api(username, password, access_token_key, access_token_secret)
 
         try:
             api.PostUpdate(message)
-            logger.info(u"PlexPy Notifier :: Twitter notification sent")
+            logger.info(u"PlexPy Notifiers :: Twitter notification sent.")
         except Exception as e:
-            logger.warn(u"PlexPy Notifier :: Twitter notification failed: %s" % e)
+            logger.warn(u"PlexPy Notifiers :: Twitter notification failed: %s" % e)
             return False
 
         return True
@@ -1288,7 +1288,7 @@ class OSX_NOTIFY(object):
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
         except:
-            # logger.error(u"PlexPy Notifier :: Cannot load OSX Notifications agent.")
+            # logger.error(u"PlexPy Notifiers :: Cannot load OSX Notifications agent.")
             pass
 
     def validate(self):
@@ -1340,13 +1340,13 @@ class OSX_NOTIFY(object):
 
             notification_center = NSUserNotificationCenter.defaultUserNotificationCenter()
             notification_center.deliverNotification_(notification)
-            logger.info(u"PlexPy Notifier :: OSX Notify notification sent.")
+            logger.info(u"PlexPy Notifiers :: OSX Notify notification sent.")
 
             del pool
             return True
 
         except Exception as e:
-            logger.warn(u"PlexPy Notifier :: OSX notification failed: %s" % e)
+            logger.warn(u"PlexPy Notifiers :: OSX notification failed: %s" % e)
             return False
 
     def swizzled_bundleIdentifier(self, original, swizzled):
@@ -1387,11 +1387,11 @@ class BOXCAR(object):
             req = urllib2.Request(self.url)
             handle = urllib2.urlopen(req, data)
             handle.close()
-            logger.info(u"PlexPy Notifier :: Boxcar2 notification sent.")
+            logger.info(u"PlexPy Notifiers :: Boxcar2 notification sent.")
             return True
 
         except urllib2.URLError as e:
-            logger.warn(u"PlexPy Notifier :: Boxcar2 notification failed: %s" % e)
+            logger.warn(u"PlexPy Notifiers :: Boxcar2 notification failed: %s" % e)
             return False
 
     def get_sounds(self):
@@ -1481,11 +1481,11 @@ class Email(object):
             mailserver.sendmail(plexpy.CONFIG.EMAIL_FROM, recipients, message.as_string())
             mailserver.quit()
 
-            logger.info(u"PlexPy Notifier :: Email notification sent.")
+            logger.info(u"PlexPy Notifiers :: Email notification sent.")
             return True
 
         except Exception as e:
-            logger.warn(u"PlexPy Notifier :: Email notification failed: %s" % e)
+            logger.warn(u"PlexPy Notifiers :: Email notification failed: %s" % e)
             return False
 
     def return_config_options(self):
@@ -1581,13 +1581,13 @@ class IFTTT(object):
         # logger.debug(u"Ifttt response body: %r" % response.read())
 
         if request_status == 200:
-            logger.info(u"PlexPy Notifier :: Ifttt notification sent.")
+            logger.info(u"PlexPy Notifiers :: Ifttt notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifier :: Ifttt notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Ifttt notification failed: %s" % response.reason)
             return False
         else:
-            logger.warn(u"PlexPy Notifier :: Ifttt notification failed.")
+            logger.warn(u"PlexPy Notifiers :: Ifttt notification failed.")
             return False
 
     def test(self):
@@ -1641,13 +1641,13 @@ class TELEGRAM(object):
         request_status = response.status
 
         if request_status == 200:
-            logger.info(u"PlexPy Notifier :: Telegram notification sent.")
+            logger.info(u"PlexPy Notifiers :: Telegram notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifier :: Telegram notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Telegram notification failed: %s" % response.reason)
             return False
         else:
-            logger.warn(u"PlexPy Notifier :: Telegram notification failed.")
+            logger.warn(u"PlexPy Notifiers :: Telegram notification failed.")
             return False
 
     def updateLibrary(self):
@@ -1718,13 +1718,13 @@ class SLACK(object):
         request_status = response.status
 
         if request_status == 200:
-            logger.info(u"PlexPy Notifier :: Slack notification sent.")
+            logger.info(u"PlexPy Notifiers :: Slack notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifier :: Slack notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Slack notification failed: %s" % response.reason)
             return False
         else:
-            logger.warn(u"PlexPy Notifier :: Slack notification failed.")
+            logger.warn(u"PlexPy Notifiers :: Slack notification failed.")
             return False
 
     def updateLibrary(self):
@@ -2086,7 +2086,7 @@ class FacebookNotifier(object):
 
             try:
                 api.put_wall_post(profile_id=group_id, message=message)
-                logger.info(u"PlexPy Notifiers :: Facebook notifications sent.")
+                logger.info(u"PlexPy Notifiers :: Facebook notification sent.")
             except Exception as e:
                 logger.info(u"PlexPy Notifiers :: Error sending Facebook post: %s" % e)
                 return False
