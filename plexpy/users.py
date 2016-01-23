@@ -33,6 +33,7 @@ class Users(object):
                    'users.custom_avatar_url AS custom_thumb',
                    'COUNT(session_history.id) AS plays',
                    'MAX(session_history.started) AS last_seen',
+                   'MAX(session_history.id) AS id',
                    'session_history_metadata.full_title AS last_watched',
                    'session_history.ip_address',
                    'session_history.platform',
@@ -43,6 +44,7 @@ class Users(object):
                    'session_history_metadata.media_type',
                    'session_history.rating_key',
                    'session_history_media_info.video_decision',
+                   'session_history_media_info.audio_decision',
                    'users.do_notify as do_notify',
                    'users.keep_history as keep_history'
                    ]
@@ -96,6 +98,7 @@ class Users(object):
                    'plays': item['plays'],
                    'last_seen': item['last_seen'],
                    'last_watched': item['last_watched'],
+                   'id': item['id'],
                    'ip_address': item['ip_address'],
                    'platform': platform,
                    'player': item['player'],
@@ -103,6 +106,7 @@ class Users(object):
                    'media_type': item['media_type'],
                    'rating_key': item['rating_key'],
                    'video_decision': item['video_decision'],
+                   'audio_decision': item['audio_decision'],
                    'do_notify': helpers.checked(item['do_notify']),
                    'keep_history': helpers.checked(item['keep_history'])
                    }
