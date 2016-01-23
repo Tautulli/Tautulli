@@ -18,12 +18,117 @@ from plexpy import version
     ${next.headIncludes()}
 
     <link rel="icon" type="image/x-icon" href="interfaces/default/images/favicon.ico"/>
-    <!-- touch icons -->
     <link rel="shortcut icon" href="interfaces/default/images/favicon.png">
-    <link rel="apple-touch-icon" href="interfaces/default/images/icon_iphone.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="interfaces/default/images/icon_ipad.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="interfaces/default/images/icon_iphone@2x.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="interfaces/default/images/icon_ipad@2x.png">
+
+    <!-- Allow web app to be run in full-screen mode. -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- Configure the status bar. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <!-- Set the viewport. -->
+    <meta name="viewport" content="initial-scale=1">
+    <!-- Disable automatic phone number detection. -->
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- ICONS -->
+    <!-- IE10 icon --> 
+    <meta name="application-name" content="PlexPy" />
+    <meta name="msapplication-config" content="interfaces/default/xml/IEconfig.xml"/>
+    <!-- Android >M39 icon -->
+    <link rel="manifest" href="interfaces/default/json/Android-manifest.json">
+    <!-- iPad retina icon -->
+    <link href="interfaces/default/images/res/ios/icon-76@2x.png" sizes="152x152" rel="apple-touch-icon-precomposed">
+    <!-- iPad retina icon (iOS < 7) -->
+    <link href="interfaces/default/images/res/ios/icon-72@2x.png" sizes="144x144" rel="apple-touch-icon-precomposed">
+    <!-- iPad non-retina icon -->
+    <link href="interfaces/default/images/res/ios/icon-76.png" sizes="76x76" rel="apple-touch-icon-precomposed">
+    <!-- iPad non-retina icon (iOS < 7) -->
+    <link href="interfaces/default/images/res/ios/icon-72.png" sizes="72x72" rel="apple-touch-icon-precomposed">
+    <!-- iPhone 6 Plus icon -->
+    <link href="interfaces/default/images/res/ios/icon-60@2x.png" sizes="120x120" rel="apple-touch-icon-precomposed">
+    <!-- iPhone retina icon (iOS < 7) -->
+    <link href="interfaces/default/images/res/ios/icon@2x.png" sizes="114x114" rel="apple-touch-icon-precomposed">
+    <!-- iPhone non-retina icon (iOS < 7) -->
+    <link href="interfaces/default/images/res/ios/icon.png" sizes="57x57" rel="apple-touch-icon-precomposed">
+    <!-- iPhone / iPod Touch  -->
+    <link href="interfaces/default/images/res/ios/icon-60@3x.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+    <link href="interfaces/default/images/res/ios/icon-60.png" sizes="60x60" rel="apple-touch-icon-precomposed">
+    <!-- Spotlight Icon -->
+    <link href="interfaces/default/images/res/ios/icon-40.png" sizes="40x40" rel="apple-touch-icon-precomposed">
+    <link href="interfaces/default/images/res/ios/icon-40@2x.png" sizes="80x80" rel="apple-touch-icon-precomposed">
+    <!-- iPhone Spotlight and Settings Icon -->
+    <link href="interfaces/default/images/res/ios/icon-small.png" sizes="29x29" rel="apple-touch-icon-precomposed">
+    <link href="interfaces/default/images/res/ios/icon-small@2x.png" sizes="58x58" rel="apple-touch-icon-precomposed">
+    <!-- iPad Spotlight and Settings Icon -->
+    <link href="interfaces/default/images/res/ios/icon-50.png" sizes="50x50" rel="apple-touch-icon-precomposed">
+    <link href="interfaces/default/images/res/ios/icon-50@2x.png" sizes="100x100" rel="apple-touch-icon-precomposed">
+            
+    <!-- STARTUP IMAGES -->
+    <!-- iPad retina portrait startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-Portrait@2x~ipad.png"
+          media="(device-width: 768px) and (device-height: 1024px)
+                 and (-webkit-device-pixel-ratio: 2)
+                 and (orientation: portrait)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPad retina landscape startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-Landscape@2x~ipad.png"
+          media="(device-width: 768px) and (device-height: 1024px)
+                 and (-webkit-device-pixel-ratio: 2)
+                 and (orientation: landscape)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPad non-retina portrait startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-Portrait~ipad.png"
+          media="(device-width: 768px) and (device-height: 1024px)
+                 and (-webkit-device-pixel-ratio: 1)
+                 and (orientation: portrait)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPad non-retina landscape startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-Landscape~ipad.png"
+          media="(device-width: 768px) and (device-height: 1024px)
+                 and (-webkit-device-pixel-ratio: 1)
+                 and (orientation: landscape)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone 6 Plus portrait startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-736h.png"
+          media="(device-width: 414px) and (device-height: 736px)
+                 and (-webkit-device-pixel-ratio: 3)
+                 and (orientation: portrait)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone 6 Plus landscape startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-Landscape-736h.png"
+          media="(device-width: 414px) and (device-height: 736px)
+                 and (-webkit-device-pixel-ratio: 3)
+                 and (orientation: landscape)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone 6 startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-667h.png"
+          media="(device-width: 375px) and (device-height: 667px)
+                 and (-webkit-device-pixel-ratio: 2)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone 5 startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default-568h@2x~iphone5.jpg"
+          media="(device-width: 320px) and (device-height: 568px)
+                 and (-webkit-device-pixel-ratio: 2)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone < 5 retina startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default@2x~iphone.png"
+          media="(device-width: 320px) and (device-height: 480px)
+                 and (-webkit-device-pixel-ratio: 2)"
+          rel="apple-touch-startup-image">
+
+    <!-- iPhone < 5 non-retina startup image -->
+    <link href="interfaces/default/images/res/screen/ios/Default~iphone.png"
+          media="(device-width: 320px) and (device-height: 480px)
+                 and (-webkit-device-pixel-ratio: 1)"
+          rel="apple-touch-startup-image">
+
 </head>
 
 <body class="content">
@@ -69,37 +174,42 @@ from plexpy import version
                             </div>
                         </form>
                     </li>
-                    % if title=="Home":
+                    % if title == "Home":
                         <li class="active"><a href="home"><i class="fa fa-lg fa-home"></i></a></li>
                     % else:
                         <li><a href="home"><i class="fa fa-lg fa-home"></i></a></li>
                     % endif
-                    % if title=="Users" or title=="User":
+                    % if title == "Libraries" or title == "Library" or title == "Info":
+                    <li class="active"><a href="libraries">Libraries</a></li>
+                    % else:
+                    <li><a href="libraries">Libraries</a></li>
+                    % endif
+                    % if title == "Users" or title == "User":
                         <li class="active"><a href="users">Users</a></li>
                     % else:
                         <li><a href="users">Users</a></li>
                     % endif
-                    % if title=="History":
+                    % if title == "History":
                     <li class="active"><a href="history">History</a></li>
                     % else:
                     <li><a href="history">History</a></li>
                     % endif
-                    % if title=="Graphs":
+                    % if title == "Graphs":
                         <li class="active"><a href="graphs">Graphs</a></li>
                     % else:
                         <li><a href="graphs">Graphs</a></li>
                     % endif
-                    % if title=="Synced Items":
+                    % if title == "Synced Items":
                         <li class="active"><a href="sync">Synced Items</a></li>
                     % else:
                         <li><a href="sync">Synced Items</a></li>
                     % endif
-                    % if title=="Log":
+                    % if title == "Log":
                         <li class="active"><a href="logs">Logs</a></li>
                     % else:
                         <li><a href="logs">Logs</a></li>
                     % endif
-                    % if title=="Settings":
+                    % if title == "Settings":
                         <li class="active"><a href="settings">Settings</a></li>
                     % else:
                         <li><a href="settings">Settings</a></li>
@@ -135,7 +245,7 @@ ${next.headerIncludes()}
             $.ajax({
                 type: 'post',
                 url: 'search',
-                data: { 'query': $('#query').val() }
+                data: { query: $('#query').val() }
             })
         } else {
             e.preventDefault();
@@ -148,6 +258,21 @@ ${next.headerIncludes()}
             $(this).delay(200).animate({ right: '-200px', width: '0' }, function () {
                 $('#search_button').addClass('btn-inactive');
             }).removeClass('active');
+        }
+    });
+</script>
+<script>
+    // Work around for iOS web app links opening in Safari
+    $(document).ready(function () {
+        if (("standalone" in window.navigator) && window.navigator.standalone) {
+            // For iOS Apps
+            $('a').on('click', function (e) {
+                e.preventDefault();
+                var new_location = $(this).attr('href');
+                if (new_location != undefined && new_location.substr(0, 1) != '#' && $(this).attr('data-method') == undefined) {
+                    window.location = new_location;
+                }
+            });
         }
     });
 </script>

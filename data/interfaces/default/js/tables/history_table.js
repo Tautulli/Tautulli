@@ -56,7 +56,7 @@ history_table_options = {
                 }
             },
             "searchable": false,
-            "width": "8%",
+            "width": "7%",
             "className": "no-wrap expand-history"
         },
         {
@@ -73,7 +73,7 @@ history_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "8%",
+            "width": "9%",
             "className": "no-wrap hidden-xs"
         },
         {
@@ -106,7 +106,7 @@ history_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "8%",
+            "width": "10%",
             "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
         },
         {
@@ -137,23 +137,23 @@ history_table_options = {
                     var thumb_popover = '';
                     if (rowData['media_type'] === 'movie') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Movie"><i class="fa fa-film fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120">' + cellData + ' (' + rowData['year'] + ')</span>'
-                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + ' (' + rowData['year'] + ')</span>'
+                        $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'episode') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120">' + cellData + ' \
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + ' \
                             (S' + rowData['parent_media_index'] + '&middot; E' + rowData['media_index'] + ')</span>'
-                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;" >' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;" >' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'track') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80">' + cellData + ' (' + rowData['parent_title'] + ')</span>'
-                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80" data-width="80">' + cellData + ' (' + rowData['parent_title'] + ')</span>'
+                        $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else {
-                        $(td).html('<a href="info?item_id=' + rowData['id'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
                     }
                 }
             },
-            "width": "35%"
+            "width": "33%"
         },
         {
             "targets": [7],
@@ -226,7 +226,7 @@ history_table_options = {
             "searchable": false,
             "orderable": false,
             "className": "no-wrap hidden-md hidden-sm hidden-xs",
-            "width": "1%"
+            "width": "2%"
         },
     ],
     "drawCallback": function (settings) {
@@ -245,8 +245,9 @@ history_table_options = {
             container: 'body',
             trigger: 'hover',
             placement: 'right',
+            template: '<div class="popover history-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
             content: function () {
-                return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px;" />';
+                return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px; width: ' + $(this).data('width') + 'px;" />';
             }
         });
 
@@ -260,7 +261,7 @@ history_table_options = {
             var rowData = this.data();
             if (rowData['group_count'] != 1 && rowData['reference_id'] in history_child_table) {
                 // if grouped row and a child table was already created
-                $(this.node()).find('i.fa').toggleClass('fa-plus-circle').toggleClass('fa-minus-circle');
+                $(this.node()).find('i.fa.fa-plus-circle').toggleClass('fa-plus-circle').toggleClass('fa-minus-circle');
                 this.child(childTableFormat(rowData)).show();
                 createChildTable(this, rowData)
             }
@@ -426,13 +427,13 @@ function childTableOptions(rowData) {
     history_child_options.pageLength = 10;
     history_child_options.bStateSave = false;
     history_child_options.ajax = {
-        "url": "get_history",
-        type: "post",
+        url: 'get_history',
+        type: 'post',
         data: function (d) {
             return {
-                'json_data': JSON.stringify(d),
-                'grouping': false,
-                'reference_id': rowData['reference_id']
+                json_data: JSON.stringify(d),
+                grouping: false,
+                reference_id: rowData['reference_id']
             };
         }
     }
@@ -447,8 +448,10 @@ function childTableOptions(rowData) {
         $('.watched-tooltip').tooltip();
         $('.thumb-tooltip').popover({
             html: true,
+            container: 'body',
             trigger: 'hover',
             placement: 'right',
+            template: '<div class="popover history-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
             content: function () {
                 return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px;" />';
             }
@@ -469,7 +472,7 @@ function childTableOptions(rowData) {
 // Format the detailed history child table
 function childTableFormat(rowData) {
     return '<div class="slider">' +
-            '<table id="history_child-' + rowData['reference_id'] + '">' +
+            '<table id="history_child-' + rowData['reference_id'] + '" width="100%">' +
             '<thead>' +
             '<tr>' +
                 '<th align="left" id="delete_row">Delete</th>' +

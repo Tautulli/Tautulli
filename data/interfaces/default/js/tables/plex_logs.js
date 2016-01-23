@@ -4,7 +4,7 @@ var plex_log_table_options = {
     "serverSide": false,
     "pagingType": "bootstrap",
     "order": [ 0, 'desc'],
-    "pageLength": 10,
+    "pageLength": 50,
     "stateSave": true,
     "language": {
                 "search":"Search: ",

@@ -16,7 +16,7 @@ total_plays             Returns the play count for the watch stat period..
 DOCUMENTATION :: END
 </%doc>
 
-% if data != None:
+% if data:
 <ul class="list-unstyled">
     % for a in data:
     <div class='user-overview-stats-instance'>
@@ -43,6 +43,6 @@ DOCUMENTATION :: END
     % endfor
 </ul>
 % else:
-<div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
+<div class="text-muted">Unable to retrieve data from database.
 </div><br>
 % endif

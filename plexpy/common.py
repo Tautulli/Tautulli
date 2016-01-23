@@ -47,3 +47,14 @@ PLATFORM_NAME_OVERRIDES = {'Konvergo': 'Plex Media Player',
                            'Mystery 3': 'Playstation 3',
                            'Mystery 4': 'Playstation 4',
                            'Mystery 5': 'Xbox 360'}
+
+MEDIA_FLAGS_AUDIO = {'ac.?3': 'dolby_digital',
+                     'truehd': 'dolby_truehd',
+                     '(dca|dta)': 'dts',
+                     'dts(hd_|-hd|-)?ma': 'dca-ma',
+                     'vorbis': 'ogg'
+                     }
+MEDIA_FLAGS_VIDEO = {'avc1': 'h264',
+                     'wmv(1|2)': 'wmv',
+                     'wmv3': 'wmvhd'
+                     }

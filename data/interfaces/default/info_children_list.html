@@ -18,7 +18,7 @@ data['children_list'] :: Usable paramaters
 
 == Global keys ==
 rating_key              Returns the unique identifier for the media item.
-index                   Returns the episode number.
+media_index             Returns the episode number.
 title                   Returns the name of the episode.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
 parent_thumb            Returns the location of the item's parent thumbnail. Use with pms_image_proxy.
@@ -37,7 +37,7 @@ DOCUMENTATION :: END
         % else:
         <li>
         % endif
-            <a href="info?item_id=${child['rating_key']}">
+            <a href="info?rating_key=${child['rating_key']}">
                 %if data['children_type'] == 'season':
                 <div class="item-children-poster">
                     % if child['thumb']:
@@ -47,7 +47,7 @@ DOCUMENTATION :: END
                     % endif
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
-                                Season ${child['index']}
+                                Season ${child['media_index']}
                             </div>
                         </div>
                     </div>
@@ -57,7 +57,7 @@ DOCUMENTATION :: END
                     <div class="item-children-poster-face episode-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);">
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
-                                Episode ${child['index']}
+                                Episode ${child['media_index']}
                             </div>
                         </div>
                     </div>
@@ -75,7 +75,7 @@ DOCUMENTATION :: END
                 % elif data['children_type'] == 'track':
                     % if loop.index % 2 == 0:
                     <div class="item-children-list-item-even">
-                        <span class="item-children-list-item-index">${child['index']}</span>
+                        <span class="item-children-list-item-index">${child['media_index']}</span>
                         <span class="item-children-list-item-title">${child['title']}</span>
                         <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
                             <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("m:ss"));</script>
@@ -83,7 +83,7 @@ DOCUMENTATION :: END
                     </div>
                     % else:
                     <div class="item-children-list-item-odd">
-                        <span class="item-children-list-item-index">${child['index']}</span>
+                        <span class="item-children-list-item-index">${child['media_index']}</span>
                         <span class="item-children-list-item-title">${child['title']}</span>
                         <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
                             <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("m:ss"));</script>

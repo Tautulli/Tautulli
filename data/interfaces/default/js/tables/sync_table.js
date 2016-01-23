@@ -50,7 +50,7 @@ sync_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     if (rowData['metadata_type'] !== '') {
-                        $(td).html('<a href="info?item_id=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
                     } else {
                         $(td).html(cellData);
                     }

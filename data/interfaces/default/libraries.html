@@ -1,0 +1,202 @@
+<%inherit file="base.html"/>
+
+<%def name="headIncludes()">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+</%def>
+
+<%def name="body()">
+<div class='container-fluid'>
+    % if config['update_section_ids'] == 1:
+    <div id="update_section_ids_message" style="text-align: center; margin-top: 20px;">
+        <i class="fa fa-exclamation-triangle"></i> PlexPy needs to update the Library IDs in your databse. Click the "<strong>Refresh libraries</strong>" button below to begin the update.
+    </div>
+    % elif config['update_section_ids'] == -1:
+    <div id="update_section_ids_message" style="text-align: center; margin-top: 20px;">
+        <i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes depending on the size of your database.
+        <br />
+        You may leave this page and come back later.
+    </div>
+    % endif
+    <div class='table-card-header'>
+        <div class="header-bar">
+            <span><i class="fa fa-book"></i> All Libraries</span>
+        </div>
+        <div class="button-bar">
+            % if config['update_section_ids'] == -1:
+            <button class="btn btn-dark refresh-libraries-button" id="refresh-libraries-list" disabled><i class="fa fa-refresh"></i> Refresh libraries</button>
+            % else:
+            <button class="btn btn-dark refresh-libraries-button" id="refresh-libraries-list"><i class="fa fa-refresh"></i> Refresh libraries</button>
+            % endif
+            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                <i class="fa fa-pencil"></i> Edit mode
+            </button>&nbsp
+            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect libraries to delete/purge. Data is deleted/purged upon exiting edit mode.</div>
+        </div>
+    </div>
+    <div class='table-card-back'>
+        <table id="libraries_list_table" class="display" width="100%">
+            <thead>
+            <tr>
+                <th align="left" id="edit_row">Edit</th>
+                <th align="right" id="library_thumb"></th>
+                <th align="left" id="section_name">Library Name</th>
+                <th align="left" id="section_type">Library Type</th>
+                <th align="left" id="count">Total Movies / TV Shows / Artists</th>
+                <th align="left" id="parent_count">Total Seasons / Albums</th>
+                <th align="left" id="child_count">Total Episodes / Tracks</th>
+                <th align="left" id="last_accessed">Last Accessed</th>
+                <th align="left" id="last_watched">Last Watched</th>
+                <th align="left" id="total_plays">Total Plays</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                        <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
+                    </div>
+                    <div class="modal-body" style="text-align: center;">
+                        <ul id="libraries-to-delete" class="list-unstyled"></ul>
+                        <ul id="libraries-to-purge" class="list-unstyled"></ul>
+                        <p>This is permanent and cannot be undone!</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</%def>
+
+<%def name="javascriptIncludes()">
+<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
+<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
+<script src="interfaces/default/js/moment-with-locale.js"></script>
+<script src="interfaces/default/js/tables/libraries.js"></script>
+<script>
+    $(document).ready(function () {
+        libraries_list_table_options.ajax = {
+            url: 'get_library_list',
+            type: 'POST',
+            data: function ( d ) {
+                return { 
+                    json_data: JSON.stringify(d)
+                };
+            }
+        }
+
+        libraries_list_table = $('#libraries_list_table').DataTable(libraries_list_table_options);
+
+        clearSearchButton('libraries_list_table', libraries_list_table);
+
+        $('#row-edit-mode').on('click', function () {
+            $('#row-edit-mode-alert').fadeIn(200);
+            $('#libraries-to-delete').html('');
+            $('#libraries-to-purge').html('');
+
+            if ($(this).hasClass('active')) {
+                if (libraries_to_purge.length > 0) {
+                    $('.edit-control').each(function () {
+                        $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                    });
+
+                    libraries_to_purge = $.grep(libraries_to_purge, function (value) {
+                        return $.inArray(value, libraries_to_delete) < 0;
+                    });
+
+                    if (libraries_to_delete.length > 0) {
+                        $('#libraries-to-delete').prepend('<p>Are you REALLY sure you want to delete the following libraries:</p>')
+                        for (var i = 0; i < libraries_to_delete.length; i++) {
+                            $('#libraries-to-delete').append('<li>' + $('div[data-id=' + libraries_to_delete[i] + ']').text() + '</li>');
+                        }
+                    }
+
+                    if (libraries_to_purge.length > 0) {
+                        $('#libraries-to-purge').prepend('<p>Are you REALLY sure you want to purge all history for the following libraries:</p>')
+                        for (var i = 0; i < libraries_to_purge.length; i++) {
+                            $('#libraries-to-purge').append('<li>' + $('div[data-id=' + libraries_to_purge[i] + ']').text() + '</li>');
+                        }
+                    }
+
+                    $('#confirm-modal').modal();
+                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                        for (var i = 0; i < libraries_to_delete.length; i++) {
+                            $.ajax({
+                                url: 'delete_library',
+                                data: { section_id: libraries_to_delete[i] },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    var msg = "Library deleted";
+                                    showMsg(msg, false, true, 2000);
+                                }
+                            });
+                        }
+                        for (var i = 0; i < libraries_to_purge.length; i++) {
+                            $.ajax({
+                                url: 'delete_all_library_history',
+                                data: { section_id: libraries_to_purge[i] },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    var msg = "Library history purged";
+                                    showMsg(msg, false, true, 2000);
+                                }
+                            });
+                        }
+                        libraries_list_table.draw();
+                    });
+                }
+
+                $('.edit-control').each(function () {
+                    $(this).addClass('hidden');
+                    $('#row-edit-mode-alert').fadeOut(200);
+                });
+
+            } else {
+                libraries_to_delete = [];
+                libraries_to_purge = [];
+                $('.edit-control').each(function () {
+                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                    $(this).removeClass('hidden');
+                });
+            }
+        });
+    });
+
+    $("#refresh-libraries-list").click(function () {
+        if ("${config['update_section_ids']}" == "1") {
+            $('#update_section_ids_message').html(
+                '<i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes depending on the size of your database.' +
+                '<br />' + 
+                'You may leave this page and come back later.');
+            $(this).prop('disabled', true);
+        }
+
+        $.ajax({
+            url: 'refresh_libraries_list',
+            cache: false,
+            async: true,
+            success: function (data) {
+                showMsg('<i class="fa fa-refresh"></i>&nbspLibraries list refresh started...', false, true, 2000, false);
+            },
+            complete: function (data) {
+                showMsg('<i class="fa fa-check"></i>&nbspLibraries list refreshed.', false, true, 2000, false);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh libraries list.', false, true, 2000, true);
+            }
+        });
+    });
+</script>
+</%def>

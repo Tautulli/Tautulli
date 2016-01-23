@@ -26,12 +26,12 @@ def extract_plexwatch_xml(xml=None):
     try:
         xml_parse = minidom.parseString(clean_xml)
     except:
-        logger.warn("Error parsing XML for Plexwatch database.")
+        logger.warn(u"PlexPy Importer :: Error parsing XML for Plexwatch database.")
         return None
 
     xml_head = xml_parse.getElementsByTagName('opt')
     if not xml_head:
-        logger.warn("Error parsing XML for Plexwatch database.")
+        logger.warn(u"PlexPy Importer :: Error parsing XML for Plexwatch database.")
         return None
 
     for a in xml_head:
@@ -41,6 +41,7 @@ def extract_plexwatch_xml(xml=None):
         grandparent_thumb = helpers.get_xml_attr(a, 'grandparentThumb')
         grandparent_title = helpers.get_xml_attr(a, 'grandparentTitle')
         guid = helpers.get_xml_attr(a, 'guid')
+        section_id = helpers.get_xml_attr(a, 'librarySectionID')
         media_index = helpers.get_xml_attr(a, 'index')
         originally_available_at = helpers.get_xml_attr(a, 'originallyAvailableAt')
         last_viewed_at = helpers.get_xml_attr(a, 'lastViewedAt')
@@ -156,6 +157,7 @@ def extract_plexwatch_xml(xml=None):
                   'title': title,
                   'tagline': tagline,
                   'guid': guid,
+                  'section_id': section_id,
                   'media_index': media_index,
                   'originally_available_at': originally_available_at,
                   'last_viewed_at': last_viewed_at,
@@ -203,23 +205,23 @@ def validate_database(database=None, table_name=None):
     try:
         connection = sqlite3.connect(database, timeout=20)
     except sqlite3.OperationalError:
-        logger.error('PlexPy Importer :: Invalid database specified.')
+        logger.error(u"PlexPy Importer :: Invalid database specified.")
         return 'Invalid database specified.'
     except ValueError:
-        logger.error('PlexPy Importer :: Invalid database specified.')
+        logger.error(u"PlexPy Importer :: Invalid database specified.")
         return 'Invalid database specified.'
     except:
-        logger.error('PlexPy Importer :: Uncaught exception.')
+        logger.error(u"PlexPy Importer :: Uncaught exception.")
         return 'Uncaught exception.'
 
     try:
         connection.execute('SELECT ratingKey from %s' % table_name)
         connection.close()
     except sqlite3.OperationalError:
-        logger.error('PlexPy Importer :: Invalid database specified.')
+        logger.error(u"PlexPy Importer :: Invalid database specified.")
         return 'Invalid database specified.'
     except:
-        logger.error('PlexPy Importer :: Uncaught exception.')
+        logger.error(u"PlexPy Importer :: Uncaught exception.")
         return 'Uncaught exception.'
 
     return 'success'
@@ -230,16 +232,16 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
         connection = sqlite3.connect(database, timeout=20)
         connection.row_factory = sqlite3.Row
     except sqlite3.OperationalError:
-        logger.error('PlexPy Importer :: Invalid filename.')
+        logger.error(u"PlexPy Importer :: Invalid filename.")
         return None
     except ValueError:
-        logger.error('PlexPy Importer :: Invalid filename.')
+        logger.error(u"PlexPy Importer :: Invalid filename.")
         return None
 
     try:
         connection.execute('SELECT ratingKey from %s' % table_name)
     except sqlite3.OperationalError:
-        logger.error('PlexPy Importer :: Database specified does not contain the required fields.')
+        logger.error(u"PlexPy Importer :: Database specified does not contain the required fields.")
         return None
 
     logger.debug(u"PlexPy Importer :: PlexWatch data import in progress...")
@@ -248,6 +250,8 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
     plexpy.schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
                         hours=0, minutes=0, seconds=0)
     plexpy.schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
+                        hours=0, minutes=0, seconds=0)
+    plexpy.schedule_job(activity_pinger.check_server_response, 'Check for server response',
                         hours=0, minutes=0, seconds=0)
 
     ap = activity_processor.ActivityProcessor()
@@ -352,8 +356,8 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                                     'title': row['title'],
                                     'parent_title': extracted_xml['parent_title'],
                                     'grandparent_title': row['grandparent_title'],
-                                    'index': extracted_xml['media_index'],
-                                    'parent_index': extracted_xml['parent_media_index'],
+                                    'media_index': extracted_xml['media_index'],
+                                    'parent_media_index': extracted_xml['parent_media_index'],
                                     'thumb': extracted_xml['thumb'],
                                     'parent_thumb': extracted_xml['parent_thumb'],
                                     'grandparent_thumb': extracted_xml['grandparent_thumb'],
@@ -370,6 +374,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                                     'rating': extracted_xml['rating'],
                                     'duration': extracted_xml['duration'],
                                     'guid': extracted_xml['guid'],
+                                    'section_id': extracted_xml['section_id'],
                                     'directors': extracted_xml['directors'],
                                     'writers': extracted_xml['writers'],
                                     'actors': extracted_xml['actors'],
@@ -409,4 +414,3 @@ def import_users():
         logger.debug(u"PlexPy Importer :: Users imported.")
     except:
         logger.debug(u"PlexPy Importer :: Failed to import users.")
-

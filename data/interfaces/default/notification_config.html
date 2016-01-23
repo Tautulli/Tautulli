@@ -14,7 +14,12 @@ from plexpy import helpers
                     <form action="set_notification_config" method="post" class="form" id="set_notification_config" data-parsley-validate>
                     <div class="col-md-12">
                     % for item in data:
-                        % if item['input_type'] == 'text' or item['input_type'] == 'number' or item['input_type'] == 'password':
+                        % if item['input_type'] == 'help':
+                        <div class="form-group">
+                            <label>${item['label']}</label>
+                            <p class="help-block">${item['description'] | n}</p>
+                        </div>
+                        % elif item['input_type'] == 'text' or item['input_type'] == 'number' or item['input_type'] == 'password':
                         <div class="form-group">
                             <label for="${item['name']}">${item['label']}</label>
                             <div class="row">
@@ -29,6 +34,7 @@ from plexpy import helpers
                         </div>
                         % elif item['input_type'] == 'button':
                         <div class="form-group">
+                            <label for="${item['name']}">${item['label']}</label>
                             <div class="row">
                                 <div class="col-md-8">
                                     <input type="${item['input_type']}" class="btn btn-bright" id="${item['name']}" name="${item['name']}" value="${item['value']}">
@@ -48,7 +54,7 @@ from plexpy import helpers
                         <div class="form-group">
                             <label for="${item['name']}">${item['label']}</label>
                             <div class="row">
-                                <div class="col-md-5">
+                                <div class="col-md-8">
                                     <select class="form-control" id="${item['name']}" name="${item['name']}" >
                                         % for key, value in sorted(item['select_options'].iteritems()):
                                         % if key == item['value']:
@@ -66,6 +72,44 @@ from plexpy import helpers
                     % endfor
                     </div>
                     </form>
+                    <div class="col-md-12" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
+                        <h4>Test ${agent['name']}</h4>
+                        <p class="help-block">Test if ${agent['name']} notifications are working. See <a href="/logs">logs</a> for troubleshooting.</p>
+                        % if agent['name'] == 'Scripts':
+                        <div class="form-group">
+                            <label for="test_script">Script</label>
+                            <select class="form-control" id="test_script" name="test_script">
+                                % for key, value in sorted(data[2]['select_options'].iteritems()):
+                                <option value="${key}">${value}</option>
+                                % endfor
+                            </select>
+                            <p class="help-block">Choose the script to test.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="test_script_args">Script Arguments</label>
+                            <input class="form-control" type="text" id="test_script_args" name="test_script_args" value="">
+                            <p class="help-block">Set custom arguments passed to the script.</p>
+                        </div>
+                        % else:
+                        <div class="form-group">
+                            <label for="test_subject">Subject Line</label>
+                            <input class="form-control" type="text" id="test_subject" name="test_subject" value="PlexPy">
+                            <p class="help-block">Set a custom subject line.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="test_body">Message Body</label>
+                            <input class="form-control" type="text" id="test_body" name="test_body" value="Test notification">
+                            <p class="help-block">Set a custom body.</p>
+                        </div>
+                        % endif
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="button" class="btn btn-bright" id="test_notifier" name="test_notifier" value="Test ${agent['name']}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -92,15 +136,14 @@ from plexpy import helpers
             cache: false,
             async: true,
             complete: function (xhr, status) {
-                $("#notification-config-modal").html(xhr.responseText);
+                $('#notification-config-modal').html(xhr.responseText);
             }
         });
     }
 
     $('#osxnotifyregister').click(function () {
-        var osx_notify_app = $("#osx_notify_app").val();
-        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { $('#ajaxMsg').html("<i class='fa fa-check'></i> " + data); });
-        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
+        var osx_notify_app = $('#osx_notify_app').val();
+        $.get('/osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
     })
 
     $('#save-notification-item').click(function () {
@@ -110,41 +153,72 @@ from plexpy import helpers
         return false;
     });
 
+    function disableTwitterVerify() {
+        if ($('#twitter_key').val() != '') { $('#twitterStep2').prop('disabled', false); }
+        else { $('#twitterStep2').prop('disabled', true); }
+    }
+    disableTwitterVerify();
+    $('#twitter_key').on('change', function () {
+        disableTwitterVerify()
+    });
+
     $('#twitterStep1').click(function () {
-        $.get("/twitterStep1", function (data) {window.open(data); })
-        .done(function () { $('#ajaxMsg').html("<i class='fa fa-check'></i> Confirm Authorization. Check pop-up blocker if no response."); });
-        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
+        $.get('/twitterStep1', function (data) {window.open(data); })
+        .done(function () { showMsg('<i class="fa fa-check"></i> Confirm Authorization. Check pop-up blocker if no response.', false, true, 3000); });
     });
     $('#twitterStep2').click(function () {
-        var twitter_key = $("#twitter_key").val();
-        $.get("/twitterStep2", { 'key': twitter_key }, function (data) { $('#ajaxMsg').html("<i class='fa fa-check'></i> " + data); });
-        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
-    });
-    $('#testTwitter').click(function () {
-        $.get("/testTwitter",
-            function (data) { $('#ajaxMsg').html("<i class='fa fa-check'></i> " + data); });
-        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
+        var twitter_key = $('#twitter_key').val();
+        $.get('/twitterStep2', { 'key': twitter_key }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
     });
 
-    $('#testIFTTT').click(function () {
-        $.get("/test_ifttt",
-            function (data) { $('#ajaxMsg').html("<i class='fa fa-check'></i> " + data); });
-        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut();
+    function disableFacebookRequest() {
+        if ($('#facebook_app_id').val() != '' && $('#facebook_app_secret').val() != '') { $('#facebookStep1').prop('disabled', false); }
+        else { $('#facebookStep1').prop('disabled', true); }
+    }
+    disableFacebookRequest();
+    $('#facebook_app_id, #facebook_app_secret').on('change', function () {
+        disableFacebookRequest()
+    });
+    
+    $('#facebookStep1').click(function () {
+        doAjaxCall('set_notification_config', $(this), 'tabs', true);
+        $.get('/facebookStep1', function (data) { window.open(data); })
+        .done(function () { showMsg('<i class="fa fa-check"></i> Confirm Authorization. Check pop-up blocker if no response.', false, true, 3000); });
     });
 
-    $('#pushbullet_apikey').on('change', function () {
+    $('#test_notifier').click(function () {
+        doAjaxCall('set_notification_config', $(this), 'tabs', true);
+        $.ajax({
+            url: 'test_notifier',
+            data: {
+                config_id: '${agent["id"]}',
+                subject: $('#test_subject').val(),
+                body: $('#test_body').val(),
+                script: $('#test_script').val(),
+                script_args: $('#test_script_args').val()
+            },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                msg = '<i class="fa fa-check"></i>&nbsp; ' + xhr.responseText;
+                showMsg(msg, false, true, 2000);
+            }
+        });
+    });
+
+    $('#pushbullet_apikey, #pushover_apitoken, #scripts_folder').on('change', function () {
         doAjaxCall('set_notification_config', $(this), 'tabs', true);
         reloadModal();
         return false;
     });
-    
+
     // Never send checkbox values directly, always substitute value in hidden input.
     $('.checkboxes').click(function () {
         var configToggle = $(this).data('id');
-        if ($(this).is(":checked")) {
-            $("#"+configToggle).val(1);
+        if ($(this).is(':checked')) {
+            $('#'+configToggle).val(1);
         } else {
-            $("#"+configToggle).val(0);
+            $('#'+configToggle).val(0);
         }
     });
 </script>

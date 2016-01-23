@@ -16,7 +16,7 @@
 import time
 import plexpy
 
-from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler
+from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler, helpers
 
 
 class ActivityHandler(object):
@@ -54,7 +54,7 @@ class ActivityHandler(object):
         monitor_proc.write_session(session=self.get_live_session(), notify=False)
 
     def on_start(self):
-        if self.is_valid_session():
+        if self.is_valid_session() and self.get_live_session():
             logger.debug(u"PlexPy ActivityHandler :: Session %s has started." % str(self.get_session_key()))
 
             # Fire off notifications
@@ -165,8 +165,6 @@ class ActivityHandler(object):
     # This function receives events from our websocket connection
     def process(self):
         if self.is_valid_session():
-            from plexpy import helpers
-
             ap = activity_processor.ActivityProcessor()
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 

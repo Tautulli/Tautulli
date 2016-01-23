@@ -77,7 +77,9 @@
             url: 'get_user_list',
             type: 'POST',
             data: function ( d ) {
-                return { 'json_data': JSON.stringify( d ) };
+                return {
+                    json_data: JSON.stringify(d)
+                };
             }
         }
 
@@ -177,10 +179,13 @@
             cache: false,
             async: true,
             success: function(data) {
-                showMsg('<i class="fa fa-check"></i>&nbspUser list refresh started...',false,true,2000,false)
+                showMsg('<i class="fa fa-check"></i>&nbspUsers list refresh started...', false, true, 2000, false);
             },
-            error: function(jqXHR, textStatus, errorThrown) {
-                showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh user list.',false,true,2000,true)
+            complete: function (data) {
+                showMsg('<i class="fa fa-check"></i>&nbspUsers list refreshed.', false, true, 2000, false);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                showMsg('<i class="fa fa-exclamation-circle"></i>&nbspUnable to refresh users list.', false, true, 2000, true);
             }
         });
     });

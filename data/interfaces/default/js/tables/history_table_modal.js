@@ -25,6 +25,7 @@ history_table_modal_options = {
     "serverSide": true,
     "pageLength": 10,
     "lengthChange": false,
+    "autoWidth": false,
     "order": [ 0, 'desc'],
     "columnDefs": [
         {
@@ -37,9 +38,9 @@ history_table_modal_options = {
                     $(td).html(moment(cellData,"X").format(time_format));
                 }
             },
-            "searchable": false,
+            "width": "10%",
             "className": "no-wrap",
-            "width": "5%"
+            "searchable": false
         },
         {
             "targets": [1],
@@ -51,9 +52,9 @@ history_table_modal_options = {
                     $(td).html(moment(cellData,"X").format(time_format));
                 }
             },
-            "searchable": false,
+            "width": "10%",
             "className": "no-wrap",
-            "width": "5%"
+            "searchable": false
         },
         {
             "targets": [2],
@@ -69,6 +70,7 @@ history_table_modal_options = {
                     $(td).html(cellData);
                 }
             },
+            "width": "15%",
             "className": "no-wrap hidden-xs"
         },
         {
@@ -87,6 +89,7 @@ history_table_modal_options = {
                     $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp' + cellData + '</div></a></div>');
                 }
             },
+            "width": "25%",
             "className": "no-wrap hidden-sm hidden-xs modal-control"
         },
         {
@@ -98,22 +101,23 @@ history_table_modal_options = {
                     var thumb_popover = '';
                     if (rowData['media_type'] === 'movie') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Movie"><i class="fa fa-film fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120">' + cellData + ' (' + rowData['year'] + ')</span>'
-                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + ' (' + rowData['year'] + ')</span>'
+                        $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'episode') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120">' + cellData + ' \
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + ' \
                             (S' + rowData['parent_media_index'] + '&middot; E' + rowData['media_index'] + ')</span>'
-                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;" >' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
+                        $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;" >' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'track') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80">' + cellData + ' (' + rowData['parent_title'] + ')</span>'
-                        $(td).html('<div class="history-title"><a href="info?source=history&item_id=' + rowData['id'] + '"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80" data-width="80">' + cellData + ' (' + rowData['parent_title'] + ')</span>'
+                        $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp' + thumb_popover + '</div></a></div>');
                     } else {
-                        $(td).html('<a href="info?item_id=' + rowData['id'] + '">' + cellData + '</a>');
+                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
                     }
                 }
-            }
+            },
+            "width": "40%"
         }
     ],
     "drawCallback": function (settings) {
@@ -129,8 +133,9 @@ history_table_modal_options = {
             container: '#history-modal',
             trigger: 'hover',
             placement: 'right',
+            template: '<div class="popover history-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
             content: function () {
-                return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px;" />';
+                return '<div class="history-thumbnail" style="background-image: url(' + $(this).data('img') + '); height: ' + $(this).data('height') + 'px; width: ' + $(this).data('width') + 'px;" />';
             }
         });
     },

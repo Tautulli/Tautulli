@@ -1,5 +1,41 @@
 # Changelog
 
+## v1.3.0 (2016-01-23)
+
+* Add: Brand new Libraries section.
+* Add: Lots of new library statistics.
+* Add: Media info table for libraries.
+* Add: Web app for Android and iOS. (Thanks @zobe123)
+* Add: Slack notification agent. (Thanks @richipargo)
+* Add: Facebook notification agent.
+* Add: Custom script notification agent. (Thanks @Hellowlol)
+* Add: Custom "From Name" to email notification agent.
+* Add: Ability to test notifications / send custom one-off notifications.
+* Add: 'datestamp' and 'timestamp' notification options.
+* Add: More concurrent stream statistics.
+* Add: Media info flags on the info pages.
+* Add: Ability to fix broken metadata if the item has been moved in Plex.
+* Add: Ability to rearrange the homepage statistics cards.
+* Add: CentOS startup script (Thanks @PHoSawyer)
+* Fix: Server name blank after first run wizard.
+* Fix: Incorrect duration for grouped home stats.
+* Fix: Allow SSL when verifying server in settings.
+* Fix: Metadata for grouped recently added notifications.
+* Fix: Unable to access settings with missing changelog file.
+* Fix: Month name localization on play totals graphs.
+* Fix: Get new PMS identifier when changing servers.
+* Fix: Websocket log spam when there is no active session.
+* Fix: Logs and cache folder not created in the data directory.
+* Fix: Title links on sync table.
+* Fix: Other various minor bugs and graphical glitches.
+* Change: Prettier thumbnail popovers on tables.
+* Change: Star ratings to use css/font-awesome.
+* Change: More detailed logging info to warnings and errors.
+* Change: Better PlexPy process restart handling (Thanks @jackwilsdon)
+* Change: Massive behind the scenes code cleanup.
+* Remove: Built in Pushover API token (User's own API token is now required).
+
+
 ## v1.2.16 (2015-12-22)
 
 * Fix Most Concurrent stream stat for emtpy databases

@@ -12,29 +12,27 @@ data[array_index] :: Usable parameters
 == Global keys ==
 rating_key              Returns the unique identifier for the media item.
 row_id                  Returns the unique row id for the media item in the database.
-type                    Returns the type of media. Either 'movie' or 'episode'.
+media_type              Returns the type of media. Either 'movie' or 'episode' or 'album'.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
 time                    Returns the last watched time of the media.
-title                   Returns the name of the movie or episode.
-
-== Only if 'type' is 'episode ==
-parent_title            Returns the name of the TV Show a season belongs too.
-parent_index            Returns the season number.
-index                   Returns the episode number.
-
-== Only if 'type' is 'movie' ==
-year                    Returns the movie release year.
+user                    Returns the name of the user that watched the item.
+title                   Returns the name of the movie, episode, album.
+parent_title            Returns the name of the artist.
+grandparent_title       Returns the name of the show.
+media_index             Returns the index number of the episode.
+parent_media_index      Returns the index number of the season.
+year                    Returns the release year of the movie, episode, or album.
 
 DOCUMENTATION :: END
 </%doc>
 
-% if data != None:
+% if data:
 <div class="dashboard-recent-media-row">
     <ul class="dashboard-recent-media list-unstyled">
         % for item in data:
         <li>
-            % if item['type'] == 'episode' or item['type'] == 'movie':
-			<a href="info?source=history&item_id=${item['row_id']}">
+            % if item['media_type'] == 'episode' or item['media_type'] == 'movie':
+			<a href="info?source=history&rating_key=${item['rating_key']}">
 				<div class="dashboard-recent-media-poster">
 					<div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
                         <div class="dashboard-recent-media-overlay">
@@ -47,20 +45,18 @@ DOCUMENTATION :: END
                     </div>
                 </div>
 				<div class="dashboard-recent-media-metacontainer">
-					% if item['type'] == 'episode':
+					% if item['media_type'] == 'episode':
 					<h3 title="${item['grandparent_title']}">${item['grandparent_title']}</h3>
 					<h3 title="${item['title']}">${item['title']}</h3>
-					<h3 class="text-muted">S${item['parent_index']} &middot; E${item['index']}</h3>
-					% elif item['type'] == 'movie':
+					<h3 class="text-muted">S${item['parent_media_index']} &middot; E${item['media_index']}</h3>
+					% elif item['media_type'] == 'movie':
 					<h3 title="${item['title']}">${item['title']}</h3>
 					<h3 class="text-muted">${item['year']}</h3>
 					% endif
-					<div class="text-muted" id="time-${item['time']}">
-                    </div>
 				</div>
 			</a>
-            % elif item['type'] == 'track':
-            <a href="info?source=history&item_id=${item['row_id']}">
+            % elif item['media_type'] == 'track':
+            <a href="info?source=history&rating_key=${item['rating_key']}">
                 <div class="dashboard-recent-media-cover">
                     <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">
                         <div class="dashboard-recent-media-overlay">
@@ -84,6 +80,5 @@ DOCUMENTATION :: END
     </ul>
 </div>
 % else:
-<div class="text-muted">Unable to retrieve data from database. Please check your <a href="settings">settings</a>.
-</div><br>
+<div class="text-muted">No stats to show.</div><br>
 % endif

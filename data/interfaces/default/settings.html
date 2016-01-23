@@ -98,25 +98,78 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
 
                         <div class="form-group">
-                            <label for="home_stats_cards">Cards</label>
+                            <label for="sortable_home_stats_cards">Cards</label>
+                            <p class="help-block">
+                                Select the cards to show in the watch statistics on the home page. Select none to disable.<br>
+                                Drag the items below to reorder your homepage content.
+                            </p>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <select multiple class="form-control" id="home_stats_cards" name="home_stats_cards" data-parsley-trigger="change">
-                                        <option id="card-watch_statistics" value="watch_statistics" class="hidden" selected>Watch Statistics</option>
-                                        <option id="card-top_tv" value="top_tv">Most Watched TV</option>
-                                        <option id="card-popular_tv" value="popular_tv">Most Popular TV</option>
-                                        <option id="card-top_movies" value="top_movies">Most Watched Movie</option>
-                                        <option id="card-popular_movies" value="popular_movies">Most Popular Movie</option>
-                                        <option id="card-top_music" value="top_music">Most Listened Music</option>
-                                        <option id="card-popular_music" value="popular_music">Most Popular Music</option>
-                                        <option id="card-last_watched" value="last_watched">Last Watched</option>
-                                        <option id="card-top_users" value="top_users">Most Active User</option>
-                                        <option id="card-top_platforms" value="top_platforms">Most Active Platform</option>
-                                        <option id="card-most_concurrent" value="most_concurrent">Most Concurrent Streams</option>
-                                    </select>
+                                    <ul class="list-unstyled" id="sortable_home_stats_cards" data-parsley-trigger="change">
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_tv" name="hscard-top_tv" value="top_tv"> Most Watched TV
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_tv" name="hscard-popular_tv" value="popular_tv"> Most Popular TV
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_movies" name="hscard-top_movies" value="top_movies"> Most Watched Movie
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_movies" name="hscard-popular_movies" value="popular_movies"> Most Popular Movie
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_music" name="hscard-top_music" value="top_music"> Most Listened Music
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_music" name="hscard-popular_music" value="popular_music"> Most Popular Music
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-last_watched" name="hscard-last_watched" value="last_watched"> Last Watched
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_users" name="hscard-top_users" value="top_users"> Most Active User
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_platforms" name="hscard-top_platforms" value="top_platforms"> Most Active Platform
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-most_concurrent" name="hscard-most_concurrent" value="most_concurrent"> Most Concurrent Streams
+                                            </label>
+                                        </li>
+                                    </ul>
+                                    <input type="text" id="home_stats_cards" name="home_stats_cards" style="display: none;" />
                                 </div>
                             </div>
-                            <p class="help-block">Select the cards to show in the watch statistics on the home page. Select none to disable.</p>
                         </div>
                         <div class="form-group">
                             <label for="home_stats_length">Time Frame</label>
@@ -151,14 +204,17 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
 
                         <div class="form-group">
                             <label for="home_library_cards">Cards</label>
+                            <p class="help-block">
+                                Select the cards to show in the library statistics on the home page. Select none to disable.<br>
+                                Drag the items below to reorder your homepage content.
+                            </p>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <select multiple class="form-control" id="home_library_cards" name="home_library_cards" data-parsley-trigger="change">
-                                        <option id="card-library_statistics" value="library_statistics" class="hidden" selected>Library Statistics</option>
-                                    </select>
+                                    <ul class="list-unstyled" id="sortable_home_library_cards" data-parsley-trigger="change">
+                                    </ul>
+                                    <input type="text" id="home_library_cards" name="home_library_cards" style="display: none;" />
                                 </div>
                             </div>
-                            <p class="help-block">Select the cards to show in the library statistics on the home page. Select none to disable.</p>
                         </div>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
@@ -348,7 +404,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <h3>Friends List</h3>
                         </div>
                         <div class="form-group">
-                            <label for="refresh_users_interval">User List Refresh Interval</label>
+                            <label for="refresh_users_interval">Users List Refresh Interval</label>
                             <div class="row">
                                 <div class="col-md-2">
                                     <input type="text" class="form-control" data-parsley-type="integer" id="refresh_users_interval" name="refresh_users_interval" value="${config['refresh_users_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_users_interval_error" required>
@@ -359,9 +415,29 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh User List on Startup
+                                <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh Users List on Startup
                             </label>
-                            <p class="help-block">Refresh the user list when PlexPy starts.</p>
+                            <p class="help-block">Refresh the users list when PlexPy starts.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Libraries List</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="refresh_libraries_interval">Libraries List Refresh Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_libraries_interval" name="refresh_libraries_interval" value="${config['refresh_libraries_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_libraries_interval_error" required>
+                                </div>
+                                <div id="refresh_libraries_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in hours) PlexPy will request an updated libraries list from your Plex Media Server. 1 minimum, 24 maximum.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="refresh_libraries_on_startup" name="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}> Refresh Libraries List on Startup
+                            </label>
+                            <p class="help-block">Refresh the libraries list when PlexPy starts.</p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
@@ -376,6 +452,13 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <input type="checkbox" id="pms_use_bif" name="pms_use_bif" value="1" ${config['pms_use_bif']}> Use Video Preview Thumbnails (BIF)
                             </label>
                             <p class="help-block">If you have media indexing enabled on your server, use these on the activity pane.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes [experimental]
+                            </label>
+                            <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.<br />
+                            This is currently experimental.</p>
                         </div>
 
                         <div class="padded-header">
@@ -402,9 +485,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart)
+                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) [experimental]
                             </label>
-                            <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens. This is currently experimental. Encrypted websocket is not currently supported.</p>
+                            <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens.<br />
+                            This is currently experimental. Encrypted websocket is not currently supported.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -751,7 +835,20 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </ul>
                             </li>
                         </ul>
-
+                        <ul id="accordion-scripts" class="accordion list-unstyled">
+                            <li>
+                                <div class="link"><i class="glyphicon glyphicon-console"></i>&nbsp;Script <i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_scripts_args_text">Script Arguments</label>
+                                            <input class="form-control" type="text" id="notify_scripts_args_text" name="notify_scripts_args_text" value="${config['notify_scripts_args_text']}" data-parsley-trigger="change">
+                                            <p class="help-block">Set custom arguments passed to the scripts.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-10">
@@ -767,7 +864,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             % for agent in available_notification_agents:
                             <li>
                                 <span>
-                                    % if agent['on_play'] or agent['on_stop'] or agent['on_pause'] or agent['on_resume'] or agent['on_buffer'] or agent['on_watched'] or agent['on_created'] or agent['on_extdown'] or agent['on_intdown']:
+                                    % if any(k[:2] == 'on' and v == 1 for k, v in agent.iteritems()):
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left active" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
                                     % else:
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
@@ -1000,6 +1097,22 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td><strong>{streams}</strong></td>
+                                    <td>The number of concurrent streams.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{action}</strong></td>
+                                    <td>The action that triggered the notification.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{datestamp}</strong></td>
+                                    <td>The date the notification was triggered.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{timestamp}</strong></td>
+                                    <td>The time the notification was triggered.</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{user}</strong></td>
                                     <td>The username of the person streaming.</td>
                                 </tr>
@@ -1125,6 +1238,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{title}</strong></td>
                                     <td>The full title of the item being played.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{library_name}</strong></td>
+                                    <td>The library title of the item being played.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{show_name}</strong></td>
@@ -1290,6 +1407,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/parsley.min.js"></script>
+<script src="interfaces/default/js/Sortable.min.js"></script>
 <script>
 $(document).ready(function() {
 
@@ -1422,12 +1540,15 @@ $(document).ready(function() {
     function verifyServer(_callback) {
         var pms_ip = $("#pms_ip").val()
         var pms_port = $("#pms_port").val()
+        var pms_identifier = $("#pms_identifier").val()
+        var pms_ssl = $("#pms_ssl").val()
+        var pms_is_remote = $("#pms_is_remote").val()
         if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
             $("#pms-verify").html('<i class="fa fa-refresh fa-spin"></i>');
             $('#pms-verify').fadeIn('fast');
             $.ajax({
                 url: 'get_server_id',
-                data : { hostname: pms_ip, port: pms_port },
+                data : { hostname: pms_ip, port: pms_port, identifier: pms_identifier, ssl: pms_ssl, remote: pms_is_remote },
                 cache: true,
                 async: true,
                 timeout: 5000,
@@ -1537,8 +1658,7 @@ $(document).ready(function() {
 
     $('#osxnotifyregister').click(function () {
         var osx_notify_app = $("#osx_notify_reg").val();
-        $.get("/osxnotifyregister", {'app': osx_notify_app}, function (data) { $('#ajaxMsg').html("<div class='msg'><span class='ui-icon ui-icon-check'></span>"+data+"</div>"); });
-        $('#ajaxMsg').addClass('success').fadeIn().delay(3000).fadeOut()
+        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { showMsg("<div class='msg'><span class='ui-icon ui-icon-check'></span>" + data + "</div>", false, true, 3000); });
     })
 
     $.ajax({
@@ -1572,46 +1692,81 @@ $(document).ready(function() {
 
     var accordion_session = new Accordion($('#accordion-session'), false);
     var accordion_timeline = new Accordion($('#accordion-timeline'), false);
+    var accordion_scripts = new Accordion($('#accordion-scripts'), false);
 
-    var cards = "${config['home_stats_cards']}".split(/[\s,]+/);
-    cards.forEach(function (item) {
-        $('#card-'+item).prop('selected', !$(this).prop('selected'));
-    });
-    $('#home_stats_cards').on('mousedown', function(e) {
-        e.preventDefault();
-        var scroll = this.scrollTop;
-        e.target.selected = !e.target.selected;
-        this.scrollTop = scroll;
-    }).on('mousemove', function(e) {
-        e.preventDefault()
+
+    // Sortable home_stats_cards
+    function set_home_stats_cards() {
+        var home_stats_cards = [];
+        var hscards = $('[id^=hscard-]').serializeArray();
+        $.each(hscards, function(i, card) {
+            home_stats_cards.push(card.value);
+        });
+        $('#home_stats_cards').val(home_stats_cards);
+    };
+
+    var config_cards = ${config['home_stats_cards'] | n};
+    config_cards.reverse().forEach(function (item) {
+        $('#hscard-' + item).prop('checked', !$(this).prop('checked'))
+        $('#hscard-' + item).closest('li.card').prependTo('#sortable_home_stats_cards');
     });
 
-    $.ajax({
-        url: 'get_server_children',
-        data: { },
-        async: true,
-        complete: function (xhr, status) {
-            server_children_info = $.parseJSON(xhr.responseText);
-            libraries_list = server_children_info.libraries_list;
-            for (var i in libraries_list) {
-                title = libraries_list[i].title;
-                key = libraries_list[i].key;
-                $('#home_library_cards').append('<option id="card-' + key + '" value="' + key + '">' + title + '</option>')
-            }
-            var cards = "${config['home_library_cards']}".split(/[\s,]+/);
-            cards.forEach(function (item) {
-                $('#card-'+item).prop('selected', !$(this).prop('selected'));
-            });
+    Sortable.create(sortable_home_stats_cards, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_stats_cards();
         }
     });
-    $('#home_library_cards').on('mousedown', function(e) {
-        e.preventDefault();
-        var scroll = this.scrollTop;
-        e.target.selected = !e.target.selected;
-        this.scrollTop = scroll;
-    }).on('mousemove', function(e) {
-        e.preventDefault()
+
+    $('[id^=hscard-]').change(function() { set_home_stats_cards(); });
+    set_home_stats_cards()
+
+
+    // Sortable home_library_cards
+    function set_home_library_cards() {
+        var home_library_cards = [];
+        var hlcards = $('[id^=hlcard-]').serializeArray();
+        $.each(hlcards, function(i, card) {
+            home_library_cards.push(card.value);
+        });
+        $('#home_library_cards').val(home_library_cards);
+    };
+
+    $.ajax({
+        url: 'get_library_sections',
+        data: { },
+        async: true,
+        complete: function (data) {
+            libraries_list = $.parseJSON(data.responseText);
+            for (var i in libraries_list) {
+                var title = libraries_list[i].section_name;
+                var key = libraries_list[i].section_id;
+                $('#sortable_home_library_cards').append(
+                    '<li class="card card-sortable">' + 
+                        '<div class="card-handle"><i class="fa fa-bars"></i></div>' + 
+                        '<label>' + 
+                            '<input type="checkbox" id="hlcard-' + key + '" name="hlcard-' + key + '" value="' + key + '"> ' + title + 
+                        '</label>' + 
+                    '</li>'
+                );
+            }
+            var config_cards = ${config['home_library_cards'] | n};
+            config_cards.reverse().forEach(function (item) {
+                $('#hlcard-' + item).prop('checked', !$(this).prop('checked'));
+                $('#hlcard-' + item).closest('li.card').prependTo('#sortable_home_library_cards');
+            });
+            $('[id^=hlcard-]').change(function() { set_home_library_cards(); });
+            set_home_library_cards()
+        }
     });
+
+    Sortable.create(sortable_home_library_cards, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_library_cards();
+        }
+    });
+
 
     // auto resizing textarea for custom notification message body
     $('textarea[data-autoresize]').each(function() {

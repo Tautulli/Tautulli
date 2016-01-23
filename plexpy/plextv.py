@@ -16,7 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, users, http_handler, database
+from plexpy import logger, helpers, http_handler, database, users
 import xmltodict
 import json
 from xml.dom import minidom
@@ -26,7 +26,7 @@ import plexpy
 
 
 def refresh_users():
-    logger.info("Requesting users list refresh...")
+    logger.info(u"PlexPy PlexTV :: Requesting users list refresh...")
     result = PlexTV().get_full_users_list()
     monitor_db = database.MonitorDatabase()
 
@@ -55,13 +55,13 @@ def refresh_users():
 
             monitor_db.upsert('users', new_value_dict, control_value_dict)
 
-        logger.info("Users list refreshed.")
+        logger.info(u"PlexPy PlexTV :: Users list refreshed.")
     else:
-        logger.warn("Unable to refresh users list.")
+        logger.warn(u"PlexPy PlexTV :: Unable to refresh users list.")
 
 
 def get_real_pms_url():
-    logger.info("Requesting URLs for server...")
+    logger.info(u"PlexPy PlexTV :: Requesting URLs for server...")
 
     # Reset any current PMS_URL value
     plexpy.CONFIG.__setattr__('PMS_URL', '')
@@ -76,23 +76,24 @@ def get_real_pms_url():
         result = PlexTV().get_server_urls(include_https=False)
         process_urls = True
     else:
+        result = PlexTV().get_server_urls(include_https=False)
         process_urls = False
 
     if process_urls:
-        if len(result) > 0:
+        if result:
             for item in result:
                 if plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '0':
                         plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
                         plexpy.CONFIG.write()
-                        logger.info("Server URL retrieved.")
+                        logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
                 if not plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '1':
                         plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
                         plexpy.CONFIG.write()
-                        logger.info("Server URL retrieved.")
+                        logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
         else:
             plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
             plexpy.CONFIG.write()
-            logger.warn("Unable to retrieve server URLs. Using user-defined value.")
+            logger.warn(u"PlexPy PlexTV :: Unable to retrieve server URLs. Using user-defined value.")
     else:
         plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
         plexpy.CONFIG.write()
@@ -138,12 +139,15 @@ class PlexTV(object):
         plextv_response = self.get_plex_auth(output_format='xml')
 
         if plextv_response:
-            xml_head = plextv_response.getElementsByTagName('user')
-            if not xml_head:
-                logger.warn("Error parsing XML for Plex.tv token")
+            try:
+                xml_head = plextv_response.getElementsByTagName('user')
+                if xml_head:
+                    auth_token = xml_head[0].getAttribute('authenticationToken')
+                else:
+                    logger.warn(u"PlexPy PlexTV :: Could not get Plex authentication token.")
+            except Exception as e:
+                logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_token: %s." % e)
                 return []
-
-            auth_token = xml_head[0].getAttribute('authenticationToken')
 
             return auth_token
         else:
@@ -212,16 +216,16 @@ class PlexTV(object):
 
         try:
             xml_parse = minidom.parseString(own_account)
-        except Exception, e:
-            logger.warn("Error parsing XML for Plex account details: %s" % e)
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list own account: %s" % e)
             return []
         except:
-            logger.warn("Error parsing XML for Plex account details.")
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list own account.")
             return []
 
         xml_head = xml_parse.getElementsByTagName('user')
         if not xml_head:
-            logger.warn("Error parsing XML for Plex account details.")
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list.")
         else:
             for a in xml_head:
                 own_details = {"user_id": helpers.get_xml_attr(a, 'id'),
@@ -237,14 +241,16 @@ class PlexTV(object):
 
         try:
             xml_parse = minidom.parseString(friends_list)
-        except Exception, e:
-            logger.warn("Error parsing XML for Plex friends list: %s" % e)
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list friends list: %s" % e)
+            return []
         except:
-            logger.warn("Error parsing XML for Plex friends list.")
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list friends list.")
+            return []
 
         xml_head = xml_parse.getElementsByTagName('User')
         if not xml_head:
-            logger.warn("Error parsing XML for Plex friends list.")
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list.")
         else:
             for a in xml_head:
                 friend = {"user_id": helpers.get_xml_attr(a, 'id'),
@@ -268,17 +274,17 @@ class PlexTV(object):
 
         try:
             xml_parse = minidom.parseString(sync_list)
-        except Exception, e:
-            logger.warn("Error parsing XML for Plex sync lists: %s" % e)
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items: %s" % e)
             return []
         except:
-            logger.warn("Error parsing XML for Plex sync lists.")
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items.")
             return []
 
         xml_head = xml_parse.getElementsByTagName('SyncList')
 
         if not xml_head:
-            logger.warn("Error parsing XML for Plex sync lists.")
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items.")
         else:
             for a in xml_head:
                 client_id = helpers.get_xml_attr(a, 'id')
@@ -286,8 +292,8 @@ class PlexTV(object):
                 for device in sync_device:
                     device_user_id = helpers.get_xml_attr(device, 'userID')
                     try:
-                        device_username = user_data.get_user_details(user_id=device_user_id)['username']
-                        device_friendly_name = user_data.get_user_details(user_id=device_user_id)['friendly_name']
+                        device_username = user_data.get_details(user_id=device_user_id)['username']
+                        device_friendly_name = user_data.get_details(user_id=device_user_id)['friendly_name']
                     except:
                         device_username = ''
                         device_friendly_name = ''
@@ -335,12 +341,11 @@ class PlexTV(object):
                             settings_video_quality = helpers.get_xml_attr(settings, 'videoQuality')
                             settings_video_resolution = helpers.get_xml_attr(settings, 'videoResolution')
 
-                        if helpers.get_xml_attr(item.getElementsByTagName('Location')[0], 'uri').endswith('%2Fchildren'):
-                            clean_uri = helpers.get_xml_attr(item.getElementsByTagName('Location')[0], 'uri')[:-11]
-                        else:
-                            clean_uri = helpers.get_xml_attr(item.getElementsByTagName('Location')[0], 'uri')
+                        for location in item.getElementsByTagName('Location'):
+                            clean_uri = helpers.get_xml_attr(location, 'uri').split('%2F')
 
-                        rating_key = clean_uri.rpartition('%2F')[-1]
+                        rating_key = next((clean_uri[(idx + 1) % len(clean_uri)] 
+                                           for idx, item in enumerate(clean_uri) if item == 'metadata'), None)
 
                         sync_details = {"device_name": helpers.sanitize(device_name),
                                         "platform": helpers.sanitize(device_platform),
@@ -374,7 +379,7 @@ class PlexTV(object):
         if plexpy.CONFIG.PMS_IDENTIFIER:
             server_id = plexpy.CONFIG.PMS_IDENTIFIER
         else:
-            logger.error('PlexPy PlexTV connector :: Unable to retrieve server identity.')
+            logger.error(u"PlexPy PlexTV :: Unable to retrieve server identity.")
             return []
 
         plextv_resources = self.get_plextv_resources(include_https=include_https)
@@ -382,17 +387,17 @@ class PlexTV(object):
 
         try:
             xml_parse = minidom.parseString(plextv_resources)
-        except Exception, e:
-            logger.warn("Error parsing XML for Plex resources: %s" % e)
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls: %s" % e)
             return []
         except:
-            logger.warn("Error parsing XML for Plex resources.")
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls.")
             return []
 
         try:
             xml_head = xml_parse.getElementsByTagName('Device')
-        except:
-            logger.warn("Error parsing XML for Plex resources.")
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls: %s." % e)
             return []
 
         for a in xml_head:
@@ -407,43 +412,27 @@ class PlexTV(object):
                                       }
 
                     server_urls.append(server_details)
+            # Else try to match the PMS_IP and PMS_PORT
+            else:
+                connections = a.getElementsByTagName('Connection')
+                for connection in connections:
+                    if helpers.get_xml_attr(connection, 'address') == plexpy.CONFIG.PMS_IP and \
+                        int(helpers.get_xml_attr(connection, 'port')) == plexpy.CONFIG.PMS_PORT:
+
+                        plexpy.CONFIG.PMS_IDENTIFIER = helpers.get_xml_attr(a, 'clientIdentifier')
+
+                        logger.info(u"PlexPy PlexTV :: PMS identifier changed from %s to %s." % \
+                                    (server_id, plexpy.CONFIG.PMS_IDENTIFIER))
+
+                        server_details = {"protocol": helpers.get_xml_attr(connection, 'protocol'),
+                                          "address": helpers.get_xml_attr(connection, 'address'),
+                                          "port": helpers.get_xml_attr(connection, 'port'),
+                                          "uri": helpers.get_xml_attr(connection, 'uri'),
+                                          "local": helpers.get_xml_attr(connection, 'local')
+                                          }
+                        break
 
         return server_urls
-
-    def discover(self):
-        """ Query plex for all servers online. Returns the ones you own in a selectize format """
-        result = self.get_plextv_resources(include_https=True, output_format='raw')
-        servers = xmltodict.parse(result, process_namespaces=True, attr_prefix='')
-        clean_servers = []
-
-        try:
-            if servers:
-                # Fix if its only one "device"
-                if int(servers['MediaContainer']['size']) == 1:
-                    servers['MediaContainer']['Device'] = [servers['MediaContainer']['Device']]
-
-                for server in servers['MediaContainer']['Device']:
-                    # Only grab servers online and own
-                    if server.get('presence', None) == '1' and server.get('owned', None) == '1' and server.get('provides', None) == 'server':
-                        # If someone only has one connection..
-                        if isinstance(server['Connection'], dict):
-                            server['Connection'] = [server['Connection']]
-
-                        for s in server['Connection']:
-                            # to avoid circular ref
-                            d = {}
-                            d.update(s)
-                            d.update(server)
-                            d['label'] = d['name']
-                            d['value'] = d['address']
-                            del d['Connection']
-                            clean_servers.append(d)
-
-        except Exception as e:
-            logger.warn('Failed to get servers from plex %s' % e)
-            return clean_servers
-
-        return json.dumps(clean_servers, indent=4)
 
     def get_server_times(self):
         servers = self.get_plextv_server_list(output_format='xml')
@@ -451,8 +440,8 @@ class PlexTV(object):
 
         try:
             xml_head = servers.getElementsByTagName('Server')
-        except:
-            logger.warn("Error parsing XML for Plex servers.")
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_times: %s." % e)
             return []
 
         for a in xml_head:
@@ -463,3 +452,41 @@ class PlexTV(object):
                 break
 
         return server_times
+
+    def discover(self):
+        """ Query plex for all servers online. Returns the ones you own in a selectize format """
+        servers = self.get_plextv_resources(include_https=True, output_format='xml')
+        clean_servers = []
+
+        try:
+            xml_head = servers.getElementsByTagName('MediaContainer')
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Failed to get servers from plex: %s." % e)
+            return []
+
+        for a in xml_head:
+            if a.getAttribute('size'):
+                if a.getAttribute('size') == '0':
+                    return []
+
+            if a.getElementsByTagName('Device'):
+                devices = a.getElementsByTagName('Device')
+
+                for d in devices:
+                    if helpers.get_xml_attr(d, 'presence') == '1' and \
+                        helpers.get_xml_attr(d, 'owned') == '1' and \
+                        helpers.get_xml_attr(d, 'provides') == 'server':
+                        connections = d.getElementsByTagName('Connection')
+
+                        for c in connections:
+                            server = {'httpsRequired': helpers.get_xml_attr(d, 'httpsRequired'),
+                                      'clientIdentifier': helpers.get_xml_attr(d, 'clientIdentifier'),
+                                      'label': helpers.get_xml_attr(d, 'name'),
+                                      'ip': helpers.get_xml_attr(c, 'address'),
+                                      'port': helpers.get_xml_attr(c, 'port'),
+                                      'local': helpers.get_xml_attr(c, 'local'),
+                                      'value': helpers.get_xml_attr(c, 'address')
+                                      }
+                            clean_servers.append(server)
+
+        return clean_servers

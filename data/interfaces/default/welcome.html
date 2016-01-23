@@ -168,8 +168,11 @@ from plexpy import common
                 <div style="display: none;">
                     <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}>
                     <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}>
+                    <input type="checkbox" name="refresh_libraries_on_startup" id="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}>
                     <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
                     <input type="checkbox" name="check_github" id="check_github" value="1" checked>
+                    <input type="text" name="home_stats_cards" id="home_stats_cards" value="first_run_wizard">
+                    <input type="text" name="home_library_cards" id="home_library_cards" value="first_run_wizard">
                 </div>
             </div>
             <!-- Required fields but hidden -->
@@ -369,38 +372,43 @@ from plexpy import common
     var pms_verified = false;
     var authenticated = false;
 
-    $("#verify-plex-server").click(function() {
-        var pms_ip = $("#pms_ip").val()
-        var pms_port = $("#pms_port").val()
-        if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
-            $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Validating server...');
-            $('#pms-verify-status').fadeIn('fast');
-            $.ajax({
-                url: 'get_server_id',
-                data : { hostname: pms_ip, port: pms_port },
-                cache: true,
-                async: true,
-                timeout: 5000,
-                error: function(jqXHR, textStatus, errorThrown) {
-                    $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> This is not a Plex Server!');
-                    $('#pms-verify-status').fadeIn('fast');
-                },
-                success: function (xml) {
-                    if ( $(xml).find('MediaContainer').attr('machineIdentifier') ) {
-                        $("#pms_identifier").val($(xml).find('MediaContainer').attr('machineIdentifier'));
-                        $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!');
-                        $('#pms-verify-status').fadeIn('fast');
-                        pms_verified = true;
-                        $("#pms_valid").val("valid");
-                    } else {
+    $("#verify-plex-server").click(function () {
+        if (!(pms_verified)) {
+            var pms_ip = $("#pms_ip").val().trim();
+            var pms_port = $("#pms_port").val().trim();
+            var pms_identifier = $("#pms_identifier").val();
+            var pms_ssl = $("#pms_ssl").val();
+            var pms_is_remote = $("#pms_is_remote").val();
+            if ((pms_ip !== '') || (pms_port !== '')) {
+                $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Validating server...');
+                $('#pms-verify-status').fadeIn('fast');
+                $.ajax({
+                    url: 'get_server_id',
+                    data: { hostname: pms_ip, port: pms_port, identifier: pms_identifier, ssl: pms_ssl, remote: pms_is_remote },
+                    cache: true,
+                    async: true,
+                    timeout: 5000,
+                    error: function (jqXHR, textStatus, errorThrown) {
                         $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> This is not a Plex Server!');
                         $('#pms-verify-status').fadeIn('fast');
+                    },
+                    success: function (xml) {
+                        if ($(xml).find('MediaContainer').attr('machineIdentifier')) {
+                            $("#pms_identifier").val($(xml).find('MediaContainer').attr('machineIdentifier'));
+                            $("#pms-verify-status").html('<i class="fa fa-check"></i> Server found!');
+                            $('#pms-verify-status').fadeIn('fast');
+                            pms_verified = true;
+                            $("#pms_valid").val("valid");
+                        } else {
+                            $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> This is not a Plex Server!');
+                            $('#pms-verify-status').fadeIn('fast');
+                        }
                     }
-                }
-            });
-        } else {
-            $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Please enter both fields.');
-            $('#pms-verify-status').fadeIn('fast');
+                });
+            } else {
+                $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Please enter both fields.');
+                $('#pms-verify-status').fadeIn('fast');
+            }
         }
     });
 
@@ -420,20 +428,23 @@ from plexpy import common
     $("#pms-authenticate").click(function() {
         $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i> Fetching token...');
         $('#pms-token-status').fadeIn('fast');
-        if (($("#pms_username").val() !== '') || ($("#pms_password").val() !== '')) {
+        var pms_username = $("#pms_username").val().trim();
+        var pms_password = $("#pms_password").val().trim();
+        if ((pms_username !== '') || (pms_password !== '')) {
             $.ajax({
                 type: "post",
                 url: "https://plex.tv/users/sign_in.xml",
                 dataType: 'xml',
                 async: true,
-                headers: {'Content-Type': 'application/xml; charset=utf-8',
-                          'X-Plex-Device-Name': 'PlexPy',
-                          'X-Plex-Product': 'PlexPy',
-                          'X-Plex-Version': '${common.VERSION_NUMBER}',
-                          'X-Plex-Platform': '${common.PLATFORM}',
-                          'X-Plex-Platform-Version': '${common.PLATFORM_VERSION}',
-                          'X-Plex-Client-Identifier': '${config['pms_uuid']}',
-                          'Authorization': 'Basic ' + btoa($("#pms_username").val() + ':' + $("#pms_password").val())
+                headers: {
+                    'Content-Type': 'application/xml; charset=utf-8',
+                    'X-Plex-Device-Name': 'PlexPy',
+                    'X-Plex-Product': 'PlexPy',
+                    'X-Plex-Version': '${common.VERSION_NUMBER}',
+                    'X-Plex-Platform': '${common.PLATFORM}',
+                    'X-Plex-Platform-Version': '${common.PLATFORM_VERSION}',
+                    'X-Plex-Client-Identifier': '${config["pms_uuid"]}',
+                    'Authorization': 'Basic ' + btoa(pms_username + ':' + pms_password)
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Authentation failed!');
