@@ -2020,22 +2020,10 @@ class Scripts(object):
 class FacebookNotifier(object):
 
     def __init__(self):
+        self.redirect_uri = plexpy.CONFIG.FACEBOOK_REDIRECT_URI
         self.app_id = plexpy.CONFIG.FACEBOOK_APP_ID
         self.app_secret = plexpy.CONFIG.FACEBOOK_APP_SECRET
         self.group_id = plexpy.CONFIG.FACEBOOK_GROUP
-        
-        if plexpy.CONFIG.ENABLE_HTTPS:
-            protocol = 'https'
-        else:
-            protocol = 'http'
-            
-        if plexpy.CONFIG.HTTP_HOST == '0.0.0.0':
-            host = 'localhost'
-        else:
-            host = plexpy.CONFIG.HTTP_HOST
-
-        self.redirect_url = '%s://%s:%i/facebookStep2' % (protocol, host, plexpy.CONFIG.HTTP_PORT)
-
 
     def notify(self, subject, message):
         if not subject or not message:
@@ -2048,7 +2036,7 @@ class FacebookNotifier(object):
 
     def _get_authorization(self):
         return facebook.auth_url(app_id=self.app_id,
-                                 canvas_url=self.redirect_url,
+                                 canvas_url=self.redirect_uri + '/facebookStep2',
                                  perms=['user_managed_groups','publish_actions'])
 
     def _get_credentials(self, code):
@@ -2058,7 +2046,7 @@ class FacebookNotifier(object):
             # Request user access token
             api = facebook.GraphAPI(version='2.5')
             response = api.get_access_token_from_code(code=code,
-                                                      redirect_uri=self.redirect_url,
+                                                      redirect_uri=self.redirect_uri + '/facebookStep2',
                                                       app_id=self.app_id,
                                                       app_secret=self.app_secret)
             access_token = response['access_token']
@@ -2072,7 +2060,7 @@ class FacebookNotifier(object):
             plexpy.CONFIG.FACEBOOK_TOKEN = access_token
             plexpy.CONFIG.write()
         except Exception as e:
-            logger.info(u"PlexPy Notifiers :: Error requesting Facebook access token: %s" % e)
+            logger.error(u"PlexPy Notifiers :: Error requesting Facebook access token: %s" % e)
             return False
         
         return True
@@ -2088,12 +2076,12 @@ class FacebookNotifier(object):
                 api.put_wall_post(profile_id=group_id, message=message)
                 logger.info(u"PlexPy Notifiers :: Facebook notification sent.")
             except Exception as e:
-                logger.info(u"PlexPy Notifiers :: Error sending Facebook post: %s" % e)
+                logger.warn(u"PlexPy Notifiers :: Error sending Facebook post: %s" % e)
                 return False
 
             return True
         else:
-            logger.info(u"PlexPy Notifiers :: Error sending Facebook post: No Facebook Group ID provided.")
+            logger.warn(u"PlexPy Notifiers :: Error sending Facebook post: No Facebook Group ID provided.")
             return False
 
     def return_config_options(self):
@@ -2103,9 +2091,16 @@ class FacebookNotifier(object):
                                           Facebook Developers</a> to create a new app using <strong>advanced setup</strong>.<br>\
                                           Step 2: Go to <strong>Settings > Advanced</strong> and fill in \
                                           <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (i.e. http://localhost:8181).<br>\
-                                          Step 3: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
-                                          Step 4: Click the <strong>Request Authorization</strong> button below.',
+                                          Step 3: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 2.<br>\
+                                          Step 4: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
+                                          Step 5: Click the <strong>Request Authorization</strong> button below.',
                           'input_type': 'help'
+                          },
+                         {'label': 'PlexPy URL',
+                          'value': self.redirect_uri,
+                          'name': 'facebook_redirect_uri',
+                          'description': 'Your PlexPy URL. This will tell Facebook where to redirect you after authorization.',
+                          'input_type': 'text'
                           },
                          {'label': 'Facebook App ID',
                           'value': self.app_id,

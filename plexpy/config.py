@@ -80,6 +80,7 @@ _CONFIG_DEFINITIONS = {
     'EMAIL_ON_INTUP': (int, 'Email', 0),
     'ENABLE_HTTPS': (int, 'General', 0),
     'FACEBOOK_ENABLED': (int, 'Facebook', 0),
+    'FACEBOOK_REDIRECT_URI': (str, 'Facebook', ''),
     'FACEBOOK_APP_ID': (str, 'Facebook', ''),
     'FACEBOOK_APP_SECRET': (str, 'Facebook', ''),
     'FACEBOOK_TOKEN': (str, 'Facebook', ''),

@@ -1312,7 +1312,7 @@ class WebInterface(object):
         result = facebook._get_credentials(code)
         # logger.info(u"result: " + str(result))
         if result:
-            return "Key verification successful, you may close this page now."
+            return "Key verification successful, PlexPy can send notification to Facebook. You may close this page now."
         else:
             return "Unable to verify key"
 
