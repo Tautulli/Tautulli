@@ -515,11 +515,15 @@ DOCUMENTATION :: END
 </script>
 % endif
 <script>
-    $('#row-edit-mode').after('<a href="update_metadata?rating_key=${data['rating_key']}" class="btn btn-danger btn-edit" id="fix-metadata"> \
-        <i class="fa fa-wrench"></i> Fix Metadata</a>');
     $("#airdate").html(moment($("#airdate").text()).format('MMM DD, YYYY'));
     $("#runtime").html(millisecondsToMinutes($("#runtime").text(), true));
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
 </script>
+% if source == 'history':
+<script>
+    $('#row-edit-mode').after('<a href="update_metadata?rating_key=${data['rating_key']}&update=True" class="btn btn-danger btn-edit" id="fix-metadata"> \
+        <i class="fa fa-wrench"></i> Fix Metadata</a>');
+</script>
+% endif
 % endif
 </%def>

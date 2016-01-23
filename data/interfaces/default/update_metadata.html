@@ -71,15 +71,28 @@ DOCUMENTATION :: END
             </div>
             <div class="summary-content-wrapper">
                 <div class='col-md-12'>
+                    % if not update:
                     <div style="text-align: center; margin-top: 20px;">
-                        <i class="fa fa-exclamation-triangle"></i> Error retrieving item metadata. This media item is not available in the Plex Media Server library.
+                        <i class="fa fa-exclamation-triangle"></i> PlexPy cannot find this item's metadata. Either this media item is not available in the Plex Media Server library or it has been moved.
                     </div>
+                    % endif
                     <div style="text-align: center; margin-top: 20px;">
-                        Please select the correct match below to update the PlexPy database.
+                        <i class="fa fa-info-circle"></i> Please select the correct match below to update the PlexPy database.
                     </div>
                     <div class='table-card-header'>
                         <div class="header-bar">
-                            <span>Search Results for <strong>${query['query_string']}</strong></span>
+                            <span>Search Results for <strong><span id="update_query_title">${query['query_string']}</span></strong></span>
+                        </div>
+                        <div class="button-bar">
+                            <form class="form" id="update_search_form">
+                                    Incorrect search results? Try a different query:
+                                    <div class="input-group" role="group" aria-label="Update Metadata Query">
+                                        <input type="search" class="form-control" name="update_query" id="update_query" aria-label="Query" placeholder="Query..." value="${query['query_string']}" />
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form btn-dark btn-inactive" type="submit" id="update_search_button"><i class="fa fa-search"></i></button>
+                                        </span>
+                                    </div>
+                            </form>
                         </div>
                     </div>
                     <div class='table-card-back'>
@@ -143,7 +156,7 @@ DOCUMENTATION :: END
             <div class="summary-content-wrapper">
                 <div class='col-md-12'>
                     <div style="text-align: center; margin-top: 20px;">
-                        <i class="fa fa-exclamation-triangle"></i> Error retrieving item metadata. This media item is not available in the Plex Media Server library.
+                        <i class="fa fa-exclamation-triangle"></i> PlexPy cannot find this item's metadata. Either this media item is not available in the Plex Media Server library or it has been moved.
                     </div>
                 </div>
             </div>
@@ -157,36 +170,43 @@ DOCUMENTATION :: END
 
 % if query:
 <script>
-    $.ajax({
-        url: 'get_search_results_children',
-        type: 'GET',
-        async: true,
-        data: {'query': "${query['query_string']}",
-               'media_type': "${query['media_type']}",
-               'season_index': "${query['parent_media_index']}"
-        },
-        complete: function(xhr, status) {
-        $("#search-results-list").html(xhr.responseText); }
-    });
+    function getSearchResults() {
+        var query_string = $('#update_query').val();
+        $.ajax({
+            url: 'get_search_results_children',
+            type: 'GET',
+            async: true,
+            data: {
+                query: query_string,
+                media_type: '${query["media_type"]}',
+                season_index: '${query["parent_media_index"]}'
+            },
+            complete: function (xhr, status) {
+                $('#search-results-list').html(xhr.responseText);
+                $('#update_query_title').html(query_string)
+            }
+        });
+    }
+
     $(document).on('click', '#search-results-list a', function (e) {
         e.preventDefault();
-        var new_rating_key = $(this).attr("id");
-        var new_href = $(this).attr("href");
+        var new_rating_key = $(this).attr('id');
+        var new_href = $(this).attr('href');
 
         $('#new_title').html($(this).find('.item-children-instance-text-wrapper').html());
 
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-update', function () {
             $(this).prop('disabled', true);
-            var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspUpdating database..."
+            var msg = '<i class="fa fa-refresh fa-spin"></i>&nbspUpdating database...'
             showMsg(msg, false, false, 0)
 
             $.ajax({
                 url: 'update_metadata_details',
                 data: {
-                    old_rating_key: "${query['rating_key']}",
+                    old_rating_key: '${query["rating_key"]}',
                     new_rating_key: new_rating_key,
-                    media_type: "${query['media_type']}"
+                    media_type: '${query["media_type"]}'
                     },
                 async: true,
                 success: function (data) {
@@ -195,6 +215,15 @@ DOCUMENTATION :: END
             });
         });
     });
+
+    getSearchResults();
+    $('#update_search_form').submit(function (e) {
+        e.preventDefault();
+        if ($('#update_query').val().trim() != '')
+        {
+            getSearchResults();
+        }
+    })
 </script>
 % endif
 </%def>

@@ -1469,7 +1469,7 @@ class WebInterface(object):
                 metadata = result['metadata']
         
         if metadata:
-            return serve_template(templatename="info.html", data=metadata, title="Info", config=config)
+            return serve_template(templatename="info.html", data=metadata, title="Info", config=config, source=source)
         else:
             return self.update_metadata(rating_key, query)
 
@@ -1542,10 +1542,8 @@ class WebInterface(object):
         if media_type:
             result['results_list'] = {media_type: result['results_list'][media_type]}
         if media_type == 'season' and season_index:
-            for season in result['results_list']['season']:
-                if season['media_index'] == season_index:
-                    result['results_list']['season'] = [season]
-                    break
+            result['results_list']['season'] = [season for season in result['results_list']['season'] 
+                                                if season['media_index'] == season_index]
 
         if result:
             return serve_template(templatename="info_search_results_list.html", data=result, title="Search Result List")
@@ -1558,9 +1556,9 @@ class WebInterface(object):
     ##### Update Metadata #####
 
     @cherrypy.expose
-    def update_metadata(self, rating_key=None, query=None, **kwargs):
-
+    def update_metadata(self, rating_key=None, query=None, update=False, **kwargs):
         query_string = query
+        update = True if update == 'True' else False
 
         data_factory = datafactory.DataFactory()
         query = data_factory.get_search_query(rating_key=rating_key)
@@ -1568,10 +1566,10 @@ class WebInterface(object):
             query['query_string'] = query_string
 
         if query:
-            return serve_template(templatename="update_metadata.html", query=query, title="Info")
+            return serve_template(templatename="update_metadata.html", query=query, update=update, title="Info")
         else:
             logger.warn(u"Unable to retrieve data for update_metadata.")
-            return serve_template(templatename="update_metadata.html", query=query, title="Info")
+            return serve_template(templatename="update_metadata.html", query=query, update=update, title="Info")
 
     @cherrypy.expose
     def update_metadata_details(self, old_rating_key, new_rating_key, media_type, **kwargs):

@@ -2641,6 +2641,14 @@ table[id^='media_info_child'] table[id^='media_info_child'] thead th {
     -o-transition: background 0.3s;
     transition: background 0.3s;
 }
+#update_search_form div.input-group {
+    display: inline-table;
+    vertical-align: middle;
+    max-width: 250px;
+}
+#update_search_form #update_query {
+    margin: 5px 0 0 0.5em;
+}
 .notification-params {
     margin-top: 10px;
     background-color: #282828;
