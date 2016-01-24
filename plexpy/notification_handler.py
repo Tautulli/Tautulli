@@ -462,6 +462,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     transcode_video_height = ''
     transcode_audio_codec = ''
     transcode_audio_channels = ''
+    progress_time = ''
 
     # Session values
     if session:
@@ -484,6 +485,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                 stream_duration = int((time.time() - helpers.cast_to_float(session['started'])) / 60)
 
         view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
+        progress_time = arrow.get(helpers.cast_to_int(session['view_offset'])/1000).format(plexpy.CONFIG.TIME_FORMAT.replace('zz','').replace('a','').replace('A','').replace('h',''))
         user = session['friendly_name']
         platform = session['platform']
         player = session['player']
@@ -506,7 +508,6 @@ def build_notify_text(session=None, timeline=None, state=None):
         transcode_audio_channels = session['transcode_audio_channels']
 
     progress_percent = helpers.get_percent(view_offset, duration)
-    progress_time = arrow.get(helpers.cast_to_int(session['view_offset'])/1000).format(plexpy.CONFIG.TIME_FORMAT.replace('zz','').replace('a','').replace('A','').replace('h',''))
 
     # Fix metadata params for notify recently added grandparent
     if state == 'created' and plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
