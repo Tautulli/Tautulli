@@ -16,6 +16,7 @@
 
 import re
 import time
+import arrow
 
 from plexpy import logger, config, notifiers, database, helpers, plextv, pmsconnect
 import plexpy
@@ -524,8 +525,8 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'server_uptime': server_uptime,
                         'streams': stream_count,
                         'action': state,
-                        'datestamp': time.strftime(helpers.parse_js_date(plexpy.CONFIG.DATE_FORMAT)),
-                        'timestamp': time.strftime(helpers.parse_js_date(plexpy.CONFIG.TIME_FORMAT)),
+                        'datestamp': arrow.now().format(plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')),
+                        'timestamp': arrow.now().format(plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','')),
                         'user': user,
                         'platform': platform,
                         'player': player,
