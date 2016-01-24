@@ -1054,6 +1054,7 @@ class PUSHOVER(object):
         self.keys = plexpy.CONFIG.PUSHOVER_KEYS
         self.priority = plexpy.CONFIG.PUSHOVER_PRIORITY
         self.sound = plexpy.CONFIG.PUSHOVER_SOUND
+        self.html_support = plexpy.CONFIG.PUSHOVER_HTML_SUPPORT
 
     def conf(self, options):
         return cherrypy.config['config'].get('Pushover', options)
@@ -1069,6 +1070,7 @@ class PUSHOVER(object):
                 'title': event.encode("utf-8"),
                 'message': message.encode("utf-8"),
                 'sound': plexpy.CONFIG.PUSHOVER_SOUND,
+                'html': plexpy.CONFIG.PUSHOVER_HTML_SUPPORT,
                 'priority': plexpy.CONFIG.PUSHOVER_PRIORITY}
 
         http_handler.request("POST",
@@ -1095,11 +1097,12 @@ class PUSHOVER(object):
         # For uniformity reasons not removed
         return
 
-    def test(self, keys, priority, sound):
+    def test(self, keys, priority, sound, html_support):
         self.enabled = True
         self.keys = keys
         self.priority = priority
         self.sound = sound
+        self.html_support = html_support
 
         self.notify('Main Screen Activate', 'Test Message')
 
@@ -1151,6 +1154,12 @@ class PUSHOVER(object):
                           'description': 'Set the notification sound. Leave blank for the default sound.',
                           'input_type': 'select',
                           'select_options': self.get_sounds()
+                          },
+                         {'label': 'Enable HTML Support',
+                          'value': self.html_support,
+                          'name': 'pushover_html_support',
+                          'description': 'Style your messages using these HTML Tags: b, i, u, a[href], font[color]',
+                          'input_type': 'checkbox'
                           }
                          ]
 
