@@ -1681,7 +1681,7 @@ class PmsConnect(object):
 
         server_library_stats = []
 
-        if server_libraries['libraries_count'] != '0':
+        if server_libraries and server_libraries['libraries_count'] != '0':
             libraries_list = server_libraries['libraries_list']
 
             for library in libraries_list:

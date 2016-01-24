@@ -1326,8 +1326,7 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     white-space: nowrap;
     margin-top: 3px;
     height: 21px;
-    position: absolute;
-    right: 0;
+    float: right;
 }
 .star-rating .star-icon {
     width: auto;

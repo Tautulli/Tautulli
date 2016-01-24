@@ -13,9 +13,9 @@
     </div>
     % elif config['update_section_ids'] == -1:
     <div id="update_section_ids_message" style="text-align: center; margin-top: 20px;">
-        <i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes depending on the size of your database.
+        <i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes to hours depending on the size of your database.
         <br />
-        You may leave this page and come back later.
+        You may leave this page and come back later. Note: All monitoring has been disabled while this update is in progress.
     </div>
     % endif
     <div class='table-card-header'>
@@ -46,7 +46,7 @@
                 <th align="left" id="parent_count">Total Seasons / Albums</th>
                 <th align="left" id="child_count">Total Episodes / Tracks</th>
                 <th align="left" id="last_accessed">Last Accessed</th>
-                <th align="left" id="last_watched">Last Watched</th>
+                <th align="left" id="last_played">Last Played</th>
                 <th align="left" id="total_plays">Total Plays</th>
             </tr>
             </thead>
