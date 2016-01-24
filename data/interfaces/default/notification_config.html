@@ -143,7 +143,7 @@ from plexpy import helpers
 
     $('#osxnotifyregister').click(function () {
         var osx_notify_app = $('#osx_notify_app').val();
-        $.get('/osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
+        $.get('osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
     })
 
     $('#save-notification-item').click(function () {
@@ -163,12 +163,12 @@ from plexpy import helpers
     });
 
     $('#twitterStep1').click(function () {
-        $.get('/twitterStep1', function (data) {window.open(data); })
+        $.get('twitterStep1', function (data) {window.open(data); })
         .done(function () { showMsg('<i class="fa fa-check"></i> Confirm Authorization. Check pop-up blocker if no response.', false, true, 3000); });
     });
     $('#twitterStep2').click(function () {
         var twitter_key = $('#twitter_key').val();
-        $.get('/twitterStep2', { 'key': twitter_key }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
+        $.get('twitterStep2', { 'key': twitter_key }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
     });
 
     function disableFacebookRequest() {
@@ -182,7 +182,7 @@ from plexpy import helpers
     
     $('#facebookStep1').click(function () {
         doAjaxCall('set_notification_config', $(this), 'tabs', true);
-        $.get('/facebookStep1', function (data) { window.open(data); })
+        $.get('facebookStep1', function (data) { window.open(data); })
         .done(function () { showMsg('<i class="fa fa-check"></i> Confirm Authorization. Check pop-up blocker if no response.', false, true, 3000); });
     });
 
