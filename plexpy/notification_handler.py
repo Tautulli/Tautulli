@@ -484,6 +484,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                 stream_duration = int((time.time() - helpers.cast_to_float(session['started'])) / 60)
 
         view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
+        progress_time = helpers.human_progress(session['view_offset'])
         user = session['friendly_name']
         platform = session['platform']
         player = session['player']
@@ -535,6 +536,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'stream_duration': stream_duration,
                         'remaining_duration': duration - view_offset,
                         'progress': view_offset,
+                        'progress_time': progress_time,
                         'progress_percent': progress_percent,
                         'container': container,
                         'video_codec': video_codec,
