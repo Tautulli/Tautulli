@@ -795,8 +795,8 @@ def build_server_notify_text(state=None):
     available_params = {'server_name': server_name,
                         'server_uptime': server_uptime,
                         'action': state,
-                        'datestamp': time.strftime(helpers.parse_js_date(plexpy.CONFIG.DATE_FORMAT)),
-                        'timestamp': time.strftime(helpers.parse_js_date(plexpy.CONFIG.TIME_FORMAT))}
+                        'datestamp': arrow.now().format(plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')),
+                        'timestamp': arrow.now().format(plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz',''))}
 
     # Default text
     subject_text = 'PlexPy (%s)' % server_name
