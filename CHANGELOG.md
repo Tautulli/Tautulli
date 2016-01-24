@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.3.1 (2016-01-23)
+
+* Fix: Notifiers authorization popups for reverse proxies.
+* Fix: Empty brackets in titles on tables.
+* Fix: Star rating overlapping text.
+* Fix: Unable to startup when library refresh fails.
+* Fix: Unable to parse 'datestamp' and 'timestamp' format.
+* Change: Rename "Last Watched" to "Last Played"
+* Change: More descriptive libraries updating message
+
+
 ## v1.3.0 (2016-01-23)
 
 * Add: Brand new Libraries section.
