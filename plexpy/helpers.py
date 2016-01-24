@@ -145,14 +145,6 @@ def today():
 def now():
     now = datetime.datetime.now()
     return now.strftime("%Y-%m-%d %H:%M:%S")
-    
-def human_progress(ms):
-    hp = ''
-    if str(ms).isdigit():
-        seconds = float(ms)/1000
-        gmtime = time.gmtime(seconds)
-        hp = time.strftime("%H:%M:%S", gmtime)
-    return hp
 
 def human_duration(s, sig='dhms'):
 
