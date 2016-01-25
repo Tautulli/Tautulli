@@ -72,10 +72,11 @@ def refresh_libraries():
             plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
             plexpy.CONFIG.write()
 
-        if plexpy.CONFIG.UPDATE_SECTION_IDS == 1:
+        if plexpy.CONFIG.UPDATE_SECTION_IDS == 1 or plexpy.CONFIG.UPDATE_SECTION_IDS == -1:
             from plexpy import libraries
             import threading
 
+            # Start library section_id update on it's own thread
             threading.Thread(target=libraries.update_section_ids).start()
 
         logger.info(u"PlexPy Pmsconnect :: Libraries list refreshed.")
@@ -1588,9 +1589,9 @@ class PmsConnect(object):
             sort_type = ''
 
         if str(section_id).isdigit():
-            library_data = self.get_library_list(section_id, list_type, count, sort_type, output_format='xml')
+            library_data = self.get_library_list(str(section_id), list_type, count, sort_type, output_format='xml')
         elif str(rating_key).isdigit():
-            library_data = self.get_children_list(rating_key, output_format='xml')
+            library_data = self.get_children_list(str(rating_key), output_format='xml')
         else:
             logger.warn(u"PlexPy Pmsconnect :: get_library_children called by invalid section_id or rating_key provided.")
             return []
