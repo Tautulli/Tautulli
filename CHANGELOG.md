@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.2 (2016-01-24)
+
+* Fix: 'datestamp' and 'timestamp' for server notifications
+* Change: New method for updating library data in database
+
+
 ## v1.3.1 (2016-01-23)
 
 * Fix: Notifiers authorization popups for reverse proxies.
