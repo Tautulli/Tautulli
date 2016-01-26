@@ -1,9 +1,16 @@
 # Changelog
 
+## v1.3.3 (2016-01-26)
+
+* Fix: Plays by Month graph not loading.
+* Change: Disable caching for datatables.
+* Change: Improved updating library data in the database again.
+
+
 ## v1.3.2 (2016-01-24)
 
-* Fix: 'datestamp' and 'timestamp' for server notifications
-* Change: New method for updating library data in database
+* Fix: 'datestamp' and 'timestamp' for server notifications.
+* Change: New method for updating library data in database.
 
 
 ## v1.3.1 (2016-01-23)
@@ -13,8 +20,8 @@
 * Fix: Star rating overlapping text.
 * Fix: Unable to startup when library refresh fails.
 * Fix: Unable to parse 'datestamp' and 'timestamp' format.
-* Change: Rename "Last Watched" to "Last Played"
-* Change: More descriptive libraries updating message
+* Change: Rename "Last Watched" to "Last Played".
+* Change: More descriptive libraries updating message.
 
 
 ## v1.3.0 (2016-01-23)

@@ -14,9 +14,9 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from plexpy import logger, database, helpers, common
+import plexpy
 
 import datetime
-import locale
 
 
 class Graphs(object):
@@ -321,7 +321,7 @@ class Graphs(object):
             dt = datetime.datetime(*month_item[:6])
             date_string = dt.strftime('%Y-%m')
 
-            categories.append(dt.strftime('%b %Y').decode(locale.getlocale()[1]))
+            categories.append(dt.strftime('%b %Y').decode(plexpy.SYS_ENCODING, 'replace'))
             series_1_value = 0
             series_2_value = 0
             series_3_value = 0

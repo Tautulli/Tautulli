@@ -35,7 +35,8 @@ def update_section_ids():
     monitor_db = database.MonitorDatabase()
 
     try:
-        query = 'SELECT id, rating_key FROM session_history_metadata WHERE section_id IS NULL'
+        query = 'SELECT id, rating_key, grandparent_rating_key, media_type ' \
+                'FROM session_history_metadata WHERE section_id IS NULL'
         history_results = monitor_db.select(query=query)
         query = 'SELECT section_id, section_type FROM library_sections'
         library_results = monitor_db.select(query=query)
@@ -58,38 +59,35 @@ def update_section_ids():
 
     # Get rating_key: section_id mapping pairs
     key_mappings = {}
-    section_type_child = {'movie': 'movie',
-                          'show': 'episode',
-                          'artist': 'track'}
 
     pms_connect = pmsconnect.PmsConnect()
     for library in library_results:
         section_id = library['section_id']
-        section_type = section_type_child.get(library['section_type'], None)
+        section_type = library['section_type']
         
-        if section_type:
+        if section_type != 'photo':
             library_children = pms_connect.get_library_children_details(section_id=section_id,
                                                                         section_type=section_type)
-        else:
-            continue
-
-        if library_children:
-            children_list = library_children['childern_list']
-            key_mappings.update({child['rating_key']:child['section_id'] for child in children_list})
-        else:
-            logger.warn(u"PlexPy Libraries :: Unable to get a list of library items for section_id %s." % section_id)
+            if library_children:
+                children_list = library_children['childern_list']
+                key_mappings.update({child['rating_key']:child['section_id'] for child in children_list})
+            else:
+                logger.warn(u"PlexPy Libraries :: Unable to get a list of library items for section_id %s." % section_id)
 
     error_keys = set()
     for item in history_results:
-        rating_key = item['rating_key']
+        rating_key = item['grandparent_rating_key'] if item['media_type'] != 'movie' else item['rating_key']
         section_id = key_mappings.get(str(rating_key), None)
         
         if section_id:
-            section_keys = {'id': item['id']}
-            section_values = {'section_id': section_id}
-            monitor_db.upsert('session_history_metadata', key_dict=section_keys, value_dict=section_values)
+            try:
+                section_keys = {'id': item['id']}
+                section_values = {'section_id': section_id}
+                monitor_db.upsert('session_history_metadata', key_dict=section_keys, value_dict=section_values)
+            except:
+                error_keys.add(item['rating_key'])
         else:
-            error_keys.add(rating_key)
+            error_keys.add(item['rating_key'])
 
     # Remove thread filter from the logger
     #for handler in logger.logger.handlers:
