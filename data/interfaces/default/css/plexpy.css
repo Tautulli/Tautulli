@@ -2713,3 +2713,7 @@ table[id^='media_info_child'] table[id^='media_info_child'] thead th {
 .selectize-input input[type='text'] {
     height: 20px;
 }
+
+.github-badge {
+    line-height: 50px;
+}
