@@ -739,13 +739,24 @@ def dbcheck():
                 'ALTER TABLE library_sections_temp RENAME TO library_sections'
             )
     except sqlite3.OperationalError:
-        logger.debug(u"Unable to remove section_id unique constraint from library_sections.")
+        logger.warn(u"Unable to remove section_id unique constraint from library_sections.")
         try:
             c_db.execute(
                 'DROP TABLE library_sections_temp'
             )
         except:
             pass
+
+    # Upgrade library_sections table from earlier versions (remove duplicated libraries)
+    try:
+        result = c_db.execute('SELECT * FROM library_sections WHERE server_id = ""')
+        if result.rowcount > 0:
+            logger.debug(u"Altering database. Removing duplicate libraries from library_sections table.")
+            c_db.execute(
+                'DELETE FROM library_sections WHERE server_id = ""'
+            )
+    except sqlite3.OperationalError:
+        logger.warn(u"Unable to remove duplicate libraries from library_sections table.")
 
     # Upgrade users table from earlier versions (remove UNIQUE constraint on username)
     try:
@@ -773,7 +784,7 @@ def dbcheck():
                 'ALTER TABLE users_temp RENAME TO users'
             )
     except sqlite3.OperationalError:
-        logger.debug(u"Unable to remove username unique constraint from users.")
+        logger.warn(u"Unable to remove username unique constraint from users.")
         try:
             c_db.execute(
                 'DROP TABLE users_temp'

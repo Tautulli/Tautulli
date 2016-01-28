@@ -40,14 +40,18 @@ def get_server_friendly_name():
 
 def refresh_libraries():
     logger.info(u"PlexPy Pmsconnect :: Requesting libraries list refresh...")
-    library_sections = PmsConnect().get_library_details()
 
     server_id = plexpy.CONFIG.PMS_IDENTIFIER
+    if not server_id:
+        logger.error(u"PlexPy Pmsconnect :: No PMS identifier, cannot refresh libraries. Verify server in settings.")
+        return
 
-    library_keys = []
+    library_sections = PmsConnect().get_library_details()
 
     if library_sections:
         monitor_db = database.MonitorDatabase()
+
+        library_keys = []
 
         for section in library_sections:
             section_keys = {'server_id': server_id,
