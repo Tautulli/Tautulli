@@ -456,6 +456,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     transcode_video_height = ''
     transcode_audio_codec = ''
     transcode_audio_channels = ''
+    user_id = ''
 
     # Session values
     if session:
@@ -498,6 +499,7 @@ def build_notify_text(session=None, timeline=None, state=None):
         transcode_video_height = session['transcode_height']
         transcode_audio_codec = session['transcode_audio_codec']
         transcode_audio_channels = session['transcode_audio_channels']
+        user_id = session['user_id']
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
@@ -549,6 +551,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'transcode_video_height': transcode_video_height,
                         'transcode_audio_codec': transcode_audio_codec,
                         'transcode_audio_channels': transcode_audio_channels,
+                        'user_id': user_id,
                         'title': full_title,
                         'library_name': metadata['library_name'],
                         'show_name': show_name,
@@ -570,7 +573,11 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'summary': metadata['summary'],
                         'tagline': metadata['tagline'],
                         'rating': metadata['rating'],
-                        'duration': duration
+                        'duration': duration,
+                        'section_id': metadata['section_id'],
+                        'rating_key': metadata['rating_key'],
+                        'parent_rating_key': metadata['parent_rating_key'],
+                        'grandparent_rating_key': metadata['grandparent_rating_key']
                         }
 
     # Default subject text
