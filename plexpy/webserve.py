@@ -1382,9 +1382,16 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, **kwargs):
-        from plexpy import http_handler
+        if not identifier:
+            plex_tv = plextv.PlexTV()
+            servers = plex_tv.discover()
 
-        if hostname and port:
+            for server in servers:
+                if server['ip'] == hostname and server['port'] == port:
+                    identifier = server['clientIdentifier']
+                    break
+
+        if identifier and hostname and port:
             # Set PMS attributes to get the real PMS url
             plexpy.CONFIG.__setattr__('PMS_IP', hostname)
             plexpy.CONFIG.__setattr__('PMS_PORT', port)
