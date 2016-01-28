@@ -359,6 +359,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Force PlexPy to connect to your Plex Server via SSL. Your server needs to have remote access enabled.</p>
                         </div>
+
+                        <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
+                        <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display:none">
+
                         <div class="padded-header">
                             <h3>Plex Logs</h3>
                         </div>
@@ -373,8 +377,6 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <p class="help-block">Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br />
                             <a href="https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
                         </div>
-
-                        <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
 
                         <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
 
@@ -1554,6 +1556,7 @@ $(document).ready(function() {
         serverChanged = true;
         $("#pms_identifier").val("");
         $("#pms-verify-status").html("");
+        $("#server_changed").prop('checked', true);
         verifyServer();
     });
 

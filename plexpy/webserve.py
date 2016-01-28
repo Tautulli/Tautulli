@@ -1151,6 +1151,7 @@ class WebInterface(object):
             del kwargs[use_config]
 
         # Check if we should refresh our data
+        server_changed = False
         refresh_libraries = False
         refresh_users = False
         reschedule = False
@@ -1173,11 +1174,6 @@ class WebInterface(object):
             (kwargs['monitor_remote_access'] != plexpy.CONFIG.MONITOR_REMOTE_ACCESS):
             reschedule = True
 
-        if 'pms_ip' in kwargs:
-            if kwargs['pms_ip'] != plexpy.CONFIG.PMS_IP:
-                refresh_libraries = True
-                refresh_users = True
-        
         # Remove config with 'hscard-' prefix and change home_stats_cards to list
         if 'home_stats_cards' in kwargs:
             for k in kwargs.keys():
@@ -1198,16 +1194,24 @@ class WebInterface(object):
             if kwargs['home_library_cards'] == ['first_run_wizard']:
                 refresh_libraries = True
 
+        if 'server_changed' in kwargs:
+            del kwargs['server_changed']
+            server_changed = True
+            refresh_users = True
+            refresh_libraries = True
+
         plexpy.CONFIG.process_kwargs(kwargs)
 
         # Write the config
         plexpy.CONFIG.write()
 
         # Get new server URLs for SSL communications.
-        plextv.get_real_pms_url()
+        if server_changed:
+            plextv.get_real_pms_url()
         
         # Get new server friendly name.
-        pmsconnect.get_server_friendly_name()
+        if server_changed:
+            pmsconnect.get_server_friendly_name()
         
         # Reconfigure scheduler if intervals changed
         if reschedule:

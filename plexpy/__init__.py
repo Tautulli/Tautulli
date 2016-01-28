@@ -176,7 +176,7 @@ def initialize(config_file):
             plextv.refresh_users()
 
         # Refresh the libraries list on startup
-        if CONFIG.PMS_TOKEN and CONFIG.REFRESH_LIBRARIES_ON_STARTUP:
+        if CONFIG.PMS_IP and CONFIG.PMS_TOKEN and CONFIG.REFRESH_LIBRARIES_ON_STARTUP:
             pmsconnect.refresh_libraries()
 
         # Store the original umask

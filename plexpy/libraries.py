@@ -22,8 +22,6 @@ def update_section_ids():
 
     plexpy.CONFIG.UPDATE_SECTION_IDS = -1
 
-    logger.info(u"PlexPy Libraries :: Updating section_id's in database.")
-
     #logger.debug(u"PlexPy Libraries :: Disabling monitoring while update in progress.")
     #plexpy.schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
     #                    hours=0, minutes=0, seconds=0)
@@ -50,6 +48,13 @@ def update_section_ids():
         #logger.debug(u"PlexPy Libraries :: Re-enabling monitoring.")
         #plexpy.initialize_scheduler()
         return None
+
+    if not history_results:
+        plexpy.CONFIG.__setattr__('UPDATE_SECTION_IDS', 0)
+        plexpy.CONFIG.write()
+        return None
+
+    logger.info(u"PlexPy Libraries :: Updating section_id's in database.")
 
     # Add thread filter to the logger
     #logger.debug(u"PlexPy Libraries :: Disabling logging in the current thread while update in progress.")
@@ -572,11 +577,10 @@ class Libraries(object):
             return library_details
         else:
             logger.warn(u"PlexPy Libraries :: Unable to retrieve library from local database. Requesting library list refresh.")
-            # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
+            # Let's first refresh the libraries list to make sure the library isn't newly added and not in the db yet
+            pmsconnect.refresh_libraries()
             try:
                 if section_id:
-                    # Refresh libraries
-                    pmsconnect.refresh_libraries()
                     query = 'SELECT section_id, section_name, section_type, count, parent_count, child_count, ' \
                             'thumb AS library_thumb, custom_thumb_url AS custom_thumb, art, ' \
                             'do_notify, do_notify_created, keep_history ' \
