@@ -156,8 +156,8 @@ class ActivityHandler(object):
                              (self.get_session_key(), buffer_last_triggered))
                 time_since_last_trigger = int(time.time()) - int(buffer_last_triggered)
 
-            if current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and time_since_last_trigger == 0 or \
-                            time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT:
+            if plexpy.CONFIG.BUFFER_THRESHOLD > 0 and (current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and \
+                time_since_last_trigger == 0 or time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT):
                 ap.set_session_buffer_trigger_time(session_key=self.get_session_key())
                 threading.Thread(target=notification_handler.notify,
                                  kwargs=dict(stream_data=db_stream, notify_action='buffer')).start()

@@ -1228,6 +1228,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td><strong>{transcode_audio_channels}</strong></td>
                                     <td>The audio channels of the transcoded media.</td>
                                 </tr>
+                                <tr>
+                                    <td><strong>{user_id}</strong></td>
+                                    <td>The unique identifier for the user.</td>
+                                </tr>
                             </tbody>
                         </table>
                         <table class="notification-params">
@@ -1326,6 +1330,22 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{duration}</strong></td>
                                     <td>The duration (in minutes) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{section_id}</strong></td>
+                                    <td>The unique identifier for the library.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{rating_key}</strong></td>
+                                    <td>The unique identifier for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{parent_rating_key}</strong></td>
+                                    <td>The unique identifier for the item parent (season or album).</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{grandparent_rating_key}</strong></td>
+                                    <td>The unique identifier for the item grandparent (TV show or artist).</td>
                                 </tr>
                             </tbody>
                         </table>

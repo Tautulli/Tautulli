@@ -5,7 +5,7 @@ var log_table_options = {
     "pagingType": "bootstrap",
     "order": [ 0, 'desc'],
     "pageLength": 50,
-    "stateSave": true,
+    "stateSave": false,
     "language": {
                 "search":"Search: ",
                 "lengthMenu":"Show _MENU_ lines per page",

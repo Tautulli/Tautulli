@@ -211,23 +211,17 @@ def notify(stream_data=None, notify_action=None):
 
 def notify_timeline(timeline_data=None, notify_action=None):
     if timeline_data and notify_action:
-        if (timeline_data['media_type'] == 'movie' and plexpy.CONFIG.MOVIE_NOTIFY_ENABLE) \
-            or ((timeline_data['media_type'] == 'show' or timeline_data['media_type'] == 'episode') \
-                and plexpy.CONFIG.TV_NOTIFY_ENABLE) \
-            or ((timeline_data['media_type'] == 'artist' or timeline_data['media_type'] == 'track') \
-                and plexpy.CONFIG.MUSIC_NOTIFY_ENABLE):
-
-            for agent in notifiers.available_notification_agents():
-                if agent['on_created'] and notify_action == 'created':
-                    # Build and send notification
-                    notify_strings = build_notify_text(timeline=timeline_data, state=notify_action)
-                    notifiers.send_notification(config_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                notify_action=notify_action,
-                                                script_args=notify_strings[2])
-                    # Set the notification state in the db
-                    set_notify_state(session=timeline_data, state=notify_action, agent_info=agent)
+        for agent in notifiers.available_notification_agents():
+            if agent['on_created'] and notify_action == 'created':
+                # Build and send notification
+                notify_strings = build_notify_text(timeline=timeline_data, state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1],
+                                            notify_action=notify_action,
+                                            script_args=notify_strings[2])
+                # Set the notification state in the db
+                set_notify_state(session=timeline_data, state=notify_action, agent_info=agent)
 
     elif not timeline_data and notify_action:
         for agent in notifiers.available_notification_agents():
@@ -462,6 +456,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     transcode_video_height = ''
     transcode_audio_codec = ''
     transcode_audio_channels = ''
+    user_id = ''
     progress_time = ''
 
     # Session values
@@ -485,7 +480,6 @@ def build_notify_text(session=None, timeline=None, state=None):
                 stream_duration = int((time.time() - helpers.cast_to_float(session['started'])) / 60)
 
         view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
-        progress_time = arrow.get(helpers.cast_to_int(session['view_offset'])/1000).format(plexpy.CONFIG.TIME_FORMAT.replace('zz','').replace('a','').replace('A','').replace('h',''))
         user = session['friendly_name']
         platform = session['platform']
         player = session['player']
@@ -506,6 +500,8 @@ def build_notify_text(session=None, timeline=None, state=None):
         transcode_video_height = session['transcode_height']
         transcode_audio_codec = session['transcode_audio_codec']
         transcode_audio_channels = session['transcode_audio_channels']
+        user_id = session['user_id']
+        progress_time = arrow.get(helpers.cast_to_int(session['view_offset'])/1000).format(plexpy.CONFIG.TIME_FORMAT.replace('zz','').replace('a','').replace('A','').replace('h',''))
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
@@ -558,6 +554,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'transcode_video_height': transcode_video_height,
                         'transcode_audio_codec': transcode_audio_codec,
                         'transcode_audio_channels': transcode_audio_channels,
+                        'user_id': user_id,
                         'title': full_title,
                         'library_name': metadata['library_name'],
                         'show_name': show_name,
@@ -579,7 +576,11 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'summary': metadata['summary'],
                         'tagline': metadata['tagline'],
                         'rating': metadata['rating'],
-                        'duration': duration
+                        'duration': duration,
+                        'section_id': metadata['section_id'],
+                        'rating_key': metadata['rating_key'],
+                        'parent_rating_key': metadata['parent_rating_key'],
+                        'grandparent_rating_key': metadata['grandparent_rating_key']
                         }
 
     # Default subject text
@@ -798,8 +799,8 @@ def build_server_notify_text(state=None):
     available_params = {'server_name': server_name,
                         'server_uptime': server_uptime,
                         'action': state,
-                        'datestamp': time.strftime(helpers.parse_js_date(plexpy.CONFIG.DATE_FORMAT)),
-                        'timestamp': time.strftime(helpers.parse_js_date(plexpy.CONFIG.TIME_FORMAT))}
+                        'datestamp': arrow.now().format(plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')),
+                        'timestamp': arrow.now().format(plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz',''))}
 
     # Default text
     subject_text = 'PlexPy (%s)' % server_name

@@ -16,7 +16,7 @@ users_list_table_options = {
     "pageLength": 10,
     "order": [ 2, 'asc'],
     "autoWidth": true,
-    "stateSave": true,
+    "stateSave": false,
     "pagingType": "bootstrap",
     "columnDefs": [
         {

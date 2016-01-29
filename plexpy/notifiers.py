@@ -1165,8 +1165,10 @@ class TwitterNotifier(object):
     SIGNIN_URL = 'https://api.twitter.com/oauth/authenticate'
 
     def __init__(self):
-        self.consumer_key = "2LdJKXHDUwJtjYBsdwJisIOsh"
-        self.consumer_secret = "QWbUcZzAIiL4zbDCIhy2EdUkV8yEEav3qMdo5y3FugxCFelWrA"
+        self.access_token = plexpy.CONFIG.TWITTER_ACCESS_TOKEN
+        self.access_token_secret = plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET
+        self.consumer_key = plexpy.CONFIG.TWITTER_CONSUMER_KEY
+        self.consumer_secret = plexpy.CONFIG.TWITTER_CONSUMER_SECRET
 
     def notify(self, subject, message):
         if not subject or not message:
@@ -1191,16 +1193,16 @@ class TwitterNotifier(object):
         else:
             request_token = dict(parse_qsl(content))
 
-            plexpy.CONFIG.TWITTER_USERNAME = request_token['oauth_token']
-            plexpy.CONFIG.TWITTER_PASSWORD = request_token['oauth_token_secret']
+            plexpy.CONFIG.TWITTER_ACCESS_TOKEN = request_token['oauth_token']
+            plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET = request_token['oauth_token_secret']
 
             return self.AUTHORIZATION_URL + "?oauth_token=" + request_token['oauth_token']
 
     def _get_credentials(self, key):
         request_token = {}
 
-        request_token['oauth_token'] = plexpy.CONFIG.TWITTER_USERNAME
-        request_token['oauth_token_secret'] = plexpy.CONFIG.TWITTER_PASSWORD
+        request_token['oauth_token'] = plexpy.CONFIG.TWITTER_ACCESS_TOKEN
+        request_token['oauth_token_secret'] = plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET
         request_token['oauth_callback_confirmed'] = 'true'
 
         token = oauth.Token(request_token['oauth_token'], request_token['oauth_token_secret'])
@@ -1225,20 +1227,20 @@ class TwitterNotifier(object):
         else:
             # logger.info(u"PlexPy Notifiers :: Your Twitter Access Token key: %s" % access_token['oauth_token'])
             # logger.info(u"PlexPy Notifiers :: Access Token secret: %s" % access_token['oauth_token_secret'])
-            plexpy.CONFIG.TWITTER_USERNAME = access_token['oauth_token']
-            plexpy.CONFIG.TWITTER_PASSWORD = access_token['oauth_token_secret']
+            plexpy.CONFIG.TWITTER_ACCESS_TOKEN = access_token['oauth_token']
+            plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET = access_token['oauth_token_secret']
             plexpy.CONFIG.write()
             return True
 
     def _send_tweet(self, message=None):
-        username = self.consumer_key
-        password = self.consumer_secret
-        access_token_key = plexpy.CONFIG.TWITTER_USERNAME
-        access_token_secret = plexpy.CONFIG.TWITTER_PASSWORD
+        consumer_key = self.consumer_key
+        consumer_secret = self.consumer_secret
+        access_token = self.access_token
+        access_token_secret = self.access_token_secret
 
         # logger.info(u"PlexPy Notifiers :: Sending tweet: " + message)
 
-        api = twitter.Api(username, password, access_token_key, access_token_secret)
+        api = twitter.Api(consumer_key, consumer_secret, access_token, access_token_secret)
 
         try:
             api.PostUpdate(message)
@@ -1251,30 +1253,37 @@ class TwitterNotifier(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
-                          'description': 'Step 1: Click the <strong>Request Authorization</strong> button below.<br>\
-                                          Step 2: Input the <strong>Authorization Key</strong> you received from Step 1 below.<br>\
-                                          Step 3: Click the <strong>Verify Key</strong> button below.',
+                          'description': 'Step 1: Visit <a href="https://apps.twitter.com/" target="_blank"> \
+                                          Twitter Apps</a> to <strong>Create New App</strong>. A vaild "Website" is not required.<br>\
+                                          Step 2: Go to <strong>Keys and Access Tokens</strong> and click \
+                                          <strong>Create my access token</strong>.<br>\
+                                          Step 3: Fill in the <strong>Consumer Key</strong>, <strong>Consumer Secret</strong>, \
+                                          <strong>Access Token</strong>, and <strong>Access Token Secret</strong> below.',
                           'input_type': 'help'
                           },
-                         {'label': 'Request Authorization',
-                          'value': 'Request Authorization',
-                          'name': 'twitterStep1',
-                          'description': 'Request Twitter authorization. (Ensure you allow the browser pop-up).',
-                          'input_type': 'button'
-                          },
-                         {'label': 'Authorization Key',
-                          'value': '',
-                          'name': 'twitter_key',
-                          'description': 'Your Twitter authorization key.',
+                         {'label': 'Twitter Consumer Key',
+                          'value': self.consumer_key,
+                          'name': 'twitter_consumer_key',
+                          'description': 'Your Twitter consumer key.',
                           'input_type': 'text'
                           },
-                         {'label': 'Verify Key',
-                          'value': 'Verify Key',
-                          'name': 'twitterStep2',
-                          'description': 'Verify your Twitter authorization key.',
-                          'input_type': 'button'
+                         {'label': 'Twitter Consumer Secret',
+                          'value': self.consumer_secret,
+                          'name': 'twitter_consumer_secret',
+                          'description': 'Your Twitter consumer secret.',
+                          'input_type': 'text'
                           },
-                         {'input_type': 'nosave'
+                         {'label': 'Twitter Access Token',
+                          'value': self.access_token,
+                          'name': 'twitter_access_token',
+                          'description': 'Your Twitter access token.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Twitter Access Token Secret',
+                          'value': self.access_token_secret,
+                          'name': 'twitter_access_token_secret',
+                          'description': 'Your Twitter access token secret.',
+                          'input_type': 'text'
                           }
                          ]
 
@@ -1668,10 +1677,10 @@ class TELEGRAM(object):
                           'description': 'Your Telegram bot token. Contact <a href="http://telegram.me/BotFather" target="_blank">@BotFather</a> on Telegram to get one.',
                           'input_type': 'text'
                           },
-                         {'label': 'Telegram Chat ID',
+                         {'label': 'Telegram Chat ID, Group ID, or Channel Username',
                           'value': self.chat_id,
                           'name': 'telegram_chat_id',
-                          'description': 'Your Telegram Chat ID, Group ID, or channel username. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
+                          'description': 'Your Telegram Chat ID, Group ID, or @channelusername. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
                           'input_type': 'text'
                           }
                          ]
@@ -2088,12 +2097,16 @@ class FacebookNotifier(object):
         config_option = [{'label': 'Instructions',
                           'description': '<strong>Facebook notifications are currently experimental!</strong><br><br> \
                                           Step 1: Visit <a href="https://developers.facebook.com/apps/" target="_blank"> \
-                                          Facebook Developers</a> to create a new app using <strong>advanced setup</strong>.<br>\
-                                          Step 2: Go to <strong>Settings > Advanced</strong> and fill in \
+                                          Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>\
+                                          Step 2: Go to <strong>Settings > Basic</strong> and fill in a \
+                                          <strong>Contact Email</strong>.<br>\
+                                          Step 3: Go to <strong>Settings > Advanced</strong> and fill in \
                                           <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (i.e. http://localhost:8181).<br>\
-                                          Step 3: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 2.<br>\
-                                          Step 4: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
-                                          Step 5: Click the <strong>Request Authorization</strong> button below.',
+                                          Step 4: Go to <strong>App Review</strong> and toggle public to <strong>Yes</strong>.<br>\
+                                          Step 5: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
+                                          Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
+                                          Step 7: Click the <strong>Request Authorization</strong> button below.<br> \
+                                          Step 8: Fill in the <strong>Group ID</strong> below.',
                           'input_type': 'help'
                           },
                          {'label': 'PlexPy URL',
