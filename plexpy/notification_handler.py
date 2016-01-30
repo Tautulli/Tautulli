@@ -211,23 +211,17 @@ def notify(stream_data=None, notify_action=None):
 
 def notify_timeline(timeline_data=None, notify_action=None):
     if timeline_data and notify_action:
-        if (timeline_data['media_type'] == 'movie' and plexpy.CONFIG.MOVIE_NOTIFY_ENABLE) \
-            or ((timeline_data['media_type'] == 'show' or timeline_data['media_type'] == 'episode') \
-                and plexpy.CONFIG.TV_NOTIFY_ENABLE) \
-            or ((timeline_data['media_type'] == 'artist' or timeline_data['media_type'] == 'track') \
-                and plexpy.CONFIG.MUSIC_NOTIFY_ENABLE):
-
-            for agent in notifiers.available_notification_agents():
-                if agent['on_created'] and notify_action == 'created':
-                    # Build and send notification
-                    notify_strings = build_notify_text(timeline=timeline_data, state=notify_action)
-                    notifiers.send_notification(config_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                notify_action=notify_action,
-                                                script_args=notify_strings[2])
-                    # Set the notification state in the db
-                    set_notify_state(session=timeline_data, state=notify_action, agent_info=agent)
+        for agent in notifiers.available_notification_agents():
+            if agent['on_created'] and notify_action == 'created':
+                # Build and send notification
+                notify_strings = build_notify_text(timeline=timeline_data, state=notify_action)
+                notifiers.send_notification(config_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1],
+                                            notify_action=notify_action,
+                                            script_args=notify_strings[2])
+                # Set the notification state in the db
+                set_notify_state(session=timeline_data, state=notify_action, agent_info=agent)
 
     elif not timeline_data and notify_action:
         for agent in notifiers.available_notification_agents():
@@ -462,6 +456,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     transcode_video_height = ''
     transcode_audio_codec = ''
     transcode_audio_channels = ''
+    user_id = ''
 
     # Session values
     if session:
@@ -504,6 +499,7 @@ def build_notify_text(session=None, timeline=None, state=None):
         transcode_video_height = session['transcode_height']
         transcode_audio_codec = session['transcode_audio_codec']
         transcode_audio_channels = session['transcode_audio_channels']
+        user_id = session['user_id']
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
@@ -523,10 +519,10 @@ def build_notify_text(session=None, timeline=None, state=None):
 
     available_params = {'server_name': server_name,
                         'server_uptime': server_uptime,
-                        'streams': stream_count,
                         'action': state,
                         'datestamp': arrow.now().format(plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')),
                         'timestamp': arrow.now().format(plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','')),
+                        'streams': stream_count,
                         'user': user,
                         'platform': platform,
                         'player': player,
@@ -555,6 +551,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'transcode_video_height': transcode_video_height,
                         'transcode_audio_codec': transcode_audio_codec,
                         'transcode_audio_channels': transcode_audio_channels,
+                        'user_id': user_id,
                         'title': full_title,
                         'library_name': metadata['library_name'],
                         'show_name': show_name,
@@ -566,6 +563,8 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'season_num00': metadata['parent_media_index'].zfill(2),
                         'episode_num': metadata['media_index'].zfill(1),
                         'episode_num00': metadata['media_index'].zfill(2),
+                        'track_num': metadata['media_index'].zfill(1),
+                        'track_num00': metadata['media_index'].zfill(2),
                         'year': metadata['year'],
                         'studio': metadata['studio'],
                         'content_rating': metadata['content_rating'],
@@ -576,7 +575,11 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'summary': metadata['summary'],
                         'tagline': metadata['tagline'],
                         'rating': metadata['rating'],
-                        'duration': duration
+                        'duration': duration,
+                        'section_id': metadata['section_id'],
+                        'rating_key': metadata['rating_key'],
+                        'parent_rating_key': metadata['parent_rating_key'],
+                        'grandparent_rating_key': metadata['grandparent_rating_key']
                         }
 
     # Default subject text
@@ -584,10 +587,6 @@ def build_notify_text(session=None, timeline=None, state=None):
 
     # Default scripts args
     script_args = []
-
-    # Regex to match {param} but not "{param}"
-    params_to_quote = re.compile(r'(?<!\")([\{][^}]+[\}])(?!\"\})')
-    script_args_text = re.sub(params_to_quote, r'"\g<0>"', script_args_text)
 
     if script_args_text:
         try:
@@ -803,10 +802,6 @@ def build_server_notify_text(state=None):
 
     # Default scripts args
     script_args = []
-
-    # Regex to match {param} but not "{param}"
-    params_to_quote = re.compile(r'(?<!\")([\{][^}]+[\}])(?!\"\})')
-    script_args_text = re.sub(params_to_quote, r'"\g<0>"', script_args_text)
 
     if script_args_text:
         try:

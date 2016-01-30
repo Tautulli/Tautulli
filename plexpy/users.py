@@ -292,10 +292,9 @@ class Users(object):
         else:
             logger.warn(u"PlexPy Users :: Unable to retrieve user from local database. Requesting user list refresh.")
             # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
+            plextv.refresh_users()
             try:
                 if str(user_id).isdigit():
-                    # Refresh users
-                    plextv.refresh_users()
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
                             'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history ' \
                             'FROM users ' \
