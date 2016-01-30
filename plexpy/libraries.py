@@ -42,7 +42,7 @@ def update_section_ids():
         logger.warn(u"PlexPy Libraries :: Unable to execute database query for update_section_ids: %s." % e)
 
         logger.warn(u"PlexPy Libraries :: Unable to update section_id's in database.")
-        plexpy.CONFIG.__setattr__('UPDATE_SECTION_IDS', 1)
+        plexpy.CONFIG.UPDATE_SECTION_IDS = 1
         plexpy.CONFIG.write()
 
         #logger.debug(u"PlexPy Libraries :: Re-enabling monitoring.")
@@ -50,7 +50,7 @@ def update_section_ids():
         return None
 
     if not history_results:
-        plexpy.CONFIG.__setattr__('UPDATE_SECTION_IDS', 0)
+        plexpy.CONFIG.UPDATE_SECTION_IDS = 0
         plexpy.CONFIG.write()
         return None
 
@@ -105,7 +105,7 @@ def update_section_ids():
     else:
         logger.info(u"PlexPy Libraries :: Updated all section_id's in database.")
 
-    plexpy.CONFIG.__setattr__('UPDATE_SECTION_IDS', 0)
+    plexpy.CONFIG.UPDATE_SECTION_IDS = 0
     plexpy.CONFIG.write()
 
     #logger.debug(u"PlexPy Libraries :: Re-enabling monitoring.")
