@@ -586,10 +586,6 @@ def build_notify_text(session=None, timeline=None, state=None):
     # Default scripts args
     script_args = []
 
-    # Regex to match {param} but not "{param}"
-    params_to_quote = re.compile(r'(?<!\")([\{][^}]+[\}])(?!\"\})')
-    script_args_text = re.sub(params_to_quote, r'"\g<0>"', script_args_text)
-
     if script_args_text:
         try:
             script_args = [unicode(arg).format(**available_params) for arg in script_args_text.split()]
@@ -804,10 +800,6 @@ def build_server_notify_text(state=None):
 
     # Default scripts args
     script_args = []
-
-    # Regex to match {param} but not "{param}"
-    params_to_quote = re.compile(r'(?<!\")([\{][^}]+[\}])(?!\"\})')
-    script_args_text = re.sub(params_to_quote, r'"\g<0>"', script_args_text)
 
     if script_args_text:
         try:
