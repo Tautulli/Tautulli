@@ -34,7 +34,7 @@ from pynma import pynma
 import gntp.notifier
 import oauth2 as oauth
 import pythontwitter as twitter
-import pythonfacebook as facebook   
+import pythonfacebook as facebook
 
 import plexpy
 from plexpy import logger, helpers, request
@@ -58,7 +58,7 @@ AGENT_IDS = {"Growl": 0,
              "Scripts": 15,
              "Facebook": 16}
 
-             
+
 def available_notification_agents():
     agents = [{'name': 'Growl',
                'id': AGENT_IDS['Growl'],
@@ -1777,7 +1777,7 @@ class SLACK(object):
 class Scripts(object):
 
     def __init__(self, **kwargs):
-        self.script_exts = ('.bat', '.cmd', '.exe', '.php', '.pl', '.py', '.pyw', '.rb', '.sh')
+        self.script_exts = ('.bat', '.cmd', '.exe', '.php', '.pl', '.py', '.pyw', '.rb', '.sh', '.ps1')
 
     def conf(self, options):
         return cherrypy.config['config'].get('Scripts', options)
@@ -1807,7 +1807,7 @@ class Scripts(object):
 
         return scripts
 
-    def notify(self, subject='', message='', notify_action='', script_args=[], *args, **kwargs):
+    def notify(self, subject='', message='', notify_action='', script_args=None, *args, **kwargs):
         """
             Args:
                   subject(string, optional): Head text,
@@ -1817,7 +1817,10 @@ class Scripts(object):
         """
         logger.debug(u"PlexPy Notifiers :: Trying to run notify script, action: %s, arguments: %s" %
                      (notify_action if notify_action else None, script_args if script_args else None))
-        
+
+        if script_args is None:
+            script_args = []
+
         if not plexpy.CONFIG.SCRIPTS_FOLDER:
             return
 
@@ -1879,6 +1882,8 @@ class Scripts(object):
             prefix = 'perl'
         elif ext == '.rb':
             prefix = 'ruby'
+        elif ext == '.ps1':
+            prefix = 'powershell -executionPolicy bypass -file'
         else:
             prefix = ''
 
@@ -1886,7 +1891,10 @@ class Scripts(object):
             script = script.encode(plexpy.SYS_ENCODING, 'ignore')
 
         if prefix:
-            script = [prefix, script]
+            if ext == '.ps1':
+                script = prefix.split() + [script]
+            else:
+                script = [prefix, script]
         else:
             script = [script]
 
@@ -2025,7 +2033,7 @@ class Scripts(object):
 
         return config_option
 
-    
+
 class FacebookNotifier(object):
 
     def __init__(self):
@@ -2050,7 +2058,7 @@ class FacebookNotifier(object):
 
     def _get_credentials(self, code):
         logger.info(u"PlexPy Notifiers :: Requesting access token from Facebook")
-        
+
         try:
             # Request user access token
             api = facebook.GraphAPI(version='2.5')
@@ -2059,19 +2067,19 @@ class FacebookNotifier(object):
                                                       app_id=self.app_id,
                                                       app_secret=self.app_secret)
             access_token = response['access_token']
-            
+
             # Request extended user access token
             api = facebook.GraphAPI(access_token=access_token, version='2.5')
             response = api.extend_access_token(app_id=self.app_id,
                                                app_secret=self.app_secret)
             access_token = response['access_token']
-            
+
             plexpy.CONFIG.FACEBOOK_TOKEN = access_token
             plexpy.CONFIG.write()
         except Exception as e:
             logger.error(u"PlexPy Notifiers :: Error requesting Facebook access token: %s" % e)
             return False
-        
+
         return True
 
     def _post_facebook(self, message=None):
