@@ -34,9 +34,12 @@ media_info_table_options = {
             "targets": [0],
             "data": "added_at",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== null && cellData !== '') {
+                if (rowData) {
                     var expand_details = '';
-                    var date = moment(cellData, "X").format(date_format);
+                    var date = '';
+                    if (cellData !== null && cellData !== '') {
+                        date = moment(cellData, "X").format(date_format);
+                    }
                     if (rowData['media_type'] === 'show') {
                         expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Seasons"><i class="fa fa-plus-circle fa-fw"></i></span>';
                         $(td).html('<div><a href="#"><div style="float: left;">' + expand_details + '&nbsp;' + date + '</div></a></div>');
