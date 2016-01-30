@@ -1074,7 +1074,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <thead>
                                 <tr>
                                     <th>
-                                        Server Details
+                                        Global
                                     </th>
                                 </tr>
                             </thead>
@@ -1086,6 +1086,18 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{server_uptime}</strong></td>
                                     <td>The uptime (in days, hours, mins, secs) of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{action}</strong></td>
+                                    <td>The action that triggered the notification.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{datestamp}</strong></td>
+                                    <td>The date the notification was triggered.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{timestamp}</strong></td>
+                                    <td>The time the notification was triggered.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1103,18 +1115,6 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td>The number of concurrent streams.</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>{action}</strong></td>
-                                    <td>The action that triggered the notification.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{datestamp}</strong></td>
-                                    <td>The date the notification was triggered.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{timestamp}</strong></td>
-                                    <td>The time the notification was triggered.</td>
-                                </tr>
-                                <tr>
                                     <td><strong>{user}</strong></td>
                                     <td>The username of the person streaming.</td>
                                 </tr>
@@ -1129,10 +1129,6 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{ip_address}</strong></td>
                                     <td>The IP address of the device being used for playback. (PMS 0.9.14 and above)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{media_type}</strong></td>
-                                    <td>The type of media being played (movie, episode, track).</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{stream_duration}</strong></td>
@@ -1242,36 +1238,40 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td><strong>{media_type}</strong></td>
+                                    <td>The type of media (movie, episode, track).</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{title}</strong></td>
-                                    <td>The full title of the item being played.</td>
+                                    <td>The full title of the item.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{library_name}</strong></td>
-                                    <td>The library title of the item being played.</td>
+                                    <td>The library title of the media item.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{show_name}</strong></td>
-                                    <td>The title of the TV series being played.</td>
+                                    <td>The title of the TV series.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{episode_name}</strong></td>
-                                    <td>The title of the episode being played.</td>
+                                    <td>The title of the episode.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{artist_name}</strong></td>
-                                    <td>The name of the artist being played.</td>
+                                    <td>The name of the artistd.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{album_name}</strong></td>
-                                    <td>The title of the album being played.</td>
+                                    <td>The title of the album.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{track_name}</strong></td>
-                                    <td>The title of the track being played.</td>
+                                    <td>The title of the track.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{season_num}</strong></td>
-                                    <td>The season number for the media item if item is episode.</td>
+                                    <td>The season number for the item if item is episode.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{season_num00}</strong></td>
@@ -1279,43 +1279,51 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{episode_num}</strong></td>
-                                    <td>The episode number for the media item if item is episode.</td>
+                                    <td>The episode number for the item if item is episode.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{episode_num00}</strong></td>
                                     <td>The two digit episode number.</td>
                                 </tr>
                                 <tr>
+                                    <td><strong>{track_num}</strong></td>
+                                    <td>The track number for the item if item is track.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{track_num00}</strong></td>
+                                    <td>The two digit track number.</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{year}</strong></td>
-                                    <td>The release year for the media item.</td>
+                                    <td>The release year for the item.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{studio}</strong></td>
-                                    <td>The studio for the media item.</td>
+                                    <td>The studio for the item.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{content_rating}</strong></td>
-                                    <td>The content rating for the media item. (e.g. TV-MA, TV-PG, etc.)</td>
+                                    <td>The content rating for the item. (e.g. TV-MA, TV-PG, etc.)</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{directors}</strong></td>
-                                    <td>A list of directors for the media item.</td>
+                                    <td>A list of directors for the item.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{writers}</strong></td>
-                                    <td>A list of writers for the media item.</td>
+                                    <td>A list of writers for the item.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{actors}</strong></td>
-                                    <td>A list of actors for the media item.</td>
+                                    <td>A list of actors for the item.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{genres}</strong></td>
-                                    <td>A list of genres for the media item.</td>
+                                    <td>A list of genres for the item.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{summary}</strong></td>
-                                    <td>A short plot summary for the media item.</td>
+                                    <td>A short plot summary for the item.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{tagline}</strong></td>
@@ -1339,11 +1347,11 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{parent_rating_key}</strong></td>
-                                    <td>The unique identifier for the item parent (season or album).</td>
+                                    <td>The unique identifier for the item's parent (season or album).</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{grandparent_rating_key}</strong></td>
-                                    <td>The unique identifier for the item grandparent (TV show or artist).</td>
+                                    <td>The unique identifier for the item's grandparent (TV show or artist).</td>
                                 </tr>
                             </tbody>
                         </table>
