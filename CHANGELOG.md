@@ -8,10 +8,10 @@
 * Fix: Libraries and Users lists not refreshing.
 * Fix: Server verification in settings.
 * Fix: Empty libraries not added to database.
-* Add: Unique identifier to notification options.
-* Remove: Media type toggles for recently added notifications.
+* Add: Unique identifiers to notification options.
+* Remove: Requirement of media type toggles for recently added notifications.
 * Remove: Built in Twitter key and secret.
-* Remove: Unnecessary quoting of script arguments.
+* Change: Unnecessary quoting of script arguments.
 * Change: Facebook notification instructions.
 
 

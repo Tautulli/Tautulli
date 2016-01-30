@@ -713,8 +713,8 @@ def dbcheck():
 
     # Upgrade library_sections table from earlier versions (remove UNIQUE constraint on section_id)
     try:
-        result = c_db.execute('PRAGMA index_xinfo("sqlite_autoindex_library_sections_1")')
-        if result and 'server_id' not in [row[2] for row in result]:
+        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="library_sections"').fetchone()
+        if 'section_id INTEGER UNIQUE' in result[0]:
             logger.debug(u"Altering database. Removing unique constraint on section_id from library_sections table.")
             c_db.execute(
                 'CREATE TABLE library_sections_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
@@ -760,8 +760,8 @@ def dbcheck():
 
     # Upgrade users table from earlier versions (remove UNIQUE constraint on username)
     try:
-        result = c_db.execute('PRAGMA index_xinfo("sqlite_autoindex_users_2")')
-        if result and 'username' in [row[2] for row in result]:
+        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="users"').fetchone()
+        if 'username TEXT NOT NULL UNIQUE' in result[0]:
             logger.debug(u"Altering database. Removing unique constraint on username from users table.")
             c_db.execute(
                 'CREATE TABLE users_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
