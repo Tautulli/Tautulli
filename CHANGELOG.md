@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.3.4 (2016-01-29)
+
+* Fix: Activity checker not starting with library update (history not logging).
+* Fix: Libraries duplicated in database.
+* Fix: Buffer notifications even when disabled when using websockets.
+* Fix: Libraries and Users lists not refreshing.
+* Fix: Server verification in settings.
+* Fix: Empty libraries not added to database.
+* Add: Unique identifier to notification options.
+* Remove: Media type toggles for recently added notifications.
+* Remove: Built in Twitter key and secret.
+* Remove: Unnecessary quoting of script arguments.
+* Change: Facebook notification instructions.
+
+
 ## v1.3.3 (2016-01-26)
 
 * Fix: Plays by Month graph not loading.
