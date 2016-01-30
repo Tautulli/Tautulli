@@ -1694,8 +1694,8 @@ class PmsConnect(object):
                 section_id = library['section_id']
                 children_list = self.get_library_children_details(section_id=section_id, section_type=section_type, count='1')
 
-                if children_list and children_list['library_count'] != '0':
-                    library_stats = {'section_id': library['section_id'],
+                if children_list:
+                    library_stats = {'section_id': section_id,
                                      'section_name': library['section_name'],
                                      'section_type': section_type,
                                      'thumb': library['thumb'],
