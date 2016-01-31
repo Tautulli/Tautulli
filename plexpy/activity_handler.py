@@ -16,7 +16,7 @@
 import time
 import plexpy
 
-from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler, helpers
+from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler, helpers, notifiers
 
 
 class ActivityHandler(object):
@@ -201,11 +201,18 @@ class ActivityHandler(object):
                     self.on_start()
 
                 # Monitor if the stream has reached the watch percentage for notifications
-                # The only purpose of this is for notifications
-                progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
-                if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and this_state != 'buffering':
-                    threading.Thread(target=notification_handler.notify,
-                                     kwargs=dict(stream_data=db_session, notify_action='watched')).start()
+                # The only purpose of this is for notifications. Only process if any agents have on_watched toggled.
+                if any(d['on_watched'] == 1 for d in notifiers.available_notification_agents()):
+                    progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+                    if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and this_state != 'buffering':
+                        # This is cheaper than having to send the request to notify each time.
+                        notify_states = notification_handler.get_notify_state(db_session)
+
+                        # This is a bit hacky but we're unaware of agents here so just check if any watched
+                        # notifications are pending and allow it.
+                        if any(d['on_watched'] is None for d in notify_states):
+                            # Rather not put this on it's own thread so we know it completes before our next event.
+                            notification_handler.notify(stream_data=db_session, notify_action='watched')
 
             else:
                 # We don't have this session in our table yet, start a new one.
