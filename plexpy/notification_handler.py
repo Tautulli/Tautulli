@@ -340,6 +340,11 @@ def set_notify_state(session, state, agent_info):
 
 
 def build_notify_text(session=None, timeline=None, state=None):
+    # Get time formats
+    date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')
+    time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','')
+    duration_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','').replace('a','').replace('A','')
+
     # Get the server name
     server_name = plexpy.CONFIG.PMS_NAME
 
@@ -428,79 +433,26 @@ def build_notify_text(session=None, timeline=None, state=None):
     else:
         full_title = metadata['title']
 
-    duration = helpers.convert_milliseconds_to_minutes(metadata['duration'])
-
-    # Default values
-    user = ''
-    platform = ''
-    player = ''
-    ip_address = 'N/A'
-    stream_duration = 0
-    view_offset = 0
-    container = ''
-    video_codec = ''
-    video_bitrate = ''
-    video_width = ''
-    video_height = ''
-    video_resolution = ''
-    video_framerate = ''
-    aspect_ratio = ''
-    audio_codec = ''
-    audio_channels = ''
-    transcode_decision = ''
-    video_decision = ''
-    audio_decision = ''
-    transcode_container = ''
-    transcode_video_codec = ''
-    transcode_video_width = ''
-    transcode_video_height = ''
-    transcode_audio_codec = ''
-    transcode_audio_channels = ''
-    user_id = ''
-
     # Session values
-    if session:
-        # Generate a combined transcode decision value
-        video_decision = session['video_decision'].title()
-        audio_decision = session['audio_decision'].title()
+    if session is None:
+        session = {}
 
-        if session['video_decision'] == 'transcode' or session['audio_decision'] == 'transcode':
-            transcode_decision = 'Transcode'
-        elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
-            transcode_decision = 'Direct Stream'
-        else:
-            transcode_decision = 'Direct Play'
+    # Generate a combined transcode decision value
+    if session.get('video_decision','') == 'transcode' or session.get('audio_decision','') == 'transcode':
+        transcode_decision = 'Transcode'
+    elif session.get('video_decision','') == 'copy' or session.get('audio_decision','') == 'copy':
+        transcode_decision = 'Direct Stream'
+    else:
+        transcode_decision = 'Direct Play'
+    
+    if state != 'play':
+        stream_duration = int((time.time() - helpers.cast_to_float(session.get('started', 0)) -
+                                helpers.cast_to_float(session.get('paused_counter', 0))) / 60)
+    else:
+        stream_duration = 0
 
-        if state != 'play':
-            if session['paused_counter']:
-                stream_duration = int((time.time() - helpers.cast_to_float(session['started']) -
-                                       helpers.cast_to_float(session['paused_counter'])) / 60)
-            else:
-                stream_duration = int((time.time() - helpers.cast_to_float(session['started'])) / 60)
-
-        view_offset = helpers.convert_milliseconds_to_minutes(session['view_offset'])
-        user = session['friendly_name']
-        platform = session['platform']
-        player = session['player']
-        ip_address = session['ip_address'] if session['ip_address'] else 'N/A'
-        container = session['container']
-        video_codec = session['video_codec']
-        video_bitrate = session['bitrate']
-        video_width = session['width']
-        video_height = session['height']
-        video_resolution = session['video_resolution']
-        video_framerate = session['video_framerate']
-        aspect_ratio = session['aspect_ratio']
-        audio_codec = session['audio_codec']
-        audio_channels = session['audio_channels']
-        transcode_container = session['transcode_container']
-        transcode_video_codec = session['transcode_video_codec']
-        transcode_video_width = session['transcode_width']
-        transcode_video_height = session['transcode_height']
-        transcode_audio_codec = session['transcode_audio_codec']
-        transcode_audio_channels = session['transcode_audio_channels']
-        user_id = session['user_id']
-
+    view_offset = helpers.convert_milliseconds_to_minutes(session.get('view_offset', 0))
+    duration = helpers.convert_milliseconds_to_minutes(metadata['duration'])
     progress_percent = helpers.get_percent(view_offset, duration)
 
     # Fix metadata params for notify recently added grandparent
@@ -516,42 +468,46 @@ def build_notify_text(session=None, timeline=None, state=None):
         artist_name = metadata['grandparent_title']
         album_name = metadata['parent_title']
         track_name = metadata['title']
-
-    available_params = {'server_name': server_name,
+    
+    available_params = {# Global paramaters
+                        'server_name': server_name,
                         'server_uptime': server_uptime,
-                        'action': state,
-                        'datestamp': arrow.now().format(plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')),
-                        'timestamp': arrow.now().format(plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','')),
+                        'action': state.title(),
+                        'datestamp': arrow.now().format(date_format),
+                        'timestamp': arrow.now().format(time_format),
+                        # Stream parameters
                         'streams': stream_count,
-                        'user': user,
-                        'platform': platform,
-                        'player': player,
-                        'ip_address': ip_address,
-                        'media_type': metadata['media_type'],
+                        'user': session.get('friendly_name',''),
+                        'platform': session.get('platform',''),
+                        'player': session.get('player',''),
+                        'ip_address': session.get('ip_address','N/A'),
                         'stream_duration': stream_duration,
                         'remaining_duration': duration - view_offset,
                         'progress': view_offset,
                         'progress_percent': progress_percent,
-                        'container': container,
-                        'video_codec': video_codec,
-                        'video_bitrate': video_bitrate,
-                        'video_width': video_width,
-                        'video_height': video_height,
-                        'video_resolution': video_resolution,
-                        'video_framerate': video_framerate,
-                        'aspect_ratio': aspect_ratio,
-                        'audio_codec': audio_codec,
-                        'audio_channels': audio_channels,
+                        'container': session.get('container',''),
+                        'video_codec': session.get('video_codec',''),
+                        'video_bitrate': session.get('bitrate',''),
+                        'video_width': session.get('width',''),
+                        'video_height': session.get('height',''),
+                        'video_resolution': session.get('video_resolution',''),
+                        'video_framerate': session.get('video_framerate',''),
+                        'aspect_ratio': session.get('aspect_ratio',''),
+                        'audio_codec': session.get('audio_codec',''),
+                        'audio_channels': session.get('audio_channels',''),
                         'transcode_decision': transcode_decision,
-                        'video_decision': video_decision,
-                        'audio_decision': audio_decision,
-                        'transcode_container': transcode_container,
-                        'transcode_video_codec': transcode_video_codec,
-                        'transcode_video_width': transcode_video_width,
-                        'transcode_video_height': transcode_video_height,
-                        'transcode_audio_codec': transcode_audio_codec,
-                        'transcode_audio_channels': transcode_audio_channels,
-                        'user_id': user_id,
+                        'video_decision': session.get('video_decision','').title(),
+                        'audio_decision': session.get('audio_decision','').title(),
+                        'transcode_container': session.get('transcode_container',''),
+                        'transcode_video_codec': session.get('transcode_video_codec',''),
+                        'transcode_video_width': session.get('transcode_width',''),
+                        'transcode_video_height': session.get('transcode_height',''),
+                        'transcode_audio_codec': session.get('transcode_audio_codec',''),
+                        'transcode_audio_channels': session.get('transcode_audio_channels',''),
+                        'session_key': session.get('session_key',''),
+                        'user_id': session.get('user_id',''),
+                        # Metadata parameters
+                        'media_type': metadata['media_type'],
                         'title': full_title,
                         'library_name': metadata['library_name'],
                         'show_name': show_name,
@@ -575,7 +531,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'summary': metadata['summary'],
                         'tagline': metadata['tagline'],
                         'rating': metadata['rating'],
-                        'duration': duration,
+                        'duration': metadata['duration'],
                         'section_id': metadata['section_id'],
                         'rating_key': metadata['rating_key'],
                         'parent_rating_key': metadata['parent_rating_key'],
