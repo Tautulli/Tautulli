@@ -457,6 +457,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     transcode_audio_codec = ''
     transcode_audio_channels = ''
     user_id = ''
+    progress_time = ''
 
     # Session values
     if session:
@@ -500,6 +501,7 @@ def build_notify_text(session=None, timeline=None, state=None):
         transcode_audio_codec = session['transcode_audio_codec']
         transcode_audio_channels = session['transcode_audio_channels']
         user_id = session['user_id']
+        progress_time = arrow.get(helpers.cast_to_int(session['view_offset'])/1000).format(plexpy.CONFIG.TIME_FORMAT.replace('zz','').replace('a','').replace('A','').replace('h',''))
 
     progress_percent = helpers.get_percent(view_offset, duration)
 
@@ -531,6 +533,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'stream_duration': stream_duration,
                         'remaining_duration': duration - view_offset,
                         'progress': view_offset,
+                        'progress_time': progress_time,
                         'progress_percent': progress_percent,
                         'container': container,
                         'video_codec': video_codec,
