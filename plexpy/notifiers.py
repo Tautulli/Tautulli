@@ -1777,7 +1777,7 @@ class SLACK(object):
 class Scripts(object):
 
     def __init__(self, **kwargs):
-        self.script_exts = ('.bat', '.cmd', '.exe', '.php', '.pl', '.py', '.pyw', '.rb', '.sh', '.ps1')
+        self.script_exts = ('.bat', '.cmd', '.exe', '.php', '.pl', '.ps1', '.py', '.pyw', '.rb', '.sh')
 
     def conf(self, options):
         return cherrypy.config['config'].get('Scripts', options)
@@ -1872,18 +1872,18 @@ class Scripts(object):
 
         name, ext = os.path.splitext(script)
 
-        if ext == '.py':
-            prefix = 'python'
-        elif ext == '.pyw':
-            prefix = 'pythonw'
-        elif ext == '.php':
+        if ext == '.php':
             prefix = 'php'
         elif ext == '.pl':
             prefix = 'perl'
-        elif ext == '.rb':
-            prefix = 'ruby'
         elif ext == '.ps1':
             prefix = 'powershell -executionPolicy bypass -file'
+        elif ext == '.py':
+            prefix = 'python'
+        elif ext == '.pyw':
+            prefix = 'pythonw'
+        elif ext == '.rb':
+            prefix = 'ruby'
         else:
             prefix = ''
 
@@ -1891,10 +1891,7 @@ class Scripts(object):
             script = script.encode(plexpy.SYS_ENCODING, 'ignore')
 
         if prefix:
-            if ext == '.ps1':
-                script = prefix.split() + [script]
-            else:
-                script = [prefix, script]
+            script = prefix.split() + [script]
         else:
             script = [script]
 
