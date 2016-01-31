@@ -1382,7 +1382,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, **kwargs):
-        if not identifier:
+        from plexpy import http_handler
+
+        # Attempt to get the pms_identifier from plex.tv if the server is published
+        # Works for all PMS SSL settings
+        if not identifier and hostname and port:
             plex_tv = plextv.PlexTV()
             servers = plex_tv.discover()
 
@@ -1391,27 +1395,28 @@ class WebInterface(object):
                     identifier = server['clientIdentifier']
                     break
 
-        if identifier and hostname and port:
-            # Set PMS attributes to get the real PMS url
-            plexpy.CONFIG.__setattr__('PMS_IP', hostname)
-            plexpy.CONFIG.__setattr__('PMS_PORT', port)
-            plexpy.CONFIG.__setattr__('PMS_IDENTIFIER', identifier)
-            plexpy.CONFIG.__setattr__('PMS_SSL', ssl)
-            plexpy.CONFIG.__setattr__('PMS_IS_REMOTE', remote)
-            plexpy.CONFIG.write()
-            
-            plextv.get_real_pms_url()
-            
-            pms_connect = pmsconnect.PmsConnect()
-            request = pms_connect.get_local_server_identity()
-            
-            if request:
-                cherrypy.response.headers['Content-type'] = 'application/xml'
-                return request
-            else:
-                logger.warn(u"Unable to retrieve data for get_server_id.")
-                return None
+            # Fallback to checking /identity endpoint is server is unpublished
+            # Cannot set SSL settings on the PMS if unpublished so 'http' is okay
+            if not identifier:
+                request_handler = http_handler.HTTPHandler(host=hostname,
+                                                           port=port,
+                                                           token=None)
+                uri = '/identity'
+                request = request_handler.make_request(uri=uri,
+                                                       proto='http',
+                                                       request_type='GET',
+                                                       output_format='xml',
+                                                       no_token=True,
+                                                       timeout=10)
+                if request:
+                    xml_head = request.getElementsByTagName('MediaContainer')[0]
+                    identifier = xml_head.getAttribute('machineIdentifier')
+
+        if identifier:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(identifier)
         else:
+            logger.warn('Unable to retrieve the PMS identifier.')
             return None
 
     @cherrypy.expose
