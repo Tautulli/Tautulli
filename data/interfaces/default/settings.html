@@ -1093,11 +1093,11 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{datestamp}</strong></td>
-                                    <td>The date the notification was triggered.</td>
+                                    <td>The date (in date format) the notification was triggered.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{timestamp}</strong></td>
-                                    <td>The time the notification was triggered.</td>
+                                    <td>The time (in time format) the notification was triggered.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1135,12 +1135,24 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td>The stream duration (in minutes) for the item.</td>
                                 </tr>
                                 <tr>
+                                    <td><strong>{stream_time}</strong></td>
+                                    <td>The stream duration (in time format) for the item.</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{remaining_duration}</strong></td>
                                     <td>The remaining duration (in minutes) for the item.</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>{progress}</strong></td>
+                                    <td><strong>{remaining_time}</strong></td>
+                                    <td>The remaining duration (in time format) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{progress_duration}</strong></td>
                                     <td>The last reported offset (in minutes) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{progress_time}</strong></td>
+                                    <td>The last reported offset (in time format) for the item.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{progress_percent}</strong></td>
@@ -1221,6 +1233,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{transcode_audio_channels}</strong></td>
                                     <td>The audio channels of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{session_key}</strong></td>
+                                    <td>The unique identifier for the session.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{user_id}</strong></td>

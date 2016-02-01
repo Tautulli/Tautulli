@@ -446,14 +446,17 @@ def build_notify_text(session=None, timeline=None, state=None):
         transcode_decision = 'Direct Play'
     
     if state != 'play':
-        stream_duration = int((time.time() - helpers.cast_to_float(session.get('started', 0)) -
-                                helpers.cast_to_float(session.get('paused_counter', 0))) / 60)
+        stream_duration = helpers.convert_seconds_to_minutes(
+                            time.time() - 
+                            helpers.cast_to_float(session.get('started', 0)) -
+                            helpers.cast_to_float(session.get('paused_counter', 0)))
     else:
         stream_duration = 0
 
     view_offset = helpers.convert_milliseconds_to_minutes(session.get('view_offset', 0))
     duration = helpers.convert_milliseconds_to_minutes(metadata['duration'])
     progress_percent = helpers.get_percent(view_offset, duration)
+    remaining_duration = duration - view_offset
 
     # Fix metadata params for notify recently added grandparent
     if state == 'created' and plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
@@ -468,7 +471,7 @@ def build_notify_text(session=None, timeline=None, state=None):
         artist_name = metadata['grandparent_title']
         album_name = metadata['parent_title']
         track_name = metadata['title']
-    
+
     available_params = {# Global paramaters
                         'server_name': server_name,
                         'server_uptime': server_uptime,
@@ -482,8 +485,11 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'player': session.get('player',''),
                         'ip_address': session.get('ip_address','N/A'),
                         'stream_duration': stream_duration,
-                        'remaining_duration': duration - view_offset,
-                        'progress': view_offset,
+                        'stream_time': arrow.get(stream_duration * 60).format(duration_format),
+                        'remaining_duration': remaining_duration,
+                        'remaining_time': arrow.get(remaining_duration * 60).format(duration_format),
+                        'progress_duration': view_offset,
+                        'progress_time': arrow.get(view_offset * 60).format(duration_format),
                         'progress_percent': progress_percent,
                         'container': session.get('container',''),
                         'video_codec': session.get('video_codec',''),
