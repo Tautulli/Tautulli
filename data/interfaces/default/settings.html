@@ -63,6 +63,14 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         % if plexpy.CURRENT_VERSION:
                         <p class="help-block">Git hash: ${plexpy.CURRENT_VERSION}</p>
                         % endif
+                <hr>
+			        <p class="help-block">
+			            Source: <a href="https://github.com/drzoidberg33/plexpy" target="_blank">https://github.com/drzoidberg33/plexpy</a>
+			        </br>
+			            Chat: <a href="https://gitter.im/drzoidberg33/plexpy" target="_blank"><i>#drzoidberg33</i> on gitter.im</a>
+			        </br>
+			            Forums: <a href="https://github.com/drzoidberg33/plexpy/issues" target="_blank">https://github.com/drzoidberg33/plexpy/issues</a></p>
+			    <hr>
                         <div class="padded-header">
                             <h3>Display Settings</h3>
                         </div>
@@ -1359,7 +1367,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{rating_key}</strong></td>
-                                    <td>The unique identifier for the item.</td>
+                                    <td>The unique identifier for the item. (Movie, Episode or Track.)</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{parent_rating_key}</strong></td>
