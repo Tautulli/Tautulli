@@ -512,6 +512,7 @@ class Config(object):
                 self.MOVIE_LOGGING_ENABLE = 0
                 self.TV_LOGGING_ENABLE = 0
             self.CONFIG_VERSION = '1'
+
         if self.CONFIG_VERSION == '1':
             # Change home_stats_cards to list
             if self.HOME_STATS_CARDS:
@@ -526,3 +527,19 @@ class Config(object):
                     home_library_cards.remove('library_statistics')
                     self.HOME_LIBRARY_CARDS = home_library_cards
             self.CONFIG_VERSION = '2'
+
+        if self.CONFIG_VERSION == '2':
+            self.NOTIFY_ON_START_SUBJECT_TEXT = self.NOTIFY_ON_START_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_ON_START_BODY_TEXT = self.NOTIFY_ON_START_BODY_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_ON_STOP_SUBJECT_TEXT = self.NOTIFY_ON_STOP_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_ON_STOP_BODY_TEXT = self.NOTIFY_ON_STOP_BODY_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_ON_PAUSE_SUBJECT_TEXT = self.NOTIFY_ON_PAUSE_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_ON_PAUSE_BODY_TEXT = self.NOTIFY_ON_PAUSE_BODY_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_ON_RESUME_SUBJECT_TEXT = self.NOTIFY_ON_RESUME_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_ON_RESUME_BODY_TEXT = self.NOTIFY_ON_RESUME_BODY_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_ON_BUFFER_SUBJECT_TEXT = self.NOTIFY_ON_BUFFER_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_ON_BUFFER_BODY_TEXT = self.NOTIFY_ON_BUFFER_BODY_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = self.NOTIFY_ON_WATCHED_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_ON_WATCHED_BODY_TEXT = self.NOTIFY_ON_WATCHED_BODY_TEXT.replace('{progress}','{progress_duration}')
+            self.NOTIFY_SCRIPTS_ARGS_TEXT = self.NOTIFY_SCRIPTS_ARGS_TEXT.replace('{progress}','{progress_duration}')
+            self.CONFIG_VERSION = '3'

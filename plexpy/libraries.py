@@ -879,3 +879,21 @@ class Libraries(object):
                 return 'Unable to delete media info table cache, section_id not valid.'
         except Exception as e:
             logger.warn(u"PlexPy Libraries :: Unable to delete media info table cache: %s." % e)
+
+    def delete_duplicate_libraries(self):
+        from plexpy import plextv
+
+        monitor_db = database.MonitorDatabase()
+
+        # Refresh the PMS_URL to make sure the server_id is updated
+        plextv.get_real_pms_url()
+
+        server_id = plexpy.CONFIG.PMS_IDENTIFIER
+
+        try:
+            logger.debug(u"PlexPy Libraries :: Deleting libraries where server_id does not match %s." % server_id)
+            monitor_db.action('DELETE FROM library_sections WHERE server_id != ?', [server_id])
+
+            return 'Deleted duplicate libraries from the database.'
+        except Exception as e:
+            logger.warn(u"PlexPy Libraries :: Unable to delete duplicate libraries: %s." % e)

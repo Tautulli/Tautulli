@@ -44,7 +44,8 @@ class HTTPHandler(object):
                      headers=None,
                      output_format='raw',
                      return_type=False,
-                     no_token=False):
+                     no_token=False,
+                     timeout=20):
 
         valid_request_types = ['GET', 'POST', 'PUT', 'DELETE']
 
@@ -56,12 +57,12 @@ class HTTPHandler(object):
             if proto.upper() == 'HTTPS':
                 if not self.ssl_verify and hasattr(ssl, '_create_unverified_context'):
                     context = ssl._create_unverified_context()
-                    handler = HTTPSConnection(host=self.host, port=self.port, timeout=20, context=context)
+                    handler = HTTPSConnection(host=self.host, port=self.port, timeout=timeout, context=context)
                     logger.warn(u"PlexPy HTTP Handler :: Unverified HTTPS request made. This connection is not secure.")
                 else:
-                    handler = HTTPSConnection(host=self.host, port=self.port, timeout=20)
+                    handler = HTTPSConnection(host=self.host, port=self.port, timeout=timeout)
             else:
-                handler = HTTPConnection(host=self.host, port=self.port, timeout=20)
+                handler = HTTPConnection(host=self.host, port=self.port, timeout=timeout)
 
             token_string = ''
             if not no_token:

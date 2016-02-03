@@ -1093,11 +1093,11 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{datestamp}</strong></td>
-                                    <td>The date the notification was triggered.</td>
+                                    <td>The date (in date format) the notification was triggered.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{timestamp}</strong></td>
-                                    <td>The time the notification was triggered.</td>
+                                    <td>The time (in time format) the notification was triggered.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1135,12 +1135,24 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td>The stream duration (in minutes) for the item.</td>
                                 </tr>
                                 <tr>
+                                    <td><strong>{stream_time}</strong></td>
+                                    <td>The stream duration (in time format) for the item.</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{remaining_duration}</strong></td>
                                     <td>The remaining duration (in minutes) for the item.</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>{progress}</strong></td>
+                                    <td><strong>{remaining_time}</strong></td>
+                                    <td>The remaining duration (in time format) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{progress_duration}</strong></td>
                                     <td>The last reported offset (in minutes) for the item.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{progress_time}</strong></td>
+                                    <td>The last reported offset (in time format) for the item.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{progress_percent}</strong></td>
@@ -1221,6 +1233,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{transcode_audio_channels}</strong></td>
                                     <td>The audio channels of the transcoded media.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{session_key}</strong></td>
+                                    <td>The unique identifier for the session.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{user_id}</strong></td>
@@ -1569,11 +1585,11 @@ $(document).ready(function() {
     });
 
     function verifyServer(_callback) {
-        var pms_ip = $("#pms_ip").val()
-        var pms_port = $("#pms_port").val()
-        var pms_identifier = $("#pms_identifier").val()
-        var pms_ssl = $("#pms_ssl").val()
-        var pms_is_remote = $("#pms_is_remote").val()
+        var pms_ip = $("#pms_ip").val();
+        var pms_port = $("#pms_port").val();
+        var pms_identifier = $("#pms_identifier").val();
+        var pms_ssl = $("#pms_ssl").is(':checked') ? 1 : 0;
+        var pms_is_remote = $("#pms_is_remote").is(':checked') ? 1 : 0;
         if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
             $("#pms-verify").html('<i class="fa fa-refresh fa-spin"></i>');
             $('#pms-verify').fadeIn('fast');
@@ -1582,15 +1598,16 @@ $(document).ready(function() {
                 data : { hostname: pms_ip, port: pms_port, identifier: pms_identifier, ssl: pms_ssl, remote: pms_is_remote },
                 cache: true,
                 async: true,
-                timeout: 5000,
+                timeout: 10000,
                 error: function(jqXHR, textStatus, errorThrown) {
                     $("#pms-verify").html('<i class="fa fa-close"></i>');
                     $('#pms-verify').fadeIn('fast');
                     $("#pms-ip-group").addClass("has-error");
                 },
-                success: function (xml) {
-                    if ($(xml).find('MediaContainer').attr('machineIdentifier')) {
-                        $("#pms_identifier").val($(xml).find('MediaContainer').attr('machineIdentifier'));
+                success: function (json) {
+                    var machine_identifier = json;
+                    if (machine_identifier) {
+                        $("#pms_identifier").val(machine_identifier);
                         $("#pms-verify").html('<i class="fa fa-check"></i>');
                         $('#pms-verify').fadeIn('fast');
                         $("#pms-ip-group").removeClass("has-error");

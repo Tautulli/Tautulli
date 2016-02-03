@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.3.5 (2016-02-02)
+
+* Fix: Removing unique constraints from database.
+* Fix: Unable to expand media info table when missing "Added At" date.
+* Fix: Server verification for unpublished servers.
+* Fix: Updating PMS identifier for server change.
+* Add: {stream_time}, {remaining_time}, and {progress_time} to notification options.
+* Add: Powershell script support. (Thanks @Hellowlol)
+* Add: Method to delete duplicate libraries.
+* Change: Daemonize before running start up tasks.
+
+
 ## v1.3.4 (2016-01-29)
 
 * Fix: Activity checker not starting with library update (history not logging).
@@ -8,10 +20,10 @@
 * Fix: Libraries and Users lists not refreshing.
 * Fix: Server verification in settings.
 * Fix: Empty libraries not added to database.
-* Add: Unique identifier to notification options.
-* Remove: Media type toggles for recently added notifications.
+* Add: Unique identifiers to notification options.
+* Remove: Requirement of media type toggles for recently added notifications.
 * Remove: Built in Twitter key and secret.
-* Remove: Unnecessary quoting of script arguments.
+* Change: Unnecessary quoting of script arguments.
 * Change: Facebook notification instructions.
 
 

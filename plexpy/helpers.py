@@ -135,6 +135,15 @@ def convert_seconds(s):
 
     return minutes
 
+def convert_seconds_to_minutes(s):
+
+    if str(s).isdigit():
+        minutes = round(float(s) / 60, 0)
+
+        return math.trunc(minutes)
+
+    return 0
+
 
 def today():
     today = datetime.date.today()

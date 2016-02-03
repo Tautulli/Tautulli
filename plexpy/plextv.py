@@ -383,7 +383,6 @@ class PlexTV(object):
             return []
 
         plextv_resources = self.get_plextv_resources(include_https=include_https)
-        server_urls = []
 
         try:
             xml_parse = minidom.parseString(plextv_resources)
@@ -400,36 +399,51 @@ class PlexTV(object):
             logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls: %s." % e)
             return []
 
+        # Function to get all connections for a device
+        def get_connections(device):
+            conn = []
+            connections = device.getElementsByTagName('Connection')
+
+            for c in connections:
+                server_details = {"protocol": helpers.get_xml_attr(c, 'protocol'),
+                                  "address": helpers.get_xml_attr(c, 'address'),
+                                  "port": helpers.get_xml_attr(c, 'port'),
+                                  "uri": helpers.get_xml_attr(c, 'uri'),
+                                  "local": helpers.get_xml_attr(c, 'local')
+                                  }
+                conn.append(server_details)
+
+            return conn
+
+        server_urls = []
+
+        # Try to match the device
         for a in xml_head:
             if helpers.get_xml_attr(a, 'clientIdentifier') == server_id:
-                connections = a.getElementsByTagName('Connection')
-                for connection in connections:
-                    server_details = {"protocol": helpers.get_xml_attr(connection, 'protocol'),
-                                      "address": helpers.get_xml_attr(connection, 'address'),
-                                      "port": helpers.get_xml_attr(connection, 'port'),
-                                      "uri": helpers.get_xml_attr(connection, 'uri'),
-                                      "local": helpers.get_xml_attr(connection, 'local')
-                                      }
+                server_urls = get_connections(a)
+                break
+                    
+        # Else no device match found
+        if not server_urls:
+            # Try to match the PMS_IP and PMS_PORT
+            for a in xml_head:
+                if helpers.get_xml_attr(a, 'provides') == 'server':
+                    connections = a.getElementsByTagName('Connection')
 
-                    server_urls.append(server_details)
-            # Else try to match the PMS_IP and PMS_PORT
-            else:
-                connections = a.getElementsByTagName('Connection')
-                for connection in connections:
-                    if helpers.get_xml_attr(connection, 'address') == plexpy.CONFIG.PMS_IP and \
-                        int(helpers.get_xml_attr(connection, 'port')) == plexpy.CONFIG.PMS_PORT:
+                    for connection in connections:
+                        if helpers.get_xml_attr(connection, 'address') == plexpy.CONFIG.PMS_IP and \
+                            int(helpers.get_xml_attr(connection, 'port')) == plexpy.CONFIG.PMS_PORT:
+    
+                            plexpy.CONFIG.PMS_IDENTIFIER = helpers.get_xml_attr(a, 'clientIdentifier')
+                            plexpy.CONFIG.write()
+    
+                            logger.info(u"PlexPy PlexTV :: PMS identifier changed from %s to %s." % \
+                                        (server_id, plexpy.CONFIG.PMS_IDENTIFIER))
+    
+                            server_urls = get_connections(a)
+                            break
 
-                        plexpy.CONFIG.PMS_IDENTIFIER = helpers.get_xml_attr(a, 'clientIdentifier')
-
-                        logger.info(u"PlexPy PlexTV :: PMS identifier changed from %s to %s." % \
-                                    (server_id, plexpy.CONFIG.PMS_IDENTIFIER))
-
-                        server_details = {"protocol": helpers.get_xml_attr(connection, 'protocol'),
-                                          "address": helpers.get_xml_attr(connection, 'address'),
-                                          "port": helpers.get_xml_attr(connection, 'port'),
-                                          "uri": helpers.get_xml_attr(connection, 'uri'),
-                                          "local": helpers.get_xml_attr(connection, 'local')
-                                          }
+                    if server_urls:
                         break
 
         return server_urls
