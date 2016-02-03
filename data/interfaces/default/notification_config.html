@@ -181,6 +181,10 @@ from plexpy import helpers
     });
     
     $('#facebookStep1').click(function () {
+        // Remove trailing '/' from Facebook redirect URI
+        if ($('#facebook_redirect_uri') && $('#facebook_redirect_uri').val().endsWith('/')) {
+            $('#facebook_redirect_uri').val($('#facebook_redirect_uri').val().slice(0, -1));
+        }
         doAjaxCall('set_notification_config', $(this), 'tabs', true);
         $.get('facebookStep1', function (data) { window.open(data); })
         .done(function () { showMsg('<i class="fa fa-check"></i> Confirm Authorization. Check pop-up blocker if no response.', false, true, 3000); });
