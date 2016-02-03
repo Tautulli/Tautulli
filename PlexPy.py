@@ -153,11 +153,11 @@ def main():
     # Put the database in the DATA_DIR
     plexpy.DB_FILE = os.path.join(plexpy.DATA_DIR, 'plexpy.db')
 
-    # Read config and start logging
-    plexpy.initialize(config_file)
-
     if plexpy.DAEMON:
         plexpy.daemonize()
+
+    # Read config and start logging
+    plexpy.initialize(config_file)
 
     # Force the http port if neccessary
     if args.port:
