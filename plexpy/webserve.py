@@ -492,7 +492,20 @@ class WebInterface(object):
                 cherrypy.response.headers['Content-type'] = 'application/json'
                 return json.dumps({'message': 'no data received'})
         else:
-            return  json.dumps({'message': 'Cannot refresh library while getting file sizes.'})
+            return json.dumps({'message': 'Cannot refresh library while getting file sizes.'})
+
+    @cherrypy.expose
+    def delete_duplicate_libraries(self):
+        library_data = libraries.Libraries()
+
+        result = library_data.delete_duplicate_libraries()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': result})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'Unable to delete duplicate libraries from the database.'})
 
     ##### Users #####
 
