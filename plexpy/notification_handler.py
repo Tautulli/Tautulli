@@ -560,9 +560,9 @@ def build_notify_text(session=None, timeline=None, state=None):
 
     if state == 'play':
         # Default body text
-        body_text = '%s (%s) is watching %s' % (session['friendly_name'],
-                                                session['player'],
-                                                full_title)
+        body_text = '%s (%s) started playing %s' % (session['friendly_name'],
+                                                    session['player'],
+                                                    full_title)
 
         if on_start_subject and on_start_body:
             try:
@@ -729,6 +729,10 @@ def build_notify_text(session=None, timeline=None, state=None):
 
 
 def build_server_notify_text(state=None):
+    # Get time formats
+    date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')
+    time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','')
+
     # Get the server name
     server_name = plexpy.CONFIG.PMS_NAME
 
@@ -753,11 +757,12 @@ def build_server_notify_text(state=None):
     on_intup_body = plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT
     script_args_text = plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT
 
-    available_params = {'server_name': server_name,
+    available_params = {# Global paramaters
+                        'server_name': server_name,
                         'server_uptime': server_uptime,
-                        'action': state,
-                        'datestamp': arrow.now().format(plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')),
-                        'timestamp': arrow.now().format(plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz',''))}
+                        'action': state.title(),
+                        'datestamp': arrow.now().format(date_format),
+                        'timestamp': arrow.now().format(time_format)}
 
     # Default text
     subject_text = 'PlexPy (%s)' % server_name
