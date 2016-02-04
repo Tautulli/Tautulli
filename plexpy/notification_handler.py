@@ -354,7 +354,7 @@ def build_notify_text(session=None, timeline=None, state=None):
 
     if server_times:
         updated_at = server_times[0]['updated_at']
-        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_float(updated_at)))
+        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
         server_uptime = 'N/A'
@@ -448,8 +448,8 @@ def build_notify_text(session=None, timeline=None, state=None):
     if state != 'play':
         stream_duration = helpers.convert_seconds_to_minutes(
                             time.time() - 
-                            helpers.cast_to_float(session.get('started', 0)) -
-                            helpers.cast_to_float(session.get('paused_counter', 0)))
+                            helpers.cast_to_int(session.get('started', 0)) -
+                            helpers.cast_to_int(session.get('paused_counter', 0)))
     else:
         stream_duration = 0
 
@@ -537,7 +537,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'summary': metadata['summary'],
                         'tagline': metadata['tagline'],
                         'rating': metadata['rating'],
-                        'duration': metadata['duration'],
+                        'duration': duration,
                         'section_id': metadata['section_id'],
                         'rating_key': metadata['rating_key'],
                         'parent_rating_key': metadata['parent_rating_key'],
@@ -742,7 +742,7 @@ def build_server_notify_text(state=None):
 
     if server_times:
         updated_at = server_times[0]['updated_at']
-        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_float(updated_at)))
+        server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
         server_uptime = 'N/A'

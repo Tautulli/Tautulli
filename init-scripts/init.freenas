@@ -38,7 +38,7 @@ status_cmd="${name}_status"
 stop_cmd="${name}_stop"
 
 command="/usr/sbin/daemon"
-command_args="-f -p ${plexpy_pid} python2 ${plexpy_dir}/PlexPy.py ${plexpy_flags} --quiet --nolaunch"
+command_args="python2 ${plexpy_dir}/PlexPy.py --daemon --pidfile ${plexpy_pid} --quiet --nolaunch"
 
 # Ensure user is root when running this script.
 if [ `id -u` != "0" ]; then
