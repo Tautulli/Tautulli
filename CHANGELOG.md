@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.3.6 (2016-02-03)
+
+* Fix: Regression where {duration} not reported in minutes.
+* Fix: Proper daemonizing in FreeBSD and FreeNAS init scripts.
+* Change: Update readme documentation.
+
+
 ## v1.3.5 (2016-02-02)
 
 * Fix: Removing unique constraints from database.
