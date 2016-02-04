@@ -512,6 +512,7 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'transcode_audio_channels': session.get('transcode_audio_channels',''),
                         'session_key': session.get('session_key',''),
                         'user_id': session.get('user_id',''),
+                        'machine_id': session.get('machine_id',''),
                         # Metadata parameters
                         'media_type': metadata['media_type'],
                         'title': full_title,
