@@ -14,7 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users, libraries
-from plexpy.helpers import checked, radio
+from plexpy.helpers import checked, radio, get_ip
 
 from mako.lookup import TemplateLookup
 from mako import exceptions
@@ -1402,22 +1402,34 @@ class WebInterface(object):
     def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, **kwargs):
         from plexpy import http_handler
 
-        # Grab our serverId.
-        # This endpoint always works over plain HTTP even when secure connections on PMS is set to required.
+        # Attempt to get the pms_identifier from plex.tv if the server is published
+        # Works for all PMS SSL settings
         if not identifier and hostname and port:
-            request_handler = http_handler.HTTPHandler(host=hostname,
-                                                       port=port,
-                                                       token=None)
-            uri = '/identity'
-            request = request_handler.make_request(uri=uri,
-                                                   proto='http',
-                                                   request_type='GET',
-                                                   output_format='xml',
-                                                   no_token=True,
-                                                   timeout=10)
-            if request:
-                xml_head = request.getElementsByTagName('MediaContainer')[0]
-                identifier = xml_head.getAttribute('machineIdentifier')
+            plex_tv = plextv.PlexTV()
+            servers = plex_tv.discover()
+            ip_address = get_ip(hostname)
+
+            for server in servers:
+                if (server['ip'] == hostname or server['ip'] == ip_address) and server['port'] == port:
+                    identifier = server['clientIdentifier']
+                    break
+
+            # Fallback to checking /identity endpoint is server is unpublished
+            # Cannot set SSL settings on the PMS if unpublished so 'http' is okay
+            if not identifier:
+                request_handler = http_handler.HTTPHandler(host=hostname,
+                                                           port=port,
+                                                           token=None)
+                uri = '/identity'
+                request = request_handler.make_request(uri=uri,
+                                                       proto='http',
+                                                       request_type='GET',
+                                                       output_format='xml',
+                                                       no_token=True,
+                                                       timeout=10)
+                if request:
+                    xml_head = request.getElementsByTagName('MediaContainer')[0]
+                    identifier = xml_head.getAttribute('machineIdentifier')
 
         if identifier:
             cherrypy.response.headers['Content-type'] = 'application/json'

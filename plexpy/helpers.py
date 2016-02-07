@@ -15,6 +15,7 @@
 
 from operator import itemgetter
 from xml.dom import minidom
+from IPy import IP
 
 import unicodedata
 import plexpy
@@ -28,7 +29,7 @@ import os
 import json
 import xmltodict
 import math
-
+import socket
 
 def multikeysort(items, columns):
     comparers = [((itemgetter(col[1:].strip()), -1) if col.startswith('-') else (itemgetter(col.strip()), 1)) for col in columns]
@@ -456,3 +457,26 @@ def sanitize(string):
         return unicode(string).replace('<','&lt;').replace('>','&gt;')
     else:
         return ''
+
+def is_ip_public(host):
+    ip_address = get_ip(host)
+    ip = IP(ip_address)
+    if ip.iptype() == 'PUBLIC':
+        return True
+
+    return False
+
+def get_ip(host):
+    from plexpy import logger
+    ip_address = ''
+    try:
+        socket.inet_aton(host)
+        ip_address = host
+    except socket.error:
+        try:
+            ip_address = socket.gethostbyname(host)
+            logger.debug(u"IP Checker :: Resolved %s to %s." % (host, ip_address))
+        except:
+            logger.error(u"IP Checker :: Bad IP or hostname provided.")
+
+    return ip_address
