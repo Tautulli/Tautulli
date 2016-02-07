@@ -171,10 +171,10 @@ DOCUMENTATION :: END
                     % endif
                         % if data['media_type'] == 'movie' or data['media_type'] == 'episode' or data['media_type'] == 'track':
                         <div class="summary-content-media-info-wrapper">
-                            % if data['video_codec']:
+                            % if data['media_type'] != 'track' and data['video_codec']:
                             <img class="summary-content-media-flag" title="${data['video_codec']}" src="interfaces/default/images/media_flags/video_codec/${data['video_codec'] | vf}.png" />
                             % endif
-                            % if data['video_resolution']:
+                            % if data['media_type'] != 'track' and data['video_resolution']:
                             <img class="summary-content-media-flag" title="${data['video_resolution']}" src="interfaces/default/images/media_flags/video_resolution/${data['video_resolution']}.png" />
                             % endif
                             % if data['audio_codec']:
