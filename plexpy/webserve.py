@@ -1192,6 +1192,11 @@ class WebInterface(object):
             (kwargs['pms_ssl'] != plexpy.CONFIG.PMS_SSL):
             server_changed = True
 
+        # If we change the PMS remote setting, make sure we grab the new url.
+        if 'pms_is_remote' in kwargs and \
+            (kwargs['pms_is_remote'] != plexpy.CONFIG.PMS_IS_REMOTE):
+            server_changed = True
+
         # Remove config with 'hscard-' prefix and change home_stats_cards to list
         if 'home_stats_cards' in kwargs:
             for k in kwargs.keys():
