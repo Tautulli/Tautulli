@@ -86,7 +86,7 @@ def get_real_pms_url():
                         plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
                         plexpy.CONFIG.write()
                         logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
-                if not plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '1':
+                if not plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '1' and 'plex.direct' in item['uri']:
                         plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
                         plexpy.CONFIG.write()
                         logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
