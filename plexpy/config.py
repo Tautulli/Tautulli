@@ -25,7 +25,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_NAME': (unicode, 'PMS', ''),
     'PMS_PORT': (int, 'PMS', 32400),
     'PMS_TOKEN': (str, 'PMS', ''),
-    'PMS_SSL': (int, 'General', 0),
+    'PMS_SSL': (int, 'PMS', 0),
     'PMS_URL': (str, 'PMS', ''),
     'PMS_USE_BIF': (int, 'PMS', 0),
     'PMS_UUID': (str, 'PMS', ''),

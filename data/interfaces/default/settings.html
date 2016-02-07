@@ -355,9 +355,9 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Force SSL
+                                <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Use SSL
                             </label>
-                            <p class="help-block">Force PlexPy to connect to your Plex Server via SSL. Your server needs to have remote access enabled.</p>
+                            <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
                         </div>
 
                         <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">

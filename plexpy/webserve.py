@@ -1187,6 +1187,11 @@ class WebInterface(object):
             (kwargs['monitor_remote_access'] != plexpy.CONFIG.MONITOR_REMOTE_ACCESS):
             reschedule = True
 
+        # If we change the SSL setting for PMS, make sure we grab the new url.
+        if 'pms_ssl' in kwargs and \
+            (kwargs['pms_ssl'] != plexpy.CONFIG.PMS_SSL):
+            server_changed = True
+
         # Remove config with 'hscard-' prefix and change home_stats_cards to list
         if 'home_stats_cards' in kwargs:
             for k in kwargs.keys():
@@ -1397,33 +1402,22 @@ class WebInterface(object):
     def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, **kwargs):
         from plexpy import http_handler
 
-        # Attempt to get the pms_identifier from plex.tv if the server is published
-        # Works for all PMS SSL settings
+        # Grab our serverId.
+        # This endpoint always works over plain HTTP even when secure connections on PMS is set to required.
         if not identifier and hostname and port:
-            plex_tv = plextv.PlexTV()
-            servers = plex_tv.discover()
-
-            for server in servers:
-                if server['ip'] == hostname and server['port'] == port:
-                    identifier = server['clientIdentifier']
-                    break
-
-            # Fallback to checking /identity endpoint is server is unpublished
-            # Cannot set SSL settings on the PMS if unpublished so 'http' is okay
-            if not identifier:
-                request_handler = http_handler.HTTPHandler(host=hostname,
-                                                           port=port,
-                                                           token=None)
-                uri = '/identity'
-                request = request_handler.make_request(uri=uri,
-                                                       proto='http',
-                                                       request_type='GET',
-                                                       output_format='xml',
-                                                       no_token=True,
-                                                       timeout=10)
-                if request:
-                    xml_head = request.getElementsByTagName('MediaContainer')[0]
-                    identifier = xml_head.getAttribute('machineIdentifier')
+            request_handler = http_handler.HTTPHandler(host=hostname,
+                                                       port=port,
+                                                       token=None)
+            uri = '/identity'
+            request = request_handler.make_request(uri=uri,
+                                                   proto='http',
+                                                   request_type='GET',
+                                                   output_format='xml',
+                                                   no_token=True,
+                                                   timeout=10)
+            if request:
+                xml_head = request.getElementsByTagName('MediaContainer')[0]
+                identifier = xml_head.getAttribute('machineIdentifier')
 
         if identifier:
             cherrypy.response.headers['Content-type'] = 'application/json'
