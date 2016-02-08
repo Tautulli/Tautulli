@@ -86,7 +86,7 @@ def get_real_pms_url():
                         plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
                         plexpy.CONFIG.write()
                         logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
-                if not plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '1':
+                if not plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '1' and 'plex.direct' in item['uri']:
                         plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
                         plexpy.CONFIG.write()
                         logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
@@ -493,6 +493,16 @@ class PlexTV(object):
                         connections = d.getElementsByTagName('Connection')
 
                         for c in connections:
+                            # If this is a remote server don't show any local IPs.
+                            if helpers.get_xml_attr(d, 'publicAddressMatches') == '0' and \
+                                helpers.get_xml_attr(c, 'local') == '1':
+                                continue
+
+                            # If this is a local server don't show any remote IPs.
+                            if helpers.get_xml_attr(d, 'publicAddressMatches') == '1' and \
+                                helpers.get_xml_attr(c, 'local') == '0':
+                                continue
+
                             server = {'httpsRequired': helpers.get_xml_attr(d, 'httpsRequired'),
                                       'clientIdentifier': helpers.get_xml_attr(d, 'clientIdentifier'),
                                       'label': helpers.get_xml_attr(d, 'name'),

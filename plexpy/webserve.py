@@ -14,7 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users, libraries
-from plexpy.helpers import checked, radio
+from plexpy.helpers import checked, radio, get_ip
 
 from mako.lookup import TemplateLookup
 from mako import exceptions
@@ -1187,6 +1187,16 @@ class WebInterface(object):
             (kwargs['monitor_remote_access'] != plexpy.CONFIG.MONITOR_REMOTE_ACCESS):
             reschedule = True
 
+        # If we change the SSL setting for PMS, make sure we grab the new url.
+        if 'pms_ssl' in kwargs and \
+            (kwargs['pms_ssl'] != plexpy.CONFIG.PMS_SSL):
+            server_changed = True
+
+        # If we change the PMS remote setting, make sure we grab the new url.
+        if 'pms_is_remote' in kwargs and \
+            (kwargs['pms_is_remote'] != plexpy.CONFIG.PMS_IS_REMOTE):
+            server_changed = True
+
         # Remove config with 'hscard-' prefix and change home_stats_cards to list
         if 'home_stats_cards' in kwargs:
             for k in kwargs.keys():
@@ -1402,9 +1412,10 @@ class WebInterface(object):
         if not identifier and hostname and port:
             plex_tv = plextv.PlexTV()
             servers = plex_tv.discover()
+            ip_address = get_ip(hostname)
 
             for server in servers:
-                if server['ip'] == hostname and server['port'] == port:
+                if (server['ip'] == hostname or server['ip'] == ip_address) and server['port'] == port:
                     identifier = server['clientIdentifier']
                     break
 

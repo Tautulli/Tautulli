@@ -355,9 +355,9 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Force SSL
+                                <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Use SSL
                             </label>
-                            <p class="help-block">Force PlexPy to connect to your Plex Server via SSL. Your server needs to have remote access enabled.</p>
+                            <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
                         </div>
 
                         <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
@@ -490,7 +490,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) [experimental]
                             </label>
                             <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens.<br />
-                            This is currently experimental. Encrypted websocket is not currently supported.</p>
+                            This is currently experimental.</p>
                         </div>
                         <div class="checkbox">
                             <label>
