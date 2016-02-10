@@ -61,7 +61,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <p class="help-block">If you have Git installed, allow periodic checks for updates.</p>
                         </div>
                         % if plexpy.CURRENT_VERSION:
-                        <p class="help-block">Git hash: ${plexpy.CURRENT_VERSION}</p>
+                        <p class="help-block">Git hash: ${plexpy.CURRENT_VERSION}</br>Git branch: ${plexpy.CONFIG.GIT_BRANCH}</p>
                         % endif
                         <div class="padded-header">
                             <h3>Display Settings</h3>
@@ -1363,7 +1363,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{rating_key}</strong></td>
-                                    <td>The unique identifier for the item.</td>
+                                    <td>The unique identifier for the item (Episode).</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{parent_rating_key}</strong></td>
