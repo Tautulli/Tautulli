@@ -1128,7 +1128,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{ip_address}</strong></td>
-                                    <td>The IP address of the device being used for playback. (PMS 0.9.14 and above)</td>
+                                    <td>The IP address of the device being used for playback. <span class="small-muted">(PMS 0.9.14 and above)</span></td>
                                 </tr>
                                 <tr>
                                     <td><strong>{stream_duration}</strong></td>
@@ -1291,7 +1291,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{season_num}</strong></td>
-                                    <td>The season number for the item if item is episode.</td>
+                                    <td>The season number for the episode.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{season_num00}</strong></td>
@@ -1299,7 +1299,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{episode_num}</strong></td>
-                                    <td>The episode number for the item if item is episode.</td>
+                                    <td>The episode number for the episode.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{episode_num00}</strong></td>
@@ -1307,7 +1307,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{track_num}</strong></td>
-                                    <td>The track number for the item if item is track.</td>
+                                    <td>The track number for the track.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{track_num00}</strong></td>
@@ -1323,7 +1323,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{content_rating}</strong></td>
-                                    <td>The content rating for the item. (e.g. TV-MA, TV-PG, etc.)</td>
+                                    <td>The content rating for the item. <span class="small-muted">(e.g. TV-MA, TV-PG, etc.)</span></td>
                                 </tr>
                                 <tr>
                                     <td><strong>{directors}</strong></td>
@@ -1358,20 +1358,59 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td>The duration (in minutes) for the item.</td>
                                 </tr>
                                 <tr>
+                                    <td><strong>{imdb_id}</strong></td>
+                                    <td>The IMDB ID for the movie. <span class="small-muted">(e.g. tt2488496)</span>
+                                    <p class="small-muted">(PMS agent must be Freebase)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{imdb_url}</strong></td>
+                                    <td>The IMDB URL for the movie.
+                                    <p class="small-muted">(PMS agent must be Freebase)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{thetvdb_id}</strong></td>
+                                    <td>The TVDB ID for the TV show. <span class="small-muted">(e.g. 121361)</span>
+                                    <p class="small-muted">(PMS agent must be TheTVDB)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{thetvdb_url}</strong></td>
+                                    <td>The TVDB URL for the TV show.
+                                    <p class="small-muted">(PMS agent must be TheTVDB)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{themoviedb_id}</strong></td>
+                                    <td>The TMDb ID for the movie or TV show. <span class="small-muted">(e.g. 15260)</span>
+                                    <p class="small-muted">(PMS agent must be The Movie Database)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{themoviedb_url}</strong></td>
+                                    <td>The TMDb URL for the movie or TV show.
+                                    <p class="small-muted">(PMS agent must be The Movie Database)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{lastfm_url}</strong></td>
+                                    <td>The last.fm URL for the album.
+                                    <p class="small-muted">(PMS agent must be Last.fm)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{trakt_url}</strong></td>
+                                    <td>The trakt.tv URL for the movie or TV show.</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{section_id}</strong></td>
                                     <td>The unique identifier for the library.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{rating_key}</strong></td>
-                                    <td>The unique identifier for the item.</td>
+                                    <td>The unique identifier for the movie, episode, or track.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{parent_rating_key}</strong></td>
-                                    <td>The unique identifier for the item's parent (season or album).</td>
+                                    <td>The unique identifier for the season or album.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{grandparent_rating_key}</strong></td>
-                                    <td>The unique identifier for the item's grandparent (TV show or artist).</td>
+                                    <td>The unique identifier for the TV show or artist.</td>
                                 </tr>
                             </tbody>
                         </table>

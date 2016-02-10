@@ -457,6 +457,37 @@ def build_notify_text(session=None, timeline=None, state=None):
     progress_percent = helpers.get_percent(view_offset, duration)
     remaining_duration = duration - view_offset
 
+    # Get media IDs from guid and build URLs
+    if 'imdb://' in metadata['guid']:
+        metadata['imdb_id'] = metadata['guid'].split('imdb://')[1].split('?')[0]
+        metadata['imdb_url'] = 'https://www.imdb.com/title/' + metadata['imdb_id']
+        metadata['trakt_url'] = 'https://trakt.tv/search/imdb/' + metadata['imdb_id']
+
+    if 'thetvdb://' in metadata['guid']:
+        metadata['thetvdb_id'] = metadata['guid'].split('thetvdb://')[1].split('/')[0]
+        metadata['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + metadata['thetvdb_id']
+        metadata['trakt_url'] = 'https://trakt.tv/search/tvdb/' + metadata['thetvdb_id'] + '?id_type=show'
+
+    elif 'thetvdbdvdorder://' in metadata['guid']:
+        metadata['thetvdb_id'] = metadata['guid'].split('thetvdbdvdorder://')[1].split('/')[0]
+        metadata['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + metadata['thetvdb_id']
+        metadata['trakt_url'] = 'https://trakt.tv/search/tvdb/' + metadata['thetvdb_id'] + '?id_type=show'
+
+    if 'themoviedb://' in metadata['guid']:
+        if metadata['media_type'] == 'movie':
+            metadata['themoviedb_id'] = metadata['guid'].split('themoviedb://')[1].split('?')[0]
+            metadata['themoviedb_url'] = 'https://www.themoviedb.org/movie/' + metadata['themoviedb_id']
+            metadata['trakt_url'] = 'https://trakt.tv/search/tmdb/' + metadata['themoviedb_id'] + '?id_type=movie'
+
+        elif metadata['media_type'] == 'show' or metadata['media_type'] == 'episode':
+            metadata['themoviedb_id'] = metadata['guid'].split('themoviedb://')[1].split('/')[0]
+            metadata['themoviedb_url'] = 'https://www.themoviedb.org/tv/' + metadata['themoviedb_id']
+            metadata['trakt_url'] = 'https://trakt.tv/search/tmdb/' + metadata['themoviedb_id'] + '?id_type=show'
+
+    if 'lastfm://' in metadata['guid']:
+        metadata['lastfm_id'] = metadata['guid'].split('lastfm://')[1].rsplit('/', 1)[0]
+        metadata['lastfm_url'] = 'https://www.last.fm/music/' + metadata['lastfm_id']
+
     # Fix metadata params for notify recently added grandparent
     if state == 'created' and plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
         show_name = metadata['title']
@@ -538,6 +569,14 @@ def build_notify_text(session=None, timeline=None, state=None):
                         'tagline': metadata['tagline'],
                         'rating': metadata['rating'],
                         'duration': duration,
+                        'imdb_id': metadata.get('imdb_id',''),
+                        'imdb_url': metadata.get('imdb_url',''),
+                        'thetvdb_id': metadata.get('thetvdb_id',''),
+                        'thetvdb_url': metadata.get('thetvdb_url',''),
+                        'themoviedb_id': metadata.get('themoviedb_id',''),
+                        'themoviedb_url': metadata.get('themoviedb_url',''),
+                        'lastfm_url': metadata.get('lastfm_url',''),
+                        'trakt_url': metadata.get('trakt_url',''),
                         'section_id': metadata['section_id'],
                         'rating_key': metadata['rating_key'],
                         'parent_rating_key': metadata['parent_rating_key'],
