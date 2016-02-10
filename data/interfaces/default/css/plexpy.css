@@ -2180,6 +2180,10 @@ a .home-platforms-instance-list-oval:hover,
 .refresh-libraries-button {
     float: right;
 }
+.refresh-users-button,
+.refresh-libraries-button {
+    margin-right: 5px;
+}
 .nav-settings,
 .nav-settings ul {
     margin: 0px 0px 20px 0px;

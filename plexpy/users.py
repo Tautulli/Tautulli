@@ -32,6 +32,9 @@ class Users(object):
                    'users.thumb AS user_thumb',
                    'users.custom_avatar_url AS custom_thumb',
                    'COUNT(session_history.id) AS plays',
+                   'SUM(CASE WHEN session_history.stopped > 0 THEN (session_history.stopped - session_history.started) \
+                    ELSE 0 END) - SUM(CASE WHEN session_history.paused_counter IS NULL THEN 0 ELSE \
+                    session_history.paused_counter END) AS duration',
                    'MAX(session_history.started) AS last_seen',
                    'MAX(session_history.id) AS id',
                    'session_history_metadata.full_title AS last_played',
@@ -100,6 +103,7 @@ class Users(object):
                    'friendly_name': item['friendly_name'],
                    'user_thumb': user_thumb,
                    'plays': item['plays'],
+                   'duration': item['duration'],
                    'last_seen': item['last_seen'],
                    'last_played': item['last_played'],
                    'id': item['id'],

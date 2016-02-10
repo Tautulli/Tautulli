@@ -133,6 +133,9 @@ class Libraries(object):
                    'library_sections.custom_thumb_url AS custom_thumb',
                    'library_sections.art',
                    'COUNT(session_history.id) AS plays',
+                   'SUM(CASE WHEN session_history.stopped > 0 THEN (session_history.stopped - session_history.started) \
+                    ELSE 0 END) - SUM(CASE WHEN session_history.paused_counter IS NULL THEN 0 ELSE \
+                    session_history.paused_counter END) AS duration',
                    'MAX(session_history.started) AS last_accessed',
                    'MAX(session_history.id) AS id',
                    'session_history_metadata.full_title AS last_played',
@@ -200,6 +203,7 @@ class Libraries(object):
                    'library_thumb': library_thumb,
                    'library_art': item['art'],
                    'plays': item['plays'],
+                   'duration': item['duration'],
                    'last_accessed': item['last_accessed'],
                    'id': item['id'],
                    'last_played': item['last_played'],

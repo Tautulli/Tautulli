@@ -2,6 +2,7 @@
 
 <%def name="headIncludes()">
 <link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
 <link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
 </%def>
 
@@ -23,6 +24,7 @@
             <span><i class="fa fa-book"></i> All Libraries</span>
         </div>
         <div class="button-bar">
+            <div class="colvis-button-bar hidden-xs"></div>
             % if config['update_section_ids'] == -1:
             <button class="btn btn-dark refresh-libraries-button" id="refresh-libraries-list" disabled><i class="fa fa-refresh"></i> Refresh libraries</button>
             % else:
@@ -48,6 +50,7 @@
                 <th align="left" id="last_accessed">Last Accessed</th>
                 <th align="left" id="last_played">Last Played</th>
                 <th align="left" id="total_plays">Total Plays</th>
+                <th align="left" id="total_duration">Total Duration</th>
             </tr>
             </thead>
             <tbody>
@@ -79,6 +82,7 @@
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.colVis.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
@@ -96,6 +100,8 @@
         }
 
         libraries_list_table = $('#libraries_list_table').DataTable(libraries_list_table_options);
+        var colvis = new $.fn.dataTable.ColVis(libraries_list_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 1] });
+        $(colvis.button()).appendTo('div.colvis-button-bar');
 
         clearSearchButton('libraries_list_table', libraries_list_table);
 

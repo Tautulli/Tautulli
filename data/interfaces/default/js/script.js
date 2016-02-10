@@ -252,19 +252,38 @@ function isPrivateIP(ip_address) {
 
 function humanTime(seconds) {
     if (seconds >= 86400) {
-        text = '<h3>' + Math.floor(moment.duration(seconds, 'seconds').asDays()) +
-                '</h3><p> days </p><h3>' +  Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) +
-                '</h3><p> hrs</p><h3>'  +  Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
+        text = '<h3>' + Math.floor(moment.duration(seconds, 'seconds').asDays()) + '</h3><p> days</p>' +
+               '<h3>' + Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) + '</h3><p> hrs</p>' +
+               '<h3>' + Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
         return text;
     } else if (seconds >= 3600) {
-        text = '<h3>' + Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) +
-                '</h3><p>hrs</p><h3>' +  Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
+        text = '<h3>' + Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) + '</h3><p> hrs</p>' +
+               '<h3>' + Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
         return text;
     } else if (seconds >= 60) {
         text = '<h3>' + Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
         return text;
     } else {
         text = '<h3>0</h3><p> mins</p>';
+        return text;
+    }
+}
+
+function humanTimeClean(seconds) {
+    if (seconds >= 86400) {
+        text = Math.floor(moment.duration(seconds, 'seconds').asDays()) + ' days ' +
+               Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) + ' hrs ' +
+               Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + ' mins';
+        return text;
+    } else if (seconds >= 3600) {
+        text = Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) + ' hrs ' +
+               Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + ' mins';
+        return text;
+    } else if (seconds >= 60) {
+        text = Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + ' mins';
+        return text;
+    } else {
+        text = '0';
         return text;
     }
 }
