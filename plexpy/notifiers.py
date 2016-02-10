@@ -1169,12 +1169,16 @@ class TwitterNotifier(object):
         self.access_token_secret = plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET
         self.consumer_key = plexpy.CONFIG.TWITTER_CONSUMER_KEY
         self.consumer_secret = plexpy.CONFIG.TWITTER_CONSUMER_SECRET
+        self.incl_subject = plexpy.CONFIG.TWITTER_INCL_SUBJECT
 
     def notify(self, subject, message):
         if not subject or not message:
             return
         else:
-            self._send_tweet(subject + ': ' + message)
+            if self.incl_subject:
+                self._send_tweet(subject + ': ' + message)
+            else:
+                self._send_tweet(message)
 
     def test_notify(self):
         return self._send_tweet("This is a test notification from PlexPy at " + helpers.now())
@@ -1284,6 +1288,12 @@ class TwitterNotifier(object):
                           'name': 'twitter_access_token_secret',
                           'description': 'Your Twitter access token secret.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'twitter_incl_subject',
+                          'description': 'Include the subject line in the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 
@@ -1628,6 +1638,7 @@ class TELEGRAM(object):
         self.enabled = plexpy.CONFIG.TELEGRAM_ENABLED
         self.bot_token = plexpy.CONFIG.TELEGRAM_BOT_TOKEN
         self.chat_id = plexpy.CONFIG.TELEGRAM_CHAT_ID
+        self.incl_subject = plexpy.CONFIG.TELEGRAM_INCL_SUBJECT
 
     def conf(self, options):
         return cherrypy.config['config'].get('Telegram', options)
@@ -1638,8 +1649,13 @@ class TELEGRAM(object):
 
         http_handler = HTTPSConnection("api.telegram.org")
 
+        if self.incl_subject:
+            text = event.encode('utf-8') + ': ' + message.encode("utf-8")
+        else:
+            text = message.encode("utf-8")
+
         data = {'chat_id': self.chat_id,
-                'text': event.encode('utf-8') + ': ' + message.encode("utf-8")}
+                'text': text}
 
         http_handler.request("POST",
                                 "/bot%s/%s" % (self.bot_token, "sendMessage"),
@@ -1682,6 +1698,12 @@ class TELEGRAM(object):
                           'name': 'telegram_chat_id',
                           'description': 'Your Telegram Chat ID, Group ID, or @channelusername. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'telegram_incl_subject',
+                          'description': 'Include the subject line in the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 
@@ -1698,6 +1720,7 @@ class SLACK(object):
         self.channel = plexpy.CONFIG.SLACK_CHANNEL
         self.username = plexpy.CONFIG.SLACK_USERNAME
         self.icon_emoji = plexpy.CONFIG.SLACK_ICON_EMOJI
+        self.incl_subject = plexpy.CONFIG.SLACK_INCL_SUBJECT
 
     def conf(self, options):
         return cherrypy.config['config'].get('Slack', options)
@@ -1707,7 +1730,12 @@ class SLACK(object):
             return
         http_handler = HTTPSConnection("hooks.slack.com")
 
-        data = {'text': event.encode('utf-8') + ': ' + message.encode("utf-8")}
+        if self.incl_subject:
+            text = event.encode('utf-8') + ': ' + message.encode("utf-8")
+        else:
+            text = message.encode("utf-8")
+
+        data = {'text': text}
         if self.channel != '': data['channel'] = self.channel
         if self.username != '': data['username'] = self.username
         if self.icon_emoji != '':
@@ -1745,10 +1773,10 @@ class SLACK(object):
         return self.notify('Main Screen Activate', 'Test Message')
 
     def return_config_options(self):
-        config_option = [{'label': 'Slack Hook',
+        config_option = [{'label': 'Slack Webhook URL',
                           'value': self.slack_hook,
                           'name': 'slack_hook',
-                          'description': 'Your Slack incoming webhook.',
+                          'description': 'Your Slack incoming webhook URL.',
                           'input_type': 'text'
                           },
                          {'label': 'Slack Channel',
@@ -1768,6 +1796,12 @@ class SLACK(object):
                            'description': 'The icon you wish to show, use Slack emoji or image url. Leave blank for webhook integration default.',
                            'name': 'slack_icon_emoji',
                            'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'slack_incl_subject',
+                          'description': 'Include the subject line in the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 
@@ -2038,12 +2072,16 @@ class FacebookNotifier(object):
         self.app_id = plexpy.CONFIG.FACEBOOK_APP_ID
         self.app_secret = plexpy.CONFIG.FACEBOOK_APP_SECRET
         self.group_id = plexpy.CONFIG.FACEBOOK_GROUP
+        self.incl_subject = plexpy.CONFIG.FACEBOOK_INCL_SUBJECT
 
     def notify(self, subject, message):
         if not subject or not message:
             return
         else:
-            self._post_facebook(subject + ': ' + message)
+            if self.incl_subject:
+                self._post_facebook(subject + ': ' + message)
+            else:
+                self._post_facebook(message)
 
     def test_notify(self):
         return self._post_facebook(u"PlexPy Notifiers :: This is a test notification from PlexPy at " + helpers.now())
@@ -2143,6 +2181,12 @@ class FacebookNotifier(object):
                           'name': 'facebook_group',
                           'description': 'Your Facebook Group ID.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'facebook_incl_subject',
+                          'description': 'Include the subject line in the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 
