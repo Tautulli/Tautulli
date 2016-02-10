@@ -446,10 +446,9 @@ def build_notify_text(session=None, timeline=None, state=None):
         transcode_decision = 'Direct Play'
     
     if state != 'play':
-        stream_duration = helpers.convert_seconds_to_minutes(
-                            time.time() - 
-                            helpers.cast_to_int(session.get('started', 0)) -
-                            helpers.cast_to_int(session.get('paused_counter', 0)))
+        stream_duration = int((time.time() -
+                               helpers.cast_to_int(session.get('started', 0)) -
+                               helpers.cast_to_int(session.get('paused_counter', 0))) / 60)
     else:
         stream_duration = 0
 
