@@ -348,24 +348,28 @@ def create_https_certificates(ssl_cert, ssl_key):
     """
 
     from plexpy import logger
-
     from OpenSSL import crypto
-    from certgen import createKeyPair, createCertRequest, createCertificate, \
-        TYPE_RSA, serial
+    import time
 
-    # Create the CA Certificate
-    cakey = createKeyPair(TYPE_RSA, 2048)
-    careq = createCertRequest(cakey, CN="Certificate Authority")
-    cacert = createCertificate(careq, (careq, cakey), serial, (0, 60 * 60 * 24 * 365 * 10)) # ten years
-
-    pkey = createKeyPair(TYPE_RSA, 2048)
-    req = createCertRequest(pkey, CN="PlexPy")
-    cert = createCertificate(req, (cacert, cakey), serial, (0, 60 * 60 * 24 * 365 * 10)) # ten years
+    # Create self-signed Certificate
+    key = crypto.PKey()
+    key.generate_key(crypto.TYPE_RSA, 2048)
+    
+    cert = crypto.X509()
+    cert.set_version(2)
+    cert.set_serial_number(int(time.time()))
+    cert.get_subject().CN = "PlexPy"
+    cert.gmtime_adj_notBefore(0)
+    cert.gmtime_adj_notAfter(60 * 60 * 24 * 365 * 10)
+    cert.set_issuer(cert.get_subject())
+    cert.set_pubkey(key)
+    cert.add_extensions([crypto.X509Extension("subjectAltName", False, "DNS:plex.myserver.com,IP:10.11.12.13")])
+    cert.sign(key, "sha256")
 
     # Save the key and certificate to disk
     try:
         with open(ssl_key, "w") as fp:
-            fp.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey))
+            fp.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
         with open(ssl_cert, "w") as fp:
             fp.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
     except IOError as e:
