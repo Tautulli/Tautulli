@@ -13,19 +13,23 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger
-
-import sqlite3
 import os
-import plexpy
-import time
+import sqlite3
+import shutil
 import threading
+import time
+
+import logger
+import plexpy
+
 
 db_lock = threading.Lock()
+
 
 def drop_session_db():
     monitor_db = MonitorDatabase()
     monitor_db.action('DROP TABLE sessions')
+
 
 def clear_history_tables():
     logger.debug(u"PlexPy Database :: Deleting all session_history records... No turning back now bub.")
@@ -35,9 +39,48 @@ def clear_history_tables():
     monitor_db.action('DELETE FROM session_history_metadata')
     monitor_db.action('VACUUM;')
 
+
 def db_filename(filename="plexpy.db"):
+    """ Returns the filepath to the db """
 
     return os.path.join(plexpy.DATA_DIR, filename)
+
+
+def make_backup(cleanup=False):
+    """ Makes a backup of db, removes all but the last 3 backups """
+
+    backupfolder = plexpy.BACKUP_DIR
+    backup_file = 'plexpy.backup-%s.db' % int(time.time())
+    backup_file_fp = os.path.join(backupfolder, backup_file)
+
+    # In case the user has deleted it manually
+    if not os.path.exists(backupfolder):
+        os.makedirs(backupfolder)
+
+    db = MonitorDatabase()
+    db.connection.execute('begin immediate')
+    shutil.copyfile(db_filename(), backup_file_fp)
+    db.connection.rollback()
+
+    if cleanup:
+        # Delete all backup files except from the last 3.
+        for root, dirs, files in os.walk(backupfolder):
+            if len(files) > 3:
+                all_files = [os.path.join(root, f) for f in files]
+                backups_sorted_on_age = sorted(all_files, key=os.path.getctime, reverse=True)
+                for file_ in backups_sorted_on_age[3:]:
+                    try:
+                        os.remove(file_)
+                    except OSError as e:
+                        logger.error('Failed to delete %s from the backup folder %s' % (file_, e))
+
+    if backup_file in os.listdir(backupfolder):
+        logger.debug('Successfully backup of the %s to %s in %s' % (db_filename(), backup_file, backupfolder))
+        return True
+    else:
+        logger.debug('Failed to make backup of %s to %s in %s' % (db_filename(), backup_file, backupfolder))
+        return False
+
 
 def get_cache_size():
     # This will protect against typecasting problems produced by empty string and None settings
@@ -45,6 +88,7 @@ def get_cache_size():
         # sqlite will work with this (very slowly)
         return 0
     return int(plexpy.CONFIG.CACHE_SIZEMB)
+
 
 def dict_factory(cursor, row):
     d = {}

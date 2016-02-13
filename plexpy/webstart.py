@@ -15,12 +15,13 @@
 
 import os
 import sys
-import cherrypy
-import plexpy
 
+import cherrypy
 from plexpy import logger
-from plexpy.webserve import WebInterface
+import plexpy
 from plexpy.helpers import create_https_certificates
+from plexpy.webserve import WebInterface
+
 
 
 def initialize(options):
@@ -35,13 +36,11 @@ def initialize(options):
         # self-signed ones.
         if not (https_cert and os.path.exists(https_cert)) or not (https_key and os.path.exists(https_key)):
             if not create_https_certificates(https_cert, https_key):
-                logger.warn("Unable to create certificate and key. Disabling " \
-                    "HTTPS")
+                logger.warn("Unable to create certificate and key. Disabling HTTPS")
                 enable_https = False
 
         if not (os.path.exists(https_cert) and os.path.exists(https_key)):
-            logger.warn("Disabled HTTPS because of missing certificate and " \
-                "key.")
+            logger.warn("Disabled HTTPS because of missing certificate and key.")
             enable_https = False
 
     options_dict = {
@@ -63,13 +62,17 @@ def initialize(options):
         protocol = "http"
 
     logger.info("Starting PlexPy web server on %s://%s:%d/", protocol,
-        options['http_host'], options['http_port'])
+                options['http_host'], options['http_port'])
     cherrypy.config.update(options_dict)
 
     conf = {
         '/': {
             'tools.staticdir.root': os.path.join(plexpy.PROG_DIR, 'data'),
-            'tools.proxy.on': options['http_proxy']  # pay attention to X-Forwarded-Proto header
+            'tools.proxy.on': options['http_proxy'],  # pay attention to X-Forwarded-Proto header
+            'tools.gzip.on': True,
+            'tools.gzip.mime_types': ['text/html', 'text/plain', 'text/css',
+                                      'text/javascript', 'application/json',
+                                      'application/javascript']
         },
         '/interfaces': {
             'tools.staticdir.on': True,
@@ -87,15 +90,15 @@ def initialize(options):
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "js"
         },
-        '/favicon.ico': {
-            'tools.staticfile.on': True,
-            'tools.staticfile.filename': os.path.join(os.path.abspath(
-                os.curdir), "images" + os.sep + "favicon.ico")
-        },
         '/cache': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': plexpy.CONFIG.CACHE_DIR
+        },
+        '/favicon.ico': {
+            'tools.staticfile.on': True,
+            'tools.staticfile.filename': os.path.abspath(os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images/favicon.ico'))
         }
+
     }
 
     if options['http_password']:

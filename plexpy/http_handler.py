@@ -16,10 +16,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers
 from httplib import HTTPSConnection
 from httplib import HTTPConnection
 import ssl
+from plexpy import logger, helpers
 
 
 class HTTPHandler(object):

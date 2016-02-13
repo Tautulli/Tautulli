@@ -57,6 +57,7 @@ _INITIALIZED = False
 started = False
 
 DATA_DIR = None
+BACKUP_DIR = None
 
 CONFIG = None
 
@@ -73,6 +74,7 @@ UMASK = None
 
 POLLING_FAILOVER = False
 
+
 def initialize(config_file):
     with INIT_LOCK:
 
@@ -82,7 +84,6 @@ def initialize(config_file):
         global LATEST_VERSION
         global UMASK
         global POLLING_FAILOVER
-
         CONFIG = plexpy.config.Config(config_file)
 
         assert CONFIG is not None
@@ -125,6 +126,12 @@ def initialize(config_file):
                 os.makedirs(CONFIG.CACHE_DIR)
             except OSError as e:
                 logger.error("Could not create cache dir '%s': %s", DATA_DIR, e)
+
+        plexpy.BACKUP_DIR = os.path.join(plexpy.PROG_DIR, 'backups')
+        try:
+            os.makedirs(plexpy.BACKUP_DIR)
+        except OSError:
+            pass
 
         # Initialize the database
         logger.info('Checking to see if the database has all tables....')
@@ -185,7 +192,6 @@ def initialize(config_file):
 
         _INITIALIZED = True
         return True
-
 
 def daemonize():
     if threading.activeCount() != 1:
@@ -801,6 +807,7 @@ def dbcheck():
     conn_db.commit()
     c_db.close()
 
+
 def shutdown(restart=False, update=False):
     cherrypy.engine.exit()
     SCHED.shutdown(wait=False)
@@ -832,6 +839,7 @@ def shutdown(restart=False, update=False):
         os.execv(exe, args)
 
     os._exit(0)
+
 
 def generate_uuid():
     logger.debug(u"Generating UUID...")
