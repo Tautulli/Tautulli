@@ -341,10 +341,10 @@ def split_string(mystring, splitvar=','):
 
 def create_https_certificates(ssl_cert, ssl_key):
     """
-    Create a pair of self-signed HTTPS certificares and store in them in
+    Create a self-signed HTTPS certificare and store it in
     'ssl_cert' and 'ssl_key'. Method assumes pyOpenSSL is installed.
 
-    This code is stolen from SickBeard (http://github.com/midgetspy/Sick-Beard).
+    The code were noted was stolen from SickBeard (http://github.com/midgetspy/Sick-Beard).
     """
 
     from plexpy import logger
@@ -366,7 +366,8 @@ def create_https_certificates(ssl_cert, ssl_key):
     cert.add_extensions([crypto.X509Extension("subjectAltName", False, "DNS:plex.myserver.com,IP:10.11.12.13")])
     cert.sign(key, "sha256")
 
-    # Save the key and certificate to disk
+    # Save the key and certificate to disk.
+    # These are the remains of the code that was stolen from SickBeard.
     try:
         with open(ssl_key, "w") as fp:
             fp.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
