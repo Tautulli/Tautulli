@@ -341,7 +341,7 @@ def split_string(mystring, splitvar=','):
 
 def create_https_certificates(ssl_cert, ssl_key):
     """
-    Create a self-signed HTTPS certificare and store it in
+    Create a self-signed HTTPS certificate and store it in
     'ssl_cert' and 'ssl_key'. Method assumes pyOpenSSL is installed.
 
     The code were noted was stolen from SickBeard (http://github.com/midgetspy/Sick-Beard).
