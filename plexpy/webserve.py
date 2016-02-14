@@ -1273,8 +1273,9 @@ class WebInterface(object):
             server_changed = True
 
         # If we change the HTTPS setting, make sure we generate a new certificate.
-        if kwargs['https_create_cert']:
-            if 'https_domain' in kwargs and (kwargs['https_domain'] != plexpy.CONFIG.HTTPS_DOMAIN) or \
+        if 'https_create_cert' in kwargs and kwargs['https_create_cert']:
+            if 'https_create_cert' in kwargs and (kwargs['https_create_cert'] != plexpy.CONFIG.HTTPS_CREATE_CERT) or \
+                'https_domain' in kwargs and (kwargs['https_domain'] != plexpy.CONFIG.HTTPS_DOMAIN) or \
                 'https_ip' in kwargs and (kwargs['https_ip'] != plexpy.CONFIG.HTTPS_IP) or \
                 'https_cert' in kwargs and (kwargs['https_cert'] != plexpy.CONFIG.HTTPS_CERT) or \
                 'https_key' in kwargs and (kwargs['https_key'] != plexpy.CONFIG.HTTPS_KEY):
