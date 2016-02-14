@@ -304,7 +304,7 @@ class WebInterface(object):
     def refresh_libraries_list(self, **kwargs):
         threading.Thread(target=pmsconnect.refresh_libraries).start()
         logger.info(u"Manual libraries list refresh requested.")
-
+        return True
 
     @cherrypy.expose
     def library(self, section_id=None):
@@ -459,19 +459,6 @@ class WebInterface(object):
 
     @cherrypy.expose
     @addtoapi()
-    def get_library_unwatched(self, section_id=None, section_type=None, **kwargs):
-
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_library_children_details(section_id=section_id,
-                                                          section_type=section_type,
-                                                          get_media_info=True)
-        # fixed a bug in this one, is this even used?
-
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(result)
-
-    @cherrypy.expose
-    @addtoapi()
     def delete_all_library_history(self, section_id, **kwargs):
         library_data = libraries.Libraries()
 
@@ -589,6 +576,7 @@ class WebInterface(object):
         """ Refresh a users list in a own thread """
         threading.Thread(target=plextv.refresh_users).start()
         logger.info(u"Manual users list refresh requested.")
+        return True
 
     @cherrypy.expose
     def user(self, user_id=None):
@@ -1642,6 +1630,13 @@ class WebInterface(object):
 
             return None
 
+
+    ##### Search #####
+
+    @cherrypy.expose
+    def search(self, query=''):
+        return serve_template(templatename="search.html", title="Search", query=query)
+
     @cherrypy.expose
     @addtoapi('search')
     def search_results(self, query, **kwargs):
@@ -1654,10 +1649,6 @@ class WebInterface(object):
             return json.dumps(result)
         else:
             logger.warn(u"Unable to retrieve data for search_results.")
-
-    @cherrypy.expose
-    def search(self, query=''):
-        return serve_template(templatename="search.html", title="Search", query=query)
 
     @cherrypy.expose
     def get_search_results_children(self, query, media_type=None, season_index=None, **kwargs):
@@ -1677,6 +1668,9 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_search_results_children.")
             return serve_template(templatename="info_search_results_list.html", data=None, title="Search Result List")
 
+
+    ##### Update Metadata #####        
+        
     @cherrypy.expose
     def update_metadata(self, rating_key=None, query=None, update=False, **kwargs):
         query_string = query
@@ -1763,7 +1757,7 @@ class WebInterface(object):
 
 
     @cherrypy.expose
-    @addtoapi()
+    @addtoapi('get_sessions')
     def get_pms_sessions_json(self, **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
@@ -1777,6 +1771,7 @@ class WebInterface(object):
             return False
 
     @cherrypy.expose
+    @addtoapi('get_metadata')
     def get_metadata_json(self, rating_key='', **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
@@ -1789,7 +1784,6 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_metadata_json.")
 
     @cherrypy.expose
-    @addtoapi('get_metadata')
     def get_metadata_xml(self, rating_key='', **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()

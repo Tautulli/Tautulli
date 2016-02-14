@@ -32,6 +32,7 @@ _CONFIG_DEFINITIONS = {
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
     'API_ENABLED': (int, 'General', 0),
     'API_KEY': (str, 'General', ''),
+    'API_SQL': (int, 'General', 0),
     'BOXCAR_ENABLED': (int, 'Boxcar', 0),
     'BOXCAR_TOKEN': (str, 'Boxcar', ''),
     'BOXCAR_SOUND': (str, 'Boxcar', ''),

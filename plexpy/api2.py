@@ -257,7 +257,7 @@ class API2:
         """ Query the db with raw sql, makes backup of
             the db if the backup is older then 24h
         """
-        if not query:
+        if not plexpy.CONFIG.API_SQL or not query:
             return
 
         # allow the user to shoot them self
