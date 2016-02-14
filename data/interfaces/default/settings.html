@@ -338,16 +338,49 @@ scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
                             <p class="help-block">Enable HTTPS for web server for encrypted communication.</p>
                         </div>
                         <div id="https_options">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" class="http-settings" name="https_create_cert" id="https_create_cert" value="1" ${config['https_create_cert']} /> Create Self-signed Certificate
+                                </label>
+                                <p class="help-block">Check to have PlexPy create a self-signed SSL certificate. Uncheck if you want to use your own certificate.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="https_domain">HTTPS Domains</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_domain" name="https_domain" value="${config['https_domain']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The domain names used to access PlexPy, separated by commas (,).</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="https_ip">HTTPS IPs</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_ip" name="https_ip" value="${config['https_ip']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The IP addresses used to access PlexPy, separated by commas (,).</p>
+                            </div>
                             <div class="form-group">
                                 <label for="https_cert">HTTPS Cert</label>
-                                <input type="text" class="form-control http-settings" id="https_cert" name="https_cert" value="${config['https_cert']}">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_cert" name="https_cert" value="${config['https_cert']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The location of the SSL certificate.</p>
                             </div>
                             <div class="form-group">
                                 <label for="https_key">HTTPS Key</label>
-                                <input type="text" class="form-control http-settings" id="https_key" name="https_key" value="${config['https_key']}">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_key" name="https_key" value="${config['https_key']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The location of the SSL key.</p>
                             </div>
                         </div>
-
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-4">

@@ -14,7 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users, libraries
-from plexpy.helpers import checked, addtoapi, get_ip
+from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates
 
 from mako.lookup import TemplateLookup
 from mako import exceptions
@@ -1112,8 +1112,11 @@ class WebInterface(object):
             "http_password": http_password,
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
             "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),
+            "https_create_cert": checked(plexpy.CONFIG.HTTPS_CREATE_CERT),
             "https_cert": plexpy.CONFIG.HTTPS_CERT,
             "https_key": plexpy.CONFIG.HTTPS_KEY,
+            "https_domain": plexpy.CONFIG.HTTPS_DOMAIN,
+            "https_ip": plexpy.CONFIG.HTTPS_IP,
             "anon_redirect": plexpy.CONFIG.ANON_REDIRECT,
             "api_enabled": checked(plexpy.CONFIG.API_ENABLED),
             "api_key": plexpy.CONFIG.API_KEY,
@@ -1208,7 +1211,7 @@ class WebInterface(object):
         # Handle the variable config options. Note - keys with False values aren't getting passed
 
         checked_configs = [
-            "launch_browser", "enable_https", "api_enabled", "freeze_db", "check_github", "get_file_sizes",
+            "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "pms_use_bif", "pms_ssl",
             "movie_notify_enable", "tv_notify_enable", "music_notify_enable", "monitoring_use_websocket",
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
@@ -1217,7 +1220,7 @@ class WebInterface(object):
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive",
-            "notify_recently_added", "notify_recently_added_grandparent", "monitor_remote_access"
+            "notify_recently_added", "notify_recently_added_grandparent", "monitor_remote_access", "get_file_sizes"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -1236,6 +1239,7 @@ class WebInterface(object):
 
         # Check if we should refresh our data
         server_changed = False
+        https_changed = False
         refresh_libraries = False
         refresh_users = False
         reschedule = False
@@ -1268,6 +1272,14 @@ class WebInterface(object):
             (kwargs['pms_is_remote'] != plexpy.CONFIG.PMS_IS_REMOTE):
             server_changed = True
 
+        # If we change the HTTPS setting, make sure we generate a new certificate.
+        if kwargs['https_create_cert']:
+            if 'https_domain' in kwargs and (kwargs['https_domain'] != plexpy.CONFIG.HTTPS_DOMAIN) or \
+                'https_ip' in kwargs and (kwargs['https_ip'] != plexpy.CONFIG.HTTPS_IP) or \
+                'https_cert' in kwargs and (kwargs['https_cert'] != plexpy.CONFIG.HTTPS_CERT) or \
+                'https_key' in kwargs and (kwargs['https_key'] != plexpy.CONFIG.HTTPS_KEY):
+                https_changed = True
+
         # Remove config with 'hscard-' prefix and change home_stats_cards to list
         if 'home_stats_cards' in kwargs:
             for k in kwargs.keys():
@@ -1299,13 +1311,14 @@ class WebInterface(object):
         # Write the config
         plexpy.CONFIG.write()
 
-        # Get new server URLs for SSL communications.
+        # Get new server URLs for SSL communications and get new server friendly name
         if server_changed:
             plextv.get_real_pms_url()
-
-        # Get new server friendly name.
-        if server_changed:
             pmsconnect.get_server_friendly_name()
+
+        # Generate a new HTTPS certificate
+        if https_changed:
+            create_https_certificates(plexpy.CONFIG.HTTPS_CERT, plexpy.CONFIG.HTTPS_KEY)
 
         # Reconfigure scheduler if intervals changed
         if reschedule:

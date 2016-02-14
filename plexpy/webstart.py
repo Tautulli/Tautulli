@@ -32,8 +32,7 @@ def initialize(options):
     https_key = options['https_key']
 
     if enable_https:
-        # If either the HTTPS certificate or key do not exist, try to make
-        # self-signed ones.
+        # If either the HTTPS certificate or key do not exist, try to make self-signed ones.
         if not (https_cert and os.path.exists(https_cert)) or not (https_key and os.path.exists(https_key)):
             if not create_https_certificates(https_cert, https_key):
                 logger.warn("Unable to create certificate and key. Disabling HTTPS")
