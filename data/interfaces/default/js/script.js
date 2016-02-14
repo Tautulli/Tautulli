@@ -391,3 +391,16 @@ function clearSearchButton(tableName, table) {
         table.search('').draw();
     });
 }
+
+// Taken from https://github.com/Hellowlol/HTPC-Manager
+window.onerror = function (message, file, line) {
+    var e = {
+        'page': window.location.href,
+        'message': message,
+        'file': file,
+        'line': line
+    };
+
+    $.post("log_js_errors", e, function (data) {
+    });
+};

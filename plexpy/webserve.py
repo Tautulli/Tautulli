@@ -1081,7 +1081,14 @@ class WebInterface(object):
         logger.debug(u"If you read this message, debug logging is available")
         raise cherrypy.HTTPRedirect("logs")
 
-
+    @cherrypy.expose
+    def log_js_errors(self, page, message, file, line):
+        """ Logs javascript errors from the web interface. """
+        logger.error(u"WebUI :: /%s : %s. (%s:%s)" % (page.rpartition('/')[-1],
+                                                    message,
+                                                    file.rpartition('/')[-1].partition('?')[0],
+                                                    line))
+        return True
 
     ##### Settings #####
 
