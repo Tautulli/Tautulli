@@ -1321,12 +1321,12 @@ class WebInterface(object):
         raise cherrypy.HTTPRedirect("settings")
 
     @cherrypy.expose
-    def get_notification_agent_config(self, config_id, **kwargs):
-        if config_id.isdigit():
-            config = notifiers.get_notification_agent_config(config_id=config_id)
+    def get_notification_agent_config(self, agent_id, **kwargs):
+        if agent_id.isdigit():
+            config = notifiers.get_notification_agent_config(agent_id=agent_id)
             agents = notifiers.available_notification_agents()
             for agent in agents:
-                if int(config_id) == agent['id']:
+                if int(agent_id) == agent['id']:
                     this_agent = agent
                     break
                 else:
@@ -1340,11 +1340,11 @@ class WebInterface(object):
                               agent=this_agent, data=config, checkboxes=checkboxes)
 
     @cherrypy.expose
-    def get_notification_agent_triggers(self, config_id, **kwargs):
-        if config_id.isdigit():
+    def get_notification_agent_triggers(self, agent_id, **kwargs):
+        if agent_id.isdigit():
             agents = notifiers.available_notification_agents()
             for agent in agents:
-                if int(config_id) == agent['id']:
+                if int(agent_id) == agent['id']:
                     this_agent = agent
                     break
                 else:
@@ -1357,13 +1357,13 @@ class WebInterface(object):
 
     @cherrypy.expose
     @addtoapi('notify')
-    def test_notifier(self, config_id=None, subject='PlexPy', body='Test notification', **kwargs):
+    def test_notifier(self, agent_id=None, subject='PlexPy', body='Test notification', **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
 
-        if config_id.isdigit():
+        if agent_id.isdigit():
             agents = notifiers.available_notification_agents()
             for agent in agents:
-                if int(config_id) == agent['id']:
+                if int(agent_id) == agent['id']:
                     this_agent = agent
                     break
                 else:
@@ -1374,8 +1374,8 @@ class WebInterface(object):
                 notifiers.send_notification(this_agent['id'], subject, body, **kwargs)
                 return "Notification sent."
             else:
-                logger.debug(u"Unable to send test notification, invalid notification agent ID %s." % config_id)
-                return "Invalid notification agent ID %s." % config_id
+                logger.debug(u"Unable to send test notification, invalid notification agent ID %s." % agent_id)
+                return "Invalid notification agent ID %s." % agent_id
         else:
             logger.debug(u"Unable to send test notification, no notification agent ID received.")
             return "No notification agent ID received."

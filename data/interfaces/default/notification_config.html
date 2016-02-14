@@ -132,7 +132,7 @@ from plexpy import helpers
     function reloadModal() {
         $.ajax({
             url: 'get_notification_agent_config',
-            data: { config_id: '${agent["id"]}' },
+            data: { agent_id: '${agent["id"]}' },
             cache: false,
             async: true,
             complete: function (xhr, status) {
@@ -195,7 +195,7 @@ from plexpy import helpers
         $.ajax({
             url: 'test_notifier',
             data: {
-                config_id: '${agent["id"]}',
+                agent_id: '${agent["id"]}',
                 subject: $('#test_subject').val(),
                 body: $('#test_body').val(),
                 script: $('#test_script').val(),

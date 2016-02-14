@@ -358,59 +358,59 @@ def available_notification_agents():
     return agents
 
 
-def get_notification_agent_config(config_id):
-    if str(config_id).isdigit():
-        config_id = int(config_id)
+def get_notification_agent_config(agent_id):
+    if str(agent_id).isdigit():
+        agent_id = int(agent_id)
 
-        if config_id == 0:
+        if agent_id == 0:
             growl = GROWL()
             return growl.return_config_options()
-        elif config_id == 1:
+        elif agent_id == 1:
             prowl = PROWL()
             return prowl.return_config_options()
-        elif config_id == 2:
+        elif agent_id == 2:
             xbmc = XBMC()
             return xbmc.return_config_options()
-        elif config_id == 3:
+        elif agent_id == 3:
             plex = Plex()
             return plex.return_config_options()
-        elif config_id == 4:
+        elif agent_id == 4:
             nma = NMA()
             return nma.return_config_options()
-        elif config_id == 5:
+        elif agent_id == 5:
             pushalot = PUSHALOT()
             return pushalot.return_config_options()
-        elif config_id == 6:
+        elif agent_id == 6:
             pushbullet = PUSHBULLET()
             return pushbullet.return_config_options()
-        elif config_id == 7:
+        elif agent_id == 7:
             pushover = PUSHOVER()
             return pushover.return_config_options()
-        elif config_id == 8:
+        elif agent_id == 8:
             osx_notify = OSX_NOTIFY()
             return osx_notify.return_config_options()
-        elif config_id == 9:
+        elif agent_id == 9:
             boxcar = BOXCAR()
             return boxcar.return_config_options()
-        elif config_id == 10:
+        elif agent_id == 10:
             email = Email()
             return email.return_config_options()
-        elif config_id == 11:
+        elif agent_id == 11:
             tweet = TwitterNotifier()
             return tweet.return_config_options()
-        elif config_id == 12:
+        elif agent_id == 12:
             iftttClient = IFTTT()
             return iftttClient.return_config_options()
-        elif config_id == 13:
+        elif agent_id == 13:
             telegramClient = TELEGRAM()
             return telegramClient.return_config_options()
-        elif config_id == 14:
+        elif agent_id == 14:
             slackClient = SLACK()
             return slackClient.return_config_options()
-        elif config_id == 15:
+        elif agent_id == 15:
             script = Scripts()
             return script.return_config_options()
-        elif config_id == 16:
+        elif agent_id == 16:
             facebook = FacebookNotifier()
             return facebook.return_config_options()
         else:
@@ -419,59 +419,59 @@ def get_notification_agent_config(config_id):
         return []
 
 
-def send_notification(config_id, subject, body, **kwargs):
-    if str(config_id).isdigit():
-        config_id = int(config_id)
+def send_notification(agent_id, subject, body, **kwargs):
+    if str(agent_id).isdigit():
+        agent_id = int(agent_id)
 
-        if config_id == 0:
+        if agent_id == 0:
             growl = GROWL()
             growl.notify(message=body, event=subject)
-        elif config_id == 1:
+        elif agent_id == 1:
             prowl = PROWL()
             prowl.notify(message=body, event=subject)
-        elif config_id == 2:
+        elif agent_id == 2:
             xbmc = XBMC()
             xbmc.notify(subject=subject, message=body)
-        elif config_id == 3:
+        elif agent_id == 3:
             plex = Plex()
             plex.notify(subject=subject, message=body)
-        elif config_id == 4:
+        elif agent_id == 4:
             nma = NMA()
             nma.notify(subject=subject, message=body)
-        elif config_id == 5:
+        elif agent_id == 5:
             pushalot = PUSHALOT()
             pushalot.notify(message=body, event=subject)
-        elif config_id == 6:
+        elif agent_id == 6:
             pushbullet = PUSHBULLET()
             pushbullet.notify(message=body, subject=subject)
-        elif config_id == 7:
+        elif agent_id == 7:
             pushover = PUSHOVER()
             pushover.notify(message=body, event=subject)
-        elif config_id == 8:
+        elif agent_id == 8:
             osx_notify = OSX_NOTIFY()
             osx_notify.notify(title=subject, text=body)
-        elif config_id == 9:
+        elif agent_id == 9:
             boxcar = BOXCAR()
             boxcar.notify(title=subject, message=body)
-        elif config_id == 10:
+        elif agent_id == 10:
             email = Email()
             email.notify(subject=subject, message=body)
-        elif config_id == 11:
+        elif agent_id == 11:
             tweet = TwitterNotifier()
             tweet.notify(subject=subject, message=body)
-        elif config_id == 12:
+        elif agent_id == 12:
             iftttClient = IFTTT()
             iftttClient.notify(subject=subject, message=body)
-        elif config_id == 13:
+        elif agent_id == 13:
             telegramClient = TELEGRAM()
             telegramClient.notify(message=body, event=subject)
-        elif config_id == 14:
+        elif agent_id == 14:
             slackClient = SLACK()
             slackClient.notify(message=body, event=subject)
-        elif config_id == 15:
+        elif agent_id == 15:
             scripts = Scripts()
             scripts.notify(message=body, subject=subject, **kwargs)
-        elif config_id == 16:
+        elif agent_id == 16:
             facebook = FacebookNotifier()
             facebook.notify(subject=subject, message=body)
         else:

@@ -1721,10 +1721,10 @@ $(document).ready(function() {
 
     // Load notification agent config modal
     $(".toggle-notification-config-modal").click(function() {
-        var configId = $(this).data('id');
+        var agent_id = $(this).data('id');
         $.ajax({
             url: 'get_notification_agent_config',
-            data: { config_id: configId },
+            data: { agent_id: agent_id },
             cache: false,
             async: true,
             complete: function(xhr, status) {
@@ -1735,10 +1735,10 @@ $(document).ready(function() {
 
     // Load notification triggers config modal
     $(".toggle-notification-triggers-modal").click(function() {
-        var configId = $(this).data('id');
+        var agent_id = $(this).data('id');
         $.ajax({
             url: 'get_notification_agent_triggers',
-            data: { config_id: configId },
+            data: { agent_id: agent_id },
             cache: false,
             async: true,
             complete: function(xhr, status) {
