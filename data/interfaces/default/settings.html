@@ -130,51 +130,10 @@ scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
                         <div class="padded-header">
                             <h3>PlexPy Scheduler</h3>
                         </div>
-                        <table class="config-scheduler-table small-muted">
-                            <thead>
-                                <tr>
-                                    <th>Scheduled Task</th>
-                                    <th>State</th>
-                                    <th>Interval</th>
-                                    <th>Next Run In</th>
-                                    <th>Next Run Time</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                % for job in plexpy.common.SCHEDULER_LIST:
-                                % if job in scheduled_jobs:
-                                <%
-                                    sched_job = plexpy.SCHED.get_job(job)
-                                    run_interval = arrow.get(str(sched_job.trigger.interval), ['H:mm:ss', 'HH:mm:ss'])
-                                    next_run_interval = arrow.get(sched_job.next_run_time).timestamp - arrow.now().timestamp
-                                %>
-                                <tr>
-                                    <td>${sched_job.id}</td>
-                                    <td>Active</td>
-                                    <td>${arrow.get(run_interval).format('HH:mm:ss')}</td>
-                                    <td>${arrow.get(next_run_interval).format('HH:mm:ss')}</td>
-                                    <td>${arrow.get(sched_job.next_run_time).format('YYYY-MM-DD HH:mm:ss')}</td>
-                                </tr>
-                                % elif job == 'Check for active sessions' and plexpy.CONFIG.MONITORING_USE_WEBSOCKET:
-                                <tr>
-                                    <td>${job}</td>
-                                    <td>Using Websockets</td>
-                                    <td>N/A</td>
-                                    <td>N/A</td>
-                                    <td>N/A</td>
-                                </tr>
-                                % else:
-                                <tr>
-                                    <td>${job}</td>
-                                    <td>Inactive</td>
-                                    <td>N/A</td>
-                                    <td>N/A</td>
-                                    <td>N/A</td>
-                                </tr>
-                                % endif
-                                % endfor
-                            </tbody>
-                        </table>
+                        <div id="plexpy-scheduler-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading scheduler table...</div>
+                            <br>
+                        </div>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-1">
                         <div class="padded-header">
@@ -1661,7 +1620,7 @@ $(document).ready(function() {
     var configForm = $("#configUpdate");
     function saveSettings() {
         if (configForm.parsley().validate()) {
-            doAjaxCall('configUpdate', $(this), 'tabs', true);
+            doAjaxCall('configUpdate', $(this), 'tabs', true, getSchedulerTable);
             postSaveChecks();
             return false;
         } else {
@@ -2000,6 +1959,19 @@ $(document).ready(function() {
         };
         $(this).on('focus keyup input', function() { resizeTextarea(this); }).removeAttr('data-autoresize');
     });
+
+    function getSchedulerTable() {
+        $.ajax({
+            url: 'get_scheduler_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-scheduler-table").html(xhr.responseText);
+            }
+        });
+    }
+    getSchedulerTable();
+
 });
 </script>
 </%def>

@@ -1322,6 +1322,10 @@ class WebInterface(object):
         raise cherrypy.HTTPRedirect("settings")
 
     @cherrypy.expose
+    def get_scheduler_table(self, **kwargs):
+        return serve_template(templatename="scheduler_table.html")
+
+    @cherrypy.expose
     def get_notification_agent_config(self, agent_id, **kwargs):
         if agent_id.isdigit():
             config = notifiers.get_notification_agent_config(agent_id=agent_id)

@@ -147,9 +147,8 @@ from plexpy import helpers
     })
 
     $('#save-notification-item').click(function () {
-        doAjaxCall('set_notification_config', $(this), 'tabs', true);
         // Reload modal to update certain fields
-        reloadModal();
+        doAjaxCall('set_notification_config', $(this), 'tabs', true, reloadModal);
         return false;
     });
 
@@ -211,8 +210,8 @@ from plexpy import helpers
     });
 
     $('#pushbullet_apikey, #pushover_apitoken, #scripts_folder').on('change', function () {
-        doAjaxCall('set_notification_config', $(this), 'tabs', true);
-        reloadModal();
+        // Reload modal to update certain fields
+        doAjaxCall('set_notification_config', $(this), 'tabs', true, reloadModal);
         return false;
     });
 

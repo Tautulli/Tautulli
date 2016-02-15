@@ -54,7 +54,7 @@ function showMsg(msg,loader,timeout,ms,error) {
 	} 
 }
 
-function doAjaxCall(url,elem,reload,form) {
+function doAjaxCall(url, elem, reload, form, callback) {
 	// Set Message
 	feedback = $("#ajaxMsg");
 	update = $("#updatebar");
@@ -157,6 +157,9 @@ function doAjaxCall(url,elem,reload,form) {
 	  complete: function(jqXHR, textStatus) {
 	  	// Remove loaders and stuff, ajax request is complete!
 	  	loader.remove();
+	  	if (typeof callback === "function") {
+	  	    callback();
+	  	}
 	  }
 	});
 }
