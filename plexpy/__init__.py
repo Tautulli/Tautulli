@@ -333,6 +333,8 @@ def initialize_scheduler():
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
                          hours=hours, minutes=0, seconds=0)
 
+        schedule_job(database.make_backup, 'Backup PlexPy database', hours=6, minutes=0, seconds=0, args=(True,))
+
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
             try:
@@ -344,7 +346,7 @@ def initialize_scheduler():
                 #SCHED.print_jobs()
 
 
-def schedule_job(function, name, hours=0, minutes=0, seconds=0):
+def schedule_job(function, name, hours=0, minutes=0, seconds=0, args=None):
     """
     Start scheduled job if starting or restarting plexpy.
     Reschedule job if Interval Settings have changed.
@@ -359,11 +361,11 @@ def schedule_job(function, name, hours=0, minutes=0, seconds=0):
             logger.info("Removed background task: %s", name)
         elif job.trigger.interval != datetime.timedelta(hours=hours, minutes=minutes):
             SCHED.reschedule_job(name, trigger=IntervalTrigger(
-                hours=hours, minutes=minutes, seconds=seconds))
+                hours=hours, minutes=minutes, seconds=seconds), args=args)
             logger.info("Re-scheduled background task: %s", name)
     elif hours > 0 or minutes > 0 or seconds > 0:
         SCHED.add_job(function, id=name, trigger=IntervalTrigger(
-            hours=hours, minutes=minutes, seconds=seconds))
+            hours=hours, minutes=minutes, seconds=seconds), args=args)
         logger.info("Scheduled background task: %s", name)
 
 

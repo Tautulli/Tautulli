@@ -47,7 +47,7 @@ def db_filename(filename="plexpy.db"):
 
 
 def make_backup(cleanup=False):
-    """ Makes a backup of db, removes all but the last 3 backups """
+    """ Makes a backup of db, removes all but the last 5 backups """
 
     backupfolder = plexpy.CONFIG.BACKUP_DIR
     backup_file = 'plexpy.backup-%s.db' % int(time.time())
@@ -63,22 +63,22 @@ def make_backup(cleanup=False):
     db.connection.rollback()
 
     if cleanup:
-        # Delete all backup files except from the last 3.
+        # Delete all backup files except from the last 5.
         for root, dirs, files in os.walk(backupfolder):
-            if len(files) > 3:
-                all_files = [os.path.join(root, f) for f in files]
-                backups_sorted_on_age = sorted(all_files, key=os.path.getctime, reverse=True)
-                for file_ in backups_sorted_on_age[3:]:
+            db_files = [os.path.join(root, f) for f in files if f.endswith('.db')]
+            if len(db_files) > 5:
+                backups_sorted_on_age = sorted(db_files, key=os.path.getctime, reverse=True)
+                for file_ in backups_sorted_on_age[5:]:
                     try:
                         os.remove(file_)
                     except OSError as e:
-                        logger.error('Failed to delete %s from the backup folder %s' % (file_, e))
+                        logger.error(u"PlexPy Database :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
     if backup_file in os.listdir(backupfolder):
-        logger.debug('Successfully backup of the %s to %s in %s' % (db_filename(), backup_file, backupfolder))
+        logger.debug(u"PlexPy Database :: Successfully backed up %s to %s" % (db_filename(), backup_file))
         return True
     else:
-        logger.debug('Failed to make backup of %s to %s in %s' % (db_filename(), backup_file, backupfolder))
+        logger.warn(u"PlexPy Database :: Failed to backup %s to %s" % (db_filename(), backup_file))
         return False
 
 
@@ -131,15 +131,15 @@ class MonitorDatabase(object):
 
                 except sqlite3.OperationalError, e:
                     if "unable to open database file" in e.message or "database is locked" in e.message:
-                        logger.warn('Database Error: %s', e)
+                        logger.warn(u"PlexPy Database :: Database Error: %s", e)
                         attempts += 1
                         time.sleep(1)
                     else:
-                        logger.error('Database error: %s', e)
+                        logger.error(u"PlexPy Database :: Database error: %s", e)
                         raise
 
                 except sqlite3.DatabaseError, e:
-                    logger.error('Fatal Error executing %s :: %s', query, e)
+                    logger.error(u"PlexPy Database :: Fatal Error executing %s :: %s", query, e)
                     raise
 
             return sql_result
@@ -183,7 +183,7 @@ class MonitorDatabase(object):
             try:
                 self.action(insert_query, value_dict.values() + key_dict.values())
             except sqlite3.IntegrityError:
-                logger.info('Queries failed: %s and %s', update_query, insert_query)
+                logger.info(u"PlexPy Database :: Queries failed: %s and %s", update_query, insert_query)
 
         # We want to know if it was an update or insert
         return trans_type
