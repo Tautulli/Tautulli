@@ -2752,3 +2752,7 @@ a.no-highlight:hover {
     border-top: 1px dotted #777;
     padding-top: 5px;
 }
+.help-bold {
+    font-weight: bold;
+    color: #fff;
+}
