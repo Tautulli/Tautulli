@@ -19,7 +19,7 @@ import json
 import cherrypy
 from email.mime.text import MIMEText
 import email.utils
-from httplib import HTTPSConnection
+from httplib import HTTPSConnection, HTTPConnection
 import os
 import shlex
 import smtplib
@@ -473,7 +473,7 @@ def send_notification(agent_id, subject, body, **kwargs):
             scripts.notify(message=body, subject=subject, **kwargs)
         elif agent_id == 16:
             facebook = FacebookNotifier()
-            facebook.notify(subject=subject, message=body)
+            facebook.notify(subject=subject, message=body, **kwargs)
         else:
             logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
@@ -2074,14 +2074,14 @@ class FacebookNotifier(object):
         self.group_id = plexpy.CONFIG.FACEBOOK_GROUP
         self.incl_subject = plexpy.CONFIG.FACEBOOK_INCL_SUBJECT
 
-    def notify(self, subject, message):
+    def notify(self, subject, message, **kwargs):
         if not subject or not message:
             return
         else:
             if self.incl_subject:
-                self._post_facebook(subject + ': ' + message)
+                self._post_facebook(subject + ': ' + message, **kwargs)
             else:
-                self._post_facebook(message)
+                self._post_facebook(message, **kwargs)
 
     def test_notify(self):
         return self._post_facebook(u"PlexPy Notifiers :: This is a test notification from PlexPy at " + helpers.now())
@@ -2117,15 +2117,60 @@ class FacebookNotifier(object):
 
         return True
 
-    def _post_facebook(self, message=None):
+    def _post_facebook(self, message=None, **kwargs):
         access_token = plexpy.CONFIG.FACEBOOK_TOKEN
         group_id = plexpy.CONFIG.FACEBOOK_GROUP
 
         if group_id:
             api = facebook.GraphAPI(access_token=access_token, version='2.5')
 
+            attachment = {}
+
+            if 'metadata' in kwargs:
+                metadata = kwargs['metadata']
+
+                if metadata['media_type'] == 'movie' and metadata['imdb_id']:
+                    uri = 'i=' + metadata['imdb_id']
+                    title = metadata['title']
+                    subtitle = metadata['year']
+                elif metadata['media_type'] == 'show':
+                    uri = 't=' + metadata['title'] + '&y=' + metadata['year']
+                    title = metadata['title']
+                    subtitle = metadata['year']
+                elif metadata['media_type'] == 'episode':
+                    uri = 't=' + metadata['grandparent_title']
+                    title = metadata['grandparent_title'] + ' - ' + metadata['title']
+                    subtitle = 'S' + metadata['parent_media_index'] + ' ' + '\xc2\xb7'.decode('utf8') + ' E' + metadata['media_index']
+                else:
+                    uri = ''
+                    title = ''
+                    subtitle = ''
+
+                # Get poster using OMDb API
+                poster = ''
+                if uri:
+                    http_handler = HTTPConnection("www.omdbapi.com")
+                    http_handler.request('GET', '/?' + uri)
+                    response = http_handler.getresponse()
+                    request_status = response.status
+
+                    if request_status == 200:
+                        data = json.loads(response.read())
+                        poster = data.get('Poster', '')
+                    elif request_status >= 400 and request_status < 500:
+                        logger.warn(u"PlexPy Notifiers :: Unable to retrieve IMDB poster: %s" % response.reason)
+                    else:
+                        logger.warn(u"PlexPy Notifiers :: Unable to retrieve IMDB poster.")
+            
+                if poster and poster != 'N/A':
+                    attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
+                                         '/details/%2Flibrary%2Fmetadata%2F' + metadata['rating_key']
+                    attachment['picture'] = poster
+                    attachment['name'] = title
+                    attachment['description'] = subtitle
+
             try:
-                api.put_wall_post(profile_id=group_id, message=message)
+                api.put_wall_post(profile_id=group_id, message=message, attachment=attachment)
                 logger.info(u"PlexPy Notifiers :: Facebook notification sent.")
             except Exception as e:
                 logger.warn(u"PlexPy Notifiers :: Error sending Facebook post: %s" % e)
