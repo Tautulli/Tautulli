@@ -1114,6 +1114,7 @@ class WebInterface(object):
             "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),
             "https_cert": plexpy.CONFIG.HTTPS_CERT,
             "https_key": plexpy.CONFIG.HTTPS_KEY,
+            "anon_redirect": plexpy.CONFIG.ANON_REDIRECT,
             "api_enabled": checked(plexpy.CONFIG.API_ENABLED),
             "api_key": plexpy.CONFIG.API_KEY,
             "update_db_interval": plexpy.CONFIG.UPDATE_DB_INTERVAL,

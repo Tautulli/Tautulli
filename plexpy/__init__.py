@@ -57,9 +57,9 @@ _INITIALIZED = False
 started = False
 
 DATA_DIR = None
-BACKUP_DIR = None
 
 CONFIG = None
+CONFIG_FILE = None
 
 DB_FILE = None
 
@@ -79,12 +79,14 @@ def initialize(config_file):
     with INIT_LOCK:
 
         global CONFIG
+        global CONFIG_FILE
         global _INITIALIZED
         global CURRENT_VERSION
         global LATEST_VERSION
         global UMASK
         global POLLING_FAILOVER
         CONFIG = plexpy.config.Config(config_file)
+        CONFIG_FILE = config_file
 
         assert CONFIG is not None
 
@@ -118,6 +120,15 @@ def initialize(config_file):
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR,
                           verbose=VERBOSE)
 
+        if not CONFIG.BACKUP_DIR.startswith(os.path.abspath(DATA_DIR)):
+            # Put the backup dir in the data dir for now
+            CONFIG.BACKUP_DIR = os.path.join(DATA_DIR, 'backups')
+        if not os.path.exists(CONFIG.BACKUP_DIR):
+            try:
+                os.makedirs(CONFIG.BACKUP_DIR)
+            except OSError as e:
+                logger.error("Could not create backup dir '%s': %s", BACKUP_DIR, e)
+
         if not CONFIG.CACHE_DIR.startswith(os.path.abspath(DATA_DIR)):
             # Put the cache dir in the data dir for now
             CONFIG.CACHE_DIR = os.path.join(DATA_DIR, 'cache')
@@ -126,12 +137,6 @@ def initialize(config_file):
                 os.makedirs(CONFIG.CACHE_DIR)
             except OSError as e:
                 logger.error("Could not create cache dir '%s': %s", DATA_DIR, e)
-
-        plexpy.BACKUP_DIR = os.path.join(plexpy.PROG_DIR, 'backups')
-        try:
-            os.makedirs(plexpy.BACKUP_DIR)
-        except OSError:
-            pass
 
         # Initialize the database
         logger.info('Checking to see if the database has all tables....')
@@ -289,9 +294,9 @@ def initialize_scheduler():
             seconds = 0
 
         if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
-            schedule_job(plextv.get_real_pms_url, 'Refresh Plex Server URLs',
+            schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
                          hours=12, minutes=0, seconds=0)
-            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex Server Name',
+            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
                          hours=12, minutes=0, seconds=0)
 
             if CONFIG.NOTIFY_RECENTLY_ADDED:
@@ -302,10 +307,10 @@ def initialize_scheduler():
                              hours=0, minutes=0, seconds=0)
 
             if CONFIG.MONITOR_REMOTE_ACCESS:
-                schedule_job(activity_pinger.check_server_response, 'Check for server response',
+                schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
                              hours=0, minutes=0, seconds=seconds)
             else:
-                schedule_job(activity_pinger.check_server_response, 'Check for server response',
+                schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
                              hours=0, minutes=0, seconds=0)
 
             # If we're not using websockets then fall back to polling

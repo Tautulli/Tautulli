@@ -2723,3 +2723,32 @@ table[id^='media_info_child'] table[id^='media_info_child'] thead th {
     font-size: small;
     color: #777;
 }
+.config-info-table,
+.config-scheduler-table {
+    width: 100%
+}
+.config-info-table td,
+.config-info-table th,
+.config-scheduler-table td,
+.config-scheduler-table th {
+    padding-bottom: 5px;
+}
+.config-info-table td:first-child {
+    width: 150px;
+}
+.config-scheduler-table td:first-child {
+    width: 225px;
+}
+.config-scheduler-table th {
+    color: #fff;
+}
+a.no-highlight {
+    color: #777;
+}
+a.no-highlight:hover {
+    color: #fff;
+}
+.top-line {
+    border-top: 1px dotted #777;
+    padding-top: 5px;
+}

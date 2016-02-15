@@ -1,9 +1,14 @@
 <%inherit file="base.html"/>
 <%!
+import arrow
+import sys
 import plexpy
 from plexpy import notifiers, common, versioncheck
+from plexpy.helpers import anon_url
 
 available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
+
+scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
 %>
 <%def name="headIncludes()">
 </%def>
@@ -33,7 +38,8 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
         <!-- Nav tabs -->
         <div class="col-md-3">
             <ul class="nav-settings list-unstyled" role="tablist">
-                <li role="presentation" class="active"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">General</a></li>
+                <li role="presentation" class="active"><a href="#tabs-0" aria-controls="tabs-0" role="tab" data-toggle="tab">Help & Info</a></li>
+                <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">General</a></li>
                 <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Homepage Statistics</a></li>
                 <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Web Interface</a></li>
                 <li role="presentation"><a href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Access Control</a></li>
@@ -48,21 +54,138 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
         <div class="col-md-9">
             <form action="configUpdate" method="post" class="form" id="configUpdate" data-parsley-validate>
                 <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="tabs-1">
+                    <div role="tabpanel" class="tab-pane active" id="tabs-0">
                         % if common.VERSION_NUMBER:
                         <div class="padded-header">
                             <h3>Version ${common.VERSION_NUMBER} <small><a href="#changelog-modal" data-toggle="modal"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
                         </div>
                         % endif
+                        <div class="padded-header">
+                            <h3>PlexPy Configuration</h3>
+                        </div>
+                        <table class="config-info-table small-muted">
+                            <tbody>
+                                % if plexpy.CURRENT_VERSION:
+                                <tr>
+                                    <td>Git Branch:</td>
+                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/tree/%s' % plexpy.CONFIG.GIT_BRANCH)}">${plexpy.CONFIG.GIT_BRANCH}</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Git Hash:</td>
+                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/commit/%s' % plexpy.CURRENT_VERSION)}">${plexpy.CURRENT_VERSION}</a></td>
+                                </tr>
+                                % endif
+                                <tr>
+                                    <td>Configuration File:</td>
+                                    <td>${plexpy.CONFIG_FILE}</td>
+                                </tr>
+                                <tr>
+                                    <td>Database File:</td>
+                                    <td>${plexpy.DB_FILE}</td>
+                                </tr>
+                                <tr>
+                                    <td>Backup Directory:</td>
+                                    <td>${plexpy.CONFIG.BACKUP_DIR}</td>
+                                </tr>
+                                <tr>
+                                    <td>Cache Directory:</td>
+                                    <td>${plexpy.CONFIG.CACHE_DIR}</td>
+                                </tr>
+                                <tr>
+                                    <td>Log Directory:</td>
+                                    <td>${plexpy.CONFIG.LOG_DIR}</td>
+                                </tr>
+                                % if plexpy.ARGS:
+                                <tr>
+                                    <td>Arguments:</td>
+                                    <td>${plexpy.ARGS}</td>
+                                </tr>
+                                % endif
+                                <tr>
+                                    <td>Platform:</td>
+                                    <td>${common.PLATFORM} ${common.PLATFORM_VERSION}</td>
+                                </tr>
+                                <tr>
+                                    <td>Python Version:</td>
+                                    <td>${sys.version}</td>
+                                </tr>
+                                <tr>
+                                    <td class="top-line">Plex Forums:</td>
+                                    <td class="top-line"><a class="no-highlight" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}">https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Wiki:</td>
+                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/wiki')}">https://github.com/drzoidberg33/plexpy/wiki</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Source:</td>
+                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}">https://github.com/drzoidberg33/plexpy</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Gitter Chat:</td>
+                                    <td><a class="no-highlight" href="${anon_url('https://gitter.im/drzoidberg33/plexpy')}">https://gitter.im/drzoidberg33/plexpy</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="padded-header">
+                            <h3>PlexPy Scheduler</h3>
+                        </div>
+                        <table class="config-scheduler-table small-muted">
+                            <thead>
+                                <tr>
+                                    <th>Scheduled Task</th>
+                                    <th>State</th>
+                                    <th>Interval</th>
+                                    <th>Next Run In</th>
+                                    <th>Next Run Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                % for job in plexpy.common.SCHEDULER_LIST:
+                                % if job in scheduled_jobs:
+                                <%
+                                    sched_job = plexpy.SCHED.get_job(job)
+                                    run_interval = arrow.get(str(sched_job.trigger.interval), ['H:mm:ss', 'HH:mm:ss'])
+                                    next_run_interval = arrow.get(sched_job.next_run_time).timestamp - arrow.now().timestamp
+                                %>
+                                <tr>
+                                    <td>${sched_job.id}</td>
+                                    <td>Active</td>
+                                    <td>${arrow.get(run_interval).format('HH:mm:ss')}</td>
+                                    <td>${arrow.get(next_run_interval).format('HH:mm:ss')}</td>
+                                    <td>${arrow.get(sched_job.next_run_time).format('YYYY-MM-DD HH:mm:ss')}</td>
+                                </tr>
+                                % elif job == 'Check for active sessions' and plexpy.CONFIG.MONITORING_USE_WEBSOCKET:
+                                <tr>
+                                    <td>${job}</td>
+                                    <td>Using Websockets</td>
+                                    <td>N/A</td>
+                                    <td>N/A</td>
+                                    <td>N/A</td>
+                                </tr>
+                                % else:
+                                <tr>
+                                    <td>${job}</td>
+                                    <td>Inactive</td>
+                                    <td>N/A</td>
+                                    <td>N/A</td>
+                                    <td>N/A</td>
+                                </tr>
+                                % endif
+                                % endfor
+                            </tbody>
+                        </table>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-1">
+                        <div class="padded-header">
+                            <h3>Updates</h3>
+                        </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
                             </label>
                             <p class="help-block">If you have Git installed, allow periodic checks for updates.</p>
                         </div>
-                        % if plexpy.CURRENT_VERSION:
-                        <p class="help-block">Git hash: ${plexpy.CURRENT_VERSION}</p>
-                        % endif
                         <div class="padded-header">
                             <h3>Display Settings</h3>
                         </div>
@@ -461,6 +584,15 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.<br />
                             This is currently experimental.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="anon_redirect">Anonymous Redirect</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
                         </div>
 
                         <div class="padded-header">
@@ -1497,6 +1629,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/parsley.min.js"></script>
 <script src="interfaces/default/js/Sortable.min.js"></script>
+<script src="interfaces/default/js/moment-with-locale.js"></script>
 <script>
 $(document).ready(function() {
 

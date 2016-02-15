@@ -49,7 +49,7 @@ def db_filename(filename="plexpy.db"):
 def make_backup(cleanup=False):
     """ Makes a backup of db, removes all but the last 3 backups """
 
-    backupfolder = plexpy.BACKUP_DIR
+    backupfolder = plexpy.CONFIG.BACKUP_DIR
     backup_file = 'plexpy.backup-%s.db' % int(time.time())
     backup_file_fp = os.path.join(backupfolder, backup_file)
 

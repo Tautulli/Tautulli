@@ -516,3 +516,10 @@ def get_ip(host):
             logger.error(u"IP Checker :: Bad IP or hostname provided.")
 
     return ip_address
+
+# Taken from SickRage
+def anon_url(*url):
+    """
+    Return a URL string consisting of the Anonymous redirect URL and an arbitrary number of values appended.
+    """
+    return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
