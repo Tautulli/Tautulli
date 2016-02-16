@@ -131,8 +131,11 @@ _CONFIG_DEFINITIONS = {
     'HOME_STATS_COUNT': (int, 'General', 5),
     'HOME_STATS_CARDS': (list, 'General', ['top_tv', 'popular_tv', 'top_movies', 'popular_movies', 'top_music', \
         'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent']),
+    'HTTPS_CREATE_CERT': (int, 'General', 1),
     'HTTPS_CERT': (str, 'General', ''),
     'HTTPS_KEY': (str, 'General', ''),
+    'HTTPS_DOMAIN': (str, 'General', 'localhost'),
+    'HTTPS_IP': (str, 'General', '127.0.0.1'),
     'HTTP_HOST': (str, 'General', '0.0.0.0'),
     'HTTP_PASSWORD': (str, 'General', ''),
     'HTTP_PORT': (int, 'General', 8181),
