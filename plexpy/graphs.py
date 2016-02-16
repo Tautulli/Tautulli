@@ -1,4 +1,4 @@
-﻿# This file is part of PlexPy.
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,8 +15,12 @@
 
 from plexpy import logger, database, helpers, common
 import plexpy
-
+import pmsconnect
 import datetime
+import json
+import operator
+import os
+import time
 
 
 class Graphs(object):
@@ -896,3 +900,114 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
 
         return output
+
+    @staticmethod
+    def data_by(time_range='30', t='month', refresh=False, **kwargs):
+
+        """ Filter all files from plex
+
+            Args:
+                time_range(string, optional): ''
+                t(string): 'raw, day, date, month, hour'
+
+            Returns:
+                dict:
+                    ```
+                    {'date': [t], 'movies': [ints], 'track': [ints], 'episode': [ints]}
+                    ```
+
+
+        """
+        # Placeholders
+        all_files = None
+        limit = None
+        movie_list = []
+        episode_list = []
+        track_list = []
+        match_list = []
+
+        json_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'media_info_graphs.json')
+
+        try:
+
+            with open(json_file, 'r') as f:
+                all_files = json.load(f)
+        except Exception as e:
+            logger.exception('Failed to read %s %s' % (json_file, e))
+            return []
+
+        # Used for debugging
+        if t == 'raw':
+            return all_files
+
+        base = datetime.datetime.now().date()
+
+        if isinstance(time_range, basestring):
+            time_range = int(time_range)
+
+        # Make list with the correct matches
+        if t == 'hour':
+            match_list = [d.hour for d in helpers.get_time_range('hours', n=-24, raw=True)]
+
+        elif t == 'day':
+            # dayofweek
+            match_list = [d.weekday() for d in helpers.get_time_range('days', n=-7, raw=True)]
+
+        # A time range
+        elif t == 'date':
+            if time_range:
+                ndays = -time_range
+
+            else:
+                # Grab the oldest mediafile in plex
+                oldest_file = sorted(all_files, key=operator.itemgetter('date'))[0]['date']
+                start_date_ob = datetime.datetime.strptime(oldest_file, '%Y-%m-%d').date()
+                delta = base - start_date_ob
+                ndays = delta.days
+                ndays = -ndays
+
+            match_list = [str(d.date()) for d in helpers.get_time_range('days', n=ndays, raw=True)]
+
+        elif t == 'month':
+            match_list = helpers.get_time_range('months', n=-12)
+
+        # for speed, works with unicode but takes longer time
+        t = str(t)
+
+        # limit the all files..
+        if time_range and t != 'month':
+            limit = [str(d.date()) for d in helpers.get_time_range('days', n=-time_range, raw=True)]
+        else:
+            limit = [str(d.date()) for d in helpers.get_time_range('days', n=-365, raw=True)]
+
+        if limit:
+            all_files = [z for z in all_files if z['date'] in limit]
+
+        for d in match_list:
+            ms = 0
+            es = 0
+            ts = 0
+            for i in all_files:
+                if d == i[t]:
+                    if i['type'] == 'episode':
+                        es += i['size']
+                    elif i['type'] == 'movie':
+                        ms += i['size']
+                    elif i['type'] == 'track':
+                        ts += i['size']
+            movie_list.append(ms)
+            episode_list.append(es)
+            track_list.append(ts)
+
+        # Add the correct date_type_list..
+        if t == 'month':
+            date_type_list = helpers.get_time_range('months', n=-12, format='MMMM YYYY')
+        elif t == 'day':
+            # correnct we have all the correct days, but we
+            date_type_list = helpers.get_time_range('days', n=-7, format='dddd')
+        elif t == 'hour':
+            date_type_list = helpers.get_time_range('hours', n=-24, format='HH')
+        elif t == 'date':
+            date_type_list = [str(d.date()) for d in helpers.get_time_range('days', n=-time_range, raw=True)]
+
+        return {'date': date_type_list, 'movie': movie_list, 'track': track_list, 'episode': episode_list}

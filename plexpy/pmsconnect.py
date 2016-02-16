@@ -18,6 +18,13 @@ from urlparse import urlparse
 
 import plexpy
 import urllib2
+import concurrent.futures as cf
+import time
+import requests
+import datetime
+import arrow
+import os
+import json
 
 
 def get_server_friendly_name():
@@ -2037,6 +2044,169 @@ class PmsConnect(object):
                                }
 
         return server_response
+
+    @staticmethod
+    def async_fetch(urls, headers=None, workers=10, timeout=5):
+        """ json stuff faster plix
+
+            Params:
+                    urls(list, string): ['http://....']
+                    headers(dict, optional): {}
+                    workers(int, optional): 10
+
+
+        """
+
+        if headers is None:
+            headers = {}
+
+        if isinstance(urls, basestring):
+            urls = [urls]
+
+        session = requests.Session()
+        session = session.get
+
+        with cf.ThreadPoolExecutor(max_workers=workers) as executor:
+            future_to_url = {executor.submit(session, url, headers=headers, timeout=timeout): url for url in urls}
+            for future in cf.as_completed(future_to_url):
+                url = future_to_url[future]
+                try:
+                    data = future.result()
+                    yield data.json()
+                except Exception as exc:
+                    logger.exception('%r generated an exception: %s' % (url, exc))
+
+
+    def get_file_size_graphs(self):
+        """ Query pms to get every item in the db with file sizes, only caring about age """
+
+        if plexpy.CONFIG.PMS_URL:
+            url_parsed = urlparse(plexpy.CONFIG.PMS_URL)
+            hostname = url_parsed.hostname
+            port = url_parsed.port
+            self.protocol = url_parsed.scheme
+        else:
+            hostname = plexpy.CONFIG.PMS_IP
+            port = plexpy.CONFIG.PMS_PORT
+            self.protocol = 'http'
+
+        b_url = '%s://%s:%s' % (self.protocol, hostname, port)
+
+        def fetch(s=''):
+            result = requests.get(b_url + s, headers=h)
+            if result:
+                return result.json()
+
+        h = {'Accept': 'application/json',
+             'X-Plex-Token': plexpy.CONFIG.PMS_TOKEN
+             }
+
+        b_url = '%s://%s:%s' % (self.protocol, hostname, port)
+
+        result = fetch('/library/sections/all').get('_children')
+        return_list = []
+        files_urls = []
+
+        for sections in result:
+            section = fetch('/library/sections/%s/all' % sections['key'])
+            for item in section['_children']:
+
+                t = arrow.get(item.get('addedAt', 0))
+                _date = str(t.date())
+                _hour = t.hour
+                _weekday = t.weekday()
+                _month = t.month
+
+                # For movies
+                d = {
+                     'title': item['title'],
+                     'ratingkey': item['ratingKey'],
+                     'type': item['type'],
+                     'date': _date,
+                     'epoch': item.get('addedAt', 0),
+                     'hour': _hour,
+                     'day': _weekday,
+                     'day_name': t.format('DDDD'),
+                     'month_name': t.format('MMMM'),
+                     'clock': t.strftime('%H'),
+                     'month': _month,
+                     'size': 0,
+
+                    }
+
+                files = []
+                if item['_elementType'] == 'Video':
+                    if '_children' in item:
+                        for c in item['_children']:
+                            if '_children' in c:
+                                for part in c['_children']:
+                                    s = part.get('size', 0)
+                                    d['size'] += s
+                                    files.append(part['file'])
+
+                        d['files'] = files
+
+                    return_list.append(d)
+
+                elif item['_elementType'] == 'Directory':
+
+                    if item['type'] == 'show' or item['type'] == 'artist':
+                        files_urls.append(b_url + '/library/metadata/' + str(item['ratingKey']) + '/allLeaves')
+
+        start = time.time()
+        eps_music = PmsConnect.async_fetch(files_urls, headers=h)
+
+        for zz in eps_music:
+            for eps in zz['_children']:
+                title = eps['title'] if eps.get('title') else eps['parentTitle']
+                t = arrow.get(eps.get('addedAt', 0.0))
+                _date = str(t.date())
+                _hour = t.hour
+                _weekday = t.weekday()
+                _month = t.month
+
+                d = {'title': title,
+                     'ratingkey': eps['ratingKey'],
+                     'type': eps['type'],
+                     'date': _date,
+                     'epoch': eps.get('addedAt', 0),
+                     'hour': _hour,
+                     'day': _weekday,
+                     'month': _month,
+                     'clock': t.strftime('%H'),
+                     'day_name': t.format('DDDD'),
+                     'month_name': t.format('MMMM'),
+                     'size': 0
+                     }
+
+                files = []
+                for e in eps['_children']:
+                    if '_children' in e:
+                        for c in e['_children']:
+                            s = c.get('size', 0)
+                            if s:
+                                d['size'] += s
+                                files.append(c['file'])
+
+                d['files'] = files
+
+                return_list.append(d)
+
+        end = time.time()
+        #logger.debug('Found %s items in total' % len(return_list))
+
+        return return_list
+
+    def make_meta_data_cache(self):
+
+        logger.debug('Trying to refresh media_info_graphs.json for graphs')
+        try:
+            with open(os.path.join(plexpy.CONFIG.CACHE_DIR, 'media_info_graphs.json'), 'w') as f:
+                all_files = all_files = self.get_file_size_graphs()
+                if all_files:
+                    json.dump(all_files, f)
+        except Exception as e:
+            logger.error('Failed to make media_info_graphs.json %s' % e)
 
     def get_update_staus(self):
         # Refresh the Plex updater status first

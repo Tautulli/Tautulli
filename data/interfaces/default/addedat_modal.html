@@ -1,0 +1,46 @@
+<%! from plexpy import helpers
+%>
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title" id="myModalLabel">
+                <strong><span id="modal_header_ip_address">
+                    <i class="fa fa-history"></i> Files added to Plex <span id="date-header">${date}</span>
+                </span></strong>
+            </h4>
+        </div>
+        <div class="modal-body" id="modal-text">
+            <table class="display" id="addedat_table" width="100%">
+                <thead>
+                    <tr>
+                        <th align="left" id="time">Time</th>
+                        <th align="left" id="title">Title</th>
+                        <th align="left" id="files">Files</th>
+                        <th align="left" id="type">Type</th>
+                        <th align="left" id="file_size">Filesize</th>
+                    </tr>
+                </thead>
+
+                % for d in data:
+                    <tr>
+                        <td>${d.get(type)}</td>
+                        <td>${d['title']}</td>
+                        <td>${''.join(d['files'])}</td>
+                        <td>${d['type']}</td>
+                        <td>${helpers.to_filesize(d['size'])}</td>
+                    </tr>
+                % endfor
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer"></div>
+    </div>
+</div>
+<div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
+</div>
+
+<script>
+    jQuery(function() {jQuery('#addedat_table').dataTable({"sPaginationType": "full_numbers"})})
+</script>

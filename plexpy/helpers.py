@@ -30,7 +30,9 @@ import time
 import unicodedata
 import urllib, urllib2
 from xml.dom import minidom
+
 import xmltodict
+import arrow
 
 import plexpy
 from api2 import API2
@@ -550,7 +552,7 @@ def uploadToImgur(imgPath, imgTitle=''):
         request = urllib2.Request('https://api.imgur.com/3/image', headers=headers, data=urllib.urlencode(data))
         response = urllib2.urlopen(request)
         response = json.loads(response.read())
-    
+
         if response.get('status') == 200:
             t = '\'' + imgTitle + '\' ' if imgTitle else ''
             logger.debug(u"PlexPy Helpers :: Image %suploaded to Imgur." % t)
@@ -563,3 +565,78 @@ def uploadToImgur(imgPath, imgTitle=''):
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % e)
 
     return img_url
+
+
+def get_time_range(time_range_type, n=None, format='', start=None, reverse=False, raw=False):
+    """ A list of time/date from current day/hour/month etc
+
+         Params:
+            time_range(string): 'years, months, weeks, days, minutes, seconds',
+            n(int, optional): number of days/etc
+            format(string, optional): see arrow docs
+            start(string, int, float, optional): see arrow.get()
+
+        Example:
+            get_time_range('months', start='2015-7-13', format='MMMM')
+
+        Returns:
+            [u'January', u'February', u'March', u'April', u'May', u'June', u'July', u'August',
+             u'September', u'October', u'November', u'December', u'January', u'February']
+
+
+
+    """
+    # Defaults
+    result = []
+    base = g = arrow.now()
+
+    if n is not None and isinstance(n, basestring):
+        n = int(n)
+
+    # To allow both negative and positive n
+    # from current month/day/hour etc
+    if n is not None:
+        if n < 0:
+            n += 1
+        else:
+            n -= 1
+
+    # To allow subtraction of days: 100
+    if start is None:
+        start = base.replace(**{time_range_type: n})
+    else:
+        start = arrow.get(start)
+
+    # Check if we should swap as the
+    # oldest datetime always has to be first
+    if start > g:
+        start, g = g, start
+
+    if time_range_type and time_range_type.endswith('s'):
+        time_range_type = time_range_type.replace('s', '')
+
+    # Incase we need access to the raw datetime, used in list comprehension
+    if raw:
+        result = [r for r in arrow.Arrow.range(time_range_type, start, g)]
+    else:
+        result = [r.format(format) if format else getattr(r, time_range_type) for r in arrow.Arrow.range(time_range_type, start, g)]
+
+    if reverse is True:
+        result = result[::-1]
+
+    return result
+
+
+def to_filesize(size, precision=2, si=True):
+    """ Convert bytes to filesize """
+
+    suffixes = ['B', 'KB', 'MB', 'GB', 'TB']
+    suffixes_b = ['KiB', 'MiB', 'GiB', 'TiB']
+    suffix_index = 0
+    num = 1000 if si is True else 1024
+    suf = suffixes if si is True else suffixes_b
+
+    while size > num and suffix_index < 4:
+        suffix_index += 1
+        size = size / float(num)
+    return "%.*f %s" % (precision, size, suf[suffix_index])

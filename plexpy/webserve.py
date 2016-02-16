@@ -28,6 +28,7 @@ import random
 import json
 import os
 from api2 import API2
+from profilehooks import profile
 
 try:
     # pylint:disable=E0611
@@ -256,7 +257,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     def delete_temp_sessions(self):
-        
+
         result = database.delete_sessions()
 
         if result:
@@ -1005,9 +1006,77 @@ class WebInterface(object):
         else:
             logger.warn(u"Unable to retrieve data for get_stream_type_by_top_10_platforms.")
 
+    @staticmethod
+    def get_data_for_addedatmodal(t='date', filt=None, raw=False, *args, **kwargs):
+
+        json_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'media_info_graphs.json')
+        try:
+            if filt and '-' in filt:
+                y, m, d = filt.split('-')
+                m = m.zfill(2)
+                d = d.zfill(2)
+                filt = '%s-%s-%s' % (y, m, d)
+
+            # not in use atm
+            """
+            if t == 'day':
+                t = 'day_name'
+            elif t == 'month':
+                t = 'month_name'
+            """
+            with open(json_file, 'r') as f:
+                all_files = json.load(f)
+                if raw:
+                    return all_files
+
+                filt = str(filt)
+                return [item for item in all_files if str(item[t]) == filt]
+
+        except Exception as e:
+            logger.exception('Failed to fetch data for get data modal %s' % e)
+            return []
+
+    @cherrypy.expose
+    def get_addedat_modal(self, *args, **kwargs):
+        data = WebInterface.get_data_for_addedatmodal(t=kwargs['t'], filt=kwargs['start_date'])
+        return serve_template(templatename="addedat_modal.html", title="Modal..",
+                              date=kwargs['start_date'], dateformat=plexpy.CONFIG.DATE_FORMAT,
+                              data=data, type=kwargs['t'])
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @addtoapi()
+    def get_data_by(self, **kwargs):
+
+        g = graphs.Graphs.data_by(**kwargs)
+        if g:
+            if isinstance(g, list):
+                # for the raw parameter
+                return g
+            # format for the damn charts.
+            else:
+                return {'categories': g['date'],
+                        'series': [
+                                {'data': g['episode'], 'name': 'TV'},
+                                {'data': g['movie'], 'name': 'Movies'},
+                                {'data': g['track'], 'name': 'Music'}
+
+                            ]
+                        }
+        else:
+            return []
+
+    @cherrypy.expose
+    @addtoapi()
+    def refresh_get_data_by(self):
+        """ Refresh cache file for graphs data by """
+
+        x = pmsconnect.PmsConnect().make_meta_data_cache()
+        return x
+
+
     @cherrypy.expose
     def history_table_modal(self, **kwargs):
-
         return serve_template(templatename="history_table_modal.html", title="History Data", data=kwargs)
 
 
@@ -1414,7 +1483,6 @@ class WebInterface(object):
             cherrypy.response.headers['Content-type'] = 'application/json'
             return json.dumps({'message': 'Database backup failed.'})
 
-
     @cherrypy.expose
     def get_notification_agent_config(self, agent_id, **kwargs):
         if agent_id.isdigit():
@@ -1739,7 +1807,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     def delete_poster_url(self, poster_url=''):
-        
+
         if poster_url:
             data_factory = datafactory.DataFactory()
             result = data_factory.delete_poster_url(poster_url=poster_url)
@@ -1792,8 +1860,8 @@ class WebInterface(object):
             return serve_template(templatename="info_search_results_list.html", data=None, title="Search Result List")
 
 
-    ##### Update Metadata #####        
-        
+    ##### Update Metadata #####
+
     @cherrypy.expose
     def update_metadata(self, rating_key=None, query=None, update=False, **kwargs):
         query_string = query
