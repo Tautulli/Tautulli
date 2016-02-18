@@ -1354,11 +1354,10 @@ class WebInterface(object):
         return serve_template(templatename="scheduler_table.html")
 
     @cherrypy.expose
-    @addtoapi()
     def backup_db(self):
         """ Creates a manual backup of the plexpy.db file """
 
-        result = database.make_backup(scheduler=False)
+        result = database.make_backup()
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'

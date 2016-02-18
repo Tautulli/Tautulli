@@ -275,6 +275,18 @@ class API2:
         self.data = rows
         return rows
 
+    def backupdb(self):
+        """ Creates a manual backup of the plexpy.db file """
+
+        data = database.make_backup()
+
+        if data:
+            self.result_type = 'success'
+        else:
+            self.result_type = 'failed'
+
+        return data
+
     def restart(self, **kwargs):
         """ Restarts plexpy """
 
