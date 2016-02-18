@@ -1,14 +1,11 @@
 <%inherit file="base.html"/>
 <%!
-import arrow
 import sys
 import plexpy
 from plexpy import notifiers, common, versioncheck
 from plexpy.helpers import anon_url
 
 available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
-
-scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
 %>
 <%def name="headIncludes()">
 </%def>
@@ -111,19 +108,19 @@ scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
                                 </tr>
                                 <tr>
                                     <td class="top-line">Plex Forums:</td>
-                                    <td class="top-line"><a class="no-highlight" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}">https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program</a></td>
+                                    <td class="top-line"><a class="no-highlight" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program</a></td>
                                 </tr>
                                 <tr>
                                     <td>Wiki:</td>
-                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/wiki')}">https://github.com/drzoidberg33/plexpy/wiki</a></td>
+                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/wiki')}" target="_blank">https://github.com/drzoidberg33/plexpy/wiki</a></td>
                                 </tr>
                                 <tr>
                                     <td>Source:</td>
-                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}">https://github.com/drzoidberg33/plexpy</a></td>
+                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}" target="_blank">https://github.com/drzoidberg33/plexpy</a></td>
                                 </tr>
                                 <tr>
                                     <td>Gitter Chat:</td>
-                                    <td><a class="no-highlight" href="${anon_url('https://gitter.im/drzoidberg33/plexpy')}">https://gitter.im/drzoidberg33/plexpy</a></td>
+                                    <td><a class="no-highlight" href="${anon_url('https://gitter.im/drzoidberg33/plexpy')}" target="_blank">https://gitter.im/drzoidberg33/plexpy</a></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1141,8 +1138,7 @@ scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
-                            class="fa fa-remove"></i></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
                     <h4 class="modal-title">Fetch Plex.tv Token</h4>
                 </div>
                 <div class="modal-body" id="modal-text">

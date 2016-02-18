@@ -2756,3 +2756,6 @@ a.no-highlight:hover {
     font-weight: bold;
     color: #fff;
 }
+.save-button {
+    margin-top: 15px;
+}
