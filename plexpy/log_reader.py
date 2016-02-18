@@ -18,10 +18,14 @@ import re
 import os
 import plexpy
 
-def get_log_tail(window=20, parsed=True):
+def get_log_tail(window=20, parsed=True, log_type="server"):
 
     if plexpy.CONFIG.PMS_LOGS_FOLDER:
-        log_file = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, 'Plex Media Server.log')
+        log_file = ""
+        if log_type == "server":
+            log_file = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, 'Plex Media Server.log')
+        elif log_type == "scanner":
+            log_file = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, 'Plex Media Scanner.log')
     else:
         return []
 
