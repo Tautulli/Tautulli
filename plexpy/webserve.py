@@ -636,7 +636,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_user_watch_time_stats(self, user=None, user_id=None, **kwargs):
-        if users_id or user:
+        if user_id or user:
             user_data = users.Users()
             result = user_data.get_watch_time_stats(user_id=user_id)
         else:
@@ -650,7 +650,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_user_player_stats(self, user=None, user_id=None, **kwargs):
-        if users_id or user:
+        if user_id or user:
             user_data = users.Users()
             result = user_data.get_player_stats(user_id=user_id)
         else:
@@ -664,7 +664,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_user_recently_watched(self, user=None, user_id=None, limit='10', **kwargs):
-        if users_id or user:
+        if user_id or user:
             user_data = users.Users()
             result = user_data.get_recently_watched(user_id=user_id, limit=limit)
         else:
