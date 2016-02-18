@@ -37,15 +37,15 @@ scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
         %>
         <tr>
             <td>${sched_job.id}</td>
-            <td>Active</td>
+            <td><i class="fa fa-sm fa-fw fa-check"></i> Active</td>
             <td>${arrow.get(run_interval).format('HH:mm:ss')}</td>
             <td>${arrow.get(next_run_interval).format('HH:mm:ss')}</td>
             <td>${arrow.get(sched_job.next_run_time).format('YYYY-MM-DD HH:mm:ss')}</td>
         </tr>
-        % elif job == 'Check for active sessions' and plexpy.CONFIG.MONITORING_USE_WEBSOCKET:
+        % elif job == 'Check for active sessions' and plexpy.CONFIG.MONITORING_USE_WEBSOCKET and not plexpy.POLLING_FAILOVER:
         <tr>
             <td>${job}</td>
-            <td>Using Websockets</td>
+            <td><i class="fa fa-sm fa-fw fa-check"></i> Using Websocket</td>
             <td>N/A</td>
             <td>N/A</td>
             <td>N/A</td>
@@ -53,7 +53,7 @@ scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
         % else:
         <tr>
             <td>${job}</td>
-            <td>Inactive</td>
+            <td><i class="fa fa-sm fa-fw fa-times"></i> Inactive</td>
             <td>N/A</td>
             <td>N/A</td>
             <td>N/A</td>
