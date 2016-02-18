@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users, libraries
+from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users, libraries, database
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates
 
 from mako.lookup import TemplateLookup
@@ -1338,6 +1338,21 @@ class WebInterface(object):
     @cherrypy.expose
     def get_scheduler_table(self, **kwargs):
         return serve_template(templatename="scheduler_table.html")
+
+    @cherrypy.expose
+    @addtoapi()
+    def backup_db(self):
+        """ Creates a manual backup of the plexpy.db file """
+
+        result = database.make_backup(scheduler=False)
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'Database backup successful.'})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'Database backup failed.'})
+
 
     @cherrypy.expose
     def get_notification_agent_config(self, agent_id, **kwargs):

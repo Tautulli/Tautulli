@@ -275,22 +275,6 @@ class API2:
         self.data = rows
         return rows
 
-    def backupdb(self, cleanup=False):
-        """ Makes a backup of the db, removes all but the 3 last backups
-
-            Args:
-                cleanup: (bool, optional)
-        """
-
-        data = database.make_backup(cleanup=cleanup)
-
-        if data:
-            self.result_type = 'success'
-        else:
-            self.result_type = 'failed'
-
-        return data
-
     def restart(self, **kwargs):
         """ Restarts plexpy """
 

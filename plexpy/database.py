@@ -13,11 +13,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import arrow
 import os
 import sqlite3
 import shutil
 import threading
-import time
 
 import logger
 import plexpy
@@ -46,16 +46,19 @@ def db_filename(filename="plexpy.db"):
     return os.path.join(plexpy.DATA_DIR, filename)
 
 
-def make_backup(cleanup=False):
+def make_backup(cleanup=False, scheduler=False):
     """ Makes a backup of db, removes all but the last 5 backups """
 
-    backupfolder = plexpy.CONFIG.BACKUP_DIR
-    backup_file = 'plexpy.backup-%s.db' % int(time.time())
-    backup_file_fp = os.path.join(backupfolder, backup_file)
+    if scheduler:
+        backup_file = 'plexpy.backup-%s.sched.db' % arrow.now().format('YYYYMMDDHHmmss')
+    else:
+        backup_file = 'plexpy.backup-%s.db' % arrow.now().format('YYYYMMDDHHmmss')
+    backup_folder = plexpy.CONFIG.BACKUP_DIR
+    backup_file_fp = os.path.join(backup_folder, backup_file)
 
     # In case the user has deleted it manually
-    if not os.path.exists(backupfolder):
-        os.makedirs(backupfolder)
+    if not os.path.exists(backup_folder):
+        os.makedirs(backup_folder)
 
     db = MonitorDatabase()
     db.connection.execute('begin immediate')
@@ -63,9 +66,9 @@ def make_backup(cleanup=False):
     db.connection.rollback()
 
     if cleanup:
-        # Delete all backup files except from the last 5.
-        for root, dirs, files in os.walk(backupfolder):
-            db_files = [os.path.join(root, f) for f in files if f.endswith('.db')]
+        # Delete all scheduled backup files except from the last 5.
+        for root, dirs, files in os.walk(backup_folder):
+            db_files = [os.path.join(root, f) for f in files if f.endswith('.sched.db')]
             if len(db_files) > 5:
                 backups_sorted_on_age = sorted(db_files, key=os.path.getctime, reverse=True)
                 for file_ in backups_sorted_on_age[5:]:
@@ -74,7 +77,7 @@ def make_backup(cleanup=False):
                     except OSError as e:
                         logger.error(u"PlexPy Database :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
-    if backup_file in os.listdir(backupfolder):
+    if backup_file in os.listdir(backup_folder):
         logger.debug(u"PlexPy Database :: Successfully backed up %s to %s" % (db_filename(), backup_file))
         return True
     else:

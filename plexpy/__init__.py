@@ -333,7 +333,7 @@ def initialize_scheduler():
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
                          hours=hours, minutes=0, seconds=0)
 
-        schedule_job(database.make_backup, 'Backup PlexPy database', hours=6, minutes=0, seconds=0, args=(True,))
+        schedule_job(database.make_backup, 'Backup PlexPy database', hours=6, minutes=0, seconds=0, args=(True, True))
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
