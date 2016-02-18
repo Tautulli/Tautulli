@@ -245,58 +245,24 @@ class Users(object):
     def get_details(self, user_id=None, user=None):
         from plexpy import plextv
 
-        monitor_db = database.MonitorDatabase()
-        
-        try:
-            if str(user_id).isdigit():
-                query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                        'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history ' \
-                        'FROM users ' \
-                        'WHERE user_id = ? '
-                result = monitor_db.select(query, args=[user_id])
-            elif user:
-                query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                        'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history ' \
-                        'FROM users ' \
-                        'WHERE username = ? '
-                result = monitor_db.select(query, args=[user])
-            else:
-                result = []
-        except Exception as e:
-            logger.warn(u"PlexPy Users :: Unable to execute database query for get_details: %s." % e)
-            result = []
+        default_return = {'user_id': None,
+                          'username': 'Local',
+                          'friendly_name': 'Local',
+                          'user_thumb': common.DEFAULT_USER_THUMB,
+                          'email': '',
+                          'is_home_user': 0,
+                          'is_allow_sync': 0,
+                          'is_restricted': 0,
+                          'do_notify': 0,
+                          'keep_history': 0
+                          }
 
-        if result:
-            user_details = {}
-            for item in result:
-                if item['friendly_name']:
-                    friendly_name = item['friendly_name']
-                else:
-                    friendly_name = item['username']
+        if not user_id and not user:
+            return default_return
 
-                if item['custom_thumb'] and item['custom_thumb'] != item['user_thumb']:
-                    user_thumb = item['custom_thumb']
-                elif item['user_thumb']:
-                    user_thumb = item['user_thumb']
-                else:
-                    user_thumb = common.DEFAULT_USER_THUMB
+        def get_user_details(user_id=user_id, user=user):
+            monitor_db = database.MonitorDatabase()
 
-                user_details = {'user_id': item['user_id'],
-                                'username': item['username'],
-                                'friendly_name': friendly_name,
-                                'user_thumb': user_thumb,
-                                'email': item['email'],
-                                'is_home_user': item['is_home_user'],
-                                'is_allow_sync': item['is_allow_sync'],
-                                'is_restricted': item['is_restricted'],
-                                'do_notify': item['do_notify'],
-                                'keep_history': item['keep_history']
-                                }
-            return user_details
-        else:
-            logger.warn(u"PlexPy Users :: Unable to retrieve user from local database. Requesting user list refresh.")
-            # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
-            plextv.refresh_users()
             try:
                 if str(user_id).isdigit():
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
@@ -316,8 +282,8 @@ class Users(object):
                 logger.warn(u"PlexPy Users :: Unable to execute database query for get_details: %s." % e)
                 result = []
 
+            user_details = {}
             if result:
-                user_details = {}
                 for item in result:
                     if item['friendly_name']:
                         friendly_name = item['friendly_name']
@@ -342,21 +308,28 @@ class Users(object):
                                     'do_notify': item['do_notify'],
                                     'keep_history': item['keep_history']
                                     }
+            return user_details
+
+        user_details = get_user_details(user_id=user_id, user=user)
+
+        if user_details:
+            return user_details
+
+        else:
+            logger.warn(u"PlexPy Users :: Unable to retrieve user from local database. Requesting user list refresh.")
+            # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
+            plextv.refresh_users()
+
+            user_details = get_user_details(user_id=user_id, user=user)
+
+            if user_details:
                 return user_details
+
             else:
+                logger.warn(u"PlexPy Users :: Unable to retrieve user from local database. Returning 'Local' user.")
                 # If there is no user data we must return something
                 # Use "Local" user to retain compatibility with PlexWatch database value
-                return {'user_id': None,
-                        'username': 'Local',
-                        'friendly_name': 'Local',
-                        'user_thumb': common.DEFAULT_USER_THUMB,
-                        'email': '',
-                        'is_home_user': 0,
-                        'is_allow_sync': 0,
-                        'is_restricted': 0,
-                        'do_notify': 0,
-                        'keep_history': 0
-                        }
+                return default_return
 
     def get_watch_time_stats(self, user_id=None):
         monitor_db = database.MonitorDatabase()

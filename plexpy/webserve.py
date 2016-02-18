@@ -363,9 +363,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_library_watch_time_stats(self, section_id=None, **kwargs):
-
-        library_data = libraries.Libraries()
-        result = library_data.get_watch_time_stats(section_id=section_id)
+        if section_id:
+            library_data = libraries.Libraries()
+            result = library_data.get_watch_time_stats(section_id=section_id)
+        else:
+            result = None
 
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
@@ -375,9 +377,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_library_user_stats(self, section_id=None, **kwargs):
-
-        library_data = libraries.Libraries()
-        result = library_data.get_user_stats(section_id=section_id)
+        if section_id:
+            library_data = libraries.Libraries()
+            result = library_data.get_user_stats(section_id=section_id)
+        else:
+            result = None
 
         if result:
             return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
@@ -387,9 +391,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_library_recently_watched(self, section_id=None, limit='10', **kwargs):
-
-        library_data = libraries.Libraries()
-        result = library_data.get_recently_watched(section_id=section_id, limit=limit)
+        if section_id:
+            library_data = libraries.Libraries()
+            result = library_data.get_recently_watched(section_id=section_id, limit=limit)
+        else:
+            result = None
 
         if result:
             return serve_template(templatename="user_recently_watched.html", data=result, title="Recently Watched")
@@ -399,9 +405,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_library_recently_added(self, section_id=None, limit='10', **kwargs):
-
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_recently_added_details(section_id=section_id, count=limit)
+        if section_id:
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_recently_added_details(section_id=section_id, count=limit)
+        else:
+            result = None
 
         if result:
             return serve_template(templatename="library_recently_added.html", data=result['recently_added'], title="Recently Added")
@@ -628,9 +636,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_user_watch_time_stats(self, user=None, user_id=None, **kwargs):
-
-        user_data = users.Users()
-        result = user_data.get_watch_time_stats(user_id=user_id)
+        if users_id or user:
+            user_data = users.Users()
+            result = user_data.get_watch_time_stats(user_id=user_id)
+        else:
+            result = None
 
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
@@ -640,9 +650,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_user_player_stats(self, user=None, user_id=None, **kwargs):
-
-        user_data = users.Users()
-        result = user_data.get_player_stats(user_id=user_id)
+        if users_id or user:
+            user_data = users.Users()
+            result = user_data.get_player_stats(user_id=user_id)
+        else:
+            result = None
 
         if result:
             return serve_template(templatename="user_player_stats.html", data=result, title="Player Stats")
@@ -652,9 +664,11 @@ class WebInterface(object):
 
     @cherrypy.expose
     def get_user_recently_watched(self, user=None, user_id=None, limit='10', **kwargs):
-
-        user_data = users.Users()
-        result = user_data.get_recently_watched(user_id=user_id, limit=limit)
+        if users_id or user:
+            user_data = users.Users()
+            result = user_data.get_recently_watched(user_id=user_id, limit=limit)
+        else:
+            result = None
 
         if result:
             return serve_template(templatename="user_recently_watched.html", data=result, title="Recently Watched")

@@ -540,51 +540,27 @@ class Libraries(object):
     def get_details(self, section_id=None):
         from plexpy import pmsconnect
 
-        monitor_db = database.MonitorDatabase()
+        default_return = {'section_id': None,
+                          'section_name': 'Local',
+                          'section_type': '',
+                          'library_thumb': common.DEFAULT_COVER_THUMB,
+                          'library_art': '',
+                          'count': 0,
+                          'parent_count': 0,
+                          'child_count': 0,
+                          'do_notify': 0,
+                          'do_notify_created': 0,
+                          'keep_history': 0
+                          }
 
-        try:
-            if section_id:
-                query = 'SELECT section_id, section_name, section_type, count, parent_count, child_count, ' \
-                        'thumb AS library_thumb, custom_thumb_url AS custom_thumb, art, ' \
-                        'do_notify, do_notify_created, keep_history ' \
-                        'FROM library_sections ' \
-                        'WHERE section_id = ? '
-                result = monitor_db.select(query, args=[section_id])
-            else:
-                result = []
-        except Exception as e:
-            logger.warn(u"PlexPy Libraries :: Unable to execute database query for get_details: %s." % e)
-            result = []
+        if not section_id:
+            return default_return
 
-        if result:
-            library_details = {}
-            for item in result:
-                if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
-                    library_thumb = item['custom_thumb']
-                elif item['library_thumb']:
-                    library_thumb = item['library_thumb']
-                else:
-                    library_thumb = common.DEFAULT_COVER_THUMB
+        def get_library_details(section_id=section_id):
+            monitor_db = database.MonitorDatabase()
 
-                library_details = {'section_id': item['section_id'],
-                                   'section_name': item['section_name'],
-                                   'section_type': item['section_type'],
-                                   'library_thumb': library_thumb,
-                                   'library_art': item['art'],
-                                   'count': item['count'],
-                                   'parent_count': item['parent_count'],
-                                   'child_count': item['child_count'],
-                                   'do_notify': item['do_notify'],
-                                   'do_notify_created': item['do_notify_created'],
-                                   'keep_history': item['keep_history']
-                                   }
-            return library_details
-        else:
-            logger.warn(u"PlexPy Libraries :: Unable to retrieve library from local database. Requesting library list refresh.")
-            # Let's first refresh the libraries list to make sure the library isn't newly added and not in the db yet
-            pmsconnect.refresh_libraries()
             try:
-                if section_id:
+                if str(section_id).isdigit():
                     query = 'SELECT section_id, section_name, section_type, count, parent_count, child_count, ' \
                             'thumb AS library_thumb, custom_thumb_url AS custom_thumb, art, ' \
                             'do_notify, do_notify_created, keep_history ' \
@@ -593,12 +569,12 @@ class Libraries(object):
                     result = monitor_db.select(query, args=[section_id])
                 else:
                     result = []
-            except:
+            except Exception as e:
                 logger.warn(u"PlexPy Libraries :: Unable to execute database query for get_details: %s." % e)
                 result = []
 
+            library_details = {}
             if result:
-                library_details = {}
                 for item in result:
                     if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
                         library_thumb = item['custom_thumb']
@@ -619,22 +595,28 @@ class Libraries(object):
                                        'do_notify_created': item['do_notify_created'],
                                        'keep_history': item['keep_history']
                                        }
+            return library_details
+
+        library_details = get_library_details(section_id=section_id)
+
+        if library_details:
+            return library_details
+
+        else:
+            logger.warn(u"PlexPy Libraries :: Unable to retrieve library from local database. Requesting library list refresh.")
+            # Let's first refresh the libraries list to make sure the library isn't newly added and not in the db yet
+            pmsconnect.refresh_libraries()
+
+            library_details = get_library_details(section_id=section_id)
+
+            if library_details:
                 return library_details
+            
             else:
+                logger.warn(u"PlexPy Users :: Unable to retrieve user from local database. Returning 'Local' library.")
                 # If there is no library data we must return something
-                # Use "Local" user to retain compatibility with PlexWatch database value
-                return {'section_id': None,
-                        'section_name': 'Local',
-                        'section_type': '',
-                        'library_thumb': common.DEFAULT_COVER_THUMB,
-                        'library_art': '',
-                        'count': 0,
-                        'parent_count': 0,
-                        'child_count': 0,
-                        'do_notify': 0,
-                        'do_notify_created': 0,
-                        'keep_history': 0
-                        }
+                # Use "Local" library to retain compatibility with PlexWatch database value
+                return default_return
 
     def get_watch_time_stats(self, section_id=None):
         monitor_db = database.MonitorDatabase()
