@@ -1072,7 +1072,7 @@ class WebInterface(object):
     @addtoapi()
     def get_plex_log(self, window=1000, **kwargs):
         log_lines = []
-        log_type = ""
+        log_type = "server"
 
         if 'log_type' in kwargs:
             log_type = kwargs.get('log_type', "server")
