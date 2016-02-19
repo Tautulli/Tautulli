@@ -2127,63 +2127,22 @@ class FacebookNotifier(object):
             attachment = {}
 
             if self.incl_poster and 'metadata' in kwargs:
-                poster = ''
-                caption = 'View in Plex Web.'
                 metadata = kwargs['metadata']
+                poster_url = metadata.get('poster_url','')
+                caption = 'View in Plex Web.'
 
-                if metadata['media_type'] == 'movie' and metadata.get('imdb_id', ''):
+                if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show':
                     title = metadata['title']
                     subtitle = metadata['year']
-                    uri = '/?i=' + metadata['imdb_id']
+                elif metadata['media_type'] == 'episode':
+                    title = metadata['grandparent_title'] + ' - ' + metadata['title']
+                    subtitle = 'S' + metadata['parent_media_index'] + ' ' + '\xc2\xb7'.decode('utf8') + \
+                                ' E' + metadata['media_index']
 
-                    # Get poster using OMDb API
-                    http_handler = HTTPConnection("www.omdbapi.com")
-                    http_handler.request('GET', uri)
-                    response = http_handler.getresponse()
-                    request_status = response.status
-
-                    if request_status == 200:
-                        data = json.loads(response.read())
-                        poster = data.get('Poster', '')
-                    elif request_status >= 400 and request_status < 500:
-                        logger.warn(u"PlexPy Notifiers :: Unable to retrieve IMDB poster: %s" % response.reason)
-                    else:
-                        logger.warn(u"PlexPy Notifiers :: Unable to retrieve IMDB poster.")
-
-                elif (metadata['media_type'] == 'show' or metadata['media_type'] == 'episode') \
-                    and (metadata.get('imdb_id', '') or metadata.get('thetvdb_id', '')):
-                    if metadata['media_type'] == 'show':
-                        title = metadata['title']
-                        subtitle = metadata['year']
-                    elif metadata['media_type'] == 'episode':
-                        title = metadata['grandparent_title'] + ' - ' + metadata['title']
-                        subtitle = 'S' + metadata['parent_media_index'] + ' ' + '\xc2\xb7'.decode('utf8') + \
-                                   ' E' + metadata['media_index']
-
-                    if metadata.get('imdb_id', ''):
-                        uri = '/lookup/shows?imdb=' + metadata['imdb_id']
-                    elif metadata.get('thetvdb_id', ''):
-                        uri = '/lookup/shows?thetvdb=' + metadata['thetvdb_id']
-
-                    # Get poster using TVmaze API
-                    request = urllib2.Request('http://api.tvmaze.com' + uri)
-                    opener = urllib2.build_opener(openanything.SmartRedirectHandler())
-                    response = opener.open(request)
-                    request_status = response.status
-
-                    if request_status == 301:
-                        data = json.loads(response.read())
-                        image = data.get('image', '')
-                        poster = image.get('original', image.get('medium',''))
-                    elif request_status >= 400 and request_status < 500:
-                        logger.warn(u"PlexPy Notifiers :: Unable to retrieve TVmaze poster: %s" % response.reason)
-                    else:
-                        logger.warn(u"PlexPy Notifiers :: Unable to retrieve TVmaze poster.")
-
-                if poster and poster != 'N/A':
+                if poster_url:
                     attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
                                          '/details/%2Flibrary%2Fmetadata%2F' + metadata['rating_key']
-                    attachment['picture'] = poster
+                    attachment['picture'] = poster_url
                     attachment['name'] = title
                     attachment['description'] = subtitle
                     attachment['caption'] = caption
