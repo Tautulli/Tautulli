@@ -1244,11 +1244,11 @@ class WebInterface(object):
         for checked_config in checked_configs:
             if checked_config not in kwargs:
                 # checked items should be zero or one. if they were not sent then the item was not checked
-                kwargs[checked_config] = 0
+                kwargs[checked_config] = '0'
 
         # If http password exists in config, do not overwrite when blank value received
-        if 'http_password' in kwargs:
-            if kwargs['http_password'] == '    ' and plexpy.CONFIG.HTTP_PASSWORD != '':
+        if kwargs.get('http_password'):
+            if kwargs['http_password'].strip() == '' and plexpy.CONFIG.HTTP_PASSWORD != '':
                 kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
 
         for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
@@ -1258,50 +1258,34 @@ class WebInterface(object):
 
         # Check if we should refresh our data
         server_changed = False
+        reschedule = False
         https_changed = False
         refresh_libraries = False
         refresh_users = False
-        reschedule = False
 
-        if 'monitoring_interval' in kwargs and 'refresh_libraries_interval' in kwargs:
-            if (kwargs['monitoring_interval'] != str(plexpy.CONFIG.MONITORING_INTERVAL)) or \
-                    (kwargs['refresh_libraries_interval'] != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL)):
-                reschedule = True
-
-        if 'monitoring_interval' in kwargs and 'refresh_users_interval' in kwargs:
-            if (kwargs['monitoring_interval'] != str(plexpy.CONFIG.MONITORING_INTERVAL)) or \
-                    (kwargs['refresh_users_interval'] != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL)):
-                reschedule = True
-
-        if 'notify_recently_added' in kwargs and \
-            (kwargs['notify_recently_added'] != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED):
+        # If we change any monitoring settings, make sure we reschedule tasks.
+        if kwargs.get('monitoring_interval') != str(plexpy.CONFIG.MONITORING_INTERVAL) or \
+            kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
+            kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
+            kwargs.get('notify_recently_added') != str(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED) or \
+            kwargs.get('monitor_remote_access') != str(plexpy.CONFIG.MONITOR_REMOTE_ACCESS):
             reschedule = True
 
-        if 'monitor_remote_access' in kwargs and \
-            (kwargs['monitor_remote_access'] != plexpy.CONFIG.MONITOR_REMOTE_ACCESS):
-            reschedule = True
-
-        # If we change the SSL setting for PMS, make sure we grab the new url.
-        if 'pms_ssl' in kwargs and \
-            (kwargs['pms_ssl'] != plexpy.CONFIG.PMS_SSL):
-            server_changed = True
-
-        # If we change the PMS remote setting, make sure we grab the new url.
-        if 'pms_is_remote' in kwargs and \
-            (kwargs['pms_is_remote'] != plexpy.CONFIG.PMS_IS_REMOTE):
+        # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.
+        if kwargs.get('pms_ssl') != str(plexpy.CONFIG.PMS_SSL) or \
+            kwargs.get('pms_is_remote') != str(plexpy.CONFIG.PMS_IS_REMOTE):
             server_changed = True
 
         # If we change the HTTPS setting, make sure we generate a new certificate.
-        if 'https_create_cert' in kwargs and kwargs['https_create_cert']:
-            if 'https_create_cert' in kwargs and (kwargs['https_create_cert'] != plexpy.CONFIG.HTTPS_CREATE_CERT) or \
-                'https_domain' in kwargs and (kwargs['https_domain'] != plexpy.CONFIG.HTTPS_DOMAIN) or \
-                'https_ip' in kwargs and (kwargs['https_ip'] != plexpy.CONFIG.HTTPS_IP) or \
-                'https_cert' in kwargs and (kwargs['https_cert'] != plexpy.CONFIG.HTTPS_CERT) or \
-                'https_key' in kwargs and (kwargs['https_key'] != plexpy.CONFIG.HTTPS_KEY):
+        if kwargs.get('enable_https') and kwargs.get('https_create_cert'):
+            if kwargs.get('https_domain') != plexpy.CONFIG.HTTPS_DOMAIN or \
+                kwargs.get('https_ip') != plexpy.CONFIG.HTTPS_IP or \
+                kwargs.get('https_cert') != plexpy.CONFIG.HTTPS_CERT or \
+                kwargs.get('https_key') != plexpy.CONFIG.HTTPS_KEY:
                 https_changed = True
 
         # Remove config with 'hscard-' prefix and change home_stats_cards to list
-        if 'home_stats_cards' in kwargs:
+        if kwargs.get('home_stats_cards', ''):
             for k in kwargs.keys():
                 if k.startswith('hscard-'):
                     del kwargs[k]
@@ -1311,7 +1295,7 @@ class WebInterface(object):
                 kwargs['home_stats_cards'] = plexpy.CONFIG.HOME_STATS_CARDS
 
         # Remove config with 'hlcard-' prefix and change home_library_cards to list
-        if 'home_library_cards' in kwargs:
+        if kwargs.get('home_library_cards', ''):
             for k in kwargs.keys():
                 if k.startswith('hlcard-'):
                     del kwargs[k]
@@ -1320,7 +1304,8 @@ class WebInterface(object):
             if kwargs['home_library_cards'] == ['first_run_wizard']:
                 refresh_libraries = True
 
-        if 'server_changed' in kwargs:
+        # If we change the server, make sure we grab the new url and refresh libraries and users lists.
+        if kwargs.get('server_changed'):
             del kwargs['server_changed']
             server_changed = True
             refresh_users = True
@@ -1336,13 +1321,13 @@ class WebInterface(object):
             plextv.get_real_pms_url()
             pmsconnect.get_server_friendly_name()
 
-        # Generate a new HTTPS certificate
-        if https_changed:
-            create_https_certificates(plexpy.CONFIG.HTTPS_CERT, plexpy.CONFIG.HTTPS_KEY)
-
         # Reconfigure scheduler if intervals changed
         if reschedule:
             plexpy.initialize_scheduler()
+
+        # Generate a new HTTPS certificate
+        if https_changed:
+            create_https_certificates(plexpy.CONFIG.HTTPS_CERT, plexpy.CONFIG.HTTPS_KEY)
 
         # Refresh users table if our server IP changes.
         if refresh_libraries:

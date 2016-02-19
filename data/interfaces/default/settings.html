@@ -224,7 +224,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         <li class="card card-sortable">
                                             <div class="card-handle"><i class="fa fa-bars"></i></div>
                                             <label>
-                                                <input type="checkbox" id="hscard-last_watched" name="hscard-last_watched" value="last_watched"> Last Played
+                                                <input type="checkbox" id="hscard-last_watched" name="hscard-last_watched" value="last_watched"> Last Watched
                                             </label>
                                         </li>
                                         <li class="card card-sortable">
@@ -475,7 +475,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
 
                         <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
-                        <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display:none">
+                        <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
 
                         <div class="padded-header">
                             <h3>Plex Logs</h3>
@@ -1381,7 +1381,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <tbody>
                                 <tr>
                                     <td><strong>{media_type}</strong></td>
-                                    <td>The type of media (movie, episode, track).</td>
+                                    <td>The type of media. <span class="small-muted">(movie, episode, track)</span></td>
                                 </tr>
                                 <tr>
                                     <td><strong>{title}</strong></td>
@@ -1481,10 +1481,8 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{poster_url}</strong></td>
-                                    <td>
-                                        A URL for the movie or TV show poster.<br />
-                                        <p class="small-muted">(PMS agent must be Freebase or TheTVDB)</p>
-                                    </td>
+                                    <td>A URL for the movie or TV show poster.
+                                    <p class="small-muted">(PMS agent must be Freebase or TheTVDB)</p></td>
                                 </tr>
                                 <tr>
                                     <td><strong>{imdb_id}</strong></td>
