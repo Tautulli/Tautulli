@@ -88,6 +88,7 @@ _CONFIG_DEFINITIONS = {
     'FACEBOOK_APP_SECRET': (str, 'Facebook', ''),
     'FACEBOOK_TOKEN': (str, 'Facebook', ''),
     'FACEBOOK_GROUP': (str, 'Facebook', ''),
+    'FACEBOOK_INCL_POSTER': (int, 'Facebook', 1),
     'FACEBOOK_INCL_SUBJECT': (int, 'Facebook', 1),
     'FACEBOOK_ON_PLAY': (int, 'Facebook', 0),
     'FACEBOOK_ON_STOP': (int, 'Facebook', 0),

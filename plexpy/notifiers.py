@@ -20,6 +20,7 @@ import cherrypy
 from email.mime.text import MIMEText
 import email.utils
 from httplib import HTTPSConnection, HTTPConnection
+import openanything
 import os
 import shlex
 import smtplib
@@ -2069,9 +2070,11 @@ class FacebookNotifier(object):
 
     def __init__(self):
         self.redirect_uri = plexpy.CONFIG.FACEBOOK_REDIRECT_URI
+        self.access_token = plexpy.CONFIG.FACEBOOK_TOKEN
         self.app_id = plexpy.CONFIG.FACEBOOK_APP_ID
         self.app_secret = plexpy.CONFIG.FACEBOOK_APP_SECRET
         self.group_id = plexpy.CONFIG.FACEBOOK_GROUP
+        self.incl_poster = plexpy.CONFIG.FACEBOOK_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.FACEBOOK_INCL_SUBJECT
 
     def notify(self, subject, message, **kwargs):
@@ -2118,39 +2121,24 @@ class FacebookNotifier(object):
         return True
 
     def _post_facebook(self, message=None, **kwargs):
-        access_token = plexpy.CONFIG.FACEBOOK_TOKEN
-        group_id = plexpy.CONFIG.FACEBOOK_GROUP
-
-        if group_id:
-            api = facebook.GraphAPI(access_token=access_token, version='2.5')
+        if self.group_id:
+            api = facebook.GraphAPI(access_token=self.access_token, version='2.5')
 
             attachment = {}
 
-            if 'metadata' in kwargs:
+            if self.incl_poster and 'metadata' in kwargs:
+                poster = ''
+                caption = 'View in Plex Web.'
                 metadata = kwargs['metadata']
 
-                if metadata['media_type'] == 'movie' and metadata['imdb_id']:
-                    uri = 'i=' + metadata['imdb_id']
+                if metadata['media_type'] == 'movie' and metadata.get('imdb_id', ''):
                     title = metadata['title']
                     subtitle = metadata['year']
-                elif metadata['media_type'] == 'show':
-                    uri = 't=' + metadata['title'] + '&y=' + metadata['year']
-                    title = metadata['title']
-                    subtitle = metadata['year']
-                elif metadata['media_type'] == 'episode':
-                    uri = 't=' + metadata['grandparent_title']
-                    title = metadata['grandparent_title'] + ' - ' + metadata['title']
-                    subtitle = 'S' + metadata['parent_media_index'] + ' ' + '\xc2\xb7'.decode('utf8') + ' E' + metadata['media_index']
-                else:
-                    uri = ''
-                    title = ''
-                    subtitle = ''
+                    uri = '/?i=' + metadata['imdb_id']
 
-                # Get poster using OMDb API
-                poster = ''
-                if uri:
+                    # Get poster using OMDb API
                     http_handler = HTTPConnection("www.omdbapi.com")
-                    http_handler.request('GET', '/?' + uri)
+                    http_handler.request('GET', uri)
                     response = http_handler.getresponse()
                     request_status = response.status
 
@@ -2161,16 +2149,47 @@ class FacebookNotifier(object):
                         logger.warn(u"PlexPy Notifiers :: Unable to retrieve IMDB poster: %s" % response.reason)
                     else:
                         logger.warn(u"PlexPy Notifiers :: Unable to retrieve IMDB poster.")
-            
+
+                elif (metadata['media_type'] == 'show' or metadata['media_type'] == 'episode') \
+                    and (metadata.get('imdb_id', '') or metadata.get('thetvdb_id', '')):
+                    if metadata['media_type'] == 'show':
+                        title = metadata['title']
+                        subtitle = metadata['year']
+                    elif metadata['media_type'] == 'episode':
+                        title = metadata['grandparent_title'] + ' - ' + metadata['title']
+                        subtitle = 'S' + metadata['parent_media_index'] + ' ' + '\xc2\xb7'.decode('utf8') + \
+                                   ' E' + metadata['media_index']
+
+                    if metadata.get('imdb_id', ''):
+                        uri = '/lookup/shows?imdb=' + metadata['imdb_id']
+                    elif metadata.get('thetvdb_id', ''):
+                        uri = '/lookup/shows?thetvdb=' + metadata['thetvdb_id']
+
+                    # Get poster using TVmaze API
+                    request = urllib2.Request('http://api.tvmaze.com' + uri)
+                    opener = urllib2.build_opener(openanything.SmartRedirectHandler())
+                    response = opener.open(request)
+                    request_status = response.status
+
+                    if request_status == 301:
+                        data = json.loads(response.read())
+                        image = data.get('image', '')
+                        poster = image.get('original', image.get('medium',''))
+                    elif request_status >= 400 and request_status < 500:
+                        logger.warn(u"PlexPy Notifiers :: Unable to retrieve TVmaze poster: %s" % response.reason)
+                    else:
+                        logger.warn(u"PlexPy Notifiers :: Unable to retrieve TVmaze poster.")
+
                 if poster and poster != 'N/A':
                     attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
                                          '/details/%2Flibrary%2Fmetadata%2F' + metadata['rating_key']
                     attachment['picture'] = poster
                     attachment['name'] = title
                     attachment['description'] = subtitle
+                    attachment['caption'] = caption
 
             try:
-                api.put_wall_post(profile_id=group_id, message=message, attachment=attachment)
+                api.put_wall_post(profile_id=self.group_id, message=message, attachment=attachment)
                 logger.info(u"PlexPy Notifiers :: Facebook notification sent.")
             except Exception as e:
                 logger.warn(u"PlexPy Notifiers :: Error sending Facebook post: %s" % e)
@@ -2226,6 +2245,13 @@ class FacebookNotifier(object):
                           'name': 'facebook_group',
                           'description': 'Your Facebook Group ID.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.incl_poster,
+                          'name': 'facebook_incl_poster',
+                          'description': 'Include a poster in the notifications. \
+                                          (PMS agent must be Freebase or TheTVDB. TheMovieDb is currently not supported.)',
+                          'input_type': 'checkbox'
                           },
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
