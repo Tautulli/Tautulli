@@ -489,7 +489,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </div>
                             </div>
                             <p class="help-block">Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br />
-                            <a href="https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
+                            <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
                         </div>
 
                         <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
@@ -619,7 +619,8 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label>
                                 <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
                             </label>
-                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down. Your server needs to have remote access enabled.</p>
+                            <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
                         <div class="padded-header">
@@ -762,11 +763,11 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <p class="help-block">
                             You can set custom formatted text for each type of notification.
-                            Click <a href="#notify-text-sub-modal" data-toggle="modal">here</a> for a list of available parameters which can be used.
+                            <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a list of available parameters which can be used.
                         </p>
                         <p class="help-block">
-                            You can also add tags to exclude certain text depending on the media type. Click
-                            <a href="#notify-text-tags-modal" data-toggle="modal">here</a> to view usage information.
+                            You can also add tags to exclude certain text depending on the media type.
+                            <a href="#notify-text-tags-modal" data-toggle="modal">Click here</a> to view usage information.
                         </p>
                         <br/>
                         <ul id="accordion-session" class="accordion list-unstyled">
@@ -1900,12 +1901,23 @@ $(document).ready(function() {
         async: true,
         success: function(data) {
             if (data !== 'true') {
-                $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server'> More..</a>");
+                $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server')}'>Click here</a> for help.");
                 $("#ip_logging_enable").attr("disabled", true);
             }
         }
     });
 
+    $.ajax({
+        url: 'get_server_pref',
+        data: { pref: 'PublishServerOnPlexOnlineKey' },
+        async: true,
+        success: function(data) {
+            if (data !== 'true') {
+                $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.")
+                $("#monitor_remote_access").attr("disabled", true);
+            }
+        }
+    });
     // Check to see if our logs folder is set before allowing IP logging to be enabled.
     checkLogsPath();
 
