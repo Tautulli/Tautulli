@@ -2223,8 +2223,7 @@ class FacebookNotifier(object):
                          {'label': 'Include Poster Image',
                           'value': self.incl_poster,
                           'name': 'facebook_incl_poster',
-                          'description': 'Include a poster in the notifications. \
-                                          (PMS agent must be Freebase or TheTVDB. TheMovieDb is currently not supported.)',
+                          'description': 'Include a poster and link in the notifications.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Subject Line',
