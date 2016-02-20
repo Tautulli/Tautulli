@@ -19,8 +19,7 @@ import json
 import cherrypy
 from email.mime.text import MIMEText
 import email.utils
-from httplib import HTTPSConnection, HTTPConnection
-import openanything
+from httplib import HTTPSConnection
 import os
 import shlex
 import smtplib
@@ -2129,19 +2128,35 @@ class FacebookNotifier(object):
             if self.incl_poster and 'metadata' in kwargs:
                 metadata = kwargs['metadata']
                 poster_url = metadata.get('poster_url','')
-                caption = 'View in Plex Web.'
-
-                if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show':
-                    title = metadata['title']
-                    subtitle = metadata['year']
-                elif metadata['media_type'] == 'episode':
-                    title = metadata['grandparent_title'] + ' - ' + metadata['title']
-                    subtitle = 'S' + metadata['parent_media_index'] + ' ' + '\xc2\xb7'.decode('utf8') + \
-                                ' E' + metadata['media_index']
 
                 if poster_url:
+                    if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show':
+                        title = metadata['title']
+                        subtitle = metadata['year']
+                        rating_key = metadata['rating_key']
+
+                    elif metadata['media_type'] == 'episode':
+                        title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+                        subtitle = 'S%s %s E%s' % (metadata['parent_media_index'],
+                                                   '\xc2\xb7'.decode('utf8'),
+                                                   metadata['media_index'])
+                        rating_key = metadata['rating_key']
+
+                    elif metadata['media_type'] == 'artist':
+                        title = metadata['title']
+                        subtitle = ''
+                        rating_key = metadata['rating_key']
+
+                    elif metadata['media_type'] == 'track':
+                        title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+                        subtitle = metadata['parent_title']
+                        rating_key = metadata['parent_rating_key']
+
+                    caption = 'View in Plex Web.'
+
+                    # Build Facebook post attachment
                     attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
-                                         '/details/%2Flibrary%2Fmetadata%2F' + metadata['rating_key']
+                                         '/details/%2Flibrary%2Fmetadata%2F' + rating_key
                     attachment['picture'] = poster_url
                     attachment['name'] = title
                     attachment['description'] = subtitle

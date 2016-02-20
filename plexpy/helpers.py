@@ -13,23 +13,25 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from IPy import IP
+import base64
 import datetime
 import fnmatch
 from functools import wraps
+from IPy import IP
 import json
-import os
 import math
 from operator import itemgetter
+import os
 import re
 import shutil
 import socket
 import sys
 import time
-from xml.dom import minidom
 import unicodedata
-
+import urllib, urllib2
+from xml.dom import minidom
 import xmltodict
+
 import plexpy
 from api2 import API2
 
@@ -523,3 +525,37 @@ def anon_url(*url):
     Return a URL string consisting of the Anonymous redirect URL and an arbitrary number of values appended.
     """
     return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
+
+def uploadToImgur(imgPath, imgTitle=''):
+    from plexpy import logger
+
+    client_id = '743b1a443ccd2b0'
+    img_url = ''
+
+    try:
+        with open(imgPath, 'rb') as imgFile:
+            img = imgFile.read()
+    except IOError as e:
+        logger.error(u"PlexPy Helpers :: Unable to read image file for Imgur: %s" % e)
+        return img_url
+
+    headers = {'Authorization': 'Client-ID %s' % client_id}
+    data = {'type': 'base64',
+            'image': base64.b64encode(img)}
+    if imgTitle:
+        data['title'] = imgTitle
+        data['name'] = imgTitle + '.jpg'
+
+    request = urllib2.Request('https://api.imgur.com/3/image', headers=headers, data=urllib.urlencode(data))
+    response = urllib2.urlopen(request)
+    response = json.loads(response.read())
+    
+    if response.get('status') == 200:
+        logger.debug(u"PlexPy Helpers :: Image uploaded to Imgur.")
+        img_url = response.get('data').get('link', '')
+    elif response.get('status') >= 400 and response.get('status') < 500:
+        logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % response.reason)
+    else:
+        logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur.")
+
+    return img_url

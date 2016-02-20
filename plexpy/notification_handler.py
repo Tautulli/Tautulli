@@ -15,12 +15,10 @@
 
 
 import arrow
-import json
-from httplib import HTTPConnection
-import openanything
+import os
 import re
 import time
-import urllib2
+import urllib
 
 from plexpy import logger, config, notifiers, database, helpers, plextv, pmsconnect
 import plexpy
@@ -157,7 +155,8 @@ def notify(stream_data=None, notify_action=None):
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
                                                 notify_action=notify_action,
-                                                script_args=notify_strings[2])
+                                                script_args=notify_strings[2],
+                                                metadata=notify_strings[3])
 
                     # Set the notification state in the db
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
@@ -169,7 +168,8 @@ def notify(stream_data=None, notify_action=None):
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
                                                 notify_action=notify_action,
-                                                script_args=notify_strings[2])
+                                                script_args=notify_strings[2],
+                                                metadata=notify_strings[3])
 
                     # Set the notification state in the db
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
@@ -181,7 +181,8 @@ def notify(stream_data=None, notify_action=None):
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
                                                 notify_action=notify_action,
-                                                script_args=notify_strings[2])
+                                                script_args=notify_strings[2],
+                                                metadata=notify_strings[3])
 
                     # Set the notification state in the db
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
@@ -193,7 +194,8 @@ def notify(stream_data=None, notify_action=None):
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
                                                 notify_action=notify_action,
-                                                script_args=notify_strings[2])
+                                                script_args=notify_strings[2],
+                                                metadata=notify_strings[3])
 
                     # Set the notification state in the db
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
@@ -205,7 +207,8 @@ def notify(stream_data=None, notify_action=None):
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
                                                 notify_action=notify_action,
-                                                script_args=notify_strings[2])
+                                                script_args=notify_strings[2],
+                                                metadata=notify_strings[3])
 
                     # Set the notification state in the db
                     set_notify_state(session=stream_data, state=notify_action, agent_info=agent)
@@ -499,46 +502,21 @@ def build_notify_text(session=None, timeline=None, state=None):
         metadata['lastfm_id'] = metadata['guid'].split('lastfm://')[1].rsplit('/', 1)[0]
         metadata['lastfm_url'] = 'https://www.last.fm/music/' + metadata['lastfm_id']
 
-    # Get posters (only IMDB and TheTVDB supported)
-    if metadata['media_type'] == 'movie' and metadata.get('imdb_id', ''):
-        uri = '/?i=' + metadata['imdb_id']
+    if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show' or metadata['media_type'] == 'artist':
+        thumb = metadata['thumb']
+    elif metadata['media_type'] == 'episode':
+        thumb = metadata['grandparent_thumb']
+    elif metadata['media_type'] == 'track':
+        thumb = metadata['parent_thumb']
+    else:
+        thumb = None
 
-        # Get poster using OMDb API
-        http_handler = HTTPConnection("www.omdbapi.com")
-        http_handler.request('GET', uri)
-        response = http_handler.getresponse()
-        request_status = response.status
-
-        if request_status == 200:
-            data = json.loads(response.read())
-            poster_url = data.get('Poster', '')
-            metadata['poster_url'] = poster_url if poster_url != 'N/A' else ''
-        elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Unable to retrieve IMDB poster: %s" % response.reason)
-        else:
-            logger.warn(u"PlexPy Notifiers :: Unable to retrieve IMDB poster.")
-
-    elif (metadata['media_type'] == 'show' or metadata['media_type'] == 'episode') \
-        and (metadata.get('imdb_id', '') or metadata.get('thetvdb_id', '')):
-        if metadata.get('imdb_id', ''):
-            uri = '/lookup/shows?imdb=' + metadata['imdb_id']
-        elif metadata.get('thetvdb_id', ''):
-            uri = '/lookup/shows?thetvdb=' + metadata['thetvdb_id']
-
-        # Get poster using TVmaze API
-        request = urllib2.Request('http://api.tvmaze.com' + uri)
-        opener = urllib2.build_opener(openanything.SmartRedirectHandler())
-        response = opener.open(request)
-        request_status = response.status
-
-        if request_status == 301:
-            data = json.loads(response.read())
-            image = data.get('image', '')
-            metadata['poster_url'] = image.get('original', image.get('medium',''))
-        elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Unable to retrieve TVmaze poster: %s" % response.reason)
-        else:
-            logger.warn(u"PlexPy Notifiers :: Unable to retrieve TVmaze poster.")
+    if thumb:
+        # Retrieve the poster from Plex and cache to file
+        urllib.urlretrieve(plexpy.CONFIG.PMS_URL + thumb + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN,
+                           os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'))
+        # Upload thumb to Imgur and get link
+        metadata['poster_url'] = helpers.uploadToImgur(os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'), full_title)
 
     # Fix metadata params for notify recently added grandparent
     if state == 'created' and plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
