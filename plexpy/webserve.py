@@ -1943,7 +1943,7 @@ class WebInterface(object):
     @cherrypy.expose
     @addtoapi()
     def get_servers_info(self, **kwargs):
-        """ Graps info about the server
+        """ Grabs list of info about the servers
 
             Returns:
                     json:
@@ -1956,8 +1956,6 @@ class WebInterface(object):
                           }
                         ]
                         ```
-
-
         """
 
         pms_connect = pmsconnect.PmsConnect()
@@ -1968,6 +1966,30 @@ class WebInterface(object):
             return json.dumps(result)
         else:
             logger.warn(u"Unable to retrieve data for get_servers_info.")
+
+    @cherrypy.expose
+    @addtoapi()
+    def get_server_identity(self, **kwargs):
+        """ Grabs info about the local server
+
+            Returns:
+                    json:
+                        ```
+                        [{"machine_identifier": "1234",
+                          "version": "0.9.15.x.xxx-xxxxxxx"
+                          }
+                        ]
+                        ```
+        """
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_server_identity()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps(result)
+        else:
+            logger.warn(u"Unable to retrieve data for get_server_identity.")
 
     @cherrypy.expose
     @addtoapi()

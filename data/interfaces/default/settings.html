@@ -658,7 +658,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <span id="debugLogCheck" style="color: #eb8600; padding-left: 10px;"></span>
                             <p class="help-block">
-                                Enable this to attempt to log the IP address of the user (for PMS 0.9.12 and below, IP address is automatically logged for PMS 0.9.14 and above).
+                                Enable this to attempt to log the IP address of the user.
                             </p>
                         </div>
 
@@ -1896,13 +1896,45 @@ $(document).ready(function() {
     })
 
     $.ajax({
-        url: 'get_server_pref',
-        data: { pref: 'logDebug' },
+        url: 'get_server_identity',
         async: true,
         success: function(data) {
-            if (data !== 'true') {
-                $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server')}'>Click here</a> for help.");
+            var version = data.version.split('.')
+            if (parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
+                $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
                 $("#ip_logging_enable").attr("disabled", true);
+                $("#ip_logging_enable").attr("checked", true);
+            } else {
+                $.ajax({
+                    url: 'get_server_pref',
+                    data: { pref: 'logDebug' },
+                    async: true,
+                    success: function(data) {
+                        if (data !== 'true') {
+                            $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server')}'>Click here</a> for help.");
+                            $("#ip_logging_enable").attr("disabled", true);
+                            $("#ip_logging_enable").attr("checked", false);
+                        }
+                    }
+                });
+
+                // Check to see if our logs folder is set before allowing IP logging to be enabled.
+                checkLogsPath();
+
+                $("#pms_logs_folder").change(function() {
+                    checkLogsPath();
+                });
+
+                function checkLogsPath() {
+                    if ($("#pms_logs_folder").val() == '') {
+                        $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Plex Media Server tab.");
+                        $("#ip_logging_enable").attr("disabled", true);
+                        $("#ip_logging_enable").attr("checked", false);
+                    } else {
+                        $("#ip_logging_enable").attr("disabled", false);
+                        $("#debugLogCheck").html("");
+                    }
+                }
             }
         }
     });
@@ -1913,27 +1945,11 @@ $(document).ready(function() {
         async: true,
         success: function(data) {
             if (data !== 'true') {
-                $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.")
+                $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
                 $("#monitor_remote_access").attr("disabled", true);
             }
         }
     });
-    // Check to see if our logs folder is set before allowing IP logging to be enabled.
-    checkLogsPath();
-
-    $("#pms_logs_folder").change(function() {
-        checkLogsPath();
-    });
-
-    function checkLogsPath() {
-        if ($("#pms_logs_folder").val() == '') {
-            $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Plex Media Server tab.");
-            $("#ip_logging_enable").attr("disabled", true);
-        } else {
-            $("#ip_logging_enable").attr("disabled", false);
-            $("#debugLogCheck").html("");
-        }
-    }
 
     var accordion_session = new Accordion($('#accordion-session'), false);
     var accordion_timeline = new Accordion($('#accordion-timeline'), false);
