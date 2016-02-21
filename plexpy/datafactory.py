@@ -856,6 +856,23 @@ class DataFactory(object):
 
         return ip_address
 
+    def get_poster_url(self, rating_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        if rating_key:
+            query = 'SELECT id, poster_url FROM notify_log WHERE rating_key = %d ' \
+                    'ORDER BY id DESC LIMIT 1' % int(rating_key)
+            result = monitor_db.select(query)
+        else:
+            return None
+
+        poster_url = ''
+
+        for item in result:
+            poster_url = item['poster_url']
+
+        return poster_url
+
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()
 

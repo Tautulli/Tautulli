@@ -446,7 +446,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
         'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER, '
-        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER, on_created INTEGER)'
+        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER, on_created INTEGER, poster_url TEXT)'
     )
 
     # library_sections table :: This table keeps record of the servers library sections
@@ -722,6 +722,15 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table notify_log.")
         c_db.execute(
             'ALTER TABLE notify_log ADD COLUMN on_created INTEGER'
+        )
+
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute('SELECT poster_url FROM notify_log')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table notify_log.")
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN poster_url TEXT'
         )
 
     # Upgrade library_sections table from earlier versions (remove UNIQUE constraint on section_id)
