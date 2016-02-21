@@ -1245,7 +1245,7 @@ class WebInterface(object):
 
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password'):
-            if kwargs['http_password'].strip() == '' and plexpy.CONFIG.HTTP_PASSWORD != '':
+            if kwargs['http_password'] == '    ' and plexpy.CONFIG.HTTP_PASSWORD != '':
                 kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
 
         for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
