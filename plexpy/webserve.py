@@ -1083,6 +1083,15 @@ class WebInterface(object):
         return json.dumps(log_lines)
 
     @cherrypy.expose
+    @addtoapi()
+    def get_notification_log(self, **kwargs):
+        data_factory = datafactory.DataFactory()
+        notifications = data_factory.get_notification_log(kwargs=kwargs)
+
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps(notifications)
+
+    @cherrypy.expose
     def clearLogs(self):
         plexpy.LOG_LIST = []
         logger.info(u"Web logs cleared")

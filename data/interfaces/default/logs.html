@@ -30,6 +30,7 @@ from plexpy import helpers
                 <li role="presentation" class="active"><a id="plexpy-logs-btn" href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">PlexPy Logs</a></li>
                 <li role="presentation"><a id="plex-logs-btn" href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Plex Media Server Logs</a></li>
                 <li role="presentation"><a id="plex-scanner-logs-btn" href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Plex Media Scanner Logs</a></li>
+                <li role="presentation"><a id="notification-logs-btn" href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Notification Logs</a></li>
             </ul>
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="tabs-1">
@@ -61,14 +62,29 @@ from plexpy import helpers
                 <div role="tabpanel" class="tab-pane" id="tabs-3">
                     <table class="display" id="plex_scanner_log_table" width="100%">
                         <thead>
-                        <tr>
-                            <th align='left' id="plex_scanner_timestamp">Timestamp</th>
-                            <th align='left' id="plex_scanner_level">Level</th>
-                            <th align='left' id="plex_scanner_message">Message</th>
-                        </tr>
+                            <tr>
+                                <th align='left' id="plex_scanner_timestamp">Timestamp</th>
+                                <th align='left' id="plex_scanner_level">Level</th>
+                                <th align='left' id="plex_scanner_message">Message</th>
+                            </tr>
                         </thead>
-                        <tbody>
-                        </tbody>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="tabs-4">
+                    <table class="display" id="notification_log_table" width="100%">
+                        <thead>
+                            <tr>
+                                <th align='left' id="notification_timestamp">Timestamp</th>
+                                <th align='left' id="notification_agent_name">Agent</th>
+                                <th align='left' id="notification_action">Action</th>
+                                <th align='left' id="notification_poster_url">Subject Text</th>
+                                <th align='left' id="notification_poster_url">Body Text</th>
+                                <th align='left' id="notification_poster_url">Script Args</th>
+                                <th align='left' id="notification_poster_url">Poster URL</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -94,8 +110,10 @@ from plexpy import helpers
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
+<script src="interfaces/default/js/moment-with-locale.js"></script>
 <script src="interfaces/default/js/tables/logs.js"></script>
 <script src="interfaces/default/js/tables/plex_logs.js"></script>
+<script src="interfaces/default/js/tables/notification_logs.js"></script>
 <script>
 
         $(document).ready(function() {
@@ -105,44 +123,63 @@ from plexpy import helpers
         
         function LoadPlexPyLogs() {
             log_table_options.ajax = {
-                "url": "getLog"
+                url: "getLog"
             }
             log_table = $('#log_table').DataTable(log_table_options);
         }
 
         function LoadPlexLogs() {
             plex_log_table_options.ajax = {
-                "url": "get_plex_log?log_type=server"
+                url: "get_plex_log?log_type=server"
             }
             plex_log_table = $('#plex_log_table').DataTable(plex_log_table_options);
         }
 
         function LoadPlexScannerLogs() {
             plex_log_table_options.ajax = {
-                "url": "get_plex_log?log_type=scanner"
+                url: "get_plex_log?log_type=scanner"
             }
             plex_scanner_log_table = $('#plex_scanner_log_table').DataTable(plex_log_table_options);
         }
 
-        $("#plexpy-logs-btn").click(function() {
+        function LoadNotificationLogs() {
+            notification_log_table_options.ajax = {
+                url: "get_notification_log",
+                type: 'post',
+                data: function (d) {
+                    return {
+                        json_data: JSON.stringify(d)
+                    };
+                }
+            }
+            notification_log_table = $('#notification_log_table').DataTable(notification_log_table_options);
+        }
+
+        $("#plexpy-logs-btn").click(function () {
             $("#clear-logs").show();
             LoadPlexPyLogs();
             clearSearchButton('log_table', log_table);
         });
 
-        $("#plex-logs-btn").click(function() {
+        $("#plex-logs-btn").click(function () {
             $("#clear-logs").hide();
             LoadPlexLogs();
             clearSearchButton('plex_log_table', plex_log_table);
         });
 
-        $("#plex-scanner-logs-btn").click(function() {
+        $("#plex-scanner-logs-btn").click(function () {
             $("#clear-logs").hide();
             LoadPlexScannerLogs();
             clearSearchButton('plex_scanner_log_table', plex_scanner_log_table);
         });
 
-        $("#clear-logs").click(function() {
+        $("#notification-logs-btn").click(function () {
+            $("#clear-logs").hide();
+            LoadNotificationLogs();
+            clearSearchButton('notification_log_table', notification_log_table);
+        });
+
+        $("#clear-logs").click(function () {
             var r = confirm("Are you sure you want to clear the PlexPy log?");
             if (r == true) {
                 window.location.href = "clearLogs";
