@@ -50,168 +50,201 @@ def notify(stream_data=None, notify_action=None):
             for agent in notifiers.available_notification_agents():
                 if agent['on_play'] and notify_action == 'play':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
-                                                notify_action=notify_action,
                                                 script_args=notify_strings[2],
+                                                notify_action=notify_action,
                                                 metadata=metadata)
 
                     # Set the notification state in the db
-                    set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
 
                 elif agent['on_stop'] and notify_action == 'stop' \
                     and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT):
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
-                                                notify_action=notify_action,
                                                 script_args=notify_strings[2],
+                                                notify_action=notify_action,
                                                 metadata=metadata)
 
-                    set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
+                    # Set the notification state in the db
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
 
                 elif agent['on_pause'] and notify_action == 'pause' \
                     and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
-                                                notify_action=notify_action,
                                                 script_args=notify_strings[2],
+                                                notify_action=notify_action,
                                                 metadata=metadata)
 
-                    set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
+                    # Set the notification state in the db
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
 
                 elif agent['on_resume'] and notify_action == 'resume' \
                     and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
-                                                notify_action=notify_action,
                                                 script_args=notify_strings[2],
+                                                notify_action=notify_action,
                                                 metadata=metadata)
 
-                    set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
+                    # Set the notification state in the db
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
 
                 elif agent['on_buffer'] and notify_action == 'buffer':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
+                                                script_args=notify_strings[2],
                                                 notify_action=notify_action,
-                                                script_args=metadata)
+                                                metadata=metadata)
 
-                    set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
+                    # Set the notification state in the db
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
 
                 elif agent['on_watched'] and notify_action == 'watched':
                     # Get the current states for notifications from our db
                     notify_states = get_notify_state(session=stream_data)
 
                     # If there is nothing in the notify_log for our agent id but it is enabled we should notify
-                    if not any(d['agent_id'] == agent['id'] for d in notify_states):
+                    if not any(d['agent_id'] == agent['id'] and d['notify_action'] == notify_action for d in notify_states):
                         # Build and send notification
-                        notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
+                        notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
                         notifiers.send_notification(agent_id=agent['id'],
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1],
-                                                    notify_action=notify_action,
                                                     script_args=notify_strings[2],
+                                                    notify_action=notify_action,
                                                     metadata=metadata)
 
                         # Set the notification state in the db
-                        set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
-
-                    else:
-                        # Check in our notify log if the notification has already been sent
-                        for notify_state in notify_states:
-                            if not notify_state['on_watched'] and (notify_state['agent_id'] == agent['id']):
-                                # Build and send notification
-                                notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
-                                notifiers.send_notification(agent_id=agent['id'],
-                                                            subject=notify_strings[0],
-                                                            body=notify_strings[1],
-                                                            notify_action=notify_action,
-                                                            script_args=notify_strings[2],
-                                                            metadata=metadata)
-
-                                # Set the notification state in the db
-                                set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
+                        set_notify_state(session=stream_data,
+                                         notify_action=notify_action,
+                                         agent_info=agent,
+                                         notify_strings=notify_strings,
+                                         metadata=metadata)
 
         elif (stream_data['media_type'] == 'track' and plexpy.CONFIG.MUSIC_NOTIFY_ENABLE):
 
             for agent in notifiers.available_notification_agents():
                 if agent['on_play'] and notify_action == 'play':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
-                                                notify_action=notify_action,
                                                 script_args=notify_strings[2],
+                                                notify_action=notify_action,
                                                 metadata=metadata)
 
                     # Set the notification state in the db
-                    set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
 
                 elif agent['on_stop'] and notify_action == 'stop':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
-                                                notify_action=notify_action,
                                                 script_args=notify_strings[2],
+                                                notify_action=notify_action,
                                                 metadata=metadata)
 
                     # Set the notification state in the db
-                    set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
 
                 elif agent['on_pause'] and notify_action == 'pause':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
-                                                notify_action=notify_action,
                                                 script_args=notify_strings[2],
+                                                notify_action=notify_action,
                                                 metadata=metadata)
 
                     # Set the notification state in the db
-                    set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
 
                 elif agent['on_resume'] and notify_action == 'resume':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
-                                                notify_action=notify_action,
                                                 script_args=notify_strings[2],
+                                                notify_action=notify_action,
                                                 metadata=metadata)
 
                     # Set the notification state in the db
-                    set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
 
                 elif agent['on_buffer'] and notify_action == 'buffer':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, state=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
-                                                notify_action=notify_action,
                                                 script_args=notify_strings[2],
+                                                notify_action=notify_action,
                                                 metadata=metadata)
 
                     # Set the notification state in the db
-                    set_notify_state(session=stream_data, state=notify_action, agent_info=agent, metadata=metadata)
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
 
         elif stream_data['media_type'] == 'clip':
             pass
@@ -227,136 +260,142 @@ def notify_timeline(timeline_data=None, notify_action=None):
         for agent in notifiers.available_notification_agents():
             if agent['on_created'] and notify_action == 'created':
                 # Build and send notification
-                notify_strings, metadata = build_notify_text(timeline=timeline_data, state=notify_action)
+                notify_strings, metadata = build_notify_text(timeline=timeline_data, notify_action=notify_action)
                 notifiers.send_notification(agent_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1],
-                                            notify_action=notify_action,
                                             script_args=notify_strings[2],
+                                            notify_action=notify_action,
                                             metadata=metadata)
+
                 # Set the notification state in the db
-                set_notify_state(session=timeline_data, state=notify_action, agent_info=agent, metadata=metadata)
+                set_notify_state(session=stream_data,
+                                 notify_action=notify_action,
+                                 agent_info=agent,
+                                 notify_strings=notify_strings,
+                                 metadata=metadata)
 
     elif not timeline_data and notify_action:
         for agent in notifiers.available_notification_agents():
             if agent['on_extdown'] and notify_action == 'extdown':
                 # Build and send notification
-                notify_strings = build_server_notify_text(state=notify_action)
+                notify_strings = build_server_notify_text(notify_action=notify_action)
                 notifiers.send_notification(agent_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1],
-                                            notify_action=notify_action,
-                                            script_args=notify_strings[2])
+                                            script_args=notify_strings[2],
+                                            notify_action=notify_action)
+
+                # Set the notification state in the db
+                set_notify_state(session=None,
+                                 notify_action=notify_action,
+                                 agent_info=agent,
+                                 notify_strings=notify_strings,
+                                 metadata=None)
+
             if agent['on_intdown'] and notify_action == 'intdown':
                 # Build and send notification
-                notify_strings = build_server_notify_text(state=notify_action)
+                notify_strings = build_server_notify_text(notify_action=notify_action)
                 notifiers.send_notification(agent_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1],
-                                            notify_action=notify_action,
-                                            script_args=notify_strings[2])
+                                            script_args=notify_strings[2],
+                                            notify_action=notify_action)
+
+                # Set the notification state in the db
+                set_notify_state(session=None,
+                                 notify_action=notify_action,
+                                 agent_info=agent,
+                                 notify_strings=notify_strings,
+                                 metadata=None)
+
             if agent['on_extup'] and notify_action == 'extup':
                 # Build and send notification
-                notify_strings = build_server_notify_text(state=notify_action)
+                notify_strings = build_server_notify_text(notify_action=notify_action)
                 notifiers.send_notification(agent_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1],
-                                            notify_action=notify_action,
-                                            script_args=notify_strings[2])
+                                            script_args=notify_strings[2],
+                                            notify_action=notify_action)
+
+                # Set the notification state in the db
+                set_notify_state(session=None,
+                                 notify_action=notify_action,
+                                 agent_info=agent,
+                                 notify_strings=notify_strings,
+                                 metadata=None)
+
             if agent['on_intup'] and notify_action == 'intup':
                 # Build and send notification
-                notify_strings = build_server_notify_text(state=notify_action)
+                notify_strings = build_server_notify_text(notify_action=notify_action)
                 notifiers.send_notification(agent_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1],
-                                            notify_action=notify_action,
-                                            script_args=notify_strings[2])
+                                            script_args=notify_strings[2],
+                                            notify_action=notify_action)
+
+                # Set the notification state in the db
+                set_notify_state(session=None,
+                                 notify_action=notify_action,
+                                 agent_info=agent,
+                                 notify_strings=notify_strings,
+                                 metadata=None)
+
     else:
         logger.debug(u"PlexPy NotificationHandler :: Notify timeline called but incomplete data received.")
 
 
 def get_notify_state(session):
     monitor_db = database.MonitorDatabase()
-    result = monitor_db.select('SELECT on_play, on_stop, on_pause, on_resume, on_buffer, on_watched, agent_id '
+    result = monitor_db.select('SELECT timestamp, notify_action, agent_id '
                                'FROM notify_log '
                                'WHERE session_key = ? '
                                'AND rating_key = ? '
-                               'AND user = ? '
+                               'AND user_id = ? '
                                'ORDER BY id DESC',
-                               args=[session['session_key'], session['rating_key'], session['user']])
+                               args=[session['session_key'], session['rating_key'], session['user_id']])
     notify_states = []
     for item in result:
-        notify_state = {'on_play': item['on_play'],
-                        'on_stop': item['on_stop'],
-                        'on_pause': item['on_pause'],
-                        'on_resume': item['on_resume'],
-                        'on_buffer': item['on_buffer'],
-                        'on_watched': item['on_watched'],
+        notify_state = {'timestamp': item['timestamp'],
+                        'notify_action': item['notify_action'],
                         'agent_id': item['agent_id']}
         notify_states.append(notify_state)
 
     return notify_states
 
 
-def get_notify_state_timeline(timeline):
-    monitor_db = database.MonitorDatabase()
-    result = monitor_db.select('SELECT on_created, agent_id '
-                               'FROM notify_log '
-                               'WHERE rating_key = ? '
-                               'ORDER BY id DESC',
-                               args=[timeline['rating_key']])
-    notify_states = []
-    for item in result:
-        notify_state = {'on_created': item['on_created'],
-                        'agent_id': item['agent_id']}
-        notify_states.append(notify_state)
+def set_notify_state(session, notify_action, agent_info, notify_strings, metadata):
 
-    return notify_states
-
-
-def set_notify_state(session, state, agent_info, metadata):
-
-    if session and state and agent_info:
+    if notify_action and agent_info:
         monitor_db = database.MonitorDatabase()
-        notify_time = int(time.time())
 
-        if state == 'play':
-            values = {'on_play': notify_time}
-        elif state == 'stop':
-            values = {'on_stop': notify_time}
-        elif state == 'pause':
-            values = {'on_pause': notify_time}
-        elif state == 'resume':
-            values = {'on_resume': notify_time}
-        elif state == 'buffer':
-            values = {'on_buffer': notify_time}
-        elif state == 'watched':
-            values = {'on_watched': notify_time}
-        elif state == 'created':
-            values = {'on_created': notify_time}
+        if notify_strings[2]:
+            script_args = '[' + ', '.join(notify_strings[2]) + ']'
         else:
-            return
+            script_args = None
 
-        if state == 'created':
-            keys = {'rating_key': session['rating_key'],
-                    'agent_id': agent_info['id'],
-                    'agent_name': agent_info['name'],
-                    'poster_url': metadata.get('poster_url', None)}
-        else:
-            keys = {'session_key': session['session_key'],
-                    'rating_key': session['rating_key'],
-                    'user_id': session['user_id'],
-                    'user': session['user'],
-                    'agent_id': agent_info['id'],
-                    'agent_name': agent_info['name'],
-                    'poster_url': metadata.get('poster_url', None)}
+        keys = {'timestamp': int(time.time()),
+                'session_key': session.get('session_key', None),
+                'rating_key': session.get('rating_key', None),
+                'user_id': session.get('user_id', None),
+                'agent_id': agent_info['id'],
+                'notify_action': notify_action}
+
+        values = {'parent_rating_key': session.get('parent_rating_key', None),
+                  'grandparent_rating_key': session.get('grandparent_rating_key', None),
+                  'user': session.get('user', None),
+                  'agent_name': agent_info['name'],
+                  'subject_text': notify_strings[0],
+                  'body_text': notify_strings[1],
+                  'script_args': script_args,
+                  'poster_url': metadata.get('poster_url', None)}
 
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to set notify state.")
 
 
-def build_notify_text(session=None, timeline=None, state=None):
+def build_notify_text(session=None, timeline=None, notify_action=None):
     # Get time formats
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','')
@@ -462,7 +501,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     else:
         transcode_decision = 'Direct Play'
     
-    if state != 'play':
+    if notify_action != 'play':
         stream_duration = int((time.time() -
                                helpers.cast_to_int(session.get('started', 0)) -
                                helpers.cast_to_int(session.get('paused_counter', 0))) / 60)
@@ -507,17 +546,23 @@ def build_notify_text(session=None, timeline=None, state=None):
 
     if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show' or metadata['media_type'] == 'artist':
         thumb = metadata['thumb']
+        poster_key = metadata['rating_key']
+        poster_title = metadata['title']
     elif metadata['media_type'] == 'episode':
         thumb = metadata['grandparent_thumb']
+        poster_key = metadata['grandparent_rating_key']
+        poster_title = metadata['grandparent_title']
     elif metadata['media_type'] == 'track':
         thumb = metadata['parent_thumb']
+        poster_key = metadata['parent_rating_key']
+        poster_title = metadata['parent_title']
     else:
         thumb = None
 
     if thumb:
         # Try to retrieve a poster_url from the database
         data_factory = datafactory.DataFactory()
-        poster_url = data_factory.get_poster_url(rating_key=rating_key)
+        poster_url = data_factory.get_poster_url(rating_key=poster_key)
 
         # If no previous poster_url
         if not poster_url:
@@ -525,12 +570,12 @@ def build_notify_text(session=None, timeline=None, state=None):
             urllib.urlretrieve(plexpy.CONFIG.PMS_URL + thumb + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN,
                                os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'))
             # Upload thumb to Imgur and get link
-            poster_url = helpers.uploadToImgur(os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'), full_title)
+            poster_url = helpers.uploadToImgur(os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'), poster_title)
 
         metadata['poster_url'] = poster_url
 
     # Fix metadata params for notify recently added grandparent
-    if state == 'created' and plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
+    if notify_action == 'created' and plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
         show_name = metadata['title']
         episode_name = ''
         artist_name = metadata['title']
@@ -546,7 +591,7 @@ def build_notify_text(session=None, timeline=None, state=None):
     available_params = {# Global paramaters
                         'server_name': server_name,
                         'server_uptime': server_uptime,
-                        'action': state.title(),
+                        'action': notify_action.title(),
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format),
                         # Stream parameters
@@ -639,7 +684,7 @@ def build_notify_text(session=None, timeline=None, state=None):
         except Exception as e:
             logger.error(u"PlexPy Notifier :: Unable to parse custom script arguments %s. Using fallback." % e)
 
-    if state == 'play':
+    if notify_action == 'play':
         # Default body text
         body_text = '%s (%s) started playing %s' % (session['friendly_name'],
                                                     session['player'],
@@ -663,7 +708,7 @@ def build_notify_text(session=None, timeline=None, state=None):
             return [subject_text, body_text, script_args], metadata
         else:
             return [subject_text, body_text, script_args], metadata
-    elif state == 'stop':
+    elif notify_action == 'stop':
         # Default body text
         body_text = '%s (%s) has stopped %s' % (session['friendly_name'],
                                                 session['player'],
@@ -687,7 +732,7 @@ def build_notify_text(session=None, timeline=None, state=None):
             return [subject_text, body_text, script_args], metadata
         else:
             return [subject_text, body_text, script_args], metadata
-    elif state == 'pause':
+    elif notify_action == 'pause':
         # Default body text
         body_text = '%s (%s) has paused %s' % (session['friendly_name'],
                                                session['player'],
@@ -711,7 +756,7 @@ def build_notify_text(session=None, timeline=None, state=None):
             return [subject_text, body_text, script_args], metadata
         else:
             return [subject_text, body_text, script_args], metadata
-    elif state == 'resume':
+    elif notify_action == 'resume':
         # Default body text
         body_text = '%s (%s) has resumed %s' % (session['friendly_name'],
                                                 session['player'],
@@ -735,7 +780,7 @@ def build_notify_text(session=None, timeline=None, state=None):
             return [subject_text, body_text, script_args], metadata
         else:
             return [subject_text, body_text, script_args], metadata
-    elif state == 'buffer':
+    elif notify_action == 'buffer':
         # Default body text
         body_text = '%s (%s) is buffering %s' % (session['friendly_name'],
                                                  session['player'],
@@ -759,7 +804,7 @@ def build_notify_text(session=None, timeline=None, state=None):
             return [subject_text, body_text, script_args], metadata
         else:
             return [subject_text, body_text, script_args], metadata
-    elif state == 'watched':
+    elif notify_action == 'watched':
         # Default body text
         body_text = '%s (%s) has watched %s' % (session['friendly_name'],
                                                 session['player'],
@@ -783,7 +828,7 @@ def build_notify_text(session=None, timeline=None, state=None):
             return [subject_text, body_text, script_args], metadata
         else:
             return [subject_text, body_text, script_args], metadata
-    elif state == 'created':
+    elif notify_action == 'created':
         # Default body text
         body_text = '%s was recently added to Plex.' % full_title
 
@@ -809,7 +854,7 @@ def build_notify_text(session=None, timeline=None, state=None):
         return None
 
 
-def build_server_notify_text(state=None):
+def build_server_notify_text(notify_action=None):
     # Get time formats
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','')
@@ -841,7 +886,7 @@ def build_server_notify_text(state=None):
     available_params = {# Global paramaters
                         'server_name': server_name,
                         'server_uptime': server_uptime,
-                        'action': state.title(),
+                        'action': notify_action.title(),
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format)}
 
@@ -859,7 +904,7 @@ def build_server_notify_text(state=None):
         except Exception as e:
             logger.error(u"PlexPy Notifier :: Unable to parse custom script arguments %s. Using fallback." % e)
 
-    if state == 'extdown':
+    if notify_action == 'extdown':
         # Default body text
         body_text = 'The Plex Media Server remote access is down.'
 
@@ -882,7 +927,7 @@ def build_server_notify_text(state=None):
         else:
             return [subject_text, body_text, script_args]
 
-    elif state == 'intdown':
+    elif notify_action == 'intdown':
         # Default body text
         body_text = 'The Plex Media Server is down.'
 
@@ -904,7 +949,7 @@ def build_server_notify_text(state=None):
             return [subject_text, body_text, script_args]
         else:
             return [subject_text, body_text, script_args]
-    if state == 'extup':
+    if notify_action == 'extup':
         # Default body text
         body_text = 'The Plex Media Server remote access is back up.'
 
@@ -926,7 +971,7 @@ def build_server_notify_text(state=None):
             return [subject_text, body_text, script_args]
         else:
             return [subject_text, body_text, script_args]
-    elif state == 'intup':
+    elif notify_action == 'intup':
         # Default body text
         body_text = 'The Plex Media Server is back up.'
 

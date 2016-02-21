@@ -860,8 +860,9 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         if rating_key:
-            query = 'SELECT id, poster_url FROM notify_log WHERE rating_key = %d ' \
-                    'ORDER BY id DESC LIMIT 1' % int(rating_key)
+            query = 'SELECT id, poster_url FROM notify_log ' \
+                    'WHERE rating_key = %d OR parent_rating_key = %d OR grandparent_rating_key = %d ' \
+                    'ORDER BY id DESC LIMIT 1' % (int(rating_key), int(rating_key), int(rating_key))
             result = monitor_db.select(query)
         else:
             return None
