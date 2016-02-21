@@ -1,5 +1,33 @@
 # Changelog
 
+## v1.3.7 (2016-02-20)
+
+* Fix: Verifying server with SSL enabled.
+* Fix: Regression where {stream_duration} reported as 0.
+* Fix: Video metadata flags showing up for track info.
+* Fix: Custom library icons not applied to Library Statistics.
+* Fix: Typos in the Web UI.
+* Add: ETA to Current Activity overlay.
+* Add: Total duration to Libraries and Users tables.
+* Add: {machine_id} to notification options.
+* Add: IMDB, TVDB, TMDb, Last.fm, and Trackt IDs/URLs to notification options.
+* Add: {poster_url} to notification options using Imgur.
+* Add: Poster and link for Facebook notifications.
+* Add: Log javascript errors from the Web UI.
+* Add: Configuration and Scheduler info to the settings page.
+* Add: Schedule background task to backup the PlexPy database.
+* Add: URL anonymizer for external links.
+* Add: Plex Media Scanner log file to Log viewer.
+* Add: API v2 (sill very experimental) (Thanks @Hellowlol)
+* Change: Allow secure websocket connections.
+* Change: History grouping now accounts for the view offset.
+* Change: Subject line can be toggled off for Facebook, Slack, Telegram, and Twitter.
+* Change: Create self-signed SSL certificates when enabling HTTPS.
+* Change: Revert homepage "Last Played" to "Last Watched".
+* Change: Disable monitor remote access checkbox if remote access is not enabled on the PMS.
+* Change: Disable IP logging checkbox if PMS version is 0.9.14 or greater.
+
+
 ## v1.3.6 (2016-02-03)
 
 * Fix: Regression where {duration} not reported in minutes.
