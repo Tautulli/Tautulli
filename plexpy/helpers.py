@@ -546,16 +546,19 @@ def uploadToImgur(imgPath, imgTitle=''):
         data['title'] = imgTitle
         data['name'] = imgTitle + '.jpg'
 
-    request = urllib2.Request('https://api.imgur.com/3/image', headers=headers, data=urllib.urlencode(data))
-    response = urllib2.urlopen(request)
-    response = json.loads(response.read())
+    try:
+        request = urllib2.Request('https://api.imgur.com/3/image', headers=headers, data=urllib.urlencode(data))
+        response = urllib2.urlopen(request)
+        response = json.loads(response.read())
     
-    if response.get('status') == 200:
-        logger.debug(u"PlexPy Helpers :: Image uploaded to Imgur.")
-        img_url = response.get('data').get('link', '')
-    elif response.get('status') >= 400 and response.get('status') < 500:
-        logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % response.reason)
-    else:
-        logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur.")
+        if response.get('status') == 200:
+            logger.debug(u"PlexPy Helpers :: Image uploaded to Imgur.")
+            img_url = response.get('data').get('link', '')
+        elif response.get('status') >= 400 and response.get('status') < 500:
+            logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % response.reason)
+        else:
+            logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur.")
+    except urllib2.HTTPError as e:
+            logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % e)
 
     return img_url
