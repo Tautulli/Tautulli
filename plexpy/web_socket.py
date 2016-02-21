@@ -39,11 +39,13 @@ def run():
 
     if plexpy.CONFIG.PMS_SSL and plexpy.CONFIG.PMS_URL[:5] == 'https':
         uri = plexpy.CONFIG.PMS_URL.replace('https://', 'wss://') + '/:/websockets/notifications'
+        secure = ' secure'
     else:
         uri = 'ws://%s:%s/:/websockets/notifications' % (
             plexpy.CONFIG.PMS_IP,
             plexpy.CONFIG.PMS_PORT
         )
+        secure = ''
 
     # Set authentication token (if one is available)
     if plexpy.CONFIG.PMS_TOKEN:
@@ -55,7 +57,7 @@ def run():
     # Try an open the websocket connection - if it fails after 15 retries fallback to polling
     while not ws_connected and reconnects <= 15:
         try:
-            logger.info(u'PlexPy WebSocket :: Opening websocket, connection attempt %s.' % str(reconnects + 1))
+            logger.info(u'PlexPy WebSocket :: Opening%s websocket, connection attempt %s.' % (secure, str(reconnects + 1)))
             ws = create_connection(uri)
             reconnects = 0
             ws_connected = True
