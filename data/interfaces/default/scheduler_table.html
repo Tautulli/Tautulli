@@ -1,0 +1,64 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           scheduler_table.html
+Version:            0.1
+
+DOCUMENTATION :: END
+</%doc>
+
+<%!
+import arrow
+import plexpy
+from plexpy import common
+
+scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
+%>
+
+<table class="config-scheduler-table small-muted">
+    <thead>
+        <tr>
+            <th>Scheduled Task</th>
+            <th>State</th>
+            <th>Interval</th>
+            <th>Next Run In</th>
+            <th>Next Run Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        % for job in common.SCHEDULER_LIST:
+        % if job in scheduled_jobs:
+        <%
+        sched_job = plexpy.SCHED.get_job(job)
+        run_interval = arrow.get(str(sched_job.trigger.interval), ['H:mm:ss', 'HH:mm:ss'])
+        next_run_interval = arrow.get(sched_job.next_run_time).timestamp - arrow.now().timestamp
+        %>
+        <tr>
+            <td>${sched_job.id}</td>
+            <td><i class="fa fa-sm fa-fw fa-check"></i> Active</td>
+            <td>${arrow.get(run_interval).format('HH:mm:ss')}</td>
+            <td>${arrow.get(next_run_interval).format('HH:mm:ss')}</td>
+            <td>${arrow.get(sched_job.next_run_time).format('YYYY-MM-DD HH:mm:ss')}</td>
+        </tr>
+        % elif job == 'Check for active sessions' and plexpy.CONFIG.MONITORING_USE_WEBSOCKET and not plexpy.POLLING_FAILOVER:
+        <tr>
+            <td>${job}</td>
+            <td><i class="fa fa-sm fa-fw fa-check"></i> Using Websocket</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        % else:
+        <tr>
+            <td>${job}</td>
+            <td><i class="fa fa-sm fa-fw fa-times"></i> Inactive</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        % endif
+        % endfor
+    </tbody>
+</table>

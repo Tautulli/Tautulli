@@ -58,7 +58,7 @@ class DataFactory(object):
                    'session_history_metadata.thumb',
                    'session_history_metadata.parent_thumb',
                    'session_history_metadata.grandparent_thumb',
-                   '((CASE WHEN view_offset IS NULL THEN 0.1 ELSE view_offset * 1.0 END) / \
+                   'MAX((CASE WHEN view_offset IS NULL THEN 0.1 ELSE view_offset * 1.0 END) / \
                     (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 \
                     ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
                    'session_history_media_info.video_decision',
@@ -664,7 +664,8 @@ class DataFactory(object):
         for id in library_cards:
             if id.isdigit():
                 try:
-                    query = 'SELECT section_id, section_name, section_type, thumb, count, parent_count, child_count ' \
+                    query = 'SELECT section_id, section_name, section_type, thumb AS library_thumb, ' \
+                            'custom_thumb_url AS custom_thumb, count, parent_count, child_count ' \
                             'FROM library_sections ' \
                             'WHERE section_id = %s ' % id
                     result = monitor_db.select(query)
@@ -673,10 +674,17 @@ class DataFactory(object):
                     return None
 
                 for item in result:
+                    if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
+                        library_thumb = item['custom_thumb']
+                    elif item['library_thumb']:
+                        library_thumb = item['library_thumb']
+                    else:
+                        library_thumb = common.DEFAULT_COVER_THUMB
+
                     library = {'section_id': item['section_id'],
                                'section_name': item['section_name'],
                                'section_type': item['section_type'],
-                               'thumb': item['thumb'],
+                               'thumb': library_thumb,
                                'count': item['count'],
                                'parent_count': item['parent_count'],
                                'child_count': item['child_count']

@@ -2,6 +2,7 @@
 
 <%def name="headIncludes()">
 <link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
 <link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
 </%def>
 
@@ -12,6 +13,7 @@
             <span><i class="fa fa-group"></i> All Users</span>
         </div>
         <div class="button-bar">
+            <div class="colvis-button-bar hidden-xs"></div>
             <button class="btn btn-dark refresh-users-button" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
             <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
                 <i class="fa fa-pencil"></i> Edit mode
@@ -32,6 +34,7 @@
                 <th align="left" id="last_player">Last Player</th>
                 <th align="left" id="last_played">Last Played</th>
                 <th align="left" id="total_plays">Total Plays</th>
+                <th align="left" id="total_duration">Total Duration</th>
             </tr>
             </thead>
             <tbody>
@@ -67,6 +70,7 @@
 
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/jquery.dataTables.min.js"></script>
+<script src="interfaces/default/js/dataTables.colVis.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
 <script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
 <script src="interfaces/default/js/moment-with-locale.js"></script>
@@ -84,6 +88,8 @@
         }
 
         users_list_table = $('#users_list_table').DataTable(users_list_table_options);
+        var colvis = new $.fn.dataTable.ColVis(users_list_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 1] });
+        $(colvis.button()).appendTo('div.colvis-button-bar');
 
         clearSearchButton('users_list_table', users_list_table);
 

@@ -83,7 +83,7 @@ from plexpy import common
                         <div class="col-xs-4">
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1"> Force SSL
+                                    <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1"> Use SSL
                                 </label>
                             </div>
                         </div>
@@ -244,7 +244,7 @@ from plexpy import common
             },
             render: {
                 option: function (item, escape) {
-                    return '<div data-use_ssl="' + item.httpsRequired + '" data-local="' + item.local + '" data-ci="' + item.clientIdentifier + '" data-ip="' + item.ip + '" data-port="' + item.port + '">' + item.value + '</div>';
+                    return '<div data-use_ssl="' + item.httpsRequired + '" data-local="' + item.local + '" data-ci="' + item.clientIdentifier + '" data-ip="' + item.ip + '" data-port="' + item.port + '" data-label="' + item.label + '">' + item.value + ' (' + item.label + ')</div>';
                 },
                 item: function (item, escape) {
                     // first item is rendered before initialization bug?
@@ -254,7 +254,7 @@ from plexpy import common
                             .filter('[value="' + item.value + '"]').data());
 
                     }
-                    return '<div data-use_ssl="' + item.httpsRequired + '" data-local="' + item.local + '" data-ci="' + item.clientIdentifier + '" data-ip="' + item.ip + '" data-port="' + item.port + '">' + item.value + '</div>';
+                    return '<div data-use_ssl="' + item.httpsRequired + '" data-local="' + item.local + '" data-ci="' + item.clientIdentifier + '" data-ip="' + item.ip + '" data-port="' + item.port + '" data-label="' + item.label + '">' + item.value + ' (' + item.label + ')</div>';
                 }
             },
             onChange: function (item) {
@@ -378,8 +378,8 @@ from plexpy import common
             var pms_ip = $("#pms_ip").val().trim();
             var pms_port = $("#pms_port").val().trim();
             var pms_identifier = $("#pms_identifier").val();
-            var pms_ssl = $("#pms_ssl").val();
-            var pms_is_remote = $("#pms_is_remote").val();
+            var pms_ssl = $("#pms_ssl").is(':checked') ? 1 : 0;
+            var pms_is_remote = $("#pms_is_remote").is(':checked') ? 1 : 0;
             if ((pms_ip !== '') || (pms_port !== '')) {
                 $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Validating server...');
                 $('#pms-verify-status').fadeIn('fast');

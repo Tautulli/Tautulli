@@ -54,7 +54,7 @@ function showMsg(msg,loader,timeout,ms,error) {
 	} 
 }
 
-function doAjaxCall(url,elem,reload,form) {
+function doAjaxCall(url, elem, reload, form, callback) {
 	// Set Message
 	feedback = $("#ajaxMsg");
 	update = $("#updatebar");
@@ -157,6 +157,9 @@ function doAjaxCall(url,elem,reload,form) {
 	  complete: function(jqXHR, textStatus) {
 	  	// Remove loaders and stuff, ajax request is complete!
 	  	loader.remove();
+	  	if (typeof callback === "function") {
+	  	    callback();
+	  	}
 	  }
 	});
 }
@@ -252,19 +255,38 @@ function isPrivateIP(ip_address) {
 
 function humanTime(seconds) {
     if (seconds >= 86400) {
-        text = '<h3>' + Math.floor(moment.duration(seconds, 'seconds').asDays()) +
-                '</h3><p> days </p><h3>' +  Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) +
-                '</h3><p> hrs</p><h3>'  +  Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
+        text = '<h3>' + Math.floor(moment.duration(seconds, 'seconds').asDays()) + '</h3><p> days</p>' +
+               '<h3>' + Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) + '</h3><p> hrs</p>' +
+               '<h3>' + Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
         return text;
     } else if (seconds >= 3600) {
-        text = '<h3>' + Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) +
-                '</h3><p>hrs</p><h3>' +  Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
+        text = '<h3>' + Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) + '</h3><p> hrs</p>' +
+               '<h3>' + Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
         return text;
     } else if (seconds >= 60) {
         text = '<h3>' + Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + '</h3><p> mins</p>';
         return text;
     } else {
         text = '<h3>0</h3><p> mins</p>';
+        return text;
+    }
+}
+
+function humanTimeClean(seconds) {
+    if (seconds >= 86400) {
+        text = Math.floor(moment.duration(seconds, 'seconds').asDays()) + ' days ' +
+               Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) + ' hrs ' +
+               Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + ' mins';
+        return text;
+    } else if (seconds >= 3600) {
+        text = Math.floor(moment.duration((seconds % 86400), 'seconds').asHours()) + ' hrs ' +
+               Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + ' mins';
+        return text;
+    } else if (seconds >= 60) {
+        text = Math.floor(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes()) + ' mins';
+        return text;
+    } else {
+        text = '0';
         return text;
     }
 }
@@ -372,3 +394,16 @@ function clearSearchButton(tableName, table) {
         table.search('').draw();
     });
 }
+
+// Taken from https://github.com/Hellowlol/HTPC-Manager
+window.onerror = function (message, file, line) {
+    var e = {
+        'page': window.location.href,
+        'message': message,
+        'file': file,
+        'line': line
+    };
+
+    $.post("log_js_errors", e, function (data) {
+    });
+};

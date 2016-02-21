@@ -1,26 +1,21 @@
 # -*- coding: latin-1 -*-
 #
-# Copyright (C) Martin Sjögren and AB Strakt 2001, All rights reserved
-# Copyright (C) Jean-Paul Calderone 2008, All rights reserved
-# This file is licenced under the GNU LESSER GENERAL PUBLIC LICENSE Version 2.1 or later (aka LGPL v2.1)
-# Please see LGPL2.1.txt for more information
+# Copyright (C) AB Strakt
+# Copyright (C) Jean-Paul Calderone
+# See LICENSE for details.
+
 """
 Certificate generation module.
 """
 
 from OpenSSL import crypto
-import time
 
 TYPE_RSA = crypto.TYPE_RSA
 TYPE_DSA = crypto.TYPE_DSA
 
-serial = int(time.time())
-
-
 def createKeyPair(type, bits):
     """
     Create a public/private key pair.
-
     Arguments: type - Key type, must be one of TYPE_RSA and TYPE_DSA
                bits - Number of bits to use in the key
     Returns:   The public/private key pair in a PKey object
@@ -29,12 +24,11 @@ def createKeyPair(type, bits):
     pkey.generate_key(type, bits)
     return pkey
 
-def createCertRequest(pkey, digest="md5", **name):
+def createCertRequest(pkey, digest="sha256", **name):
     """
     Create a certificate request.
-
     Arguments: pkey   - The key to associate with the request
-               digest - Digestion method to use for signing, default is md5
+               digest - Digestion method to use for signing, default is sha256
                **name - The name of the subject of the request, possible
                         arguments are:
                           C     - Country name
@@ -49,18 +43,17 @@ def createCertRequest(pkey, digest="md5", **name):
     req = crypto.X509Req()
     subj = req.get_subject()
 
-    for (key,value) in name.items():
+    for key, value in name.items():
         setattr(subj, key, value)
 
     req.set_pubkey(pkey)
     req.sign(pkey, digest)
     return req
 
-def createCertificate(req, (issuerCert, issuerKey), serial, (notBefore, notAfter), digest="md5"):
+def createCertificate(req, issuerCertKey, serial, validityPeriod, digest="sha256"):
     """
     Generate a certificate given a certificate request.
-
-    Arguments: req        - Certificate reqeust to use
+    Arguments: req        - Certificate request to use
                issuerCert - The certificate of the issuer
                issuerKey  - The private key of the issuer
                serial     - Serial number for the certificate
@@ -68,9 +61,11 @@ def createCertificate(req, (issuerCert, issuerKey), serial, (notBefore, notAfter
                             starts being valid
                notAfter   - Timestamp (relative to now) when the certificate
                             stops being valid
-               digest     - Digest method to use for signing, default is md5
+               digest     - Digest method to use for signing, default is sha256
     Returns:   The signed certificate in an X509 object
     """
+    issuerCert, issuerKey = issuerCertKey
+    notBefore, notAfter = validityPeriod
     cert = crypto.X509()
     cert.set_serial_number(serial)
     cert.gmtime_adj_notBefore(notBefore)
@@ -78,5 +73,34 @@ def createCertificate(req, (issuerCert, issuerKey), serial, (notBefore, notAfter
     cert.set_issuer(issuerCert.get_subject())
     cert.set_subject(req.get_subject())
     cert.set_pubkey(req.get_pubkey())
+    cert.sign(issuerKey, digest)
+    return cert
+
+def createSelfSignedCertificate((issuerName, issuerKey), serial, (notBefore, notAfter), altNames, digest="sha256"):
+    """
+    Generate a certificate given a certificate request.
+    Arguments: issuerName - The name of the issuer
+               issuerKey  - The private key of the issuer
+               serial     - Serial number for the certificate
+               notBefore  - Timestamp (relative to now) when the certificate
+                            starts being valid
+               notAfter   - Timestamp (relative to now) when the certificate
+                            stops being valid
+               altNames   - The alternative names
+               digest     - Digest method to use for signing, default is sha256
+    Returns:   The signed certificate in an X509 object
+    """
+    cert = crypto.X509()
+    cert.set_version(2)
+    cert.set_serial_number(serial)
+    cert.get_subject().CN = issuerName
+    cert.gmtime_adj_notBefore(notBefore)
+    cert.gmtime_adj_notAfter(notAfter)
+    cert.set_issuer(cert.get_subject())
+    cert.set_pubkey(issuerKey)
+
+    if altNames:
+        cert.add_extensions([crypto.X509Extension("subjectAltName", False, altNames)])
+
     cert.sign(issuerKey, digest)
     return cert

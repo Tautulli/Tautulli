@@ -198,6 +198,13 @@ DOCUMENTATION :: END
                     % else:
                     <span>IP: N/A</span>
                     % endif
+                    <br />
+                    ETA:
+                    <span id="stream-eta-${a['session_key']}">
+                        <script>
+                            $("#stream-eta-${a['session_key']}").html(moment().add(parseInt(${a['duration']}) - parseInt(${a['view_offset']}), 'milliseconds').format(time_format));
+                        </script>
+                    </span>
                 </div>
                 <div class="dashboard-activity-poster-info-time">
                     <span class="progress_time">${a['view_offset']}</span>/<span class="progress_time">${a['duration']}</span>

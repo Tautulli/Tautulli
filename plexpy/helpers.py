@@ -13,22 +13,61 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from operator import itemgetter
-from xml.dom import minidom
-
-import unicodedata
-import plexpy
+import base64
 import datetime
 import fnmatch
-import shutil
-import time
-import sys
-import re
-import os
+from functools import wraps
+from IPy import IP
 import json
-import xmltodict
 import math
+from operator import itemgetter
+import os
+import re
+import shutil
+import socket
+import sys
+import time
+import unicodedata
+import urllib, urllib2
+from xml.dom import minidom
+import xmltodict
 
+import plexpy
+from api2 import API2
+
+
+def addtoapi(*dargs, **dkwargs):
+    """ Helper decorator that adds function to the API class.
+        is used to reuse as much code as possible
+
+        args:
+            dargs: (string, optional) Used to rename a function
+
+        Example:
+            @addtoapi("i_was_renamed", "im_a_second_alias")
+            @addtoapi()
+
+    """
+    def rd(function):
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            return function(*args, **kwargs)
+
+        if dargs:
+            # To rename the function if it sucks.. and
+            # allow compat with old api.
+            for n in dargs:
+                if function.__doc__ and len(function.__doc__):
+                    function.__doc__ = function.__doc__.strip()
+                setattr(API2, n, function)
+            return wrapper
+
+        if function.__doc__ and len(function.__doc__):
+            function.__doc__ = function.__doc__.strip()
+        setattr(API2, function.__name__, function)
+        return wrapper
+
+    return rd
 
 def multikeysort(items, columns):
     comparers = [((itemgetter(col[1:].strip()), -1) if col.startswith('-') else (itemgetter(col.strip()), 1)) for col in columns]
@@ -173,7 +212,7 @@ def human_duration(s, sig='dhms'):
         if sig >= 'dh' and h > 0:
             h = h + 1 if sig == 'dh' and m >= 30 else h
             hd_list.append(str(h) + ' hrs')
-            
+
         if sig >= 'dhm' and m > 0:
             m = m + 1 if sig == 'dhm' and s >= 30 else m
             hd_list.append(str(m) + ' mins')
@@ -341,7 +380,7 @@ def split_string(mystring, splitvar=','):
 
 def create_https_certificates(ssl_cert, ssl_key):
     """
-    Create a pair of self-signed HTTPS certificares and store in them in
+    Create a self-signed HTTPS certificate and store in it in
     'ssl_cert' and 'ssl_key'. Method assumes pyOpenSSL is installed.
 
     This code is stolen from SickBeard (http://github.com/midgetspy/Sick-Beard).
@@ -350,24 +389,24 @@ def create_https_certificates(ssl_cert, ssl_key):
     from plexpy import logger
 
     from OpenSSL import crypto
-    from certgen import createKeyPair, createCertRequest, createCertificate, \
-        TYPE_RSA, serial
+    from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
-    # Create the CA Certificate
-    cakey = createKeyPair(TYPE_RSA, 2048)
-    careq = createCertRequest(cakey, CN="Certificate Authority")
-    cacert = createCertificate(careq, (careq, cakey), serial, (0, 60 * 60 * 24 * 365 * 10)) # ten years
+    serial = int(time.time())
+    domains = ['DNS:' + d.strip() for d in plexpy.CONFIG.HTTPS_DOMAIN.split(',') if d]
+    ips = ['IP:' + d.strip() for d in plexpy.CONFIG.HTTPS_IP.split(',') if d]
+    altNames = ','.join(domains + ips)
 
+    # Create the self-signed PlexPy certificate
+    logger.debug(u"Generating self-signed SSL certificate.")
     pkey = createKeyPair(TYPE_RSA, 2048)
-    req = createCertRequest(pkey, CN="PlexPy")
-    cert = createCertificate(req, (cacert, cakey), serial, (0, 60 * 60 * 24 * 365 * 10)) # ten years
+    cert = createSelfSignedCertificate(("PlexPy", pkey), serial, (0, 60 * 60 * 24 * 365 * 10), altNames) # ten years
 
     # Save the key and certificate to disk
     try:
-        with open(ssl_key, "w") as fp:
-            fp.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey))
         with open(ssl_cert, "w") as fp:
             fp.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+        with open(ssl_key, "w") as fp:
+            fp.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey))
     except IOError as e:
         logger.error("Error creating SSL key and certificate: %s", e)
         return False
@@ -456,3 +495,67 @@ def sanitize(string):
         return unicode(string).replace('<','&lt;').replace('>','&gt;')
     else:
         return ''
+
+def is_ip_public(host):
+    ip_address = get_ip(host)
+    ip = IP(ip_address)
+    if ip.iptype() == 'PUBLIC':
+        return True
+
+    return False
+
+def get_ip(host):
+    from plexpy import logger
+    ip_address = ''
+    try:
+        socket.inet_aton(host)
+        ip_address = host
+    except socket.error:
+        try:
+            ip_address = socket.gethostbyname(host)
+            logger.debug(u"IP Checker :: Resolved %s to %s." % (host, ip_address))
+        except:
+            logger.error(u"IP Checker :: Bad IP or hostname provided.")
+
+    return ip_address
+
+# Taken from SickRage
+def anon_url(*url):
+    """
+    Return a URL string consisting of the Anonymous redirect URL and an arbitrary number of values appended.
+    """
+    return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
+
+def uploadToImgur(imgPath, imgTitle=''):
+    from plexpy import logger
+
+    client_id = '743b1a443ccd2b0'
+    img_url = ''
+
+    try:
+        with open(imgPath, 'rb') as imgFile:
+            img = imgFile.read()
+    except IOError as e:
+        logger.error(u"PlexPy Helpers :: Unable to read image file for Imgur: %s" % e)
+        return img_url
+
+    headers = {'Authorization': 'Client-ID %s' % client_id}
+    data = {'type': 'base64',
+            'image': base64.b64encode(img)}
+    if imgTitle:
+        data['title'] = imgTitle
+        data['name'] = imgTitle + '.jpg'
+
+    request = urllib2.Request('https://api.imgur.com/3/image', headers=headers, data=urllib.urlencode(data))
+    response = urllib2.urlopen(request)
+    response = json.loads(response.read())
+    
+    if response.get('status') == 200:
+        logger.debug(u"PlexPy Helpers :: Image uploaded to Imgur.")
+        img_url = response.get('data').get('link', '')
+    elif response.get('status') >= 400 and response.get('status') < 500:
+        logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % response.reason)
+    else:
+        logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur.")
+
+    return img_url

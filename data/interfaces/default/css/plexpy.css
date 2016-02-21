@@ -501,7 +501,8 @@ textarea.form-control:focus {
 .libraries-poster-face {
     overflow: hidden;
     float: left;
-    background-size: contain;
+    background-size: cover;
+    background-position: center;
     height: 40px;
     width: 40px;
     /*-webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
@@ -1717,7 +1718,8 @@ a:hover .item-children-poster {
     float: left;
     margin-top: 15px;
     margin-right: 15px;
-    background-size: contain;
+    background-size: cover;
+    background-position: center;
     height: 80px;
     width: 80px;
     /*-webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
@@ -2177,6 +2179,10 @@ a .home-platforms-instance-list-oval:hover,
 .refresh-users-button,
 .refresh-libraries-button {
     float: right;
+}
+.refresh-users-button,
+.refresh-libraries-button {
+    margin-right: 5px;
 }
 .nav-settings,
 .nav-settings ul {
@@ -2712,4 +2718,44 @@ table[id^='media_info_child'] table[id^='media_info_child'] thead th {
 }
 .selectize-input input[type='text'] {
     height: 20px;
+}
+.small-muted {
+    font-size: small;
+    color: #777;
+}
+.config-info-table,
+.config-scheduler-table {
+    width: 100%
+}
+.config-info-table td,
+.config-info-table th,
+.config-scheduler-table td,
+.config-scheduler-table th {
+    padding-bottom: 5px;
+}
+.config-info-table td:first-child {
+    width: 150px;
+}
+.config-scheduler-table td:first-child {
+    width: 225px;
+}
+.config-scheduler-table th {
+    color: #fff;
+}
+a.no-highlight {
+    color: #777;
+}
+a.no-highlight:hover {
+    color: #fff;
+}
+.top-line {
+    border-top: 1px dotted #777;
+    padding-top: 5px;
+}
+.help-bold {
+    font-weight: bold;
+    color: #fff;
+}
+.save-button {
+    margin-top: 15px;
 }

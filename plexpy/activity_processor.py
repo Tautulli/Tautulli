@@ -182,7 +182,7 @@ class ActivityProcessor(object):
                 self.db.action(query=query, args=args)
 
                 # Check if we should group the session, select the last two rows from the user
-                query = 'SELECT id, rating_key, user_id, reference_id FROM session_history \
+                query = 'SELECT id, rating_key, view_offset, user_id, reference_id FROM session_history \
                          WHERE user_id = ? ORDER BY id DESC LIMIT 2 '
 
                 args = [session['user_id']]
@@ -191,6 +191,7 @@ class ActivityProcessor(object):
                 
                 new_session = {'id': result[0]['id'],
                                'rating_key': result[0]['rating_key'],
+                               'view_offset': result[0]['view_offset'],
                                'user_id': result[0]['user_id'],
                                'reference_id': result[0]['reference_id']}
 
@@ -199,12 +200,14 @@ class ActivityProcessor(object):
                 else:
                     prev_session = {'id': result[1]['id'],
                                     'rating_key': result[1]['rating_key'],
+                                    'view_offset': result[1]['view_offset'],
                                     'user_id': result[1]['user_id'],
                                     'reference_id': result[1]['reference_id']}
 
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
                 # If rating_key is the same in the previous session, then set the reference_id to the previous row, else set the reference_id to the new id
-                if (prev_session is not None) and (prev_session['rating_key'] == new_session['rating_key']):
+                if (prev_session is not None) and (prev_session['rating_key'] == new_session['rating_key'] \
+                    and prev_session['view_offset'] <= new_session['view_offset']):
                     args = [prev_session['reference_id'], new_session['id']]
                 else:
                     args = [new_session['id'], new_session['id']]

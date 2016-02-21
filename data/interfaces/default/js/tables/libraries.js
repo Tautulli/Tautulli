@@ -161,12 +161,28 @@ libraries_list_table_options = {
                     $(td).html('n/a');
                 }
             },
-            "width": "25%",
+            "width": "18%",
             "className": "hidden-sm hidden-xs"
         },
         {
             "targets": [9],
             "data": "plays",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "searchable": false,
+            "width": "7%"
+        },
+        {
+            "targets": [10],
+            "data": "duration",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(humanTimeClean(cellData));
+                }
+            },
             "searchable": false,
             "width": "10%"
         }

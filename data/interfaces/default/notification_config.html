@@ -132,7 +132,7 @@ from plexpy import helpers
     function reloadModal() {
         $.ajax({
             url: 'get_notification_agent_config',
-            data: { config_id: '${agent["id"]}' },
+            data: { agent_id: '${agent["id"]}' },
             cache: false,
             async: true,
             complete: function (xhr, status) {
@@ -147,9 +147,8 @@ from plexpy import helpers
     })
 
     $('#save-notification-item').click(function () {
-        doAjaxCall('set_notification_config', $(this), 'tabs', true);
         // Reload modal to update certain fields
-        reloadModal();
+        doAjaxCall('set_notification_config', $(this), 'tabs', true, reloadModal);
         return false;
     });
 
@@ -195,7 +194,7 @@ from plexpy import helpers
         $.ajax({
             url: 'test_notifier',
             data: {
-                config_id: '${agent["id"]}',
+                agent_id: '${agent["id"]}',
                 subject: $('#test_subject').val(),
                 body: $('#test_body').val(),
                 script: $('#test_script').val(),
@@ -211,8 +210,8 @@ from plexpy import helpers
     });
 
     $('#pushbullet_apikey, #pushover_apitoken, #scripts_folder').on('change', function () {
-        doAjaxCall('set_notification_config', $(this), 'tabs', true);
-        reloadModal();
+        // Reload modal to update certain fields
+        doAjaxCall('set_notification_config', $(this), 'tabs', true, reloadModal);
         return false;
     });
 

@@ -358,59 +358,59 @@ def available_notification_agents():
     return agents
 
 
-def get_notification_agent_config(config_id):
-    if str(config_id).isdigit():
-        config_id = int(config_id)
+def get_notification_agent_config(agent_id):
+    if str(agent_id).isdigit():
+        agent_id = int(agent_id)
 
-        if config_id == 0:
+        if agent_id == 0:
             growl = GROWL()
             return growl.return_config_options()
-        elif config_id == 1:
+        elif agent_id == 1:
             prowl = PROWL()
             return prowl.return_config_options()
-        elif config_id == 2:
+        elif agent_id == 2:
             xbmc = XBMC()
             return xbmc.return_config_options()
-        elif config_id == 3:
+        elif agent_id == 3:
             plex = Plex()
             return plex.return_config_options()
-        elif config_id == 4:
+        elif agent_id == 4:
             nma = NMA()
             return nma.return_config_options()
-        elif config_id == 5:
+        elif agent_id == 5:
             pushalot = PUSHALOT()
             return pushalot.return_config_options()
-        elif config_id == 6:
+        elif agent_id == 6:
             pushbullet = PUSHBULLET()
             return pushbullet.return_config_options()
-        elif config_id == 7:
+        elif agent_id == 7:
             pushover = PUSHOVER()
             return pushover.return_config_options()
-        elif config_id == 8:
+        elif agent_id == 8:
             osx_notify = OSX_NOTIFY()
             return osx_notify.return_config_options()
-        elif config_id == 9:
+        elif agent_id == 9:
             boxcar = BOXCAR()
             return boxcar.return_config_options()
-        elif config_id == 10:
+        elif agent_id == 10:
             email = Email()
             return email.return_config_options()
-        elif config_id == 11:
+        elif agent_id == 11:
             tweet = TwitterNotifier()
             return tweet.return_config_options()
-        elif config_id == 12:
+        elif agent_id == 12:
             iftttClient = IFTTT()
             return iftttClient.return_config_options()
-        elif config_id == 13:
+        elif agent_id == 13:
             telegramClient = TELEGRAM()
             return telegramClient.return_config_options()
-        elif config_id == 14:
+        elif agent_id == 14:
             slackClient = SLACK()
             return slackClient.return_config_options()
-        elif config_id == 15:
+        elif agent_id == 15:
             script = Scripts()
             return script.return_config_options()
-        elif config_id == 16:
+        elif agent_id == 16:
             facebook = FacebookNotifier()
             return facebook.return_config_options()
         else:
@@ -419,61 +419,61 @@ def get_notification_agent_config(config_id):
         return []
 
 
-def send_notification(config_id, subject, body, **kwargs):
-    if str(config_id).isdigit():
-        config_id = int(config_id)
+def send_notification(agent_id, subject, body, **kwargs):
+    if str(agent_id).isdigit():
+        agent_id = int(agent_id)
 
-        if config_id == 0:
+        if agent_id == 0:
             growl = GROWL()
             growl.notify(message=body, event=subject)
-        elif config_id == 1:
+        elif agent_id == 1:
             prowl = PROWL()
             prowl.notify(message=body, event=subject)
-        elif config_id == 2:
+        elif agent_id == 2:
             xbmc = XBMC()
             xbmc.notify(subject=subject, message=body)
-        elif config_id == 3:
+        elif agent_id == 3:
             plex = Plex()
             plex.notify(subject=subject, message=body)
-        elif config_id == 4:
+        elif agent_id == 4:
             nma = NMA()
             nma.notify(subject=subject, message=body)
-        elif config_id == 5:
+        elif agent_id == 5:
             pushalot = PUSHALOT()
             pushalot.notify(message=body, event=subject)
-        elif config_id == 6:
+        elif agent_id == 6:
             pushbullet = PUSHBULLET()
             pushbullet.notify(message=body, subject=subject)
-        elif config_id == 7:
+        elif agent_id == 7:
             pushover = PUSHOVER()
             pushover.notify(message=body, event=subject)
-        elif config_id == 8:
+        elif agent_id == 8:
             osx_notify = OSX_NOTIFY()
             osx_notify.notify(title=subject, text=body)
-        elif config_id == 9:
+        elif agent_id == 9:
             boxcar = BOXCAR()
             boxcar.notify(title=subject, message=body)
-        elif config_id == 10:
+        elif agent_id == 10:
             email = Email()
             email.notify(subject=subject, message=body)
-        elif config_id == 11:
+        elif agent_id == 11:
             tweet = TwitterNotifier()
             tweet.notify(subject=subject, message=body)
-        elif config_id == 12:
+        elif agent_id == 12:
             iftttClient = IFTTT()
             iftttClient.notify(subject=subject, message=body)
-        elif config_id == 13:
+        elif agent_id == 13:
             telegramClient = TELEGRAM()
             telegramClient.notify(message=body, event=subject)
-        elif config_id == 14:
+        elif agent_id == 14:
             slackClient = SLACK()
             slackClient.notify(message=body, event=subject)
-        elif config_id == 15:
+        elif agent_id == 15:
             scripts = Scripts()
             scripts.notify(message=body, subject=subject, **kwargs)
-        elif config_id == 16:
+        elif agent_id == 16:
             facebook = FacebookNotifier()
-            facebook.notify(subject=subject, message=body)
+            facebook.notify(subject=subject, message=body, **kwargs)
         else:
             logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
@@ -1169,12 +1169,16 @@ class TwitterNotifier(object):
         self.access_token_secret = plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET
         self.consumer_key = plexpy.CONFIG.TWITTER_CONSUMER_KEY
         self.consumer_secret = plexpy.CONFIG.TWITTER_CONSUMER_SECRET
+        self.incl_subject = plexpy.CONFIG.TWITTER_INCL_SUBJECT
 
     def notify(self, subject, message):
         if not subject or not message:
             return
         else:
-            self._send_tweet(subject + ': ' + message)
+            if self.incl_subject:
+                self._send_tweet(subject + ': ' + message)
+            else:
+                self._send_tweet(message)
 
     def test_notify(self):
         return self._send_tweet("This is a test notification from PlexPy at " + helpers.now())
@@ -1284,6 +1288,12 @@ class TwitterNotifier(object):
                           'name': 'twitter_access_token_secret',
                           'description': 'Your Twitter access token secret.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'twitter_incl_subject',
+                          'description': 'Include the subject line in the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 
@@ -1628,6 +1638,7 @@ class TELEGRAM(object):
         self.enabled = plexpy.CONFIG.TELEGRAM_ENABLED
         self.bot_token = plexpy.CONFIG.TELEGRAM_BOT_TOKEN
         self.chat_id = plexpy.CONFIG.TELEGRAM_CHAT_ID
+        self.incl_subject = plexpy.CONFIG.TELEGRAM_INCL_SUBJECT
 
     def conf(self, options):
         return cherrypy.config['config'].get('Telegram', options)
@@ -1638,8 +1649,13 @@ class TELEGRAM(object):
 
         http_handler = HTTPSConnection("api.telegram.org")
 
+        if self.incl_subject:
+            text = event.encode('utf-8') + ': ' + message.encode("utf-8")
+        else:
+            text = message.encode("utf-8")
+
         data = {'chat_id': self.chat_id,
-                'text': event.encode('utf-8') + ': ' + message.encode("utf-8")}
+                'text': text}
 
         http_handler.request("POST",
                                 "/bot%s/%s" % (self.bot_token, "sendMessage"),
@@ -1682,6 +1698,12 @@ class TELEGRAM(object):
                           'name': 'telegram_chat_id',
                           'description': 'Your Telegram Chat ID, Group ID, or @channelusername. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'telegram_incl_subject',
+                          'description': 'Include the subject line in the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 
@@ -1698,6 +1720,7 @@ class SLACK(object):
         self.channel = plexpy.CONFIG.SLACK_CHANNEL
         self.username = plexpy.CONFIG.SLACK_USERNAME
         self.icon_emoji = plexpy.CONFIG.SLACK_ICON_EMOJI
+        self.incl_subject = plexpy.CONFIG.SLACK_INCL_SUBJECT
 
     def conf(self, options):
         return cherrypy.config['config'].get('Slack', options)
@@ -1707,7 +1730,12 @@ class SLACK(object):
             return
         http_handler = HTTPSConnection("hooks.slack.com")
 
-        data = {'text': event.encode('utf-8') + ': ' + message.encode("utf-8")}
+        if self.incl_subject:
+            text = event.encode('utf-8') + ': ' + message.encode("utf-8")
+        else:
+            text = message.encode("utf-8")
+
+        data = {'text': text}
         if self.channel != '': data['channel'] = self.channel
         if self.username != '': data['username'] = self.username
         if self.icon_emoji != '':
@@ -1745,10 +1773,10 @@ class SLACK(object):
         return self.notify('Main Screen Activate', 'Test Message')
 
     def return_config_options(self):
-        config_option = [{'label': 'Slack Hook',
+        config_option = [{'label': 'Slack Webhook URL',
                           'value': self.slack_hook,
                           'name': 'slack_hook',
-                          'description': 'Your Slack incoming webhook.',
+                          'description': 'Your Slack incoming webhook URL.',
                           'input_type': 'text'
                           },
                          {'label': 'Slack Channel',
@@ -1768,6 +1796,12 @@ class SLACK(object):
                            'description': 'The icon you wish to show, use Slack emoji or image url. Leave blank for webhook integration default.',
                            'name': 'slack_icon_emoji',
                            'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'slack_incl_subject',
+                          'description': 'Include the subject line in the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 
@@ -2035,15 +2069,21 @@ class FacebookNotifier(object):
 
     def __init__(self):
         self.redirect_uri = plexpy.CONFIG.FACEBOOK_REDIRECT_URI
+        self.access_token = plexpy.CONFIG.FACEBOOK_TOKEN
         self.app_id = plexpy.CONFIG.FACEBOOK_APP_ID
         self.app_secret = plexpy.CONFIG.FACEBOOK_APP_SECRET
         self.group_id = plexpy.CONFIG.FACEBOOK_GROUP
+        self.incl_poster = plexpy.CONFIG.FACEBOOK_INCL_POSTER
+        self.incl_subject = plexpy.CONFIG.FACEBOOK_INCL_SUBJECT
 
-    def notify(self, subject, message):
+    def notify(self, subject, message, **kwargs):
         if not subject or not message:
             return
         else:
-            self._post_facebook(subject + ': ' + message)
+            if self.incl_subject:
+                self._post_facebook(subject + ': ' + message, **kwargs)
+            else:
+                self._post_facebook(message, **kwargs)
 
     def test_notify(self):
         return self._post_facebook(u"PlexPy Notifiers :: This is a test notification from PlexPy at " + helpers.now())
@@ -2079,15 +2119,51 @@ class FacebookNotifier(object):
 
         return True
 
-    def _post_facebook(self, message=None):
-        access_token = plexpy.CONFIG.FACEBOOK_TOKEN
-        group_id = plexpy.CONFIG.FACEBOOK_GROUP
+    def _post_facebook(self, message=None, **kwargs):
+        if self.group_id:
+            api = facebook.GraphAPI(access_token=self.access_token, version='2.5')
 
-        if group_id:
-            api = facebook.GraphAPI(access_token=access_token, version='2.5')
+            attachment = {}
+
+            if self.incl_poster and 'metadata' in kwargs:
+                metadata = kwargs['metadata']
+                poster_url = metadata.get('poster_url','')
+
+                if poster_url:
+                    if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show':
+                        title = metadata['title']
+                        subtitle = metadata['year']
+                        rating_key = metadata['rating_key']
+
+                    elif metadata['media_type'] == 'episode':
+                        title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+                        subtitle = 'S%s %s E%s' % (metadata['parent_media_index'],
+                                                   '\xc2\xb7'.decode('utf8'),
+                                                   metadata['media_index'])
+                        rating_key = metadata['rating_key']
+
+                    elif metadata['media_type'] == 'artist':
+                        title = metadata['title']
+                        subtitle = ''
+                        rating_key = metadata['rating_key']
+
+                    elif metadata['media_type'] == 'track':
+                        title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+                        subtitle = metadata['parent_title']
+                        rating_key = metadata['parent_rating_key']
+
+                    caption = 'View in Plex Web.'
+
+                    # Build Facebook post attachment
+                    attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
+                                         '/details/%2Flibrary%2Fmetadata%2F' + rating_key
+                    attachment['picture'] = poster_url
+                    attachment['name'] = title
+                    attachment['description'] = subtitle
+                    attachment['caption'] = caption
 
             try:
-                api.put_wall_post(profile_id=group_id, message=message)
+                api.put_wall_post(profile_id=self.group_id, message=message, attachment=attachment)
                 logger.info(u"PlexPy Notifiers :: Facebook notification sent.")
             except Exception as e:
                 logger.warn(u"PlexPy Notifiers :: Error sending Facebook post: %s" % e)
@@ -2143,6 +2219,18 @@ class FacebookNotifier(object):
                           'name': 'facebook_group',
                           'description': 'Your Facebook Group ID.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.incl_poster,
+                          'name': 'facebook_incl_poster',
+                          'description': 'Include a poster and link in the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'facebook_incl_subject',
+                          'description': 'Include the subject line in the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 

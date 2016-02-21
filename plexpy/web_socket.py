@@ -37,10 +37,13 @@ def start_thread():
 def run():
     from websocket import create_connection
 
-    uri = 'ws://%s:%s/:/websockets/notifications' % (
-        plexpy.CONFIG.PMS_IP,
-        plexpy.CONFIG.PMS_PORT
-    )
+    if plexpy.CONFIG.PMS_SSL and plexpy.CONFIG.PMS_URL[:5] == 'https':
+        uri = plexpy.CONFIG.PMS_URL.replace('https://', 'wss://') + '/:/websockets/notifications'
+    else:
+        uri = 'ws://%s:%s/:/websockets/notifications' % (
+            plexpy.CONFIG.PMS_IP,
+            plexpy.CONFIG.PMS_PORT
+        )
 
     # Set authentication token (if one is available)
     if plexpy.CONFIG.PMS_TOKEN:

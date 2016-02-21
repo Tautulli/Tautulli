@@ -1,7 +1,9 @@
 <%inherit file="base.html"/>
 <%!
+import sys
 import plexpy
 from plexpy import notifiers, common, versioncheck
+from plexpy.helpers import anon_url
 
 available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
 %>
@@ -33,7 +35,8 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
         <!-- Nav tabs -->
         <div class="col-md-3">
             <ul class="nav-settings list-unstyled" role="tablist">
-                <li role="presentation" class="active"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">General</a></li>
+                <li role="presentation" class="active"><a href="#tabs-0" aria-controls="tabs-0" role="tab" data-toggle="tab">Help & Info</a></li>
+                <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">General</a></li>
                 <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Homepage Statistics</a></li>
                 <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Web Interface</a></li>
                 <li role="presentation"><a href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Access Control</a></li>
@@ -48,21 +51,97 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
         <div class="col-md-9">
             <form action="configUpdate" method="post" class="form" id="configUpdate" data-parsley-validate>
                 <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="tabs-1">
+                    <div role="tabpanel" class="tab-pane active" id="tabs-0">
                         % if common.VERSION_NUMBER:
                         <div class="padded-header">
                             <h3>Version ${common.VERSION_NUMBER} <small><a href="#changelog-modal" data-toggle="modal"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
                         </div>
                         % endif
+                        <div class="padded-header">
+                            <h3>PlexPy Configuration</h3>
+                        </div>
+                        <table class="config-info-table small-muted">
+                            <tbody>
+                                % if plexpy.CURRENT_VERSION:
+                                <tr>
+                                    <td>Git Branch:</td>
+                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/tree/%s' % plexpy.CONFIG.GIT_BRANCH)}">${plexpy.CONFIG.GIT_BRANCH}</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Git Hash:</td>
+                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/commit/%s' % plexpy.CURRENT_VERSION)}">${plexpy.CURRENT_VERSION}</a></td>
+                                </tr>
+                                % endif
+                                <tr>
+                                    <td>Configuration File:</td>
+                                    <td>${plexpy.CONFIG_FILE}</td>
+                                </tr>
+                                <tr>
+                                    <td>Database File:</td>
+                                    <td>${plexpy.DB_FILE}</td>
+                                </tr>
+                                <tr>
+                                    <td>Backup Directory:</td>
+                                    <td>${plexpy.CONFIG.BACKUP_DIR}</td>
+                                </tr>
+                                <tr>
+                                    <td>Cache Directory:</td>
+                                    <td>${plexpy.CONFIG.CACHE_DIR}</td>
+                                </tr>
+                                <tr>
+                                    <td>Log Directory:</td>
+                                    <td>${plexpy.CONFIG.LOG_DIR}</td>
+                                </tr>
+                                % if plexpy.ARGS:
+                                <tr>
+                                    <td>Arguments:</td>
+                                    <td>${plexpy.ARGS}</td>
+                                </tr>
+                                % endif
+                                <tr>
+                                    <td>Platform:</td>
+                                    <td>${common.PLATFORM} ${common.PLATFORM_VERSION}</td>
+                                </tr>
+                                <tr>
+                                    <td>Python Version:</td>
+                                    <td>${sys.version}</td>
+                                </tr>
+                                <tr>
+                                    <td class="top-line">Plex Forums:</td>
+                                    <td class="top-line"><a class="no-highlight" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Wiki:</td>
+                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/wiki')}" target="_blank">https://github.com/drzoidberg33/plexpy/wiki</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Source:</td>
+                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}" target="_blank">https://github.com/drzoidberg33/plexpy</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Gitter Chat:</td>
+                                    <td><a class="no-highlight" href="${anon_url('https://gitter.im/drzoidberg33/plexpy')}" target="_blank">https://gitter.im/drzoidberg33/plexpy</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="padded-header">
+                            <h3>PlexPy Scheduler</h3>
+                        </div>
+                        <div id="plexpy-scheduler-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading scheduler table...</div>
+                            <br>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-1">
+                        <div class="padded-header">
+                            <h3>Updates</h3>
+                        </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
                             </label>
                             <p class="help-block">If you have Git installed, allow periodic checks for updates.</p>
                         </div>
-                        % if plexpy.CURRENT_VERSION:
-                        <p class="help-block">Git hash: ${plexpy.CURRENT_VERSION}</p>
-                        % endif
                         <div class="padded-header">
                             <h3>Display Settings</h3>
                         </div>
@@ -145,7 +224,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         <li class="card card-sortable">
                                             <div class="card-handle"><i class="fa fa-bars"></i></div>
                                             <label>
-                                                <input type="checkbox" id="hscard-last_watched" name="hscard-last_watched" value="last_watched"> Last Played
+                                                <input type="checkbox" id="hscard-last_watched" name="hscard-last_watched" value="last_watched"> Last Watched
                                             </label>
                                         </li>
                                         <li class="card card-sortable">
@@ -256,16 +335,51 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <p class="help-block">Enable HTTPS for web server for encrypted communication.</p>
                         </div>
                         <div id="https_options">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" class="http-settings" name="https_create_cert" id="https_create_cert" value="1" ${config['https_create_cert']} /> Create Self-signed Certificate
+                                </label>
+                                <p class="help-block">Check to have PlexPy create a self-signed SSL certificate. Uncheck if you want to use your own certificate.</p>
+                            </div>
+                            <div id="https_options_self-signed">
+                                <div class="form-group">
+                                    <label for="https_domain">HTTPS Domains</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control http-settings" id="https_domain" name="https_domain" value="${config['https_domain']}">
+                                        </div>
+                                    </div>
+                                    <p class="help-block">The domain names used to access PlexPy, separated by commas (,).</p>
+                                </div>
+                                <div class="form-group">
+                                    <label for="https_ip">HTTPS IPs</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control http-settings" id="https_ip" name="https_ip" value="${config['https_ip']}">
+                                        </div>
+                                    </div>
+                                    <p class="help-block">The IP addresses used to access PlexPy, separated by commas (,).</p>
+                                </div>
+                            </div>
                             <div class="form-group">
                                 <label for="https_cert">HTTPS Cert</label>
-                                <input type="text" class="form-control http-settings" id="https_cert" name="https_cert" value="${config['https_cert']}">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_cert" name="https_cert" value="${config['https_cert']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The location of the SSL certificate.</p>
                             </div>
                             <div class="form-group">
                                 <label for="https_key">HTTPS Key</label>
-                                <input type="text" class="form-control http-settings" id="https_key" name="https_key" value="${config['https_key']}">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_key" name="https_key" value="${config['https_key']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The location of the SSL key.</p>
                             </div>
                         </div>
-
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-4">
@@ -355,13 +469,13 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Force SSL
+                                <input type="checkbox" id="pms_ssl" name="pms_ssl" value="1" ${config['pms_ssl']}> Use SSL
                             </label>
-                            <p class="help-block">Force PlexPy to connect to your Plex Server via SSL. Your server needs to have remote access enabled.</p>
+                            <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
                         </div>
 
                         <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
-                        <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display:none">
+                        <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
 
                         <div class="padded-header">
                             <h3>Plex Logs</h3>
@@ -375,7 +489,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </div>
                             </div>
                             <p class="help-block">Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br />
-                            <a href="https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
+                            <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
                         </div>
 
                         <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
@@ -462,6 +576,15 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.<br />
                             This is currently experimental.</p>
                         </div>
+                        <div class="form-group">
+                            <label for="anon_redirect">Anonymous Redirect</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>PlexWatch Import Tool</h3>
@@ -490,13 +613,14 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) [experimental]
                             </label>
                             <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens.<br />
-                            This is currently experimental. Encrypted websocket is not currently supported.</p>
+                            This is currently experimental.</p>
                         </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
                             </label>
-                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down. Your server needs to have remote access enabled.</p>
+                            <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
                         <div class="padded-header">
@@ -534,7 +658,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <span id="debugLogCheck" style="color: #eb8600; padding-left: 10px;"></span>
                             <p class="help-block">
-                                Enable this to attempt to log the IP address of the user (for PMS 0.9.12 and below, IP address is automatically logged for PMS 0.9.14 and above).
+                                Enable this to attempt to log the IP address of the user.
                             </p>
                         </div>
 
@@ -639,11 +763,11 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <p class="help-block">
                             You can set custom formatted text for each type of notification.
-                            Click <a href="#notify-text-sub-modal" data-toggle="modal">here</a> for a list of available parameters which can be used.
+                            <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a list of available parameters which can be used.
                         </p>
                         <p class="help-block">
-                            You can also add tags to exclude certain text depending on the media type. Click
-                            <a href="#notify-text-tags-modal" data-toggle="modal">here</a> to view usage information.
+                            You can also add tags to exclude certain text depending on the media type.
+                            <a href="#notify-text-tags-modal" data-toggle="modal">Click here</a> to view usage information.
                         </p>
                         <br/>
                         <ul id="accordion-session" class="accordion list-unstyled">
@@ -859,7 +983,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <h3>Notification Agents</h3>
                         </div>
                         <p class="help-block">
-                            Toggle the desired notification options by clicking the bell icon and configure it by clicking the settings icon to the right.
+                            Toggle the desired notification options by clicking the <span class="help-bold">bell icon (<i class="fa fa-sm fa-bell"></i>)</span> and configure it by clicking the settings icon to the right.
                         </p>
                         <br/>
                         <ul class="stacked-configs list-unstyled">
@@ -1015,8 +1139,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
-                            class="fa fa-remove"></i></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
                     <h4 class="modal-title">Fetch Plex.tv Token</h4>
                 </div>
                 <div class="modal-body" id="modal-text">
@@ -1128,7 +1251,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{ip_address}</strong></td>
-                                    <td>The IP address of the device being used for playback. (PMS 0.9.14 and above)</td>
+                                    <td>The IP address of the device being used for playback. <span class="small-muted">(PMS 0.9.14 and above)</span></td>
                                 </tr>
                                 <tr>
                                     <td><strong>{stream_duration}</strong></td>
@@ -1242,6 +1365,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td><strong>{user_id}</strong></td>
                                     <td>The unique identifier for the user.</td>
                                 </tr>
+                                <tr>
+                                    <td><strong>{machine_id}</strong></td>
+                                    <td>The unique identifier for the player.</td>
+                                </tr>
                             </tbody>
                         </table>
                         <table class="notification-params">
@@ -1255,7 +1382,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <tbody>
                                 <tr>
                                     <td><strong>{media_type}</strong></td>
-                                    <td>The type of media (movie, episode, track).</td>
+                                    <td>The type of media. <span class="small-muted">(movie, episode, track)</span></td>
                                 </tr>
                                 <tr>
                                     <td><strong>{title}</strong></td>
@@ -1287,7 +1414,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{season_num}</strong></td>
-                                    <td>The season number for the item if item is episode.</td>
+                                    <td>The season number for the episode.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{season_num00}</strong></td>
@@ -1295,7 +1422,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{episode_num}</strong></td>
-                                    <td>The episode number for the item if item is episode.</td>
+                                    <td>The episode number for the episode.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{episode_num00}</strong></td>
@@ -1303,7 +1430,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{track_num}</strong></td>
-                                    <td>The track number for the item if item is track.</td>
+                                    <td>The track number for the track.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{track_num00}</strong></td>
@@ -1319,7 +1446,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{content_rating}</strong></td>
-                                    <td>The content rating for the item. (e.g. TV-MA, TV-PG, etc.)</td>
+                                    <td>The content rating for the item. <span class="small-muted">(e.g. TV-MA, TV-PG, etc.)</span></td>
                                 </tr>
                                 <tr>
                                     <td><strong>{directors}</strong></td>
@@ -1354,20 +1481,64 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td>The duration (in minutes) for the item.</td>
                                 </tr>
                                 <tr>
+                                    <td><strong>{poster_url}</strong></td>
+                                    <td>A URL for the movie or TV show poster.
+                                    <p class="small-muted">(PMS agent must be Freebase or TheTVDB)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{imdb_id}</strong></td>
+                                    <td>The IMDB ID for the movie. <span class="small-muted">(e.g. tt2488496)</span>
+                                    <p class="small-muted">(PMS agent must be Freebase)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{imdb_url}</strong></td>
+                                    <td>The IMDB URL for the movie.
+                                    <p class="small-muted">(PMS agent must be Freebase)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{thetvdb_id}</strong></td>
+                                    <td>The TVDB ID for the TV show. <span class="small-muted">(e.g. 121361)</span>
+                                    <p class="small-muted">(PMS agent must be TheTVDB)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{thetvdb_url}</strong></td>
+                                    <td>The TVDB URL for the TV show.
+                                    <p class="small-muted">(PMS agent must be TheTVDB)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{themoviedb_id}</strong></td>
+                                    <td>The TMDb ID for the movie or TV show. <span class="small-muted">(e.g. 15260)</span>
+                                    <p class="small-muted">(PMS agent must be The Movie Database)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{themoviedb_url}</strong></td>
+                                    <td>The TMDb URL for the movie or TV show.
+                                    <p class="small-muted">(PMS agent must be The Movie Database)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{lastfm_url}</strong></td>
+                                    <td>The last.fm URL for the album.
+                                    <p class="small-muted">(PMS agent must be Last.fm)</p></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{trakt_url}</strong></td>
+                                    <td>The trakt.tv URL for the movie or TV show.</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{section_id}</strong></td>
                                     <td>The unique identifier for the library.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{rating_key}</strong></td>
-                                    <td>The unique identifier for the item.</td>
+                                    <td>The unique identifier for the movie, episode, or track.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{parent_rating_key}</strong></td>
-                                    <td>The unique identifier for the item's parent (season or album).</td>
+                                    <td>The unique identifier for the season or album.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{grandparent_rating_key}</strong></td>
-                                    <td>The unique identifier for the item's grandparent (TV show or artist).</td>
+                                    <td>The unique identifier for the TV show or artist.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1408,7 +1579,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         <div>
                             <p class="help-block">All text inside a <strong>music</strong> tag will only be sent when the media item being played back is a music track.</p>
                             <p><strong style="color: #fff;">Example:</strong></p>
-                            <pre>{user} has started playing {title} &lt;music&gt;(Track {episode_num})&lt;/music&gt;</pre>
+                            <pre>{user} has started playing {title} &lt;music&gt;(Track {track_num})&lt;/music&gt;</pre>
                         </div>
                     </div>
                 </div>
@@ -1454,6 +1625,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/parsley.min.js"></script>
 <script src="interfaces/default/js/Sortable.min.js"></script>
+<script src="interfaces/default/js/moment-with-locale.js"></script>
 <script>
 $(document).ready(function() {
 
@@ -1485,7 +1657,7 @@ $(document).ready(function() {
     var configForm = $("#configUpdate");
     function saveSettings() {
         if (configForm.parsley().validate()) {
-            doAjaxCall('configUpdate', $(this), 'tabs', true);
+            doAjaxCall('configUpdate', $(this), 'tabs', true, getSchedulerTable);
             postSaveChecks();
             return false;
         } else {
@@ -1561,6 +1733,20 @@ $(document).ready(function() {
             $("#https_options").slideDown();
         } else {
             $("#https_options").slideUp();
+        }
+    });
+
+    if ($("#https_create_cert").is(":checked")) {
+        $("#https_options_self-signed").show();
+    } else {
+        $("#https_options_self-signed").hide();
+    }
+
+    $("#https_create_cert").click(function(){
+        if ($("#https_create_cert").is(":checked")) {
+            $("#https_options_self-signed").slideDown();
+        } else {
+            $("#https_options_self-signed").slideUp();
         }
     });
 
@@ -1678,10 +1864,10 @@ $(document).ready(function() {
 
     // Load notification agent config modal
     $(".toggle-notification-config-modal").click(function() {
-        var configId = $(this).data('id');
+        var agent_id = $(this).data('id');
         $.ajax({
             url: 'get_notification_agent_config',
-            data: { config_id: configId },
+            data: { agent_id: agent_id },
             cache: false,
             async: true,
             complete: function(xhr, status) {
@@ -1692,10 +1878,10 @@ $(document).ready(function() {
 
     // Load notification triggers config modal
     $(".toggle-notification-triggers-modal").click(function() {
-        var configId = $(this).data('id');
+        var agent_id = $(this).data('id');
         $.ajax({
             url: 'get_notification_agent_triggers',
-            data: { config_id: configId },
+            data: { agent_id: agent_id },
             cache: false,
             async: true,
             complete: function(xhr, status) {
@@ -1710,33 +1896,60 @@ $(document).ready(function() {
     })
 
     $.ajax({
-        url: 'get_server_pref',
-        data: { pref: 'logDebug' },
+        url: 'get_server_identity',
         async: true,
         success: function(data) {
-            if (data !== 'true') {
-                $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server'> More..</a>");
+            var version = data.version.split('.')
+            if (parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
+                $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
                 $("#ip_logging_enable").attr("disabled", true);
+                $("#ip_logging_enable").attr("checked", true);
+            } else {
+                $.ajax({
+                    url: 'get_server_pref',
+                    data: { pref: 'logDebug' },
+                    async: true,
+                    success: function(data) {
+                        if (data !== 'true') {
+                            $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server')}'>Click here</a> for help.");
+                            $("#ip_logging_enable").attr("disabled", true);
+                            $("#ip_logging_enable").attr("checked", false);
+                        }
+                    }
+                });
+
+                // Check to see if our logs folder is set before allowing IP logging to be enabled.
+                checkLogsPath();
+
+                $("#pms_logs_folder").change(function() {
+                    checkLogsPath();
+                });
+
+                function checkLogsPath() {
+                    if ($("#pms_logs_folder").val() == '') {
+                        $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Plex Media Server tab.");
+                        $("#ip_logging_enable").attr("disabled", true);
+                        $("#ip_logging_enable").attr("checked", false);
+                    } else {
+                        $("#ip_logging_enable").attr("disabled", false);
+                        $("#debugLogCheck").html("");
+                    }
+                }
             }
         }
     });
 
-    // Check to see if our logs folder is set before allowing IP logging to be enabled.
-    checkLogsPath();
-
-    $("#pms_logs_folder").change(function() {
-        checkLogsPath();
-    });
-
-    function checkLogsPath() {
-        if ($("#pms_logs_folder").val() == '') {
-            $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Plex Media Server tab.");
-            $("#ip_logging_enable").attr("disabled", true);
-        } else {
-            $("#ip_logging_enable").attr("disabled", false);
-            $("#debugLogCheck").html("");
+    $.ajax({
+        url: 'get_server_pref',
+        data: { pref: 'PublishServerOnPlexOnlineKey' },
+        async: true,
+        success: function(data) {
+            if (data !== 'true') {
+                $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
+                $("#monitor_remote_access").attr("disabled", true);
+            }
         }
-    }
+    });
 
     var accordion_session = new Accordion($('#accordion-session'), false);
     var accordion_timeline = new Accordion($('#accordion-timeline'), false);
@@ -1824,6 +2037,19 @@ $(document).ready(function() {
         };
         $(this).on('focus keyup input', function() { resizeTextarea(this); }).removeAttr('data-autoresize');
     });
+
+    function getSchedulerTable() {
+        $.ajax({
+            url: 'get_scheduler_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-scheduler-table").html(xhr.responseText);
+            }
+        });
+    }
+    getSchedulerTable();
+
 });
 </script>
 </%def>

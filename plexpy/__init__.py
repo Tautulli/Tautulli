@@ -59,6 +59,7 @@ started = False
 DATA_DIR = None
 
 CONFIG = None
+CONFIG_FILE = None
 
 DB_FILE = None
 
@@ -73,17 +74,19 @@ UMASK = None
 
 POLLING_FAILOVER = False
 
+
 def initialize(config_file):
     with INIT_LOCK:
 
         global CONFIG
+        global CONFIG_FILE
         global _INITIALIZED
         global CURRENT_VERSION
         global LATEST_VERSION
         global UMASK
         global POLLING_FAILOVER
-
         CONFIG = plexpy.config.Config(config_file)
+        CONFIG_FILE = config_file
 
         assert CONFIG is not None
 
@@ -116,6 +119,15 @@ def initialize(config_file):
         # Start the logger, disable console if needed
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR,
                           verbose=VERBOSE)
+
+        if not CONFIG.BACKUP_DIR.startswith(os.path.abspath(DATA_DIR)):
+            # Put the backup dir in the data dir for now
+            CONFIG.BACKUP_DIR = os.path.join(DATA_DIR, 'backups')
+        if not os.path.exists(CONFIG.BACKUP_DIR):
+            try:
+                os.makedirs(CONFIG.BACKUP_DIR)
+            except OSError as e:
+                logger.error("Could not create backup dir '%s': %s", BACKUP_DIR, e)
 
         if not CONFIG.CACHE_DIR.startswith(os.path.abspath(DATA_DIR)):
             # Put the cache dir in the data dir for now
@@ -185,7 +197,6 @@ def initialize(config_file):
 
         _INITIALIZED = True
         return True
-
 
 def daemonize():
     if threading.activeCount() != 1:
@@ -283,9 +294,9 @@ def initialize_scheduler():
             seconds = 0
 
         if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
-            schedule_job(plextv.get_real_pms_url, 'Refresh Plex Server URLs',
+            schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
                          hours=12, minutes=0, seconds=0)
-            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex Server Name',
+            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
                          hours=12, minutes=0, seconds=0)
 
             if CONFIG.NOTIFY_RECENTLY_ADDED:
@@ -296,10 +307,10 @@ def initialize_scheduler():
                              hours=0, minutes=0, seconds=0)
 
             if CONFIG.MONITOR_REMOTE_ACCESS:
-                schedule_job(activity_pinger.check_server_response, 'Check for server response',
+                schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
                              hours=0, minutes=0, seconds=seconds)
             else:
-                schedule_job(activity_pinger.check_server_response, 'Check for server response',
+                schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
                              hours=0, minutes=0, seconds=0)
 
             # If we're not using websockets then fall back to polling
@@ -322,6 +333,8 @@ def initialize_scheduler():
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
                          hours=hours, minutes=0, seconds=0)
 
+        schedule_job(database.make_backup, 'Backup PlexPy database', hours=6, minutes=0, seconds=0, args=(True, True))
+
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
             try:
@@ -333,7 +346,7 @@ def initialize_scheduler():
                 #SCHED.print_jobs()
 
 
-def schedule_job(function, name, hours=0, minutes=0, seconds=0):
+def schedule_job(function, name, hours=0, minutes=0, seconds=0, args=None):
     """
     Start scheduled job if starting or restarting plexpy.
     Reschedule job if Interval Settings have changed.
@@ -348,11 +361,11 @@ def schedule_job(function, name, hours=0, minutes=0, seconds=0):
             logger.info("Removed background task: %s", name)
         elif job.trigger.interval != datetime.timedelta(hours=hours, minutes=minutes):
             SCHED.reschedule_job(name, trigger=IntervalTrigger(
-                hours=hours, minutes=minutes, seconds=seconds))
+                hours=hours, minutes=minutes, seconds=seconds), args=args)
             logger.info("Re-scheduled background task: %s", name)
     elif hours > 0 or minutes > 0 or seconds > 0:
         SCHED.add_job(function, id=name, trigger=IntervalTrigger(
-            hours=hours, minutes=minutes, seconds=seconds))
+            hours=hours, minutes=minutes, seconds=seconds), args=args)
         logger.info("Scheduled background task: %s", name)
 
 
@@ -801,6 +814,7 @@ def dbcheck():
     conn_db.commit()
     c_db.close()
 
+
 def shutdown(restart=False, update=False):
     cherrypy.engine.exit()
     SCHED.shutdown(wait=False)
@@ -832,6 +846,7 @@ def shutdown(restart=False, update=False):
         os.execv(exe, args)
 
     os._exit(0)
+
 
 def generate_uuid():
     logger.debug(u"Generating UUID...")
