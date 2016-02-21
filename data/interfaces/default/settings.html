@@ -571,10 +571,9 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes [experimental]
+                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
                             </label>
-                            <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.<br />
-                            This is currently experimental.</p>
+                            <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
                         </div>
                         <div class="form-group">
                             <label for="anon_redirect">Anonymous Redirect</label>
@@ -610,10 +609,9 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) [experimental]
+                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
                             </label>
-                            <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens.<br />
-                            This is currently experimental.</p>
+                            <p class="help-block">Instead of polling the server at regular intervals let the server tell PlexPy when something happens.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -1482,8 +1480,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{poster_url}</strong></td>
-                                    <td>A URL for the movie or TV show poster.
-                                    <p class="small-muted">(PMS agent must be Freebase or TheTVDB)</p></td>
+                                    <td>A URL for the movie, TV show, or album poster.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{imdb_id}</strong></td>
