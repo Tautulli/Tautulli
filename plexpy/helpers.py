@@ -543,8 +543,8 @@ def uploadToImgur(imgPath, imgTitle=''):
     data = {'type': 'base64',
             'image': base64.b64encode(img)}
     if imgTitle:
-        data['title'] = imgTitle
-        data['name'] = imgTitle + '.jpg'
+        data['title'] = imgTitle.encode('utf-8')
+        data['name'] = imgTitle.encode('utf-8') + '.jpg'
 
     try:
         request = urllib2.Request('https://api.imgur.com/3/image', headers=headers, data=urllib.urlencode(data))
