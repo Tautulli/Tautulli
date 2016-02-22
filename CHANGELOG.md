@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.9 (2016-02-21)
+
+* Fix: Recently added notification not sent to all notification agents.
+* Add: Pushover HTML support. (Thanks @elseym)
+
+
 ## v1.3.8 (2016-02-21)
 
 * Fix: Regression unable to clear HTTP password.
@@ -31,7 +37,7 @@
 * Add: Schedule background task to backup the PlexPy database.
 * Add: URL anonymizer for external links.
 * Add: Plex Media Scanner log file to Log viewer.
-* Add: API v2 (sill very experimental) (Thanks @Hellowlol)
+* Add: API v2 (sill very experimental). (Thanks @Hellowlol)
 * Change: Allow secure websocket connections.
 * Change: History grouping now accounts for the view offset.
 * Change: Subject line can be toggled off for Facebook, Slack, Telegram, and Twitter.
