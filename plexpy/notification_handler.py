@@ -287,11 +287,11 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                             notify_action=notify_action)
 
                 # Set the notification state in the db
-                set_notify_state(session=None,
+                set_notify_state(session={},
                                  notify_action=notify_action,
                                  agent_info=agent,
                                  notify_strings=notify_strings,
-                                 metadata=None)
+                                 metadata={})
 
             if agent['on_intdown'] and notify_action == 'intdown':
                 # Build and send notification
@@ -303,11 +303,11 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                             notify_action=notify_action)
 
                 # Set the notification state in the db
-                set_notify_state(session=None,
+                set_notify_state(session={},
                                  notify_action=notify_action,
                                  agent_info=agent,
                                  notify_strings=notify_strings,
-                                 metadata=None)
+                                 metadata={})
 
             if agent['on_extup'] and notify_action == 'extup':
                 # Build and send notification
@@ -319,11 +319,11 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                             notify_action=notify_action)
 
                 # Set the notification state in the db
-                set_notify_state(session=None,
+                set_notify_state(session={},
                                  notify_action=notify_action,
                                  agent_info=agent,
                                  notify_strings=notify_strings,
-                                 metadata=None)
+                                 metadata={})
 
             if agent['on_intup'] and notify_action == 'intup':
                 # Build and send notification
@@ -335,11 +335,11 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                             notify_action=notify_action)
 
                 # Set the notification state in the db
-                set_notify_state(session=None,
+                set_notify_state(session={},
                                  notify_action=notify_action,
                                  agent_info=agent,
                                  notify_strings=notify_strings,
-                                 metadata=None)
+                                 metadata={})
 
     else:
         logger.debug(u"PlexPy NotificationHandler :: Notify timeline called but incomplete data received.")
