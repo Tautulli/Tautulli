@@ -20,9 +20,11 @@ In case you read this because you are posting an issue, please take a minute and
 2. Provide a clear title to easily help identify your problem.
 3. Use proper [markdown syntax](https://help.github.com/articles/github-flavored-markdown) to structure your post (i.e. code/log in code blocks).
 4. Make sure you provide the following information:
+    - [ ] Version
     - [ ] Branch
-    - [ ] Version/Commit hash
-    - [ ] Your operating system and python version
+    - [ ] Commit hash
+    - [ ] Operating system
+    - [ ] Python version
     - [ ] What you did?
     - [ ] What happened?
     - [ ] What you expected?
