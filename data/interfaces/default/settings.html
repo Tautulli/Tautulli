@@ -68,7 +68,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/tree/%s' % plexpy.CONFIG.GIT_BRANCH)}">${plexpy.CONFIG.GIT_BRANCH}</a></td>
                                 </tr>
                                 <tr>
-                                    <td>Git Hash:</td>
+                                    <td>Git Commit Hash:</td>
                                     <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/commit/%s' % plexpy.CURRENT_VERSION)}">${plexpy.CURRENT_VERSION}</a></td>
                                 </tr>
                                 % endif
@@ -571,10 +571,9 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes [experimental]
+                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
                             </label>
-                            <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.<br />
-                            This is currently experimental.</p>
+                            <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
                         </div>
                         <div class="form-group">
                             <label for="anon_redirect">Anonymous Redirect</label>
@@ -610,10 +609,9 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) [experimental]
+                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
                             </label>
-                            <p class="help-block">Instead of polling the server at regular intervals let the server tell us when something happens.<br />
-                            This is currently experimental.</p>
+                            <p class="help-block">Instead of polling the server at regular intervals let the server tell PlexPy when something happens.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -713,6 +711,13 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label>
                                 <input type="checkbox" name="notify_recently_added" id="notify_recently_added" value="1" ${config['notify_recently_added']}> Enable Recently Added Notifications
                             </label>
+                        </div>
+
+                        <div class="checkbox" style="padding-top: 15px;">
+                            <label>
+                                <input type="checkbox" name="notify_upload_posters" id="notify_upload_posters" value="1" ${config['notify_upload_posters']}> Enable Posters in Notifications
+                            </label>
+                            <p class="help-block">Allow PlexPy to upload Plex poster to Imgur for notifications.</p>
                         </div>
 
                         <div class="padded-header">
@@ -893,23 +898,6 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Down<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_extdown_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_extdown_subject_text" name="notify_on_extdown_subject_text" value="${config['notify_on_extdown_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_extdown_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_extdown_body_text" name="notify_on_extdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extdown_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
                                 <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Server Down<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
@@ -927,23 +915,6 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </ul>
                             </li>
                             <li>
-                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Back Up<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_extup_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_extup_subject_text" name="notify_on_extup_subject_text" value="${config['notify_on_extup_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_extup_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_extup_body_text" name="notify_on_extup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extup_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
                                 <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Server Back Up<i class="fa fa-chevron-down"></i></div>
                                 <ul class="submenu">
                                     <li>
@@ -955,6 +926,40 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         <div class="form-group">
                                             <label for="notify_on_intup_body_text">Message Body</label>
                                             <textarea class="form-control" id="notify_on_intup_body_text" name="notify_on_intup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_intup_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Down<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_extdown_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_extdown_subject_text" name="notify_on_extdown_subject_text" value="${config['notify_on_extdown_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_extdown_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_extdown_body_text" name="notify_on_extdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extdown_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Back Up<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_extup_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_extup_subject_text" name="notify_on_extup_subject_text" value="${config['notify_on_extup_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_extup_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_extup_body_text" name="notify_on_extup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extup_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -1482,8 +1487,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{poster_url}</strong></td>
-                                    <td>A URL for the movie or TV show poster.
-                                    <p class="small-muted">(PMS agent must be Freebase or TheTVDB)</p></td>
+                                    <td>A URL for the movie, TV show, or album poster.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{imdb_id}</strong></td>
@@ -1947,6 +1951,7 @@ $(document).ready(function() {
             if (data !== 'true') {
                 $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
                 $("#monitor_remote_access").attr("disabled", true);
+                $("#monitor_remote_access").attr("checked", false);
             }
         }
     });

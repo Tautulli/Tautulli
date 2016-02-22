@@ -843,18 +843,44 @@ class DataFactory(object):
     def get_session_ip(self, session_key=''):
         monitor_db = database.MonitorDatabase()
 
-        if session_key:
-            query = 'SELECT ip_address FROM sessions WHERE session_key = %d' % int(session_key)
-            result = monitor_db.select(query)
-        else:
-            return None
-
         ip_address = 'N/A'
+
+        if session_key:
+            try:
+                query = 'SELECT ip_address FROM sessions WHERE session_key = %d' % int(session_key)
+                result = monitor_db.select(query)
+            except Exception as e:
+                logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_session_ip: %s." % e)
+                return ip_address
+        else:
+            return ip_address
 
         for item in result:
             ip_address = item['ip_address']
 
         return ip_address
+
+    def get_poster_url(self, rating_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        poster_url = ''
+
+        if rating_key:
+            try:
+                query = 'SELECT id, poster_url FROM notify_log ' \
+                        'WHERE rating_key = %d OR parent_rating_key = %d OR grandparent_rating_key = %d ' \
+                        'ORDER BY id DESC LIMIT 1' % (int(rating_key), int(rating_key), int(rating_key))
+                result = monitor_db.select(query)
+            except Exception as e:
+                logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_poster_url: %s." % e)
+                return poster_url
+        else:
+            return poster_url
+
+        for item in result:
+            poster_url = item['poster_url']
+
+        return poster_url
 
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()
@@ -1095,3 +1121,71 @@ class DataFactory(object):
                     old_rating_key]
 
             monitor_db.action(query=query, args=args)
+
+    def get_notification_log(self, kwargs=None):
+        data_tables = datatables.DataTables()
+
+        columns = ['notify_log.id',
+                   'notify_log.timestamp',
+                   'notify_log.session_key',
+                   'notify_log.rating_key',
+                   'notify_log.user_id',
+                   'notify_log.user',
+                   'notify_log.agent_id',
+                   'notify_log.agent_name',
+                   'notify_log.notify_action',
+                   'notify_log.subject_text',
+                   'notify_log.body_text',
+                   'notify_log.script_args',
+                   'notify_log.poster_url',
+                   ]
+        try:
+            query = data_tables.ssp_query(table_name='notify_log',
+                                          columns=columns,
+                                          custom_where=[],
+                                          group_by=[],
+                                          join_types=[],
+                                          join_tables=[],
+                                          join_evals=[],
+                                          kwargs=kwargs)
+        except Exception as e:
+            logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_notification_log: %s." % e)
+            return {'recordsFiltered': 0,
+                    'recordsTotal': 0,
+                    'draw': 0,
+                    'data': 'null',
+                    'error': 'Unable to execute database query.'}
+
+        notifications = query['result']
+
+        rows = []
+        for item in notifications:
+            if item['body_text']:
+                body_text = item['body_text'].replace('\r\n', '<br />').replace('\n', '<br />')
+            else:
+                body_text = ''
+
+            row = {'id': item['id'],
+                   'timestamp': item['timestamp'],
+                   'session_key': item['session_key'],
+                   'rating_key': item['rating_key'],
+                   'user_id': item['user_id'],
+                   'user': item['user'],
+                   'agent_id': item['agent_id'],
+                   'agent_name': item['agent_name'],
+                   'notify_action': item['notify_action'],
+                   'subject_text': item['subject_text'],
+                   'body_text': body_text,
+                   'script_args': item['script_args'],
+                   'poster_url': item['poster_url']
+                   }
+
+            rows.append(row)
+
+        dict = {'recordsFiltered': query['filteredCount'],
+                'recordsTotal': query['totalCount'],
+                'data': rows,
+                'draw': query['draw']
+                }
+
+        return dict

@@ -1083,6 +1083,15 @@ class WebInterface(object):
         return json.dumps(log_lines)
 
     @cherrypy.expose
+    @addtoapi()
+    def get_notification_log(self, **kwargs):
+        data_factory = datafactory.DataFactory()
+        notifications = data_factory.get_notification_log(kwargs=kwargs)
+
+        cherrypy.response.headers['Content-type'] = 'application/json'
+        return json.dumps(notifications)
+
+    @cherrypy.expose
     def clearLogs(self):
         plexpy.LOG_LIST = []
         logger.info(u"Web logs cleared")
@@ -1183,6 +1192,7 @@ class WebInterface(object):
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
             "pms_is_remote": checked(plexpy.CONFIG.PMS_IS_REMOTE),
             "notify_consecutive": checked(plexpy.CONFIG.NOTIFY_CONSECUTIVE),
+            "notify_upload_posters": checked(plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS),
             "notify_recently_added": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED),
             "notify_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT),
             "notify_recently_added_delay": plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY,
@@ -1235,7 +1245,7 @@ class WebInterface(object):
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
-            "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive",
+            "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", "notify_upload_posters",
             "notify_recently_added", "notify_recently_added_grandparent", "monitor_remote_access", "get_file_sizes"
         ]
         for checked_config in checked_configs:
@@ -1245,7 +1255,7 @@ class WebInterface(object):
 
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password'):
-            if kwargs['http_password'].strip() == '' and plexpy.CONFIG.HTTP_PASSWORD != '':
+            if kwargs['http_password'] == '    ' and plexpy.CONFIG.HTTP_PASSWORD != '':
                 kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
 
         for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:

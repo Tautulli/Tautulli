@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.3.8 (2016-02-21)
+
+* Fix: Regression unable to clear HTTP password.
+* Fix: Remove media tags from script arguments for server notifications.
+* Fix: Encode poster titles to UTF-8 for Imgur upload.
+* Fix: Allow notifications to send without poster if Imgur upload fails.
+* Add: Notification Logs table in the Logs tab.
+* Add: Toggle in settings to enable posters in notifications. (Disabled by default.)
+* Change: Save Imgur poster URL to database so upload is not needed every time.
+* Change: Notify log in database to log each event as a separate entry.
+* Change: Monitor remote access is unchecked if remote access is disabled on server.
+
+
 ## v1.3.7 (2016-02-20)
 
 * Fix: Verifying server with SSL enabled.

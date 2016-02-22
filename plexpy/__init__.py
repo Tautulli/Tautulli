@@ -443,10 +443,10 @@ def dbcheck():
 
     # notify_log table :: This is a table which logs notifications sent
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'session_key INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
-        'agent_id INTEGER, agent_name TEXT, on_play INTEGER, on_stop INTEGER, on_watched INTEGER, '
-        'on_pause INTEGER, on_resume INTEGER, on_buffer INTEGER, on_created INTEGER)'
+        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
+        'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+        'user_id INTEGER, user TEXT, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
+        'subject_text TEXT, body_text TEXT, script_args TEXT, poster_url TEXT)'
     )
 
     # library_sections table :: This table keeps record of the servers library sections
@@ -722,6 +722,53 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table notify_log.")
         c_db.execute(
             'ALTER TABLE notify_log ADD COLUMN on_created INTEGER'
+        )
+
+    # Upgrade notify_log table from earlier versions
+    try:
+        c_db.execute('SELECT poster_url FROM notify_log')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table notify_log.")
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN poster_url TEXT'
+        )
+
+    # Upgrade notify_log table from earlier versions (populate table with data from notify_log)
+    try:
+        c_db.execute('SELECT timestamp FROM notify_log')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table notify_log.")
+        c_db.execute(
+            'CREATE TABLE IF NOT EXISTS notify_log_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
+            'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+            'user_id INTEGER, user TEXT, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
+            'subject_text TEXT, body_text TEXT, script_args TEXT, poster_url TEXT)'
+        )
+        c_db.execute(
+            'INSERT INTO notify_log_temp (session_key, rating_key, user_id, user, agent_id, agent_name, '
+            'poster_url, timestamp, notify_action) '
+            'SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, timestamp, '
+            'notify_action FROM notify_log_temp '
+            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
+            'on_play, "play" FROM notify_log WHERE on_play '
+            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
+            'on_stop, "stop" FROM notify_log WHERE on_stop '
+            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
+            'on_watched, "watched" FROM notify_log WHERE on_watched '
+            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
+            'on_pause, "pause" FROM notify_log WHERE on_pause '
+            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
+            'on_resume, "resume" FROM notify_log WHERE on_resume '
+            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
+            'on_buffer, "buffer" FROM notify_log WHERE on_buffer '
+            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
+            'on_created, "created" FROM notify_log WHERE on_created '
+            'ORDER BY timestamp ')
+        c_db.execute(
+            'DROP TABLE notify_log'
+        )
+        c_db.execute(
+            'ALTER TABLE notify_log_temp RENAME TO notify_log'
         )
 
     # Upgrade library_sections table from earlier versions (remove UNIQUE constraint on section_id)

@@ -66,13 +66,6 @@ from plexpy import helpers
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_extdown" ${helpers.checked(data['on_extdown'])} class="toggle-switches">
-                                Notify on Plex remote access down
-                            </label>
-                            <p class="help-block">Trigger notification when the Plex Media Server cannot be reached externally.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
                                 <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_intdown" ${helpers.checked(data['on_intdown'])} class="toggle-switches">
                                 Notify on Plex server down
                             </label>
@@ -80,17 +73,24 @@ from plexpy import helpers
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_extup" ${helpers.checked(data['on_extup'])} class="toggle-switches">
-                                Notify on Plex remote access back up
-                            </label>
-                            <p class="help-block">Trigger notification when the Plex Media Server can be reached externally after being down.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
                                 <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_intup" ${helpers.checked(data['on_intup'])} class="toggle-switches">
                                 Notify on Plex server back up
                             </label>
                             <p class="help-block">Trigger notification when the Plex Media Server can be reached internally after being down.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_extdown" ${helpers.checked(data['on_extdown'])} class="toggle-switches">
+                                Notify on Plex remote access down
+                            </label>
+                            <p class="help-block">Trigger notification when the Plex Media Server cannot be reached externally.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_extup" ${helpers.checked(data['on_extup'])} class="toggle-switches">
+                                Notify on Plex remote access back up
+                            </label>
+                            <p class="help-block">Trigger notification when the Plex Media Server can be reached externally after being down.</p>
                         </div>
                     </div>
                 </div>
