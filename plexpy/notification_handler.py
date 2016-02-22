@@ -269,7 +269,7 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                             metadata=metadata)
 
                 # Set the notification state in the db
-                set_notify_state(session=stream_data,
+                set_notify_state(session=timeline_data,
                                  notify_action=notify_action,
                                  agent_info=agent,
                                  notify_strings=notify_strings,
