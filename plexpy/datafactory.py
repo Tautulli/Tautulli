@@ -843,13 +843,17 @@ class DataFactory(object):
     def get_session_ip(self, session_key=''):
         monitor_db = database.MonitorDatabase()
 
-        if session_key:
-            query = 'SELECT ip_address FROM sessions WHERE session_key = %d' % int(session_key)
-            result = monitor_db.select(query)
-        else:
-            return None
-
         ip_address = 'N/A'
+
+        if session_key:
+            try:
+                query = 'SELECT ip_address FROM sessions WHERE session_key = %d' % int(session_key)
+                result = monitor_db.select(query)
+            except Exception as e:
+                logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_session_ip: %s." % e)
+                return ip_address
+        else:
+            return ip_address
 
         for item in result:
             ip_address = item['ip_address']
@@ -859,15 +863,19 @@ class DataFactory(object):
     def get_poster_url(self, rating_key=''):
         monitor_db = database.MonitorDatabase()
 
-        if rating_key:
-            query = 'SELECT id, poster_url FROM notify_log ' \
-                    'WHERE rating_key = %d OR parent_rating_key = %d OR grandparent_rating_key = %d ' \
-                    'ORDER BY id DESC LIMIT 1' % (int(rating_key), int(rating_key), int(rating_key))
-            result = monitor_db.select(query)
-        else:
-            return None
-
         poster_url = ''
+
+        if rating_key:
+            try:
+                query = 'SELECT id, poster_url FROM notify_log ' \
+                        'WHERE rating_key = %d OR parent_rating_key = %d OR grandparent_rating_key = %d ' \
+                        'ORDER BY id DESC LIMIT 1' % (int(rating_key), int(rating_key), int(rating_key))
+                result = monitor_db.select(query)
+            except Exception as e:
+                logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_poster_url: %s." % e)
+                return poster_url
+        else:
+            return poster_url
 
         for item in result:
             poster_url = item['poster_url']
