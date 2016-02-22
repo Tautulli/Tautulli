@@ -54,7 +54,7 @@ notification_log_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "16%"
+            "width": "20%"
         },
         {
             "targets": [4],
@@ -64,7 +64,7 @@ notification_log_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "35%"
+            "width": "38%"
         },
         {
             "targets": [5],
@@ -74,17 +74,7 @@ notification_log_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "15%"
-        },
-        {
-            "targets": [6],
-            "data": "poster_url",
-            "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
-                    $(td).html(cellData);
-                }
-            },
-            "width": "12%"
+            "width": "20%"
         }
     ],
     "drawCallback": function (settings) {
