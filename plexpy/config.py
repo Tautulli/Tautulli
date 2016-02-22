@@ -291,6 +291,7 @@ _CONFIG_DEFINITIONS = {
     'PUSHBULLET_ON_INTUP': (int, 'PushBullet', 0),
     'PUSHOVER_APITOKEN': (str, 'Pushover', ''),
     'PUSHOVER_ENABLED': (int, 'Pushover', 0),
+    'PUSHOVER_HTML_SUPPORT': (int, 'Pushover', 1),
     'PUSHOVER_KEYS': (str, 'Pushover', ''),
     'PUSHOVER_PRIORITY': (int, 'Pushover', 0),
     'PUSHOVER_SOUND': (str, 'Pushover', ''),
