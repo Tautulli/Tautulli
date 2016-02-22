@@ -565,7 +565,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None):
         poster_url = data_factory.get_poster_url(rating_key=poster_key)
 
         # If no previous poster_url
-        if not poster_url:
+        if not poster_url and plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
             # Retrieve the poster from Plex and cache to file
             urllib.urlretrieve(plexpy.CONFIG.PMS_URL + thumb + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN,
                                os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'))

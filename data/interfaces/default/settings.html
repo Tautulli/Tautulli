@@ -713,6 +713,13 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                         </div>
 
+                        <div class="checkbox" style="padding-top: 15px;">
+                            <label>
+                                <input type="checkbox" name="notify_upload_posters" id="notify_upload_posters" value="1" ${config['notify_upload_posters']}> Enable Posters in Notifications
+                            </label>
+                            <p class="help-block">Allow PlexPy to upload Plex poster to Imgur for notifications.</p>
+                        </div>
+
                         <div class="padded-header">
                             <h3>Current Activity Notifications</h3>
                         </div>
