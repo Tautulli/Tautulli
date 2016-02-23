@@ -50,7 +50,10 @@ def notify(stream_data=None, notify_action=None):
             for agent in notifiers.available_notification_agents():
                 if agent['on_play'] and notify_action == 'play':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
@@ -68,7 +71,10 @@ def notify(stream_data=None, notify_action=None):
                 elif agent['on_stop'] and notify_action == 'stop' \
                     and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT):
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
@@ -86,7 +92,10 @@ def notify(stream_data=None, notify_action=None):
                 elif agent['on_pause'] and notify_action == 'pause' \
                     and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
@@ -104,7 +113,10 @@ def notify(stream_data=None, notify_action=None):
                 elif agent['on_resume'] and notify_action == 'resume' \
                     and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
@@ -121,7 +133,10 @@ def notify(stream_data=None, notify_action=None):
 
                 elif agent['on_buffer'] and notify_action == 'buffer':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
@@ -143,7 +158,10 @@ def notify(stream_data=None, notify_action=None):
                     # If there is nothing in the notify_log for our agent id but it is enabled we should notify
                     if not any(d['agent_id'] == agent['id'] and d['notify_action'] == notify_action for d in notify_states):
                         # Build and send notification
-                        notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
+                        notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                     notify_action=notify_action,
+                                                                     agent_id=agent['id'])
+
                         notifiers.send_notification(agent_id=agent['id'],
                                                     subject=notify_strings[0],
                                                     body=notify_strings[1],
@@ -163,7 +181,10 @@ def notify(stream_data=None, notify_action=None):
             for agent in notifiers.available_notification_agents():
                 if agent['on_play'] and notify_action == 'play':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
@@ -180,7 +201,10 @@ def notify(stream_data=None, notify_action=None):
 
                 elif agent['on_stop'] and notify_action == 'stop':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
@@ -197,7 +221,10 @@ def notify(stream_data=None, notify_action=None):
 
                 elif agent['on_pause'] and notify_action == 'pause':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
@@ -214,7 +241,10 @@ def notify(stream_data=None, notify_action=None):
 
                 elif agent['on_resume'] and notify_action == 'resume':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
@@ -231,7 +261,10 @@ def notify(stream_data=None, notify_action=None):
 
                 elif agent['on_buffer'] and notify_action == 'buffer':
                     # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data, notify_action=notify_action)
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
                     notifiers.send_notification(agent_id=agent['id'],
                                                 subject=notify_strings[0],
                                                 body=notify_strings[1],
@@ -260,7 +293,10 @@ def notify_timeline(timeline_data=None, notify_action=None):
         for agent in notifiers.available_notification_agents():
             if agent['on_created'] and notify_action == 'created':
                 # Build and send notification
-                notify_strings, metadata = build_notify_text(timeline=timeline_data, notify_action=notify_action)
+                notify_strings, metadata = build_notify_text(timeline=timeline_data,
+                                                             notify_action=notify_action,
+                                                             agent_id=agent['id'])
+
                 notifiers.send_notification(agent_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1],
@@ -279,7 +315,9 @@ def notify_timeline(timeline_data=None, notify_action=None):
         for agent in notifiers.available_notification_agents():
             if agent['on_extdown'] and notify_action == 'extdown':
                 # Build and send notification
-                notify_strings = build_server_notify_text(notify_action=notify_action)
+                notify_strings = build_server_notify_text(notify_action=notify_action,
+                                                          agent_id=agent['id'])
+
                 notifiers.send_notification(agent_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1],
@@ -295,7 +333,9 @@ def notify_timeline(timeline_data=None, notify_action=None):
 
             if agent['on_intdown'] and notify_action == 'intdown':
                 # Build and send notification
-                notify_strings = build_server_notify_text(notify_action=notify_action)
+                notify_strings = build_server_notify_text(notify_action=notify_action,
+                                                          agent_id=agent['id'])
+
                 notifiers.send_notification(agent_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1],
@@ -311,7 +351,9 @@ def notify_timeline(timeline_data=None, notify_action=None):
 
             if agent['on_extup'] and notify_action == 'extup':
                 # Build and send notification
-                notify_strings = build_server_notify_text(notify_action=notify_action)
+                notify_strings = build_server_notify_text(notify_action=notify_action,
+                                                          agent_id=agent['id'])
+
                 notifiers.send_notification(agent_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1],
@@ -327,7 +369,9 @@ def notify_timeline(timeline_data=None, notify_action=None):
 
             if agent['on_intup'] and notify_action == 'intup':
                 # Build and send notification
-                notify_strings = build_server_notify_text(notify_action=notify_action)
+                notify_strings = build_server_notify_text(notify_action=notify_action,
+                                                          agent_id=agent['id'])
+
                 notifiers.send_notification(agent_id=agent['id'],
                                             subject=notify_strings[0],
                                             body=notify_strings[1],
@@ -395,7 +439,7 @@ def set_notify_state(session, notify_action, agent_info, notify_strings, metadat
         logger.error(u"PlexPy NotificationHandler :: Unable to set notify state.")
 
 
-def build_notify_text(session=None, timeline=None, notify_action=None):
+def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=None):
     # Get time formats
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','')
@@ -450,21 +494,21 @@ def build_notify_text(session=None, timeline=None, notify_action=None):
         or metadata['media_type'] == 'artist' or metadata['media_type'] == 'track' \
         and pattern:
         # Remove the unwanted tags and strip any unmatch tags too.
-        on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT))
-        on_start_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT))
-        on_stop_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT))
-        on_stop_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT))
-        on_pause_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_PAUSE_SUBJECT_TEXT))
-        on_pause_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_PAUSE_BODY_TEXT))
-        on_resume_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_RESUME_SUBJECT_TEXT))
-        on_resume_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_RESUME_BODY_TEXT))
-        on_buffer_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_BUFFER_SUBJECT_TEXT))
-        on_buffer_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT))
-        on_watched_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT))
-        on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT))
-        on_created_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT))
-        on_created_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT))
-        script_args_text = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT))
+        on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT), agent_id)
+        on_start_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT), agent_id)
+        on_stop_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT), agent_id)
+        on_stop_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT), agent_id)
+        on_pause_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_PAUSE_SUBJECT_TEXT), agent_id)
+        on_pause_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_PAUSE_BODY_TEXT), agent_id)
+        on_resume_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_RESUME_SUBJECT_TEXT), agent_id)
+        on_resume_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_RESUME_BODY_TEXT), agent_id)
+        on_buffer_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_BUFFER_SUBJECT_TEXT), agent_id)
+        on_buffer_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT), agent_id)
+        on_watched_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT), agent_id)
+        on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT), agent_id)
+        on_created_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT), agent_id)
+        on_created_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT), agent_id)
+        script_args_text = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT), agent_id)
     else:
         on_start_subject = plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT
         on_start_body = plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT
@@ -854,7 +898,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None):
         return None
 
 
-def build_server_notify_text(notify_action=None):
+def build_server_notify_text(notify_action=None, agent_id=None):
     # Get time formats
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','')
@@ -1000,6 +1044,12 @@ def build_server_notify_text(notify_action=None):
         return None
 
 
-def strip_tag(data):
-    p = re.compile(r'<.*?>')
+def strip_tag(data, agent_id):
+    # Allow tags b, i, u, a[href], font[color] for Pushover
+    if agent_id == 7:
+        p = re.compile(r'<(?!/?(b>|i>|u>)|(a\shref=\"[^\"\'\s]+\"|/a>|font\scolor=\"[^\"\'\s]+\"|/font>)).*?>',
+                       re.IGNORECASE | re.DOTALL)
+    else:
+        p = re.compile(r'<.*?>', re.IGNORECASE | re.DOTALL)
+
     return p.sub('', data)
