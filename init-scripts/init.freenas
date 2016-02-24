@@ -33,12 +33,13 @@ load_rc_config ${name}
 : ${plexpy_dir:="/usr/local/share/plexpy"}
 : ${plexpy_chdir:="${plexpy_dir}"}
 : ${plexpy_pid:="${plexpy_dir}/plexpy.pid"}
+: ${plexpy_flags:=""}
 
 status_cmd="${name}_status"
 stop_cmd="${name}_stop"
 
 command="${plexpy_dir}/PlexPy.py"
-command_args="--daemon --pidfile ${plexpy_pid} --quiet --nolaunch"
+command_args="--daemon --pidfile ${plexpy_pid} --quiet --nolaunch ${plexpy_flags}"
 
 # Ensure user is root when running this script.
 if [ `id -u` != "0" ]; then
