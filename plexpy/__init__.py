@@ -890,7 +890,13 @@ def shutdown(restart=False, update=False):
         if '--nolaunch' not in args:
             args += ['--nolaunch']
         logger.info('Restarting PlexPy with %s', args)
-        os.execv(exe, args)
+        
+        # os.execv fails with spaced names on Windows
+        # https://bugs.python.org/issue19066
+        if os.name == 'nt':
+            subprocess.Popen(args, cwd=os.getcwd())
+        else:
+            os.execv(exe, args)
 
     os._exit(0)
 
