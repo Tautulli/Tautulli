@@ -13,7 +13,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users, libraries, database
+from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, \
+    datafactory, graphs, users, libraries, database, web_socket
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates
 
 from mako.lookup import TemplateLookup
@@ -1327,6 +1328,7 @@ class WebInterface(object):
         if server_changed:
             plextv.get_real_pms_url()
             pmsconnect.get_server_friendly_name()
+            web_socket.reconnect()
 
         # Reconfigure scheduler if intervals changed
         if reschedule:
