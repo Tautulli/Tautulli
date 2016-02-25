@@ -58,9 +58,9 @@ class DataFactory(object):
                    'session_history_metadata.thumb',
                    'session_history_metadata.parent_thumb',
                    'session_history_metadata.grandparent_thumb',
-                   'MAX((CASE WHEN view_offset IS NULL THEN 0.1 ELSE view_offset * 1.0 END) / \
-                    (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 \
-                    ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
+                   'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
+                    (CASE WHEN (session_history_metadata.duration IS NULL OR session_history_metadata.duration = "") \
+                    THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
                    'session_history_media_info.video_decision',
                    'session_history_media_info.audio_decision',
                    'COUNT(*) AS group_count',
