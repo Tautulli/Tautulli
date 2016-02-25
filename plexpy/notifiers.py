@@ -1266,7 +1266,7 @@ class TwitterNotifier(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
-                          'description': 'Step 1: Visit <a href="https://apps.twitter.com/" target="_blank"> \
+                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://apps.twitter.com') + '" target="_blank"> \
                                           Twitter Apps</a> to <strong>Create New App</strong>. A vaild "Website" is not required.<br>\
                                           Step 2: Go to <strong>Keys and Access Tokens</strong> and click \
                                           <strong>Create my access token</strong>.<br>\
@@ -1625,7 +1625,8 @@ class IFTTT(object):
         config_option = [{'label': 'Ifttt Maker Channel Key',
                           'value': self.apikey,
                           'name': 'ifttt_key',
-                          'description': 'Your Ifttt  key. You can get a key from <a href="https://ifttt.com/maker" target="_blank">here</a>.',
+                          'description': 'Your Ifttt  key. You can get a key from'
+                                         ' <a href="' + helpers.anon_url('https://ifttt.com/maker') + '" target="_blank">here</a>.',
                           'input_type': 'text'
                           },
                          {'label': 'Ifttt Event',
@@ -1699,13 +1700,17 @@ class TELEGRAM(object):
         config_option = [{'label': 'Telegram Bot Token',
                           'value': self.bot_token,
                           'name': 'telegram_bot_token',
-                          'description': 'Your Telegram bot token. Contact <a href="http://telegram.me/BotFather" target="_blank">@BotFather</a> on Telegram to get one.',
+                          'description': 'Your Telegram bot token. '
+                                         'Contact <a href="' + helpers.anon_url('https://telegram.me/BotFather') + '" target="_blank">@BotFather</a>'
+                                         ' on Telegram to get one.',
                           'input_type': 'text'
                           },
                          {'label': 'Telegram Chat ID, Group ID, or Channel Username',
                           'value': self.chat_id,
                           'name': 'telegram_chat_id',
-                          'description': 'Your Telegram Chat ID, Group ID, or @channelusername. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
+                          'description': 'Your Telegram Chat ID, Group ID, or @channelusername. '
+                                         'Contact <a href="' + helpers.anon_url('https://telegram.me/myidbot') + '" target="_blank">@myidbot</a>'
+                                         ' on Telegram to get an ID.',
                           'input_type': 'text'
                           },
                          {'label': 'Include Subject Line',
@@ -2186,7 +2191,7 @@ class FacebookNotifier(object):
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
                           'description': '<strong>Facebook notifications are currently experimental!</strong><br><br> \
-                                          Step 1: Visit <a href="https://developers.facebook.com/apps/" target="_blank"> \
+                                          Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank"> \
                                           Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>\
                                           Step 2: Go to <strong>Settings > Basic</strong> and fill in a \
                                           <strong>Contact Email</strong>.<br>\

@@ -1,6 +1,7 @@
 ﻿<%
 import plexpy
 from plexpy import version
+from plexpy.helpers import anon_url
 %>
 <!doctype html>
 
@@ -142,7 +143,7 @@ from plexpy import version
     % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.CURRENT_VERSION != plexpy.LATEST_VERSION and plexpy.COMMITS_BEHIND > 0 and plexpy.INSTALL_TYPE != 'win':
     <div id="updatebar" style="display: none;">
         A <a
-            href="https://github.com/${plexpy.CONFIG.GIT_USER}/plexpy/compare/${plexpy.CURRENT_VERSION}...${plexpy.LATEST_VERSION}" target="_blank">
+            href="${anon_url('https://github.com/%s/plexpy/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.CURRENT_VERSION, plexpy.LATEST_VERSION))}" target="_blank">
         newer version</a> is available. You're ${plexpy.COMMITS_BEHIND} commits behind. <a href="update">Update</a> or
         <a href="#" id="updateDismiss">Close</a>
     </div>
