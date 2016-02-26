@@ -59,7 +59,6 @@
 <%def name="javascriptIncludes()">
 <script src="interfaces/default/js/moment-with-locale.js"></script>
 <script>
-
     function currentActivityHeader() {
         $.ajax({
             url: 'get_current_activity_header',
@@ -71,7 +70,6 @@
         });
     }
     currentActivityHeader();
-    setInterval(currentActivityHeader, 15000);
 
     function currentActivity() {
         $.ajax({
@@ -84,7 +82,12 @@
         });
     }
     currentActivity();
-    setInterval(currentActivity, 15000);
+
+    setInterval(function () {
+        $('.bar, .bufferbar').tooltip('destroy');
+        currentActivityHeader();
+        currentActivity();
+    }, 15000);
 
     function getHomeStats(days) {
         $.ajax({
@@ -97,6 +100,7 @@
             }
         });
     }
+    getHomeStats();
 
     function getLibraryStats() {
         $.ajax({
@@ -109,6 +113,7 @@
             }
         });
     }
+    getLibraryStats();
 
     function recentlyAdded() {
         var widthVal = $('body').find(".container-fluid").width();
@@ -147,11 +152,6 @@
             time_format = data.time_format;
         }
     });
-
-    getHomeStats();
-    getLibraryStats();
-
-
 </script>
 
 </%def>
