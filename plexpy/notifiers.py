@@ -1301,7 +1301,7 @@ class TwitterNotifier(object):
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'twitter_incl_subject',
-                          'description': 'Include the subject line in the notifications.',
+                          'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1716,7 +1716,7 @@ class TELEGRAM(object):
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'telegram_incl_subject',
-                          'description': 'Include the subject line in the notifications.',
+                          'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1814,7 +1814,7 @@ class SLACK(object):
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'slack_incl_subject',
-                          'description': 'Include the subject line in the notifications.',
+                          'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -2087,6 +2087,7 @@ class FacebookNotifier(object):
         self.app_id = plexpy.CONFIG.FACEBOOK_APP_ID
         self.app_secret = plexpy.CONFIG.FACEBOOK_APP_SECRET
         self.group_id = plexpy.CONFIG.FACEBOOK_GROUP
+        self.incl_pmslink = plexpy.CONFIG.FACEBOOK_INCL_PMSLINK
         self.incl_poster = plexpy.CONFIG.FACEBOOK_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.FACEBOOK_INCL_SUBJECT
 
@@ -2144,10 +2145,27 @@ class FacebookNotifier(object):
                 poster_url = metadata.get('poster_url','')
 
                 if poster_url:
-                    if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show':
+                    if metadata['media_type'] == 'movie':
                         title = metadata['title']
                         subtitle = metadata['year']
                         rating_key = metadata['rating_key']
+                        if metadata.get('imdb_url',''):
+                            poster_link = metadata.get('imdb_url', '')
+                            caption = 'View on IMDB.'
+                        elif metadata.get('themoviedb_url',''):
+                            poster_link = metadata.get('themoviedb_url', '')
+                            caption = 'View on The Movie Database.'
+
+                    elif metadata['media_type'] == 'show':
+                        title = metadata['title']
+                        subtitle = metadata['year']
+                        rating_key = metadata['rating_key']
+                        if metadata.get('thetvdb_url',''):
+                            poster_link = metadata.get('thetvdb_url', '')
+                            caption = 'View on TheTVDB.'
+                        elif metadata.get('themoviedb_url',''):
+                            poster_link = metadata.get('themoviedb_url', '')
+                            caption = 'View on The Movie Database.'
 
                     elif metadata['media_type'] == 'episode':
                         title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
@@ -2155,26 +2173,44 @@ class FacebookNotifier(object):
                                                    '\xc2\xb7'.decode('utf8'),
                                                    metadata['media_index'])
                         rating_key = metadata['rating_key']
+                        if metadata.get('thetvdb_url',''):
+                            poster_link = metadata.get('thetvdb_url', '')
+                            caption = 'View on TheTVDB.'
+                        elif metadata.get('themoviedb_url',''):
+                            poster_link = metadata.get('themoviedb_url', '')
+                            caption = 'View on The Movie Database.'
 
                     elif metadata['media_type'] == 'artist':
                         title = metadata['title']
                         subtitle = ''
                         rating_key = metadata['rating_key']
+                        if metadata.get('lastfm_url',''):
+                            poster_link = metadata.get('lastfm_url', '')
+                            caption = 'View on Last.fm.'
 
                     elif metadata['media_type'] == 'track':
                         title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
                         subtitle = metadata['parent_title']
                         rating_key = metadata['parent_rating_key']
-
-                    caption = 'View in Plex Web.'
+                        if metadata.get('lastfm_url',''):
+                            poster_link = metadata.get('lastfm_url', '')
+                            caption = 'View on Last.fm.'
 
                     # Build Facebook post attachment
-                    attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
-                                         '/details/%2Flibrary%2Fmetadata%2F' + rating_key
+                    if self.incl_pmslink:
+                        caption = 'View on Plex Web.'
+                        attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
+                                             '/details/%2Flibrary%2Fmetadata%2F' + rating_key
+                        attachment['caption'] = caption
+                    elif poster_link:
+                        attachment['link'] = poster_link
+                        attachment['caption'] = caption
+                    else:
+                        attachment['link'] = poster_url
+
                     attachment['picture'] = poster_url
                     attachment['name'] = title
                     attachment['description'] = subtitle
-                    attachment['caption'] = caption
 
             try:
                 api.put_wall_post(profile_id=self.group_id, message=message, attachment=attachment)
@@ -2200,7 +2236,7 @@ class FacebookNotifier(object):
                                           Step 4: Go to <strong>App Review</strong> and toggle public to <strong>Yes</strong>.<br>\
                                           Step 5: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
                                           Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
-                                          Step 7: Click the <strong>Request Authorization</strong> button below.<br> \
+                                          Step 7: Click the <strong>Request Authorization</strong> button below.<br>\
                                           Step 8: Fill in the <strong>Group ID</strong> below.',
                           'input_type': 'help'
                           },
@@ -2237,13 +2273,20 @@ class FacebookNotifier(object):
                          {'label': 'Include Poster Image',
                           'value': self.incl_poster,
                           'name': 'facebook_incl_poster',
-                          'description': 'Include a poster and link in the notifications.',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Link to Plex Web',
+                          'value': self.incl_pmslink,
+                          'name': 'facebook_incl_pmslink',
+                          'description': 'Include a link to the media in Plex Web with the notifications.<br>'
+                                         'If disabled, the link will go to IMDB, TVDB, TMDb, or Last.fm instead, if available.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'facebook_incl_subject',
-                          'description': 'Include the subject line in the notifications.',
+                          'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
