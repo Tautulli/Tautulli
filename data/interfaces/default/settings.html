@@ -1909,8 +1909,8 @@ $(document).ready(function() {
         url: 'get_server_identity',
         async: true,
         success: function(data) {
-            var version = data.version.split('.')
-            if (parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
+            var version = (data.version ? data.version.split('.') : null);
+            if (version && parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
                 $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
                 $("#ip_logging_enable").attr("disabled", true);
                 $("#ip_logging_enable").attr("checked", true);
