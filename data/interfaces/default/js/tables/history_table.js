@@ -22,7 +22,7 @@ history_table_options = {
         "emptyTable": "No data in table"
     },
     "pagingType": "bootstrap",
-    "stateSave": false,
+    "stateSave": true,
     "processing": false,
     "serverSide": true,
     "pageLength": 25,

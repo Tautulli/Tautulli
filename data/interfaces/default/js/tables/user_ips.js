@@ -8,7 +8,7 @@ user_ip_table_options = {
         "infoFiltered":"(filtered from _MAX_ total entries)",
         "emptyTable": "No data in table",
     },
-    "stateSave": false,
+    "stateSave": true,
     "pagingType": "bootstrap",
     "processing": false,
     "serverSide": true,
