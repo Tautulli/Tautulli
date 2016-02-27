@@ -23,7 +23,7 @@
                 <h3>Watch Statistics <small>Last ${config['home_stats_length']} days</small></h3>
             </div>
             <div id="home-stats" class="home-platforms">
-                <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
+                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
                 <br>
             </div>
         </div>
@@ -36,19 +36,27 @@
                 <h3>Library Statistics <small>${config['pms_name']}</small></h3>
             </div>
             <div id="library-stats" class="library-platforms">
-                <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
+                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
                 <br>
             </div>
         </div>
     </div>
     % endif
-    <div class='row'>
+    <div class="row">
         <div class="col-md-12">
             <div class="padded-header">
+                <ul class="nav nav-header nav-dashboard pull-right">
+                    <li>
+                        <a href="#" id="recently-added-page-left" class="paginate btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
+                    </li>
+                    <li>
+                        <a href="#" id="recently-added-page-right" class="paginate btn-gray" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
+                    </li>
+                </ul>
                 <h3>Recently Added</h3>
             </div>
-            <div id='recentlyAdded'>
-                <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
+            <div id="recentlyAdded" style="margin-right: -15px;">
+                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
                 <br>
             </div>
         </div>
@@ -116,31 +124,17 @@
     getLibraryStats();
 
     function recentlyAdded() {
-        var widthVal = $('body').find(".container-fluid").width();
-        var tmp = (widthVal-20) / 182;
-
-        if (tmp > 0) {
-            containerSize = parseInt(tmp);
-        } else {
-            containerSize = 1;
-        }
-
         $.ajax({
             url: 'get_recently_added',
             type: "GET",
             async: true,
-            data: { count : containerSize },
+            data: { count : 50 },
             complete: function(xhr, status) {
                 $("#recentlyAdded").html(xhr.responseText);
             }
         });
     }
-    $(document).ready(function () {
-        recentlyAdded();
-        $(window).resize(function() {
-            recentlyAdded();
-        });
-    });
+    recentlyAdded();
 
     var date_format = 'YYYY-MM-DD';
     var time_format = 'hh:mm a';
@@ -150,6 +144,30 @@
         success: function(data) {
             date_format = data.date_format;
             time_format = data.time_format;
+        }
+    });
+
+    var leftTotal = 0;
+    $(".paginate").click(function (e) {
+        e.preventDefault();
+        var scroller = $("#recently-added-row-scroller");
+        var containerWidth = $("body").find(".container-fluid").width();
+        var scrollAmount = $(this).data("id") * parseInt((containerWidth - 15) / 175) * 175;
+        var leftMax = -(parseInt(scroller.width()) + scrollAmount);
+        
+        leftTotal = Math.max(Math.min(leftTotal + scrollAmount, 0), leftMax);
+        scroller.animate({ left: leftTotal }, 250);
+
+        if (leftTotal == 0) {
+            $("#recently-added-page-left").addClass("disabled").blur();
+        } else {
+            $("#recently-added-page-left").removeClass("disabled");
+        }
+
+        if (leftTotal == leftMax) {
+            $("#recently-added-page-right").addClass("disabled").blur();
+        } else {
+            $("#recently-added-page-right").removeClass("disabled");
         }
     });
 </script>

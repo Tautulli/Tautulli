@@ -32,56 +32,58 @@ DOCUMENTATION :: END
 
 % if data != None:
 <div class="dashboard-recent-media-row">
-    <ul class="dashboard-recent-media list-unstyled">
-        % for item in data:
-        <div class="dashboard-recent-media-instance">
-            <li>
-                % if item['media_type'] == 'season' or item['media_type'] == 'movie':
-				<a href="info?rating_key=${item['rating_key']}">
-					<div class="dashboard-recent-media-poster">
-						<div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
-                            <div class="dashboard-recent-media-overlay">
-                                <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
-                                    <script>
-                                        $('#added_at-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
-                                    </script>
+    <div id="recently-added-row-scroller" style="left: 0;">
+        <ul class="dashboard-recent-media list-unstyled">
+            % for item in data:
+            <div class="dashboard-recent-media-instance">
+                <li>
+                    % if item['media_type'] == 'season' or item['media_type'] == 'movie':
+				    <a href="info?rating_key=${item['rating_key']}">
+					    <div class="dashboard-recent-media-poster">
+						    <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
+                                <div class="dashboard-recent-media-overlay">
+                                    <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
+                                        <script>
+                                            $('#added_at-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
+                                        </script>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-					<div class="dashboard-recent-media-metacontainer">
-						% if item['media_type'] == 'season':
-						<h3 title="${item['parent_title']}">${item['parent_title']}</h3>
-						<h3 class="text-muted">${item['title']}</h3>
-						% elif item['media_type'] == 'movie':
-						<h3 title="${item['title']}">${item['title']}</h3>
-						<h3 class="text-muted">${item['year']}</h3>
-						% endif
-					</div>
-				</a>
-				% elif item['media_type'] == 'album':
-                <a href="info?rating_key=${item['rating_key']}">
-                    <div class="dashboard-recent-media-cover">
-                        <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">
-                            <div class="dashboard-recent-media-overlay">
-                                <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
-                                    <script>
-                                        $('#added_at-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
-                                    </script>
+					    <div class="dashboard-recent-media-metacontainer">
+						    % if item['media_type'] == 'season':
+						    <h3 title="${item['parent_title']}">${item['parent_title']}</h3>
+						    <h3 class="text-muted">${item['title']}</h3>
+						    % elif item['media_type'] == 'movie':
+						    <h3 title="${item['title']}">${item['title']}</h3>
+						    <h3 class="text-muted">${item['year']}</h3>
+						    % endif
+					    </div>
+				    </a>
+				    % elif item['media_type'] == 'album':
+                    <a href="info?rating_key=${item['rating_key']}">
+                        <div class="dashboard-recent-media-cover">
+                            <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">
+                                <div class="dashboard-recent-media-overlay">
+                                    <div class="dashboard-recent-media-overlay-text" id="added_at-${item['rating_key']}">
+                                        <script>
+                                            $('#added_at-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
+                                        </script>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="dashboard-recent-media-metacontainer">
-                        <h3 title="${item['parent_title']}">${item['parent_title']}</h3>
-                        <h3 class="text-muted">${item['title']}</h3>
-                    </div>
-                </a>
-				% endif
-            </li>
-        </div>
-        % endfor
-    </ul>
+                        <div class="dashboard-recent-media-metacontainer">
+                            <h3 title="${item['parent_title']}">${item['parent_title']}</h3>
+                            <h3 class="text-muted">${item['title']}</h3>
+                        </div>
+                    </a>
+				    % endif
+                </li>
+            </div>
+            % endfor
+        </ul>
+    </div>
 </div>
 % else:
 <div class="text-muted">There was an error communicating with your Plex Server. Please check your <a href="settings">settings</a>.

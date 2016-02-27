@@ -882,10 +882,11 @@ a .dashboard-activity-metadata-user-thumb:hover {
 }
 .dashboard-recent-media-row {
     width: 100%;
-    margin:0 auto;
+    margin: 0 auto;
     text-align: center;
     position: relative;
     z-index: 0;
+    overflow: hidden;
 }
 .dashboard-recent-media {
     width: 100%;
@@ -2758,4 +2759,20 @@ a.no-highlight:hover {
 }
 .save-button {
     margin-top: 15px;
+}
+.nav-dashboard > li {
+    float: left;
+}
+.btn-gray.disabled,
+.btn-gray.disabled:hover {
+    color: #323232;
+    cursor: default;
+}
+.nav-header > li > a:focus,
+.nav-header > li > a:hover {
+    background-color: transparent;
+}
+#recently-added-row-scroller {
+    width: 8750px;
+    position: relative;
 }
