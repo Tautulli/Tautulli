@@ -489,19 +489,35 @@ from plexpy import helpers
                 },
                 complete: function(xhr, status) {
                     $("#user-recently-watched").html(xhr.responseText);
+                    highlightWatchedScrollerButton();
                 }
             });
         }
 
         recentlyWatched();
 
+        function highlightWatchedScrollerButton() {
+            var scroller = $("#recently-watched-row-scroller");
+            var numElems = scroller.find("li").length;
+            scroller.width(numElems * 175);
+            if (scroller.width() > $("#user-recently-watched").width()) {
+                $("#recently-watched-page-right").removeClass("disabled");
+            } else {
+                $("#recently-watched-page-right").addClass("disabled");
+            }
+        }
+
+        $(window).resize(function() {
+            highlightWatchedScrollerButton();
+        });
+
         var leftTotal = 0;
         $(".paginate").click(function (e) {
             e.preventDefault();
             var scroller = $("#recently-watched-row-scroller");
             var containerWidth = $("#user-recently-watched").width();
-            var scrollAmount = $(this).data("id") * parseInt((containerWidth - 15) / 175) * 175;
-            var leftMax = -(parseInt(scroller.width()) + scrollAmount);
+            var scrollAmount = $(this).data("id") * parseInt(containerWidth / 175) * 175;
+            var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
             
             leftTotal = Math.max(Math.min(leftTotal + scrollAmount, 0), leftMax);
             scroller.animate({ left: leftTotal }, 250);

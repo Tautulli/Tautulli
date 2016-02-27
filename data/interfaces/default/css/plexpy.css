@@ -2764,7 +2764,9 @@ a.no-highlight:hover {
     float: left;
 }
 .btn-gray.disabled,
-.btn-gray.disabled:hover {
+.btn-gray.disabled:focus,
+.btn-gray.disabled:hover,
+.btn-gray.disabled:active {
     color: #323232;
     cursor: default;
 }
@@ -2774,6 +2776,5 @@ a.no-highlight:hover {
 }
 #recently-added-row-scroller,
 #recently-watched-row-scroller {
-    width: 8750px;
     position: relative;
 }

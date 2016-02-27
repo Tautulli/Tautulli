@@ -50,7 +50,7 @@
                         <a href="#" id="recently-added-page-left" class="paginate btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
                     </li>
                     <li>
-                        <a href="#" id="recently-added-page-right" class="paginate btn-gray" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
+                        <a href="#" id="recently-added-page-right" class="paginate btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
                     </li>
                 </ul>
                 <h3>Recently Added</h3>
@@ -131,6 +131,7 @@
             data: { count : 50 },
             complete: function(xhr, status) {
                 $("#recentlyAdded").html(xhr.responseText);
+                highlightAddedScrollerButton();
             }
         });
     }
@@ -147,14 +148,29 @@
         }
     });
 
+    function highlightAddedScrollerButton() {
+        var scroller = $("#recently-added-row-scroller");
+        var numElems = scroller.find("li").length;
+        scroller.width(numElems * 175);
+        if (scroller.width() > $("body").find(".container-fluid").width()) {
+            $("#recently-added-page-right").removeClass("disabled");
+        } else {
+            $("#recently-added-page-right").addClass("disabled");
+        }
+    }
+
+    $(window).resize(function () {
+        highlightAddedScrollerButton();
+    });
+
     var leftTotal = 0;
     $(".paginate").click(function (e) {
         e.preventDefault();
         var scroller = $("#recently-added-row-scroller");
         var containerWidth = $("body").find(".container-fluid").width();
         var scrollAmount = $(this).data("id") * parseInt((containerWidth - 15) / 175) * 175;
-        var leftMax = -(parseInt(scroller.width()) + scrollAmount);
-        
+        var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
+
         leftTotal = Math.max(Math.min(leftTotal + scrollAmount, 0), leftMax);
         scroller.animate({ left: leftTotal }, 250);
 
