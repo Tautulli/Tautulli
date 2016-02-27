@@ -261,11 +261,7 @@ DOCUMENTATION :: END
             % endif
         </div>
         <div class="dashboard-activity-metadata-user">
-            % if a['user_id']:
             <a href="user?user_id=${a['user_id']}" title="${a['friendly_name']}">${a['friendly_name']}</a>
-            % else:
-            <a href="user?user=${a['user']}" title="${a['friendly_name']}">${a['friendly_name']}</a>
-            % endif
         </div>
 </div>
 </div>
