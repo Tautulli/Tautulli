@@ -186,7 +186,7 @@ DOCUMENTATION :: END
                                         </div>
                                     </div>
                                     <div class="table-card-back">
-                                        <table class="display" id="history_table" width="100%">
+                                        <table class="display" id="history_table-SID-${data['section_id']}" width="100%">
                                             <thead>
                                                 <tr>
                                                     <th align="left" id="delete">Delete</th>
@@ -245,7 +245,7 @@ DOCUMENTATION :: END
                                         </div>
                                     </div>
                                     <div class="table-card-back">
-                                        <table class="display" id="media_info_table" width="100%">
+                                        <table class="display" id="media_info_table-SID-${data['section_id']}" width="100%">
                                             <thead>
                                                 <tr>
                                                     <th align="left" id="added_at">Added At</th>
@@ -380,12 +380,12 @@ DOCUMENTATION :: END
                     };
                 }
             }
-            history_table = $('#history_table').DataTable(history_table_options);
+            history_table = $('#history_table-SID-${data["section_id"]}').DataTable(history_table_options);
 
             var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
             $(colvis.button()).appendTo('#button-bar-history');
 
-            clearSearchButton('history_table', history_table);
+            clearSearchButton('history_table-SID-${data["section_id"]}', history_table);
         }
 
         function loadMediaInfoTable() {
@@ -401,12 +401,12 @@ DOCUMENTATION :: END
                     };
                 }
             }
-            media_info_table = $('#media_info_table').DataTable(media_info_table_options);
+            media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);
 
             var colvis = new $.fn.dataTable.ColVis(media_info_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
             $(colvis.button()).appendTo('#button-bar-media-info');
 
-            clearSearchButton('media_info_table', media_info_table);
+            clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
         }
 
         $( "#history-tab-btn" ).one( "click", function() {

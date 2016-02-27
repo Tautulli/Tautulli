@@ -148,7 +148,7 @@ from plexpy import helpers
                                         </div>
                                     </div>
                                     <div class="table-card-back">
-                                        <table id="user_ip_table" class="display" width="100%">
+                                        <table id="user_ip_table-UID-${data['user_id']}" class="display" width="100%">
                                             <thead>
                                                 <tr>
                                                     <th align="left">Last Seen</th>
@@ -186,7 +186,7 @@ from plexpy import helpers
                                         </div>
                                     </div>
                                     <div class="table-card-back">
-                                        <table class="display" id="history_table" width="100%">
+                                        <table class="display" id="history_table-UID-${data['user_id']}" width="100%">
                                             <thead>
                                                 <tr>
                                                     <th align="left" id="delete">Delete</th>
@@ -226,7 +226,7 @@ from plexpy import helpers
                                         </div>
                                     </div>
                                     <div class="table-card-back">
-                                        <table class="display" id="sync_table" width="100%">
+                                        <table class="display" id="sync_table-UID-${data['user_id']}" width="100%">
                                             <thead>
                                                 <tr>
                                                     <th align="left" id="state">State</th>
@@ -356,13 +356,13 @@ from plexpy import helpers
                     };
                 }
             }
-            history_table = $('#history_table').DataTable(history_table_options);
+            history_table = $('#history_table-UID-${data["user_id"]}').DataTable(history_table_options);
             history_table.column(2).visible(false);
 
             var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
             $(colvis.button()).appendTo('#button-bar-history');
 
-            clearSearchButton('history_table', history_table);
+            clearSearchButton('history_table-UID-${data["user_id"]}', history_table);
 
             $('#history_table_filter').prepend('<div class="btn-group" data-toggle="buttons" id="media_type-selection" style="padding-right: 15px;"> \
                 <label class="btn btn-dark active"> \
@@ -405,9 +405,9 @@ from plexpy import helpers
                     };
                 }
             }
-            user_ip_table = $('#user_ip_table').DataTable(user_ip_table_options);
+            user_ip_table = $('#user_ip_table-UID-${data["user_id"]}').DataTable(user_ip_table_options);
 
-            clearSearchButton('user_ip_table', user_ip_table);
+            clearSearchButton('user_ip_table-UID-${data["user_id"]}', user_ip_table);
         });
 
         $( "#sync-tab-btn" ).one( "click", function() {
@@ -418,13 +418,13 @@ from plexpy import helpers
                     d.user_id = user_id;
                 }
             }
-            sync_table = $('#sync_table').DataTable(sync_table_options);
+            sync_table = $('#sync_table-UID-${data["user_id"]}').DataTable(sync_table_options);
             sync_table.column(1).visible(false);
 
             var colvis_sync = new $.fn.dataTable.ColVis( sync_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' } );
             $( colvis_sync.button() ).appendTo('#button-bar-sync');
 
-            clearSearchButton('sync_table', sync_table);
+            clearSearchButton('sync_table-UID-${data["user_id"]}', sync_table);
         });
 
         // Load edit user modal

@@ -348,21 +348,21 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     <div class="table-card-back">
-                        <table class="display" id="history_table" width="100%">
+                        <table class="display" id="history_table-RK-${data['rating_key']}" width="100%">
                             <thead>
                                 <tr>
-                                    <th align='left' id="delete">Delete</th>
-                                    <th align='left' id="time">Time</th>
-                                    <th align='left' id="friendly_name">User</th>
-                                    <th align='left' id="ip_address">IP Address</th>
-                                    <th align='left' id="platform">Platform</th>
-                                    <th align='left' id="player">Player</th>
-                                    <th align='left' id="title">Title</th>
-                                    <th align='left' id="started">Started</th>
-                                    <th align='left' id="paused_counter">Paused</th>
-                                    <th align='left' id="stopped">Stopped</th>
-                                    <th align='left' id="duration">Duration</th>
-                                    <th align='left' id="percent_complete"></th>
+                                    <th align="left" id="delete">Delete</th>
+                                    <th align="left" id="time">Time</th>
+                                    <th align="left" id="friendly_name">User</th>
+                                    <th align="left" id="ip_address">IP Address</th>
+                                    <th align="left" id="platform">Platform</th>
+                                    <th align="left" id="player">Player</th>
+                                    <th align="left" id="title">Title</th>
+                                    <th align="left" id="started">Started</th>
+                                    <th align="left" id="paused_counter">Paused</th>
+                                    <th align="left" id="stopped">Stopped</th>
+                                    <th align="left" id="duration">Duration</th>
+                                    <th align="left" id="percent_complete"></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -458,11 +458,11 @@ DOCUMENTATION :: END
 <script>
     $(document).ready(function () {
         get_history();
-        history_table = $('#history_table').DataTable(history_table_options);
+        history_table = $('#history_table-RK-${data["rating_key"]}').DataTable(history_table_options);
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 11] });
         $(colvis.button()).appendTo('div.colvis-button-bar');
 
-        clearSearchButton('history_table', history_table);
+        clearSearchButton('history_table-RK-${data["rating_key"]}', history_table);
 
         $('#row-edit-mode').on('click', function() {
             $('#row-edit-mode-alert').fadeIn(200);
@@ -521,7 +521,7 @@ DOCUMENTATION :: END
 </script>
 % if source == 'history':
 <script>
-    $('#row-edit-mode').after('<a href="update_metadata?rating_key=${data['rating_key']}&update=True" class="btn btn-danger btn-edit" id="fix-metadata"> \
+    $('#row-edit-mode').after('<a href="update_metadata?rating_key=${data["rating_key"]}&update=True" class="btn btn-danger btn-edit" id="fix-metadata"> \
         <i class="fa fa-wrench"></i> Fix Metadata</a>');
 </script>
 % endif
