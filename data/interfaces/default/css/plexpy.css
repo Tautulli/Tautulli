@@ -2772,7 +2772,8 @@ a.no-highlight:hover {
 .nav-header > li > a:hover {
     background-color: transparent;
 }
-#recently-added-row-scroller {
+#recently-added-row-scroller,
+#recently-watched-row-scroller {
     width: 8750px;
     position: relative;
 }

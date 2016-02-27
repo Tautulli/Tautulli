@@ -28,56 +28,58 @@ DOCUMENTATION :: END
 
 % if data:
 <div class="dashboard-recent-media-row">
-    <ul class="dashboard-recent-media list-unstyled">
-        % for item in data:
-        <li>
-            % if item['media_type'] == 'episode' or item['media_type'] == 'movie':
-			<a href="info?source=history&rating_key=${item['rating_key']}">
-				<div class="dashboard-recent-media-poster">
-					<div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
-                        <div class="dashboard-recent-media-overlay">
-                            <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
-                                <script>
-                                    $('#time-${item['time']}').text('Watched ' + moment(${item['time']}, "X").fromNow())
-                                </script>
+    <div id="recently-watched-row-scroller" style="left: 0;">
+        <ul class="dashboard-recent-media list-unstyled">
+            % for item in data:
+            <li>
+                % if item['media_type'] == 'episode' or item['media_type'] == 'movie':
+                <a href="info?source=history&rating_key=${item['rating_key']}">
+                    <div class="dashboard-recent-media-poster">
+                        <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
+                            <div class="dashboard-recent-media-overlay">
+                                <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
+                                    <script>
+                                        $('#time-${item['time']}').text('Watched ' + moment(${item['time']}, "X").fromNow())
+                                    </script>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-				<div class="dashboard-recent-media-metacontainer">
-					% if item['media_type'] == 'episode':
-					<h3 title="${item['grandparent_title']}">${item['grandparent_title']}</h3>
-					<h3 title="${item['title']}">${item['title']}</h3>
-					<h3 class="text-muted">S${item['parent_media_index']} &middot; E${item['media_index']}</h3>
-					% elif item['media_type'] == 'movie':
-					<h3 title="${item['title']}">${item['title']}</h3>
-					<h3 class="text-muted">${item['year']}</h3>
-					% endif
-				</div>
-			</a>
-            % elif item['media_type'] == 'track':
-            <a href="info?source=history&rating_key=${item['rating_key']}">
-                <div class="dashboard-recent-media-cover">
-                    <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">
-                        <div class="dashboard-recent-media-overlay">
-                            <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
-                                <script>
-                                    $('#time-${item['time']}').text('Watched ' + moment(${item['time']}, "X").fromNow())
-                                </script>
+                    <div class="dashboard-recent-media-metacontainer">
+                        % if item['media_type'] == 'episode':
+                        <h3 title="${item['grandparent_title']}">${item['grandparent_title']}</h3>
+                        <h3 title="${item['title']}">${item['title']}</h3>
+                        <h3 class="text-muted">S${item['parent_media_index']} &middot; E${item['media_index']}</h3>
+                        % elif item['media_type'] == 'movie':
+                        <h3 title="${item['title']}">${item['title']}</h3>
+                        <h3 class="text-muted">${item['year']}</h3>
+                        % endif
+                    </div>
+                </a>
+                % elif item['media_type'] == 'track':
+                <a href="info?source=history&rating_key=${item['rating_key']}">
+                    <div class="dashboard-recent-media-cover">
+                        <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">
+                            <div class="dashboard-recent-media-overlay">
+                                <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
+                                    <script>
+                                        $('#time-${item['time']}').text('Watched ' + moment(${item['time']}, "X").fromNow())
+                                    </script>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="dashboard-recent-media-metacontainer">
-                    <h3 title="${item['grandparent_title']}">${item['grandparent_title']}</h3>
-                    <h3 title="${item['title']}">${item['title']}</h3>
-                    <h3 class="text-muted">${item['parent_title']}</h3>
-                </div>
-            </a>
-            % endif
-        </li>
-        % endfor
-    </ul>
+                    <div class="dashboard-recent-media-metacontainer">
+                        <h3 title="${item['grandparent_title']}">${item['grandparent_title']}</h3>
+                        <h3 title="${item['title']}">${item['title']}</h3>
+                        <h3 class="text-muted">${item['parent_title']}</h3>
+                    </div>
+                </a>
+                % endif
+            </li>
+            % endfor
+        </ul>
+    </div>
 </div>
 % else:
 <div class="text-muted">No stats to show.</div><br>

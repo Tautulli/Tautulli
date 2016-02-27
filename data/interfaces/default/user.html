@@ -112,6 +112,14 @@ from plexpy import helpers
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="table-card-header">
+                                        <ul class="nav nav-header nav-dashboard pull-right">
+                                            <li>
+                                                <a href="#" id="recently-watched-page-left" class="paginate btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
+                                            </li>
+                                            <li>
+                                                <a href="#" id="recently-watched-page-right" class="paginate btn-gray" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
+                                            </li>
+                                        </ul>
                                         <div class="header-bar">
                                             <span><i class="fa fa-history"></i> Recently Watched</span>
                                         </div>
@@ -471,22 +479,13 @@ from plexpy import helpers
         });
 
         function recentlyWatched() {
-            var widthVal = $("#user-recently-watched").width();
-            var tmp = (widthVal-25) / 175;
-
-            if (tmp > 0) {
-                var containerSize = parseInt(tmp);
-            } else {
-                var containerSize = 1;
-            }
-            
             // Populate recently watched
             $.ajax({
                 url: 'get_user_recently_watched',
                 async: true,
                 data: {
                     user_id: user_id,
-                    limit: containerSize
+                    limit: 50
                 },
                 complete: function(xhr, status) {
                     $("#user-recently-watched").html(xhr.responseText);
@@ -495,8 +494,29 @@ from plexpy import helpers
         }
 
         recentlyWatched();
-        $(window).resize(function() {
-            recentlyWatched();
+
+        var leftTotal = 0;
+        $(".paginate").click(function (e) {
+            e.preventDefault();
+            var scroller = $("#recently-watched-row-scroller");
+            var containerWidth = $("#user-recently-watched").width();
+            var scrollAmount = $(this).data("id") * parseInt((containerWidth - 15) / 175) * 175;
+            var leftMax = -(parseInt(scroller.width()) + scrollAmount);
+            
+            leftTotal = Math.max(Math.min(leftTotal + scrollAmount, 0), leftMax);
+            scroller.animate({ left: leftTotal }, 250);
+
+            if (leftTotal == 0) {
+                $("#recently-watched-page-left").addClass("disabled").blur();
+            } else {
+                $("#recently-watched-page-left").removeClass("disabled");
+            }
+
+            if (leftTotal == leftMax) {
+                $("#recently-watched-page-right").addClass("disabled").blur();
+            } else {
+                $("#recently-watched-page-right").removeClass("disabled");
+            }
         });
     });
 </script>
