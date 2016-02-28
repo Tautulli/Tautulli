@@ -488,7 +488,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change">
                                 </div>
                             </div>
-                            <p class="help-block">Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br />
+                            <p class="help-block">Set the complete folder path where your Plex Server logs are, <span id="pms-logs-shortcut">shortcuts are not recognized</span>.<br />
                             <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
                         </div>
 
@@ -1905,6 +1905,11 @@ $(document).ready(function() {
         $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { showMsg("<div class='msg'><span class='ui-icon ui-icon-check'></span>" + data + "</div>", false, true, 3000); });
     })
 
+    pms_version = false;
+    pms_logs_debug = false;
+    pms_logs = false;
+
+    // Checks to see if PMS server version is >= 0.9.14 with automaatically logged IP addresses
     $.ajax({
         url: 'get_server_identity',
         async: true,
@@ -1914,40 +1919,53 @@ $(document).ready(function() {
                 $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
                 $("#ip_logging_enable").attr("disabled", true);
                 $("#ip_logging_enable").attr("checked", true);
+                pms_version = true;
+                checkLogsPath();
             } else {
+                // Check to see if debug logs are enabled on the PMS.
                 $.ajax({
                     url: 'get_server_pref',
                     data: { pref: 'logDebug' },
                     async: true,
                     success: function(data) {
-                        if (data !== 'true') {
-                            $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server')}'>Click here</a> for help.");
-                            $("#ip_logging_enable").attr("disabled", true);
-                            $("#ip_logging_enable").attr("checked", false);
-                        }
+                        pms_logs_debug = (data == 'true' ? true : false);
+                        // Check to see if our logs folder is set before allowing IP logging to be enabled.
+                        checkLogsPath();
                     }
                 });
-
-                // Check to see if our logs folder is set before allowing IP logging to be enabled.
-                checkLogsPath();
-
-                $("#pms_logs_folder").change(function() {
-                    checkLogsPath();
-                });
-
-                function checkLogsPath() {
-                    if ($("#pms_logs_folder").val() == '') {
-                        $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Plex Media Server tab.");
-                        $("#ip_logging_enable").attr("disabled", true);
-                        $("#ip_logging_enable").attr("checked", false);
-                    } else {
-                        $("#ip_logging_enable").attr("disabled", false);
-                        $("#debugLogCheck").html("");
-                    }
-                }
             }
         }
     });
+
+    $("#pms_logs_folder").change(function() {
+        checkLogsPath();
+    });
+
+    function checkLogsPath() {
+        if ($("#pms_logs_folder").val().startsWith("%") || $("#pms_logs_folder").val().startsWith("~")) {
+            $("#pms-logs-shortcut").css("color", "#eb8600");
+            pms_logs = false
+        } else {
+            $("#pms-logs-shortcut").css("color", "#737373");
+            pms_logs = ($("#pms_logs_folder").val() == '' ? false : true);
+        }
+        
+        // Toggle IP logging checkbox depending on debug logs, and logs path
+        if (!(pms_version)) {
+            if (pms_logs_debug && pms_logs) {
+                $("#ip_logging_enable").attr("disabled", false);
+                $("#debugLogCheck").html("");
+            } else if (!(pms_logs_debug)) {
+                $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server')}'>Click here</a> for help.");
+                $("#ip_logging_enable").attr("disabled", true);
+                $("#ip_logging_enable").attr("checked", false);
+            } else {
+                $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Plex Media Server tab.");
+                $("#ip_logging_enable").attr("disabled", true);
+                $("#ip_logging_enable").attr("checked", false);
+            }
+        }
+    }
 
     $.ajax({
         url: 'get_server_pref',
