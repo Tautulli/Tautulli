@@ -200,8 +200,12 @@ from plexpy import helpers
                     timer = setInterval(function() {
                         if ($("#tabs-1").hasClass("active")) {
                             log_table.ajax.reload();
-                        } else {
+                        } else if ($("#tabs-2").hasClass("active")) {
                             plex_log_table.ajax.reload();
+                        } else if ($("#tabs-3").hasClass("active")) {
+                            plex_scanner_log_table.ajax.reload();
+                        } else if ($("#tabs-4").hasClass("active")) {
+                            notification_log_table.ajax.reload();
                         }
                     }, 1000*refreshrate.value);
                 }
