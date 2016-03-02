@@ -1179,6 +1179,7 @@ class WebInterface(object):
             "tv_notify_on_pause": checked(plexpy.CONFIG.TV_NOTIFY_ON_PAUSE),
             "movie_notify_on_pause": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_PAUSE),
             "music_notify_on_pause": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_PAUSE),
+            "monitor_pms_updates": checked(plexpy.CONFIG.MONITOR_PMS_UPDATES),
             "monitor_remote_access": checked(plexpy.CONFIG.MONITOR_REMOTE_ACCESS),
             "monitoring_interval": plexpy.CONFIG.MONITORING_INTERVAL,
             "monitoring_use_websocket": checked(plexpy.CONFIG.MONITORING_USE_WEBSOCKET),
@@ -1220,6 +1221,8 @@ class WebInterface(object):
             "notify_on_extup_body_text": plexpy.CONFIG.NOTIFY_ON_EXTUP_BODY_TEXT,
             "notify_on_intup_subject_text": plexpy.CONFIG.NOTIFY_ON_INTUP_SUBJECT_TEXT,
             "notify_on_intup_body_text": plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT,
+            "notify_on_pmsupdate_subject_text": plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT,
+            "notify_on_pmsupdate_body_text": plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_BODY_TEXT,
             "notify_scripts_args_text": plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
@@ -1247,7 +1250,8 @@ class WebInterface(object):
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", "notify_upload_posters",
-            "notify_recently_added", "notify_recently_added_grandparent", "monitor_remote_access", "get_file_sizes"
+            "notify_recently_added", "notify_recently_added_grandparent",
+            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -1276,6 +1280,7 @@ class WebInterface(object):
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
             kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
             kwargs.get('notify_recently_added') != str(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED) or \
+            kwargs.get('monitor_pms_updates') != str(plexpy.CONFIG.MONITOR_PMS_UPDATES) or \
             kwargs.get('monitor_remote_access') != str(plexpy.CONFIG.MONITOR_REMOTE_ACCESS):
             reschedule = True
 
@@ -2185,3 +2190,9 @@ class WebInterface(object):
             a = Api()
             a.checkParams(*args, **kwargs)
             return a.fetchData()
+
+    @cherrypy.expose
+    def check_pms_updater(self):
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_update_staus()
+        return json.dumps(result)

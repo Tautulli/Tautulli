@@ -389,6 +389,38 @@ class PmsConnect(object):
 
         return request
 
+    def put_updater(self, output_format=''):
+        """
+        Refresh updater status.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
+        uri = '/updater/check?download=0'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='PUT',
+                                                    output_format=output_format)
+
+        return request
+
+    def get_updater(self, output_format=''):
+        """
+        Return updater status.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
+        uri = '/updater/status'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
     def get_recently_added_details(self, section_id='', count='0'):
         """
         Return processed and validated list of recently added items.
@@ -1479,7 +1511,7 @@ class PmsConnect(object):
             xml_head = identity.getElementsByTagName('MediaContainer')
         except Exception as e:
             logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_local_server_identity: %s." % e)
-            return []
+            return {}
 
         server_identity = {}
         for a in xml_head:
@@ -1995,3 +2027,40 @@ class PmsConnect(object):
                                }
 
         return server_response
+
+    def get_update_staus(self):
+        # Refresh the Plex updater status first
+        self.put_updater()
+        updater_status = self.get_updater(output_format='xml')
+
+        try:
+            xml_head = updater_status.getElementsByTagName('MediaContainer')
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_update_staus: %s." % e)
+
+            # Catch the malformed XML on certain PMX version.
+            # XML parser helper returns empty list if there is an error parsing XML
+            if updater_status == []:
+                logger.warn(u"Plex API updater XML is broken on the current PMS version. Please update your PMS manually.")
+                logger.info(u"PlexPy is unable to check for Plex updates. Disabling check for Plex updates.")
+
+                # Disable check for Plex updates
+                plexpy.CONFIG.MONITOR_PMS_UPDATES = 0
+                plexpy.initialize_scheduler()
+                plexpy.CONFIG.write()
+
+            return {}
+
+        updater_info = {}
+        for a in xml_head:
+            if a.getElementsByTagName('Release'):
+                release = a.getElementsByTagName('Release')
+                for item in release:
+                    updater_info = {'can_install': helpers.get_xml_attr(a, 'canInstall'),
+                                    'download_url': helpers.get_xml_attr(a, 'downloadURL'),
+                                    'version': helpers.get_xml_attr(item, 'version'),
+                                    'state': helpers.get_xml_attr(item, 'state'),
+                                    'changelog': helpers.get_xml_attr(item, 'fixed')
+                                    }
+
+        return updater_info

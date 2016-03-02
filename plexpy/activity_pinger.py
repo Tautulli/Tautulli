@@ -284,3 +284,30 @@ def check_server_response():
             # Fire off notifications
             threading.Thread(target=notification_handler.notify_timeline,
                                 kwargs=dict(notify_action='extdown')).start()
+
+
+def check_server_updates():
+
+    with monitor_lock:
+        logger.info(u"PlexPy Monitor :: Checking for PMS updates...")
+
+        pms_connect = pmsconnect.PmsConnect()
+
+        server_identity = pms_connect.get_server_identity()
+        update_status = pms_connect.get_update_staus()
+
+        if server_identity and update_status:
+            version = server_identity['version']
+            logger.info(u"PlexPy Monitor :: Current PMS version: %s", version)
+
+            if update_status['state'] == 'available':
+                update_version = update_status['version']
+                logger.info(u"PlexPy Monitor :: PMS update available version: %s", update_version)
+
+                # Check if any notification agents have notifications enabled
+                if any(d['on_pmsupdate'] for d in notifiers.available_notification_agents()):
+                    # Fire off notifications
+                    threading.Thread(target=notification_handler.notify_timeline,
+                                        kwargs=dict(notify_action='pmsupdate')).start()
+            else:
+                logger.info(u"PlexPy Monitor :: No PMS update available.")

@@ -43,7 +43,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                 <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Plex Media Server</a></li>
                 <li role="presentation"><a href="#tabs-6" aria-controls="tabs-6" role="tab" data-toggle="tab">Plex.tv Account</a></li>
                 <li role="presentation"><a href="#tabs-7" aria-controls="tabs-7" role="tab" data-toggle="tab">Extra Settings</a></li>
-                <li role="presentation"><a href="#tabs-8" aria-controls="tabs-8" role="tab" data-toggle="tab">Monitoring</a></li>
+                <li role="presentation"><a href="#tabs-8" aria-controls="tabs-8" role="tab" data-toggle="tab">Activity Monitoring</a></li>
                 <li role="presentation"><a href="#tabs-9" aria-controls="tabs-9" role="tab" data-toggle="tab">Notifications</a></li>
                 <li role="presentation"><a href="#tabs-10" aria-controls="tabs-10" role="tab" data-toggle="tab">Notification Agents</a></li>
             </ul>
@@ -437,9 +437,24 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                     <div role="tabpanel" class="tab-pane" id="tabs-5">
 
                         <div class="padded-header">
-                            <h3>Plex Media Server</h3>
+                            <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">unknown</span></small></h3>
                         </div>
                         <p class="help-block">If you're using websocket monitoring, any server changes require a restart of PlexPy.</p>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
+                            </label>
+                            <p class="help-block">Enable to have PlexPy check if updates are available for the Plex Media Server.<br />
+                                Note: The Plex updater is broken on certain Plex Pass version of Plex Media Server. PlexPy will automatically disable checking for Plex updates if one of these versions is found.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
+                            </label>
+                            <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down.</p>
+                        </div>
+
                         <div class="form-group has-feedback" id="pms-ip-group">
                             <label for="pms_ip">Plex IP or Hostname</label>
                             <div class="row">
@@ -612,13 +627,6 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
                             </label>
                             <p class="help-block">Instead of polling the server at regular intervals let the server tell PlexPy when something happens.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
-                            </label>
-                            <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
-                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
                         <div class="padded-header">
@@ -966,6 +974,23 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                         <div class="form-group">
                                             <label for="notify_on_extup_body_text">Message Body</label>
                                             <textarea class="form-control" id="notify_on_extup_body_text" name="notify_on_extup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extup_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-refresh fa-fw"></i>&nbsp;Plex Update Available<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_pmsupdate_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_pmsupdate_subject_text" name="notify_on_pmsupdate_subject_text" value="${config['notify_on_pmsupdate_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_extup_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_pmsupdate_body_text" name="notify_on_pmsupdate_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_pmsupdate_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -1369,6 +1394,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td>The uptime (in days, hours, mins, secs) of your Plex Server.</td>
                                 </tr>
                                 <tr>
+                                    <td><strong>{server_version}</strong></td>
+                                    <td>The current version of your Plex Server.</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{action}</strong></td>
                                     <td>The action that triggered the notification.</td>
                                 </tr>
@@ -1696,6 +1725,29 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{grandparent_rating_key}</strong></td>
                                     <td>The unique identifier for the TV show or artist.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="notification-params">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Plex Update Available
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>{update_version}</strong></td>
+                                    <td>The available update version for your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_url}</strong></td>
+                                    <td>The available update download URL.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_changelog}</strong></td>
+                                    <td>The changelog for the available update.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -2061,6 +2113,7 @@ $(document).ready(function() {
         url: 'get_server_identity',
         async: true,
         success: function(data) {
+            if (data.version){ $("#pms_version").text(data.version); }
             var version = (data.version ? data.version.split('.') : null);
             if (version && parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
                 $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
@@ -2091,7 +2144,7 @@ $(document).ready(function() {
     function checkLogsPath() {
         if ($("#pms_logs_folder").val().startsWith("%") || $("#pms_logs_folder").val().startsWith("~")) {
             $("#pms-logs-shortcut").css("color", "#eb8600");
-            pms_logs = false
+            pms_logs = false;
         } else {
             $("#pms-logs-shortcut").css("color", "#737373");
             pms_logs = ($("#pms_logs_folder").val() == '' ? false : true);

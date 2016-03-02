@@ -385,6 +385,24 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                  notify_strings=notify_strings,
                                  metadata={})
 
+            if agent['on_pmsupdate'] and notify_action == 'pmsupdate':
+                # Build and send notification
+                notify_strings = build_server_notify_text(notify_action=notify_action,
+                                                          agent_id=agent['id'])
+
+                notifiers.send_notification(agent_id=agent['id'],
+                                            subject=notify_strings[0],
+                                            body=notify_strings[1],
+                                            script_args=notify_strings[2],
+                                            notify_action=notify_action)
+
+                # Set the notification state in the db
+                set_notify_state(session={},
+                                 notify_action=notify_action,
+                                 agent_info=agent,
+                                 notify_strings=notify_strings,
+                                 metadata={})
+
     else:
         logger.debug(u"PlexPy NotificationHandler :: Notify timeline called but incomplete data received.")
 
@@ -452,6 +470,10 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     plex_tv = plextv.PlexTV()
     server_times = plex_tv.get_server_times()
 
+    # Get the server version
+    pms_connect = pmsconnect.PmsConnect()
+    server_identity = pms_connect.get_server_identity()
+
     if server_times:
         updated_at = server_times[0]['updated_at']
         server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
@@ -510,21 +532,21 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         on_created_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT), agent_id)
         script_args_text = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT), agent_id)
     else:
-        on_start_subject = plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT
-        on_start_body = plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT
-        on_stop_subject = plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT
-        on_stop_body = plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT
-        on_pause_subject = plexpy.CONFIG.NOTIFY_ON_PAUSE_SUBJECT_TEXT
-        on_pause_body = plexpy.CONFIG.NOTIFY_ON_PAUSE_BODY_TEXT
-        on_resume_subject = plexpy.CONFIG.NOTIFY_ON_RESUME_SUBJECT_TEXT
-        on_resume_body = plexpy.CONFIG.NOTIFY_ON_RESUME_BODY_TEXT
-        on_buffer_subject = plexpy.CONFIG.NOTIFY_ON_BUFFER_SUBJECT_TEXT
-        on_buffer_body = plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT
-        on_watched_subject = plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT
-        on_watched_body = plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT
-        on_created_subject = plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT
-        on_created_body = plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT
-        script_args_text = plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT
+        on_start_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT, agent_id)
+        on_start_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT, agent_id)
+        on_stop_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT, agent_id)
+        on_stop_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT, agent_id)
+        on_pause_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_PAUSE_SUBJECT_TEXT, agent_id)
+        on_pause_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_PAUSE_BODY_TEXT, agent_id)
+        on_resume_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_RESUME_SUBJECT_TEXT, agent_id)
+        on_resume_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_RESUME_BODY_TEXT, agent_id)
+        on_buffer_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_BUFFER_SUBJECT_TEXT, agent_id)
+        on_buffer_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT, agent_id)
+        on_watched_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT, agent_id)
+        on_watched_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT, agent_id)
+        on_created_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT, agent_id)
+        on_created_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT, agent_id)
+        script_args_text = strip_tag(plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT, agent_id)
 
     # Create a title
     if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
@@ -635,6 +657,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     available_params = {# Global paramaters
                         'server_name': server_name,
                         'server_uptime': server_uptime,
+                        'server_version': server_identity.get('version',''),
                         'action': notify_action.title(),
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format),
@@ -910,6 +933,14 @@ def build_server_notify_text(notify_action=None, agent_id=None):
     plex_tv = plextv.PlexTV()
     server_times = plex_tv.get_server_times()
 
+    # Get the server version
+    pms_connect = pmsconnect.PmsConnect()
+    server_identity = pms_connect.get_server_identity()
+
+    update_status = {}
+    if notify_action == 'pmsupdate':
+        update_status = pms_connect.get_update_staus()
+
     if server_times:
         updated_at = server_times[0]['updated_at']
         server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
@@ -919,22 +950,29 @@ def build_server_notify_text(notify_action=None, agent_id=None):
 
     pattern = re.compile('\n*<tv>[^>]+.</tv>\n*|\n*<movie>[^>]+.</movie>\n*|\n*?<music>[^>]+.</music>\n*', re.IGNORECASE | re.DOTALL)
 
-    on_extdown_subject = plexpy.CONFIG.NOTIFY_ON_EXTDOWN_SUBJECT_TEXT
-    on_extdown_body = plexpy.CONFIG.NOTIFY_ON_EXTDOWN_BODY_TEXT
-    on_intdown_subject = plexpy.CONFIG.NOTIFY_ON_INTDOWN_SUBJECT_TEXT
-    on_intdown_body = plexpy.CONFIG.NOTIFY_ON_INTDOWN_BODY_TEXT
-    on_extup_subject = plexpy.CONFIG.NOTIFY_ON_EXTUP_SUBJECT_TEXT
-    on_extup_body = plexpy.CONFIG.NOTIFY_ON_EXTUP_BODY_TEXT
-    on_intup_subject = plexpy.CONFIG.NOTIFY_ON_INTUP_SUBJECT_TEXT
-    on_intup_body = plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT
-    script_args_text = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT))
+    on_extdown_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_EXTDOWN_SUBJECT_TEXT, agent_id)
+    on_extdown_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_EXTDOWN_BODY_TEXT, agent_id)
+    on_intdown_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_INTDOWN_SUBJECT_TEXT, agent_id)
+    on_intdown_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_INTDOWN_BODY_TEXT, agent_id)
+    on_extup_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_EXTUP_SUBJECT_TEXT, agent_id)
+    on_extup_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_EXTUP_BODY_TEXT, agent_id)
+    on_intup_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_INTUP_SUBJECT_TEXT, agent_id)
+    on_intup_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT, agent_id)
+    on_pmsupdate_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT, agent_id)
+    on_pmsupdate_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_BODY_TEXT, agent_id)
+    script_args_text = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT), agent_id)
 
     available_params = {# Global paramaters
                         'server_name': server_name,
                         'server_uptime': server_uptime,
+                        'server_version': server_identity.get('version',''),
                         'action': notify_action.title(),
                         'datestamp': arrow.now().format(date_format),
-                        'timestamp': arrow.now().format(time_format)}
+                        'timestamp': arrow.now().format(time_format),
+                        # Update parameters
+                        'update_version': update_status.get('version',''),
+                        'update_url': update_status.get('download_url',''),
+                        'update_changelog': update_status.get('changelog','')}
 
     # Default text
     subject_text = 'PlexPy (%s)' % server_name
@@ -1031,6 +1069,29 @@ def build_server_notify_text(notify_action=None, agent_id=None):
 
             try:
                 body_text = unicode(on_intup_body).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text, script_args]
+        else:
+            return [subject_text, body_text, script_args]
+
+    elif notify_action == 'pmsupdate':
+        # Default body text
+        body_text = 'An update is available for the Plex Media Server (version {update_version}).'
+
+        if on_pmsupdate_subject and on_pmsupdate_body:
+            try:
+                subject_text = unicode(on_pmsupdate_subject).format(**available_params)
+            except LookupError, e:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_pmsupdate_body).format(**available_params)
             except LookupError, e:
                 logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
             except:

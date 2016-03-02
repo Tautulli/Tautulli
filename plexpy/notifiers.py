@@ -75,7 +75,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.GROWL_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.GROWL_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.GROWL_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.GROWL_ON_INTUP
+               'on_intup': plexpy.CONFIG.GROWL_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.GROWL_ON_PMSUPDATE
                },
               {'name': 'Prowl',
                'id': AGENT_IDS['Prowl'],
@@ -92,7 +93,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.PROWL_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.PROWL_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PROWL_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.PROWL_ON_INTUP
+               'on_intup': plexpy.CONFIG.PROWL_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PROWL_ON_PMSUPDATE
                },
               {'name': 'XBMC',
                'id': AGENT_IDS['XBMC'],
@@ -109,7 +111,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.XBMC_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.XBMC_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.XBMC_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.XBMC_ON_INTUP
+               'on_intup': plexpy.CONFIG.XBMC_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.XBMC_ON_PMSUPDATE
                },
               {'name': 'Plex',
                'id': AGENT_IDS['Plex'],
@@ -126,7 +129,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PLEX_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.PLEX_ON_INTUP
+               'on_intup': plexpy.CONFIG.PLEX_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PLEX_ON_PMSUPDATE
                },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
@@ -143,7 +147,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.NMA_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.NMA_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.NMA_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.NMA_ON_INTUP
+               'on_intup': plexpy.CONFIG.NMA_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.NMA_ON_PMSUPDATE
                },
               {'name': 'Pushalot',
                'id': AGENT_IDS['Pushalot'],
@@ -160,7 +165,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.PUSHALOT_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.PUSHALOT_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PUSHALOT_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.PUSHALOT_ON_INTUP
+               'on_intup': plexpy.CONFIG.PUSHALOT_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PUSHALOT_ON_PMSUPDATE
                },
               {'name': 'Pushbullet',
                'id': AGENT_IDS['Pushbullet'],
@@ -177,7 +183,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.PUSHBULLET_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.PUSHBULLET_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PUSHBULLET_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.PUSHBULLET_ON_INTUP
+               'on_intup': plexpy.CONFIG.PUSHBULLET_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PUSHBULLET_ON_PMSUPDATE
                },
               {'name': 'Pushover',
                'id': AGENT_IDS['Pushover'],
@@ -194,7 +201,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.PUSHOVER_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.PUSHOVER_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PUSHOVER_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.PUSHOVER_ON_INTUP
+               'on_intup': plexpy.CONFIG.PUSHOVER_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PUSHOVER_ON_PMSUPDATE
                },
               {'name': 'Boxcar2',
                'id': AGENT_IDS['Boxcar2'],
@@ -211,7 +219,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.BOXCAR_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.BOXCAR_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.BOXCAR_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.BOXCAR_ON_INTUP
+               'on_intup': plexpy.CONFIG.BOXCAR_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.BOXCAR_ON_PMSUPDATE
                },
               {'name': 'E-mail',
                'id': AGENT_IDS['Email'],
@@ -228,7 +237,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.EMAIL_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.EMAIL_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.EMAIL_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.EMAIL_ON_INTUP
+               'on_intup': plexpy.CONFIG.EMAIL_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.EMAIL_ON_PMSUPDATE
                },
               {'name': 'Twitter',
                'id': AGENT_IDS['Twitter'],
@@ -245,7 +255,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.TWITTER_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.TWITTER_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.TWITTER_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.TWITTER_ON_INTUP
+               'on_intup': plexpy.CONFIG.TWITTER_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.TWITTER_ON_PMSUPDATE
                },
               {'name': 'IFTTT',
                'id': AGENT_IDS['IFTTT'],
@@ -262,7 +273,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.IFTTT_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.IFTTT_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.IFTTT_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.IFTTT_ON_INTUP
+               'on_intup': plexpy.CONFIG.IFTTT_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.IFTTT_ON_PMSUPDATE
                },
               {'name': 'Telegram',
                'id': AGENT_IDS['Telegram'],
@@ -279,7 +291,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.TELEGRAM_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.TELEGRAM_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.TELEGRAM_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.TELEGRAM_ON_INTUP
+               'on_intup': plexpy.CONFIG.TELEGRAM_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.TELEGRAM_ON_PMSUPDATE
                },
               {'name': 'Slack',
                'id': AGENT_IDS['Slack'],
@@ -296,7 +309,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.SLACK_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.SLACK_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.SLACK_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.SLACK_ON_INTUP
+               'on_intup': plexpy.CONFIG.SLACK_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.SLACK_ON_PMSUPDATE
                },
               {'name': 'Scripts',
                'id': AGENT_IDS['Scripts'],
@@ -313,7 +327,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN,
                'on_extup': plexpy.CONFIG.SCRIPTS_ON_EXTUP,
                'on_intdown': plexpy.CONFIG.SCRIPTS_ON_INTDOWN,
-               'on_intup': plexpy.CONFIG.SCRIPTS_ON_INTUP
+               'on_intup': plexpy.CONFIG.SCRIPTS_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE
               },
               {'name': 'Facebook',
                'id': AGENT_IDS['Facebook'],
@@ -330,7 +345,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.FACEBOOK_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.FACEBOOK_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.FACEBOOK_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.FACEBOOK_ON_INTUP
+               'on_intup': plexpy.CONFIG.FACEBOOK_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.FACEBOOK_ON_PMSUPDATE
                }
               ]
 
@@ -352,7 +368,8 @@ def available_notification_agents():
                        'on_extdown': plexpy.CONFIG.OSX_NOTIFY_ON_EXTDOWN,
                        'on_intdown': plexpy.CONFIG.OSX_NOTIFY_ON_INTDOWN,
                        'on_extup': plexpy.CONFIG.OSX_NOTIFY_ON_EXTUP,
-                       'on_intup': plexpy.CONFIG.OSX_NOTIFY_ON_INTUP
+                       'on_intup': plexpy.CONFIG.OSX_NOTIFY_ON_INTUP,
+                       'on_pmsupdate': plexpy.CONFIG.OSX_NOTIFY_ON_PMSUPDATE
                        })
 
     return agents
@@ -1885,14 +1902,14 @@ class Scripts(object):
         elif notify_action == 'resume':
             script = plexpy.CONFIG.SCRIPTS_ON_RESUME_SCRIPT
 
+        elif notify_action == 'watched':
+            script = plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT
+
         elif notify_action == 'buffer':
             script = plexpy.CONFIG.SCRIPTS_ON_BUFFER_SCRIPT
 
-        elif notify_action == 'extdown':
-            script = plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT
-
-        elif notify_action == 'extup':
-            script = plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT
+        elif notify_action == 'created':
+            script = plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT
 
         elif notify_action == 'intdown':
             script = plexpy.CONFIG.SCRIPTS_ON_INTDOWN_SCRIPT
@@ -1900,11 +1917,14 @@ class Scripts(object):
         elif notify_action == 'intup':
             script = plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT
 
-        elif notify_action == 'created':
-            script = plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT
+        elif notify_action == 'extdown':
+            script = plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT
 
-        elif notify_action == 'watched':
-            script = plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT
+        elif notify_action == 'extup':
+            script = plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT
+
+        elif notify_action == 'pmsupdate':
+            script = plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE_SCRIPT
 
         else:
             # For manual scripts
@@ -2046,17 +2066,24 @@ class Scripts(object):
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'Plex Remote Access Down',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT,
-                          'name': 'scripts_on_extdown_script',
-                          'description': 'Choose the script for Plex remote access down.',
-                          'input_type': 'select',
-                          'select_options': self.list_scripts()
-                          },
                          {'label': 'Plex Server Down',
                           'value': plexpy.CONFIG.SCRIPTS_ON_INTDOWN_SCRIPT,
                           'name': 'scripts_on_intdown_script',
                           'description': 'Choose the script for Plex server down.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'Plex Server Back Up',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT,
+                          'name': 'scripts_on_intup_script',
+                          'description': 'Choose the script for Plex server back up.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'Plex Remote Access Down',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT,
+                          'name': 'scripts_on_extdown_script',
+                          'description': 'Choose the script for Plex remote access down.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
@@ -2067,10 +2094,10 @@ class Scripts(object):
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'Plex Server Back Up',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT,
-                          'name': 'scripts_on_intup_script',
-                          'description': 'Choose the script for Plex server back up.',
+                         {'label': 'Plex Update Available',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE_SCRIPT,
+                          'name': 'scripts_on_pmsupdate_script',
+                          'description': 'Choose the script for Plex update available.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           }

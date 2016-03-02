@@ -306,6 +306,13 @@ def initialize_scheduler():
                 schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
                              hours=0, minutes=0, seconds=0)
 
+            if CONFIG.MONITOR_PMS_UPDATES:
+                schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
+                             hours=0, minutes=0, seconds=10)
+            else:
+                schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
+                             hours=0, minutes=0, seconds=0)
+
             if CONFIG.MONITOR_REMOTE_ACCESS:
                 schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
                              hours=0, minutes=0, seconds=seconds)
