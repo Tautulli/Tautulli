@@ -2656,6 +2656,7 @@ table[id^='media_info_child'] table[id^='media_info_child'] thead th {
     margin: 5px 0 0 0.5em;
 }
 .notification-params {
+    width: 100%;
     margin-top: 10px;
     background-color: #282828;
 }
@@ -2669,6 +2670,14 @@ table[id^='media_info_child'] table[id^='media_info_child'] thead th {
 .notification-params td:first-child {
     padding-left: 10px;
     width: 200px;
+}
+.notification-params.time-options td:first-child {
+    padding-left: 10px;
+    width: 125px;
+}
+.notification-params.time-options td:nth-child(2) {
+    padding-left: 10px;
+    width: 275px;
 }
 .notification-params td:not(:first-child) {
     padding-right: 10px;

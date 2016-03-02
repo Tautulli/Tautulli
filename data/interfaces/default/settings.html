@@ -1031,24 +1031,45 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                     <h4 class="modal-title">Date &amp; Time Format Options</h4>
                 </div>
                 <div class="modal-body">
-                    <table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Year
+                                </th>
+                            </tr>
+                        </thead>
                         <tbody>
                             <tr>
-                                <td align="center" colspan="3"><h5>Year</h5></td>
-                            </tr>
-                            <tr>
                                 <td><strong>YYYY</strong></td>
-                                <td>Numeric, 4 digits</td>
+                                <td>Numeric, four digits</td>
                                 <td>Eg., 1999, 2003</td>
                             </tr>
                             <tr>
                                 <td><strong>YY</strong></td>
-                                <td>Numeric, 2 digits</td>
+                                <td>Numeric, two digits</td>
                                 <td>Eg., 99, 03</td>
                             </tr>
-
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
                             <tr>
-                                <td align="center" colspan="3"><h5>Month</h5></td>
+                                <th>
+                                    Month
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>MMMM</strong></td>
+                                <td>Textual, full</td>
+                                <td>January-December</td>
+                            </tr>
+                            <tr>
+                                <td><strong>MMM</strong></td>
+                                <td>Textual, three letters</td>
+                                <td>Jan-Dec</td>
                             </tr>
                             <tr>
                                 <td><strong>MM</strong></td>
@@ -1060,23 +1081,41 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <td>Numeric, without leading zeros</td>
                                 <td>1-12</td>
                             </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
                             <tr>
-                                <td><strong>MMMM</strong></td>
-                                <td>Textual full</td>
-                                <td>January-December</td>
+                                <th>
+                                    Day of the Year
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>DDDD</strong></td>
+                                <td>Numeric, with leading zeros</td>
+                                <td>001-365</td>
                             </tr>
                             <tr>
-                                <td><strong>MMM</strong></td>
-                                <td>Textual three letters</td>
-                                <td>Jan-Dec</td>
+                                <td><strong>DDD</strong></td>
+                                <td>Numeric, without leading zeros</td>
+                                <td>1-365</td>
                             </tr>
-
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
                             <tr>
-                                <td align="center" colspan="3"><h5>Day</h5></td>
+                                <th>
+                                    Day of the Month
+                                </th>
                             </tr>
+                        </thead>
+                        <tbody>
                             <tr>
-                                <td width="100"><strong>DD</strong></td>
-                                <td width="300">Numeric, with leading zeros</td>
+                                <td><strong>DD</strong></td>
+                                <td>Numeric, with leading zeros</td>
                                 <td>01-31</td>
                             </tr>
                             <tr>
@@ -1086,57 +1125,165 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </tr>
                             <tr>
                                 <td><strong>Do</strong></td>
-                                <td>The English suffix for the day of the month</td>
-                                <td>st, nd or th in the 1st, 2nd or 15th.</td>
+                                <td>Numeric, with suffix</td>
+                                <td>Eg., 1st, 2nd ... 31st.</td>
                             </tr>
-
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
                             <tr>
-                                <td align="center" colspan="3"><h5>Time</h5></td>
+                                <th>
+                                    Day of the Week
+                                </th>
                             </tr>
+                        </thead>
+                        <tbody>
                             <tr>
-                                <td><strong>a</strong></td>
-                                <td width="300">am/pm Lowercase</td>
-                                <td>am, pm</td>
-                            </tr>
-                            <tr>
-                                <td><strong>A</strong></td>
-                                <td>AM/PM Uppercase</td>
-                                <td>AM, PM</td>
-                            </tr>
-                            <tr>
-                                <td><strong>h</strong></td>
-                                <td>Hour, 12-hour, without leading zeros</td>
-                                <td>1-12</td>
+                                <td><strong>dddd</strong></td>
+                                <td>Textual, full</td>
+                                <td>Sunday-Saturday</td>
                             </tr>
                             <tr>
-                                <td><strong>hh</strong></td>
-                                <td>Hour, 12-hour, with leading zeros</td>
-                                <td>01-12</td>
+                                <td><strong>ddd</strong></td>
+                                <td>Textual, three letters</td>
+                                <td>Sun-Sat</td>
                             </tr>
                             <tr>
-                                <td><strong>H</strong></td>
-                                <td>Hour, 24-hour, without leading zeros</td>
-                                <td>0-23</td>
+                                <td><strong>d</strong></td>
+                                <td>Numeric</td>
+                                <td>0-6</td>
                             </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Hour
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             <tr>
                                 <td><strong>HH</strong></td>
-                                <td>Hour, 24-hour, with leading zeros</td>
+                                <td>24-hour, with leading zeros</td>
                                 <td>00-23</td>
                             </tr>
                             <tr>
+                                <td><strong>H</strong></td>
+                                <td>24-hour, without leading zeros</td>
+                                <td>0-23</td>
+                            </tr>
+                            <tr>
+                                <td><strong>hh</strong></td>
+                                <td>12-hour, with leading zeros</td>
+                                <td>01-12</td>
+                            </tr>
+                            <tr>
+                                <td><strong>h</strong></td>
+                                <td>12-hour, without leading zeros</td>
+                                <td>1-12</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Minute
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
                                 <td><strong>mm</strong></td>
-                                <td>Minutes, with leading zeros</td>
+                                <td>Numeric, with leading zeros</td>
                                 <td>00-59</td>
                             </tr>
+                            <tr>
+                                <td><strong>m</strong></td>
+                                <td>Numeric, without leading zeros</td>
+                                <td>0-59</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Second
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             <tr>
                                 <td><strong>ss</strong></td>
-                                <td>Seconds, with leading zeros</td>
+                                <td>Numeric, with leading zeros</td>
                                 <td>00-59</td>
                             </tr>
                             <tr>
-                                <td><strong>zz</strong></td>
-                                <td>Timezone abbreviation</td>
-                                <td>Eg., EST, MDT ...</td>
+                                <td><strong>s</strong></td>
+                                <td>Numeric, without leading zeros</td>
+                                <td>0-59</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    AM / PM
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>A</strong></td>
+                                <td>AM/PM uppercase</td>
+                                <td>AM, PM</td>
+                            </tr>
+                            <tr>
+                                <td><strong>a</strong></td>
+                                <td width="300">am/pm lowercase</td>
+                                <td>am, pm</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Timezone
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>ZZ</strong></td>
+                                <td>UTC offset</td>
+                                <td>Eg., +0100, -0700</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Z</strong></td>
+                                <td>UTC offset</td>
+                                <td>Eg., +01:00, -07:00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Timestamp
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>X</strong></td>
+                                <td>Unix timestamp</td>
+                                <td>Eg., 1456887825</td>
                             </tr>
                         </tbody>
                     </table>

@@ -441,9 +441,9 @@ def set_notify_state(session, notify_action, agent_info, notify_strings, metadat
 
 def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=None):
     # Get time formats
-    date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')
-    time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','')
-    duration_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','').replace('a','').replace('A','')
+    date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
+    time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
+    duration_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('a','').replace('A','')
 
     # Get the server name
     server_name = plexpy.CONFIG.PMS_NAME
@@ -900,8 +900,8 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
 
 def build_server_notify_text(notify_action=None, agent_id=None):
     # Get time formats
-    date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','').replace('zz','')
-    time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('zz','')
+    date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
+    time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
 
     # Get the server name
     server_name = plexpy.CONFIG.PMS_NAME
