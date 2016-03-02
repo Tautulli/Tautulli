@@ -308,7 +308,7 @@ def initialize_scheduler():
 
             if CONFIG.MONITOR_PMS_UPDATES:
                 schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
-                             hours=0, minutes=0, seconds=10)
+                             hours=12, minutes=0, seconds=0)
             else:
                 schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
                              hours=0, minutes=0, seconds=0)
