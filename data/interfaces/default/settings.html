@@ -500,10 +500,11 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label for="pms_logs_folder">Logs Folder</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change">
+                                    <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^[^\~\%]" data-parsley-errors-container="#pms_logs_folder_error"  data-parsley-error-message="Shortcuts are not recognized.">
                                 </div>
+                                <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Set the complete folder path where your Plex Server logs are, <span id="pms-logs-shortcut">shortcuts are not recognized</span>.<br />
+                            <p class="help-block">Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br />
                             <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
                         </div>
 
@@ -2142,14 +2143,7 @@ $(document).ready(function() {
     });
 
     function checkLogsPath() {
-        if ($("#pms_logs_folder").val().startsWith("%") || $("#pms_logs_folder").val().startsWith("~")) {
-            $("#pms-logs-shortcut").css("color", "#eb8600");
-            pms_logs = false;
-        } else {
-            $("#pms-logs-shortcut").css("color", "#737373");
-            pms_logs = ($("#pms_logs_folder").val() == '' ? false : true);
-        }
-        
+        pms_logs = ($("#pms_logs_folder").val() == '' ? false : true);
         // Toggle IP logging checkbox depending on debug logs, and logs path
         if (!(pms_version)) {
             if (pms_logs_debug && pms_logs) {
