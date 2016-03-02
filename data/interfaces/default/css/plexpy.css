@@ -2408,6 +2408,9 @@ a .home-platforms-instance-list-oval:hover,
     padding: 0;
     border: 0;
 }
+.history-thumbnail-popover.popover.left {
+    margin-left: -15px;
+}
 .history-thumbnail-popover.popover.right {
     margin-left: 15px;
 }

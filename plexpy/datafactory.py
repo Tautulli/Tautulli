@@ -860,16 +860,28 @@ class DataFactory(object):
 
         return ip_address
 
-    def get_poster_url(self, rating_key=''):
+    def get_poster_url(self, rating_key='', metadata=None):
         monitor_db = database.MonitorDatabase()
 
         poster_url = ''
+        poster_key = ''
 
         if rating_key:
+            poster_key = rating_key
+        elif metadata:
+            if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show' or \
+                metadata['media_type'] == 'artist' or metadata['media_type'] == 'album':
+                poster_key = metadata['rating_key']
+            elif metadata['media_type'] == 'episode':
+                poster_key = metadata['grandparent_rating_key']
+            elif metadata['media_type'] == 'season' or metadata['media_type'] == 'track':
+                poster_key = metadata['parent_rating_key']
+
+        if poster_key:
             try:
                 query = 'SELECT id, poster_url FROM notify_log ' \
                         'WHERE rating_key = %d OR parent_rating_key = %d OR grandparent_rating_key = %d ' \
-                        'ORDER BY id DESC LIMIT 1' % (int(rating_key), int(rating_key), int(rating_key))
+                        'ORDER BY id DESC LIMIT 1' % (int(poster_key), int(poster_key), int(poster_key))
                 result = monitor_db.select(query)
             except Exception as e:
                 logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_poster_url: %s." % e)
@@ -881,6 +893,16 @@ class DataFactory(object):
             poster_url = item['poster_url']
 
         return poster_url
+
+    def delete_poster_url(self, poster_url=''):
+        monitor_db = database.MonitorDatabase()
+
+        if poster_url:
+            logger.info(u"PlexPy DataFactory :: Deleting poster_url %s from the notify log database." % poster_url)
+            monitor_db.upsert('notify_log', {'poster_url': None}, {'poster_url': poster_url})
+            return 'Deleted poster_url %s.' % poster_url
+        else:
+            return 'Unable to delete poster_url.'
 
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()

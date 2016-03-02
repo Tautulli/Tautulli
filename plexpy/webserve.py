@@ -1637,11 +1637,16 @@ class WebInterface(object):
         if source == 'history':
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(rating_key=rating_key)
+            poster_url = data_factory.get_poster_url(metadata=metadata)
+            metadata['poster_url'] = poster_url
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
             if result:
                 metadata = result['metadata']
+                data_factory = datafactory.DataFactory()
+                poster_url = data_factory.get_poster_url(metadata=metadata)
+                metadata['poster_url'] = poster_url
 
         if metadata:
             return serve_template(templatename="info.html", data=metadata, title="Info", config=config, source=source)
@@ -1687,6 +1692,22 @@ class WebInterface(object):
                     logger.error(u"Unable to read fallback  %s image: %s" % (fallback, e))
 
             return None
+
+    @cherrypy.expose
+    def delete_poster_url(self, poster_url=''):
+        
+        if poster_url:
+            data_factory = datafactory.DataFactory()
+            result = data_factory.delete_poster_url(poster_url=poster_url)
+        else:
+            result = None
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': result})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
 
 
     ##### Search #####
