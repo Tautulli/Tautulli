@@ -376,9 +376,12 @@ class ActivityProcessor(object):
 
         return None
 
-    def set_session_state(self, session_key=None, **kwargs):
+    def set_session_state(self, session_key=None, state=None, view_offset=0, **kwargs):
         if str(session_key).isdigit() and str(view_offset).isdigit():
-            values = {}
+            values = {'view_offset': int(view_offset)}
+            if state:
+                values['state'] = state
+
             for k,v in kwargs.iteritems():
                 values[k] = v
 
