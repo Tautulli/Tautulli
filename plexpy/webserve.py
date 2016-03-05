@@ -777,6 +777,10 @@ class WebInterface(object):
             media_type = kwargs.get('media_type', "")
             if media_type != 'all':
                custom_where.append(['session_history.media_type', media_type])
+        if 'transcode_decision' in kwargs:
+            transcode_decision = kwargs.get('transcode_decision', "")
+            if transcode_decision:
+                custom_where.append(['session_history_media_info.transcode_decision', transcode_decision])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
@@ -990,9 +994,9 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_stream_type_by_top_10_platforms.")
 
     @cherrypy.expose
-    def history_table_modal(self, start_date=None, **kwargs):
+    def history_table_modal(self, **kwargs):
 
-        return serve_template(templatename="history_table_modal.html", title="History Data", data=start_date)
+        return serve_template(templatename="history_table_modal.html", title="History Data", data=kwargs)
 
 
     ##### Sync #####

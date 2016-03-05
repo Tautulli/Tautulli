@@ -249,7 +249,7 @@
 
 <script>
     // Modal popup dialog
-    function selectHandler(selectedDate) {
+    function selectHandler(selectedDate, selectedSeries) {
 
         try
         {
@@ -259,10 +259,25 @@
             var y = dateValue.getFullYear();
             var dateString = '' + y + '-' + (m<=9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
 
+            var media_type = 'all';
+            var transcode_decision = null;
+            switch(selectedSeries) {
+                case "TV": media_type = 'episode'; break;
+                case "Movies": media_type = 'movie'; break;
+                case "Music": media_type = 'track'; break;
+                case "Direct Play": transcode_decision = 'direct play'; break;
+                case "Direct Stream": transcode_decision = 'copy'; break;
+                case "Transcode": transcode_decision = 'transcode'; break;
+            }
+            
             $.ajax({
-                "url": "history_table_modal",
+                url: "history_table_modal",
                 type: 'post',
-                data:  { 'start_date': dateString },
+                data:  {
+                    start_date: dateString,
+                    media_type: media_type,
+                    transcode_decision: transcode_decision
+                },
                 complete: function(xhr, status) {
                     $('#history-modal').modal('show');
                     $("#history-modal").html(xhr.responseText);
@@ -271,7 +286,7 @@
         }
         catch(err)
         {
-          console.log("Failed to retrieve data");
+          console.log("Failed to retrieve history modal data.");
         }
     }
 </script>

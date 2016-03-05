@@ -28,8 +28,8 @@ var hc_plays_by_day_options = {
             cursor: 'pointer',
             point: {
                 events: {
-                    click: function() {
-                        selectHandler(this.category);
+                    click: function () {
+                        selectHandler(this.category, this.series.name);
                     }
                 }
             }
@@ -60,7 +60,8 @@ var hc_plays_by_day_options = {
             }
     },
     tooltip: {
-        shared: true
+        shared: true,
+        crosshairs: true
     },
     series: [{}]
 };
