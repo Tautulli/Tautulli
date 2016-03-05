@@ -78,9 +78,10 @@ class ActivityProcessor(object):
             result = self.db.upsert('sessions', values, keys)
 
             if result == 'insert':
-                # Push any notifications - Push it on it's own thread so we don't hold up our db actions
-                if notify:
+                # Check if any notification agents have notifications enabled
+                if notify and any(d['on_play'] for d in notifiers.available_notification_agents()):
                     values.update({'ip_address': session['ip_address']})
+                    # Push any notifications - Push it on it's own thread so we don't hold up our db actions
                     threading.Thread(target=notification_handler.notify,
                                      kwargs=dict(stream_data=values, notify_action='play')).start()
 
