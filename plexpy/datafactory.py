@@ -61,8 +61,7 @@ class DataFactory(object):
                    'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
                     (CASE WHEN (session_history_metadata.duration IS NULL OR session_history_metadata.duration = "") \
                     THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
-                   'session_history_media_info.video_decision',
-                   'session_history_media_info.audio_decision',
+                   'session_history_media_info.transcode_decision',
                    'COUNT(*) AS group_count',
                    'GROUP_CONCAT(session_history.id) AS group_ids'
                    ]
@@ -138,8 +137,7 @@ class DataFactory(object):
                    'media_index': item['media_index'],
                    'parent_media_index': item['parent_media_index'],
                    'thumb': thumb,
-                   'video_decision': item['video_decision'],
-                   'audio_decision': item['audio_decision'],
+                   'transcode_decision': item['transcode_decision'],
                    'percent_complete': int(round(item['percent_complete'])),
                    'watched_status': watched_status,
                    'group_count': item['group_count'],
@@ -626,24 +624,21 @@ class DataFactory(object):
 
                     title = 'Concurrent Transcodes'
                     query = base_query \
-                          + 'AND (session_history_media_info.video_decision = "transcode" ' \
-                            'OR session_history_media_info.audio_decision = "transcode") '
+                          + 'AND session_history_media_info.transcode_decision = "transcode" '
                     result = monitor_db.select(query)
                     if result:
                         most_concurrent.append(calc_most_concurrent(title, result))
 
                     title = 'Concurrent Direct Streams'
                     query = base_query \
-                          + 'AND (session_history_media_info.video_decision != "transcode" ' \
-                            'AND session_history_media_info.audio_decision = "copy") '
+                          + 'AND session_history_media_info.transcode_decision = "copy" '
                     result = monitor_db.select(query)
                     if result:
                         most_concurrent.append(calc_most_concurrent(title, result))
 
                     title = 'Concurrent Direct Plays'
                     query = base_query \
-                          + 'AND (session_history_media_info.video_decision = "direct play" ' \
-                            'OR session_history_media_info.audio_decision = "direct play") '
+                          + 'AND session_history_media_info.transcode_decision = "direct play" '
                     result = monitor_db.select(query)
                     if result:
                         most_concurrent.append(calc_most_concurrent(title, result))
@@ -828,6 +823,7 @@ class DataFactory(object):
                     'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS total_duration ' \
                     'FROM session_history ' \
                     'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
+                    'JOIN session_history_media_info ON session_history_media_info.id = session_history.id ' \
                     '%s ' % where
             result = monitor_db.select(query)
         except Exception as e:

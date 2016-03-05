@@ -420,8 +420,8 @@ def dbcheck():
 
     # session_history_media_info table :: This is a table which logs each session's media info
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS session_history_media_info (id INTEGER PRIMARY KEY, '
-        'rating_key INTEGER, video_decision TEXT, audio_decision TEXT, duration INTEGER DEFAULT 0, width INTEGER, '
+        'CREATE TABLE IF NOT EXISTS session_history_media_info (id INTEGER PRIMARY KEY, rating_key INTEGER, '
+        'video_decision TEXT, audio_decision TEXT, transcode_decision TEXT, duration INTEGER DEFAULT 0, width INTEGER, '
         'height INTEGER, container TEXT, video_codec TEXT, audio_codec TEXT, bitrate INTEGER, video_resolution TEXT, '
         'video_framerate TEXT, aspect_ratio TEXT, audio_channels INTEGER, transcode_protocol TEXT, '
         'transcode_container TEXT, transcode_video_codec TEXT, transcode_audio_codec TEXT, '
@@ -669,6 +669,21 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN section_id INTEGER'
+        )
+
+    # Upgrade session_history_media_info table from earlier versions
+    try:
+        c_db.execute('SELECT transcode_decision FROM session_history_media_info')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_media_info.")
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_decision TEXT'
+        )
+        c_db.execute(
+            'UPDATE session_history_media_info SET transcode_decision = (CASE '
+		    'WHEN video_decision = "transcode" OR audio_decision = "transcode" THEN "transcode" '
+			'WHEN video_decision = "copy" OR audio_decision = "copy" THEN "copy" '
+			'WHEN video_decision = "direct play" OR audio_decision = "direct play" THEN "direct play" END)'
         )
 
     # Upgrade users table from earlier versions

@@ -218,13 +218,22 @@ class ActivityProcessor(object):
                 #              % last_id)
 
                 # Write the session_history_media_info table
+
+                # Generate a combined transcode decision value
+                if session['video_decision'] == 'transcode' or session['audio_decision'] == 'transcode':
+                    transcode_decision = 'transcode'
+                elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
+                    transcode_decision = 'copy'
+                else:
+                    transcode_decision = 'direct play'
+
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history_media_info table...")
                 query = 'INSERT INTO session_history_media_info (id, rating_key, video_decision, audio_decision, ' \
                         'duration, width, height, container, video_codec, audio_codec, bitrate, video_resolution, ' \
                         'video_framerate, aspect_ratio, audio_channels, transcode_protocol, transcode_container, ' \
                         'transcode_video_codec, transcode_audio_codec, transcode_audio_channels, transcode_width, ' \
-                        'transcode_height) VALUES ' \
-                        '(last_insert_rowid(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                        'transcode_height, transcode_decision) VALUES ' \
+                        '(last_insert_rowid(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
                 args = [session['rating_key'], session['video_decision'], session['audio_decision'],
                         session['duration'], session['width'], session['height'], session['container'],
@@ -232,7 +241,8 @@ class ActivityProcessor(object):
                         session['video_resolution'], session['video_framerate'], session['aspect_ratio'],
                         session['audio_channels'], session['transcode_protocol'], session['transcode_container'],
                         session['transcode_video_codec'], session['transcode_audio_codec'],
-                        session['transcode_audio_channels'], session['transcode_width'], session['transcode_height']]
+                        session['transcode_audio_channels'], session['transcode_width'], session['transcode_height'],
+                        transcode_decision]
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history_media_info transaction...")
                 self.db.action(query=query, args=args)

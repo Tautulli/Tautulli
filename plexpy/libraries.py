@@ -148,7 +148,6 @@ class Libraries(object):
                    'session_history_metadata.year',
                    'session_history_metadata.media_index',
                    'session_history_metadata.parent_media_index',
-                   'session_history_media_info.video_decision',
                    'library_sections.do_notify',
                    'library_sections.do_notify_created',
                    'library_sections.keep_history'
