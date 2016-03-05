@@ -58,12 +58,16 @@ def check_active_sessions(ws_request=False):
                             # Here we can check the play states
                             if session['state'] != stream['state']:
                                 if session['state'] == 'paused':
+                                    logger.debug(u"PlexPy Monitor :: Session %s has been paused." % stream['session_key'])
+
                                     # Push any notifications -
                                     # Push it on it's own thread so we don't hold up our db actions
                                     threading.Thread(target=notification_handler.notify,
                                                      kwargs=dict(stream_data=stream, notify_action='pause')).start()
 
                                 if session['state'] == 'playing' and stream['state'] == 'paused':
+                                    logger.debug(u"PlexPy Monitor :: Session %s has been resumed." % stream['session_key'])
+
                                     # Push any notifications -
                                     # Push it on it's own thread so we don't hold up our db actions
                                     threading.Thread(target=notification_handler.notify,
@@ -122,8 +126,9 @@ def check_active_sessions(ws_request=False):
                                             threading.Thread(target=notification_handler.notify,
                                                              kwargs=dict(stream_data=stream, notify_action='buffer')).start()
 
-                                logger.debug(u"PlexPy Monitor :: Stream buffering. Count is now %s. Last triggered %s."
-                                             % (buffer_values[0]['buffer_count'],
+                                logger.debug(u"PlexPy Monitor :: Session %s is buffering. Count is now %s. Last triggered %s."
+                                             % (stream['session_key'],
+                                                buffer_values[0]['buffer_count'],
                                                 buffer_values[0]['buffer_last_triggered']))
 
                             # Check if the user has reached the offset in the media we defined as the "watched" percent
@@ -139,30 +144,48 @@ def check_active_sessions(ws_request=False):
 
                 else:
                     # The user has stopped playing a stream
-                    logger.debug(u"PlexPy Monitor :: Removing sessionKey %s ratingKey %s from session queue"
-                                 % (stream['session_key'], stream['rating_key']))
-                    monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
-                                      [stream['session_key'], stream['rating_key']])
+                    if stream['state'] != 'stopped':
+                        logger.debug(u"PlexPy Monitor :: Session %s has stopped." % stream['session_key'])
 
-                    # Check if the user has reached the offset in the media we defined as the "watched" percent
-                    if stream['view_offset'] and stream['duration']:
-                        if helpers.get_percent(stream['view_offset'],
-                                               stream['duration']) > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
-                            # Push any notifications -
-                            # Push it on it's own thread so we don't hold up our db actions
-                            threading.Thread(target=notification_handler.notify,
-                                             kwargs=dict(stream_data=stream, notify_action='watched')).start()
+                        # Set the stream stop time
+                        stream['stopped'] = int(time.time())
+                        monitor_db.action('UPDATE sessions SET stopped = ?, state = ? '
+                                          'WHERE session_key = ? AND rating_key = ?',
+                                          [stream['stopped'], 'stopped', stream['session_key'], stream['rating_key']])
 
-                    # Push any notifications - Push it on it's own thread so we don't hold up our db actions
-                    threading.Thread(target=notification_handler.notify,
-                                     kwargs=dict(stream_data=stream, notify_action='stop')).start()
+                        # Check if the user has reached the offset in the media we defined as the "watched" percent
+                        if stream['view_offset'] and stream['duration']:
+                            if helpers.get_percent(stream['view_offset'],
+                                                   stream['duration']) > plexpy.CONFIG.NOTIFY_WATCHED_PERCENT:
+                                # Push any notifications -
+                                # Push it on it's own thread so we don't hold up our db actions
+                                threading.Thread(target=notification_handler.notify,
+                                                 kwargs=dict(stream_data=stream, notify_action='watched')).start()
+
+                        # Push any notifications - Push it on it's own thread so we don't hold up our db actions
+                        threading.Thread(target=notification_handler.notify,
+                                         kwargs=dict(stream_data=stream, notify_action='stop')).start()
 
                     # Write the item history on playback stop
-                    monitor_process.write_session_history(session=stream)
+                    success = monitor_process.write_session_history(session=stream)
+                    
+                    if success:
+                        # If session is written to the databaase successfully, remove the session from the session table
+                        logger.debug(u"PlexPy Monitor :: Removing sessionKey %s ratingKey %s from session queue"
+                                     % (stream['session_key'], stream['rating_key']))
+                        monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
+                                          [stream['session_key'], stream['rating_key']])
+                    else:
+                        logger.warn(u"PlexPy Monitor :: Failed to write sessionKey %s ratingKey %s to the database. " \
+                                    "Will try again on the next pass." % (stream['session_key'], stream['rating_key']))
 
             # Process the newly received session data
             for session in media_container:
-                monitor_process.write_session(session)
+                new_session = monitor_process.write_session(session)
+
+                if new_session:
+                    logger.debug(u"PlexPy Monitor :: Session %s has started." % session['session_key'])
+
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
 

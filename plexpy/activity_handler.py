@@ -77,7 +77,8 @@ class ActivityHandler(object):
             if not force_stop:
                 ap.set_session_state(session_key=self.get_session_key(),
                                      state=self.timeline['state'],
-                                     view_offset=self.timeline['viewOffset'])
+                                     view_offset=self.timeline['viewOffset'],
+                                     stopped=int(time.time()))
 
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
@@ -91,6 +92,7 @@ class ActivityHandler(object):
             monitor_proc.write_session_history(session=db_session)
 
             # Remove the session from our temp session table
+            logger.debug(u"PlexPy ActivityHandler :: Removing session %s from session queue" % str(self.get_session_key()))
             ap.delete_session(session_key=self.get_session_key())
 
     def on_pause(self):

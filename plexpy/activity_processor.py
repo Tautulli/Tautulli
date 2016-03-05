@@ -97,6 +97,8 @@ class ActivityProcessor(object):
                         ip_address = {'ip_address': ip_address}
                         self.db.upsert('sessions', ip_address, keys)
 
+                return True
+
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
         from plexpy import users, libraries
 
@@ -108,6 +110,10 @@ class ActivityProcessor(object):
         library_data = libraries.Libraries()
         library_details = library_data.get_details(section_id=section_id)
 
+        # Return false if failed to retrieve user or library details
+        if not user_details or not library_details:
+            return False
+
         if session:
             logging_enabled = False
 
@@ -117,7 +123,7 @@ class ActivityProcessor(object):
                 else:
                     stopped = int(time.time())
             else:
-                stopped = int(time.time())
+                stopped = int(session['stopped'])
 
             if plexpy.CONFIG.MOVIE_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
                     session['media_type'] == 'movie':
@@ -167,6 +173,19 @@ class ActivityProcessor(object):
                 logger.debug(u"PlexPy ActivityProcessor :: History logging for library '%s' is disabled." % library_details['section_name'])
 
             if logging_enabled:
+
+                # Fetch metadata first so we can return false if it fails
+                if not is_import:
+                    logger.debug(u"PlexPy ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
+                    pms_connect = pmsconnect.PmsConnect()
+                    result = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+                    if result:
+                        metadata = result['metadata']
+                    else:
+                        return False
+                else:
+                    metadata = import_metadata
+
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history table...")
                 query = 'INSERT INTO session_history (started, stopped, rating_key, parent_rating_key, ' \
                         'grandparent_rating_key, media_type, user_id, user, ip_address, paused_counter, player, ' \
@@ -247,14 +266,6 @@ class ActivityProcessor(object):
                 # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history_media_info transaction...")
                 self.db.action(query=query, args=args)
 
-                if not is_import:
-                    logger.debug(u"PlexPy ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
-                    pms_connect = pmsconnect.PmsConnect()
-                    result = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
-                    metadata = result['metadata']
-                else:
-                    metadata = import_metadata
-
                 # Write the session_history_metadata table
                 directors = ";".join(metadata['directors'])
                 writers = ";".join(metadata['writers'])
@@ -289,6 +300,9 @@ class ActivityProcessor(object):
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history_metadata transaction...")
                 self.db.action(query=query, args=args)
+
+            # Return true when the session is successfully written to the database
+            return True
 
     def find_session_ip(self, rating_key=None, machine_id=None):
 
@@ -361,11 +375,11 @@ class ActivityProcessor(object):
 
         return None
 
-    def set_session_state(self, session_key=None, state=None, view_offset=0):
+    def set_session_state(self, session_key=None, **kwargs):
         if str(session_key).isdigit() and str(view_offset).isdigit():
-            values = {'view_offset': int(view_offset)}
-            if state:
-                values['state'] = state
+            values = {}
+            for k,v in kwargs.iteritems():
+                values[k] = v
 
             keys = {'session_key': session_key}
             result = self.db.upsert('sessions', values, keys)
