@@ -314,6 +314,8 @@
         var music_visible = (${config['music_logging_enable']} == 1 ? true : false);
 
         function loadGraphsTab1(time_range, yaxis) {
+            $('#days-selection').show();
+
             setGraphFormat(yaxis);
 
             $.ajax({
@@ -397,6 +399,8 @@
         }
 
         function loadGraphsTab2(time_range, yaxis) {
+            $('#days-selection').show();
+
             setGraphFormat(yaxis);
 
             $.ajax({
@@ -475,6 +479,8 @@
         }
 
         function loadGraphsTab3(yaxis) {
+            $('#days-selection').hide();
+
             setGraphFormat(yaxis);
 
             $.ajax({
