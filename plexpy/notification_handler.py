@@ -501,13 +501,13 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     # Check for exclusion tags
     if metadata['media_type'] == 'movie':
         # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile('\n*<tv>[^>]+.</tv>\n*|\n*<music>[^>]+.</music>\n*', re.IGNORECASE | re.DOTALL)
+        pattern = re.compile(r'<tv>[^>]+.<\/tv>|<music>[^>]+.<\/music>', re.IGNORECASE | re.DOTALL)
     elif metadata['media_type'] == 'show' or metadata['media_type'] == 'episode':
         # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile('\n*<movie>[^>]+.</movie>\n*|\n*?<music>[^>]+.</music>\n*', re.IGNORECASE | re.DOTALL)
+        pattern = re.compile(r'<movie>[^>]+.<\/movie>|<music>[^>]+.<\/music>', re.IGNORECASE | re.DOTALL)
     elif metadata['media_type'] == 'artist' or metadata['media_type'] == 'track':
         # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile('\n*<tv>[^>]+.</tv>\n*|\n*<movie>[^>]+.</movie>\n*', re.IGNORECASE | re.DOTALL)
+        pattern = re.compile(r'<tv>[^>]+.<\/tv>|<movie>[^>]+.<\/movie>', re.IGNORECASE | re.DOTALL)
     else:
         pattern = None
 
