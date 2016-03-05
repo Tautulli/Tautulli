@@ -22,6 +22,7 @@ from plexpy import helpers
         </div>
         <div class="button-bar">
             <button class="btn btn-dark" id="clear-logs"><i class="fa fa-trash-o"></i> Clear log</button>
+            <button class="btn btn-dark" id="clear-notify-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear log</button>
         </div>
     </div>
     <div class='table-card-back'>
@@ -156,24 +157,28 @@ from plexpy import helpers
 
         $("#plexpy-logs-btn").click(function () {
             $("#clear-logs").show();
+            $("#clear-notify-logs").hide();
             LoadPlexPyLogs();
             clearSearchButton('log_table', log_table);
         });
 
         $("#plex-logs-btn").click(function () {
             $("#clear-logs").hide();
+            $("#clear-notify-logs").hide();
             LoadPlexLogs();
             clearSearchButton('plex_log_table', plex_log_table);
         });
 
         $("#plex-scanner-logs-btn").click(function () {
             $("#clear-logs").hide();
+            $("#clear-notify-logs").hide();
             LoadPlexScannerLogs();
             clearSearchButton('plex_scanner_log_table', plex_scanner_log_table);
         });
 
         $("#notification-logs-btn").click(function () {
             $("#clear-logs").hide();
+            $("#clear-notify-logs").show();
             LoadNotificationLogs();
             clearSearchButton('notification_log_table', notification_log_table);
         });
@@ -182,6 +187,19 @@ from plexpy import helpers
             var r = confirm("Are you sure you want to clear the PlexPy log?");
             if (r == true) {
                 window.location.href = "clearLogs";
+            }
+        });
+
+        $("#clear-notify-logs").click(function () {
+            var r = confirm("Are you sure you want to clear the PlexPy notification log?");
+            if (r == true) {
+                $.ajax({
+                    url: 'clearNotifyLogs',
+                    type: 'POST',
+                    success: function (data) {
+                        notification_log_table.draw();
+                    }
+                });
             }
         });
 
