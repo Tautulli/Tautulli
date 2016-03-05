@@ -148,7 +148,7 @@ history_table_modal_options = {
     }
 }
 
-$('#history_table').on('click', 'td.modal-control', function () {
+$('.history_table').on('click', 'td.modal-control', function () {
     var tr = $(this).parents('tr');
     var row = history_table.row(tr);
     var rowData = row.data();

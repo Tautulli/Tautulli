@@ -56,7 +56,7 @@ user_ip_table_options = {
                 }
             },
             "width": "15%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+            "className": "no-wrap hidden-md hidden-sm hidden-xs"
         },
         {
             "targets": [3],
@@ -146,11 +146,11 @@ user_ip_table_options = {
     }
 }
 
-$('#user_ip_table').on('mouseenter', 'td.modal-control span', function () {
+$('.user_ip_table').on('mouseenter', 'td.modal-control span', function () {
     $(this).tooltip();
 });
 
-$('#user_ip_table').on('click', 'td.modal-control', function () {
+$('.user_ip_table').on('click', 'td.modal-control', function () {
     var tr = $(this).parents('tr');
     var row = user_ip_table.row(tr);
     var rowData = row.data();
@@ -169,7 +169,7 @@ $('#user_ip_table').on('click', 'td.modal-control', function () {
     showStreamDetails();
 });
 
-$('#user_ip_table').on('click', 'td.modal-control-ip', function () {
+$('.user_ip_table').on('click', 'td.modal-control-ip', function () {
     var tr = $(this).parents('tr');
     var row = user_ip_table.row( tr );
     var rowData = row.data();

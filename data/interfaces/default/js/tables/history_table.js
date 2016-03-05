@@ -107,7 +107,7 @@ history_table_options = {
                 }
             },
             "width": "10%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+            "className": "no-wrap hidden-md hidden-sm hidden-xs"
         },
         {
             "targets": [5],
@@ -307,7 +307,7 @@ history_table_options = {
 }
 
 // Parent table platform modal
-$('#history_table').on('click', '> tbody > tr > td.modal-control', function () {
+$('.history_table').on('click', '> tbody > tr > td.modal-control', function () {
     var tr = $(this).closest('tr');
     var row = history_table.row( tr );
     var rowData = row.data();
@@ -327,7 +327,7 @@ $('#history_table').on('click', '> tbody > tr > td.modal-control', function () {
 });
 
 // Parent table ip address modal
-$('#history_table').on('click', '> tbody > tr > td.modal-control-ip', function () {
+$('.history_table').on('click', '> tbody > tr > td.modal-control-ip', function () {
     var tr = $(this).closest('tr');
     var row = history_table.row( tr );
     var rowData = row.data();
@@ -350,7 +350,7 @@ $('#history_table').on('click', '> tbody > tr > td.modal-control-ip', function (
 });
 
 // Parent table delete mode
-$('#history_table').on('click', '> tbody > tr > td.delete-control > button', function () {
+$('.history_table').on('click', '> tbody > tr > td.delete-control > button', function () {
     var tr = $(this).closest('tr');
     var row = history_table.row( tr );
     var rowData = row.data();
@@ -399,7 +399,7 @@ $('#history_table').on('click', '> tbody > tr > td.delete-control > button', fun
 });
 
 // Parent table expand detailed history
-$('#history_table').on('click', '> tbody > tr > td.expand-history a', function () {
+$('.history_table').on('click', '> tbody > tr > td.expand-history a', function () {
     var tr = $(this).closest('tr');
     var row = history_table.row(tr);
     var rowData = row.data();

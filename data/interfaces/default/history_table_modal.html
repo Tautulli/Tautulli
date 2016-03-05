@@ -10,7 +10,7 @@
             </h4>
         </div>
         <div class="modal-body" id="modal-text">
-            <table class="display" id="history_table" width="100%">
+            <table class="display history_table" id="history_table_modal" width="100%">
                 <thead>
                 <tr>
                     <th align="left" id="started">Started</th>
@@ -45,9 +45,9 @@
             }
         }
 
-        history_table = $('#history_table').DataTable(history_table_modal_options);
+        history_table = $('#history_table_modal').DataTable(history_table_modal_options);
         
-        clearSearchButton('history_table', history_table);
+        clearSearchButton('history_table_modal', history_table);
 
         // Move #info-modal to parent container
         if (!($('#history-modal').next().is('#info-modal'))) {
