@@ -82,15 +82,15 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td>Backup Directory:</td>
-                                    <td>${plexpy.CONFIG.BACKUP_DIR}</td>
+                                    <td>${config['backup_dir']}</td>
                                 </tr>
                                 <tr>
                                     <td>Cache Directory:</td>
-                                    <td>${plexpy.CONFIG.CACHE_DIR}</td>
+                                    <td>${config['cache_dir']}</td>
                                 </tr>
                                 <tr>
                                     <td>Log Directory:</td>
-                                    <td>${plexpy.CONFIG.LOG_DIR}</td>
+                                    <td>${config['log_dir']}</td>
                                 </tr>
                                 % if plexpy.ARGS:
                                 <tr>
@@ -169,6 +169,35 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Group successive play history by the same user as a single entry in the tables and watch statistics.</p>
                         </div>
+
+                        <div class="padded-header">
+                            <h3>Directories</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="backup_dir">Backup Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cache_dir">Cache Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="log_dir">Log Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
+                                </div>
+                            </div>
+                        </div>
+
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-2">
@@ -1856,10 +1885,11 @@ $(document).ready(function() {
     authChanged = false;
     httpChanged = false;
     monitorChanged = false;
+    directoryChanged = false;
 
     // Alert the user that their changes require a restart.
     function postSaveChecks() {
-        if ((serverChanged && $('#monitoring_use_websocket').is(":checked")) || authChanged || httpChanged || monitorChanged) {
+        if ((serverChanged && $('#monitoring_use_websocket').is(":checked")) || authChanged || httpChanged || monitorChanged || directoryChanged) {
           $('#restart-modal').modal('show');
         }
     }
@@ -1970,6 +2000,10 @@ $(document).ready(function() {
 
     $( ".monitor-settings" ).change(function() {
         monitorChanged = true;
+    });
+
+    $( ".directory-settings" ).change(function() {
+        directoryChanged = true;
     });
 
     $( ".pms-settings" ).change(function() {

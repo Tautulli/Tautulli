@@ -103,7 +103,7 @@ def initialize(config_file):
         if not CONFIG.HTTPS_KEY:
             CONFIG.HTTPS_KEY = os.path.join(DATA_DIR, 'server.key')
 
-        if not CONFIG.LOG_DIR.startswith(os.path.abspath(DATA_DIR)):
+        if not CONFIG.LOG_DIR:
             CONFIG.LOG_DIR = os.path.join(DATA_DIR, 'logs')
 
         if not os.path.exists(CONFIG.LOG_DIR):
@@ -120,8 +120,7 @@ def initialize(config_file):
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR,
                           verbose=VERBOSE)
 
-        if not CONFIG.BACKUP_DIR.startswith(os.path.abspath(DATA_DIR)):
-            # Put the backup dir in the data dir for now
+        if not CONFIG.BACKUP_DIR:
             CONFIG.BACKUP_DIR = os.path.join(DATA_DIR, 'backups')
         if not os.path.exists(CONFIG.BACKUP_DIR):
             try:
@@ -129,14 +128,13 @@ def initialize(config_file):
             except OSError as e:
                 logger.error("Could not create backup dir '%s': %s", BACKUP_DIR, e)
 
-        if not CONFIG.CACHE_DIR.startswith(os.path.abspath(DATA_DIR)):
-            # Put the cache dir in the data dir for now
+        if not CONFIG.CACHE_DIR:
             CONFIG.CACHE_DIR = os.path.join(DATA_DIR, 'cache')
         if not os.path.exists(CONFIG.CACHE_DIR):
             try:
                 os.makedirs(CONFIG.CACHE_DIR)
             except OSError as e:
-                logger.error("Could not create cache dir '%s': %s", DATA_DIR, e)
+                logger.error("Could not create cache dir '%s': %s", CACHE_DIR, e)
 
         # Initialize the database
         logger.info('Checking to see if the database has all tables....')
