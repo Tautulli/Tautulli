@@ -539,7 +539,7 @@ class Libraries(object):
     def get_details(self, section_id=None):
         from plexpy import pmsconnect
 
-        default_return = {'section_id': None,
+        default_return = {'section_id': 0,
                           'section_name': 'Local',
                           'section_type': '',
                           'library_thumb': common.DEFAULT_COVER_THUMB,
@@ -549,7 +549,7 @@ class Libraries(object):
                           'child_count': 0,
                           'do_notify': 0,
                           'do_notify_created': 0,
-                          'keep_history': 0
+                          'keep_history': 1
                           }
 
         if not section_id:
@@ -602,7 +602,8 @@ class Libraries(object):
             return library_details
 
         else:
-            logger.warn(u"PlexPy Libraries :: Unable to retrieve library from local database. Requesting library list refresh.")
+            logger.warn(u"PlexPy Libraries :: Unable to retrieve library %s from database. Requesting library list refresh."
+                        % section_id)
             # Let's first refresh the libraries list to make sure the library isn't newly added and not in the db yet
             pmsconnect.refresh_libraries()
 
@@ -612,9 +613,9 @@ class Libraries(object):
                 return library_details
             
             else:
-                logger.warn(u"PlexPy Users :: Unable to retrieve user from local database. Returning 'Local' library.")
+                logger.warn(u"PlexPy Users :: Unable to retrieve library %s from database. Returning 'Local' library."
+                            % section_id)
                 # If there is no library data we must return something
-                # Use "Local" library to retain compatibility with PlexWatch database value
                 return default_return
 
     def get_watch_time_stats(self, section_id=None):

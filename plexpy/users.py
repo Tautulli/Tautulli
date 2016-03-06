@@ -241,7 +241,7 @@ class Users(object):
     def get_details(self, user_id=None, user=None):
         from plexpy import plextv
 
-        default_return = {'user_id': None,
+        default_return = {'user_id': 0,
                           'username': 'Local',
                           'friendly_name': 'Local',
                           'user_thumb': common.DEFAULT_USER_THUMB,
@@ -250,7 +250,7 @@ class Users(object):
                           'is_allow_sync': 0,
                           'is_restricted': 0,
                           'do_notify': 0,
-                          'keep_history': 0
+                          'keep_history': 1
                           }
 
         if not user_id and not user:
@@ -312,7 +312,8 @@ class Users(object):
             return user_details
 
         else:
-            logger.warn(u"PlexPy Users :: Unable to retrieve user from local database. Requesting user list refresh.")
+            logger.warn(u"PlexPy Users :: Unable to retrieve user %s from database. Requesting user list refresh."
+                        % user_id if user_id else user)
             # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
             plextv.refresh_users()
 
@@ -322,7 +323,8 @@ class Users(object):
                 return user_details
 
             else:
-                logger.warn(u"PlexPy Users :: Unable to retrieve user from local database. Returning 'Local' user.")
+                logger.warn(u"PlexPy Users :: Unable to retrieve user %s from database. Returning 'Local' user."
+                            % user_id if user_id else user)
                 # If there is no user data we must return something
                 # Use "Local" user to retain compatibility with PlexWatch database value
                 return default_return
