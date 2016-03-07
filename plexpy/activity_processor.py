@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, pmsconnect, notification_handler, log_reader, database
+from plexpy import logger, pmsconnect, notification_handler, log_reader, database, notifiers
 
 import threading
 import plexpy
@@ -123,8 +123,14 @@ class ActivityProcessor(object):
                     stopped = int(session['stopped'])
                 else:
                     stopped = int(time.time())
-            else:
+            elif session['stopped']:
                 stopped = int(session['stopped'])
+            else:
+                stopped = int(time.time())
+                self.set_session_state(session_key=session['session_key'],
+                                       state='stopped',
+                                       view_offset=session['viewOffset'],
+                                       stopped=stopped)
 
             if plexpy.CONFIG.MOVIE_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
                     session['media_type'] == 'movie':
