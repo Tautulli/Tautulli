@@ -38,8 +38,20 @@ def clear_history_tables():
     monitor_db.action('DELETE FROM session_history')
     monitor_db.action('DELETE FROM session_history_media_info')
     monitor_db.action('DELETE FROM session_history_metadata')
-    monitor_db.action('VACUUM;')
+    monitor_db.action('VACUUM')
 
+
+def delete_sessions():
+    logger.debug(u"PlexPy Database :: Clearing temporary sessions from database.")
+    monitor_db = MonitorDatabase()
+
+    try:
+        monitor_db.action('DELETE FROM sessions')
+        monitor_db.action('VACUUM')
+        return 'Cleared temporary sessions.'
+    except Exception as e:
+        logger.warn(u"PlexPy Database :: Unable to clear temporary sessions from database: %s." % e)
+        return 'Unable to clear temporary sessions.'
 
 def db_filename(filename="plexpy.db"):
     """ Returns the filepath to the db """

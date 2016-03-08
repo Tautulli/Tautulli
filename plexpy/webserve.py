@@ -254,6 +254,18 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_recently_added.")
             return serve_template(templatename="recently_added.html", data=None)
 
+    @cherrypy.expose
+    def delete_temp_sessions(self):
+        
+        result = database.delete_sessions()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': result})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
+
 
     ##### Libraries #####
 
