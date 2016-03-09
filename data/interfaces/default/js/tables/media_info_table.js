@@ -294,7 +294,7 @@ media_info_table_options = {
 }
 
 // Parent table expand detailed media info
-$('#media_info_table').on('click', '> tbody > tr > td.expand-media-info a', function () {
+$('.media_info_table').on('click', '> tbody > tr > td.expand-media-info a', function () {
     var tr = $(this).closest('tr');
     var row = media_info_table.row(tr);
     var rowData = row.data();
