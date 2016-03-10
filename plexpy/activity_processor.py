@@ -103,17 +103,18 @@ class ActivityProcessor(object):
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
         from plexpy import users, libraries
 
-        user_data = users.Users()
-        user_details = user_data.get_details(user_id=session['user_id'])
-
         section_id = session['section_id'] if not is_import else import_metadata['section_id']
 
-        library_data = libraries.Libraries()
-        library_details = library_data.get_details(section_id=section_id)
+        if not is_import:
+            user_data = users.Users()
+            user_details = user_data.get_details(user_id=session['user_id'])
 
-        # Return false if failed to retrieve user or library details
-        if not user_details or not library_details:
-            return False
+            library_data = libraries.Libraries()
+            library_details = library_data.get_details(section_id=section_id)
+
+            # Return false if failed to retrieve user or library details
+            if not user_details or not library_details:
+                return False
 
         if session:
             logging_enabled = False
@@ -150,14 +151,14 @@ class ActivityProcessor(object):
             else:
                 real_play_time = stopped - session['started']
 
-            if plexpy.CONFIG.LOGGING_IGNORE_INTERVAL and not is_import:
+            if not is_import and plexpy.CONFIG.LOGGING_IGNORE_INTERVAL:
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
                         (real_play_time < int(plexpy.CONFIG.LOGGING_IGNORE_INTERVAL)):
                     logging_enabled = False
                     logger.debug(u"PlexPy ActivityProcessor :: Play duration for ratingKey %s is %s secs which is less than %s "
                                  u"seconds, so we're not logging it." %
                                  (session['rating_key'], str(real_play_time), plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
-            if session['media_type'] == 'track' and not is_import:
+            if not is_import and session['media_type'] == 'track':
                 if real_play_time < 15 and session['duration'] >= 30:
                     logging_enabled = False
                     logger.debug(u"PlexPy ActivityProcessor :: Play duration for ratingKey %s is %s secs, "
@@ -169,13 +170,12 @@ class ActivityProcessor(object):
                     logging_enabled = False
                     logger.debug(u"PlexPy ActivityProcessor :: Play duration for ratingKey %s is %s secs which is less than %s "
                                  u"seconds, so we're not logging it." %
-                                 (session['rating_key'], str(real_play_time),
-                                  import_ignore_interval))
+                                 (session['rating_key'], str(real_play_time), import_ignore_interval))
 
-            if not user_details['keep_history'] and not is_import:
+            if not is_import and not user_details['keep_history']:
                 logging_enabled = False
                 logger.debug(u"PlexPy ActivityProcessor :: History logging for user '%s' is disabled." % user_details['username'])
-            elif not library_details['keep_history'] and not is_import:
+            elif not is_import and not library_details['keep_history']:
                 logging_enabled = False
                 logger.debug(u"PlexPy ActivityProcessor :: History logging for library '%s' is disabled." % library_details['section_name'])
 
