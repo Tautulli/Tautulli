@@ -1286,7 +1286,9 @@ class WebInterface(object):
         for checked_config in checked_configs:
             if checked_config not in kwargs:
                 # checked items should be zero or one. if they were not sent then the item was not checked
-                kwargs[checked_config] = '0'
+                kwargs[checked_config] = 0
+            else:
+                kwargs[checked_config] = 1
 
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password'):
@@ -1309,14 +1311,14 @@ class WebInterface(object):
         if kwargs.get('monitoring_interval') != str(plexpy.CONFIG.MONITORING_INTERVAL) or \
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
             kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
-            kwargs.get('notify_recently_added') != str(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED) or \
-            kwargs.get('monitor_pms_updates') != str(plexpy.CONFIG.MONITOR_PMS_UPDATES) or \
-            kwargs.get('monitor_remote_access') != str(plexpy.CONFIG.MONITOR_REMOTE_ACCESS):
+            kwargs.get('notify_recently_added') != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED or \
+            kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
+            kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
             reschedule = True
 
         # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.
-        if kwargs.get('pms_ssl') != str(plexpy.CONFIG.PMS_SSL) or \
-            kwargs.get('pms_is_remote') != str(plexpy.CONFIG.PMS_IS_REMOTE):
+        if kwargs.get('pms_ssl') != plexpy.CONFIG.PMS_SSL or \
+            kwargs.get('pms_is_remote') != plexpy.CONFIG.PMS_IS_REMOTE:
             server_changed = True
 
         # If we change the HTTPS setting, make sure we generate a new certificate.
