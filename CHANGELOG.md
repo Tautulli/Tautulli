@@ -1,9 +1,39 @@
 # Changelog
 
+## v1.3.10 (2016-03-12)
+
+* Fix: Actually allow HTML tags for Pushover.
+* Fix: PlexPy not restarting on Windows if there is a space in the folder path.
+* Fix: Reconnect websocket when changing PMS SSL setting.
+* Fix: Datatables not loading when view_offset or duration is blank.
+* Fix: Bug when checking the PMS version in the settings.
+* Fix: Auto-refreshing of log tables.
+* Fix: Logging of IPv6 addresses. (PMS version >0.9.14 only.)
+* Fix: Hide days selection from the Play Totals graph page.
+* Fix: PlexPy overwriting user's own SSL certificate/key.
+* Fix: Multiple watched notifications when using websocket.
+* Fix: Some missing python library imports.
+* Fix: Some typos in settings and PlexWatch importer.
+* New: Ability to get notified of PMS updates.
+* New: Ability to disable the link to Plex Web with Facebook notifications and use IMDB, TVDB, TMDb, or Last.fm instead.
+* New: Ability to reset Imgur poster url from the info page if the poster is changed.
+* New: Tooltips on the current activity progress bars.
+* New: Side scrolling of Recently Added/Recently Played items.
+* New: Document all date/time format options.
+* New: Button to clear notification logs.
+* New: Customizable backup, cache, and log directories.
+* Change: Retry writing sessions to history if it fails, so sessions don't get lost. (Activity pinger only, not availble for websocket.)
+* Change: Save any unknown sessions to the "Local" user.
+* Change: History table modal is filtered depending on which graph series is clicked.
+* Change: Revert back to saving the state of datatables (search, sorting, entries per page, etc.).
+* Change: Newlines are not longer stripped from notification text which allows for finer control of how notifications look.
+* Change: Updated FreeNAS/FreeBSD init scripts. (Must have updated jails.) (Thanks @chiviak)
+
+
 ## v1.3.9 (2016-02-21)
 
 * Fix: Recently added notification not sent to all notification agents.
-* Add: Pushover HTML support. (Thanks @elseym)
+* New: Pushover HTML support. (Thanks @elseym)
 
 
 ## v1.3.8 (2016-02-21)
@@ -12,8 +42,8 @@
 * Fix: Remove media tags from script arguments for server notifications.
 * Fix: Encode poster titles to UTF-8 for Imgur upload.
 * Fix: Allow notifications to send without poster if Imgur upload fails.
-* Add: Notification Logs table in the Logs tab.
-* Add: Toggle in settings to enable posters in notifications. (Disabled by default.)
+* New: Notification Logs table in the Logs tab.
+* New: Toggle in settings to enable posters in notifications. (Disabled by default.)
 * Change: Save Imgur poster URL to database so upload is not needed every time.
 * Change: Notify log in database to log each event as a separate entry.
 * Change: Monitor remote access is unchecked if remote access is disabled on server.
@@ -26,18 +56,18 @@
 * Fix: Video metadata flags showing up for track info.
 * Fix: Custom library icons not applied to Library Statistics.
 * Fix: Typos in the Web UI.
-* Add: ETA to Current Activity overlay.
-* Add: Total duration to Libraries and Users tables.
-* Add: {machine_id} to notification options.
-* Add: IMDB, TVDB, TMDb, Last.fm, and Trackt IDs/URLs to notification options.
-* Add: {poster_url} to notification options using Imgur.
-* Add: Poster and link for Facebook notifications.
-* Add: Log javascript errors from the Web UI.
-* Add: Configuration and Scheduler info to the settings page.
-* Add: Schedule background task to backup the PlexPy database.
-* Add: URL anonymizer for external links.
-* Add: Plex Media Scanner log file to Log viewer.
-* Add: API v2 (sill very experimental). (Thanks @Hellowlol)
+* New: ETA to Current Activity overlay.
+* New: Total duration to Libraries and Users tables.
+* New: {machine_id} to notification options.
+* New: IMDB, TVDB, TMDb, Last.fm, and Trackt IDs/URLs to notification options.
+* New: {poster_url} to notification options using Imgur.
+* New: Poster and link for Facebook notifications.
+* New: Log javascript errors from the Web UI.
+* New: Configuration and Scheduler info to the settings page.
+* New: Schedule background task to backup the PlexPy database.
+* New: URL anonymizer for external links.
+* New: Plex Media Scanner log file to Log viewer.
+* New: API v2 (sill very experimental). (Thanks @Hellowlol)
 * Change: Allow secure websocket connections.
 * Change: History grouping now accounts for the view offset.
 * Change: Subject line can be toggled off for Facebook, Slack, Telegram, and Twitter.
@@ -60,9 +90,9 @@
 * Fix: Unable to expand media info table when missing "Added At" date.
 * Fix: Server verification for unpublished servers.
 * Fix: Updating PMS identifier for server change.
-* Add: {stream_time}, {remaining_time}, and {progress_time} to notification options.
-* Add: Powershell script support. (Thanks @Hellowlol)
-* Add: Method to delete duplicate libraries.
+* New: {stream_time}, {remaining_time}, and {progress_time} to notification options.
+* New: Powershell script support. (Thanks @Hellowlol)
+* New: Method to delete duplicate libraries.
 * Change: Daemonize before running start up tasks.
 
 
@@ -74,7 +104,7 @@
 * Fix: Libraries and Users lists not refreshing.
 * Fix: Server verification in settings.
 * Fix: Empty libraries not added to database.
-* Add: Unique identifiers to notification options.
+* New: Unique identifiers to notification options.
 * Remove: Requirement of media type toggles for recently added notifications.
 * Remove: Built in Twitter key and secret.
 * Change: Unnecessary quoting of script arguments.
@@ -107,21 +137,21 @@
 
 ## v1.3.0 (2016-01-23)
 
-* Add: Brand new Libraries section.
-* Add: Lots of new library statistics.
-* Add: Media info table for libraries.
-* Add: Web app for Android and iOS. (Thanks @zobe123)
-* Add: Slack notification agent. (Thanks @richipargo)
-* Add: Facebook notification agent.
-* Add: Custom script notification agent. (Thanks @Hellowlol)
-* Add: Custom "From Name" to email notification agent.
-* Add: Ability to test notifications / send custom one-off notifications.
-* Add: 'datestamp' and 'timestamp' notification options.
-* Add: More concurrent stream statistics.
-* Add: Media info flags on the info pages.
-* Add: Ability to fix broken metadata if the item has been moved in Plex.
-* Add: Ability to rearrange the homepage statistics cards.
-* Add: CentOS startup script (Thanks @PHoSawyer)
+* New: Brand new Libraries section.
+* New: Lots of new library statistics.
+* New: Media info table for libraries.
+* New: Web app for Android and iOS. (Thanks @zobe123)
+* New: Slack notification agent. (Thanks @richipargo)
+* New: Facebook notification agent.
+* New: Custom script notification agent. (Thanks @Hellowlol)
+* New: Custom "From Name" to email notification agent.
+* New: Ability to test notifications / send custom one-off notifications.
+* New: 'datestamp' and 'timestamp' notification options.
+* New: More concurrent stream statistics.
+* New: Media info flags on the info pages.
+* New: Ability to fix broken metadata if the item has been moved in Plex.
+* New: Ability to rearrange the homepage statistics cards.
+* New: CentOS startup script (Thanks @PHoSawyer)
 * Fix: Server name blank after first run wizard.
 * Fix: Incorrect duration for grouped home stats.
 * Fix: Allow SSL when verifying server in settings.
