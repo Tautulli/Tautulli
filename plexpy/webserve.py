@@ -13,7 +13,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, datafactory, graphs, users, libraries, database
+from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, \
+    datafactory, graphs, users, libraries, database, web_socket
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates
 
 from mako.lookup import TemplateLookup
@@ -252,6 +253,18 @@ class WebInterface(object):
         else:
             logger.warn(u"Unable to retrieve data for get_recently_added.")
             return serve_template(templatename="recently_added.html", data=None)
+
+    @cherrypy.expose
+    def delete_temp_sessions(self):
+        
+        result = database.delete_sessions()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': result})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
 
 
     ##### Libraries #####
@@ -776,6 +789,10 @@ class WebInterface(object):
             media_type = kwargs.get('media_type', "")
             if media_type != 'all':
                custom_where.append(['session_history.media_type', media_type])
+        if 'transcode_decision' in kwargs:
+            transcode_decision = kwargs.get('transcode_decision', "")
+            if transcode_decision:
+                custom_where.append(['session_history_media_info.transcode_decision', transcode_decision])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
@@ -989,9 +1006,9 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_stream_type_by_top_10_platforms.")
 
     @cherrypy.expose
-    def history_table_modal(self, start_date=None, **kwargs):
+    def history_table_modal(self, **kwargs):
 
-        return serve_template(templatename="history_table_modal.html", title="History Data", data=start_date)
+        return serve_template(templatename="history_table_modal.html", title="History Data", data=kwargs)
 
 
     ##### Sync #####
@@ -1092,6 +1109,19 @@ class WebInterface(object):
         return json.dumps(notifications)
 
     @cherrypy.expose
+    @addtoapi()
+    def clearNotifyLogs(self, **kwargs):
+        data_factory = datafactory.DataFactory()
+        result = data_factory.delete_notification_log()
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': result})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
+
+    @cherrypy.expose
     def clearLogs(self):
         plexpy.LOG_LIST = []
         logger.info(u"Web logs cleared")
@@ -1147,8 +1177,9 @@ class WebInterface(object):
             "api_key": plexpy.CONFIG.API_KEY,
             "update_db_interval": plexpy.CONFIG.UPDATE_DB_INTERVAL,
             "freeze_db": checked(plexpy.CONFIG.FREEZE_DB),
-            "log_dir": plexpy.CONFIG.LOG_DIR,
+            "backup_dir": plexpy.CONFIG.BACKUP_DIR,
             "cache_dir": plexpy.CONFIG.CACHE_DIR,
+            "log_dir": plexpy.CONFIG.LOG_DIR,
             "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),
             "interface_list": interface_list,
             "cache_sizemb": plexpy.CONFIG.CACHE_SIZEMB,
@@ -1178,6 +1209,7 @@ class WebInterface(object):
             "tv_notify_on_pause": checked(plexpy.CONFIG.TV_NOTIFY_ON_PAUSE),
             "movie_notify_on_pause": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_PAUSE),
             "music_notify_on_pause": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_PAUSE),
+            "monitor_pms_updates": checked(plexpy.CONFIG.MONITOR_PMS_UPDATES),
             "monitor_remote_access": checked(plexpy.CONFIG.MONITOR_REMOTE_ACCESS),
             "monitoring_interval": plexpy.CONFIG.MONITORING_INTERVAL,
             "monitoring_use_websocket": checked(plexpy.CONFIG.MONITORING_USE_WEBSOCKET),
@@ -1219,6 +1251,8 @@ class WebInterface(object):
             "notify_on_extup_body_text": plexpy.CONFIG.NOTIFY_ON_EXTUP_BODY_TEXT,
             "notify_on_intup_subject_text": plexpy.CONFIG.NOTIFY_ON_INTUP_SUBJECT_TEXT,
             "notify_on_intup_body_text": plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT,
+            "notify_on_pmsupdate_subject_text": plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT,
+            "notify_on_pmsupdate_body_text": plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_BODY_TEXT,
             "notify_scripts_args_text": plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
@@ -1246,12 +1280,15 @@ class WebInterface(object):
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", "notify_upload_posters",
-            "notify_recently_added", "notify_recently_added_grandparent", "monitor_remote_access", "get_file_sizes"
+            "notify_recently_added", "notify_recently_added_grandparent",
+            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
                 # checked items should be zero or one. if they were not sent then the item was not checked
-                kwargs[checked_config] = '0'
+                kwargs[checked_config] = 0
+            else:
+                kwargs[checked_config] = 1
 
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password'):
@@ -1274,13 +1311,14 @@ class WebInterface(object):
         if kwargs.get('monitoring_interval') != str(plexpy.CONFIG.MONITORING_INTERVAL) or \
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
             kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
-            kwargs.get('notify_recently_added') != str(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED) or \
-            kwargs.get('monitor_remote_access') != str(plexpy.CONFIG.MONITOR_REMOTE_ACCESS):
+            kwargs.get('notify_recently_added') != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED or \
+            kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
+            kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
             reschedule = True
 
         # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.
-        if kwargs.get('pms_ssl') != str(plexpy.CONFIG.PMS_SSL) or \
-            kwargs.get('pms_is_remote') != str(plexpy.CONFIG.PMS_IS_REMOTE):
+        if kwargs.get('pms_ssl') != plexpy.CONFIG.PMS_SSL or \
+            kwargs.get('pms_is_remote') != plexpy.CONFIG.PMS_IS_REMOTE:
             server_changed = True
 
         # If we change the HTTPS setting, make sure we generate a new certificate.
@@ -1327,6 +1365,7 @@ class WebInterface(object):
         if server_changed:
             plextv.get_real_pms_url()
             pmsconnect.get_server_friendly_name()
+            web_socket.reconnect()
 
         # Reconfigure scheduler if intervals changed
         if reschedule:
@@ -1630,11 +1669,16 @@ class WebInterface(object):
         if source == 'history':
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(rating_key=rating_key)
+            poster_url = data_factory.get_poster_url(metadata=metadata)
+            metadata['poster_url'] = poster_url
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
             if result:
                 metadata = result['metadata']
+                data_factory = datafactory.DataFactory()
+                poster_url = data_factory.get_poster_url(metadata=metadata)
+                metadata['poster_url'] = poster_url
 
         if metadata:
             return serve_template(templatename="info.html", data=metadata, title="Info", config=config, source=source)
@@ -1680,6 +1724,22 @@ class WebInterface(object):
                     logger.error(u"Unable to read fallback  %s image: %s" % (fallback, e))
 
             return None
+
+    @cherrypy.expose
+    def delete_poster_url(self, poster_url=''):
+        
+        if poster_url:
+            data_factory = datafactory.DataFactory()
+            result = data_factory.delete_poster_url(poster_url=poster_url)
+        else:
+            result = None
+
+        if result:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': result})
+        else:
+            cherrypy.response.headers['Content-type'] = 'application/json'
+            return json.dumps({'message': 'no data received'})
 
 
     ##### Search #####
@@ -2183,3 +2243,9 @@ class WebInterface(object):
             a = Api()
             a.checkParams(*args, **kwargs)
             return a.fetchData()
+
+    @cherrypy.expose
+    def check_pms_updater(self):
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_update_staus()
+        return json.dumps(result)

@@ -32,7 +32,8 @@
             </div>
         </div>
         <div class="modal-footer">
-            <span class="text-muted">Telize service written by <a href="https://github.com/fcambus/telize" target="_blank">Frederic Cambus</a>.</span>
+            <% from plexpy.helpers import anon_url %>
+            <span class="text-muted">Telize service written by <a href="${anon_url('https://github.com/fcambus/telize')}" target="_blank">Frederic Cambus</a>.</span>
         </div>
     </div>
 </div>

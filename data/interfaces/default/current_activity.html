@@ -217,8 +217,8 @@ DOCUMENTATION :: END
     % endif
     <div class="dashboard-activity-progress">
         <div class="dashboard-activity-progress-bar">
-            <div class="bufferbar" style="width: ${a['transcode_progress']}%">${a['transcode_progress']}%</div>
-            <div class="bar" style="width: ${a['progress_percent']}%">${a['progress_percent']}%</div>
+            <div class="bufferbar" style="width: ${a['transcode_progress']}%" data-toggle="tooltip" title="Transcoder Progress">${a['transcode_progress']}%</div>
+            <div class="bar" style="width: ${a['progress_percent']}%" data-toggle="tooltip" title="Stream Progress">${a['progress_percent']}%</div>
         </div>
     </div>
     <div class="dashboard-activity-metadata-wrapper">
@@ -261,11 +261,7 @@ DOCUMENTATION :: END
             % endif
         </div>
         <div class="dashboard-activity-metadata-user">
-            % if a['user_id']:
             <a href="user?user_id=${a['user_id']}" title="${a['friendly_name']}">${a['friendly_name']}</a>
-            % else:
-            <a href="user?user=${a['user']}" title="${a['friendly_name']}">${a['friendly_name']}</a>
-            % endif
         </div>
 </div>
 </div>
@@ -289,11 +285,13 @@ DOCUMENTATION :: END
     });
 
     // Add hover class to dashboard-instance
-    $('.dashboard-activity-poster').hover(function() {
+    $('.dashboard-activity-poster, .dashboard-activity-progress-bar').hover(function() {
         $(this).closest('.dashboard-instance').addClass('hover');
     }, function() {
         $(this).closest('.dashboard-instance').removeClass('hover');
     });
+
+    $('.bar, .bufferbar').tooltip({container: 'body', placement: 'right', delay: 50});
 </script>
 % else:
 <div class="text-muted">Nothing is currently being watched.</div><br>

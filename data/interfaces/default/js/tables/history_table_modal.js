@@ -79,11 +79,11 @@ history_table_modal_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     var transcode_dec = '';
-                    if (rowData['video_decision'] === 'transcode' || rowData['audio_decision'] === 'transcode') {
+                    if (rowData['transcode_decision'] === 'transcode') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server fa-fw"></i></span>';
-                    } else if (rowData['video_decision'] === 'copy' || rowData['audio_decision'] === 'copy') {
+                    } else if (rowData['transcode_decision'] === 'copy') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Stream"><i class="fa fa-video-camera fa-fw"></i></span>';
-                    } else if (rowData['video_decision'] === 'direct play' || rowData['audio_decision'] === 'direct play') {
+                    } else if (rowData['transcode_decision'] === 'direct play') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>';
                     }
                     $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp' + cellData + '</div></a></div>');
@@ -148,7 +148,7 @@ history_table_modal_options = {
     }
 }
 
-$('#history_table').on('click', 'td.modal-control', function () {
+$('.history_table').on('click', 'td.modal-control', function () {
     var tr = $(this).parents('tr');
     var row = history_table.row(tr);
     var rowData = row.data();

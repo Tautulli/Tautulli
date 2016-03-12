@@ -25,6 +25,7 @@ import websocket
 
 name = 'websocket'
 opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
+ws_reconnect = False
 
 
 def start_thread():
@@ -32,6 +33,11 @@ def start_thread():
     activity_pinger.check_active_sessions(ws_request=True)
     # Start the websocket listener on it's own thread
     threading.Thread(target=run).start()
+
+
+def reconnect():
+    global ws_reconnect
+    ws_reconnect = True
 
 
 def run():
@@ -51,19 +57,21 @@ def run():
     if plexpy.CONFIG.PMS_TOKEN:
         uri += '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN
 
+    global ws_reconnect
+    ws_reconnect = False
     ws_connected = False
     reconnects = 0
 
     # Try an open the websocket connection - if it fails after 15 retries fallback to polling
     while not ws_connected and reconnects <= 15:
         try:
-            logger.info(u'PlexPy WebSocket :: Opening%s websocket, connection attempt %s.' % (secure, str(reconnects + 1)))
+            logger.info(u"PlexPy WebSocket :: Opening%s websocket, connection attempt %s." % (secure, str(reconnects + 1)))
             ws = create_connection(uri)
             reconnects = 0
             ws_connected = True
-            logger.info(u'PlexPy WebSocket :: Ready')
+            logger.info(u"PlexPy WebSocket :: Ready")
         except IOError, e:
-            logger.error(u'PlexPy WebSocket :: %s.' % e)
+            logger.error(u"PlexPy WebSocket :: %s." % e)
             reconnects += 1
             time.sleep(5)
 
@@ -81,22 +89,30 @@ def run():
                 if reconnects > 1:
                     time.sleep(5)
 
-                logger.warn(u'PlexPy WebSocket :: Connection has closed, reconnecting...')
+                logger.warn(u"PlexPy WebSocket :: Connection has closed, reconnecting...")
                 try:
                     ws = create_connection(uri)
                 except IOError, e:
-                    logger.info(u'PlexPy WebSocket :: %s.' % e)
+                    logger.info(u"PlexPy WebSocket :: %s." % e)
 
             else:
+                ws.shutdown()
                 ws_connected = False
                 break
 
-    if not ws_connected:
-        logger.error(u'PlexPy WebSocket :: Connection unavailable, falling back to polling.')
+        # Check if we recieved a restart notification and close websocket connection cleanly
+        if ws_reconnect:
+            logger.info(u"PlexPy WebSocket :: Reconnecting websocket...")
+            ws.shutdown()
+            ws_connected = False
+            start_thread()
+
+    if not ws_connected and not ws_reconnect:
+        logger.error(u"PlexPy WebSocket :: Connection unavailable, falling back to polling.")
         plexpy.POLLING_FAILOVER = True
         plexpy.initialize_scheduler()
 
-    logger.debug(u'PlexPy WebSocket :: Leaving thread.')
+    logger.debug(u"PlexPy WebSocket :: Leaving thread.")
 
 
 def receive(ws):
@@ -124,7 +140,7 @@ def process(opcode, data):
     try:
         info = json.loads(data)
     except Exception as ex:
-        logger.warn(u'PlexPy WebSocket :: Error decoding message from websocket: %s' % ex)
+        logger.warn(u"PlexPy WebSocket :: Error decoding message from websocket: %s" % ex)
         logger.debug(data)
         return False
 

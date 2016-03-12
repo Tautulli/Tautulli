@@ -4,7 +4,7 @@ sync_table_options = {
     "pagingType": "bootstrap",
     "order": [ [ 0, 'desc'], [ 1, 'asc'], [2, 'asc'] ],
     "pageLength": 25,
-    "stateSave": false,
+    "stateSave": true,
     "language": {
         "search":"Search: ",
         "lengthMenu":"Show _MENU_ lines per page",

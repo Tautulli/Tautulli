@@ -103,7 +103,7 @@ def initialize(config_file):
         if not CONFIG.HTTPS_KEY:
             CONFIG.HTTPS_KEY = os.path.join(DATA_DIR, 'server.key')
 
-        if not CONFIG.LOG_DIR.startswith(os.path.abspath(DATA_DIR)):
+        if not CONFIG.LOG_DIR:
             CONFIG.LOG_DIR = os.path.join(DATA_DIR, 'logs')
 
         if not os.path.exists(CONFIG.LOG_DIR):
@@ -120,8 +120,7 @@ def initialize(config_file):
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR,
                           verbose=VERBOSE)
 
-        if not CONFIG.BACKUP_DIR.startswith(os.path.abspath(DATA_DIR)):
-            # Put the backup dir in the data dir for now
+        if not CONFIG.BACKUP_DIR:
             CONFIG.BACKUP_DIR = os.path.join(DATA_DIR, 'backups')
         if not os.path.exists(CONFIG.BACKUP_DIR):
             try:
@@ -129,14 +128,13 @@ def initialize(config_file):
             except OSError as e:
                 logger.error("Could not create backup dir '%s': %s", BACKUP_DIR, e)
 
-        if not CONFIG.CACHE_DIR.startswith(os.path.abspath(DATA_DIR)):
-            # Put the cache dir in the data dir for now
+        if not CONFIG.CACHE_DIR:
             CONFIG.CACHE_DIR = os.path.join(DATA_DIR, 'cache')
         if not os.path.exists(CONFIG.CACHE_DIR):
             try:
                 os.makedirs(CONFIG.CACHE_DIR)
             except OSError as e:
-                logger.error("Could not create cache dir '%s': %s", DATA_DIR, e)
+                logger.error("Could not create cache dir '%s': %s", CACHE_DIR, e)
 
         # Initialize the database
         logger.info('Checking to see if the database has all tables....')
@@ -306,6 +304,13 @@ def initialize_scheduler():
                 schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
                              hours=0, minutes=0, seconds=0)
 
+            if CONFIG.MONITOR_PMS_UPDATES:
+                schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
+                             hours=12, minutes=0, seconds=0)
+            else:
+                schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
+                             hours=0, minutes=0, seconds=0)
+
             if CONFIG.MONITOR_REMOTE_ACCESS:
                 schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
                              hours=0, minutes=0, seconds=seconds)
@@ -390,7 +395,7 @@ def dbcheck():
     # sessions table :: This is a temp table that logs currently active sessions
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'session_key INTEGER, rating_key INTEGER, section_id INTEGER, media_type TEXT, started INTEGER, '
+        'session_key INTEGER, rating_key INTEGER, section_id INTEGER, media_type TEXT, started INTEGER, stopped INTEGER, '
         'paused_counter INTEGER DEFAULT 0, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, '
         'ip_address TEXT, machine_id TEXT, player TEXT, platform TEXT, title TEXT, parent_title TEXT, '
         'grandparent_title TEXT, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
@@ -413,8 +418,8 @@ def dbcheck():
 
     # session_history_media_info table :: This is a table which logs each session's media info
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS session_history_media_info (id INTEGER PRIMARY KEY, '
-        'rating_key INTEGER, video_decision TEXT, audio_decision TEXT, duration INTEGER DEFAULT 0, width INTEGER, '
+        'CREATE TABLE IF NOT EXISTS session_history_media_info (id INTEGER PRIMARY KEY, rating_key INTEGER, '
+        'video_decision TEXT, audio_decision TEXT, transcode_decision TEXT, duration INTEGER DEFAULT 0, width INTEGER, '
         'height INTEGER, container TEXT, video_codec TEXT, audio_codec TEXT, bitrate INTEGER, video_resolution TEXT, '
         'video_framerate TEXT, aspect_ratio TEXT, audio_channels INTEGER, transcode_protocol TEXT, '
         'transcode_container TEXT, transcode_video_codec TEXT, transcode_audio_codec TEXT, '
@@ -614,6 +619,15 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN section_id INTEGER'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT stopped FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN stopped INTEGER'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')
@@ -662,6 +676,21 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN section_id INTEGER'
+        )
+
+    # Upgrade session_history_media_info table from earlier versions
+    try:
+        c_db.execute('SELECT transcode_decision FROM session_history_media_info')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_media_info.")
+        c_db.execute(
+            'ALTER TABLE session_history_media_info ADD COLUMN transcode_decision TEXT'
+        )
+        c_db.execute(
+            'UPDATE session_history_media_info SET transcode_decision = (CASE '
+		    'WHEN video_decision = "transcode" OR audio_decision = "transcode" THEN "transcode" '
+			'WHEN video_decision = "copy" OR audio_decision = "copy" THEN "copy" '
+			'WHEN video_decision = "direct play" OR audio_decision = "direct play" THEN "direct play" END)'
         )
 
     # Upgrade users table from earlier versions
@@ -890,7 +919,13 @@ def shutdown(restart=False, update=False):
         if '--nolaunch' not in args:
             args += ['--nolaunch']
         logger.info('Restarting PlexPy with %s', args)
-        os.execv(exe, args)
+        
+        # os.execv fails with spaced names on Windows
+        # https://bugs.python.org/issue19066
+        if os.name == 'nt':
+            subprocess.Popen(args, cwd=os.getcwd())
+        else:
+            os.execv(exe, args)
 
     os._exit(0)
 

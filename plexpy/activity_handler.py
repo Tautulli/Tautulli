@@ -16,7 +16,7 @@
 import time
 import plexpy
 
-from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler, helpers
+from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler, helpers, notifiers
 
 
 class ActivityHandler(object):
@@ -57,9 +57,11 @@ class ActivityHandler(object):
         if self.is_valid_session() and self.get_live_session():
             logger.debug(u"PlexPy ActivityHandler :: Session %s has started." % str(self.get_session_key()))
 
-            # Fire off notifications
-            threading.Thread(target=notification_handler.notify,
-                             kwargs=dict(stream_data=self.get_live_session(), notify_action='play')).start()
+            # Check if any notification agents have notifications enabled
+            if any(d['on_play'] for d in notifiers.available_notification_agents()):
+                # Fire off notifications
+                threading.Thread(target=notification_handler.notify,
+                                 kwargs=dict(stream_data=self.get_live_session(), notify_action='play')).start()
 
             # Write the new session to our temp session table
             self.update_db_session()
@@ -77,20 +79,24 @@ class ActivityHandler(object):
             if not force_stop:
                 ap.set_session_state(session_key=self.get_session_key(),
                                      state=self.timeline['state'],
-                                     view_offset=self.timeline['viewOffset'])
+                                     view_offset=self.timeline['viewOffset'],
+                                     stopped=int(time.time()))
 
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
-            # Fire off notifications
-            threading.Thread(target=notification_handler.notify,
-                             kwargs=dict(stream_data=db_session, notify_action='stop')).start()
+            # Check if any notification agents have notifications enabled
+            if any(d['on_stop'] for d in notifiers.available_notification_agents()):
+                # Fire off notifications
+                threading.Thread(target=notification_handler.notify,
+                                 kwargs=dict(stream_data=db_session, notify_action='stop')).start()
 
             # Write it to the history table
             monitor_proc = activity_processor.ActivityProcessor()
             monitor_proc.write_session_history(session=db_session)
 
             # Remove the session from our temp session table
+            logger.debug(u"PlexPy ActivityHandler :: Removing session %s from session queue" % str(self.get_session_key()))
             ap.delete_session(session_key=self.get_session_key())
 
     def on_pause(self):
@@ -109,9 +115,11 @@ class ActivityHandler(object):
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
-            # Fire off notifications
-            threading.Thread(target=notification_handler.notify,
-                             kwargs=dict(stream_data=db_session, notify_action='pause')).start()
+            # Check if any notification agents have notifications enabled
+            if any(d['on_pause'] for d in notifiers.available_notification_agents()):
+                # Fire off notifications
+                threading.Thread(target=notification_handler.notify,
+                                 kwargs=dict(stream_data=db_session, notify_action='pause')).start()
 
     def on_resume(self):
         if self.is_valid_session():
@@ -129,9 +137,11 @@ class ActivityHandler(object):
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
-            # Fire off notifications
-            threading.Thread(target=notification_handler.notify,
-                             kwargs=dict(stream_data=db_session, notify_action='resume')).start()
+            # Check if any notification agents have notifications enabled
+            if any(d['on_resume'] for d in notifiers.available_notification_agents()):
+                # Fire off notifications
+                threading.Thread(target=notification_handler.notify,
+                                 kwargs=dict(stream_data=db_session, notify_action='resume')).start()
 
     def on_buffer(self):
         if self.is_valid_session():
@@ -159,8 +169,11 @@ class ActivityHandler(object):
             if plexpy.CONFIG.BUFFER_THRESHOLD > 0 and (current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and \
                 time_since_last_trigger == 0 or time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT):
                 ap.set_session_buffer_trigger_time(session_key=self.get_session_key())
-                threading.Thread(target=notification_handler.notify,
-                                 kwargs=dict(stream_data=db_stream, notify_action='buffer')).start()
+
+                # Check if any notification agents have notifications enabled
+                if any(d['on_buffer'] for d in notifiers.available_notification_agents()):
+                    threading.Thread(target=notification_handler.notify,
+                                     kwargs=dict(stream_data=db_stream, notify_action='buffer')).start()
 
     # This function receives events from our websocket connection
     def process(self):
@@ -202,10 +215,17 @@ class ActivityHandler(object):
 
                 # Monitor if the stream has reached the watch percentage for notifications
                 # The only purpose of this is for notifications
-                progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
-                if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and this_state != 'buffering':
-                    threading.Thread(target=notification_handler.notify,
-                                     kwargs=dict(stream_data=db_session, notify_action='watched')).start()
+                # Check if any notification agents have notifications enabled
+                notify_agents = [d['id'] for d in notifiers.available_notification_agents() if d['on_watched']]
+                # Get the current states for notifications from our db
+                notified_agents = [d['agent_id'] for d in notification_handler.get_notify_state(session=db_session)
+                                   if d['notify_action'] == 'watched'] if notify_agents else []
+
+                if any(a not in notified_agents for a in notify_agents):
+                    progress_percent = helpers.get_percent(self.timeline['viewOffset'], db_session['duration'])
+                    if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and this_state != 'buffering':
+                        # Rather not put this on it's own thread so we know it completes before our next event.
+                        notification_handler.notify(stream_data=db_session, notify_action='watched')
 
             else:
                 # We don't have this session in our table yet, start a new one.

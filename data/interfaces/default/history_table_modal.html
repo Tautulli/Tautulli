@@ -5,12 +5,12 @@
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
             <h4 class="modal-title" id="myModalLabel">
                 <strong><span id="modal_header_ip_address">
-                    <i class="fa fa-history"></i> History for <span id="date-header">${data}</span>
+                    <i class="fa fa-history"></i> History for <span id="date-header">${data['start_date']}</span>
                 </span></strong>
             </h4>
         </div>
         <div class="modal-body" id="modal-text">
-            <table class="display" id="history_table" width="100%">
+            <table class="display history_table" id="history_table_modal" width="100%">
                 <thead>
                 <tr>
                     <th align="left" id="started">Started</th>
@@ -32,7 +32,7 @@
 <script src="interfaces/default/js/tables/history_table_modal.js"></script>
 <script>
     $(document).ready(function() {
-        $('#date-header').html(moment('${data}','YYYY-MM-DD').format('ddd MMM Do YYYY'));
+        $('#date-header').html(moment('${data["start_date"]}','YYYY-MM-DD').format('ddd MMM Do YYYY'));
         history_table_modal_options.ajax = {
             url: 'get_history',
             type: 'post',
@@ -40,14 +40,16 @@
                 return {
                     json_data: JSON.stringify(d),
                     grouping: false,
-                    start_date: '${data}'
-                };
+                    start_date: "${data['start_date']}",
+                    media_type: "${data.get('media_type')}",
+                    transcode_decision: "${data.get('transcode_decision')}"
+            };
             }
         }
 
-        history_table = $('#history_table').DataTable(history_table_modal_options);
+        history_table = $('#history_table_modal').DataTable(history_table_modal_options);
         
-        clearSearchButton('history_table', history_table);
+        clearSearchButton('history_table_modal', history_table);
 
         // Move #info-modal to parent container
         if (!($('#history-modal').next().is('#info-modal'))) {

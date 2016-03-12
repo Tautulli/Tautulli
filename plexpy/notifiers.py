@@ -75,7 +75,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.GROWL_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.GROWL_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.GROWL_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.GROWL_ON_INTUP
+               'on_intup': plexpy.CONFIG.GROWL_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.GROWL_ON_PMSUPDATE
                },
               {'name': 'Prowl',
                'id': AGENT_IDS['Prowl'],
@@ -92,7 +93,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.PROWL_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.PROWL_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PROWL_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.PROWL_ON_INTUP
+               'on_intup': plexpy.CONFIG.PROWL_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PROWL_ON_PMSUPDATE
                },
               {'name': 'XBMC',
                'id': AGENT_IDS['XBMC'],
@@ -109,7 +111,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.XBMC_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.XBMC_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.XBMC_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.XBMC_ON_INTUP
+               'on_intup': plexpy.CONFIG.XBMC_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.XBMC_ON_PMSUPDATE
                },
               {'name': 'Plex',
                'id': AGENT_IDS['Plex'],
@@ -126,7 +129,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PLEX_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.PLEX_ON_INTUP
+               'on_intup': plexpy.CONFIG.PLEX_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PLEX_ON_PMSUPDATE
                },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
@@ -143,7 +147,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.NMA_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.NMA_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.NMA_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.NMA_ON_INTUP
+               'on_intup': plexpy.CONFIG.NMA_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.NMA_ON_PMSUPDATE
                },
               {'name': 'Pushalot',
                'id': AGENT_IDS['Pushalot'],
@@ -160,7 +165,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.PUSHALOT_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.PUSHALOT_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PUSHALOT_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.PUSHALOT_ON_INTUP
+               'on_intup': plexpy.CONFIG.PUSHALOT_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PUSHALOT_ON_PMSUPDATE
                },
               {'name': 'Pushbullet',
                'id': AGENT_IDS['Pushbullet'],
@@ -177,7 +183,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.PUSHBULLET_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.PUSHBULLET_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PUSHBULLET_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.PUSHBULLET_ON_INTUP
+               'on_intup': plexpy.CONFIG.PUSHBULLET_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PUSHBULLET_ON_PMSUPDATE
                },
               {'name': 'Pushover',
                'id': AGENT_IDS['Pushover'],
@@ -194,7 +201,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.PUSHOVER_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.PUSHOVER_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PUSHOVER_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.PUSHOVER_ON_INTUP
+               'on_intup': plexpy.CONFIG.PUSHOVER_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PUSHOVER_ON_PMSUPDATE
                },
               {'name': 'Boxcar2',
                'id': AGENT_IDS['Boxcar2'],
@@ -211,7 +219,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.BOXCAR_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.BOXCAR_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.BOXCAR_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.BOXCAR_ON_INTUP
+               'on_intup': plexpy.CONFIG.BOXCAR_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.BOXCAR_ON_PMSUPDATE
                },
               {'name': 'E-mail',
                'id': AGENT_IDS['Email'],
@@ -228,7 +237,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.EMAIL_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.EMAIL_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.EMAIL_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.EMAIL_ON_INTUP
+               'on_intup': plexpy.CONFIG.EMAIL_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.EMAIL_ON_PMSUPDATE
                },
               {'name': 'Twitter',
                'id': AGENT_IDS['Twitter'],
@@ -245,7 +255,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.TWITTER_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.TWITTER_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.TWITTER_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.TWITTER_ON_INTUP
+               'on_intup': plexpy.CONFIG.TWITTER_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.TWITTER_ON_PMSUPDATE
                },
               {'name': 'IFTTT',
                'id': AGENT_IDS['IFTTT'],
@@ -262,7 +273,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.IFTTT_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.IFTTT_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.IFTTT_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.IFTTT_ON_INTUP
+               'on_intup': plexpy.CONFIG.IFTTT_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.IFTTT_ON_PMSUPDATE
                },
               {'name': 'Telegram',
                'id': AGENT_IDS['Telegram'],
@@ -279,7 +291,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.TELEGRAM_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.TELEGRAM_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.TELEGRAM_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.TELEGRAM_ON_INTUP
+               'on_intup': plexpy.CONFIG.TELEGRAM_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.TELEGRAM_ON_PMSUPDATE
                },
               {'name': 'Slack',
                'id': AGENT_IDS['Slack'],
@@ -296,7 +309,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.SLACK_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.SLACK_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.SLACK_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.SLACK_ON_INTUP
+               'on_intup': plexpy.CONFIG.SLACK_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.SLACK_ON_PMSUPDATE
                },
               {'name': 'Scripts',
                'id': AGENT_IDS['Scripts'],
@@ -313,7 +327,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN,
                'on_extup': plexpy.CONFIG.SCRIPTS_ON_EXTUP,
                'on_intdown': plexpy.CONFIG.SCRIPTS_ON_INTDOWN,
-               'on_intup': plexpy.CONFIG.SCRIPTS_ON_INTUP
+               'on_intup': plexpy.CONFIG.SCRIPTS_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE
               },
               {'name': 'Facebook',
                'id': AGENT_IDS['Facebook'],
@@ -330,7 +345,8 @@ def available_notification_agents():
                'on_extdown': plexpy.CONFIG.FACEBOOK_ON_EXTDOWN,
                'on_intdown': plexpy.CONFIG.FACEBOOK_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.FACEBOOK_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.FACEBOOK_ON_INTUP
+               'on_intup': plexpy.CONFIG.FACEBOOK_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.FACEBOOK_ON_PMSUPDATE
                }
               ]
 
@@ -352,7 +368,8 @@ def available_notification_agents():
                        'on_extdown': plexpy.CONFIG.OSX_NOTIFY_ON_EXTDOWN,
                        'on_intdown': plexpy.CONFIG.OSX_NOTIFY_ON_INTDOWN,
                        'on_extup': plexpy.CONFIG.OSX_NOTIFY_ON_EXTUP,
-                       'on_intup': plexpy.CONFIG.OSX_NOTIFY_ON_INTUP
+                       'on_intup': plexpy.CONFIG.OSX_NOTIFY_ON_INTUP,
+                       'on_pmsupdate': plexpy.CONFIG.OSX_NOTIFY_ON_PMSUPDATE
                        })
 
     return agents
@@ -1266,7 +1283,7 @@ class TwitterNotifier(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
-                          'description': 'Step 1: Visit <a href="https://apps.twitter.com/" target="_blank"> \
+                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://apps.twitter.com') + '" target="_blank"> \
                                           Twitter Apps</a> to <strong>Create New App</strong>. A vaild "Website" is not required.<br>\
                                           Step 2: Go to <strong>Keys and Access Tokens</strong> and click \
                                           <strong>Create my access token</strong>.<br>\
@@ -1301,7 +1318,7 @@ class TwitterNotifier(object):
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'twitter_incl_subject',
-                          'description': 'Include the subject line in the notifications.',
+                          'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1625,7 +1642,8 @@ class IFTTT(object):
         config_option = [{'label': 'Ifttt Maker Channel Key',
                           'value': self.apikey,
                           'name': 'ifttt_key',
-                          'description': 'Your Ifttt  key. You can get a key from <a href="https://ifttt.com/maker" target="_blank">here</a>.',
+                          'description': 'Your Ifttt  key. You can get a key from'
+                                         ' <a href="' + helpers.anon_url('https://ifttt.com/maker') + '" target="_blank">here</a>.',
                           'input_type': 'text'
                           },
                          {'label': 'Ifttt Event',
@@ -1699,19 +1717,23 @@ class TELEGRAM(object):
         config_option = [{'label': 'Telegram Bot Token',
                           'value': self.bot_token,
                           'name': 'telegram_bot_token',
-                          'description': 'Your Telegram bot token. Contact <a href="http://telegram.me/BotFather" target="_blank">@BotFather</a> on Telegram to get one.',
+                          'description': 'Your Telegram bot token. '
+                                         'Contact <a href="' + helpers.anon_url('https://telegram.me/BotFather') + '" target="_blank">@BotFather</a>'
+                                         ' on Telegram to get one.',
                           'input_type': 'text'
                           },
                          {'label': 'Telegram Chat ID, Group ID, or Channel Username',
                           'value': self.chat_id,
                           'name': 'telegram_chat_id',
-                          'description': 'Your Telegram Chat ID, Group ID, or @channelusername. Contact <a href="http://telegram.me/myidbot" target="_blank">@myidbot</a> on Telegram to get an ID.',
+                          'description': 'Your Telegram Chat ID, Group ID, or @channelusername. '
+                                         'Contact <a href="' + helpers.anon_url('https://telegram.me/myidbot') + '" target="_blank">@myidbot</a>'
+                                         ' on Telegram to get an ID.',
                           'input_type': 'text'
                           },
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'telegram_incl_subject',
-                          'description': 'Include the subject line in the notifications.',
+                          'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1809,7 +1831,7 @@ class SLACK(object):
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'slack_incl_subject',
-                          'description': 'Include the subject line in the notifications.',
+                          'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1880,14 +1902,14 @@ class Scripts(object):
         elif notify_action == 'resume':
             script = plexpy.CONFIG.SCRIPTS_ON_RESUME_SCRIPT
 
+        elif notify_action == 'watched':
+            script = plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT
+
         elif notify_action == 'buffer':
             script = plexpy.CONFIG.SCRIPTS_ON_BUFFER_SCRIPT
 
-        elif notify_action == 'extdown':
-            script = plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT
-
-        elif notify_action == 'extup':
-            script = plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT
+        elif notify_action == 'created':
+            script = plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT
 
         elif notify_action == 'intdown':
             script = plexpy.CONFIG.SCRIPTS_ON_INTDOWN_SCRIPT
@@ -1895,11 +1917,14 @@ class Scripts(object):
         elif notify_action == 'intup':
             script = plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT
 
-        elif notify_action == 'created':
-            script = plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT
+        elif notify_action == 'extdown':
+            script = plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT
 
-        elif notify_action == 'watched':
-            script = plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT
+        elif notify_action == 'extup':
+            script = plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT
+
+        elif notify_action == 'pmsupdate':
+            script = plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE_SCRIPT
 
         else:
             # For manual scripts
@@ -2041,17 +2066,24 @@ class Scripts(object):
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'Plex Remote Access Down',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT,
-                          'name': 'scripts_on_extdown_script',
-                          'description': 'Choose the script for Plex remote access down.',
-                          'input_type': 'select',
-                          'select_options': self.list_scripts()
-                          },
                          {'label': 'Plex Server Down',
                           'value': plexpy.CONFIG.SCRIPTS_ON_INTDOWN_SCRIPT,
                           'name': 'scripts_on_intdown_script',
                           'description': 'Choose the script for Plex server down.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'Plex Server Back Up',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT,
+                          'name': 'scripts_on_intup_script',
+                          'description': 'Choose the script for Plex server back up.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'Plex Remote Access Down',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT,
+                          'name': 'scripts_on_extdown_script',
+                          'description': 'Choose the script for Plex remote access down.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
@@ -2062,10 +2094,10 @@ class Scripts(object):
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
-                         {'label': 'Plex Server Back Up',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT,
-                          'name': 'scripts_on_intup_script',
-                          'description': 'Choose the script for Plex server back up.',
+                         {'label': 'Plex Update Available',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE_SCRIPT,
+                          'name': 'scripts_on_pmsupdate_script',
+                          'description': 'Choose the script for Plex update available.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           }
@@ -2082,6 +2114,7 @@ class FacebookNotifier(object):
         self.app_id = plexpy.CONFIG.FACEBOOK_APP_ID
         self.app_secret = plexpy.CONFIG.FACEBOOK_APP_SECRET
         self.group_id = plexpy.CONFIG.FACEBOOK_GROUP
+        self.incl_pmslink = plexpy.CONFIG.FACEBOOK_INCL_PMSLINK
         self.incl_poster = plexpy.CONFIG.FACEBOOK_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.FACEBOOK_INCL_SUBJECT
 
@@ -2139,10 +2172,27 @@ class FacebookNotifier(object):
                 poster_url = metadata.get('poster_url','')
 
                 if poster_url:
-                    if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show':
+                    if metadata['media_type'] == 'movie':
                         title = metadata['title']
                         subtitle = metadata['year']
                         rating_key = metadata['rating_key']
+                        if metadata.get('imdb_url',''):
+                            poster_link = metadata.get('imdb_url', '')
+                            caption = 'View on IMDB.'
+                        elif metadata.get('themoviedb_url',''):
+                            poster_link = metadata.get('themoviedb_url', '')
+                            caption = 'View on The Movie Database.'
+
+                    elif metadata['media_type'] == 'show':
+                        title = metadata['title']
+                        subtitle = metadata['year']
+                        rating_key = metadata['rating_key']
+                        if metadata.get('thetvdb_url',''):
+                            poster_link = metadata.get('thetvdb_url', '')
+                            caption = 'View on TheTVDB.'
+                        elif metadata.get('themoviedb_url',''):
+                            poster_link = metadata.get('themoviedb_url', '')
+                            caption = 'View on The Movie Database.'
 
                     elif metadata['media_type'] == 'episode':
                         title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
@@ -2150,26 +2200,44 @@ class FacebookNotifier(object):
                                                    '\xc2\xb7'.decode('utf8'),
                                                    metadata['media_index'])
                         rating_key = metadata['rating_key']
+                        if metadata.get('thetvdb_url',''):
+                            poster_link = metadata.get('thetvdb_url', '')
+                            caption = 'View on TheTVDB.'
+                        elif metadata.get('themoviedb_url',''):
+                            poster_link = metadata.get('themoviedb_url', '')
+                            caption = 'View on The Movie Database.'
 
                     elif metadata['media_type'] == 'artist':
                         title = metadata['title']
                         subtitle = ''
                         rating_key = metadata['rating_key']
+                        if metadata.get('lastfm_url',''):
+                            poster_link = metadata.get('lastfm_url', '')
+                            caption = 'View on Last.fm.'
 
                     elif metadata['media_type'] == 'track':
                         title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
                         subtitle = metadata['parent_title']
                         rating_key = metadata['parent_rating_key']
-
-                    caption = 'View in Plex Web.'
+                        if metadata.get('lastfm_url',''):
+                            poster_link = metadata.get('lastfm_url', '')
+                            caption = 'View on Last.fm.'
 
                     # Build Facebook post attachment
-                    attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
-                                         '/details/%2Flibrary%2Fmetadata%2F' + rating_key
+                    if self.incl_pmslink:
+                        caption = 'View on Plex Web.'
+                        attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
+                                             '/details/%2Flibrary%2Fmetadata%2F' + rating_key
+                        attachment['caption'] = caption
+                    elif poster_link:
+                        attachment['link'] = poster_link
+                        attachment['caption'] = caption
+                    else:
+                        attachment['link'] = poster_url
+
                     attachment['picture'] = poster_url
                     attachment['name'] = title
                     attachment['description'] = subtitle
-                    attachment['caption'] = caption
 
             try:
                 api.put_wall_post(profile_id=self.group_id, message=message, attachment=attachment)
@@ -2186,7 +2254,7 @@ class FacebookNotifier(object):
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
                           'description': '<strong>Facebook notifications are currently experimental!</strong><br><br> \
-                                          Step 1: Visit <a href="https://developers.facebook.com/apps/" target="_blank"> \
+                                          Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank"> \
                                           Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>\
                                           Step 2: Go to <strong>Settings > Basic</strong> and fill in a \
                                           <strong>Contact Email</strong>.<br>\
@@ -2195,7 +2263,7 @@ class FacebookNotifier(object):
                                           Step 4: Go to <strong>App Review</strong> and toggle public to <strong>Yes</strong>.<br>\
                                           Step 5: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
                                           Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
-                                          Step 7: Click the <strong>Request Authorization</strong> button below.<br> \
+                                          Step 7: Click the <strong>Request Authorization</strong> button below.<br>\
                                           Step 8: Fill in the <strong>Group ID</strong> below.',
                           'input_type': 'help'
                           },
@@ -2232,13 +2300,20 @@ class FacebookNotifier(object):
                          {'label': 'Include Poster Image',
                           'value': self.incl_poster,
                           'name': 'facebook_incl_poster',
-                          'description': 'Include a poster and link in the notifications.',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Link to Plex Web',
+                          'value': self.incl_pmslink,
+                          'name': 'facebook_incl_pmslink',
+                          'description': 'Include a link to the media in Plex Web with the notifications.<br>'
+                                         'If disabled, the link will go to IMDB, TVDB, TMDb, or Last.fm instead, if available.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'facebook_incl_subject',
-                          'description': 'Include the subject line in the notifications.',
+                          'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]

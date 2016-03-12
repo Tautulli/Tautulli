@@ -882,10 +882,11 @@ a .dashboard-activity-metadata-user-thumb:hover {
 }
 .dashboard-recent-media-row {
     width: 100%;
-    margin:0 auto;
+    margin: 0 auto;
     text-align: center;
     position: relative;
     z-index: 0;
+    overflow: hidden;
 }
 .dashboard-recent-media {
     width: 100%;
@@ -2407,6 +2408,9 @@ a .home-platforms-instance-list-oval:hover,
     padding: 0;
     border: 0;
 }
+.history-thumbnail-popover.popover.left {
+    margin-left: -15px;
+}
 .history-thumbnail-popover.popover.right {
     margin-left: 15px;
 }
@@ -2655,6 +2659,7 @@ table[id^='media_info_child'] table[id^='media_info_child'] thead th {
     margin: 5px 0 0 0.5em;
 }
 .notification-params {
+    width: 100%;
     margin-top: 10px;
     background-color: #282828;
 }
@@ -2668,6 +2673,14 @@ table[id^='media_info_child'] table[id^='media_info_child'] thead th {
 .notification-params td:first-child {
     padding-left: 10px;
     width: 200px;
+}
+.notification-params.time-options td:first-child {
+    padding-left: 10px;
+    width: 125px;
+}
+.notification-params.time-options td:nth-child(2) {
+    padding-left: 10px;
+    width: 275px;
 }
 .notification-params td:not(:first-child) {
     padding-right: 10px;
@@ -2758,4 +2771,22 @@ a.no-highlight:hover {
 }
 .save-button {
     margin-top: 15px;
+}
+.nav-dashboard > li {
+    float: left;
+}
+.btn-gray.disabled,
+.btn-gray.disabled:focus,
+.btn-gray.disabled:hover,
+.btn-gray.disabled:active {
+    color: #323232;
+    cursor: default;
+}
+.nav-header > li > a:focus,
+.nav-header > li > a:hover {
+    background-color: transparent;
+}
+#recently-added-row-scroller,
+#recently-watched-row-scroller {
+    position: relative;
 }

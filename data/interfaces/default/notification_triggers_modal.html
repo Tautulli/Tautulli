@@ -92,6 +92,13 @@ from plexpy import helpers
                             </label>
                             <p class="help-block">Trigger notification when the Plex Media Server can be reached externally after being down.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_pmsupdate" ${helpers.checked(data['on_pmsupdate'])} class="toggle-switches">
+                                Notify on Plex update available
+                            </label>
+                            <p class="help-block">Trigger notification when an update for the Plex Media Server is available.</p>
+                        </div>
                     </div>
                 </div>
             </div>

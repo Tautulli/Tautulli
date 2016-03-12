@@ -43,7 +43,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                 <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Plex Media Server</a></li>
                 <li role="presentation"><a href="#tabs-6" aria-controls="tabs-6" role="tab" data-toggle="tab">Plex.tv Account</a></li>
                 <li role="presentation"><a href="#tabs-7" aria-controls="tabs-7" role="tab" data-toggle="tab">Extra Settings</a></li>
-                <li role="presentation"><a href="#tabs-8" aria-controls="tabs-8" role="tab" data-toggle="tab">Monitoring</a></li>
+                <li role="presentation"><a href="#tabs-8" aria-controls="tabs-8" role="tab" data-toggle="tab">Activity Monitoring</a></li>
                 <li role="presentation"><a href="#tabs-9" aria-controls="tabs-9" role="tab" data-toggle="tab">Notifications</a></li>
                 <li role="presentation"><a href="#tabs-10" aria-controls="tabs-10" role="tab" data-toggle="tab">Notification Agents</a></li>
             </ul>
@@ -82,15 +82,15 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td>Backup Directory:</td>
-                                    <td>${plexpy.CONFIG.BACKUP_DIR}</td>
+                                    <td>${config['backup_dir']}</td>
                                 </tr>
                                 <tr>
                                     <td>Cache Directory:</td>
-                                    <td>${plexpy.CONFIG.CACHE_DIR}</td>
+                                    <td>${config['cache_dir']}</td>
                                 </tr>
                                 <tr>
                                     <td>Log Directory:</td>
-                                    <td>${plexpy.CONFIG.LOG_DIR}</td>
+                                    <td>${config['log_dir']}</td>
                                 </tr>
                                 % if plexpy.ARGS:
                                 <tr>
@@ -169,6 +169,35 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Group successive play history by the same user as a single entry in the tables and watch statistics.</p>
                         </div>
+
+                        <div class="padded-header">
+                            <h3>Directories</h3>
+                        </div>
+                        <div class="form-group">
+                            <label for="backup_dir">Backup Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cache_dir">Cache Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="log_dir">Log Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
+                                </div>
+                            </div>
+                        </div>
+
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-2">
@@ -437,9 +466,24 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                     <div role="tabpanel" class="tab-pane" id="tabs-5">
 
                         <div class="padded-header">
-                            <h3>Plex Media Server</h3>
+                            <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">unknown</span></small></h3>
                         </div>
                         <p class="help-block">If you're using websocket monitoring, any server changes require a restart of PlexPy.</p>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
+                            </label>
+                            <p class="help-block">Enable to have PlexPy check if updates are available for the Plex Media Server.<br />
+                                Note: The Plex updater is broken on certain Plex Pass version of Plex Media Server. PlexPy will automatically disable checking for Plex updates if one of these versions is found.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
+                            </label>
+                            <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down.</p>
+                        </div>
+
                         <div class="form-group has-feedback" id="pms-ip-group">
                             <label for="pms_ip">Plex IP or Hostname</label>
                             <div class="row">
@@ -485,8 +529,9 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label for="pms_logs_folder">Logs Folder</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change">
+                                    <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^[^\~\%]" data-parsley-errors-container="#pms_logs_folder_error"  data-parsley-error-message="Shortcuts are not recognized.">
                                 </div>
+                                <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br />
                             <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
@@ -612,13 +657,6 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
                             </label>
                             <p class="help-block">Instead of polling the server at regular intervals let the server tell PlexPy when something happens.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="monitor_remote_access" name="monitor_remote_access" value="1" ${config['monitor_remote_access']}> Monitor Plex Remote Access
-                            </label>
-                            <span id="remoteAccessCheck" style="color: #eb8600; padding-left: 10px;"></span>
-                            <p class="help-block">Enable to have PlexPy check if remote access to the Plex Media Server goes down.</p>
                         </div>
 
                         <div class="padded-header">
@@ -749,8 +787,14 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label>
                                 <input type="checkbox" name="notify_recently_added_grandparent" id="notify_recently_added_grandparent" value="1" ${config['notify_recently_added_grandparent']}> Group notifications for recently added TV Shows or Music
                             </label>
-                            <p class="help-block">Enable to only get one TV Show or Artist notification for a batch of recently added Episodes or Tracks. Movies are unaffected.<br />
-                                Note: No Season/Episode or Album/Track metadata will be available.</p>
+                            <p class="help-block">
+                                Enable to only get one TV Show or Artist notification for a batch of recently added Episodes or Tracks. Movies are unaffected.<br />
+                                % if config['notify_recently_added_grandparent'] == 'Checked':
+                                <span id="notify_recently_added_grandparent_note" style="color: #eb8600;">Note: No Season/Episode or Album/Track metadata will be available.</span>
+                                % else:
+                                <span id="notify_recently_added_grandparent_note">Note: No Season/Episode or Album/Track metadata will be available.</span>
+                                % endif
+                            </p>
                         </div>
                         <div class="form-group">
                             <label for="notify_recently_added_delay">Notification Delay</label>
@@ -965,6 +1009,23 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     </li>
                                 </ul>
                             </li>
+                            <li>
+                                <div class="link"><i class="fa fa-refresh fa-fw"></i>&nbsp;Plex Update Available<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_pmsupdate_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_pmsupdate_subject_text" name="notify_on_pmsupdate_subject_text" value="${config['notify_on_pmsupdate_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_extup_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_pmsupdate_body_text" name="notify_on_pmsupdate_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_pmsupdate_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
                         </ul>
                         <ul id="accordion-scripts" class="accordion list-unstyled">
                             <li>
@@ -1025,24 +1086,45 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                     <h4 class="modal-title">Date &amp; Time Format Options</h4>
                 </div>
                 <div class="modal-body">
-                    <table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Year
+                                </th>
+                            </tr>
+                        </thead>
                         <tbody>
                             <tr>
-                                <td align="center" colspan="3"><h5>Year</h5></td>
-                            </tr>
-                            <tr>
                                 <td><strong>YYYY</strong></td>
-                                <td>Numeric, 4 digits</td>
+                                <td>Numeric, four digits</td>
                                 <td>Eg., 1999, 2003</td>
                             </tr>
                             <tr>
                                 <td><strong>YY</strong></td>
-                                <td>Numeric, 2 digits</td>
+                                <td>Numeric, two digits</td>
                                 <td>Eg., 99, 03</td>
                             </tr>
-
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
                             <tr>
-                                <td align="center" colspan="3"><h5>Month</h5></td>
+                                <th>
+                                    Month
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>MMMM</strong></td>
+                                <td>Textual, full</td>
+                                <td>January-December</td>
+                            </tr>
+                            <tr>
+                                <td><strong>MMM</strong></td>
+                                <td>Textual, three letters</td>
+                                <td>Jan-Dec</td>
                             </tr>
                             <tr>
                                 <td><strong>MM</strong></td>
@@ -1054,23 +1136,41 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <td>Numeric, without leading zeros</td>
                                 <td>1-12</td>
                             </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
                             <tr>
-                                <td><strong>MMMM</strong></td>
-                                <td>Textual full</td>
-                                <td>January-December</td>
+                                <th>
+                                    Day of the Year
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>DDDD</strong></td>
+                                <td>Numeric, with leading zeros</td>
+                                <td>001-365</td>
                             </tr>
                             <tr>
-                                <td><strong>MMM</strong></td>
-                                <td>Textual three letters</td>
-                                <td>Jan-Dec</td>
+                                <td><strong>DDD</strong></td>
+                                <td>Numeric, without leading zeros</td>
+                                <td>1-365</td>
                             </tr>
-
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
                             <tr>
-                                <td align="center" colspan="3"><h5>Day</h5></td>
+                                <th>
+                                    Day of the Month
+                                </th>
                             </tr>
+                        </thead>
+                        <tbody>
                             <tr>
-                                <td width="100"><strong>DD</strong></td>
-                                <td width="300">Numeric, with leading zeros</td>
+                                <td><strong>DD</strong></td>
+                                <td>Numeric, with leading zeros</td>
                                 <td>01-31</td>
                             </tr>
                             <tr>
@@ -1080,57 +1180,165 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </tr>
                             <tr>
                                 <td><strong>Do</strong></td>
-                                <td>The English suffix for the day of the month</td>
-                                <td>st, nd or th in the 1st, 2nd or 15th.</td>
+                                <td>Numeric, with suffix</td>
+                                <td>Eg., 1st, 2nd ... 31st.</td>
                             </tr>
-
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
                             <tr>
-                                <td align="center" colspan="3"><h5>Time</h5></td>
+                                <th>
+                                    Day of the Week
+                                </th>
                             </tr>
+                        </thead>
+                        <tbody>
                             <tr>
-                                <td><strong>a</strong></td>
-                                <td width="300">am/pm Lowercase</td>
-                                <td>am, pm</td>
-                            </tr>
-                            <tr>
-                                <td><strong>A</strong></td>
-                                <td>AM/PM Uppercase</td>
-                                <td>AM, PM</td>
-                            </tr>
-                            <tr>
-                                <td><strong>h</strong></td>
-                                <td>Hour, 12-hour, without leading zeros</td>
-                                <td>1-12</td>
+                                <td><strong>dddd</strong></td>
+                                <td>Textual, full</td>
+                                <td>Sunday-Saturday</td>
                             </tr>
                             <tr>
-                                <td><strong>hh</strong></td>
-                                <td>Hour, 12-hour, with leading zeros</td>
-                                <td>01-12</td>
+                                <td><strong>ddd</strong></td>
+                                <td>Textual, three letters</td>
+                                <td>Sun-Sat</td>
                             </tr>
                             <tr>
-                                <td><strong>H</strong></td>
-                                <td>Hour, 24-hour, without leading zeros</td>
-                                <td>0-23</td>
+                                <td><strong>d</strong></td>
+                                <td>Numeric</td>
+                                <td>0-6</td>
                             </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Hour
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             <tr>
                                 <td><strong>HH</strong></td>
-                                <td>Hour, 24-hour, with leading zeros</td>
+                                <td>24-hour, with leading zeros</td>
                                 <td>00-23</td>
                             </tr>
                             <tr>
+                                <td><strong>H</strong></td>
+                                <td>24-hour, without leading zeros</td>
+                                <td>0-23</td>
+                            </tr>
+                            <tr>
+                                <td><strong>hh</strong></td>
+                                <td>12-hour, with leading zeros</td>
+                                <td>01-12</td>
+                            </tr>
+                            <tr>
+                                <td><strong>h</strong></td>
+                                <td>12-hour, without leading zeros</td>
+                                <td>1-12</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Minute
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
                                 <td><strong>mm</strong></td>
-                                <td>Minutes, with leading zeros</td>
+                                <td>Numeric, with leading zeros</td>
                                 <td>00-59</td>
                             </tr>
+                            <tr>
+                                <td><strong>m</strong></td>
+                                <td>Numeric, without leading zeros</td>
+                                <td>0-59</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Second
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             <tr>
                                 <td><strong>ss</strong></td>
-                                <td>Seconds, with leading zeros</td>
+                                <td>Numeric, with leading zeros</td>
                                 <td>00-59</td>
                             </tr>
                             <tr>
-                                <td><strong>zz</strong></td>
-                                <td>Timezone abbreviation</td>
-                                <td>Eg., EST, MDT ...</td>
+                                <td><strong>s</strong></td>
+                                <td>Numeric, without leading zeros</td>
+                                <td>0-59</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    AM / PM
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>A</strong></td>
+                                <td>AM/PM uppercase</td>
+                                <td>AM, PM</td>
+                            </tr>
+                            <tr>
+                                <td><strong>a</strong></td>
+                                <td width="300">am/pm lowercase</td>
+                                <td>am, pm</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Timezone
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>ZZ</strong></td>
+                                <td>UTC offset</td>
+                                <td>Eg., +0100, -0700</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Z</strong></td>
+                                <td>UTC offset</td>
+                                <td>Eg., +01:00, -07:00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params time-options">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Timestamp
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>X</strong></td>
+                                <td>Unix timestamp</td>
+                                <td>Eg., 1456887825</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1214,6 +1422,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{server_uptime}</strong></td>
                                     <td>The uptime (in days, hours, mins, secs) of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{server_version}</strong></td>
+                                    <td>The current version of your Plex Server.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{action}</strong></td>
@@ -1407,7 +1619,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{artist_name}</strong></td>
-                                    <td>The name of the artistd.</td>
+                                    <td>The name of the artist.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{album_name}</strong></td>
@@ -1521,7 +1733,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{lastfm_url}</strong></td>
-                                    <td>The last.fm URL for the album.
+                                    <td>The Last.fm URL for the album.
                                     <p class="small-muted">(PMS agent must be Last.fm)</p></td>
                                 </tr>
                                 <tr>
@@ -1543,6 +1755,29 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <tr>
                                     <td><strong>{grandparent_rating_key}</strong></td>
                                     <td>The unique identifier for the TV show or artist.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="notification-params">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Plex Update Available
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>{update_version}</strong></td>
+                                    <td>The available update version for your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_url}</strong></td>
+                                    <td>The available update download URL.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_changelog}</strong></td>
+                                    <td>The changelog for the available update.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1650,10 +1885,11 @@ $(document).ready(function() {
     authChanged = false;
     httpChanged = false;
     monitorChanged = false;
+    directoryChanged = false;
 
     // Alert the user that their changes require a restart.
     function postSaveChecks() {
-        if ((serverChanged && $('#monitoring_use_websocket').is(":checked")) || authChanged || httpChanged || monitorChanged) {
+        if ((serverChanged && $('#monitoring_use_websocket').is(":checked")) || authChanged || httpChanged || monitorChanged || directoryChanged) {
           $('#restart-modal').modal('show');
         }
     }
@@ -1764,6 +2000,10 @@ $(document).ready(function() {
 
     $( ".monitor-settings" ).change(function() {
         monitorChanged = true;
+    });
+
+    $( ".directory-settings" ).change(function() {
+        directoryChanged = true;
     });
 
     $( ".pms-settings" ).change(function() {
@@ -1899,49 +2139,61 @@ $(document).ready(function() {
         $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { showMsg("<div class='msg'><span class='ui-icon ui-icon-check'></span>" + data + "</div>", false, true, 3000); });
     })
 
+    pms_version = false;
+    pms_logs_debug = false;
+    pms_logs = false;
+
+    // Checks to see if PMS server version is >= 0.9.14 with automaatically logged IP addresses
     $.ajax({
         url: 'get_server_identity',
         async: true,
         success: function(data) {
-            var version = data.version.split('.')
-            if (parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
+            if (data.version){ $("#pms_version").text(data.version); }
+            var version = (data.version ? data.version.split('.') : null);
+            if (version && parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
                 $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
                 $("#ip_logging_enable").attr("disabled", true);
                 $("#ip_logging_enable").attr("checked", true);
+                pms_version = true;
+                checkLogsPath();
             } else {
+                // Check to see if debug logs are enabled on the PMS.
                 $.ajax({
                     url: 'get_server_pref',
                     data: { pref: 'logDebug' },
                     async: true,
                     success: function(data) {
-                        if (data !== 'true') {
-                            $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server')}'>Click here</a> for help.");
-                            $("#ip_logging_enable").attr("disabled", true);
-                            $("#ip_logging_enable").attr("checked", false);
-                        }
+                        pms_logs_debug = (data == 'true' ? true : false);
+                        // Check to see if our logs folder is set before allowing IP logging to be enabled.
+                        checkLogsPath();
                     }
                 });
-
-                // Check to see if our logs folder is set before allowing IP logging to be enabled.
-                checkLogsPath();
-
-                $("#pms_logs_folder").change(function() {
-                    checkLogsPath();
-                });
-
-                function checkLogsPath() {
-                    if ($("#pms_logs_folder").val() == '') {
-                        $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Plex Media Server tab.");
-                        $("#ip_logging_enable").attr("disabled", true);
-                        $("#ip_logging_enable").attr("checked", false);
-                    } else {
-                        $("#ip_logging_enable").attr("disabled", false);
-                        $("#debugLogCheck").html("");
-                    }
-                }
             }
         }
     });
+
+    $("#pms_logs_folder").change(function() {
+        checkLogsPath();
+    });
+
+    function checkLogsPath() {
+        pms_logs = ($("#pms_logs_folder").val() == '' ? false : true);
+        // Toggle IP logging checkbox depending on debug logs, and logs path
+        if (!(pms_version)) {
+            if (pms_logs_debug && pms_logs) {
+                $("#ip_logging_enable").attr("disabled", false);
+                $("#debugLogCheck").html("");
+            } else if (!(pms_logs_debug)) {
+                $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server')}'>Click here</a> for help.");
+                $("#ip_logging_enable").attr("disabled", true);
+                $("#ip_logging_enable").attr("checked", false);
+            } else {
+                $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Plex Media Server tab.");
+                $("#ip_logging_enable").attr("disabled", true);
+                $("#ip_logging_enable").attr("checked", false);
+            }
+        }
+    }
 
     $.ajax({
         url: 'get_server_pref',
@@ -2055,6 +2307,10 @@ $(document).ready(function() {
     }
     getSchedulerTable();
 
+    $("#notify_recently_added_grandparent").change(function () {
+        var c = this.checked ? '#eb8600' : '#737373';
+        $('#notify_recently_added_grandparent_note').css('color', c);
+    });
 });
 </script>
 </%def>

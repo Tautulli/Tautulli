@@ -8,7 +8,7 @@ user_ip_table_options = {
         "infoFiltered":"(filtered from _MAX_ total entries)",
         "emptyTable": "No data in table",
     },
-    "stateSave": false,
+    "stateSave": true,
     "pagingType": "bootstrap",
     "processing": false,
     "serverSide": true,
@@ -56,7 +56,7 @@ user_ip_table_options = {
                 }
             },
             "width": "15%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+            "className": "no-wrap hidden-md hidden-sm hidden-xs"
         },
         {
             "targets": [3],
@@ -64,11 +64,11 @@ user_ip_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
                     var transcode_dec = '';
-                    if (rowData['video_decision'] === 'transcode' || rowData['audio_decision'] === 'transcode') {
+                    if (rowData['transcode_decision'] === 'transcode') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server fa-fw"></i></span>';
-                    } else if (rowData['video_decision'] === 'copy' || rowData['audio_decision'] === 'copy') {
+                    } else if (rowData['transcode_decision'] === 'copy') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Stream"><i class="fa fa-video-camera fa-fw"></i></span>';
-                    } else if (rowData['video_decision'] === 'direct play' || rowData['audio_decision'] === 'direct play') {
+                    } else if (rowData['transcode_decision'] === 'direct play') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>';
                     }
                     $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp' + cellData + '</div></a></div>');
@@ -146,11 +146,11 @@ user_ip_table_options = {
     }
 }
 
-$('#user_ip_table').on('mouseenter', 'td.modal-control span', function () {
+$('.user_ip_table').on('mouseenter', 'td.modal-control span', function () {
     $(this).tooltip();
 });
 
-$('#user_ip_table').on('click', 'td.modal-control', function () {
+$('.user_ip_table').on('click', 'td.modal-control', function () {
     var tr = $(this).parents('tr');
     var row = user_ip_table.row(tr);
     var rowData = row.data();
@@ -169,7 +169,7 @@ $('#user_ip_table').on('click', 'td.modal-control', function () {
     showStreamDetails();
 });
 
-$('#user_ip_table').on('click', 'td.modal-control-ip', function () {
+$('.user_ip_table').on('click', 'td.modal-control-ip', function () {
     var tr = $(this).parents('tr');
     var row = user_ip_table.row( tr );
     var rowData = row.data();

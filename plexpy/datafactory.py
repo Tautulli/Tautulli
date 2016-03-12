@@ -58,11 +58,10 @@ class DataFactory(object):
                    'session_history_metadata.thumb',
                    'session_history_metadata.parent_thumb',
                    'session_history_metadata.grandparent_thumb',
-                   'MAX((CASE WHEN view_offset IS NULL THEN 0.1 ELSE view_offset * 1.0 END) / \
-                    (CASE WHEN session_history_metadata.duration IS NULL THEN 1.0 \
-                    ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
-                   'session_history_media_info.video_decision',
-                   'session_history_media_info.audio_decision',
+                   'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
+                    (CASE WHEN (session_history_metadata.duration IS NULL OR session_history_metadata.duration = "") \
+                    THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
+                   'session_history_media_info.transcode_decision',
                    'COUNT(*) AS group_count',
                    'GROUP_CONCAT(session_history.id) AS group_ids'
                    ]
@@ -138,8 +137,7 @@ class DataFactory(object):
                    'media_index': item['media_index'],
                    'parent_media_index': item['parent_media_index'],
                    'thumb': thumb,
-                   'video_decision': item['video_decision'],
-                   'audio_decision': item['audio_decision'],
+                   'transcode_decision': item['transcode_decision'],
                    'percent_complete': int(round(item['percent_complete'])),
                    'watched_status': watched_status,
                    'group_count': item['group_count'],
@@ -626,24 +624,21 @@ class DataFactory(object):
 
                     title = 'Concurrent Transcodes'
                     query = base_query \
-                          + 'AND (session_history_media_info.video_decision = "transcode" ' \
-                            'OR session_history_media_info.audio_decision = "transcode") '
+                          + 'AND session_history_media_info.transcode_decision = "transcode" '
                     result = monitor_db.select(query)
                     if result:
                         most_concurrent.append(calc_most_concurrent(title, result))
 
                     title = 'Concurrent Direct Streams'
                     query = base_query \
-                          + 'AND (session_history_media_info.video_decision != "transcode" ' \
-                            'AND session_history_media_info.audio_decision = "copy") '
+                          + 'AND session_history_media_info.transcode_decision = "copy" '
                     result = monitor_db.select(query)
                     if result:
                         most_concurrent.append(calc_most_concurrent(title, result))
 
                     title = 'Concurrent Direct Plays'
                     query = base_query \
-                          + 'AND (session_history_media_info.video_decision = "direct play" ' \
-                            'OR session_history_media_info.audio_decision = "direct play") '
+                          + 'AND session_history_media_info.transcode_decision = "direct play" '
                     result = monitor_db.select(query)
                     if result:
                         most_concurrent.append(calc_most_concurrent(title, result))
@@ -828,6 +823,7 @@ class DataFactory(object):
                     'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS total_duration ' \
                     'FROM session_history ' \
                     'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
+                    'JOIN session_history_media_info ON session_history_media_info.id = session_history.id ' \
                     '%s ' % where
             result = monitor_db.select(query)
         except Exception as e:
@@ -860,16 +856,28 @@ class DataFactory(object):
 
         return ip_address
 
-    def get_poster_url(self, rating_key=''):
+    def get_poster_url(self, rating_key='', metadata=None):
         monitor_db = database.MonitorDatabase()
 
         poster_url = ''
+        poster_key = ''
 
         if rating_key:
+            poster_key = rating_key
+        elif metadata:
+            if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show' or \
+                metadata['media_type'] == 'artist' or metadata['media_type'] == 'album':
+                poster_key = metadata['rating_key']
+            elif metadata['media_type'] == 'episode':
+                poster_key = metadata['grandparent_rating_key']
+            elif metadata['media_type'] == 'season' or metadata['media_type'] == 'track':
+                poster_key = metadata['parent_rating_key']
+
+        if poster_key:
             try:
                 query = 'SELECT id, poster_url FROM notify_log ' \
                         'WHERE rating_key = %d OR parent_rating_key = %d OR grandparent_rating_key = %d ' \
-                        'ORDER BY id DESC LIMIT 1' % (int(rating_key), int(rating_key), int(rating_key))
+                        'ORDER BY id DESC LIMIT 1' % (int(poster_key), int(poster_key), int(poster_key))
                 result = monitor_db.select(query)
             except Exception as e:
                 logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_poster_url: %s." % e)
@@ -881,6 +889,16 @@ class DataFactory(object):
             poster_url = item['poster_url']
 
         return poster_url
+
+    def delete_poster_url(self, poster_url=''):
+        monitor_db = database.MonitorDatabase()
+
+        if poster_url:
+            logger.info(u"PlexPy DataFactory :: Deleting poster_url %s from the notify log database." % poster_url)
+            monitor_db.upsert('notify_log', {'poster_url': None}, {'poster_url': poster_url})
+            return 'Deleted poster_url %s.' % poster_url
+        else:
+            return 'Unable to delete poster_url.'
 
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()
@@ -1189,3 +1207,15 @@ class DataFactory(object):
                 }
 
         return dict
+
+    def delete_notification_log(self):
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            logger.info(u"PlexPy DataFactory :: Clearing notification logs from database.")
+            monitor_db.action('DELETE FROM notify_log')
+            monitor_db.action('VACUUM')
+            return 'Cleared notification logs.'
+        except Exception as e:
+            logger.warn(u"PlexPy DataFactory :: Unable to execute database query for delete_notification_log: %s." % e)
+            return 'Unable to clear notification logs.'
