@@ -44,7 +44,7 @@ def initialize(options):
             enable_https = False
 
     options_dict = {
-        'environment' :options['http_environment'],
+        'environment': options['http_environment'],
         'server.socket_port': options['http_port'],
         'server.socket_host': options['http_host'],
         'server.thread_pool': 10,
