@@ -179,6 +179,7 @@ def main():
     # Try to start the server. Will exit here is address is already in use.
     web_config = {
         'http_port': http_port,
+        'http_environment': plexpy.CONFIG.HTTP_ENVIRONMENT,
         'http_host': plexpy.CONFIG.HTTP_HOST,
         'http_root': plexpy.CONFIG.HTTP_ROOT,
         'http_proxy': plexpy.CONFIG.HTTP_PROXY,
