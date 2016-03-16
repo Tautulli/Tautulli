@@ -130,7 +130,6 @@ class ActivityProcessor(object):
                 stopped = int(time.time())
                 self.set_session_state(session_key=session['session_key'],
                                        state='stopped',
-                                       view_offset=session['viewOffset'],
                                        stopped=stopped)
 
             if plexpy.CONFIG.MOVIE_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
@@ -382,9 +381,10 @@ class ActivityProcessor(object):
 
         return None
 
-    def set_session_state(self, session_key=None, state=None, view_offset=0, **kwargs):
-        if str(session_key).isdigit() and str(view_offset).isdigit():
-            values = {'view_offset': int(view_offset)}
+    def set_session_state(self, session_key=None, state=None, **kwargs):
+        if str(session_key).isdigit():
+            values = {}
+
             if state:
                 values['state'] = state
 
