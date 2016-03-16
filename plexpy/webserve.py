@@ -2224,8 +2224,7 @@ class WebInterface(object):
                       'I need your clothes, your boots and your motorcycle.',
                       'No, it\'s not a tumor. It\'s not a tumor!',
                       'I LIED!',
-                      'See you at the party, Richter!',
-                      'Are you Sarah Conner?',
+                      'Are you Sarah Connor?',
                       'I\'m a cop you idiot!',
                       'Come with me if you want to live.',
                       'Who is your daddy and what does he do?'
