@@ -33,6 +33,8 @@ FILENAME = "plexpy.log"
 MAX_SIZE = 1000000 # 1 MB
 MAX_FILES = 5
 
+_BLACKLIST_WORDS = []
+
 # PlexPy logger
 logger = logging.getLogger("plexpy")
 
@@ -60,6 +62,26 @@ class NoThreadFilter(logging.Filter):
 
     def filter(self, record):
         return not record.threadName == self.threadName
+
+
+# Taken from Hellowlol/HTPC-Manager
+class BlacklistFilter(logging.Filter):
+    """
+    Log filter for blacklisted tokens and passwords
+    """
+    def __init__(self):
+        pass
+
+    def filter(self, record):
+        for item in _BLACKLIST_WORDS:
+            try:
+                if item in record.msg:
+                    record.msg = record.msg.replace(item[:-2], 8 * '*')
+                if any(item in str(arg) for arg in record.args):
+                    record.args = tuple(arg.replace(item[:-2], 8 * '*') for arg in record.args)
+            except:
+                pass
+        return True
 
 
 @contextlib.contextmanager
@@ -153,6 +175,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
     # Add list logger
     loglist_handler = LogListHandler()
     loglist_handler.setLevel(logging.DEBUG)
+    loglist_handler.addFilter(BlacklistFilter())
 
     logger.addHandler(loglist_handler)
 
@@ -164,6 +187,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
         file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(file_formatter)
+        file_handler.addFilter(BlacklistFilter())
 
         logger.addHandler(file_handler)
 
@@ -173,6 +197,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(console_formatter)
         console_handler.setLevel(logging.DEBUG)
+        console_handler.addFilter(BlacklistFilter())
 
         logger.addHandler(console_handler)
 

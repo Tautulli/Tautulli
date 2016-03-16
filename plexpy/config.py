@@ -432,6 +432,9 @@ _CONFIG_DEFINITIONS = {
     'XBMC_ON_PMSUPDATE': (int, 'XBMC', 0)
 }
 
+_BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID']
+_WHITELIST_KEYS = ['HTTPS_KEY', 'UPDATE_SECTION_IDS']
+
 
 # pylint:disable=R0902
 # it might be nice to refactor for fewer instance variables
@@ -445,6 +448,18 @@ class Config(object):
         for key in _CONFIG_DEFINITIONS.keys():
             self.check_setting(key)
         self._upgrade()
+        self._blacklist()
+
+    def _blacklist(self):
+        """ Add tokens and passwords to blacklisted words in logger """
+        blacklist = []
+
+        for key, subkeys in self._config.iteritems():
+            for subkey, value in subkeys.iteritems():
+                if value and subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
+                    blacklist.append(value)
+
+        plexpy.logger._BLACKLIST_WORDS = blacklist
 
     def _define(self, name):
         key = name.upper()
@@ -503,6 +518,8 @@ class Config(object):
             new_config.write()
         except IOError as e:
             plexpy.logger.error("Error writing configuration file: %s", e)
+
+        self._blacklist()
 
     def __getattr__(self, name):
         """
