@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.3.11 (2016-03-15)
+
+* Fix: Typo preventing history logging for websockets.
+
+
 ## v1.3.10 (2016-03-12)
 
 * Fix: Actually allow HTML tags for Pushover.
