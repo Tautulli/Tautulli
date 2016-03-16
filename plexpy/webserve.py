@@ -1308,7 +1308,8 @@ class WebInterface(object):
         refresh_users = False
 
         # If we change any monitoring settings, make sure we reschedule tasks.
-        if kwargs.get('monitoring_interval') != str(plexpy.CONFIG.MONITORING_INTERVAL) or \
+        if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
+            kwargs.get('monitoring_interval') != str(plexpy.CONFIG.MONITORING_INTERVAL) or \
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
             kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
             kwargs.get('notify_recently_added') != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED or \
