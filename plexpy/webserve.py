@@ -1261,7 +1261,8 @@ class WebInterface(object):
             "home_library_cards": json.dumps(plexpy.CONFIG.HOME_LIBRARY_CARDS),
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT,
-            "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES)
+            "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES),
+            "git_token": plexpy.CONFIG.GIT_TOKEN
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)

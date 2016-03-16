@@ -142,6 +142,18 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">If you have Git installed, allow periodic checks for updates.</p>
                         </div>
+                        <div id="git_update_options">
+                            <div class="form-group">
+                                <label for="git_token">GitHub API Token</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="git_token" name="git_token" value="${config['git_token']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">Optional: Use your own GitHub API token when checking for updates.
+                            </div>
+                        </div>
+
                         <div class="padded-header">
                             <h3>Display Settings</h3>
                         </div>
@@ -1987,6 +1999,20 @@ $(document).ready(function() {
             $("#https_options_self-signed").slideDown();
         } else {
             $("#https_options_self-signed").slideUp();
+        }
+    });
+
+    if ($("#check_github").is(":checked")) {
+        $("#git_update_options").show();
+    } else {
+        $("#git_update_options").hide();
+    }
+
+    $("#check_github").click(function(){
+        if ($("#check_github").is(":checked")) {
+            $("#git_update_options").slideDown();
+        } else {
+            $("#git_update_options").slideUp();
         }
     });
 

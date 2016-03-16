@@ -111,6 +111,7 @@ _CONFIG_DEFINITIONS = {
     'GET_FILE_SIZES_HOLD': (dict, 'General', {'section_ids': [], 'rating_keys': []}),
     'GIT_BRANCH': (str, 'General', 'master'),
     'GIT_PATH': (str, 'General', ''),
+    'GIT_TOKEN': (str, 'General', ''),
     'GIT_USER': (str, 'General', 'drzoidberg33'),
     'GRAPH_TYPE': (str, 'General', 'plays'),
     'GRAPH_DAYS': (int, 'General', 30),
