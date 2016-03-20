@@ -111,12 +111,20 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td class="top-line"><a class="no-highlight" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program</a></td>
                                 </tr>
                                 <tr>
+                                    <td>Source:</td>
+                                    <td><a id="source-link" class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}" target="_blank">https://github.com/drzoidberg33/plexpy</a></td>
+                                </tr>
+                                <tr>
                                     <td>Wiki:</td>
                                     <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/wiki')}" target="_blank">https://github.com/drzoidberg33/plexpy/wiki</a></td>
                                 </tr>
                                 <tr>
-                                    <td>Source:</td>
-                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}" target="_blank">https://github.com/drzoidberg33/plexpy</a></td>
+                                    <td>Issues:</td>
+                                    <td><a class="no-highlight guidelines-modal-link" href="${anon_url('https://github.com/drzoidberg33/plexpy/issues')}" data-id="issue">https://github.com/drzoidberg33/plexpy/issues</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Feature Requests:</td>
+                                    <td><a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/drzoidberg33/plexpy')}" data-id="feature request">http://feathub.com/drzoidberg33/plexpy</a></td>
                                 </tr>
                                 <tr>
                                     <td>Gitter Chat:</td>
@@ -1870,6 +1878,26 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
             </div>
         </div>
     </div>
+    <div id="guidelines-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="guidelines-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Guidelines</h4>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                        <strong>Please read the <a href="#" target="_blank" id="guidelines-link">guidelines</a> in the README document <br />before submitting a new <span id="guidelines-type"></span>!</strong>
+                        <br /><br />
+                        Your post may be removed for failure to follow the guidelines.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" target="_blank" id="guidelines-continue" class="btn btn-bright">Continue</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </%def>
 
@@ -2337,6 +2365,17 @@ $(document).ready(function() {
         var c = this.checked ? '#eb8600' : '#737373';
         $('#notify_recently_added_grandparent_note').css('color', c);
     });
+
+    $('.guidelines-modal-link').on('click', function (e) {
+        e.preventDefault();
+        $('#guidelines-link').attr('href', $('#source-link').attr('href'));
+        $('#guidelines-type').text($(this).data('id'))
+        $('#guidelines-modal').modal();
+        $('#guidelines-continue').attr('href', $(this).attr('href')).on('click', function () {
+            $('#guidelines-modal').modal('hide');
+        });
+    });
+
 });
 </script>
 </%def>

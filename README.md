@@ -9,6 +9,7 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 * PlexPy [forum thread](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program)
 
 ## Features
+
 * Responsive web design viewable on desktop, tablet and mobile web browsers.
 * Themed to complement Plex/Web.
 * Easy configuration setup (no separate web server required).
@@ -65,13 +66,14 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 
 ## Feature Requests
 
-1. Search for similar existing 'issues', feature requests can be recognized by the blue `enhancement` label.
-2. If a similar request exists, post a comment (+1, or add a new idea to the existing request).
-3. If no similar requests exist, you can create a new one.
-4. Provide a clear title to easily identify the feature request.
-5. Tag your feature request with `[Feature Request]` so it can be identified easily.
+Feature requests are handled on [FeatHub](http://feathub.com/drzoidberg33/plexpy).
+
+1. Search the existing requests to see if your suggestion has already been submitted.
+2. If a similar request exists, give it a thumbs up (+1), or add additional comments to the request.
+3. If no similar requests exist, you can create a new one. Make sure to provide a clear title to easily identify the feature request.
 
 ## License
+
 This is free software under the GPL v3 open source license. Feel free to do with it what you wish, but any modification must be open sourced. A copy of the license is included.
 
 This software includes Highsoft software libraries which you may freely distribute for non-commercial use. Commerical users must licence this software, for more information visit https://shop.highsoft.com/faq/non-commercial#non-commercial-redistribution.
