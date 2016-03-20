@@ -552,7 +552,8 @@ def uploadToImgur(imgPath, imgTitle=''):
         response = json.loads(response.read())
     
         if response.get('status') == 200:
-            logger.debug(u"PlexPy Helpers :: Image uploaded to Imgur.")
+            t = '\'' + imgTitle + '\' ' if imgTitle else ''
+            logger.debug(u"PlexPy Helpers :: Image %suploaded to Imgur." % t)
             img_url = response.get('data').get('link', '')
         elif response.get('status') >= 400 and response.get('status') < 500:
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % response.reason)
