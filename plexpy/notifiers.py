@@ -2006,12 +2006,11 @@ class Scripts(object):
             logger.error(u"PlexPy Notifiers :: Failed to run script: %s" % e)
 
     def return_config_options(self):
-        config_option = [{'label': 'Warning',
-                          'description': '<strong>Script notifications are currently experimental!</strong><br><br>\
-                                          Supported file types: ' + ', '.join(self.script_exts),
+        config_option = [{'label': 'Supported File Types',
+                          'description': ', '.join(self.script_exts),
                           'input_type': 'help'
                           },
-                         {'label': 'Script folder',
+                         {'label': 'Script Folder',
                           'value': plexpy.CONFIG.SCRIPTS_FOLDER,
                           'name': 'scripts_folder',
                           'description': 'Add your script folder.',
@@ -2253,13 +2252,12 @@ class FacebookNotifier(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
-                          'description': '<strong>Facebook notifications are currently experimental!</strong><br><br> \
-                                          Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank"> \
+                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank"> \
                                           Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>\
                                           Step 2: Go to <strong>Settings > Basic</strong> and fill in a \
                                           <strong>Contact Email</strong>.<br>\
                                           Step 3: Go to <strong>Settings > Advanced</strong> and fill in \
-                                          <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (i.e. http://localhost:8181).<br>\
+                                          <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (e.g. http://localhost:8181).<br>\
                                           Step 4: Go to <strong>App Review</strong> and toggle public to <strong>Yes</strong>.<br>\
                                           Step 5: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
                                           Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
@@ -2270,7 +2268,8 @@ class FacebookNotifier(object):
                          {'label': 'PlexPy URL',
                           'value': self.redirect_uri,
                           'name': 'facebook_redirect_uri',
-                          'description': 'Your PlexPy URL. This will tell Facebook where to redirect you after authorization.',
+                          'description': 'Your PlexPy URL. This will tell Facebook where to redirect you after authorization.\
+                                          (e.g. http://localhost:8181)',
                           'input_type': 'text'
                           },
                          {'label': 'Facebook App ID',
