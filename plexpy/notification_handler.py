@@ -625,11 +625,14 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
 
         # If no previous poster_url
         if not poster_url and plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
-            # Retrieve the poster from Plex and cache to file
-            urllib.urlretrieve(plexpy.CONFIG.PMS_URL + thumb + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN,
-                               os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'))
-            # Upload thumb to Imgur and get link
-            poster_url = helpers.uploadToImgur(os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'), poster_title)
+            try:
+                # Retrieve the poster from Plex and cache to file
+                urllib.urlretrieve(plexpy.CONFIG.PMS_URL + thumb + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN,
+                                   os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'))
+                # Upload thumb to Imgur and get link
+                poster_url = helpers.uploadToImgur(os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'), poster_title)
+            except Exception as e:
+                logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(rating_key), e))
 
         metadata['poster_url'] = poster_url
 
