@@ -731,30 +731,6 @@ def dbcheck():
 
     # Upgrade notify_log table from earlier versions
     try:
-        c_db.execute('SELECT on_pause FROM notify_log')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table notify_log.")
-        c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN on_pause INTEGER'
-        )
-        c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN on_resume INTEGER'
-        )
-        c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN on_buffer INTEGER'
-        )
-
-    # Upgrade notify_log table from earlier versions
-    try:
-        c_db.execute('SELECT on_created FROM notify_log')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table notify_log.")
-        c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN on_created INTEGER'
-        )
-
-    # Upgrade notify_log table from earlier versions
-    try:
         c_db.execute('SELECT poster_url FROM notify_log')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table notify_log.")
