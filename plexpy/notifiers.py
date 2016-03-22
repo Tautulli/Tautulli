@@ -2169,76 +2169,83 @@ class FacebookNotifier(object):
             if self.incl_poster and 'metadata' in kwargs:
                 metadata = kwargs['metadata']
                 poster_url = metadata.get('poster_url','')
+                poster_link = ''
                 caption = ''
 
-                if poster_url:
-                    if metadata['media_type'] == 'movie':
-                        title = '%s (%s)' % (metadata['title'], metadata['year'])
-                        subtitle = metadata['summary']
-                        rating_key = metadata['rating_key']
-                        if metadata.get('imdb_url',''):
-                            poster_link = metadata.get('imdb_url', '')
-                            caption = 'View on IMDB'
-                        elif metadata.get('themoviedb_url',''):
-                            poster_link = metadata.get('themoviedb_url', '')
-                            caption = 'View on The Movie Database'
-
-                    elif metadata['media_type'] == 'show':
-                        title = '%s (%s)' % (metadata['title'], metadata['year'])
-                        subtitle = metadata['summary']
-                        rating_key = metadata['rating_key']
-                        if metadata.get('thetvdb_url',''):
-                            poster_link = metadata.get('thetvdb_url', '')
-                            caption = 'View on TheTVDB'
-                        elif metadata.get('themoviedb_url',''):
-                            poster_link = metadata.get('themoviedb_url', '')
-                            caption = 'View on The Movie Database'
-
-                    elif metadata['media_type'] == 'episode':
-                        title = '%s - %s (S%s %s E%s)' % (metadata['grandparent_title'],
-                                                          metadata['title'],
-                                                          metadata['parent_media_index'],
-                                                          '\xc2\xb7'.decode('utf8'),
-                                                          metadata['media_index'])
-                        subtitle = metadata['summary']
-                        rating_key = metadata['rating_key']
-                        if metadata.get('thetvdb_url',''):
-                            poster_link = metadata.get('thetvdb_url', '')
-                            caption = 'View on TheTVDB'
-                        elif metadata.get('themoviedb_url',''):
-                            poster_link = metadata.get('themoviedb_url', '')
-                            caption = 'View on The Movie Database'
-
-                    elif metadata['media_type'] == 'artist':
-                        title = metadata['title']
-                        subtitle = metadata['summary']
-                        rating_key = metadata['rating_key']
-                        if metadata.get('lastfm_url',''):
-                            poster_link = metadata.get('lastfm_url', '')
-                            caption = 'View on Last.fm'
-
-                    elif metadata['media_type'] == 'track':
-                        title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
-                        subtitle = metadata['parent_title']
-                        rating_key = metadata['parent_rating_key']
-                        if metadata.get('lastfm_url',''):
-                            poster_link = metadata.get('lastfm_url', '')
-                            caption = 'View on Last.fm'
-
-                    # Build Facebook post attachment
-                    if self.incl_pmslink:
-                        caption = 'View on Plex Web'
-                        attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
-                                             '/details/%2Flibrary%2Fmetadata%2F' + rating_key
-                    elif poster_link:
-                        attachment['link'] = poster_link
+                # Use default posters if no poster_url
+                if not poster_url:
+                    if metadata['media_type'] in ['artist', 'track']:
+                        poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
                     else:
-                        attachment['link'] = poster_url
+                        poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
 
-                    attachment['picture'] = poster_url
-                    attachment['name'] = title
-                    attachment['description'] = subtitle
-                    attachment['caption'] = caption
+                if metadata['media_type'] == 'movie':
+                    title = '%s (%s)' % (metadata['title'], metadata['year'])
+                    subtitle = metadata['summary']
+                    rating_key = metadata['rating_key']
+                    if metadata.get('imdb_url',''):
+                        poster_link = metadata.get('imdb_url', '')
+                        caption = 'View on IMDB'
+                    elif metadata.get('themoviedb_url',''):
+                        poster_link = metadata.get('themoviedb_url', '')
+                        caption = 'View on The Movie Database'
+
+                elif metadata['media_type'] == 'show':
+                    title = '%s (%s)' % (metadata['title'], metadata['year'])
+                    subtitle = metadata['summary']
+                    rating_key = metadata['rating_key']
+                    if metadata.get('thetvdb_url',''):
+                        poster_link = metadata.get('thetvdb_url', '')
+                        caption = 'View on TheTVDB'
+                    elif metadata.get('themoviedb_url',''):
+                        poster_link = metadata.get('themoviedb_url', '')
+                        caption = 'View on The Movie Database'
+
+                elif metadata['media_type'] == 'episode':
+                    title = '%s - %s (S%s %s E%s)' % (metadata['grandparent_title'],
+                                                        metadata['title'],
+                                                        metadata['parent_media_index'],
+                                                        '\xc2\xb7'.decode('utf8'),
+                                                        metadata['media_index'])
+                    subtitle = metadata['summary']
+                    rating_key = metadata['rating_key']
+                    if metadata.get('thetvdb_url',''):
+                        poster_link = metadata.get('thetvdb_url', '')
+                        caption = 'View on TheTVDB'
+                    elif metadata.get('themoviedb_url',''):
+                        poster_link = metadata.get('themoviedb_url', '')
+                        caption = 'View on The Movie Database'
+
+                elif metadata['media_type'] == 'artist':
+                    title = metadata['title']
+                    subtitle = metadata['summary']
+                    rating_key = metadata['rating_key']
+                    if metadata.get('lastfm_url',''):
+                        poster_link = metadata.get('lastfm_url', '')
+                        caption = 'View on Last.fm'
+
+                elif metadata['media_type'] == 'track':
+                    title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+                    subtitle = metadata['parent_title']
+                    rating_key = metadata['parent_rating_key']
+                    if metadata.get('lastfm_url',''):
+                        poster_link = metadata.get('lastfm_url', '')
+                        caption = 'View on Last.fm'
+
+                # Build Facebook post attachment
+                if self.incl_pmslink:
+                    caption = 'View on Plex Web'
+                    attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
+                                            '/details/%2Flibrary%2Fmetadata%2F' + rating_key
+                elif poster_link:
+                    attachment['link'] = poster_link
+                else:
+                    attachment['link'] = poster_url
+
+                attachment['picture'] = poster_url
+                attachment['name'] = title
+                attachment['description'] = subtitle
+                attachment['caption'] = caption
 
             try:
                 api.put_wall_post(profile_id=self.group_id, message=message, attachment=attachment)
