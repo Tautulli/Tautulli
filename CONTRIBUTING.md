@@ -1,7 +1,7 @@
 # Contributing to PlexPy
 
 ## Issues
-In case you read this because you are posting an issue, please take a minute and conside the things below. The issue tracker is not a support forum. It is primarily intended to submit bugs, improvements or feature requests. However, we are glad to help you, and make sure the problem is not caused by PlexPy, but don't expect step-by-step answers.
+In case you read this because you are posting an issue, please take a minute and conside the things below. The issue tracker is not a support forum. It is primarily intended to submit bugs. However, we are glad to help you, and make sure the problem is not caused by PlexPy, but don't expect step-by-step answers.
 
 ##### Many issues can simply be solved by:
 
@@ -35,11 +35,11 @@ In case you read this because you are posting an issue, please take a minute and
 
 ## Feature Requests
 
-1. Search for similar existing 'issues', feature requests can be recognized by the blue `enhancement` label.
-2. If a similar request exists, post a comment (+1, or add a new idea to the existing request).
-3. If no similar requests exist, you can create a new one.
-4. Provide a clear title to easily identify the feature request.
-5. Tag your feature request with `[Feature Request]` so it can be identified easily.
+Feature requests are handled on [FeatHub](http://feathub.com/drzoidberg33/plexpy).
+
+1. Search the existing requests to see if your suggestion has already been submitted.
+2. If a similar request exists, give it a thumbs up (+1), or add additional comments to the request.
+3. If no similar requests exist, you can create a new one. Make sure to provide a clear title to easily identify the feature request.
 
 ## Pull Requests
 If you think you can contribute code to the PlexPy repository, do not hesitate to submit a pull request.
