@@ -436,7 +436,7 @@ def get_notification_agent_config(agent_id):
         return []
 
 
-def send_notification(agent_id, subject, body, **kwargs):
+def send_notification(agent_id, subject, body, notify_action, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
 
@@ -478,7 +478,7 @@ def send_notification(agent_id, subject, body, **kwargs):
             tweet.notify(subject=subject, message=body)
         elif agent_id == 12:
             iftttClient = IFTTT()
-            iftttClient.notify(subject=subject, message=body)
+            iftttClient.notify(subject=subject, message=body, action=notify_action)
         elif agent_id == 13:
             telegramClient = TELEGRAM()
             telegramClient.notify(message=body, event=subject)
@@ -1604,10 +1604,11 @@ class IFTTT(object):
         self.apikey = plexpy.CONFIG.IFTTT_KEY
         self.event = plexpy.CONFIG.IFTTT_EVENT
 
-    def notify(self, message, subject):
+    def notify(self, message, subject, action):
         if not message or not subject:
             return
 
+        event = unicode(self.event).format(action=action)
         http_handler = HTTPSConnection("maker.ifttt.com")
 
         data = {'value1': subject.encode("utf-8"),
@@ -1616,7 +1617,7 @@ class IFTTT(object):
         # logger.debug(u"Ifttt SENDING: %s" % json.dumps(data))
 
         http_handler.request("POST",
-                             "/trigger/%s/with/key/%s" % (self.event, self.apikey),
+                             "/trigger/%s/with/key/%s" % (event, self.apikey),
                              headers={'Content-type': "application/json"},
                              body=json.dumps(data))
         response = http_handler.getresponse()
