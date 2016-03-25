@@ -457,10 +457,10 @@ class Config(object):
 
         for key, subkeys in self._config.iteritems():
             for subkey, value in subkeys.iteritems():
-                if value and subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
-                    blacklist.append(value)
+                if str(value).strip() and subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
+                    blacklist.append(str(value).strip())
 
-        plexpy.logger._BLACKLIST_WORDS = blacklist
+        plexpy.logger._BLACKLIST_WORDS = filter(None, blacklist)
 
     def _define(self, name):
         key = name.upper()
