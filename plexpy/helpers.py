@@ -559,7 +559,7 @@ def uploadToImgur(imgPath, imgTitle=''):
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % response.reason)
         else:
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur.")
-    except urllib2.HTTPError as e:
+    except (urllib2.HTTPError, urllib2.URLError) as e:
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % e)
 
     return img_url
