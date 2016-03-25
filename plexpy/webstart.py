@@ -51,8 +51,6 @@ def initialize(options):
         'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
         'tools.decode.on': True,
-        'log.screen': False,
-        'engine.autoreload.on': False,
     }
 
     if enable_https:
@@ -61,6 +59,10 @@ def initialize(options):
         protocol = "https"
     else:
         protocol = "http"
+
+    if plexpy.DEV:
+        options_dict['environment'] = "test_suite"
+        options_dict['engine.autoreload.on'] = True
 
     logger.info("Starting PlexPy web server on %s://%s:%d/", protocol,
                 options['http_host'], options['http_port'])
@@ -120,7 +122,12 @@ def initialize(options):
 
     try:
         cherrypy.process.servers.check_port(str(options['http_host']), options['http_port'])
-        cherrypy.server.start()
+        if not plexpy.DEV:
+            cherrypy.server.start()
+        else:
+            cherrypy.engine.signals.subscribe()
+            cherrypy.engine.start()
+            cherrypy.engine.block()
     except IOError:
         sys.stderr.write('Failed to start on port: %i. Is something else running?\n' % (options['http_port']))
         sys.exit(1)
