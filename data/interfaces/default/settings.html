@@ -1,5 +1,6 @@
 <%inherit file="base.html"/>
 <%!
+import os
 import sys
 import plexpy
 from plexpy import notifiers, common, versioncheck
@@ -81,16 +82,16 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td>${plexpy.DB_FILE}</td>
                                 </tr>
                                 <tr>
+                                    <td>Log File:</td>
+                                    <td>${os.path.join(config['log_dir'],'plexpy.log')}</td>
+                                </tr>
+                                <tr>
                                     <td>Backup Directory:</td>
                                     <td>${config['backup_dir']}</td>
                                 </tr>
                                 <tr>
                                     <td>Cache Directory:</td>
                                     <td>${config['cache_dir']}</td>
-                                </tr>
-                                <tr>
-                                    <td>Log Directory:</td>
-                                    <td>${config['log_dir']}</td>
                                 </tr>
                                 % if plexpy.ARGS:
                                 <tr>
