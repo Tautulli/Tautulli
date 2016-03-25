@@ -2227,7 +2227,15 @@ class WebInterface(object):
                       'Are you Sarah Connor?',
                       'I\'m a cop you idiot!',
                       'Come with me if you want to live.',
-                      'Who is your daddy and what does he do?'
+                      'Who is your daddy and what does he do?',
+		      'Oh, cookies! I can\'t wait to toss them.',
+		      'Can you hurry up. My horse is getting tired.',
+		      'What killed the dinosaurs? The Ice Age!',
+		      'That\'s for sleeping with my wife!',
+		      'Remember when I said I’d kill you last … I lied!',
+		      'You want to be a farmer? Here\'s a couple of acres',
+		      'Now, this is the plan. Get your ass to Mars.',
+		      'I just had a terrible thought... what if this is a dream?'
                       ]
 
         random_number = randint(0, len(quote_list) - 1)
