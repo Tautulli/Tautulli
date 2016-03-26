@@ -76,9 +76,9 @@ class BlacklistFilter(logging.Filter):
         for item in _BLACKLIST_WORDS:
             try:
                 if item in record.msg:
-                    record.msg = record.msg.replace(item[:-2], 8 * '*')
+                    record.msg = record.msg.replace(item, 8 * '*' + item[-2:])
                 if any(item in str(arg) for arg in record.args):
-                    record.args = tuple(arg.replace(item[:-2], 8 * '*') for arg in record.args)
+                    record.args = tuple(arg.replace(item, 8 * '*' + item[-2:]) for arg in record.args)
             except:
                 pass
         return True
