@@ -219,7 +219,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
     if log_dir:
         filename = os.path.join(log_dir, FILENAME)
 
-        file_formatter = logging.Formatter('%(asctime)s - %(levelname)-7s :: %(threadName)s : %(message)s', '%d-%m-%Y %H:%M:%S')
+        file_formatter = logging.Formatter('%(asctime)s - %(levelname)-7s :: %(threadName)s : %(message)s', '%Y-%m-%d %H:%M:%S')
         file_handler = handlers.RotatingFileHandler(filename, maxBytes=MAX_SIZE, backupCount=MAX_FILES)
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(file_formatter)
@@ -228,7 +228,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
 
     # Setup console logger
     if console:
-        console_formatter = logging.Formatter('%(asctime)s - %(levelname)s :: %(threadName)s : %(message)s', '%d-%m-%Y %H:%M:%S')
+        console_formatter = logging.Formatter('%(asctime)s - %(levelname)s :: %(threadName)s : %(message)s', '%Y-%m-%d %H:%M:%S')
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(console_formatter)
         console_handler.setLevel(logging.DEBUG)
