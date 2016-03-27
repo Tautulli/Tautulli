@@ -1145,6 +1145,15 @@ class WebInterface(object):
                                                     line))
         return True
 
+    @cherrypy.expose
+    def logFile(self):
+        try:
+            with open(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log'), 'r') as f:
+                return '<pre>%s</pre>' % f.read()
+        except IOError as e:
+            return "Log file not found."
+
+
     ##### Settings #####
 
     @cherrypy.expose
