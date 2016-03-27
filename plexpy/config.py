@@ -111,6 +111,7 @@ _CONFIG_DEFINITIONS = {
     'GET_FILE_SIZES_HOLD': (dict, 'General', {'section_ids': [], 'rating_keys': []}),
     'GIT_BRANCH': (str, 'General', 'master'),
     'GIT_PATH': (str, 'General', ''),
+    'GIT_TOKEN': (str, 'General', ''),
     'GIT_USER': (str, 'General', 'drzoidberg33'),
     'GRAPH_TYPE': (str, 'General', 'plays'),
     'GRAPH_DAYS': (int, 'General', 30),
@@ -142,6 +143,7 @@ _CONFIG_DEFINITIONS = {
     'HTTPS_KEY': (str, 'General', ''),
     'HTTPS_DOMAIN': (str, 'General', 'localhost'),
     'HTTPS_IP': (str, 'General', '127.0.0.1'),
+    'HTTP_ENVIRONMENT': (str, 'General', 'production'),
     'HTTP_HOST': (str, 'General', '0.0.0.0'),
     'HTTP_PASSWORD': (str, 'General', ''),
     'HTTP_PORT': (int, 'General', 8181),
@@ -167,6 +169,7 @@ _CONFIG_DEFINITIONS = {
     'IFTTT_ON_PMSUPDATE': (int, 'IFTTT', 0),
     'JOURNAL_MODE': (str, 'Advanced', 'wal'),
     'LAUNCH_BROWSER': (int, 'General', 1),
+    'LOG_BLACKLIST': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),
     'MOVIE_LOGGING_ENABLE': (int, 'Monitoring', 1),
@@ -431,6 +434,9 @@ _CONFIG_DEFINITIONS = {
     'XBMC_ON_PMSUPDATE': (int, 'XBMC', 0)
 }
 
+_BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID']
+_WHITELIST_KEYS = ['HTTPS_KEY', 'UPDATE_SECTION_IDS']
+
 
 # pylint:disable=R0902
 # it might be nice to refactor for fewer instance variables
@@ -444,6 +450,18 @@ class Config(object):
         for key in _CONFIG_DEFINITIONS.keys():
             self.check_setting(key)
         self._upgrade()
+        self._blacklist()
+
+    def _blacklist(self):
+        """ Add tokens and passwords to blacklisted words in logger """
+        blacklist = []
+
+        for key, subkeys in self._config.iteritems():
+            for subkey, value in subkeys.iteritems():
+                if str(value).strip() and subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
+                    blacklist.append(str(value).strip())
+
+        plexpy.logger._BLACKLIST_WORDS = filter(None, blacklist)
 
     def _define(self, name):
         key = name.upper()
@@ -502,6 +520,8 @@ class Config(object):
             new_config.write()
         except IOError as e:
             plexpy.logger.error("Error writing configuration file: %s", e)
+
+        self._blacklist()
 
     def __getattr__(self, name):
         """

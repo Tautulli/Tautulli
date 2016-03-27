@@ -22,7 +22,7 @@ media_info_table_options = {
         "infoFiltered":"<span class='hidden-md hidden-sm hidden-xs'>(filtered from _MAX_ total entries)</span>",
         "emptyTable": "No data in table"
     },
-    "pagingType": "bootstrap",
+    "pagingType": "full_numbers",
     "stateSave": true,
     "processing": false,
     "serverSide": true,

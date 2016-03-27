@@ -1,7 +1,7 @@
 sync_table_options = {
     "processing": false,
     "serverSide": false,
-    "pagingType": "bootstrap",
+    "pagingType": "full_numbers",
     "order": [ [ 0, 'desc'], [ 1, 'asc'], [2, 'asc'] ],
     "pageLength": 25,
     "stateSave": true,

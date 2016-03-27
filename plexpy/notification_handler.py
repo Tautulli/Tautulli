@@ -325,11 +325,9 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                             notify_action=notify_action)
 
                 # Set the notification state in the db
-                set_notify_state(session={},
-                                 notify_action=notify_action,
+                set_notify_state(notify_action=notify_action,
                                  agent_info=agent,
-                                 notify_strings=notify_strings,
-                                 metadata={})
+                                 notify_strings=notify_strings)
 
             if agent['on_intdown'] and notify_action == 'intdown':
                 # Build and send notification
@@ -343,11 +341,9 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                             notify_action=notify_action)
 
                 # Set the notification state in the db
-                set_notify_state(session={},
-                                 notify_action=notify_action,
+                set_notify_state(notify_action=notify_action,
                                  agent_info=agent,
-                                 notify_strings=notify_strings,
-                                 metadata={})
+                                 notify_strings=notify_strings)
 
             if agent['on_extup'] and notify_action == 'extup':
                 # Build and send notification
@@ -361,11 +357,9 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                             notify_action=notify_action)
 
                 # Set the notification state in the db
-                set_notify_state(session={},
-                                 notify_action=notify_action,
+                set_notify_state(notify_action=notify_action,
                                  agent_info=agent,
-                                 notify_strings=notify_strings,
-                                 metadata={})
+                                 notify_strings=notify_strings)
 
             if agent['on_intup'] and notify_action == 'intup':
                 # Build and send notification
@@ -379,11 +373,9 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                             notify_action=notify_action)
 
                 # Set the notification state in the db
-                set_notify_state(session={},
-                                 notify_action=notify_action,
+                set_notify_state(notify_action=notify_action,
                                  agent_info=agent,
-                                 notify_strings=notify_strings,
-                                 metadata={})
+                                 notify_strings=notify_strings)
 
             if agent['on_pmsupdate'] and notify_action == 'pmsupdate':
                 # Build and send notification
@@ -397,11 +389,9 @@ def notify_timeline(timeline_data=None, notify_action=None):
                                             notify_action=notify_action)
 
                 # Set the notification state in the db
-                set_notify_state(session={},
-                                 notify_action=notify_action,
+                set_notify_state(notify_action=notify_action,
                                  agent_info=agent,
-                                 notify_strings=notify_strings,
-                                 metadata={})
+                                 notify_strings=notify_strings)
 
     else:
         logger.debug(u"PlexPy NotificationHandler :: Notify timeline called but incomplete data received.")
@@ -426,10 +416,13 @@ def get_notify_state(session):
     return notify_states
 
 
-def set_notify_state(session, notify_action, agent_info, notify_strings, metadata):
+def set_notify_state(notify_action, agent_info, notify_strings, session=None, metadata=None):
 
     if notify_action and agent_info:
         monitor_db = database.MonitorDatabase()
+
+        session = session or {}
+        metadata = metadata or {}
 
         if notify_strings[2]:
             script_args = '[' + ', '.join(notify_strings[2]) + ']'
@@ -496,7 +489,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         metadata = metadata_list['metadata']
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
-        return []
+        return [None, None, None], None
 
     # Check for exclusion tags
     if metadata['media_type'] == 'movie':
@@ -632,11 +625,14 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
 
         # If no previous poster_url
         if not poster_url and plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
-            # Retrieve the poster from Plex and cache to file
-            urllib.urlretrieve(plexpy.CONFIG.PMS_URL + thumb + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN,
-                               os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'))
-            # Upload thumb to Imgur and get link
-            poster_url = helpers.uploadToImgur(os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'), poster_title)
+            try:
+                # Retrieve the poster from Plex and cache to file
+                urllib.urlretrieve(plexpy.CONFIG.PMS_URL + thumb + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN,
+                                   os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'))
+                # Upload thumb to Imgur and get link
+                poster_url = helpers.uploadToImgur(os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'), poster_title)
+            except Exception as e:
+                logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(rating_key), e))
 
         metadata['poster_url'] = poster_url
 
@@ -918,7 +914,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         else:
             return [subject_text, body_text, script_args], metadata
     else:
-        return None
+        return [None, None, None], None
 
 
 def build_server_notify_text(notify_action=None, agent_id=None):

@@ -74,6 +74,8 @@ UMASK = None
 
 POLLING_FAILOVER = False
 
+DEV = False
+
 
 def initialize(config_file):
     with INIT_LOCK:
@@ -727,30 +729,6 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table users.")
         c_db.execute(
             'ALTER TABLE users ADD COLUMN deleted_user INTEGER DEFAULT 0'
-        )
-
-    # Upgrade notify_log table from earlier versions
-    try:
-        c_db.execute('SELECT on_pause FROM notify_log')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table notify_log.")
-        c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN on_pause INTEGER'
-        )
-        c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN on_resume INTEGER'
-        )
-        c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN on_buffer INTEGER'
-        )
-
-    # Upgrade notify_log table from earlier versions
-    try:
-        c_db.execute('SELECT on_created FROM notify_log')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table notify_log.")
-        c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN on_created INTEGER'
         )
 
     # Upgrade notify_log table from earlier versions

@@ -2,7 +2,7 @@ var plex_log_table_options = {
     "destroy": true,
     "processing": false,
     "serverSide": false,
-    "pagingType": "bootstrap",
+    "pagingType": "full_numbers",
     "order": [ 0, 'desc'],
     "pageLength": 50,
     "stateSave": true,

@@ -2,7 +2,7 @@ var log_table_options = {
     "destroy": true,
     "serverSide": true,
     "processing": false,
-    "pagingType": "bootstrap",
+    "pagingType": "full_numbers",
     "order": [ 0, 'desc'],
     "pageLength": 50,
     "stateSave": true,

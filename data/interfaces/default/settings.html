@@ -1,5 +1,6 @@
 <%inherit file="base.html"/>
 <%!
+import os
 import sys
 import plexpy
 from plexpy import notifiers, common, versioncheck
@@ -81,16 +82,16 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td>${plexpy.DB_FILE}</td>
                                 </tr>
                                 <tr>
+                                    <td>Log File:</td>
+                                    <td><a class="no-highlight" href="logFile" target="_blank">${os.path.join(config['log_dir'],'plexpy.log')}</a></td>
+                                </tr>
+                                <tr>
                                     <td>Backup Directory:</td>
                                     <td>${config['backup_dir']}</td>
                                 </tr>
                                 <tr>
                                     <td>Cache Directory:</td>
                                     <td>${config['cache_dir']}</td>
-                                </tr>
-                                <tr>
-                                    <td>Log Directory:</td>
-                                    <td>${config['log_dir']}</td>
                                 </tr>
                                 % if plexpy.ARGS:
                                 <tr>
@@ -111,12 +112,20 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td class="top-line"><a class="no-highlight" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program</a></td>
                                 </tr>
                                 <tr>
+                                    <td>Source:</td>
+                                    <td><a id="source-link" class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}" target="_blank">https://github.com/drzoidberg33/plexpy</a></td>
+                                </tr>
+                                <tr>
                                     <td>Wiki:</td>
                                     <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/wiki')}" target="_blank">https://github.com/drzoidberg33/plexpy/wiki</a></td>
                                 </tr>
                                 <tr>
-                                    <td>Source:</td>
-                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}" target="_blank">https://github.com/drzoidberg33/plexpy</a></td>
+                                    <td>Issues:</td>
+                                    <td><a class="no-highlight guidelines-modal-link" href="${anon_url('https://github.com/drzoidberg33/plexpy/issues')}" data-id="issue">https://github.com/drzoidberg33/plexpy/issues</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Feature Requests:</td>
+                                    <td><a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/drzoidberg33/plexpy')}" data-id="feature request">http://feathub.com/drzoidberg33/plexpy</a></td>
                                 </tr>
                                 <tr>
                                     <td>Gitter Chat:</td>
@@ -142,6 +151,18 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">If you have Git installed, allow periodic checks for updates.</p>
                         </div>
+                        <div id="git_update_options">
+                            <div class="form-group">
+                                <label for="git_token">GitHub API Token</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="git_token" name="git_token" value="${config['git_token']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">Optional: Use your own GitHub API token when checking for updates.
+                            </div>
+                        </div>
+
                         <div class="padded-header">
                             <h3>Display Settings</h3>
                         </div>
@@ -168,6 +189,13 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Table and Watch Statistics History
                             </label>
                             <p class="help-block">Group successive play history by the same user as a single entry in the tables and watch statistics.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
+                            </label>
+                            <p class="help-block">Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
+                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!</p>
                         </div>
 
                         <div class="padded-header">
@@ -1098,12 +1126,12 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <tr>
                                 <td><strong>YYYY</strong></td>
                                 <td>Numeric, four digits</td>
-                                <td>Eg., 1999, 2003</td>
+                                <td>E.g. 1999, 2003</td>
                             </tr>
                             <tr>
                                 <td><strong>YY</strong></td>
                                 <td>Numeric, two digits</td>
-                                <td>Eg., 99, 03</td>
+                                <td>E.g. 99, 03</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1181,7 +1209,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <tr>
                                 <td><strong>Do</strong></td>
                                 <td>Numeric, with suffix</td>
-                                <td>Eg., 1st, 2nd ... 31st.</td>
+                                <td>E.g. 1st, 2nd ... 31st.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1317,12 +1345,12 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <tr>
                                 <td><strong>ZZ</strong></td>
                                 <td>UTC offset</td>
-                                <td>Eg., +0100, -0700</td>
+                                <td>E.g. +0100, -0700</td>
                             </tr>
                             <tr>
                                 <td><strong>Z</strong></td>
                                 <td>UTC offset</td>
-                                <td>Eg., +01:00, -07:00</td>
+                                <td>E.g. +01:00, -07:00</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1338,7 +1366,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <tr>
                                 <td><strong>X</strong></td>
                                 <td>Unix timestamp</td>
-                                <td>Eg., 1456887825</td>
+                                <td>E.g. 1456887825</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1858,6 +1886,26 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
             </div>
         </div>
     </div>
+    <div id="guidelines-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="guidelines-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Guidelines</h4>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                        <strong>Please read the <a href="#" target="_blank" id="guidelines-link">guidelines</a> in the README document <br />before submitting a new <span id="guidelines-type"></span>!</strong>
+                        <br /><br />
+                        Your post may be removed for failure to follow the guidelines.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" target="_blank" id="guidelines-continue" class="btn btn-bright">Continue</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </%def>
 
@@ -1987,6 +2035,20 @@ $(document).ready(function() {
             $("#https_options_self-signed").slideDown();
         } else {
             $("#https_options_self-signed").slideUp();
+        }
+    });
+
+    if ($("#check_github").is(":checked")) {
+        $("#git_update_options").show();
+    } else {
+        $("#git_update_options").hide();
+    }
+
+    $("#check_github").click(function(){
+        if ($("#check_github").is(":checked")) {
+            $("#git_update_options").slideDown();
+        } else {
+            $("#git_update_options").slideUp();
         }
     });
 
@@ -2311,6 +2373,17 @@ $(document).ready(function() {
         var c = this.checked ? '#eb8600' : '#737373';
         $('#notify_recently_added_grandparent_note').css('color', c);
     });
+
+    $('.guidelines-modal-link').on('click', function (e) {
+        e.preventDefault();
+        $('#guidelines-link').attr('href', $('#source-link').attr('href'));
+        $('#guidelines-type').text($(this).data('id'))
+        $('#guidelines-modal').modal();
+        $('#guidelines-continue').attr('href', $(this).attr('href')).on('click', function () {
+            $('#guidelines-modal').modal('hide');
+        });
+    });
+
 });
 </script>
 </%def>

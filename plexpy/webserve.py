@@ -1145,6 +1145,15 @@ class WebInterface(object):
                                                     line))
         return True
 
+    @cherrypy.expose
+    def logFile(self):
+        try:
+            with open(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log'), 'r') as f:
+                return '<pre>%s</pre>' % f.read()
+        except IOError as e:
+            return "Log file not found."
+
+
     ##### Settings #####
 
     @cherrypy.expose
@@ -1180,6 +1189,7 @@ class WebInterface(object):
             "backup_dir": plexpy.CONFIG.BACKUP_DIR,
             "cache_dir": plexpy.CONFIG.CACHE_DIR,
             "log_dir": plexpy.CONFIG.LOG_DIR,
+            "log_blacklist": checked(plexpy.CONFIG.LOG_BLACKLIST),
             "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),
             "interface_list": interface_list,
             "cache_sizemb": plexpy.CONFIG.CACHE_SIZEMB,
@@ -1261,7 +1271,8 @@ class WebInterface(object):
             "home_library_cards": json.dumps(plexpy.CONFIG.HOME_LIBRARY_CARDS),
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT,
-            "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES)
+            "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES),
+            "git_token": plexpy.CONFIG.GIT_TOKEN
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)
@@ -1281,7 +1292,7 @@ class WebInterface(object):
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", "notify_upload_posters",
             "notify_recently_added", "notify_recently_added_grandparent",
-            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes"
+            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -1308,7 +1319,8 @@ class WebInterface(object):
         refresh_users = False
 
         # If we change any monitoring settings, make sure we reschedule tasks.
-        if kwargs.get('monitoring_interval') != str(plexpy.CONFIG.MONITORING_INTERVAL) or \
+        if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
+            kwargs.get('monitoring_interval') != str(plexpy.CONFIG.MONITORING_INTERVAL) or \
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
             kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
             kwargs.get('notify_recently_added') != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED or \
@@ -1454,7 +1466,7 @@ class WebInterface(object):
 
             if this_agent:
                 logger.debug(u"Sending test %s notification." % this_agent['name'])
-                notifiers.send_notification(this_agent['id'], subject, body, **kwargs)
+                notifiers.send_notification(this_agent['id'], subject, body, 'test', **kwargs)
                 return "Notification sent."
             else:
                 logger.debug(u"Unable to send test notification, invalid notification agent ID %s." % agent_id)
@@ -2222,11 +2234,18 @@ class WebInterface(object):
                       'I need your clothes, your boots and your motorcycle.',
                       'No, it\'s not a tumor. It\'s not a tumor!',
                       'I LIED!',
-                      'See you at the party, Richter!',
-                      'Are you Sarah Conner?',
+                      'Are you Sarah Connor?',
                       'I\'m a cop you idiot!',
                       'Come with me if you want to live.',
-                      'Who is your daddy and what does he do?'
+                      'Who is your daddy and what does he do?',
+                      'Oh, cookies! I can\'t wait to toss them.',
+                      'Can you hurry up. My horse is getting tired.',
+                      'What killed the dinosaurs? The Ice Age!',
+                      'That\'s for sleeping with my wife!',
+                      'Remember when I said I’d kill you last... I lied!',
+                      'You want to be a farmer? Here\'s a couple of acres',
+                      'Now, this is the plan. Get your ass to Mars.',
+                      'I just had a terrible thought... What if this is a dream?'
                       ]
 
         random_number = randint(0, len(quote_list) - 1)

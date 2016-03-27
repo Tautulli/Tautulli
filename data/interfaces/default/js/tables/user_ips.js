@@ -9,7 +9,7 @@ user_ip_table_options = {
         "emptyTable": "No data in table",
     },
     "stateSave": true,
-    "pagingType": "bootstrap",
+    "pagingType": "full_numbers",
     "processing": false,
     "serverSide": true,
     "pageLength": 10,

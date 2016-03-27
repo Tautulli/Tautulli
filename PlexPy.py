@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+#!/bin/sh
+''''which python    >/dev/null 2>&1 && exec python    "$0" "$@" # '''
+''''which python2   >/dev/null 2>&1 && exec python2   "$0" "$@" # '''
+''''which python2.7 >/dev/null 2>&1 && exec python2.7 "$0" "$@" # '''
+''''exec echo "Error: Python not found!" # '''
+
 # -*- coding: utf-8 -*-
 
 # This file is part of PlexPy.
@@ -77,10 +82,13 @@ def main():
     parser.add_argument(
         '-p', '--port', type=int, help='Force PlexPy to run on a specified port')
     parser.add_argument(
+        '--dev', action='store_true', help='Start PlexPy in the development environment')
+    parser.add_argument(
         '--datadir', help='Specify a directory where to store your data files')
-    parser.add_argument('--config', help='Specify a config file to use')
-    parser.add_argument('--nolaunch', action='store_true',
-                        help='Prevent browser from launching on startup')
+    parser.add_argument(
+        '--config', help='Specify a config file to use')
+    parser.add_argument(
+        '--nolaunch', action='store_true', help='Prevent browser from launching on startup')
     parser.add_argument(
         '--pidfile', help='Create a pid file (only relevant when running as a daemon)')
 
@@ -94,6 +102,10 @@ def main():
     # Do an intial setup of the logger.
     logger.initLogger(console=not plexpy.QUIET, log_dir=False,
                       verbose=plexpy.VERBOSE)
+
+    if args.dev:
+        plexpy.DEV = True
+        logger.debug(u"PlexPy is running in the dev environment.")
 
     if args.daemon:
         if sys.platform == 'win32':
@@ -159,6 +171,19 @@ def main():
     # Read config and start logging
     plexpy.initialize(config_file)
 
+    # Start the background threads
+    plexpy.start()
+
+    # Open connection for websocket
+    if plexpy.CONFIG.MONITORING_USE_WEBSOCKET:
+        try:
+            web_socket.start_thread()
+        except:
+            logger.warn(u"Websocket :: Unable to open connection.")
+            # Fallback to polling
+            plexpy.POLLING_FAILOVER = True
+            plexpy.initialize_scheduler()
+
     # Force the http port if neccessary
     if args.port:
         http_port = args.port
@@ -181,6 +206,7 @@ def main():
         'http_port': http_port,
         'http_host': plexpy.CONFIG.HTTP_HOST,
         'http_root': plexpy.CONFIG.HTTP_ROOT,
+        'http_environment': plexpy.CONFIG.HTTP_ENVIRONMENT,
         'http_proxy': plexpy.CONFIG.HTTP_PROXY,
         'enable_https': plexpy.CONFIG.ENABLE_HTTPS,
         'https_cert': plexpy.CONFIG.HTTPS_CERT,
@@ -190,21 +216,8 @@ def main():
     }
     webstart.initialize(web_config)
 
-    # Start the background threads
-    plexpy.start()
-
-    # Open connection for websocket
-    if plexpy.CONFIG.MONITORING_USE_WEBSOCKET:
-        try:
-            web_socket.start_thread()
-        except:
-            logger.warn(u"Websocket :: Unable to open connection.")
-            # Fallback to polling
-            plexpy.POLLING_FAILOVER = True
-            plexpy.initialize_scheduler()
-
     # Open webbrowser
-    if plexpy.CONFIG.LAUNCH_BROWSER and not args.nolaunch:
+    if plexpy.CONFIG.LAUNCH_BROWSER and not args.nolaunch and not plexpy.DEV:
         plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, http_port,
                               plexpy.CONFIG.HTTP_ROOT)
 

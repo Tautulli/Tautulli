@@ -114,24 +114,24 @@ def available_notification_agents():
                'on_intup': plexpy.CONFIG.XBMC_ON_INTUP,
                'on_pmsupdate': plexpy.CONFIG.XBMC_ON_PMSUPDATE
                },
-              {'name': 'Plex',
-               'id': AGENT_IDS['Plex'],
-               'config_prefix': 'plex',
-               'has_config': True,
-               'state': checked(plexpy.CONFIG.PLEX_ENABLED),
-               'on_play': plexpy.CONFIG.PLEX_ON_PLAY,
-               'on_stop': plexpy.CONFIG.PLEX_ON_STOP,
-               'on_pause': plexpy.CONFIG.PLEX_ON_PAUSE,
-               'on_resume': plexpy.CONFIG.PLEX_ON_RESUME,
-               'on_buffer': plexpy.CONFIG.PLEX_ON_BUFFER,
-               'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED,
-               'on_created': plexpy.CONFIG.PLEX_ON_CREATED,
-               'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
-               'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN,
-               'on_extup': plexpy.CONFIG.PLEX_ON_EXTUP,
-               'on_intup': plexpy.CONFIG.PLEX_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.PLEX_ON_PMSUPDATE
-               },
+              #{'name': 'Plex',
+              # 'id': AGENT_IDS['Plex'],
+              # 'config_prefix': 'plex',
+              # 'has_config': True,
+              # 'state': checked(plexpy.CONFIG.PLEX_ENABLED),
+              # 'on_play': plexpy.CONFIG.PLEX_ON_PLAY,
+              # 'on_stop': plexpy.CONFIG.PLEX_ON_STOP,
+              # 'on_pause': plexpy.CONFIG.PLEX_ON_PAUSE,
+              # 'on_resume': plexpy.CONFIG.PLEX_ON_RESUME,
+              # 'on_buffer': plexpy.CONFIG.PLEX_ON_BUFFER,
+              # 'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED,
+              # 'on_created': plexpy.CONFIG.PLEX_ON_CREATED,
+              # 'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
+              # 'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN,
+              # 'on_extup': plexpy.CONFIG.PLEX_ON_EXTUP,
+              # 'on_intup': plexpy.CONFIG.PLEX_ON_INTUP,
+              # 'on_pmsupdate': plexpy.CONFIG.PLEX_ON_PMSUPDATE
+              # },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
                'config_prefix': 'nma',
@@ -436,7 +436,7 @@ def get_notification_agent_config(agent_id):
         return []
 
 
-def send_notification(agent_id, subject, body, **kwargs):
+def send_notification(agent_id, subject, body, notify_action, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
 
@@ -478,7 +478,7 @@ def send_notification(agent_id, subject, body, **kwargs):
             tweet.notify(subject=subject, message=body)
         elif agent_id == 12:
             iftttClient = IFTTT()
-            iftttClient.notify(subject=subject, message=body)
+            iftttClient.notify(subject=subject, message=body, action=notify_action)
         elif agent_id == 13:
             telegramClient = TELEGRAM()
             telegramClient.notify(message=body, event=subject)
@@ -1604,10 +1604,11 @@ class IFTTT(object):
         self.apikey = plexpy.CONFIG.IFTTT_KEY
         self.event = plexpy.CONFIG.IFTTT_EVENT
 
-    def notify(self, message, subject):
+    def notify(self, message, subject, action):
         if not message or not subject:
             return
 
+        event = unicode(self.event).format(action=action)
         http_handler = HTTPSConnection("maker.ifttt.com")
 
         data = {'value1': subject.encode("utf-8"),
@@ -1616,7 +1617,7 @@ class IFTTT(object):
         # logger.debug(u"Ifttt SENDING: %s" % json.dumps(data))
 
         http_handler.request("POST",
-                             "/trigger/%s/with/key/%s" % (self.event, self.apikey),
+                             "/trigger/%s/with/key/%s" % (event, self.apikey),
                              headers={'Content-type': "application/json"},
                              body=json.dumps(data))
         response = http_handler.getresponse()
@@ -1649,7 +1650,9 @@ class IFTTT(object):
                          {'label': 'Ifttt Event',
                           'value': self.event,
                           'name': 'ifttt_event',
-                          'description': 'The Ifttt maker event to fire. The notification subject and body will be sent'
+                          'description': 'The Ifttt maker event to fire. You can include'
+                                         ' the {action} to be substituted with the action name.'
+                                         ' The notification subject and body will be sent'
                                          ' as value1 and value2 respectively.',
                           'input_type': 'text'
                           }
@@ -2006,12 +2009,11 @@ class Scripts(object):
             logger.error(u"PlexPy Notifiers :: Failed to run script: %s" % e)
 
     def return_config_options(self):
-        config_option = [{'label': 'Warning',
-                          'description': '<strong>Script notifications are currently experimental!</strong><br><br>\
-                                          Supported file types: ' + ', '.join(self.script_exts),
+        config_option = [{'label': 'Supported File Types',
+                          'description': ', '.join(self.script_exts),
                           'input_type': 'help'
                           },
-                         {'label': 'Script folder',
+                         {'label': 'Script Folder',
                           'value': plexpy.CONFIG.SCRIPTS_FOLDER,
                           'name': 'scripts_folder',
                           'description': 'Add your script folder.',
@@ -2170,74 +2172,83 @@ class FacebookNotifier(object):
             if self.incl_poster and 'metadata' in kwargs:
                 metadata = kwargs['metadata']
                 poster_url = metadata.get('poster_url','')
+                poster_link = ''
+                caption = ''
 
-                if poster_url:
-                    if metadata['media_type'] == 'movie':
-                        title = metadata['title']
-                        subtitle = metadata['year']
-                        rating_key = metadata['rating_key']
-                        if metadata.get('imdb_url',''):
-                            poster_link = metadata.get('imdb_url', '')
-                            caption = 'View on IMDB.'
-                        elif metadata.get('themoviedb_url',''):
-                            poster_link = metadata.get('themoviedb_url', '')
-                            caption = 'View on The Movie Database.'
-
-                    elif metadata['media_type'] == 'show':
-                        title = metadata['title']
-                        subtitle = metadata['year']
-                        rating_key = metadata['rating_key']
-                        if metadata.get('thetvdb_url',''):
-                            poster_link = metadata.get('thetvdb_url', '')
-                            caption = 'View on TheTVDB.'
-                        elif metadata.get('themoviedb_url',''):
-                            poster_link = metadata.get('themoviedb_url', '')
-                            caption = 'View on The Movie Database.'
-
-                    elif metadata['media_type'] == 'episode':
-                        title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
-                        subtitle = 'S%s %s E%s' % (metadata['parent_media_index'],
-                                                   '\xc2\xb7'.decode('utf8'),
-                                                   metadata['media_index'])
-                        rating_key = metadata['rating_key']
-                        if metadata.get('thetvdb_url',''):
-                            poster_link = metadata.get('thetvdb_url', '')
-                            caption = 'View on TheTVDB.'
-                        elif metadata.get('themoviedb_url',''):
-                            poster_link = metadata.get('themoviedb_url', '')
-                            caption = 'View on The Movie Database.'
-
-                    elif metadata['media_type'] == 'artist':
-                        title = metadata['title']
-                        subtitle = ''
-                        rating_key = metadata['rating_key']
-                        if metadata.get('lastfm_url',''):
-                            poster_link = metadata.get('lastfm_url', '')
-                            caption = 'View on Last.fm.'
-
-                    elif metadata['media_type'] == 'track':
-                        title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
-                        subtitle = metadata['parent_title']
-                        rating_key = metadata['parent_rating_key']
-                        if metadata.get('lastfm_url',''):
-                            poster_link = metadata.get('lastfm_url', '')
-                            caption = 'View on Last.fm.'
-
-                    # Build Facebook post attachment
-                    if self.incl_pmslink:
-                        caption = 'View on Plex Web.'
-                        attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
-                                             '/details/%2Flibrary%2Fmetadata%2F' + rating_key
-                        attachment['caption'] = caption
-                    elif poster_link:
-                        attachment['link'] = poster_link
-                        attachment['caption'] = caption
+                # Use default posters if no poster_url
+                if not poster_url:
+                    if metadata['media_type'] in ['artist', 'track']:
+                        poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
                     else:
-                        attachment['link'] = poster_url
+                        poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
 
-                    attachment['picture'] = poster_url
-                    attachment['name'] = title
-                    attachment['description'] = subtitle
+                if metadata['media_type'] == 'movie':
+                    title = '%s (%s)' % (metadata['title'], metadata['year'])
+                    subtitle = metadata['summary']
+                    rating_key = metadata['rating_key']
+                    if metadata.get('imdb_url',''):
+                        poster_link = metadata.get('imdb_url', '')
+                        caption = 'View on IMDB'
+                    elif metadata.get('themoviedb_url',''):
+                        poster_link = metadata.get('themoviedb_url', '')
+                        caption = 'View on The Movie Database'
+
+                elif metadata['media_type'] == 'show':
+                    title = '%s (%s)' % (metadata['title'], metadata['year'])
+                    subtitle = metadata['summary']
+                    rating_key = metadata['rating_key']
+                    if metadata.get('thetvdb_url',''):
+                        poster_link = metadata.get('thetvdb_url', '')
+                        caption = 'View on TheTVDB'
+                    elif metadata.get('themoviedb_url',''):
+                        poster_link = metadata.get('themoviedb_url', '')
+                        caption = 'View on The Movie Database'
+
+                elif metadata['media_type'] == 'episode':
+                    title = '%s - %s (S%s %s E%s)' % (metadata['grandparent_title'],
+                                                        metadata['title'],
+                                                        metadata['parent_media_index'],
+                                                        '\xc2\xb7'.decode('utf8'),
+                                                        metadata['media_index'])
+                    subtitle = metadata['summary']
+                    rating_key = metadata['rating_key']
+                    if metadata.get('thetvdb_url',''):
+                        poster_link = metadata.get('thetvdb_url', '')
+                        caption = 'View on TheTVDB'
+                    elif metadata.get('themoviedb_url',''):
+                        poster_link = metadata.get('themoviedb_url', '')
+                        caption = 'View on The Movie Database'
+
+                elif metadata['media_type'] == 'artist':
+                    title = metadata['title']
+                    subtitle = metadata['summary']
+                    rating_key = metadata['rating_key']
+                    if metadata.get('lastfm_url',''):
+                        poster_link = metadata.get('lastfm_url', '')
+                        caption = 'View on Last.fm'
+
+                elif metadata['media_type'] == 'track':
+                    title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+                    subtitle = metadata['parent_title']
+                    rating_key = metadata['parent_rating_key']
+                    if metadata.get('lastfm_url',''):
+                        poster_link = metadata.get('lastfm_url', '')
+                        caption = 'View on Last.fm'
+
+                # Build Facebook post attachment
+                if self.incl_pmslink:
+                    caption = 'View on Plex Web'
+                    attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
+                                            '/details/%2Flibrary%2Fmetadata%2F' + rating_key
+                elif poster_link:
+                    attachment['link'] = poster_link
+                else:
+                    attachment['link'] = poster_url
+
+                attachment['picture'] = poster_url
+                attachment['name'] = title
+                attachment['description'] = subtitle
+                attachment['caption'] = caption
 
             try:
                 api.put_wall_post(profile_id=self.group_id, message=message, attachment=attachment)
@@ -2253,13 +2264,12 @@ class FacebookNotifier(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
-                          'description': '<strong>Facebook notifications are currently experimental!</strong><br><br> \
-                                          Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank"> \
+                          'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank"> \
                                           Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>\
                                           Step 2: Go to <strong>Settings > Basic</strong> and fill in a \
                                           <strong>Contact Email</strong>.<br>\
                                           Step 3: Go to <strong>Settings > Advanced</strong> and fill in \
-                                          <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (i.e. http://localhost:8181).<br>\
+                                          <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (e.g. http://localhost:8181).<br>\
                                           Step 4: Go to <strong>App Review</strong> and toggle public to <strong>Yes</strong>.<br>\
                                           Step 5: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
                                           Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
@@ -2270,7 +2280,8 @@ class FacebookNotifier(object):
                          {'label': 'PlexPy URL',
                           'value': self.redirect_uri,
                           'name': 'facebook_redirect_uri',
-                          'description': 'Your PlexPy URL. This will tell Facebook where to redirect you after authorization.',
+                          'description': 'Your PlexPy URL. This will tell Facebook where to redirect you after authorization.\
+                                          (e.g. http://localhost:8181)',
                           'input_type': 'text'
                           },
                          {'label': 'Facebook App ID',
