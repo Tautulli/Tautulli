@@ -19,7 +19,7 @@ history_table_modal_options = {
         "infoFiltered":"",
         "emptyTable": "No data in table",
     },
-    "pagingType": "bootstrap",
+    "pagingType": "simple_numbers",
     "stateSave": false,
     "processing": false,
     "serverSide": true,

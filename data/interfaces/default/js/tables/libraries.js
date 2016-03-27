@@ -17,7 +17,7 @@ libraries_list_table_options = {
     "order": [ 2, 'asc'],
     "autoWidth": true,
     "stateSave": true,
-    "pagingType": "bootstrap",
+    "pagingType": "full_numbers",
     "columnDefs": [
         {
             "targets": [0],
