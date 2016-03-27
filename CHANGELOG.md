@@ -1,5 +1,26 @@
 # Changelog
 
+## v1.3.12 (2016-03-27)
+
+* Fix: "Check GitHub for updates" not rescheduling when toggling setting.
+* Fix: Bug where notifications would fail if metadata is not found.
+* Fix: Bug where notifications would fail if unable to upload poster to Imgur.
+* Fix: PlexPy will now start properly for different Python environment variables.
+* New: Feature requests moved to FeatHub.
+* New: Ability to specify a GitHub API token for updates (optional).
+* New: Mask out sensitive information from the logs.
+* New: New and updated Arnold quotes. (Thanks @Vilsol & @Chrisophogus)
+* New: "First" and "Last" page buttons to datatables.
+* New: Access log file from the "Help & Info" page.
+* New: CherryPy environment options (for development). (Thanks @codedecay)
+* New: PlexPy development environment (for development only).
+* Change: Facebook posts with a posters now include a summary.
+* Change: Facebook posts now use a default poster if the poster is not found or unable to upload to Imgur.
+* Change: IFTTT events can be fromatted with the {action} name.
+* Change: Logs now use ISO date format to avoid locale encoding errors. (Thanks @alshain)
+* Remove: Non-functioning Plex notification agent.
+
+
 ## v1.3.11 (2016-03-15)
 
 * Fix: Typo preventing history logging for websockets.
