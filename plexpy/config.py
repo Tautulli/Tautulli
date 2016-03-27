@@ -169,6 +169,7 @@ _CONFIG_DEFINITIONS = {
     'IFTTT_ON_PMSUPDATE': (int, 'IFTTT', 0),
     'JOURNAL_MODE': (str, 'Advanced', 'wal'),
     'LAUNCH_BROWSER': (int, 'General', 1),
+    'LOG_BLACKLIST': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),
     'MOVIE_LOGGING_ENABLE': (int, 'Monitoring', 1),
@@ -449,9 +450,7 @@ class Config(object):
         for key in _CONFIG_DEFINITIONS.keys():
             self.check_setting(key)
         self._upgrade()
-
-        if not plexpy.DEV:
-            self._blacklist()
+        self._blacklist()
 
     def _blacklist(self):
         """ Add tokens and passwords to blacklisted words in logger """
@@ -522,8 +521,7 @@ class Config(object):
         except IOError as e:
             plexpy.logger.error("Error writing configuration file: %s", e)
 
-        if not plexpy.DEV:
-            self._blacklist()
+        self._blacklist()
 
     def __getattr__(self, name):
         """

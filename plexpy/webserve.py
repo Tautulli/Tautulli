@@ -1180,6 +1180,7 @@ class WebInterface(object):
             "backup_dir": plexpy.CONFIG.BACKUP_DIR,
             "cache_dir": plexpy.CONFIG.CACHE_DIR,
             "log_dir": plexpy.CONFIG.LOG_DIR,
+            "log_blacklist": checked(plexpy.CONFIG.LOG_BLACKLIST),
             "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),
             "interface_list": interface_list,
             "cache_sizemb": plexpy.CONFIG.CACHE_SIZEMB,
@@ -1282,7 +1283,7 @@ class WebInterface(object):
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", "notify_upload_posters",
             "notify_recently_added", "notify_recently_added_grandparent",
-            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes"
+            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:

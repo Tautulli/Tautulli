@@ -190,6 +190,13 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Group successive play history by the same user as a single entry in the tables and watch statistics.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
+                            </label>
+                            <p class="help-block">Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
+                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Directories</h3>
