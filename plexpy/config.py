@@ -449,7 +449,9 @@ class Config(object):
         for key in _CONFIG_DEFINITIONS.keys():
             self.check_setting(key)
         self._upgrade()
-        self._blacklist()
+
+        if not plexpy.DEV:
+            self._blacklist()
 
     def _blacklist(self):
         """ Add tokens and passwords to blacklisted words in logger """
@@ -520,7 +522,8 @@ class Config(object):
         except IOError as e:
             plexpy.logger.error("Error writing configuration file: %s", e)
 
-        self._blacklist()
+        if not plexpy.DEV:
+            self._blacklist()
 
     def __getattr__(self, name):
         """

@@ -74,6 +74,8 @@ UMASK = None
 
 POLLING_FAILOVER = False
 
+DEV = False
+
 
 def initialize(config_file):
     with INIT_LOCK:
