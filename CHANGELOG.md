@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.3.13 (2016-03-27)
+
+* Fix: Only mask strings longer than 5 characters in logs.
+
+
 ## v1.3.12 (2016-03-27)
 
 * Fix: "Check GitHub for updates" not rescheduling when toggling setting.
