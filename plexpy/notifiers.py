@@ -487,7 +487,7 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
             slackClient.notify(message=body, event=subject)
         elif agent_id == 15:
             scripts = Scripts()
-            scripts.notify(message=body, subject=subject, **kwargs)
+            scripts.notify(message=body, subject=subject, notify_action=notify_action, **kwargs)
         elif agent_id == 16:
             facebook = FacebookNotifier()
             facebook.notify(subject=subject, message=body, **kwargs)
