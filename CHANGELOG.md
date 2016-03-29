@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.14 (2016-03-29)
+
+* Fix: Regression for missing notify_action for script notifications.
+* Fix: Typo for home stats cards in the settings.
+
+
 ## v1.3.13 (2016-03-27)
 
 * Fix: Only mask strings longer than 5 characters in logs.
