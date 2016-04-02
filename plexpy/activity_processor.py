@@ -29,6 +29,7 @@ class ActivityProcessor(object):
     def write_session(self, session=None, notify=True):
         if session:
             values = {'session_key': session['session_key'],
+                      'transcode_key': session['transcode_key'],
                       'section_id': session['section_id'],
                       'rating_key': session['rating_key'],
                       'media_type': session['media_type'],

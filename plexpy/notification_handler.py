@@ -660,6 +660,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
                         # Stream parameters
                         'streams': stream_count,
                         'user': session.get('friendly_name',''),
+                        'username': session.get('user',''),
                         'platform': session.get('platform',''),
                         'player': session.get('player',''),
                         'ip_address': session.get('ip_address','N/A'),
@@ -690,6 +691,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
                         'transcode_audio_codec': session.get('transcode_audio_codec',''),
                         'transcode_audio_channels': session.get('transcode_audio_channels',''),
                         'session_key': session.get('session_key',''),
+                        'transcode_key': session.get('transcode_key',''),
                         'user_id': session.get('user_id',''),
                         'machine_id': session.get('machine_id',''),
                         # Metadata parameters
