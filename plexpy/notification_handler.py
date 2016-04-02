@@ -743,9 +743,9 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         try:
             script_args = [unicode(arg).format(**available_params) for arg in script_args_text.split()]
         except LookupError as e:
-            logger.error(u"PlexPy Notifier :: Unable to parse field %s in script argument. Using fallback." % e)
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
         except Exception as e:
-            logger.error(u"PlexPy Notifier :: Unable to parse custom script arguments %s. Using fallback." % e)
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom script arguments %s. Using fallback." % e)
 
     if notify_action == 'play':
         # Default body text
@@ -980,9 +980,9 @@ def build_server_notify_text(notify_action=None, agent_id=None):
         try:
             script_args = [unicode(arg).format(**available_params) for arg in script_args_text.split()]
         except LookupError as e:
-            logger.error(u"PlexPy Notifier :: Unable to parse field %s in script argument. Using fallback." % e)
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
         except Exception as e:
-            logger.error(u"PlexPy Notifier :: Unable to parse custom script arguments %s. Using fallback." % e)
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom script arguments %s. Using fallback." % e)
 
     if notify_action == 'extdown':
         # Default body text
