@@ -450,19 +450,20 @@ class PlexTV(object):
 
     def get_server_times(self):
         servers = self.get_plextv_server_list(output_format='xml')
-        server_times = []
+        server_times = {}
 
         try:
             xml_head = servers.getElementsByTagName('Server')
         except Exception as e:
             logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_times: %s." % e)
-            return []
+            return {}
 
         for a in xml_head:
             if helpers.get_xml_attr(a, 'machineIdentifier') == plexpy.CONFIG.PMS_IDENTIFIER:
-                server_times.append({"created_at": helpers.get_xml_attr(a, 'createdAt'),
-                                     "updated_at": helpers.get_xml_attr(a, 'updatedAt')
-                                     })
+                server_times = {"created_at": helpers.get_xml_attr(a, 'createdAt'),
+                                "updated_at": helpers.get_xml_attr(a, 'updatedAt'),
+                                "version": helpers.get_xml_attr(a, 'version')
+                                }
                 break
 
         return server_times

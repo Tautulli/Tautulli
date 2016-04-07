@@ -463,12 +463,8 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     plex_tv = plextv.PlexTV()
     server_times = plex_tv.get_server_times()
 
-    # Get the server version
-    pms_connect = pmsconnect.PmsConnect()
-    server_identity = pms_connect.get_server_identity()
-
     if server_times:
-        updated_at = server_times[0]['updated_at']
+        updated_at = server_times['updated_at']
         server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
@@ -653,7 +649,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     available_params = {# Global paramaters
                         'server_name': server_name,
                         'server_uptime': server_uptime,
-                        'server_version': server_identity.get('version',''),
+                        'server_version': server_times.get('version',''),
                         'action': notify_action.title(),
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format),
@@ -931,16 +927,12 @@ def build_server_notify_text(notify_action=None, agent_id=None):
     plex_tv = plextv.PlexTV()
     server_times = plex_tv.get_server_times()
 
-    # Get the server version
-    pms_connect = pmsconnect.PmsConnect()
-    server_identity = pms_connect.get_server_identity()
-
     update_status = {}
     if notify_action == 'pmsupdate':
         update_status = pms_connect.get_update_staus()
 
     if server_times:
-        updated_at = server_times[0]['updated_at']
+        updated_at = server_times['updated_at']
         server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
@@ -963,7 +955,7 @@ def build_server_notify_text(notify_action=None, agent_id=None):
     available_params = {# Global paramaters
                         'server_name': server_name,
                         'server_uptime': server_uptime,
-                        'server_version': server_identity.get('version',''),
+                        'server_version': server_times.get('version',''),
                         'action': notify_action.title(),
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format),
