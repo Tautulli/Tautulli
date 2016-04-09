@@ -12,6 +12,14 @@
             <span><i class="fa fa-bar-chart"></i> Graphs</span>
         </div>
         <div class="button-bar hidden-xs">
+            <div class="btn-group" id="user-selection">
+                <label>
+                    <select name="graph-user" id="graph-user" class="btn" style="color: inherit;">
+                        <option value="">All Users</option>
+                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                    </select>
+                </label>
+            </div>
             <div class="btn-group" data-toggle="buttons" id="yaxis-selection">
                 % if config['graph_type'] == 'duration':
                 <label class="btn btn-dark">
@@ -281,6 +289,10 @@
                 complete: function(xhr, status) {
                     $('#history-modal').modal('show');
                     $("#history-modal").html(xhr.responseText);
+                    var opt = $('#graph-user :selected');
+                    if (opt.prev().length) {
+                        $('#history_table_modal_filter input[type=search]').val(opt.text()).trigger("input");
+                    }
                 }
             });
         }
@@ -307,9 +319,28 @@
         // Initial values for graph from config
         var yaxis = "${config['graph_type']}";
         var current_range = ${config['graph_days']};
+        var current_user = undefined;
         var current_tab = "${'#' + config['graph_tab']}";
         
         $('.days').html(current_range);
+        
+        // Load user ids and names (for the selector)
+        $.ajax({
+            url: 'get_user_names',
+            type: 'get',
+            dataType: "json",
+            success: function (data) {
+                var select = $('#graph-user');
+                data.sort(function(a, b) {
+                    return a.friendly_name.localeCompare(b.friendly_name);
+                });
+                data.forEach(function(item) {
+                    select.append('<option value="' + item.user_id + '">' +
+                        item.friendly_name + '</option>');
+                });
+            }
+        });
+
 
         var music_visible = (${config['music_logging_enable']} == 1 ? true : false);
 
@@ -321,7 +352,7 @@
             $.ajax({
                 url: "get_plays_by_date",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis },
+                data: { time_range: time_range, y_axis: yaxis, user_id: current_user },
                 dataType: "json",
                 success: function(data) {
                     var dateArray = [];
@@ -348,7 +379,7 @@
             $.ajax({
                 url: "get_plays_by_dayofweek",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis },
+                data: { time_range: time_range, y_axis: yaxis, user_id: current_user },
                 dataType: "json",
                 success: function(data) {
                     hc_plays_by_dayofweek_options.xAxis.categories = data.categories;
@@ -361,7 +392,7 @@
             $.ajax({
                 url: "get_plays_by_hourofday",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis },
+                data: { time_range: time_range, y_axis: yaxis, user_id: current_user },
                 dataType: "json",
                 success: function(data) {
                     hc_plays_by_hourofday_options.xAxis.categories = data.categories;
@@ -374,7 +405,7 @@
             $.ajax({
                 url: "get_plays_by_top_10_platforms",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis },
+                data: { time_range: time_range, y_axis: yaxis, user_id: current_user },
                 dataType: "json",
                 success: function(data) {
                     hc_plays_by_platform_options.xAxis.categories = data.categories;
@@ -406,7 +437,7 @@
             $.ajax({
                 url: "get_plays_by_stream_type",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis },
+                data: { time_range: time_range, y_axis: yaxis, user_id: current_user },
                 dataType: "json",
                 success: function(data) {
                     var dateArray = [];
@@ -432,7 +463,7 @@
             $.ajax({
                 url: "get_plays_by_source_resolution",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis },
+                data: { time_range: time_range, y_axis: yaxis, user_id: current_user },
                 dataType: "json",
                 success: function(data) {
                     hc_plays_by_source_resolution_options.xAxis.categories = data.categories;
@@ -444,7 +475,7 @@
             $.ajax({
                 url: "get_plays_by_stream_resolution",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis },
+                data: { time_range: time_range, y_axis: yaxis, user_id: current_user },
                 dataType: "json",
                 success: function(data) {
                     hc_plays_by_stream_resolution_options.xAxis.categories = data.categories;
@@ -456,7 +487,7 @@
             $.ajax({
                 url: "get_stream_type_by_top_10_platforms",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis },
+                data: { time_range: time_range, y_axis: yaxis, user_id: current_user },
                 dataType: "json",
                 success: function(data) {
                     hc_plays_by_platform_by_stream_type_options.xAxis.categories = data.categories;
@@ -468,7 +499,7 @@
             $.ajax({
                 url: "get_stream_type_by_top_10_users",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis },
+                data: { time_range: time_range, y_axis: yaxis, user_id: current_user },
                 dataType: "json",
                 success: function(data) {
                     hc_plays_by_user_by_stream_type_options.xAxis.categories = data.categories;
@@ -486,7 +517,7 @@
             $.ajax({
                 url: "get_plays_per_month",
                 type: 'get',
-                data: { y_axis: yaxis },
+                data: { y_axis: yaxis, user_id: current_user },
                 dataType: "json",
                 success: function(data) {
                     hc_plays_by_month_options.yAxis.min = 0;
@@ -556,6 +587,14 @@
             });
         });
 
+        // User changed
+        $('#graph-user').on('change', function() {
+            current_user = $(this).val() || undefined;
+            if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
+            if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
+            if (current_tab == '#tabs-3') { loadGraphsTab3(yaxis); }
+        });
+        
         // Y-axis changed
         $('#yaxis-selection').on('change', function() {
             yaxis = $('input[name=yaxis-options]:checked', '#yaxis-selection').val();
@@ -598,7 +637,7 @@
 
                 $('.yaxis-text').html('Play count');
             } else {
-                yaxis_format = function() { return moment.duration(this.value, 'seconds').format("m [mins]"); };
+                yaxis_format = function() { return moment.duration(this.value, 'seconds').format("H [h] m [m]"); };
                 tooltip_format = function() {
                                     if (moment(this.x, 'X').isValid() && (this.x > 946684800)) {
                                         var s = '<b>'+ moment(this.x).format("ddd MMM D") +'</b>';
