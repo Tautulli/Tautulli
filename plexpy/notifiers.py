@@ -1776,7 +1776,7 @@ class SLACK(object):
             if urlparse(self.icon_emoji).scheme == '':
                 data['icon_emoji'] = self.icon_emoji
             else:
-                data['icon_url'] = self.icon_url
+                data['icon_url'] = self.icon_emoji
 
         url = urlparse(self.slack_hook).path
 
