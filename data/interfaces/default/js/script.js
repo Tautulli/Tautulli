@@ -39,7 +39,6 @@ function showMsg(msg,loader,timeout,ms,error) {
 	}
 	if (error) {
 		feedback.css("background-color", "rgba(255,0,0,0.5)");
-		console.log('is error');
 	}
 	$(feedback).html(message);
 	feedback.fadeIn();
@@ -48,7 +47,8 @@ function showMsg(msg,loader,timeout,ms,error) {
 		setTimeout(function(){
 			message.fadeOut(function(){
 				$(this).remove();
-				feedback.fadeOut();					
+				feedback.fadeOut();
+				feedback.css("background-color", "");
 			});
 		},ms);
 	} 
