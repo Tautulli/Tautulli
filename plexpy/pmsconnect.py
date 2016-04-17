@@ -939,7 +939,7 @@ class PmsConnect(object):
         try:
             xml_head = session_data.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_sessions: %s." % e)
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_current_activity: %s." % e)
             return []
 
         session_list = []
