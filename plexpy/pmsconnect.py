@@ -939,7 +939,7 @@ class PmsConnect(object):
         try:
             xml_head = session_data.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_sessions: %s." % e)
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_current_activity: %s." % e)
             return []
 
         session_list = []
@@ -1001,6 +1001,7 @@ class PmsConnect(object):
 
             if session.getElementsByTagName('TranscodeSession'):
                 transcode_session = session.getElementsByTagName('TranscodeSession')[0]
+                transcode_key = helpers.get_xml_attr(transcode_session, 'key')
                 throttled = helpers.get_xml_attr(transcode_session, 'throttled')
                 transcode_progress = helpers.get_xml_attr(transcode_session, 'progress')
                 transcode_speed = helpers.get_xml_attr(transcode_session, 'speed')
@@ -1011,6 +1012,7 @@ class PmsConnect(object):
                 transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
                 duration = helpers.get_xml_attr(transcode_session, 'duration')
             else:
+                transcode_key = ''
                 throttled = '0'
                 transcode_progress = '0'
                 transcode_speed = ''
@@ -1051,6 +1053,7 @@ class PmsConnect(object):
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                               'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                               'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                              'transcode_key': transcode_key,
                               'throttled': throttled,
                               'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
                               'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
@@ -1099,6 +1102,7 @@ class PmsConnect(object):
 
             if session.getElementsByTagName('TranscodeSession'):
                 transcode_session = session.getElementsByTagName('TranscodeSession')[0]
+                transcode_key = helpers.get_xml_attr(transcode_session, 'key')
                 throttled = helpers.get_xml_attr(transcode_session, 'throttled')
                 transcode_progress = helpers.get_xml_attr(transcode_session, 'progress')
                 transcode_speed = helpers.get_xml_attr(transcode_session, 'speed')
@@ -1112,6 +1116,7 @@ class PmsConnect(object):
                 transcode_container = helpers.get_xml_attr(transcode_session, 'container')
                 transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
             else:
+                transcode_key = ''
                 throttled = '0'
                 transcode_progress = '0'
                 transcode_speed = ''
@@ -1174,6 +1179,7 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'transcode_key': transcode_key,
                                   'throttled': throttled,
                                   'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
                                   'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
@@ -1232,6 +1238,7 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'transcode_key': transcode_key,
                                   'throttled': throttled,
                                   'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
                                   'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
@@ -1290,6 +1297,7 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'transcode_key': transcode_key,
                                   'throttled': throttled,
                                   'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
                                   'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
@@ -1329,6 +1337,7 @@ class PmsConnect(object):
 
             if session.getElementsByTagName('TranscodeSession'):
                 transcode_session = session.getElementsByTagName('TranscodeSession')[0]
+                transcode_key = helpers.get_xml_attr(transcode_session, 'key')
                 throttled = helpers.get_xml_attr(transcode_session, 'throttled')
                 transcode_progress = helpers.get_xml_attr(transcode_session, 'progress')
                 transcode_speed = helpers.get_xml_attr(transcode_session, 'speed')
@@ -1381,6 +1390,7 @@ class PmsConnect(object):
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                               'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                               'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                              'transcode_key': transcode_key,
                               'throttled': throttled,
                               'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
                               'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),

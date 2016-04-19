@@ -832,7 +832,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </div>
                                 <div id="notify_recently_added_delay_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Set the delay for recently added notifications to allow metadata to be processed. Minimum 60 seconds.</p>
+                            <p class="help-block">Set the delay (in seconds) for recently added notifications to allow metadata to be processed. Minimum 60 seconds.</p>
                         </div>
 
                         <div class="padded-header">
@@ -1484,6 +1484,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{user}</strong></td>
+                                    <td>The friendly name of the person streaming.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{username}</strong></td>
                                     <td>The username of the person streaming.</td>
                                 </tr>
                                 <tr>
@@ -1604,7 +1608,11 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td><strong>{session_key}</strong></td>
-                                    <td>The unique identifier for the session.</td>
+                                    <td>The unique identifier for the stream session.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{transcode_key}</strong></td>
+                                    <td>The unique identifier for the transcode session.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{user_id}</strong></td>

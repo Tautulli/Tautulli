@@ -276,7 +276,7 @@ media_info_table_options = {
             get_file_sizes = false;
         }
 
-        $("#media_info_table_info").append('<span class="hidden-md hidden-sm hidden-xs"> with a total file size of ' +
+        $("#media_info_table-SID-" + section_id + "_info").append('<span class="hidden-md hidden-sm hidden-xs"> with a total file size of ' +
             Math.round(settings.json.filtered_file_size / Math.pow(1024, 3)).toString() + ' GiB' +
             ' (filtered from ' + Math.round(settings.json.total_file_size / Math.pow(1024, 3)).toString() + ' GiB)</span>');
     },

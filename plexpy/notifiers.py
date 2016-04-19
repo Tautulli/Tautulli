@@ -1776,7 +1776,7 @@ class SLACK(object):
             if urlparse(self.icon_emoji).scheme == '':
                 data['icon_emoji'] = self.icon_emoji
             else:
-                data['icon_url'] = self.icon_url
+                data['icon_url'] = self.icon_emoji
 
         url = urlparse(self.slack_hook).path
 
@@ -1884,7 +1884,7 @@ class Scripts(object):
                   script_args(list): ["python2", '-p', '-zomg']
         """
         logger.debug(u"PlexPy Notifiers :: Trying to run notify script, action: %s, arguments: %s" %
-                     (notify_action if notify_action else None, script_args if script_args else None))
+                     (notify_action or None, script_args or None))
 
         if script_args is None:
             script_args = []

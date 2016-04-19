@@ -463,12 +463,8 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     plex_tv = plextv.PlexTV()
     server_times = plex_tv.get_server_times()
 
-    # Get the server version
-    pms_connect = pmsconnect.PmsConnect()
-    server_identity = pms_connect.get_server_identity()
-
     if server_times:
-        updated_at = server_times[0]['updated_at']
+        updated_at = server_times['updated_at']
         server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
@@ -653,13 +649,14 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     available_params = {# Global paramaters
                         'server_name': server_name,
                         'server_uptime': server_uptime,
-                        'server_version': server_identity.get('version',''),
+                        'server_version': server_times.get('version',''),
                         'action': notify_action.title(),
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format),
                         # Stream parameters
                         'streams': stream_count,
                         'user': session.get('friendly_name',''),
+                        'username': session.get('user',''),
                         'platform': session.get('platform',''),
                         'player': session.get('player',''),
                         'ip_address': session.get('ip_address','N/A'),
@@ -690,6 +687,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
                         'transcode_audio_codec': session.get('transcode_audio_codec',''),
                         'transcode_audio_channels': session.get('transcode_audio_channels',''),
                         'session_key': session.get('session_key',''),
+                        'transcode_key': session.get('transcode_key',''),
                         'user_id': session.get('user_id',''),
                         'machine_id': session.get('machine_id',''),
                         # Metadata parameters
@@ -743,9 +741,9 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         try:
             script_args = [unicode(arg).format(**available_params) for arg in script_args_text.split()]
         except LookupError as e:
-            logger.error(u"PlexPy Notifier :: Unable to parse field %s in script argument. Using fallback." % e)
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
         except Exception as e:
-            logger.error(u"PlexPy Notifier :: Unable to parse custom script arguments %s. Using fallback." % e)
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom script arguments %s. Using fallback." % e)
 
     if notify_action == 'play':
         # Default body text
@@ -929,16 +927,12 @@ def build_server_notify_text(notify_action=None, agent_id=None):
     plex_tv = plextv.PlexTV()
     server_times = plex_tv.get_server_times()
 
-    # Get the server version
-    pms_connect = pmsconnect.PmsConnect()
-    server_identity = pms_connect.get_server_identity()
-
     update_status = {}
     if notify_action == 'pmsupdate':
         update_status = pms_connect.get_update_staus()
 
     if server_times:
-        updated_at = server_times[0]['updated_at']
+        updated_at = server_times['updated_at']
         server_uptime = helpers.human_duration(int(time.time() - helpers.cast_to_int(updated_at)))
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
@@ -961,7 +955,7 @@ def build_server_notify_text(notify_action=None, agent_id=None):
     available_params = {# Global paramaters
                         'server_name': server_name,
                         'server_uptime': server_uptime,
-                        'server_version': server_identity.get('version',''),
+                        'server_version': server_times.get('version',''),
                         'action': notify_action.title(),
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format),
@@ -980,9 +974,9 @@ def build_server_notify_text(notify_action=None, agent_id=None):
         try:
             script_args = [unicode(arg).format(**available_params) for arg in script_args_text.split()]
         except LookupError as e:
-            logger.error(u"PlexPy Notifier :: Unable to parse field %s in script argument. Using fallback." % e)
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
         except Exception as e:
-            logger.error(u"PlexPy Notifier :: Unable to parse custom script arguments %s. Using fallback." % e)
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom script arguments %s. Using fallback." % e)
 
     if notify_action == 'extdown':
         # Default body text
