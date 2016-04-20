@@ -28,9 +28,9 @@ DOCUMENTATION :: END
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
-<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+<link rel="stylesheet" href="/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="/css/dataTables.colVis.css">
+<link rel="stylesheet" href="/css/plexpy-dataTables.css">
 </%def>
 
 <%def name="body()">
@@ -321,10 +321,10 @@ DOCUMENTATION :: END
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/dataTables.colVis.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
+<script src="/js/jquery.dataTables.min.js"></script>
+<script src="/js/dataTables.colVis.js"></script>
+<script src="/js/dataTables.bootstrap.min.js"></script>
+<script src="/js/dataTables.bootstrap.pagination.js"></script>
 % if data:
 <script>
     % if str(data['section_id']).isdigit():
@@ -341,9 +341,9 @@ DOCUMENTATION :: END
     var get_file_sizes = null;
     % endif
 </script>
-<script src="interfaces/default/js/moment-with-locale.js"></script>
-<script src="interfaces/default/js/tables/history_table.js"></script>
-<script src="interfaces/default/js/tables/media_info_table.js"></script>
+<script src="/js/moment-with-locale.js"></script>
+<script src="/js/tables/history_table.js"></script>
+<script src="/js/tables/media_info_table.js"></script>
 <script>
     $(document).ready(function () {
         $("#edit-library-tooltip").tooltip();

@@ -16,6 +16,7 @@
 from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, \
     datafactory, graphs, users, libraries, database, web_socket
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates
+from plexpy.webauth import AuthController, require, member_of, name_is
 
 from mako.lookup import TemplateLookup
 from mako import exceptions
@@ -56,10 +57,13 @@ def serve_template(templatename, **kwargs):
 
 class WebInterface(object):
 
+    auth = AuthController()
+    
     def __init__(self):
         self.interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/')
 
     @cherrypy.expose
+    @require()
     def index(self):
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
             raise cherrypy.HTTPRedirect("home")
@@ -142,6 +146,7 @@ class WebInterface(object):
     ##### Home #####
 
     @cherrypy.expose
+    @require()
     def home(self):
         config = {
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
@@ -270,6 +275,7 @@ class WebInterface(object):
     ##### Libraries #####
 
     @cherrypy.expose
+    @require()
     def libraries(self):
         config = {
             "update_section_ids": plexpy.CONFIG.UPDATE_SECTION_IDS
@@ -578,6 +584,7 @@ class WebInterface(object):
     ##### Users #####
 
     @cherrypy.expose
+    @require()
     def users(self):
         return serve_template(templatename="users.html", title="Users")
 
@@ -749,6 +756,7 @@ class WebInterface(object):
     ##### History #####
 
     @cherrypy.expose
+    @require()
     def history(self):
         return serve_template(templatename="history.html", title="History")
 
@@ -837,6 +845,7 @@ class WebInterface(object):
     ##### Graphs #####
 
     @cherrypy.expose
+    @require()
     def graphs(self):
 
         config = {
@@ -1014,6 +1023,7 @@ class WebInterface(object):
     ##### Sync #####
 
     @cherrypy.expose
+    @require()
     def sync(self):
         return serve_template(templatename="sync.html", title="Synced Items")
 
@@ -1039,6 +1049,7 @@ class WebInterface(object):
     ##### Logs #####
 
     @cherrypy.expose
+    @require()
     def logs(self):
         return serve_template(templatename="logs.html", title="Log", lineList=plexpy.LOG_LIST)
 
@@ -1157,6 +1168,7 @@ class WebInterface(object):
     ##### Settings #####
 
     @cherrypy.expose
+    @require()
     def settings(self):
         interface_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/')
         interface_list = [name for name in os.listdir(interface_dir) if

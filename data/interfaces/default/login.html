@@ -1,0 +1,62 @@
+﻿<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>PlexPy - ${title}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="/css/bootstrap3/bootstrap.css" rel="stylesheet">
+    <link href="/css/bootstrap-wizard.css" rel="stylesheet">
+    <link href="/css/plexpy.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <link href="/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
+    <link rel="shortcut icon" href="/images/favicon.ico">
+</head>
+
+<body>
+<div class="body-container">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="login-container">
+                <div class="login-logo"></div>
+                <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3">
+                        <form action="/auth/login" method="post">
+                            <div class="username-group form-group">
+                                <label for="username" class="control-label">
+                                    Username
+                                </label>
+                                <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off">
+                            </div>
+                            <div class="password-group form-group">
+                                <label for="password" class="control-label">
+                                    Password
+                                </label>
+                                <input type="password" id="password" name="password" class="form-control">
+                            </div>
+                            <div class="form-footer">
+                                <button type="submit" class="btn btn-lg btn-bright login-button">Sign In</button>
+                                <div class="remember-group">
+                                    <label class="control-label">
+                                        <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value=1 checked="checked" /> Remember me
+                                    </label>
+                                </div>
+                            </div>
+                            <input type="hidden" name="from_page" value="${from_page}" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/jquery-2.1.4.min.js"></script>
+<script src="/js/bootstrap3/bootstrap.min.js"></script>
+<script src="/js/bootstrap-wizard.min.js"></script>
+
+</body>
+</html>

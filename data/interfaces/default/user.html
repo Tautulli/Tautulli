@@ -30,9 +30,9 @@ from plexpy import helpers
 %>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
-<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+<link rel="stylesheet" href="/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="/css/dataTables.colVis.css">
+<link rel="stylesheet" href="/css/plexpy-dataTables.css">
 </%def>
 
 <%def name="body()">
@@ -301,15 +301,15 @@ from plexpy import helpers
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/dataTables.colVis.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
+<script src="/js/jquery.dataTables.min.js"></script>
+<script src="/js/dataTables.colVis.js"></script>
+<script src="/js/dataTables.bootstrap.min.js"></script>
+<script src="/js/dataTables.bootstrap.pagination.js"></script>
 % if data:
-<script src="interfaces/default/js/moment-with-locale.js"></script>
-<script src="interfaces/default/js/tables/history_table.js"></script>
-<script src="interfaces/default/js/tables/user_ips.js"></script>
-<script src="interfaces/default/js/tables/sync_table.js"></script>
+<script src="/js/moment-with-locale.js"></script>
+<script src="/js/tables/history_table.js"></script>
+<script src="/js/tables/user_ips.js"></script>
+<script src="/js/tables/sync_table.js"></script>
 <script>
     $(document).ready(function () {
 
