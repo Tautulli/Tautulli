@@ -12,14 +12,14 @@ from plexpy.helpers import anon_url
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link href="interfaces/default/css/bootstrap3/bootstrap.css" rel="stylesheet">
-    <link href="interfaces/default/css/plexpy.css" rel="stylesheet">
+    <link href="/css/bootstrap3/bootstrap.css" rel="stylesheet">
+    <link href="/css/plexpy.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
-    <link href="interfaces/default/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/css/font-awesome.min.css" rel="stylesheet">
     ${next.headIncludes()}
 
-    <link rel="icon" type="image/x-icon" href="interfaces/default/images/favicon.ico"/>
-    <link rel="shortcut icon" href="interfaces/default/images/favicon.png">
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
+    <link rel="shortcut icon" href="/images/favicon.png">
 
     <!-- Allow web app to be run in full-screen mode. -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,99 +33,99 @@ from plexpy.helpers import anon_url
     <!-- ICONS -->
     <!-- IE10 icon --> 
     <meta name="application-name" content="PlexPy" />
-    <meta name="msapplication-config" content="interfaces/default/xml/IEconfig.xml"/>
+    <meta name="msapplication-config" content="/xml/IEconfig.xml"/>
     <!-- Android >M39 icon -->
-    <link rel="manifest" href="interfaces/default/json/Android-manifest.json">
+    <link rel="manifest" href="/json/Android-manifest.json">
     <!-- iPad retina icon -->
-    <link href="interfaces/default/images/res/ios/icon-76@2x.png" sizes="152x152" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-76@2x.png" sizes="152x152" rel="apple-touch-icon-precomposed">
     <!-- iPad retina icon (iOS < 7) -->
-    <link href="interfaces/default/images/res/ios/icon-72@2x.png" sizes="144x144" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-72@2x.png" sizes="144x144" rel="apple-touch-icon-precomposed">
     <!-- iPad non-retina icon -->
-    <link href="interfaces/default/images/res/ios/icon-76.png" sizes="76x76" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-76.png" sizes="76x76" rel="apple-touch-icon-precomposed">
     <!-- iPad non-retina icon (iOS < 7) -->
-    <link href="interfaces/default/images/res/ios/icon-72.png" sizes="72x72" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-72.png" sizes="72x72" rel="apple-touch-icon-precomposed">
     <!-- iPhone 6 Plus icon -->
-    <link href="interfaces/default/images/res/ios/icon-60@2x.png" sizes="120x120" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-60@2x.png" sizes="120x120" rel="apple-touch-icon-precomposed">
     <!-- iPhone retina icon (iOS < 7) -->
-    <link href="interfaces/default/images/res/ios/icon@2x.png" sizes="114x114" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon@2x.png" sizes="114x114" rel="apple-touch-icon-precomposed">
     <!-- iPhone non-retina icon (iOS < 7) -->
-    <link href="interfaces/default/images/res/ios/icon.png" sizes="57x57" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon.png" sizes="57x57" rel="apple-touch-icon-precomposed">
     <!-- iPhone / iPod Touch  -->
-    <link href="interfaces/default/images/res/ios/icon-60@3x.png" sizes="180x180" rel="apple-touch-icon-precomposed">
-    <link href="interfaces/default/images/res/ios/icon-60.png" sizes="60x60" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-60@3x.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-60.png" sizes="60x60" rel="apple-touch-icon-precomposed">
     <!-- Spotlight Icon -->
-    <link href="interfaces/default/images/res/ios/icon-40.png" sizes="40x40" rel="apple-touch-icon-precomposed">
-    <link href="interfaces/default/images/res/ios/icon-40@2x.png" sizes="80x80" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-40.png" sizes="40x40" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-40@2x.png" sizes="80x80" rel="apple-touch-icon-precomposed">
     <!-- iPhone Spotlight and Settings Icon -->
-    <link href="interfaces/default/images/res/ios/icon-small.png" sizes="29x29" rel="apple-touch-icon-precomposed">
-    <link href="interfaces/default/images/res/ios/icon-small@2x.png" sizes="58x58" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-small.png" sizes="29x29" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-small@2x.png" sizes="58x58" rel="apple-touch-icon-precomposed">
     <!-- iPad Spotlight and Settings Icon -->
-    <link href="interfaces/default/images/res/ios/icon-50.png" sizes="50x50" rel="apple-touch-icon-precomposed">
-    <link href="interfaces/default/images/res/ios/icon-50@2x.png" sizes="100x100" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-50.png" sizes="50x50" rel="apple-touch-icon-precomposed">
+    <link href="/images/res/ios/icon-50@2x.png" sizes="100x100" rel="apple-touch-icon-precomposed">
             
     <!-- STARTUP IMAGES -->
     <!-- iPad retina portrait startup image -->
-    <link href="interfaces/default/images/res/screen/ios/Default-Portrait@2x~ipad.png"
+    <link href="/images/res/screen/ios/Default-Portrait@2x~ipad.png"
           media="(device-width: 768px) and (device-height: 1024px)
                  and (-webkit-device-pixel-ratio: 2)
                  and (orientation: portrait)"
           rel="apple-touch-startup-image">
 
     <!-- iPad retina landscape startup image -->
-    <link href="interfaces/default/images/res/screen/ios/Default-Landscape@2x~ipad.png"
+    <link href="/images/res/screen/ios/Default-Landscape@2x~ipad.png"
           media="(device-width: 768px) and (device-height: 1024px)
                  and (-webkit-device-pixel-ratio: 2)
                  and (orientation: landscape)"
           rel="apple-touch-startup-image">
 
     <!-- iPad non-retina portrait startup image -->
-    <link href="interfaces/default/images/res/screen/ios/Default-Portrait~ipad.png"
+    <link href="/images/res/screen/ios/Default-Portrait~ipad.png"
           media="(device-width: 768px) and (device-height: 1024px)
                  and (-webkit-device-pixel-ratio: 1)
                  and (orientation: portrait)"
           rel="apple-touch-startup-image">
 
     <!-- iPad non-retina landscape startup image -->
-    <link href="interfaces/default/images/res/screen/ios/Default-Landscape~ipad.png"
+    <link href="/images/res/screen/ios/Default-Landscape~ipad.png"
           media="(device-width: 768px) and (device-height: 1024px)
                  and (-webkit-device-pixel-ratio: 1)
                  and (orientation: landscape)"
           rel="apple-touch-startup-image">
 
     <!-- iPhone 6 Plus portrait startup image -->
-    <link href="interfaces/default/images/res/screen/ios/Default-736h.png"
+    <link href="/images/res/screen/ios/Default-736h.png"
           media="(device-width: 414px) and (device-height: 736px)
                  and (-webkit-device-pixel-ratio: 3)
                  and (orientation: portrait)"
           rel="apple-touch-startup-image">
 
     <!-- iPhone 6 Plus landscape startup image -->
-    <link href="interfaces/default/images/res/screen/ios/Default-Landscape-736h.png"
+    <link href="/images/res/screen/ios/Default-Landscape-736h.png"
           media="(device-width: 414px) and (device-height: 736px)
                  and (-webkit-device-pixel-ratio: 3)
                  and (orientation: landscape)"
           rel="apple-touch-startup-image">
 
     <!-- iPhone 6 startup image -->
-    <link href="interfaces/default/images/res/screen/ios/Default-667h.png"
+    <link href="/images/res/screen/ios/Default-667h.png"
           media="(device-width: 375px) and (device-height: 667px)
                  and (-webkit-device-pixel-ratio: 2)"
           rel="apple-touch-startup-image">
 
     <!-- iPhone 5 startup image -->
-    <link href="interfaces/default/images/res/screen/ios/Default-568h@2x~iphone5.jpg"
+    <link href="/images/res/screen/ios/Default-568h@2x~iphone5.jpg"
           media="(device-width: 320px) and (device-height: 568px)
                  and (-webkit-device-pixel-ratio: 2)"
           rel="apple-touch-startup-image">
 
     <!-- iPhone < 5 retina startup image -->
-    <link href="interfaces/default/images/res/screen/ios/Default@2x~iphone.png"
+    <link href="/images/res/screen/ios/Default@2x~iphone.png"
           media="(device-width: 320px) and (device-height: 480px)
                  and (-webkit-device-pixel-ratio: 2)"
           rel="apple-touch-startup-image">
 
     <!-- iPhone < 5 non-retina startup image -->
-    <link href="interfaces/default/images/res/screen/ios/Default~iphone.png"
+    <link href="/images/res/screen/ios/Default~iphone.png"
           media="(device-width: 320px) and (device-height: 480px)
                  and (-webkit-device-pixel-ratio: 1)"
           rel="apple-touch-startup-image">
@@ -158,7 +158,7 @@ from plexpy.helpers import anon_url
                     <span class="icon-bar"></span>
                 </button>
                 <a class="navbar-brand" href="home">
-                    <img alt="PlexPy" src="interfaces/default/images/logo-plexpy@2x.png" height="40">
+                    <img alt="PlexPy" src="/images/logo-plexpy@2x.png" height="40">
                 </a>
             </div>
             <div class="collapse navbar-collapse navbar-right" id="navbar-collapse-1">
@@ -226,9 +226,9 @@ ${next.headerIncludes()}
     ${next.body()}
 </div>
 
-<script src="interfaces/default/js/jquery-2.1.4.min.js"></script>
-<script src="interfaces/default/js/bootstrap3/bootstrap.min.js"></script>
-<script src="interfaces/default/js/script.js"></script>
+<script src="/js/jquery-2.1.4.min.js"></script>
+<script src="/js/bootstrap3/bootstrap.min.js"></script>
+<script src="/js/script.js"></script>
 <script>
     $('#updateDismiss').click(function() {
         $('#updatebar').slideUp('slow');
