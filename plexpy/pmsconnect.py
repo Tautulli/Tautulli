@@ -1348,6 +1348,7 @@ class PmsConnect(object):
                 transcode_container = helpers.get_xml_attr(transcode_session, 'container')
                 transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
             else:
+                transcode_key = ''
                 throttled = '0'
                 transcode_progress = '0'
                 transcode_speed = ''
