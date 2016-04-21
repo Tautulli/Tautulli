@@ -390,7 +390,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="launch_browser" value="1" ${config['launch_browser']}> Launch Browser on Startup
+                                <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}> Launch Browser on Startup
                             </label>
                             <p class="help-block">Launch browser pointed to PlexPy on startup.</p>
                         </div>
@@ -469,9 +469,18 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <div class="col-md-4">
                                     <input type="password" class="form-control auth-settings" id="http_password" name="http_password" value="${config['http_password']}" size="30">
                                 </div>
+                                <div id="http_hash_password_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">Password for web server authentication. Leave empty to disable.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="http_hash_password" id="http_hash_password" value="1" ${config['http_hash_password']} data-parsley-trigger="change"> Hash Password in the Config File
+                            </label>
+                            <p class="help-block">Store a hashed password in the config.ini file.<br />Warning: Your password cannot be recovered if forgotten!</p>
+                        </div>
+                        <input type="text" id="http_hashed_password" name="http_hashed_password" value="${config['http_hashed_password']}" style="display: none;" data-parsley-trigger="change" data-parsley-type="integer" data-parsley-range="[0, 1]" 
+                               data-parsley-errors-container="#http_hash_password_error" data-parsley-error-message="Cannot un-hash password, please set a new password." data-parsley-no-focus required>
 
 
                         <div class="padded-header">
@@ -1957,6 +1966,7 @@ $(document).ready(function() {
         if ((serverChanged && $('#monitoring_use_websocket').is(":checked")) || authChanged || httpChanged || monitorChanged || directoryChanged) {
           $('#restart-modal').modal('show');
         }
+        $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0)
     }
 
     var configForm = $("#configUpdate");
@@ -2401,6 +2411,19 @@ $(document).ready(function() {
         });
     });
 
+    $("#http_hash_password").click(function(){
+        if (!($("#http_hash_password").is(":checked")) && $("#http_hashed_password").val() == "1" && $("#http_password").val() == "    ") {
+            $("#http_hashed_password").val(-1);
+        } else if ($("#http_hash_password").is(":checked") && $("#http_hashed_password").val() == "-1" && $("#http_password").val() == "    ") {
+            $("#http_hashed_password").val(1);
+            $("#http_hash_password_error").html("");
+        }
+    });
+
+    $('#http_password').change(function () {
+        $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0);
+        $("#http_hash_password_error").html("");
+    });
 });
 </script>
 </%def>

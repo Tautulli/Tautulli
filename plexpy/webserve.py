@@ -20,6 +20,7 @@ from plexpy.webauth import AuthController, require, member_of, name_is
 
 from mako.lookup import TemplateLookup
 from mako import exceptions
+from hashing_passwords import make_hash
 
 import plexpy
 import threading
@@ -1192,6 +1193,8 @@ class WebInterface(object):
             http_password = ''
 
         config = {
+            "http_hash_password": checked(plexpy.CONFIG.HTTP_HASH_PASSWORD),
+            "http_hashed_password": plexpy.CONFIG.HTTP_HASHED_PASSWORD,
             "http_host": plexpy.CONFIG.HTTP_HOST,
             "http_username": plexpy.CONFIG.HTTP_USERNAME,
             "http_port": plexpy.CONFIG.HTTP_PORT,
@@ -1315,7 +1318,7 @@ class WebInterface(object):
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", "notify_upload_posters",
             "notify_recently_added", "notify_recently_added_grandparent",
-            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist"
+            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -1327,7 +1330,20 @@ class WebInterface(object):
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password'):
             if kwargs['http_password'] == '    ' and plexpy.CONFIG.HTTP_PASSWORD != '':
-                kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
+                if kwargs.get('http_hash_password') and not plexpy.CONFIG.HTTP_HASHED_PASSWORD:
+                    kwargs['http_password'] = make_hash(plexpy.CONFIG.HTTP_PASSWORD)
+                    kwargs['http_hashed_password'] = 1
+                else:
+                    kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
+                
+            elif kwargs['http_password'] and kwargs.get('http_hash_password'):
+                kwargs['http_password'] = make_hash(kwargs['http_password'])
+                kwargs['http_hashed_password'] = 1
+
+            elif not kwargs.get('http_hash_password'):
+                kwargs['http_hashed_password'] = 0
+        else:
+            kwargs['http_hashed_password'] = 0
 
         for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
             # the use prefix is fairly nice in the html, but does not match the actual config
