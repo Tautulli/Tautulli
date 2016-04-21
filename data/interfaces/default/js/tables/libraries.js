@@ -47,7 +47,7 @@ libraries_list_table_options = {
                         $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(pms_image_proxy?img=' + rowData['library_thumb'] + '&width=80&height=80&fallback=poster);"></div></a>');
                     }
                 } else {
-                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(interfaces/default/images/cover.png);"></div></a>');
+                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(../../images/cover.png);"></div></a>');
                 }
             },
             "orderable": false,

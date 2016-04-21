@@ -4,8 +4,8 @@ from plexpy import helpers
 %>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
 <style>
     td {word-break: break-all;}
 </style>
@@ -107,13 +107,13 @@ from plexpy import helpers
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
-<script src="interfaces/default/js/moment-with-locale.js"></script>
-<script src="interfaces/default/js/tables/logs.js"></script>
-<script src="interfaces/default/js/tables/plex_logs.js"></script>
-<script src="interfaces/default/js/tables/notification_logs.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/tables/logs.js"></script>
+<script src="${http_root}js/tables/plex_logs.js"></script>
+<script src="${http_root}js/tables/notification_logs.js"></script>
 <script>
 
         $(document).ready(function() {

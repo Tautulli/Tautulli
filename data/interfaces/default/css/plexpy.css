@@ -2792,3 +2792,69 @@ a.no-highlight:hover {
 #recently-watched-row-scroller {
     position: relative;
 }
+
+@media (min-width: 768px) {
+    .login-container {
+        max-width: 750px;
+    }
+}
+@media (min-width: 992px) {
+    .login-container {
+        max-width: 970px;
+    }
+}
+@media (min-width: 1200px) {
+    .login-container {
+        max-width: 1170px;
+    }
+}
+.login-container {
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+.login {
+    margin: 0 auto;
+}
+.login-logo {
+    background-image: url(../images/logo-plexpy@2x.png);
+    background-position: center;
+    background-repeat: no-repeat;
+    margin: 0 auto 50px auto;
+    width: 340px;
+    height: 100px;
+}
+.login-container .form-group {
+    margin-bottom: 20px;
+}
+.login-container .form-group label {
+    font-weight: 400;
+    color: #999;
+}
+.login-container .form-control {
+    height: 38px;
+    line-height: 1.5em;
+}
+.login-container .form-footer {
+    margin-top: 40px;
+}
+.login-container .login-button {
+    float: right;
+    text-transform: uppercase;
+    text-shadow: 0 -1px 1px rgba(0,0,0,.4),0 0 15px rgba(0,0,0,.2);
+}
+.login-container .remember-group {
+    display: block;
+    min-height: 24px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    vertical-align: middle;
+    color: #999;
+}
+.login-container .remember-group .control-label {
+    display: inline;
+    margin-bottom: 0;
+    font-weight: 400;
+    cursor: pointer;
+}

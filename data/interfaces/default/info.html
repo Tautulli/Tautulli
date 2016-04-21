@@ -57,9 +57,9 @@ DOCUMENTATION :: END
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
-<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
+<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
 </%def>
 
 <%def name="body()">
@@ -172,16 +172,16 @@ DOCUMENTATION :: END
                         % if data['media_type'] == 'movie' or data['media_type'] == 'episode' or data['media_type'] == 'track':
                         <div class="summary-content-media-info-wrapper">
                             % if data['media_type'] != 'track' and data['video_codec']:
-                            <img class="summary-content-media-flag" title="${data['video_codec']}" src="interfaces/default/images/media_flags/video_codec/${data['video_codec'] | vf}.png" />
+                            <img class="summary-content-media-flag" title="${data['video_codec']}" src="${http_root}images/media_flags/video_codec/${data['video_codec'] | vf}.png" />
                             % endif
                             % if data['media_type'] != 'track' and data['video_resolution']:
-                            <img class="summary-content-media-flag" title="${data['video_resolution']}" src="interfaces/default/images/media_flags/video_resolution/${data['video_resolution']}.png" />
+                            <img class="summary-content-media-flag" title="${data['video_resolution']}" src="${http_root}images/media_flags/video_resolution/${data['video_resolution']}.png" />
                             % endif
                             % if data['audio_codec']:
-                            <img class="summary-content-media-flag" title="${data['audio_codec']}" src="interfaces/default/images/media_flags/audio_codec/${data['audio_codec'] | af}.png" />
+                            <img class="summary-content-media-flag" title="${data['audio_codec']}" src="${http_root}images/media_flags/audio_codec/${data['audio_codec'] | af}.png" />
                             % endif
                             % if data['audio_channels']:
-                            <img class="summary-content-media-flag" title="${data['audio_channels']}" src="interfaces/default/images/media_flags/audio_channels/${data['audio_channels']}.png" />
+                            <img class="summary-content-media-flag" title="${data['audio_channels']}" src="${http_root}images/media_flags/audio_channels/${data['audio_channels']}.png" />
                             % endif
                         </div>
                         % endif
@@ -415,15 +415,15 @@ DOCUMENTATION :: END
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/jquery.rateit.min.js"></script>
-<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/dataTables.colVis.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
-<script src="interfaces/default/js/moment-with-locale.js"></script>
+<script src="${http_root}js/jquery.rateit.min.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
 
 % if data:
-<script src="interfaces/default/js/tables/history_table.js"></script>
+<script src="${http_root}js/tables/history_table.js"></script>
 <!-- Need to find a place to put this -->
 % if data['media_type'] == 'show' or data['media_type'] == 'artist':
 <script>
