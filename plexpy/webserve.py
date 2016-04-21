@@ -1196,6 +1196,7 @@ class WebInterface(object):
             "http_username": plexpy.CONFIG.HTTP_USERNAME,
             "http_port": plexpy.CONFIG.HTTP_PORT,
             "http_password": http_password,
+            "http_root": plexpy.CONFIG.HTTP_ROOT,
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
             "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),
             "https_create_cert": checked(plexpy.CONFIG.HTTPS_CREATE_CERT),
