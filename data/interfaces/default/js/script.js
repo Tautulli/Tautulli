@@ -177,63 +177,63 @@ function resetFilters(text){
 function getPlatformImagePath(platformName) {
 
     if (platformName.indexOf("Roku") > -1) {
-        return 'interfaces/default/images/platforms/roku.png';
+        return 'images/platforms/roku.png';
     } else if (platformName.indexOf("Apple TV") > -1) {
-        return 'interfaces/default/images/platforms/atv.png';
+        return 'images/platforms/atv.png';
     } else if (platformName.indexOf("tvOS") > -1) {
-        return 'interfaces/default/images/platforms/atv.png';
+        return 'images/platforms/atv.png';
     } else if (platformName.indexOf("Firefox") > -1) {
-        return 'interfaces/default/images/platforms/firefox.png';
+        return 'images/platforms/firefox.png';
     } else if (platformName.indexOf("Chromecast") > -1) {
-        return 'interfaces/default/images/platforms/chromecast.png';
+        return 'images/platforms/chromecast.png';
     } else if (platformName.indexOf("Chrome") > -1) {
-        return 'interfaces/default/images/platforms/chrome.png';
+        return 'images/platforms/chrome.png';
     } else if (platformName.indexOf("Android") > -1) {
-        return 'interfaces/default/images/platforms/android.png';
+        return 'images/platforms/android.png';
     } else if (platformName.indexOf("Nexus") > -1) {
-        return 'interfaces/default/images/platforms/android.png';
+        return 'images/platforms/android.png';
     } else if (platformName.indexOf("iPad") > -1) {
-        return 'interfaces/default/images/platforms/ios.png';
+        return 'images/platforms/ios.png';
     } else if (platformName.indexOf("iPhone") > -1) {
-        return 'interfaces/default/images/platforms/ios.png';
+        return 'images/platforms/ios.png';
     } else if (platformName.indexOf("iOS") > -1) {
-        return 'interfaces/default/images/platforms/ios.png';
+        return 'images/platforms/ios.png';
     } else if (platformName.indexOf("Plex Home Theater") > -1) {
-        return 'interfaces/default/images/platforms/pht.png';
+        return 'images/platforms/pht.png';
     } else if (platformName.indexOf("Linux/RPi-XMBC") > -1) {
-        return 'interfaces/default/images/platforms/xbmc.png';
+        return 'images/platforms/xbmc.png';
     } else if (platformName.indexOf("Safari") > -1) {
-        return 'interfaces/default/images/platforms/safari.png';
+        return 'images/platforms/safari.png';
     } else if (platformName.indexOf("Internet Explorer") > -1) {
-        return 'interfaces/default/images/platforms/ie.png';
+        return 'images/platforms/ie.png';
     } else if (platformName.indexOf("Microsoft Edge") > -1) {
-        return 'interfaces/default/images/platforms/msedge.png';
+        return 'images/platforms/msedge.png';
     } else if (platformName.indexOf("Unknown Browser") > -1) {
-        return 'interfaces/default/images/platforms/dafault.png';
+        return 'images/platforms/dafault.png';
     } else if (platformName.indexOf("Windows-XBMC") > -1) {
-        return 'interfaces/default/images/platforms/xbmc.png';
+        return 'images/platforms/xbmc.png';
     } else if (platformName.indexOf("Xbox") > -1) {
-        return 'interfaces/default/images/platforms/xbox.png';
+        return 'images/platforms/xbox.png';
     } else if (platformName.indexOf("Samsung") > -1) {
-        return 'interfaces/default/images/platforms/samsung.png';
+        return 'images/platforms/samsung.png';
     } else if (platformName.indexOf("Opera") > -1) {
-        return 'interfaces/default/images/platforms/opera.png';
+        return 'images/platforms/opera.png';
     } else if (platformName.indexOf("KODI") > -1) {
-        return 'interfaces/default/images/platforms/kodi.png';
+        return 'images/platforms/kodi.png';
     } else if (platformName.indexOf("Playstation 3") > -1) {
-        return 'interfaces/default/images/platforms/playstation.png';
+        return 'images/platforms/playstation.png';
     } else if (platformName.indexOf("Playstation 4") > -1) {
-        return 'interfaces/default/images/platforms/playstation.png';
+        return 'images/platforms/playstation.png';
     } else if (platformName.indexOf("Xbox 360") > -1) {
-        return 'interfaces/default/images/platforms/xbox.png';
+        return 'images/platforms/xbox.png';
     } else if (platformName.indexOf("Windows") > -1) {
-        return 'interfaces/default/images/platforms/win8.png';
+        return 'images/platforms/win8.png';
     } else if (platformName.indexOf("Windows phone") > -1) {
-        return 'interfaces/default/images/platforms/wp.png';
+        return 'images/platforms/wp.png';
 	} else if (platformName.indexOf("Plex Media Player") > -1) {
-        return 'interfaces/default/images/platforms/pmp.png';
+        return 'images/platforms/pmp.png';
     } else {
-        return 'interfaces/default/images/platforms/default.png';
+        return 'images/platforms/default.png';
     }
 }
 

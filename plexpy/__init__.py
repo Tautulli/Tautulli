@@ -74,6 +74,8 @@ UMASK = None
 
 POLLING_FAILOVER = False
 
+HTTP_ROOT = None
+
 DEV = False
 
 

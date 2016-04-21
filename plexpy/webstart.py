@@ -17,7 +17,7 @@ import os
 import sys
 
 import cherrypy
-from plexpy import logger
+from plexpy import logger, webauth
 import plexpy
 from plexpy.helpers import create_https_certificates
 from plexpy.webserve import WebInterface
@@ -50,7 +50,7 @@ def initialize(options):
         'server.thread_pool': 10,
         'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
-        'tools.decode.on': True,
+        'tools.decode.on': True
     }
 
     if enable_https:
@@ -64,8 +64,17 @@ def initialize(options):
         options_dict['environment'] = "test_suite"
         options_dict['engine.autoreload.on'] = True
 
-    logger.info("Starting PlexPy web server on %s://%s:%d/", protocol,
-                options['http_host'], options['http_port'])
+    if options['http_password']:
+        logger.info("Web server authentication is enabled, username is '%s'", options['http_username'])
+        options_dict['tools.sessions.on'] = True
+        options_dict['tools.auth.on'] = True
+        cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
+
+    if not options['http_root'] or options['http_root'] == '/':
+        plexpy.HTTP_ROOT = options['http_root'] = '/'
+    else:
+        plexpy.HTTP_ROOT = options['http_root'] = '/' + options['http_root'].strip('/') + '/'
+    
     cherrypy.config.update(options_dict)
 
     conf = {
@@ -83,15 +92,27 @@ def initialize(options):
         },
         '/images': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "images"
+            'tools.staticdir.dir': "interfaces/default/images"
         },
         '/css': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "css"
+            'tools.staticdir.dir': "interfaces/default/css"
+        },
+        '/fonts': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': "interfaces/default/fonts"
         },
         '/js': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "js"
+            'tools.staticdir.dir': "interfaces/default/js"
+        },
+        '/json': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': "interfaces/default/json"
+        },
+        '/xml': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': "interfaces/default/xml"
         },
         '/cache': {
             'tools.staticdir.on': True,
@@ -100,27 +121,19 @@ def initialize(options):
         '/favicon.ico': {
             'tools.staticfile.on': True,
             'tools.staticfile.filename': os.path.abspath(os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images/favicon.ico'))
-        }
-
+        },
     }
 
     if options['http_password']:
-        logger.info("Web server authentication is enabled, username is '%s'", options['http_username'])
-
-        conf['/'].update({
-            'tools.auth_basic.on': True,
-            'tools.auth_basic.realm': 'PlexPy web server',
-            'tools.auth_basic.checkpassword': cherrypy.lib.auth_basic.checkpassword_dict({
-                options['http_username']: options['http_password']
-            })
-        })
-        conf['/api'] = {'tools.auth_basic.on': False}
+        conf['/api'] = {'tools.auth.on': False}
 
     # Prevent time-outs
     cherrypy.engine.timeout_monitor.unsubscribe()
-    cherrypy.tree.mount(WebInterface(), str(options['http_root']), config=conf)
+    cherrypy.tree.mount(WebInterface(), options['http_root'], config=conf)
 
     try:
+        logger.info("Starting PlexPy web server on %s://%s:%d%s", protocol,
+                    options['http_host'], options['http_port'], options['http_root'])
         cherrypy.process.servers.check_port(str(options['http_host']), options['http_port'])
         if not plexpy.DEV:
             cherrypy.server.start()

@@ -1,8 +1,8 @@
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
 </%def>
 
 <%def name="body()">
@@ -248,12 +248,12 @@
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/moment-with-locale.js"></script>
-<script src="interfaces/default/js/moment-duration-format.js"></script>
-<script src="interfaces/default/js/highcharts/js/highcharts.js"></script>
-<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/moment-duration-format.js"></script>
+<script src="${http_root}js/highcharts/js/highcharts.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 
 <script>
     // Modal popup dialog
@@ -302,17 +302,17 @@
         }
     }
 </script>
-<script src="interfaces/default/js/graphs/plays_by_day.js"></script>
-<script src="interfaces/default/js/graphs/plays_by_dayofweek.js"></script>
-<script src="interfaces/default/js/graphs/plays_by_hourofday.js"></script>
-<script src="interfaces/default/js/graphs/plays_by_platform.js"></script>
-<script src="interfaces/default/js/graphs/plays_by_user.js"></script>
-<script src="interfaces/default/js/graphs/plays_by_stream_type.js"></script>
-<script src="interfaces/default/js/graphs/plays_by_source_resolution.js"></script>
-<script src="interfaces/default/js/graphs/plays_by_stream_resolution.js"></script>
-<script src="interfaces/default/js/graphs/plays_by_platform_by_stream_type.js"></script>
-<script src="interfaces/default/js/graphs/plays_by_user_by_stream_type.js"></script>
-<script src="interfaces/default/js/graphs/plays_by_month.js"></script>
+<script src="${http_root}js/graphs/plays_by_day.js"></script>
+<script src="${http_root}js/graphs/plays_by_dayofweek.js"></script>
+<script src="${http_root}js/graphs/plays_by_hourofday.js"></script>
+<script src="${http_root}js/graphs/plays_by_platform.js"></script>
+<script src="${http_root}js/graphs/plays_by_user.js"></script>
+<script src="${http_root}js/graphs/plays_by_stream_type.js"></script>
+<script src="${http_root}js/graphs/plays_by_source_resolution.js"></script>
+<script src="${http_root}js/graphs/plays_by_stream_resolution.js"></script>
+<script src="${http_root}js/graphs/plays_by_platform_by_stream_type.js"></script>
+<script src="${http_root}js/graphs/plays_by_user_by_stream_type.js"></script>
+<script src="${http_root}js/graphs/plays_by_month.js"></script>
 <script>
     $(document).ready(function () {
 

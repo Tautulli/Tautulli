@@ -40,7 +40,7 @@ users_list_table_options = {
             "data": "user_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === '') {
-                    $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(interfaces/default/images/gravatar-default-80x80.png);"></div></a>');
+                    $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(../../images/gravatar-default-80x80.png);"></div></a>');
                 } else {
                     $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(' + rowData['user_thumb'] + ');"></div></a>');
                 }
