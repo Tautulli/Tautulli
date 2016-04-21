@@ -20,6 +20,7 @@
 
 import cherrypy
 from cgi import escape
+from hashing_passwords import check_hash
 
 import plexpy
 from plexpy import logger
@@ -30,8 +31,10 @@ SESSION_KEY = '_cp_username'
 def check_credentials(username, password):
     """Verifies credentials for username and password.
     Returns None on success or a string describing the error on failure"""
-    # Adapt to your needs
-    if username ==  plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
+    if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
+        username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
+        return None
+    elif username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
         return None
     else:
         return u"Incorrect username or password."

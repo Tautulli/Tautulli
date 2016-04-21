@@ -144,6 +144,8 @@ _CONFIG_DEFINITIONS = {
     'HTTPS_DOMAIN': (str, 'General', 'localhost'),
     'HTTPS_IP': (str, 'General', '127.0.0.1'),
     'HTTP_ENVIRONMENT': (str, 'General', 'production'),
+    'HTTP_HASH_PASSWORD': (int, 'General', 0),
+    'HTTP_HASHED_PASSWORD': (int, 'General', 0),
     'HTTP_HOST': (str, 'General', '0.0.0.0'),
     'HTTP_PASSWORD': (str, 'General', ''),
     'HTTP_PORT': (int, 'General', 8181),
