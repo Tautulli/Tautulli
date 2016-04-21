@@ -128,7 +128,7 @@ class AuthController(object):
 
         username = escape(username, True)
 
-        return serve_template(templatename="login.html", title="Welcome", username=username, msg=msg)
+        return serve_template(templatename="login.html", title="Login", username=username, msg=msg)
     
     @cherrypy.expose
     def login(self, username=None, password=None, remember_me=0):
@@ -144,7 +144,7 @@ class AuthController(object):
             cherrypy.session.regenerate()
             cherrypy.session[SESSION_KEY] = cherrypy.request.login = username
             self.on_login(username)
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT or "/")
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
     
     @cherrypy.expose
     def logout(self):

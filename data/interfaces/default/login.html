@@ -8,10 +8,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
-    <link href="${http_root}css/bootstrap-wizard.css" rel="stylesheet">
     <link href="${http_root}css/plexpy.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
-    <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="${http_root}images/favicon.ico"/>
     <link rel="shortcut icon" href="${http_root}images/favicon.ico">
 </head>
@@ -34,7 +31,7 @@
                                 <label for="username" class="control-label">
                                     Username
                                 </label>
-                                <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off" value="${username}">
+                                <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off" value="${username}" autofocus>
                             </div>
                             <div class="password-group form-group">
                                 <label for="password" class="control-label">
@@ -57,10 +54,6 @@
         </div>
     </div>
 </div>
-
-<script src="${http_root}js/jquery-2.1.4.min.js"></script>
-<script src="${http_root}js/bootstrap3/bootstrap.min.js"></script>
-<script src="${http_root}js/bootstrap-wizard.min.js"></script>
 
 </body>
 </html>
