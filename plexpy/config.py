@@ -148,7 +148,7 @@ _CONFIG_DEFINITIONS = {
     'HTTP_PASSWORD': (str, 'General', ''),
     'HTTP_PORT': (int, 'General', 8181),
     'HTTP_PROXY': (int, 'General', 0),
-    'HTTP_ROOT': (str, 'General', '/'),
+    'HTTP_ROOT': (str, 'General', ''),
     'HTTP_USERNAME': (str, 'General', ''),
     'INTERFACE': (str, 'General', 'default'),
     'IP_LOGGING_ENABLE': (int, 'General', 0),
@@ -599,3 +599,7 @@ class Config(object):
             self.NOTIFY_ON_WATCHED_BODY_TEXT = self.NOTIFY_ON_WATCHED_BODY_TEXT.replace('{progress}','{progress_duration}')
             self.NOTIFY_SCRIPTS_ARGS_TEXT = self.NOTIFY_SCRIPTS_ARGS_TEXT.replace('{progress}','{progress_duration}')
             self.CONFIG_VERSION = '3'
+
+        if self.CONFIG_VERSION == '3':
+            if self.HTTP_ROOT == '/': self.HTTP_ROOT = ''
+            self.CONFIG_VERSION = '4'

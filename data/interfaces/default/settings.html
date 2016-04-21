@@ -379,11 +379,20 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </div>
                             <p class="help-block">Port to bind web server to. Note that ports below 1024 may require root.</p>
                         </div>
+                        <div class="form-group">
+                            <label for="http_root">HTTP Root</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control http-settings" id="http_root" name="http_root" value="${config['http_root']}" data-parsley-trigger="change">
+                                </div>
+                            </div>
+                            <p class="help-block">The base URL for the web server. Used for reverse proxies.</p>
+                        </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="launch_browser" value="1" ${config['launch_browser']}> Launch Browser on Startup
                             </label>
-                            <p class="help-block">Launch browser pointed to PlexPy, on startup.</p>
+                            <p class="help-block">Launch browser pointed to PlexPy on startup.</p>
                         </div>
                         <div class="checkbox">
                             <label>
