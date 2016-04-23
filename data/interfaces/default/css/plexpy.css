@@ -1016,7 +1016,7 @@ a:hover .dashboard-recent-media-cover {
     font-size: 13px;
     font-weight: bold;
     margin: 0;
-    line-height: 15px;
+    line-height: 16px;
     width: 150px;
     white-space: nowrap;
     text-align: left;
@@ -1505,7 +1505,7 @@ a:hover .item-children-poster {
     font-size: 13px;
     font-weight: bold;
     margin: 0;
-    line-height: 15px;
+    line-height: 16px;
     white-space: nowrap;
     text-align: left;
     clear: both;
@@ -2898,11 +2898,7 @@ a.no-highlight:hover {
     text-shadow: 0 -1px 1px rgba(0,0,0,.4),0 0 15px rgba(0,0,0,.2);
 }
 .login-container .remember-group {
-    display: block;
-    min-height: 24px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    vertical-align: middle;
+    float: left;
     color: #999;
 }
 .login-container .remember-group .control-label {
