@@ -182,6 +182,7 @@ def initialize(config_file):
         if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT:
             plextv.get_real_pms_url()
             pmsconnect.get_server_friendly_name()
+            pmsconnect.PmsConnect().make_meta_data_cache()
 
         # Refresh the users list on startup
         if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
@@ -331,7 +332,6 @@ def initialize_scheduler():
         else:
             hours = 0
 
-
         if CONFIG.PMS_TOKEN:
             schedule_job(plextv.refresh_users, 'Refresh users list',
                          hours=hours, minutes=0, seconds=0)
@@ -339,6 +339,9 @@ def initialize_scheduler():
         if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
                          hours=hours, minutes=0, seconds=0)
+
+            schedule_job(pmsconnect.PmsConnect().make_meta_data_cache, 'Refresh json file for added at graphs',
+                         hours=12, minutes=0, seconds=0)
 
         schedule_job(database.make_backup, 'Backup PlexPy database', hours=6, minutes=0, seconds=0, args=(True, True))
 
@@ -906,7 +909,7 @@ def shutdown(restart=False, update=False):
         if '--nolaunch' not in args:
             args += ['--nolaunch']
         logger.info('Restarting PlexPy with %s', args)
-        
+
         # os.execv fails with spaced names on Windows
         # https://bugs.python.org/issue19066
         if os.name == 'nt':
