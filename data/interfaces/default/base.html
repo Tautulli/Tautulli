@@ -212,6 +212,8 @@ from plexpy.helpers import anon_url
                     % endif
                         <a href="settings" class="dropdown-toggle disabled" aria-haspopup="true" data-toggle="dropdown" data-hover="dropdown"><i class="fa fa-lg fa-cogs"></i> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
+                            <li><a href="settings"><i class="fa fa-cogs"></i> Settings</a></li>
+                            <li role="separator" class="divider"></li>
                             <li><a href="logs"><i class="fa fa-list-alt"></i> View Logs</a></li>
                             <li role="separator" class="divider"></li>
                             % if plexpy.CONFIG.CHECK_GITHUB:
@@ -219,7 +221,9 @@ from plexpy.helpers import anon_url
                             % endif
                             <li><a href="#" id="nav-restart"><i class="fa fa-refresh"></i> Restart</a></li>
                             <li><a href="#" id="nav-shutdown"><i class="fa fa-power-off"></i> Shutdown</a></li>
-                            <li><a href="${http_root}auth/login"><i class="fa fa-sign-out"></i> Logout</a></li>
+                            % if plexpy.CONFIG.HTTP_PASSWORD:
+                            <li><a href="${http_root}auth/logout"><i class="fa fa-sign-out"></i> Logout</a></li>
+                            % endif
                         </ul>
                     </li>
                 </ul>

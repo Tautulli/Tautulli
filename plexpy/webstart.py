@@ -124,9 +124,6 @@ def initialize(options):
         },
     }
 
-    if options['http_password']:
-        conf['/api'] = {'tools.auth.on': False}
-
     # Prevent time-outs
     cherrypy.engine.timeout_monitor.unsubscribe()
     cherrypy.tree.mount(WebInterface(), options['http_root'], config=conf)
