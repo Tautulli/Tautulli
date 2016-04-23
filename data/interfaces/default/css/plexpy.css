@@ -1,5 +1,5 @@
 body {
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Open Sans', Arial, sans-serif;
     color: #fff;
     margin-top: 50px;
     overflow: hidden;
@@ -9,7 +9,7 @@ a {
 }
 a:hover,
 a:focus {
-    color: #f9aa03;
+    color: #e9a049;
     text-decoration: none;
     outline: none;
 }
@@ -89,7 +89,7 @@ img {
 .nav > li.active > a,
 .nav > li.active > a:hover,
 .nav > li.active > a:focus {
-    color: #f9aa03;
+    color: #f9be03;
     background-color: #282828;
 }
 .navbar-toggle {
@@ -98,6 +98,36 @@ img {
 .navbar-toggle:hover,
 .navbar-toggle:focus {
     background-color: #2f2f2f;
+}
+@media screen and (min-width: 768px) {
+  .dropdown:hover > .dropdown-menu {
+    display: block;
+  }
+}
+.dropdown-menu {
+  background-color: #282828;
+}
+.dropdown-menu .divider {
+  background-color: #777;
+}
+.dropdown-menu > li > a {
+  color: #999;
+}
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus {
+  color: #fff;
+  background-color: #2f2f2f;
+}
+.dropdown-menu > .active > a,
+.dropdown-menu > .active > a:hover,
+.dropdown-menu > .active > a:focus {
+  color: #fff;
+  background-color: #2f2f2f;
+}
+.dropdown-menu > .disabled > a,
+.dropdown-menu > .disabled > a:hover,
+.dropdown-menu > .disabled > a:focus {
+  color: #999;
 }
 .icon-bar {
     background-color: #999;
@@ -109,7 +139,13 @@ img {
     color: #eee;
 }
 .padded-header h3 {
-    font-size: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.padded-header h3 small {
+    font-size: 13px;
+    text-transform: none;
 }
 .btn {
     outline:0px !important;
@@ -182,9 +218,9 @@ fieldset[disabled] .btn-dark.active {
   background-color: #3B3B3B;
 }
 .btn-bright {
-    color: #fff;
-    background-color: #eb8600;
-    border-color: transparent;
+  color: #fff;
+  background-color: #cc7b19;
+  box-shadow: inset 0 1px 0 #e7993b;
 }
 .btn-bright:focus,
 .btn-bright.focus {
@@ -193,14 +229,15 @@ fieldset[disabled] .btn-dark.active {
 }
 .btn-bright:hover {
   color: #fff;
-  background-color: #E69400;
-  border-color: #f9aa03;
+  background-color: #e59029;
+  box-shadow: inset 0 1px 0 #ebac60;
 }
 .btn-bright:active,
 .btn-bright.active,
 .open > .dropdown-toggle.btn-bright {
   color: #fff;
-  background-color: #eb8600;
+  background-color: #cc7b19;
+  box-shadow: inset 0 1px 0 #e7993b;
 }
 .btn-bright:active:hover,
 .btn-bright.active:hover,
@@ -212,7 +249,8 @@ fieldset[disabled] .btn-dark.active {
 .btn-bright.active.focus,
 .open > .dropdown-toggle.btn-bright.focus {
   color: #fff;
-  background-color: #eb8600;
+  background-color: #cc7b19;
+  box-shadow: inset 0 1px 0 #e7993b;
 }
 .btn-bright:active,
 .btn-bright.active,
@@ -237,12 +275,13 @@ fieldset[disabled] .btn-bright:active,
 .btn-bright.disabled.active,
 .btn-bright[disabled].active,
 fieldset[disabled] .btn-bright.active {
-  background-color: #c9302c;
-  border-color: #ac2925;
+  background-color: #cc7b19;
+  border-color: #b56d16;
 }
 .btn-bright .badge {
   color: #fff;
-  background-color: #eb8600;
+  background-color: #cc7b19;
+  box-shadow: inset 0 1px 0 #e7993b;
 }
 .btn-danger.btn-edit {
     color: #d7d7d7;
@@ -377,7 +416,7 @@ textarea.form-control:focus {
 .pagination > li > span:hover,
 .pagination > li > a:focus,
 .pagination > li > span:focus {
-    background-color: #F9AA03;
+    background-color: #cc7b19;
     border: 1px solid #444444;
 }
 .pagination > .active > a,
@@ -389,7 +428,7 @@ textarea.form-control:focus {
     z-index: 2;
     color: #fff;
     cursor: default;
-    background-color: #F9AA03;
+    background-color: #cc7b19;
     border-color: #444444;
 }
 .pagination > .disabled > span,
@@ -407,7 +446,7 @@ textarea.form-control:focus {
 .nav-pills > li.active > a:hover,
 .nav-pills > li.active > a:focus {
     color: #fff;
-    background-color: #af6c17;
+    background-color: #cc7b19;
 }
 .nav-pills > li > a {
     border-radius: 3px;
@@ -871,16 +910,16 @@ a .dashboard-activity-metadata-user-thumb:hover {
     color: #999;
 }
 .dashboard-activity-metadata-user a:hover {
-    color: #F9AA03;
+    color: #e9a049;
 }
 .dashboard-activity-metadata-title a:hover {
-    color: #F9AA03;
+    color: #e9a049;
 }
 .dashboard-activity-metadata-progress-wrapper {
     margin-bottom: 20px;
     font-size: 12px;
     font-weight: bold;
-    color: #F9AA03;
+    color: #e9a049;
 }
 .dashboard-recent-media-row {
     width: 100%;
@@ -957,6 +996,7 @@ a:hover .dashboard-recent-media-cover {
 .dashboard-recent-media-overlay-text {
     color: #aaa;
     font-size: 12px;
+    font-weight: bold;
     float: left;
     position: absolute;
     left: 8px;
@@ -974,9 +1014,9 @@ a:hover .dashboard-recent-media-cover {
     overflow: hidden;
     position: relative;
     font-size: 13px;
+    font-weight: bold;
     margin: 0;
     line-height: 15px;
-    font-weight: normal;
     width: 150px;
     white-space: nowrap;
     text-align: left;
@@ -985,13 +1025,11 @@ a:hover .dashboard-recent-media-cover {
 .dashboard-recent-media-metacontainer h3.text-muted {
     color: #777;
 }
-.dashboard-recent-media-metacontainer .text-muted {
-    padding: 5px 3px 0 3px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    position: relative;
-    white-space: nowrap;
-    text-align: left;
+.dashboard-recent-media-metacontainer h3.text-muted a {
+    color: #777;
+}
+.dashboard-recent-media-metacontainer h3.text-muted a:hover {
+    color: #e9a049;
 }
 .art-face {
     background-repeat: no-repeat;
@@ -1057,7 +1095,7 @@ a:hover .dashboard-recent-media-cover {
     color: #999;
 }
 .summary-navbar-list .breadcrumb a:hover {
-    color: #F9AA03;
+    color: #f9be03;
 }
 .summary-content-title-wrapper {
     height: 150px;
@@ -1071,7 +1109,7 @@ a:hover .dashboard-recent-media-cover {
 .summary-content-title h1 {
     margin-top: 0;
     margin-bottom: 10px;
-    color: #F9AA03;
+    color: #f9be03;
     font-size: 28px;
     line-height: 40px;
     float: left;
@@ -1082,11 +1120,10 @@ a:hover .dashboard-recent-media-cover {
     width: 100%;
 }
 .summary-content-title h1 a {
-    color: #F9AA03;
+    color: #f9be03;
 }
 .summary-content-title h1 a:hover {
-    color: #F9AA03;
-    text-decoration: underline;
+    color: #fff;
 }
 .summary-content-title h2 {
     margin-top: 0;
@@ -1335,7 +1372,7 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
 .star-rating .star-icon {
     width: auto;
     margin-left: 2px;
-    color: #F9AA03;
+    color: #f9be03;
 }
 .star-rating .star-icon-o {
     width: auto;
@@ -1438,6 +1475,7 @@ a:hover .item-children-poster {
 .item-children-overlay-text {
     color: #aaa;
     font-size: 12px;
+    font-weight: bold;
     float: left;
     position: absolute;
     left: 8px;
@@ -1465,15 +1503,21 @@ a:hover .item-children-poster {
     overflow: hidden;
     position: relative;
     font-size: 13px;
+    font-weight: bold;
     margin: 0;
     line-height: 15px;
-    font-weight: normal;
     white-space: nowrap;
     text-align: left;
     clear: both;
 }
 .item-children-instance-text-wrapper h3.text-muted {
     color: #777;
+}
+.item-children-instance-text-wrapper h3.text-muted a {
+    color: #777;
+}
+.item-children-instance-text-wrapper h3.text-muted a:hover {
+    color: #e9a049;
 }
 .item-children-list-item-odd {
     border-top: 0px solid #343434;
@@ -1519,7 +1563,7 @@ a:hover .item-children-poster {
     margin-right: 20px;
 }
 #new_title h3 {
-    color: #F9AA03;
+    color: #f9be03;
     font-size: 14px;
     line-height: 1.42857143;
     font-weight: bold;
@@ -1582,10 +1626,15 @@ a:hover .item-children-poster {
     top: 15px;
     left: -5px;
 }
-.user-info-nav > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus {
-    color: #F9AA03;
+.user-info-nav > .active > a {
+    color: #cc7b19;
+}
+.nav-tabs > .active > a:hover,
+.nav-tabs > .active > a:focus {
+    color: #e9a049;
 }
 .user-info-nav a:hover {
+    color: #e9a049;
     text-decoration: none;
 }
 .user-info-nav ul {
@@ -1640,7 +1689,7 @@ a:hover .item-children-poster {
 .user-overview-stats-instance h3 {
     font-size: 30px;
     font-weight: bold;
-    color: #F9AA03;
+    color: #f9be03;
     line-height: 22px;
     position: relative;
     top: 5px;
@@ -1692,8 +1741,8 @@ a:hover .item-children-poster {
     text-overflow: ellipsis;
     overflow: hidden;
     position: relative;
-    font-size: 13px;
-    line-height: 15px;
+    font-size: 14px;
+    line-height: 16px;
     font-weight: normal;
     width: 140px;
     margin-left: 10px;
@@ -1702,7 +1751,7 @@ a:hover .item-children-poster {
 .user-player-instance-playcount h3 {
     font-size: 30px;
     font-weight: bold;
-    color: #F9AA03;
+    color: #f9be03;
     line-height: 22px;
     position: relative;
     top: 5px;
@@ -1784,8 +1833,8 @@ a:hover .item-children-poster {
     text-overflow: ellipsis;
     overflow: hidden;
     position: relative;
-    font-size: 13px;
-    line-height: 15px;
+    font-size: 14px;
+    line-height: 16px;
     font-weight: bold;
     width: 100%;
     padding: 0 0 0 20px;
@@ -1810,7 +1859,7 @@ a:hover .item-children-poster {
 .home-platforms-instance-playcount h3 {
     font-size: 30px;
     font-weight: bold;
-    color: #F9AA03;
+    color: #f9be03;
     line-height: 22px;
     position: relative;
     top: 5px;
@@ -1919,7 +1968,7 @@ a:hover .item-children-poster {
     height: 60px;
 }
 .home-platforms-instance-list-number {
-    background-color: #eb8600;
+    background-color: #f9be03;
     float: left;
     position: absolute;
     top: -10px;
@@ -1976,7 +2025,7 @@ a:hover .item-children-poster {
 .home-platforms-instance-list-playcount h3 {
     font-size: 20px;
     font-weight: bold;
-    color: #F9AA03;
+    color: #f9be03;
     line-height: 22px;
     position: relative;
     margin: 0 5px 0 0;
@@ -2071,10 +2120,10 @@ a:hover .item-children-poster {
     transition: all 0.3s ease;
 }
 .home-platforms-instance-list-chevron i:hover {
-    color: #eb8600;
+    color: #f9be03;
 }
 .home-platforms-instance-list-chevron.active i.fa-chevron-down{
-    color: #eb8600;
+    color: #f9be03;
     -webkit-transform: rotate(180deg);
     -ms-transform: rotate(180deg);
     -o-transform: rotate(180deg);
@@ -2173,6 +2222,7 @@ a .home-platforms-instance-list-oval:hover,
 }
 .header-bar span {
     font-size: 22px;
+    font-weight: bold;
     line-height: 34px;
 }
 .button-bar {
@@ -2200,6 +2250,7 @@ a .home-platforms-instance-list-oval:hover,
     border-top: 1px solid #2d2d2d;
 }
 .nav-settings > li > a {
+    border-bottom: 1px solid #232323;
     display: block;
     padding: 15px 15px 15px 15px;
     color: #999;
@@ -2215,7 +2266,7 @@ a .home-platforms-instance-list-oval:hover,
 .nav-settings > .active > a,
 .nav-settings > .active > a:hover,
 .nav-settings > .active > a:focus {
-    color: #eb8600;
+    color: #f9be03;
     background-color: #2f2f2f;
 }
 .stacked-configs,
@@ -2257,7 +2308,7 @@ a .home-platforms-instance-list-oval:hover,
     color: #eee;
 }
 .stacked-configs > li > span > a.active {
-    color: #eb8600;
+    color: #f9be03;
 }
 .accordion {
     width: 100%;
@@ -2299,10 +2350,10 @@ a .home-platforms-instance-list-oval:hover,
     background: #2f2f2f;
 }
 .accordion li.open .link {
-    color: #eb8600;
+    color: #f9be03;
 }
 .accordion li.open i {
-    color: #eb8600;
+    color: #f9be03;
 }
 .accordion li.open i.fa-chevron-down {
     -webkit-transform: rotate(180deg);
@@ -2330,7 +2381,7 @@ a .home-platforms-instance-list-oval:hover,
     transition: all 0.25s ease;
 }
 .submenu a:hover {
-    background: #eb8600;
+    background: #f9be03;
     color: #FFF;
 }
 .ajaxMsg {
@@ -2532,7 +2583,7 @@ a .home-platforms-instance-list-oval:hover,
     margin-right: 3px;
 }
 #updatebar a:hover {
-    color: #F9AA03;
+    color: #e9a049;
 }
 .body-container {
     position: absolute;
@@ -2593,13 +2644,13 @@ table.display tr.shown + tr .pagination > .active > a:hover {
 table.display tr.shown + tr table[id^='history_child'] td:hover a, 
 table.display tr.shown + tr table[id^='media_info_child'] > tr > td:hover a,
 table.display tr.shown + tr table[id^='media_info_child'] tr.shown + tr table[id^='media_info_child'] td:hover a {
-    color: #F9AA03;
+    color: #cc7b19;
 }
 table.display tr.shown + tr .pagination > .disabled > a {
     color: #444444;
 }
 table.display tr.shown + tr .pagination > li > a:hover {
-    color: #23527c;
+    color: #e9a049;
 }
 table[id^='history_child'] {
     margin-top: 0;
@@ -2791,6 +2842,8 @@ a.no-highlight:hover {
 #recently-added-row-scroller,
 #recently-watched-row-scroller {
     position: relative;
+    height: 265px;
+    margin-bottom: 25px;
 }
 
 @media (min-width: 768px) {
