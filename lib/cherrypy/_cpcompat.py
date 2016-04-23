@@ -111,11 +111,6 @@ def assert_native(n):
         raise TypeError("n must be a native str (got %s)" % type(n).__name__)
 
 try:
-    set = set
-except NameError:
-    from sets import Set as set
-
-try:
     # Python 3.1+
     from base64 import decodebytes as _base64_decodebytes
 except ImportError:
@@ -137,17 +132,6 @@ def base64_decode(n, encoding='ISO-8859-1'):
     else:
         return b
 
-try:
-    # Python 2.5+
-    from hashlib import md5
-except ImportError:
-    from md5 import new as md5
-
-try:
-    # Python 2.5+
-    from hashlib import sha1 as sha
-except ImportError:
-    from sha import new as sha
 
 try:
     sorted = sorted
@@ -333,18 +317,10 @@ except ImportError:
     # In Python 3, pickle is the sped-up C version.
     import pickle
 
-try:
-    os.urandom(20)
-    import binascii
+import binascii
 
-    def random20():
-        return binascii.hexlify(os.urandom(20)).decode('ascii')
-except (AttributeError, NotImplementedError):
-    import random
-    # os.urandom not available until Python 2.4. Fall back to random.random.
-
-    def random20():
-        return sha('%s' % random.random()).hexdigest()
+def random20():
+    return binascii.hexlify(os.urandom(20)).decode('ascii')
 
 try:
     from _thread import get_ident as get_thread_ident

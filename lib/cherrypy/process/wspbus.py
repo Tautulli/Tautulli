@@ -68,8 +68,6 @@ import time
 import traceback as _traceback
 import warnings
 
-from cherrypy._cpcompat import set
-
 # Here I save the value of os.getcwd(), which, if I am imported early enough,
 # will be the directory from which the startup script was run.  This is needed
 # by _do_execv(), to change back to the original directory before execv()ing a

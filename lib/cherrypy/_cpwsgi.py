@@ -296,7 +296,8 @@ class AppResponse(object):
         """Create a Request object using environ."""
         env = self.environ.get
 
-        local = httputil.Host('', int(env('SERVER_PORT', 80)),
+        local = httputil.Host('',
+                              int(env('SERVER_PORT', 80) or -1),
                               env('SERVER_NAME', ''))
         remote = httputil.Host(env('REMOTE_ADDR', ''),
                                int(env('REMOTE_PORT', -1) or -1),

@@ -8,7 +8,7 @@ You can profile any of your pages as follows::
     from cherrypy.lib import profiler
 
     class Root:
-        p = profile.Profiler("/path/to/profile/dir")
+        p = profiler.Profiler("/path/to/profile/dir")
 
         def index(self):
             self.p.run(self._index)

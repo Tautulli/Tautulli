@@ -281,13 +281,14 @@ class _Builder2:
             # Everything else becomes args
             else :
                 args.append(self.build(child))
+
         return callee(*args, **kwargs)
 
     def build_Keyword(self, o):
         key, value_obj = o.getChildren()
         value = self.build(value_obj)
         kw_dict = {key: value}
-        return kw_dict 
+        return kw_dict
 
     def build_List(self, o):
         return map(self.build, o.getChildren())
@@ -377,7 +378,39 @@ class _Builder3:
     def build_Index(self, o):
         return self.build(o.value)
 
+    def _build_call35(self, o):
+        """
+        Workaround for python 3.5 _ast.Call signature, docs found here
+        https://greentreesnakes.readthedocs.org/en/latest/nodes.html
+        """
+        import ast
+        callee = self.build(o.func)
+        args = []
+        if o.args is not None:
+            for a in o.args:
+                if isinstance(a, ast.Starred):
+                    args.append(self.build(a.value))
+                else:
+                    args.append(self.build(a))
+        kwargs = {}
+        for kw in o.keywords:
+            if kw.arg is None: # double asterix `**`
+                rst = self.build(kw.value)
+                if not isinstance(rst, dict):
+                    raise TypeError("Invalid argument for call."
+                                    "Must be a mapping object.")
+                # give preference to the keys set directly from arg=value
+                for k, v in rst.items():
+                    if k not in kwargs:
+                        kwargs[k] = v
+            else: # defined on the call as: arg=value
+                kwargs[kw.arg] = self.build(kw.value)
+        return callee(*args, **kwargs)
+
     def build_Call(self, o):
+        if sys.version_info >= (3, 5):
+            return self._build_call35(o)
+
         callee = self.build(o.func)
 
         if o.args is None:
@@ -388,13 +421,16 @@ class _Builder3:
         if o.starargs is None:
             starargs = ()
         else:
-            starargs = self.build(o.starargs)
+            starargs = tuple(self.build(o.starargs))
 
         if o.kwargs is None:
             kwargs = {}
         else:
             kwargs = self.build(o.kwargs)
-
+        if o.keywords is not None: # direct a=b keywords
+            for kw in o.keywords:
+                # preference because is a direct keyword against **kwargs
+                kwargs[kw.arg] = self.build(kw.value)
         return callee(*(args + starargs), **kwargs)
 
     def build_List(self, o):

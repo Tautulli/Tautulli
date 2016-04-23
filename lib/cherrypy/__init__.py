@@ -56,10 +56,10 @@ with customized or extended components. The core API's are:
 These API's are described in the `CherryPy specification <https://bitbucket.org/cherrypy/cherrypy/wiki/CherryPySpec>`_.
 """
 
-__version__ = "3.8.0"
+__version__ = "5.1.0"
 
 from cherrypy._cpcompat import urljoin as _urljoin, urlencode as _urlencode
-from cherrypy._cpcompat import basestring, unicodestr, set
+from cherrypy._cpcompat import basestring, unicodestr
 
 from cherrypy._cperror import HTTPError, HTTPRedirect, InternalRedirect
 from cherrypy._cperror import NotFound, CherryPyException, TimeoutError
