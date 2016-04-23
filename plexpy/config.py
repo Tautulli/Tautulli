@@ -617,4 +617,4 @@ class Config(object):
                 home_sections = self.HOME_SECTIONS
                 home_sections.remove('library_stats')
                 self.HOME_SECTIONS = home_sections
-            self.CONFIG_VERSION = '4'
+            self.CONFIG_VERSION = '5'

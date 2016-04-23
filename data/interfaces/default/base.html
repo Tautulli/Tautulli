@@ -210,8 +210,8 @@ from plexpy.helpers import anon_url
                     % else:
                     <li class="dropdown">
                     % endif
-                        <a href="settings" class="dropdown-toggle disabled" aria-haspopup="true" data-toggle="dropdown" data-hover="dropdown"><i class="fa fa-lg fa-cogs"></i> <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
+                        <a href="#" class="dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" data-hover="dropdown" data-href="settings"><i class="fa fa-lg fa-cogs"></i> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" id="settings-dropdown-menu">
                             <li><a href="settings"><i class="fa fa-cogs"></i> Settings</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="logs"><i class="fa fa-list-alt"></i> View Logs</a></li>
@@ -238,7 +238,8 @@ ${next.headerIncludes()}
 </div>
 
 <script src="${http_root}js/jquery-2.1.4.min.js"></script>
-<script src="${http_root}js/bootstrap3/bootstrap.min.js"></script>
+<script src="${http_root}js/bootstrap.min.js"></script>
+<script src="${http_root}js/bootstrap-hover-dropdown.min.js"></script>
 <script src="${http_root}js/script.js"></script>
 <script>
     $('#updateDismiss').click(function() {
@@ -269,8 +270,12 @@ ${next.headerIncludes()}
         window.location.href = "checkGithub";
     });
 
-</script>
-<script>
+    $('.dropdown-toggle').click(function (e) {
+        if (!(('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0))) {
+            window.location.href = $(this).data('href');
+        }
+    });
+
     $('#search_form').submit(function (e) {
         if ($('#query').hasClass('active') && $('#query').val().trim() != '') {
             $.ajax({
@@ -291,8 +296,7 @@ ${next.headerIncludes()}
             }).removeClass('active');
         }
     });
-</script>
-<script>
+
     $(document).ready(function () {
         // Work around for iOS web app links opening in Safari
         if (("standalone" in window.navigator) && window.navigator.standalone) {
@@ -305,17 +309,6 @@ ${next.headerIncludes()}
                 }
             });
         }
-
-        // hack alert: if we don't have a touchscreen, and we are already hovering the mouse, then click should link instead of toggle
-        if ((navigator.maxTouchPoints || 0) < 2) {
-            $('.dropdown-toggle').on('click', function () {
-                var $this = $(this);
-                if ($this.attr('aria-expanded') === 'true') {
-                    window.location.href = $this.attr('href');
-                }
-            });
-        }
-
     });
 </script>
 ${next.javascriptIncludes()}
