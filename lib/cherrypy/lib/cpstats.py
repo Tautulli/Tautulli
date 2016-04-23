@@ -210,6 +210,7 @@ def extrapolate_statistics(scope):
 
 # -------------------- CherryPy Applications Statistics --------------------- #
 
+import sys
 import threading
 import time
 
@@ -294,6 +295,11 @@ class ByteCountWrapper(object):
 average_uriset_time = lambda s: s['Count'] and (s['Sum'] / s['Count']) or 0
 
 
+def _get_threading_ident():
+    if sys.version_info >= (3, 3):
+        return threading.get_ident()
+    return threading._get_ident()
+
 class StatsTool(cherrypy.Tool):
 
     """Record various information about the current request."""
@@ -322,7 +328,7 @@ class StatsTool(cherrypy.Tool):
 
         appstats['Current Requests'] += 1
         appstats['Total Requests'] += 1
-        appstats['Requests'][threading._get_ident()] = {
+        appstats['Requests'][_get_threading_ident()] = {
             'Bytes Read': None,
             'Bytes Written': None,
             # Use a lambda so the ip gets updated by tools.proxy later
@@ -339,7 +345,7 @@ class StatsTool(cherrypy.Tool):
             debug=False, **kwargs):
         """Record the end of a request."""
         resp = cherrypy.serving.response
-        w = appstats['Requests'][threading._get_ident()]
+        w = appstats['Requests'][_get_threading_ident()]
 
         r = cherrypy.request.rfile.bytes_read
         w['Bytes Read'] = r
@@ -605,7 +611,13 @@ table.stats2 th {
         """Return ([headers], [rows]) for the given collection."""
         # E.g., the 'Requests' dict.
         headers = []
-        for record in v.itervalues():
+        try:
+            # python2
+            vals = v.itervalues()
+        except AttributeError:
+            # python3
+            vals = v.values()
+        for record in vals:
             for k3 in record:
                 format = formatting.get(k3, missing)
                 if format is None:

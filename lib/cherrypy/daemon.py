@@ -53,15 +53,12 @@ def start(configfiles=None, daemonize=False, environment=None,
         cherrypy.server.unsubscribe()
 
         addr = cherrypy.server.bind_addr
-        if fastcgi:
-            f = servers.FlupFCGIServer(application=cherrypy.tree,
-                                       bindAddress=addr)
-        elif scgi:
-            f = servers.FlupSCGIServer(application=cherrypy.tree,
-                                       bindAddress=addr)
-        else:
-            f = servers.FlupCGIServer(application=cherrypy.tree,
-                                      bindAddress=addr)
+        cls = (
+            servers.FlupFCGIServer if fastcgi else
+            servers.FlupSCGIServer if scgi else
+            servers.FlupCGIServer
+        )
+        f = cls(application=cherrypy.tree, bindAddress=addr)
         s = servers.ServerAdapter(engine, httpserver=f, bind_addr=addr)
         s.subscribe()
 

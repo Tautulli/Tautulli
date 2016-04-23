@@ -119,7 +119,7 @@ style) context manager.
 """
 
 import cherrypy
-from cherrypy._cpcompat import set, basestring
+from cherrypy._cpcompat import basestring
 from cherrypy.lib import reprconf
 
 # Deprecated in  CherryPy 3.2--remove in 3.3

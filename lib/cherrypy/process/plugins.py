@@ -8,7 +8,7 @@ import time
 import threading
 
 from cherrypy._cpcompat import basestring, get_daemon, get_thread_ident
-from cherrypy._cpcompat import ntob, set, Timer, SetDaemonProperty
+from cherrypy._cpcompat import ntob, Timer, SetDaemonProperty
 
 # _module__file__base is used by Autoreload to make
 # absolute any filenames retrieved from sys.modules which are not
@@ -109,11 +109,34 @@ class SignalHandler(object):
             self.handlers['SIGINT'] = self._jython_SIGINT_handler
 
         self._previous_handlers = {}
+        # used to determine is the process is a daemon in `self._is_daemonized`
+        self._original_pid = os.getpid()
+
 
     def _jython_SIGINT_handler(self, signum=None, frame=None):
         # See http://bugs.jython.org/issue1313
         self.bus.log('Keyboard Interrupt: shutting down bus')
         self.bus.exit()
+
+    def _is_daemonized(self):
+        """Return boolean indicating if the current process is
+        running as a daemon.
+
+        The criteria to determine the `daemon` condition is to verify
+        if the current pid is not the same as the one that got used on
+        the initial construction of the plugin *and* the stdin is not
+        connected to a terminal.
+
+        The sole validation of the tty is not enough when the plugin
+        is executing inside other process like in a CI tool
+        (Buildbot, Jenkins).
+        """
+        if (self._original_pid != os.getpid() and
+            not os.isatty(sys.stdin.fileno())):
+            return True
+        else:
+            return False
+
 
     def subscribe(self):
         """Subscribe self.handlers to signals."""
@@ -180,13 +203,13 @@ class SignalHandler(object):
 
     def handle_SIGHUP(self):
         """Restart if daemonized, else exit."""
-        if os.isatty(sys.stdin.fileno()):
+        if self._is_daemonized():
+            self.bus.log("SIGHUP caught while daemonized. Restarting.")
+            self.bus.restart()
+        else:
             # not daemonized (may be foreground or background)
             self.bus.log("SIGHUP caught but not daemonized. Exiting.")
             self.bus.exit()
-        else:
-            self.bus.log("SIGHUP caught while daemonized. Restarting.")
-            self.bus.restart()
 
 
 try:
@@ -200,7 +223,7 @@ class DropPrivileges(SimplePlugin):
 
     """Drop privileges. uid/gid arguments not available on Windows.
 
-    Special thanks to `Gavin Baker <http://antonym.org/2005/12/dropping-privileges-in-python.html>`_ 
+    Special thanks to `Gavin Baker <http://antonym.org/2005/12/dropping-privileges-in-python.html>`_
     """
 
     def __init__(self, bus, umask=None, uid=None, gid=None):
