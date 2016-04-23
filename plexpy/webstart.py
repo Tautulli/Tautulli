@@ -66,8 +66,9 @@ def initialize(options):
 
     if options['http_password']:
         logger.info("Web server authentication is enabled, username is '%s'", options['http_username'])
-        options_dict['tools.sessions.on'] = True
         options_dict['tools.auth.on'] = True
+        options_dict['tools.sessions.on'] = True
+        options_dict['tools.sessions.timeout'] = 30 * 24 * 60 # 30 days
         cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
 
     if not options['http_root'] or options['http_root'] == '/':

@@ -21,6 +21,7 @@
 import cherrypy
 from cgi import escape
 from hashing_passwords import check_hash
+from datetime import datetime, timedelta
 
 import plexpy
 from plexpy import logger
@@ -52,8 +53,8 @@ def check_auth(*args, **kwargs):
     conditions that the user must fulfill"""
     conditions = cherrypy.request.config.get('auth.require', None)
     if conditions is not None:
-        username = cherrypy.session.get(SESSION_KEY)
-        if username:
+        (username, expiry) = cherrypy.session.get(SESSION_KEY) if cherrypy.session.get(SESSION_KEY) else (None, None)
+        if (username and expiry) and expiry > datetime.now():
             cherrypy.request.login = username
             for condition in conditions:
                 # A condition is just a callable that returns true or false
@@ -128,17 +129,14 @@ class AuthController(object):
     
     def get_loginform(self, username="", msg=""):
         from plexpy.webserve import serve_template
-
-        username = escape(username, True)
-
-        return serve_template(templatename="login.html", title="Login", username=username, msg=msg)
+        return serve_template(templatename="login.html", title="Login", username=escape(username, True), msg=msg)
     
     @cherrypy.expose
     def index(self):
         raise cherrypy.HTTPRedirect("login")
 
     @cherrypy.expose
-    def login(self, username=None, password=None, remember_me=0):
+    def login(self, username=None, password=None, remember_me='0'):
         if not plexpy.CONFIG.HTTP_PASSWORD:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
@@ -152,7 +150,10 @@ class AuthController(object):
             return self.get_loginform(username, error_msg)
         else:
             cherrypy.session.regenerate()
-            cherrypy.session[SESSION_KEY] = cherrypy.request.login = username
+            cherrypy.request.login = username
+            expiry = datetime.now() + (timedelta(days=30) if remember_me == '1' else timedelta(minutes=60))
+            cherrypy.session[SESSION_KEY] = (username, expiry)
+
             self.on_login(username)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
     
@@ -162,7 +163,7 @@ class AuthController(object):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         sess = cherrypy.session
-        username = sess.get(SESSION_KEY, None)
+        (username, expiry) = sess.get(SESSION_KEY) if sess.get(SESSION_KEY) else (None, None)
         sess[SESSION_KEY] = None
 
         if username:
