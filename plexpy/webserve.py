@@ -150,6 +150,7 @@ class WebInterface(object):
     @require()
     def home(self):
         config = {
+            "home_sections": plexpy.CONFIG.HOME_SECTIONS,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
             "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
@@ -1290,6 +1291,7 @@ class WebInterface(object):
             "notify_on_pmsupdate_subject_text": plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT,
             "notify_on_pmsupdate_body_text": plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_BODY_TEXT,
             "notify_scripts_args_text": plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT,
+            "home_sections": json.dumps(plexpy.CONFIG.HOME_SECTIONS),
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
             "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
@@ -1309,15 +1311,15 @@ class WebInterface(object):
 
         checked_configs = [
             "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
-            "grouping_global_history", "grouping_user_history", "grouping_charts", "pms_use_bif", "pms_ssl",
+            "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
+            "pms_use_bif", "pms_ssl", "pms_is_remote", "home_stats_type",
             "movie_notify_enable", "tv_notify_enable", "music_notify_enable", "monitoring_use_websocket",
             "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
             "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
             "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
-            "pms_is_remote", "home_stats_type", "group_history_tables", "notify_consecutive", "notify_upload_posters",
-            "notify_recently_added", "notify_recently_added_grandparent",
+            "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_recently_added_grandparent",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password"
         ]
         for checked_config in checked_configs:
@@ -1380,8 +1382,15 @@ class WebInterface(object):
                 kwargs.get('https_key') != plexpy.CONFIG.HTTPS_KEY:
                 https_changed = True
 
+        # Remove config with 'hsec-' prefix and change home_sections to list
+        if kwargs.get('home_sections'):
+            for k in kwargs.keys():
+                if k.startswith('hsec-'):
+                    del kwargs[k]
+            kwargs['home_sections'] = kwargs['home_sections'].split(',')
+
         # Remove config with 'hscard-' prefix and change home_stats_cards to list
-        if kwargs.get('home_stats_cards', ''):
+        if kwargs.get('home_stats_cards'):
             for k in kwargs.keys():
                 if k.startswith('hscard-'):
                     del kwargs[k]
@@ -1391,7 +1400,7 @@ class WebInterface(object):
                 kwargs['home_stats_cards'] = plexpy.CONFIG.HOME_STATS_CARDS
 
         # Remove config with 'hlcard-' prefix and change home_library_cards to list
-        if kwargs.get('home_library_cards', ''):
+        if kwargs.get('home_library_cards'):
             for k in kwargs.keys():
                 if k.startswith('hlcard-'):
                     del kwargs[k]

@@ -5,6 +5,8 @@
 
 <%def name="body()">
 <div class="container-fluid">
+    % for section in config['home_sections']:
+    % if section == 'current_activity':
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header" id="current-activity-header">
@@ -16,11 +18,11 @@
             </div>
         </div>
     </div>
-    % if config['home_stats_cards']:
+    % elif section == 'watch_stats':
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header">
-                <h3>Watch Statistics <small>Last ${config['home_stats_length']} days</small></h3>
+                <h3>Watch Statistics &nbsp;&nbsp;<small>Last ${config['home_stats_length']} days</small></h3>
             </div>
             <div id="home-stats" class="home-platforms">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
@@ -28,12 +30,11 @@
             </div>
         </div>
     </div>
-    % endif
-    % if config['home_library_cards']:
+    % elif section == 'library_stats':
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header" id="library-statistics-header">
-                <h3>Library Statistics <small>${config['pms_name']}</small></h3>
+                <h3>Library Statistics &nbsp;&nbsp;<small>${config['pms_name']}</small></h3>
             </div>
             <div id="library-stats" class="library-platforms">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
@@ -41,7 +42,7 @@
             </div>
         </div>
     </div>
-    % endif
+    % elif section == 'recently_added':
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header">
@@ -53,7 +54,10 @@
                         <a href="#" id="recently-added-page-right" class="paginate btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
                     </li>
                 </ul>
-                <h3>Recently Added</h3>
+                <h3>Recently Added &nbsp;&nbsp;<small>
+                    <a href="#" class="toggle-recently-added-type" data-type="movie">Movies</a> &nbsp; 
+                    <a href="#" class="toggle-recently-added-type" data-type="season">TV Shows</a> &nbsp; 
+                    <a href="#" class="toggle-recently-added-type" data-type="album">Music</a></small></h3>
             </div>
             <div id="recentlyAdded" style="margin-right: -15px;">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
@@ -61,6 +65,8 @@
             </div>
         </div>
     </div>
+    % endif
+    % endfor
 </div>
 </%def>
 
@@ -185,6 +191,13 @@
         } else {
             $("#recently-added-page-right").removeClass("disabled");
         }
+    });
+
+    $('.toggle-recently-added-type').click(function () {
+        var media_type = $(this).data('type');
+        var margin_right = $(this).hasClass('text-muted') ? '25px' : 0;
+        $('.dashboard-recent-media-instance li[data-type=' + media_type + ']').animate({ width: 'toggle', marginRight: margin_right }, 1000);
+        $(this).toggleClass('text-muted').blur();
     });
 </script>
 

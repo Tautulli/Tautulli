@@ -132,11 +132,12 @@ _CONFIG_DEFINITIONS = {
     'GROWL_ON_EXTUP': (int, 'Growl', 0),
     'GROWL_ON_INTUP': (int, 'Growl', 0),
     'GROWL_ON_PMSUPDATE': (int, 'Growl', 0),
+    'HOME_SECTIONS': (list, 'General', ['current_activity','watch_stats','library_stats','recently_added']),
     'HOME_LIBRARY_CARDS': (list, 'General', ['first_run']),
     'HOME_STATS_LENGTH': (int, 'General', 30),
     'HOME_STATS_TYPE': (int, 'General', 0),
     'HOME_STATS_COUNT': (int, 'General', 5),
-    'HOME_STATS_CARDS': (list, 'General', ['top_tv', 'popular_tv', 'top_movies', 'popular_movies', 'top_music', \
+    'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', \
         'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent']),
     'HTTPS_CREATE_CERT': (int, 'General', 1),
     'HTTPS_CERT': (str, 'General', ''),
@@ -604,4 +605,16 @@ class Config(object):
 
         if self.CONFIG_VERSION == '3':
             if self.HTTP_ROOT == '/': self.HTTP_ROOT = ''
+            self.CONFIG_VERSION = '4'
+
+        if self.CONFIG_VERSION == '4':
+            print not len(self.HOME_STATS_CARDS) and 'watch_stats' in self.HOME_SECTIONS
+            if not len(self.HOME_STATS_CARDS) and 'watch_stats' in self.HOME_SECTIONS:
+                home_sections = self.HOME_SECTIONS
+                home_sections.remove('watch_stats')
+                self.HOME_SECTIONS = home_sections
+            if not len(self.HOME_LIBRARY_CARDS) and 'library_stats' in self.HOME_SECTIONS:
+                home_sections = self.HOME_SECTIONS
+                home_sections.remove('library_stats')
+                self.HOME_SECTIONS = home_sections
             self.CONFIG_VERSION = '4'

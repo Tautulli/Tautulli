@@ -14,7 +14,7 @@ from plexpy.helpers import anon_url
     <meta name="author" content="">
     <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
     <link href="${http_root}css/plexpy.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,800" rel="stylesheet" type="text/css">
     <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
     ${next.headIncludes()}
 
@@ -176,9 +176,9 @@ from plexpy.helpers import anon_url
                         </form>
                     </li>
                     % if title == "Home":
-                        <li class="active"><a href="home"><i class="fa fa-lg fa-home"></i></a></li>
+                    <li class="active"><a href="home"><i class="fa fa-lg fa-home"></i></a></li>
                     % else:
-                        <li><a href="home"><i class="fa fa-lg fa-home"></i></a></li>
+                    <li><a href="home"><i class="fa fa-lg fa-home"></i></a></li>
                     % endif
                     % if title == "Libraries" or title == "Library" or title == "Info":
                     <li class="active"><a href="libraries">Libraries</a></li>
@@ -186,9 +186,9 @@ from plexpy.helpers import anon_url
                     <li><a href="libraries">Libraries</a></li>
                     % endif
                     % if title == "Users" or title == "User":
-                        <li class="active"><a href="users">Users</a></li>
+                    <li class="active"><a href="users">Users</a></li>
                     % else:
-                        <li><a href="users">Users</a></li>
+                    <li><a href="users">Users</a></li>
                     % endif
                     % if title == "History":
                     <li class="active"><a href="history">History</a></li>
@@ -196,25 +196,32 @@ from plexpy.helpers import anon_url
                     <li><a href="history">History</a></li>
                     % endif
                     % if title == "Graphs":
-                        <li class="active"><a href="graphs">Graphs</a></li>
+                    <li class="active"><a href="graphs">Graphs</a></li>
                     % else:
-                        <li><a href="graphs">Graphs</a></li>
+                    <li><a href="graphs">Graphs</a></li>
                     % endif
                     % if title == "Synced Items":
-                        <li class="active"><a href="sync">Synced Items</a></li>
+                    <li class="active"><a href="sync">Synced Items</a></li>
                     % else:
-                        <li><a href="sync">Synced Items</a></li>
-                    % endif
-                    % if title == "Log":
-                        <li class="active"><a href="logs">Logs</a></li>
-                    % else:
-                        <li><a href="logs">Logs</a></li>
+                    <li><a href="sync">Synced Items</a></li>
                     % endif
                     % if title == "Settings":
-                        <li class="active"><a href="settings">Settings</a></li>
+                    <li class="dropdown active">
                     % else:
-                        <li><a href="settings">Settings</a></li>
+                    <li class="dropdown">
                     % endif
+                        <a href="settings" class="dropdown-toggle disabled" aria-haspopup="true" data-toggle="dropdown" data-hover="dropdown"><i class="fa fa-lg fa-cogs"></i> <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="logs"><i class="fa fa-list-alt"></i> View Logs</a></li>
+                            <li role="separator" class="divider"></li>
+                            % if plexpy.CONFIG.CHECK_GITHUB:
+                            <li><a href="#" id="nav-update"><i class="fa fa-arrow-circle-up"></i> Check for Updates</a></li>
+                            % endif
+                            <li><a href="#" id="nav-restart"><i class="fa fa-refresh"></i> Restart</a></li>
+                            <li><a href="#" id="nav-shutdown"><i class="fa fa-power-off"></i> Shutdown</a></li>
+                            <li><a href="${http_root}auth/login"><i class="fa fa-sign-out"></i> Logout</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -239,6 +246,25 @@ ${next.headerIncludes()}
     if (!getCookie('updateDismiss')) {
         $('#updatebar').show();
     }
+
+    $("#nav-shutdown").click(function () {
+        var r = confirm("Are you sure you want to shutdown PlexPy?");
+        if (r == true) {
+            window.location.href = "shutdown";
+        }
+    });
+
+    $("#nav-restart").click(function () {
+        window.location.href = "restart";
+    });
+
+    $("#nav-update").first().one("click", function () {
+        // Allow the update bar to show again if previously dismissed.
+        setCookie('updateDismiss', 'true', 0);
+        $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking');
+        window.location.href = "checkGithub";
+    });
+
 </script>
 <script>
     $('#search_form').submit(function (e) {
@@ -263,8 +289,8 @@ ${next.headerIncludes()}
     });
 </script>
 <script>
-    // Work around for iOS web app links opening in Safari
     $(document).ready(function () {
+        // Work around for iOS web app links opening in Safari
         if (("standalone" in window.navigator) && window.navigator.standalone) {
             // For iOS Apps
             $('a').on('click', function (e) {
@@ -275,6 +301,17 @@ ${next.headerIncludes()}
                 }
             });
         }
+
+        // hack alert: if we don't have a touchscreen, and we are already hovering the mouse, then click should link instead of toggle
+        if ((navigator.maxTouchPoints || 0) < 2) {
+            $('.dropdown-toggle').on('click', function () {
+                var $this = $(this);
+                if ($this.attr('aria-expanded') === 'true') {
+                    window.location.href = $this.attr('href');
+                }
+            });
+        }
+
     });
 </script>
 ${next.javascriptIncludes()}

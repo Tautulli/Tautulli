@@ -439,7 +439,8 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, session_history.parent_rating_key, ' \
+                query = 'SELECT session_history.id, session_history.media_type, ' \
+                        'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
                         'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
                         'year, started, user ' \
                         'FROM session_history_metadata ' \
@@ -466,6 +467,8 @@ class Users(object):
                 recent_output = {'row_id': row['id'],
                                  'media_type': row['media_type'],
                                  'rating_key': row['rating_key'],
+                                 'parent_rating_key': row['parent_rating_key'],
+                                 'grandparent_rating_key': row['grandparent_rating_key'],
                                  'title': row['title'],
                                  'parent_title': row['parent_title'],
                                  'grandparent_title': row['grandparent_title'],

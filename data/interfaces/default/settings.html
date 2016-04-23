@@ -20,7 +20,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
         <div class="col-md-12">
             <div class='card-back-full'>
                 <div class="header-bar">
-                    <span><i class="fa fa-cog"></i> Settings</span>
+                    <span><i class="fa fa-cogs"></i> Settings</span>
                 </div>
                 <div class="button-bar">
                     % if config['check_github']:
@@ -131,10 +131,15 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td>Gitter Chat:</td>
                                     <td><a class="no-highlight" href="${anon_url('https://gitter.im/drzoidberg33/plexpy')}" target="_blank">https://gitter.im/drzoidberg33/plexpy</a></td>
                                 </tr>
+                                <tr>
+                                    <td>Donations:</td>
+                                    <td><a class="no-highlight" href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DG783BMSCU3V4')}" target="_blank">Paypal</a> | 
+                                        <a class="no-highlight" href="${anon_url('http://swiftpanda16.tip.me/')}" target="_blank">Bitcoin</a></td>
+                                </tr>
                             </tbody>
                         </table>
                         <div class="padded-header">
-                            <h3>PlexPy Scheduler</h3>
+                            <h3>PlexPy Scheduled Tasks</h3>
                         </div>
                         <div id="plexpy-scheduler-table">
                             <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading scheduler table...</div>
@@ -228,7 +233,49 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
+
                     <div role="tabpanel" class="tab-pane" id="tabs-2">
+                        <div class="padded-header">
+                            <h3>Homepage</h3>
+                        </div>
+
+                        <label for="sortable_home_stats_cards">Sections</label>
+                        <p class="help-block">
+                            Select the sections to show on the homepage.<br>
+                            Drag the items below to reorder your homepage content.
+                        </p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled" id="sortable_home_sections" data-parsley-trigger="change">
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-current_activity" name="hsec-current_activity" value="current_activity"> Current Activity
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-watch_stats" name="hsec-watch_stats" value="watch_stats"> Watch Statistics
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-library_stats" name="hsec-library_stats" value="library_stats"> Library Statistics
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-recently_added" name="hsec-recently_added" value="recently_added"> Recently Added
+                                        </label>
+                                    </li>
+                                </ul>
+                                <input type="text" id="home_sections" name="home_sections" style="display: none;"/>
+                            </div>
+                        </div>
+
                         <div class="padded-header">
                             <h3>Watch Statistics</h3>
                         </div>
@@ -236,24 +283,12 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="sortable_home_stats_cards">Cards</label>
                             <p class="help-block">
-                                Select the cards to show in the watch statistics on the home page. Select none to disable.<br>
+                                Select the cards to show in the watch statistics on the home page.
                                 Drag the items below to reorder your homepage content.
                             </p>
                             <div class="row">
                                 <div class="col-md-6">
                                     <ul class="list-unstyled" id="sortable_home_stats_cards" data-parsley-trigger="change">
-                                        <li class="card card-sortable">
-                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
-                                            <label>
-                                                <input type="checkbox" id="hscard-top_tv" name="hscard-top_tv" value="top_tv"> Most Watched TV
-                                            </label>
-                                        </li>
-                                        <li class="card card-sortable">
-                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
-                                            <label>
-                                                <input type="checkbox" id="hscard-popular_tv" name="hscard-popular_tv" value="popular_tv"> Most Popular TV
-                                            </label>
-                                        </li>
                                         <li class="card card-sortable">
                                             <div class="card-handle"><i class="fa fa-bars"></i></div>
                                             <label>
@@ -264,6 +299,18 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                             <div class="card-handle"><i class="fa fa-bars"></i></div>
                                             <label>
                                                 <input type="checkbox" id="hscard-popular_movies" name="hscard-popular_movies" value="popular_movies"> Most Popular Movie
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_tv" name="hscard-top_tv" value="top_tv"> Most Watched TV
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_tv" name="hscard-popular_tv" value="popular_tv"> Most Popular TV
                                             </label>
                                         </li>
                                         <li class="card card-sortable">
@@ -341,17 +388,17 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         <div class="form-group">
                             <label for="home_library_cards">Cards</label>
                             <p class="help-block">
-                                Select the cards to show in the library statistics on the home page. Select none to disable.<br>
+                                Select the cards to show in the library statistics on the home page.
                                 Drag the items below to reorder your homepage content.
                             </p>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <ul class="list-unstyled" id="sortable_home_library_cards" data-parsley-trigger="change">
-                                    </ul>
+                                    <ul class="list-unstyled" id="sortable_home_library_cards" data-parsley-trigger="change"></ul>
                                     <input type="text" id="home_library_cards" name="home_library_cards" style="display: none;" />
                                 </div>
                             </div>
                         </div>
+
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
                     </div>
@@ -2002,13 +2049,9 @@ $(document).ready(function() {
     $("#menu_link_update_check").click(function() {
         // Allow the update bar to show again if previously dismissed.
         setCookie('updateDismiss', 'true', 0);
-        $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking</button>');
+        $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking');
         $(this).prop('disabled', true);
         window.location.href = "checkGithub";
-    });
-
-    $("#modal_link_restart").click(function() {
-        window.location.href = "restart";
     });
 
     if ($("#api_enabled").is(":checked")) {
@@ -2301,6 +2344,31 @@ $(document).ready(function() {
     var accordion_timeline = new Accordion($('#accordion-timeline'), false);
     var accordion_scripts = new Accordion($('#accordion-scripts'), false);
 
+    // Sortable home_sections
+    function set_home_sections() {
+        var home_sections = [];
+        var hsecs = $('[id^=hsec-]').serializeArray();
+        $.each(hsecs, function(i, sec) {
+            home_sections.push(sec.value);
+        });
+        $('#home_sections').val(home_sections);
+    };
+
+    var sec_cards = ${config['home_sections'] | n};
+    sec_cards.reverse().forEach(function (item) {
+        $('#hsec-' + item).prop('checked', !$(this).prop('checked'))
+        $('#hsec-' + item).closest('li.card').prependTo('#sortable_home_sections');
+    });
+
+    Sortable.create(sortable_home_sections, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_sections();
+        }
+    });
+
+    $('[id^=hsec-]').change(function() { set_home_sections(); });
+    set_home_sections()
 
     // Sortable home_stats_cards
     function set_home_stats_cards() {
@@ -2327,7 +2395,6 @@ $(document).ready(function() {
 
     $('[id^=hscard-]').change(function() { set_home_stats_cards(); });
     set_home_stats_cards()
-
 
     // Sortable home_library_cards
     function set_home_library_cards() {

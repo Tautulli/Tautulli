@@ -45,17 +45,25 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
-                    <div class="dashboard-recent-media-metacontainer">
-                        % if item['media_type'] == 'episode':
-                        <h3 title="${item['grandparent_title']}">${item['grandparent_title']}</h3>
-                        <h3 title="${item['title']}">${item['title']}</h3>
-                        <h3 class="text-muted">S${item['parent_media_index']} &middot; E${item['media_index']}</h3>
-                        % elif item['media_type'] == 'movie':
-                        <h3 title="${item['title']}">${item['title']}</h3>
-                        <h3 class="text-muted">${item['year']}</h3>
-                        % endif
-                    </div>
                 </a>
+                <div class="dashboard-recent-media-metacontainer">
+                    % if item['media_type'] == 'episode':
+                    <h3 title="${item['grandparent_title']}">
+                        <a href="info?rating_key=${item['grandparent_rating_key']}">${item['grandparent_title']}</a>
+                    </h3>
+                    <h3 title="${item['title']}">
+                        <a href="info?source=history&rating_key=${item['rating_key']}">${item['title']}</a>
+                    </h3>
+                    <h3 class="text-muted">
+                        <a href="info?rating_key=${item['parent_rating_key']}">S${item['parent_media_index']}</a> &middot; <a href="info?source=history&rating_key=${item['rating_key']}">E${item['media_index']}</a>
+                    </h3>
+                    % elif item['media_type'] == 'movie':
+                    <h3 title="${item['title']}">
+                        <a href="info?source=history&rating_key=${item['rating_key']}">${item['title']}</a>
+                    </h3>
+                    <h3 class="text-muted">${item['year']}</h3>
+                    % endif
+                </div>
                 % elif item['media_type'] == 'track':
                 <a href="info?source=history&rating_key=${item['rating_key']}">
                     <div class="dashboard-recent-media-cover">
@@ -69,12 +77,18 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
-                    <div class="dashboard-recent-media-metacontainer">
-                        <h3 title="${item['grandparent_title']}">${item['grandparent_title']}</h3>
-                        <h3 title="${item['title']}">${item['title']}</h3>
-                        <h3 class="text-muted">${item['parent_title']}</h3>
-                    </div>
                 </a>
+                <div class="dashboard-recent-media-metacontainer">
+                    <h3 title="${item['grandparent_title']}">
+                        <a href="info?rating_key=${item['grandparent_rating_key']}">${item['grandparent_title']}</a>
+                    </h3>
+                    <h3 title="${item['title']}">
+                        <a href="info?source=history&rating_key=${item['rating_key']}">${item['title']}</a>
+                    </h3>
+                    <h3 class="text-muted">
+                        <a href="info?rating_key=${item['parent_rating_key']}">${item['parent_title']}</a></a>
+                    </h3>
+                </div>
                 % endif
             </li>
             % endfor
