@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 
 import plexpy
 from plexpy import logger
-from plexpy.users import user_login
+from plexpy.users import Users, user_login
 
 
 SESSION_KEY = '_cp_username'
@@ -44,21 +44,14 @@ def check_credentials(username, password):
     else:
         return False, None
     
-    # An example implementation which uses an ORM could be:
-    # u = User.get(username)
-    # if u is None:
-    #     return u"Username %s is unknown to me." % username
-    # if u.password != md5.new(password).hexdigest():
-    #     return u"Incorrect password"
-
 def check_auth(*args, **kwargs):
     """A tool that looks in config for 'auth.require'. If found and it
     is not None, a login is required and the entry is evaluated as a list of
     conditions that the user must fulfill"""
     conditions = cherrypy.request.config.get('auth.require', None)
     if conditions is not None:
-        session = cherrypy.session.get(SESSION_KEY)
-        username, user_group, expiry = session if session else (None, None, None)
+        cp_sesssion = cherrypy.session.get(SESSION_KEY)
+        username, user_id, user_group, expiry = cp_sesssion if cp_sesssion else (None, None, None, None)
 
         if (username and expiry) and expiry > datetime.now():
             cherrypy.request.login = username
@@ -152,10 +145,17 @@ class AuthController(object):
         (vaild_login, user_group) = check_credentials(username, password)
 
         if vaild_login:
+            if user_group == 'guest':
+                user_details = Users().get_details(user=username)
+                user_id = user_details['user_id']
+            else:
+                user_id = None
+
+            expiry = datetime.now() + (timedelta(days=30) if remember_me == '1' else timedelta(minutes=60))
+
             cherrypy.session.regenerate()
             cherrypy.request.login = username
-            expiry = datetime.now() + (timedelta(days=30) if remember_me == '1' else timedelta(minutes=60))
-            cherrypy.session[SESSION_KEY] = (username, user_group, expiry)
+            cherrypy.session[SESSION_KEY] = (username, user_id, user_group, expiry)
 
             self.on_login(username)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
@@ -169,10 +169,9 @@ class AuthController(object):
         if not plexpy.CONFIG.HTTP_PASSWORD:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-        cp_sess = cherrypy.session
-        session = cp_sess.get(SESSION_KEY)
-        username, user_group, expiry = session if session else (None, None, None)
-        cp_sess[SESSION_KEY] = None
+        cp_sesssion = cherrypy.session.get(SESSION_KEY)
+        username, user_id, user_group, expiry = cp_sesssion if cp_sesssion else (None, None, None, None)
+        cherrypy.session[SESSION_KEY] = None
 
         if username:
             cherrypy.request.login = None

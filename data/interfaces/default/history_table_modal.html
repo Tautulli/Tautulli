@@ -40,6 +40,7 @@
                 return {
                     json_data: JSON.stringify(d),
                     grouping: false,
+                    user_id: "${data['user_id']}",
                     start_date: "${data['start_date']}",
                     media_type: "${data.get('media_type')}",
                     transcode_decision: "${data.get('transcode_decision')}"

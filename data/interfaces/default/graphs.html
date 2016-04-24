@@ -12,6 +12,7 @@
             <span><i class="fa fa-bar-chart"></i> Graphs</span>
         </div>
         <div class="button-bar hidden-xs">
+            % if _session['user_group'] == 'admin':
             <div class="btn-group" id="user-selection">
                 <label>
                     <select name="graph-user" id="graph-user" class="btn" style="color: inherit;">
@@ -20,6 +21,7 @@
                     </select>
                 </label>
             </div>
+            % endif
             <div class="btn-group" data-toggle="buttons" id="yaxis-selection">
                 % if config['graph_type'] == 'duration':
                 <label class="btn btn-dark">
@@ -256,6 +258,8 @@
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 
 <script>
+    var selected_user_id = "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
+
     // Modal popup dialog
     function selectHandler(selectedDate, selectedSeries) {
 
@@ -282,6 +286,7 @@
                 url: "history_table_modal",
                 type: 'post',
                 data:  {
+                    user_id: selected_user_id,
                     start_date: dateString,
                     media_type: media_type,
                     transcode_decision: transcode_decision
@@ -289,10 +294,6 @@
                 complete: function(xhr, status) {
                     $('#history-modal').modal('show');
                     $("#history-modal").html(xhr.responseText);
-                    var opt = $('#graph-user :selected');
-                    if (opt.prev().length) {
-                        $('#history_table_modal_filter input[type=search]').val(opt.text()).trigger("input");
-                    }
                 }
             });
         }
@@ -320,7 +321,6 @@
         var yaxis = "${config['graph_type']}";
         var current_range = ${config['graph_days']};
         var current_tab = "${'#' + config['graph_tab']}";
-        var selected_user_id = undefined;
         
         $('.days').html(current_range);
         
@@ -589,7 +589,7 @@
 
         // User changed
         $('#graph-user').on('change', function() {
-            selected_user_id = $(this).val() || undefined;
+            selected_user_id = $(this).val() || null;
             if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
             if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
             if (current_tab == '#tabs-3') { loadGraphsTab3(yaxis); }
