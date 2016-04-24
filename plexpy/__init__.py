@@ -447,7 +447,7 @@ def dbcheck():
         'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
         'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
-        'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, allow_guest INTEGER DEFAULT 1, '
+        'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, allow_guest INTEGER DEFAULT 0, '
         'user_token TEXT, server_token TEXT)'
     )
 
@@ -749,7 +749,7 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table users.")
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN allow_guest INTEGER DEFAULT 1'
+            'ALTER TABLE users ADD COLUMN allow_guest INTEGER DEFAULT 0'
         )
         c_db.execute(
             'ALTER TABLE users ADD COLUMN user_token TEXT'
