@@ -21,6 +21,23 @@ class Users(object):
     def __init__(self):
         pass
 
+    def get_user_names(self, kwargs=None):
+        monitor_db = database.MonitorDatabase()
+        
+        try:
+            query = 'SELECT user_id, ' \
+                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
+                    THEN users.username ELSE users.friendly_name END) AS friendly_name ' \
+                    'FROM users ' \
+                    'WHERE deleted_user = 0'
+
+            result = monitor_db.select(query)
+        except Exception as e:
+            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_user_names: %s." % e)
+            return None
+        
+        return result
+    
     def get_datatables_list(self, kwargs=None):
         data_tables = datatables.DataTables()
 

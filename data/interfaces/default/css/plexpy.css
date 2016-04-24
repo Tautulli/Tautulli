@@ -113,6 +113,8 @@ img {
 }
 .btn {
     outline:0px !important;
+}
+.btn:not(select) {
     -webkit-appearance:none;
 }
 .btn-dark {
