@@ -51,13 +51,13 @@ def serve_template(templatename, **kwargs):
 
     _session = {'username': None,
                 'user_id': None,
-                'user_group': None,
+                'user_group': 'admin',
                 'expiry': None}
 
     if cherrypy.config.get('tools.auth.on'):
         _cp_session = cherrypy.session.get(SESSION_KEY)
         _session['username'], _session['user_id'], _session['user_group'], _session['expiry'] = \
-            _cp_session if _cp_session else (None, None, None, None)
+            _cp_session if _cp_session else (None, None, 'admin', None)
 
     try:
         template = _hplookup.get_template(templatename)
