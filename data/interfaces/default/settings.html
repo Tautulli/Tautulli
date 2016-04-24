@@ -576,8 +576,13 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label for="pms_ip">Plex IP or Hostname</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
-                                    <span class="form-control-feedback" id="pms-verify" aria-hidden="true" style="display: none;"></span>
+                                    <div class="input-group">
+                                        <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="verify_server_button">Verify Server</button>
+                                        </span>
+                                    </div>
+                                    <span class="form-control-feedback" id="pms-verify" aria-hidden="true" style="display: none; right: 110px;"></span>
                                 </div>
                                 <div id="pms_ip_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
@@ -2196,6 +2201,10 @@ $(document).ready(function() {
             showMsg('<i class="fa fa-exclamation-circle"></i>&nbspCould not verify your server.', false, true, 2000, true)
         }
     }
+
+    $('#verify_server_button').on('click', function(){
+        verifyServer();
+    });
 
     // Plex.tv auth token fetch
     $("#get-pms-auth-token").click(function() {
