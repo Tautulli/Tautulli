@@ -1121,6 +1121,7 @@ class WebInterface(object):
         return serve_template(templatename="logs.html", title="Log", lineList=plexpy.LOG_LIST)
 
     @cherrypy.expose
+    @requireAuth(member_of("admin"))
     def getLog(self, start=0, length=100, **kwargs):
         start = int(start)
         length = int(length)
