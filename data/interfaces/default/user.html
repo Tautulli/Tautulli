@@ -54,9 +54,11 @@ from plexpy import helpers
                             <div class="user-info-poster-face" style="background-image: url(${data['user_thumb']});"></div>
                             <div class="user-info-username">
                                 <span class="set-username">${data['friendly_name']}</span>
+                                % if _session['user_group'] == 'admin':
                                 <span id="edit-user-tooltip" data-target="tooltip" title="Edit user details">
                                     <a href="#" data-toggle="modal" data-target="#edit-user-modal" id="toggle-edit-user-modal"><i class="fa fa-pencil"></i></a>
                                 </span>
+                                % endif
                             </div>
                             <div class="user-info-nav">
                                 <ul class="user-info-nav">
@@ -179,10 +181,12 @@ from plexpy import helpers
                                         </div>
                                         <div class="button-bar">
                                             <div class="colvis-button-bar hidden-xs" id="button-bar-history"></div>
+                                            % if _session['user_group'] == 'admin':
                                             <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
                                                 <i class="fa fa-trash-o"></i> Delete mode
                                             </button>
                                             <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+                                            % endif
                                         </div>
                                     </div>
                                     <div class="table-card-back">

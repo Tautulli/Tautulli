@@ -341,6 +341,7 @@ DOCUMENTATION :: END
                         </div>
                         <div class="button-bar">
                             <div class="colvis-button-bar hidden-xs"></div>
+                            % if _session['user_group'] == 'admin':
                             <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
                                 <i class="fa fa-trash-o"></i> Delete mode
                             </button>
@@ -361,6 +362,7 @@ DOCUMENTATION :: END
                             </span>
                             % endif
                             <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+                            % endif
                         </div>
                     </div>
                     <div class="table-card-back">
@@ -434,7 +436,8 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return { 
                     json_data: JSON.stringify( d ),
-                    grandparent_rating_key: "${data['rating_key']}"
+                    grandparent_rating_key: "${data['rating_key']}",
+                    user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
                 };
             }
         }
@@ -449,7 +452,8 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return { 
                     json_data: JSON.stringify( d ),
-                    parent_rating_key: "${data['rating_key']}"
+                    parent_rating_key: "${data['rating_key']}",
+                    user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
                 };
             }
         }
@@ -464,7 +468,8 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return { 
                     json_data: JSON.stringify( d ),
-                    rating_key: "${data['rating_key']}"
+                    rating_key: "${data['rating_key']}",
+                    user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
                 };
             }
         }
