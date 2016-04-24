@@ -89,39 +89,102 @@ def initialize(options):
         },
         '/interfaces': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces"
+            'tools.staticdir.dir': "interfaces",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/images': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces/default/images"
+            'tools.staticdir.dir': "interfaces/default/images",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/css': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces/default/css"
+            'tools.staticdir.dir': "interfaces/default/css",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/fonts': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces/default/fonts"
+            'tools.staticdir.dir': "interfaces/default/fonts",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/js': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces/default/js"
+            'tools.staticdir.dir': "interfaces/default/js",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/json': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces/default/json"
+            'tools.staticdir.dir': "interfaces/default/json",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/xml': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces/default/xml"
+            'tools.staticdir.dir': "interfaces/default/xml",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/cache': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': plexpy.CONFIG.CACHE_DIR
+            'tools.staticdir.dir': plexpy.CONFIG.CACHE_DIR,
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/favicon.ico': {
             'tools.staticfile.on': True,
-            'tools.staticfile.filename': os.path.abspath(os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images/favicon.ico'))
+            'tools.staticfile.filename': os.path.abspath(os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images/favicon.ico')),
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
     }
 
