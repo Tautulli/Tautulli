@@ -49,13 +49,15 @@ def serve_template(templatename, **kwargs):
 
     server_name = plexpy.CONFIG.PMS_NAME
 
-    session = cherrypy.session.get(SESSION_KEY)
-    user, user_group, expiry = session if session else (None, None, None)
+    _cp_session = cherrypy.session.get(SESSION_KEY)
+    _session = {}
+    _session['username'], _session['user_id'], _session['user_group'], _session['expiry'] = \
+        _cp_session if _cp_session else (None, None, None, None)
 
     try:
         template = _hplookup.get_template(templatename)
         return template.render(http_root=plexpy.HTTP_ROOT, server_name=server_name, 
-                               user=user, user_group=user_group, expiry=expiry, **kwargs)
+                               _session=_session, **kwargs)
     except:
         return exceptions.html_error_template().render()
 
@@ -797,12 +799,12 @@ class WebInterface(object):
     ##### History #####
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def history(self):
         return serve_template(templatename="history.html", title="History")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_history(self, user=None, user_id=None, grouping=0, **kwargs):
 
         if grouping == 'false':
@@ -851,7 +853,7 @@ class WebInterface(object):
         return json.dumps(history)
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_stream_data(self, row_id=None, user=None, **kwargs):
 
         data_factory = datafactory.DataFactory()
@@ -860,7 +862,7 @@ class WebInterface(object):
         return serve_template(templatename="stream_data.html", title="Stream Data", data=stream_data, user=user)
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_ip_address_details(self, ip_address=None, **kwargs):
         import socket
 
@@ -890,7 +892,7 @@ class WebInterface(object):
     ##### Graphs #####
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def graphs(self):
 
         config = {
@@ -918,6 +920,7 @@ class WebInterface(object):
         return "Updated graphs config values."
     
     @cherrypy.expose
+    @requireAuth(member_of("admin"))
     @addtoapi()
     def get_user_names(self, **kwargs):
 
@@ -928,7 +931,7 @@ class WebInterface(object):
         return json.dumps(user_names)
     
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_plays_by_date(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
 
@@ -942,7 +945,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_plays_by_date.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_plays_by_dayofweek(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
 
@@ -956,7 +959,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_plays_by_dayofweek.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_plays_by_hourofday(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
 
@@ -970,7 +973,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_plays_by_hourofday.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_plays_per_month(self, y_axis='plays', user_id=None, **kwargs):
 
@@ -984,7 +987,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_plays_per_month.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
@@ -998,7 +1001,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_plays_by_top_10_platforms.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
@@ -1012,7 +1015,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_plays_by_top_10_users.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_plays_by_stream_type(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
@@ -1026,7 +1029,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_plays_by_stream_type.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
@@ -1040,7 +1043,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_plays_by_source_resolution.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
@@ -1054,7 +1057,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_plays_by_stream_resolution.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
@@ -1068,7 +1071,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_stream_type_by_top_10_users.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
@@ -1082,7 +1085,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_stream_type_by_top_10_platforms.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def history_table_modal(self, **kwargs):
 
         return serve_template(templatename="history_table_modal.html", title="History Data", data=kwargs)

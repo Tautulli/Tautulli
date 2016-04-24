@@ -210,9 +210,10 @@ from plexpy.helpers import anon_url
                     % else:
                     <li class="dropdown">
                     % endif
-                        <a href="#" class="dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" data-hover="dropdown" data-href="settings"><i class="fa fa-lg fa-cogs"></i> <span class="caret"></span></a>
+                        <% href = 'settings' if _session['user_group'] == 'admin' else '#' %>
+                        <a href="#" class="dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" data-hover="dropdown" data-href="${href}"><i class="fa fa-lg fa-cogs"></i> <span class="caret"></span></a>
                         <ul class="dropdown-menu" id="settings-dropdown-menu">
-                            % if user_group == 'admin':
+                            % if _session['user_group'] == 'admin':
                             <li><a href="settings"><i class="fa fa-fw fa-cogs"></i> Settings</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="logs"><i class="fa fa-fw fa-list-alt"></i> View Logs</a></li>
@@ -229,7 +230,7 @@ from plexpy.helpers import anon_url
                             <li><a href="${http_root}auth/login"><i class="fa fa-fw fa-lock"></i> Admin Login</a></li>
                             <li role="separator" class="divider"></li>
                             % endif
-                            % if expiry:
+                            % if _session['expiry']:
                             <li><a href="${http_root}auth/logout"><i class="fa fa-fw fa-sign-out"></i> Logout</a></li>
                             % endif
                         </ul>
