@@ -90,7 +90,7 @@ class HTTPHandler(object):
                 logger.warn(u"Failed to access uri endpoint %s with Uncaught exception." % uri)
                 return None
 
-            if request_status == 200:
+            if request_status in (200, 201):
                 try:
                     if output_format == 'dict':
                         output = helpers.convert_xml_to_dict(request_content)
