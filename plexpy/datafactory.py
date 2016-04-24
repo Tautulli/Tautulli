@@ -148,7 +148,7 @@ class DataFactory(object):
 
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': rows,
+                'data': helpers.filter_datatable_session(rows),
                 'draw': query['draw'],
                 'filter_duration': helpers.human_duration(filter_duration, sig='dhm'),
                 'total_duration': helpers.human_duration(total_duration, sig='dhm')
@@ -470,7 +470,7 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': top_users})
+                                   'rows': helpers.filter_datatable_session(top_users)})
 
             elif stat == 'top_platforms':
                 top_platform = []
@@ -567,7 +567,7 @@ class DataFactory(object):
                     last_watched.append(row)
 
                 home_stats.append({'stat_id': stat,
-                                   'rows': last_watched})
+                                   'rows': helpers.filter_datatable_session(last_watched)})
 
             elif stat == 'most_concurrent':
 

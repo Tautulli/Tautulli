@@ -14,11 +14,13 @@
         </div>
         <div class="button-bar">
             <div class="colvis-button-bar hidden-xs"></div>
+            % if _session['user_group'] == 'admin':
             <button class="btn btn-dark refresh-users-button" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
             <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
                 <i class="fa fa-pencil"></i> Edit mode
             </button>&nbsp
             <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect users to delete/purge. Data is deleted/purged upon exiting edit mode.</div>
+            % endif
         </div>
     </div>
     <div class='table-card-back'>

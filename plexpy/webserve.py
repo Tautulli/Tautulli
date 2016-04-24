@@ -286,7 +286,7 @@ class WebInterface(object):
     ##### Libraries #####
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def libraries(self):
         config = {
             "update_section_ids": plexpy.CONFIG.UPDATE_SECTION_IDS
@@ -295,7 +295,7 @@ class WebInterface(object):
         return serve_template(templatename="libraries.html", title="Libraries", config=config)
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_library_list(self, **kwargs):
 
@@ -340,7 +340,7 @@ class WebInterface(object):
         return True
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def library(self, section_id=None):
         config = {
             "get_file_sizes": plexpy.CONFIG.GET_FILE_SIZES,
@@ -398,7 +398,7 @@ class WebInterface(object):
                 return status_message
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_library_watch_time_stats(self, section_id=None, **kwargs):
         if section_id:
             library_data = libraries.Libraries()
@@ -413,7 +413,7 @@ class WebInterface(object):
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_library_user_stats(self, section_id=None, **kwargs):
         if section_id:
             library_data = libraries.Libraries()
@@ -428,7 +428,7 @@ class WebInterface(object):
             return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_library_recently_watched(self, section_id=None, limit='10', **kwargs):
         if section_id:
             library_data = libraries.Libraries()
@@ -443,7 +443,7 @@ class WebInterface(object):
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_library_recently_added(self, section_id=None, limit='10', **kwargs):
         if section_id:
             pms_connect = pmsconnect.PmsConnect()
@@ -458,7 +458,7 @@ class WebInterface(object):
             return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, refresh='', **kwargs):
 
@@ -613,12 +613,12 @@ class WebInterface(object):
     ##### Users #####
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def users(self):
         return serve_template(templatename="users.html", title="Users")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_user_list(self, **kwargs):
 
@@ -638,7 +638,7 @@ class WebInterface(object):
         return True
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def user(self, user_id=None):
         user_data = users.Users()
         if user_id:
@@ -691,7 +691,7 @@ class WebInterface(object):
                 return status_message
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_user_watch_time_stats(self, user=None, user_id=None, **kwargs):
         if user_id or user:
             user_data = users.Users()
@@ -706,7 +706,7 @@ class WebInterface(object):
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_user_player_stats(self, user=None, user_id=None, **kwargs):
         if user_id or user:
             user_data = users.Users()
@@ -721,7 +721,7 @@ class WebInterface(object):
             return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_user_recently_watched(self, user=None, user_id=None, limit='10', **kwargs):
         if user_id or user:
             user_data = users.Users()
@@ -736,7 +736,7 @@ class WebInterface(object):
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_user_ips(self, user_id=None, **kwargs):
 
         user_data = users.Users()
@@ -1094,12 +1094,12 @@ class WebInterface(object):
     ##### Sync #####
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def sync(self):
         return serve_template(templatename="sync.html", title="Synced Items")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_sync(self, machine_id=None, user_id=None, **kwargs):
 
         if not machine_id:
@@ -1226,7 +1226,7 @@ class WebInterface(object):
         raise cherrypy.HTTPRedirect("logs")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def log_js_errors(self, page, message, file, line):
         """ Logs javascript errors from the web interface. """
         logger.error(u"WebUI :: /%s : %s. (%s:%s)" % (page.rpartition('/')[-1],
@@ -1812,7 +1812,7 @@ class WebInterface(object):
     ##### Info #####
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def info(self, rating_key=None, source=None, query=None, **kwargs):
         metadata = None
 
@@ -1840,7 +1840,7 @@ class WebInterface(object):
             return self.update_metadata(rating_key, query)
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_item_children(self, rating_key='', **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
@@ -1902,7 +1902,7 @@ class WebInterface(object):
     ##### Search #####
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def search(self, query=''):
         return serve_template(templatename="search.html", title="Search", query=query)
 
@@ -1921,7 +1921,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for search_results.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def get_search_results_children(self, query, media_type=None, season_index=None, **kwargs):
 
         pms_connect = pmsconnect.PmsConnect()
@@ -2439,8 +2439,3 @@ class WebInterface(object):
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_update_staus()
         return json.dumps(result)
-
-    @cherrypy.expose
-    def test_guest_login(self, username=None, password=None):
-        result = users.user_login(username=username, password=password)
-        return result

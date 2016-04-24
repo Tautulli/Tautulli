@@ -700,7 +700,7 @@ class Libraries(object):
                    }
             user_stats.append(row)
         
-        return user_stats
+        return helpers.filter_datatable_session(user_stats)
 
     def get_recently_watched(self, section_id=None, limit='10'):
         monitor_db = database.MonitorDatabase()

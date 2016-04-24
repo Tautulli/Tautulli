@@ -190,7 +190,7 @@ class Users(object):
 
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': rows,
+                'data': helpers.filter_datatable_session(rows),
                 'draw': query['draw']
                 }
 
@@ -276,14 +276,15 @@ class Users(object):
                    'media_index': item['media_index'],
                    'parent_media_index': item['parent_media_index'],
                    'transcode_decision': item['transcode_decision'],
-                   'friendly_name': item['friendly_name']
+                   'friendly_name': item['friendly_name'],
+                   'user_id': item['custom_user_id']
                    }
 
             rows.append(row)
 
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': rows,
+                'data': helpers.filter_datatable_session(rows),
                 'draw': query['draw']
                 }
 

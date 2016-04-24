@@ -61,9 +61,11 @@ DOCUMENTATION :: END
                             % endif
                             <div class="user-info-username">
                                 <span class="set-username">${data['section_name']}</span>
+                                % if _session['user_group'] == 'admin':
                                 <span id="edit-library-tooltip" data-target="tooltip" title="Edit library details">
                                     <a href="#" data-toggle="modal" data-target="#edit-library-modal" id="toggle-edit-library-modal"><i class="fa fa-pencil"></i></a>
                                 </span>
+                                % endif
                             </div>
                             <div class="user-info-nav">
                                 <ul class="user-info-nav">
@@ -232,6 +234,7 @@ DOCUMENTATION :: END
                                             </span>
                                         </div>
                                         <div class="button-bar">
+                                            % if _session['user_group'] == 'admin':
                                             % if config['get_file_sizes'] and data['section_id'] in config['get_file_sizes_hold']['section_ids']:
                                             <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" style="margin-right: 5px;" disabled>
                                                 <i class="fa fa-refresh"></i> Refresh media info
@@ -240,6 +243,7 @@ DOCUMENTATION :: END
                                             <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" style="margin-right: 5px;">
                                                 <i class="fa fa-refresh"></i> Refresh media info
                                             </button>
+                                            % endif
                                             % endif
                                             <div class="colvis-button-bar hidden-xs" id="button-bar-media-info"></div>
                                         </div>
@@ -376,7 +380,8 @@ DOCUMENTATION :: END
                 data: function ( d ) {
                     return {
                         json_data: JSON.stringify( d ),
-                        section_id: section_id
+                        section_id: section_id,
+                        user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
                     };
                 }
             }
