@@ -45,7 +45,7 @@ def user_login(username=None, password=None):
             not user_details['deleted_user'] and user_details['allow_guest']:
 
             # The user is in the database, so try to retrieve a new server token.
-            # If a server token is returned, then the user is a vaild friend
+            # If a server token is returned, then the user is a valid friend
             plex_tv = plextv.PlexTV(token=user_token)
             server_token = plex_tv.get_server_token()
             if server_token:
