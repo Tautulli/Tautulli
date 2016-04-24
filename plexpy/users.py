@@ -21,7 +21,7 @@ class Users(object):
     def __init__(self):
         pass
 
-    def get_names(self, kwargs=None):
+    def get_user_names(self, kwargs=None):
         monitor_db = database.MonitorDatabase()
         
         try:

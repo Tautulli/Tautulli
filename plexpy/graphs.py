@@ -424,12 +424,14 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_plays_by_top_10_users(self, time_range='30', y_axis='plays'):
+    def get_total_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'
 
+        user_cond = ('AND users.user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        
         try:
             if y_axis == 'plays':
                 query = 'SELECT ' \
@@ -440,10 +442,10 @@ class Graphs(object):
                         'COUNT(session_history.id) AS total_count ' \
                         'FROM session_history ' \
                         'JOIN users ON session_history.user_id = users.user_id ' \
-                        'WHERE (datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) ' \
+                        'WHERE (datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) %s' \
                         'GROUP BY session_history.user_id ' \
                         'ORDER BY total_count DESC ' \
-                        'LIMIT 10' % time_range
+                        'LIMIT 10' % (time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:
@@ -459,10 +461,10 @@ class Graphs(object):
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS total_duration ' \
                         'FROM session_history ' \
                         'JOIN users ON session_history.user_id = users.user_id ' \
-                        'WHERE (datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) ' \
+                        'WHERE (datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime")) %s' \
                         'GROUP BY session_history.user_id ' \
                         'ORDER BY total_duration DESC ' \
-                        'LIMIT 10' % time_range
+                        'LIMIT 10' % (time_range, user_cond)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -836,12 +838,14 @@ class Graphs(object):
 
         return output
 
-    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays'):
+    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None):
         monitor_db = database.MonitorDatabase()
 
         if not time_range.isdigit():
             time_range = '30'
 
+        user_cond = ('AND users.user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        
         try:
             if y_axis == 'plays':
                 query = 'SELECT ' \
@@ -858,9 +862,9 @@ class Graphs(object):
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
                         'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime") AND ' \
-                        '(session_history.media_type = "episode" OR session_history.media_type = "movie" OR session_history.media_type = "track") ' \
+                        '(session_history.media_type = "episode" OR session_history.media_type = "movie" OR session_history.media_type = "track") %s' \
                         'GROUP BY username ' \
-                        'ORDER BY total_count DESC LIMIT 10' % time_range
+                        'ORDER BY total_count DESC LIMIT 10' % (time_range, user_cond)
 
                 result = monitor_db.select(query)
             else:
@@ -883,9 +887,9 @@ class Graphs(object):
                         'JOIN session_history_media_info ON session_history.id = session_history_media_info.id ' \
                         'WHERE datetime(session_history.started, "unixepoch", "localtime") >= ' \
                         'datetime("now", "-%s days", "localtime") AND ' \
-                        '(session_history.media_type = "episode" OR session_history.media_type = "movie" OR session_history.media_type = "track") ' \
+                        '(session_history.media_type = "episode" OR session_history.media_type = "movie" OR session_history.media_type = "track") %s' \
                         'GROUP BY username ' \
-                        'ORDER BY total_duration DESC LIMIT 10' % time_range
+                        'ORDER BY total_duration DESC LIMIT 10' % (time_range, user_cond)
 
                 result = monitor_db.select(query)
         except Exception as e:

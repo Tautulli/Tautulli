@@ -867,7 +867,7 @@ class WebInterface(object):
     def get_user_names(self, **kwargs):
 
         user_data = users.Users()
-        user_names = user_data.get_names(kwargs=kwargs)
+        user_names = user_data.get_user_names(kwargs=kwargs)
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(user_names)
@@ -939,10 +939,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @addtoapi()
-    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', **kwargs):
+    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_top_10_users(time_range=time_range, y_axis=y_axis)
+        result = graph.get_total_plays_by_top_10_users(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -952,10 +952,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @addtoapi()
-    def get_plays_by_stream_type(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
+    def get_plays_by_stream_type(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_stream_type(time_range=time_range, user_id=user_id, y_axis=y_axis)
+        result = graph.get_total_plays_per_stream_type(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -965,10 +965,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @addtoapi()
-    def get_plays_by_source_resolution(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
+    def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_source_resolution(time_range=time_range, user_id=user_id, y_axis=y_axis)
+        result = graph.get_total_plays_by_source_resolution(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -978,10 +978,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @addtoapi()
-    def get_plays_by_stream_resolution(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
+    def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
         graph = graphs.Graphs()
-        result = graph.get_total_plays_by_stream_resolution(time_range=time_range, user_id=user_id, y_axis=y_axis)
+        result = graph.get_total_plays_by_stream_resolution(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
@@ -991,10 +991,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @addtoapi()
-    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', **kwargs):
+    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
 
         graph = graphs.Graphs()
-        result = graph.get_stream_type_by_top_10_users(time_range=time_range, y_axis=y_axis)
+        result = graph.get_stream_type_by_top_10_users(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
             cherrypy.response.headers['Content-type'] = 'application/json'
