@@ -15,6 +15,63 @@
 
 from plexpy import logger, datatables, common, database, helpers
 
+def user_login(username=None, password=None):
+    from plexpy import plextv
+
+    if not username and not password:
+        return None
+
+    user_data = Users()
+    
+    # Try to login to Plex.tv to check if the user has a vaild account
+    plex_tv = plextv.PlexTV(username=username, password=password)
+    user = plex_tv.get_token()
+    if user:
+        user_token = user['auth_token']
+        user_id = user['user_id']
+
+        # Retrieve user token from the database and check against the Plex.tv token.
+        # Also Make sure 'allow_guest' access is enabled for the user.
+        # The user tokens should match if it is the same PlexPy install.
+        tokens = user_data.get_tokens(user_id=user_id)
+        if tokens and tokens['allow_guest'] and user_token == tokens['user_token']:
+            # Successful login
+            return True
+
+        # Otherwise it is a new user or token is no longer valid.
+        # Check if the user is in the database.
+        user_details = user_data.get_details(user_id=user_id)
+        if user_details['allow_guest'] and user_id == str(user_details['user_id']):
+
+            # The user is in the database, so try to retrieve a new server token.
+            # If a server token is returned, then the user is a vaild friend
+            plex_tv = plextv.PlexTV(token=user_token)
+            server_token = plex_tv.get_server_token()
+            if server_token:
+
+                # Register the new user / update the access tokens.
+                monitor_db = database.MonitorDatabase()
+                try:
+                    logger.debug(u"PlexPy Users :: Regestering tokens for user '%s' in the database." % username)
+                    monitor_db.action('UPDATE users SET user_token = ?, server_token = ? WHERE user_id = ?',
+                                        [user_token, server_token, user_id])
+                    # Successful login
+                    return True
+                except Exception as e:
+                    logger.warn(u"PlexPy Users :: Unable to register user '%s' in database: %s." % (username, e))
+                    return None
+            else:
+                logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv server token.")
+                return None
+        else:
+            logger.warn(u"PlexPy Users :: Unable to register user '%s'. User not in the database." % username)
+            return None
+    else:
+        logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv user token.")
+        return None
+
+    return None
+
 
 class Users(object):
 
@@ -69,7 +126,8 @@ class Users(object):
                    'session_history_metadata.parent_media_index',
                    'session_history_media_info.transcode_decision',
                    'users.do_notify as do_notify',
-                   'users.keep_history as keep_history'
+                   'users.keep_history as keep_history',
+                   'users.allow_guest as allow_guest'
                    ]
         try:
             query = data_tables.ssp_query(table_name='users',
@@ -135,7 +193,8 @@ class Users(object):
                    'parent_media_index': item['parent_media_index'],
                    'transcode_decision': item['transcode_decision'],
                    'do_notify': helpers.checked(item['do_notify']),
-                   'keep_history': helpers.checked(item['keep_history'])
+                   'keep_history': helpers.checked(item['keep_history']),
+                   'allow_guest': helpers.checked(item['allow_guest'])
                    }
 
             rows.append(row)
@@ -241,7 +300,7 @@ class Users(object):
 
         return dict
 
-    def set_config(self, user_id=None, friendly_name='', custom_thumb='', do_notify=1, keep_history=1):
+    def set_config(self, user_id=None, friendly_name='', custom_thumb='', do_notify=1, keep_history=1, allow_guest=1):
         if str(user_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
@@ -249,7 +308,9 @@ class Users(object):
             value_dict = {'friendly_name': friendly_name,
                           'custom_avatar_url': custom_thumb,
                           'do_notify': do_notify,
-                          'keep_history': keep_history}
+                          'keep_history': keep_history,
+                          'allow_guest': allow_guest
+                          }
             try:
                 monitor_db.upsert('users', value_dict, key_dict)
             except Exception as e:
@@ -267,7 +328,8 @@ class Users(object):
                           'is_allow_sync': 0,
                           'is_restricted': 0,
                           'do_notify': 0,
-                          'keep_history': 1
+                          'keep_history': 1,
+                          'allow_guest': 0
                           }
 
         if not user_id and not user:
@@ -279,13 +341,13 @@ class Users(object):
             try:
                 if str(user_id).isdigit():
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history ' \
+                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, allow_guest ' \
                             'FROM users ' \
                             'WHERE user_id = ? '
                     result = monitor_db.select(query, args=[user_id])
                 elif user:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history ' \
+                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, allow_guest ' \
                             'FROM users ' \
                             'WHERE username = ? '
                     result = monitor_db.select(query, args=[user])
@@ -319,7 +381,8 @@ class Users(object):
                                     'is_allow_sync': item['is_allow_sync'],
                                     'is_restricted': item['is_restricted'],
                                     'do_notify': item['do_notify'],
-                                    'keep_history': item['keep_history']
+                                    'keep_history': item['keep_history'],
+                                    'allow_guest': item['allow_guest']
                                     }
             return user_details
 
@@ -488,7 +551,7 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                logger.info(u"PlexPy DataFactory :: Deleting all history for user id %s from database." % user_id)
+                logger.info(u"PlexPy Users :: Deleting all history for user id %s from database." % user_id)
                 session_history_media_info_del = \
                     monitor_db.action('DELETE FROM '
                                       'session_history_media_info '
@@ -520,7 +583,7 @@ class Users(object):
         try:
             if str(user_id).isdigit():
                 self.delete_all_history(user_id)
-                logger.info(u"PlexPy DataFactory :: Deleting user with id %s from database." % user_id)
+                logger.info(u"PlexPy Users :: Deleting user with id %s from database." % user_id)
                 monitor_db.action('UPDATE users SET deleted_user = 1 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET keep_history = 0 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET do_notify = 0 WHERE user_id = ?', [user_id])
@@ -536,14 +599,14 @@ class Users(object):
 
         try:
             if user_id and str(user_id).isdigit():
-                logger.info(u"PlexPy DataFactory :: Re-adding user with id %s to database." % user_id)
+                logger.info(u"PlexPy Users :: Re-adding user with id %s to database." % user_id)
                 monitor_db.action('UPDATE users SET deleted_user = 0 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET keep_history = 1 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET do_notify = 1 WHERE user_id = ?', [user_id])
 
                 return 'Re-added user with id %s.' % user_id
             elif username:
-                logger.info(u"PlexPy DataFactory :: Re-adding user with username %s to database." % username)
+                logger.info(u"PlexPy Users :: Re-adding user with username %s to database." % username)
                 monitor_db.action('UPDATE users SET deleted_user = 0 WHERE username = ?', [username])
                 monitor_db.action('UPDATE users SET keep_history = 1 WHERE username = ?', [username])
                 monitor_db.action('UPDATE users SET do_notify = 1 WHERE username = ?', [username])
@@ -563,6 +626,25 @@ class Users(object):
                 result = monitor_db.select_single(query, args=[user])
                 if result:
                     return result['user_id']
+                else:
+                    return None
+            except:
+                return None
+
+        return None
+
+    def get_tokens(self, user_id=None):
+        if user_id:
+            try:
+                monitor_db = database.MonitorDatabase()
+                query = 'SELECT allow_guest, user_token, server_token FROM users WHERE user_id = ?'
+                result = monitor_db.select_single(query, args=[user_id])
+                if result:
+                    tokens = {'allow_guest': result['allow_guest'],
+                              'user_token': result['user_token'],
+                              'server_token': result['server_token']
+                              }
+                    return tokens
                 else:
                     return None
             except:

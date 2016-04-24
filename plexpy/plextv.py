@@ -20,6 +20,7 @@ from plexpy import logger, helpers, http_handler, database, users
 import xmltodict
 import json
 from xml.dom import minidom
+import requests
 
 import base64
 import plexpy
@@ -109,34 +110,38 @@ class PlexTV(object):
     Plex.tv authentication
     """
 
-    def __init__(self, username=None, password=None):
+    def __init__(self, username=None, password=None, token=None):
         self.protocol = 'HTTPS'
         self.username = username
         self.password = password
         self.ssl_verify = plexpy.CONFIG.VERIFY_SSL_CERT
 
+        token = token if token else plexpy.CONFIG.PMS_TOKEN
+
         self.request_handler = http_handler.HTTPHandler(host='plex.tv',
                                                         port=443,
-                                                        token=plexpy.CONFIG.PMS_TOKEN,
+                                                        token=token,
                                                         ssl_verify=self.ssl_verify)
 
     def get_plex_auth(self, output_format='raw'):
         uri = '/users/sign_in.xml'
         base64string = base64.encodestring('%s:%s' % (self.username, self.password)).replace('\n', '')
         headers = {'Content-Type': 'application/xml; charset=utf-8',
-                   'Content-Length': '0',
                    'X-Plex-Device-Name': 'PlexPy',
                    'X-Plex-Product': 'PlexPy',
-                   'X-Plex-Version': 'v0.1 dev',
+                   'X-Plex-Version': plexpy.common.VERSION_NUMBER,
+                   'X-Plex-Platform': plexpy.common.PLATFORM,
+                   'X-Plex-Platform-Version': plexpy.common.PLATFORM_VERSION,
                    'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
-                   'Authorization': 'Basic %s' % base64string + ":"
+                   'Authorization': 'Basic %s' % base64string
                    }
-
+        
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='POST',
                                                     headers=headers,
-                                                    output_format=output_format)
+                                                    output_format=output_format,
+                                                    no_token=True)
 
         return request
 
@@ -147,16 +152,35 @@ class PlexTV(object):
             try:
                 xml_head = plextv_response.getElementsByTagName('user')
                 if xml_head:
-                    auth_token = xml_head[0].getAttribute('authenticationToken')
+                    user = {'auth_token': xml_head[0].getAttribute('authenticationToken'),
+                            'user_id': xml_head[0].getAttribute('id')
+                            }
                 else:
                     logger.warn(u"PlexPy PlexTV :: Could not get Plex authentication token.")
             except Exception as e:
                 logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_token: %s." % e)
-                return []
+                return None
 
-            return auth_token
+            return user
         else:
-            return []
+            return None
+
+    def get_server_token(self):
+        servers = self.get_plextv_server_list(output_format='xml')
+        server_token = ''
+
+        try:
+            xml_head = servers.getElementsByTagName('Server')
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_token: %s." % e)
+            return None
+
+        for a in xml_head:
+            if helpers.get_xml_attr(a, 'machineIdentifier') == plexpy.CONFIG.PMS_IDENTIFIER:
+                server_token = helpers.get_xml_attr(a, 'accessToken')
+                break
+
+        return server_token
 
     def get_plextv_user_data(self):
         plextv_response = self.get_plex_auth(output_format='dict')

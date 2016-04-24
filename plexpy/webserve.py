@@ -16,7 +16,7 @@
 from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, \
     datafactory, graphs, users, libraries, database, web_socket
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates
-from plexpy.webauth import AuthController, requireAuth, member_of, name_is
+from plexpy.webauth import AuthController, requireAuth, member_of, name_is, SESSION_KEY
 
 from mako.lookup import TemplateLookup
 from mako import exceptions
@@ -49,9 +49,13 @@ def serve_template(templatename, **kwargs):
 
     server_name = plexpy.CONFIG.PMS_NAME
 
+    session = cherrypy.session.get(SESSION_KEY)
+    user, user_group, expiry = session if session else (None, None, None)
+
     try:
         template = _hplookup.get_template(templatename)
-        return template.render(server_name=server_name, http_root=plexpy.HTTP_ROOT, **kwargs)
+        return template.render(http_root=plexpy.HTTP_ROOT, server_name=server_name, 
+                               user=user, user_group=user_group, expiry=expiry, **kwargs)
     except:
         return exceptions.html_error_template().render()
 
@@ -64,7 +68,7 @@ class WebInterface(object):
         self.interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/')
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def index(self):
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
             raise cherrypy.HTTPRedirect("home")
@@ -149,7 +153,7 @@ class WebInterface(object):
     ##### Home #####
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def home(self):
         config = {
             "home_sections": plexpy.CONFIG.HOME_SECTIONS,
@@ -162,7 +166,6 @@ class WebInterface(object):
         return serve_template(templatename="index.html", title="Home", config=config)
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
     @addtoapi()
     def get_date_formats(self):
         """ Get the date and time formats used by plexpy """
@@ -183,7 +186,6 @@ class WebInterface(object):
         return json.dumps(formats)
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
     def get_current_activity(self, **kwargs):
 
         try:
@@ -206,7 +208,6 @@ class WebInterface(object):
             return serve_template(templatename="current_activity.html", data=None)
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
     def get_current_activity_header(self, **kwargs):
 
         try:
@@ -222,7 +223,6 @@ class WebInterface(object):
             return serve_template(templatename="current_activity_header.html", data=None)
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
     def home_stats(self, **kwargs):
         data_factory = datafactory.DataFactory()
 
@@ -243,7 +243,6 @@ class WebInterface(object):
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
     def library_stats(self, **kwargs):
         data_factory = datafactory.DataFactory()
 
@@ -254,7 +253,6 @@ class WebInterface(object):
         return serve_template(templatename="library_stats.html", title="Library Stats", data=stats_data)
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
     def get_recently_added(self, count='0', **kwargs):
 
         try:
@@ -1847,7 +1845,7 @@ class WebInterface(object):
             return serve_template(templatename="info_children_list.html", data=None, title="Children List")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def pms_image_proxy(self, img='', width='0', height='0', fallback=None, **kwargs):
         try:
             pms_connect = pmsconnect.PmsConnect()
@@ -2433,3 +2431,8 @@ class WebInterface(object):
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_update_staus()
         return json.dumps(result)
+
+    @cherrypy.expose
+    def test_guest_login(self, username=None, password=None):
+        result = users.user_login(username=username, password=password)
+        return result

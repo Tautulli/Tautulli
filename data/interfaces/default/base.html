@@ -212,17 +212,22 @@ from plexpy.helpers import anon_url
                     % endif
                         <a href="#" class="dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" data-hover="dropdown" data-href="settings"><i class="fa fa-lg fa-cogs"></i> <span class="caret"></span></a>
                         <ul class="dropdown-menu" id="settings-dropdown-menu">
-                            <li><a href="settings"><i class="fa fa-cogs"></i> Settings</a></li>
+                            % if user_group == 'admin':
+                            <li><a href="settings"><i class="fa fa-fw fa-cogs"></i> Settings</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="logs"><i class="fa fa-list-alt"></i> View Logs</a></li>
+                            <li><a href="logs"><i class="fa fa-fw fa-list-alt"></i> View Logs</a></li>
                             <li role="separator" class="divider"></li>
                             % if plexpy.CONFIG.CHECK_GITHUB:
-                            <li><a href="#" id="nav-update"><i class="fa fa-arrow-circle-up"></i> Check for Updates</a></li>
+                            <li><a href="#" id="nav-update"><i class="fa fa-fw fa-arrow-circle-up"></i> Check for Updates</a></li>
                             % endif
-                            <li><a href="#" id="nav-restart"><i class="fa fa-refresh"></i> Restart</a></li>
-                            <li><a href="#" id="nav-shutdown"><i class="fa fa-power-off"></i> Shutdown</a></li>
-                            % if plexpy.CONFIG.HTTP_PASSWORD:
-                            <li><a href="${http_root}auth/logout"><i class="fa fa-sign-out"></i> Logout</a></li>
+                            <li><a href="#" id="nav-restart"><i class="fa fa-fw fa-refresh"></i> Restart</a></li>
+                            <li><a href="#" id="nav-shutdown"><i class="fa fa-fw fa-power-off"></i> Shutdown</a></li>
+                            % else:
+                            <li><a href="${http_root}auth/login"><i class="fa fa-fw fa-lock"></i> Admin Login</a></li>
+                            <li role="separator" class="divider"></li>
+                            % endif
+                            % if expiry:
+                            <li><a href="${http_root}auth/logout"><i class="fa fa-fw fa-sign-out"></i> Logout</a></li>
                             % endif
                         </ul>
                     </li>

@@ -25,6 +25,7 @@ from datetime import datetime, timedelta
 
 import plexpy
 from plexpy import logger
+from plexpy.users import user_login
 
 
 SESSION_KEY = '_cp_username'
@@ -32,13 +33,16 @@ SESSION_KEY = '_cp_username'
 def check_credentials(username, password):
     """Verifies credentials for username and password.
     Returns None on success or a string describing the error on failure"""
+
     if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
         username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
-        return None
+        return True, u'admin'
     elif username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
-        return None
+        return True, u'admin'
+    elif user_login(username, password):
+        return True, u'guest'
     else:
-        return u"Incorrect username or password."
+        return False, None
     
     # An example implementation which uses an ORM could be:
     # u = User.get(username)
@@ -53,7 +57,9 @@ def check_auth(*args, **kwargs):
     conditions that the user must fulfill"""
     conditions = cherrypy.request.config.get('auth.require', None)
     if conditions is not None:
-        (username, expiry) = cherrypy.session.get(SESSION_KEY) if cherrypy.session.get(SESSION_KEY) else (None, None)
+        session = cherrypy.session.get(SESSION_KEY)
+        username, user_group, expiry = session if session else (None, None, None)
+
         if (username and expiry) and expiry > datetime.now():
             cherrypy.request.login = username
             for condition in conditions:
@@ -143,28 +149,30 @@ class AuthController(object):
         if username is None or password is None:
             return self.get_loginform()
         
-        error_msg = check_credentials(username, password)
+        (vaild_login, user_group) = check_credentials(username, password)
 
-        if error_msg:
-            logger.debug(u"Invalid login attempt from '%s'." % username)
-            return self.get_loginform(username, error_msg)
-        else:
+        if vaild_login:
             cherrypy.session.regenerate()
             cherrypy.request.login = username
             expiry = datetime.now() + (timedelta(days=30) if remember_me == '1' else timedelta(minutes=60))
-            cherrypy.session[SESSION_KEY] = (username, expiry)
+            cherrypy.session[SESSION_KEY] = (username, user_group, expiry)
 
             self.on_login(username)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+
+        else:
+            logger.debug(u"Invalid login attempt from '%s'." % username)
+            return self.get_loginform(username, u"Incorrect username or password.")
     
     @cherrypy.expose
     def logout(self):
         if not plexpy.CONFIG.HTTP_PASSWORD:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-        sess = cherrypy.session
-        (username, expiry) = sess.get(SESSION_KEY) if sess.get(SESSION_KEY) else (None, None)
-        sess[SESSION_KEY] = None
+        cp_sess = cherrypy.session
+        session = cp_sess.get(SESSION_KEY)
+        username, user_group, expiry = session if session else (None, None, None)
+        cp_sess[SESSION_KEY] = None
 
         if username:
             cherrypy.request.login = None

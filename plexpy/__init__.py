@@ -447,7 +447,8 @@ def dbcheck():
         'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
         'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
-        'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0)'
+        'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, allow_guest INTEGER DEFAULT 1, '
+        'user_token TEXT, server_token TEXT)'
     )
 
     # notify_log table :: This is a table which logs notifications sent
@@ -740,6 +741,21 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table users.")
         c_db.execute(
             'ALTER TABLE users ADD COLUMN deleted_user INTEGER DEFAULT 0'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT allow_guest FROM users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN allow_guest INTEGER DEFAULT 1'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN user_token TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN server_token TEXT'
         )
 
     # Upgrade notify_log table from earlier versions
