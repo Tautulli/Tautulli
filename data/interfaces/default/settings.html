@@ -521,6 +521,16 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
 
 
                         <div class="padded-header">
+                            <h3>Guest Access</h3>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="allow_guest_access" name="allow_guest_access" value="1" ${config['allow_guest_access']}> Allow Guest Access to PlexPy
+                            </label>
+                            <p class="help-block">Allow shared users to login to PlexPy using their Plex.tv account.</p>
+                        </div>
+
+                        <div class="padded-header">
                             <h3>API</h3>
                         </div>
                         <div class="checkbox">

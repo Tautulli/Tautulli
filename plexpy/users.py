@@ -39,9 +39,10 @@ def user_login(username=None, password=None):
             return True
 
         # Otherwise it is a new user or token is no longer valid.
-        # Check if the user is in the database.
+        # Check if the user is in the database, not deleted, and 'allow_guest' access.
         user_details = user_data.get_details(user_id=user_id)
-        if user_details['allow_guest'] and user_id == str(user_details['user_id']):
+        if user_id == str(user_details['user_id']) and \
+            not user_details['deleted_user'] and user_details['allow_guest']:
 
             # The user is in the database, so try to retrieve a new server token.
             # If a server token is returned, then the user is a vaild friend
@@ -53,21 +54,26 @@ def user_login(username=None, password=None):
                 monitor_db = database.MonitorDatabase()
                 try:
                     logger.debug(u"PlexPy Users :: Regestering tokens for user '%s' in the database." % username)
-                    monitor_db.action('UPDATE users SET user_token = ?, server_token = ? WHERE user_id = ?',
-                                        [user_token, server_token, user_id])
-                    # Successful login
-                    return True
+                    result = monitor_db.action('UPDATE users SET user_token = ?, server_token = ? WHERE user_id = ?',
+                                               [user_token, server_token, user_id])
+
+                    if result:
+                        # Successful login
+                        return True
+                    else:
+                        logger.warn(u"PlexPy Users :: Unable to register user '%s' in database." % username)
+                        return None
                 except Exception as e:
                     logger.warn(u"PlexPy Users :: Unable to register user '%s' in database: %s." % (username, e))
                     return None
             else:
-                logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv server token.")
+                logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv server token for user '%s'." % username)
                 return None
         else:
             logger.warn(u"PlexPy Users :: Unable to register user '%s'. User not in the database." % username)
             return None
     else:
-        logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv user token.")
+        logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv user token for user '%s'." % username)
         return None
 
     return None
@@ -341,13 +347,13 @@ class Users(object):
             try:
                 if str(user_id).isdigit():
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, allow_guest ' \
+                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, allow_guest ' \
                             'FROM users ' \
                             'WHERE user_id = ? '
                     result = monitor_db.select(query, args=[user_id])
                 elif user:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, allow_guest ' \
+                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, allow_guest ' \
                             'FROM users ' \
                             'WHERE username = ? '
                     result = monitor_db.select(query, args=[user])
@@ -382,6 +388,7 @@ class Users(object):
                                     'is_restricted': item['is_restricted'],
                                     'do_notify': item['do_notify'],
                                     'keep_history': item['keep_history'],
+                                    'deleted_user': item['deleted_user'],
                                     'allow_guest': item['allow_guest']
                                     }
             return user_details
@@ -637,7 +644,8 @@ class Users(object):
         if user_id:
             try:
                 monitor_db = database.MonitorDatabase()
-                query = 'SELECT allow_guest, user_token, server_token FROM users WHERE user_id = ?'
+                query = 'SELECT allow_guest, user_token, server_token FROM users ' \
+                        'WHERE user_id = ? AND deleted_user = 0'
                 result = monitor_db.select_single(query, args=[user_id])
                 if result:
                     tokens = {'allow_guest': result['allow_guest'],

@@ -671,6 +671,7 @@ class WebInterface(object):
         custom_thumb = kwargs.get('custom_thumb', '')
         do_notify = kwargs.get('do_notify', 0)
         keep_history = kwargs.get('keep_history', 0)
+        allow_guest = kwargs.get('allow_guest', 0)
 
         user_data = users.Users()
         if user_id:
@@ -679,7 +680,8 @@ class WebInterface(object):
                                      friendly_name=friendly_name,
                                      custom_thumb=custom_thumb,
                                      do_notify=do_notify,
-                                     keep_history=keep_history)
+                                     keep_history=keep_history,
+                                     allow_guest=allow_guest)
                 status_message = "Successfully updated user."
                 return status_message
             except:
@@ -1257,6 +1259,7 @@ class WebInterface(object):
             http_password = ''
 
         config = {
+            "allow_guest_access": checked(plexpy.CONFIG.ALLOW_GUEST_ACCESS),
             "http_hash_password": checked(plexpy.CONFIG.HTTP_HASH_PASSWORD),
             "http_hashed_password": plexpy.CONFIG.HTTP_HASHED_PASSWORD,
             "http_host": plexpy.CONFIG.HTTP_HOST,
@@ -1384,7 +1387,8 @@ class WebInterface(object):
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_recently_added_grandparent",
-            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password"
+            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
+            "allow_guest_access"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
