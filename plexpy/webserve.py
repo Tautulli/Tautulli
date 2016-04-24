@@ -49,10 +49,15 @@ def serve_template(templatename, **kwargs):
 
     server_name = plexpy.CONFIG.PMS_NAME
 
-    _cp_session = cherrypy.session.get(SESSION_KEY)
-    _session = {}
-    _session['username'], _session['user_id'], _session['user_group'], _session['expiry'] = \
-        _cp_session if _cp_session else (None, None, None, None)
+    _session = {'username': None,
+                'user_id': None,
+                'user_group': None,
+                'expiry': None}
+
+    if cherrypy.config.get('tools.auth.on'):
+        _cp_session = cherrypy.session.get(SESSION_KEY)
+        _session['username'], _session['user_id'], _session['user_group'], _session['expiry'] = \
+            _cp_session if _cp_session else (None, None, None, None)
 
     try:
         template = _hplookup.get_template(templatename)

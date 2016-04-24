@@ -568,12 +568,14 @@ def filter_datatable_session(list_of_dicts):
     import cherrypy
     from plexpy.webauth import SESSION_KEY
 
-    _cp_session = cherrypy.session.get(SESSION_KEY)
-    _session = {}
-    _session['username'], _session['user_id'], _session['user_group'], _session['expiry'] = \
-        _cp_session if _cp_session else (None, None, None, None)
+    if cherrypy.config.get('tools.auth.on'):
+        _session = {}
+        _cp_session = cherrypy.session.get(SESSION_KEY)
+        _session['username'], _session['user_id'], _session['user_group'], _session['expiry'] = \
+            _cp_session if _cp_session else (None, None, None, None)
 
-    if _session['user_id']:
-        return [d for d in list_of_dicts if str(d.get('user_id')) == str(_session['user_id'])]
-    else:
-        return list_of_dicts
+        if _session['user_id']:
+            session_user_id = str(_session['user_id'])
+            return [d for d in list_of_dicts if str(d.get('user_id')) == session_user_id]
+
+    return list_of_dicts
