@@ -13,6 +13,7 @@ def bool_int(value):
     return int(bool(value))
 
 _CONFIG_DEFINITIONS = {
+    'ALLOW_GUEST_ACCESS': (int, 'General', 0),
     'DATE_FORMAT': (str, 'General', 'YYYY-MM-DD'),
     'GROUPING_GLOBAL_HISTORY': (int, 'PlexWatch', 0),
     'GROUPING_USER_HISTORY': (int, 'PlexWatch', 0),

@@ -20,6 +20,7 @@ is_allow_sync       Returns bool value for whether the user has sync rights.
 is_restricted       Returns bool value for whether the user account is restricted.
 do_notify           Returns bool value for whether to send notifications for the user.
 keep_history        Returns bool value for whether to keep history for the user.
+allow_guest         Returns bool value for whether to allow guest access for the user.
 
 DOCUMENTATION :: END
 </%doc>
@@ -67,6 +68,12 @@ DOCUMENTATION :: END
                     </label>
                     <p class="help-block">Uncheck this if you do not want to keep any history on this user's activity.</p>
                 </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="allow_guest" name="allow_guest" value="1" ${helpers.checked(data['allow_guest'])}> Allow Guest Access
+                    </label>
+                    <p class="help-block">Uncheck this if you do not want to allow this user to login to PlexPy.</p>
+                </div>
                 % if data['user_id']:
                 <div class="form-group">
                     <button class="btn btn-danger" id="delete-all-history">Purge</button>
@@ -108,11 +115,15 @@ DOCUMENTATION :: END
         var custom_thumb = $("#custom_avatar_url").val();
         var do_notify = 0;
         var keep_history = 0;
+        var allow_guest = 0;
         if ($("#do_notify").is(":checked")) {
             do_notify = 1;
         }
         if ($("#keep_history").is(":checked")) {
             keep_history = 1;
+        }
+        if ($("#allow_guest").is(":checked")) {
+            allow_guest = 1;
         }
 
         $.ajax({
@@ -122,7 +133,8 @@ DOCUMENTATION :: END
                 friendly_name: friendly_name,
                 custom_thumb: custom_thumb,
                 do_notify: do_notify,
-                keep_history: keep_history
+                keep_history: keep_history,
+                allow_guest: allow_guest
             },
             cache: false,
             async: true,
