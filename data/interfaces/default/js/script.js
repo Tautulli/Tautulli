@@ -39,7 +39,6 @@ function showMsg(msg,loader,timeout,ms,error) {
 	}
 	if (error) {
 		feedback.css("background-color", "rgba(255,0,0,0.5)");
-		console.log('is error');
 	}
 	$(feedback).html(message);
 	feedback.fadeIn();
@@ -48,7 +47,8 @@ function showMsg(msg,loader,timeout,ms,error) {
 		setTimeout(function(){
 			message.fadeOut(function(){
 				$(this).remove();
-				feedback.fadeOut();					
+				feedback.fadeOut();
+				feedback.css("background-color", "");
 			});
 		},ms);
 	} 
@@ -242,7 +242,8 @@ function isPrivateIP(ip_address) {
         // get IPv4 mapped address (xxx.xxx.xxx.xxx) from IPv6 addresss (::ffff:xxx.xxx.xxx.xxx)
         var parts = ip_address.split(":");
         var parts = parts[parts.length - 1].split('.');
-        if (parts[0] === '10' ||
+        if ((parts[0] === '127' && parts[1] === '0' && parts[2] === '0' && parts[3] === '1') ||
+            (parts[0] === '10') ||
             (parts[0] === '172' && (parseInt(parts[1], 10) >= 16 && parseInt(parts[1], 10) <= 31)) ||
             (parts[0] === '192' && parts[1] === '168')) {
             return true;

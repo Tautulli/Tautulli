@@ -939,7 +939,7 @@ class PmsConnect(object):
         try:
             xml_head = session_data.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_sessions: %s." % e)
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_current_activity: %s." % e)
             return []
 
         session_list = []
@@ -1348,6 +1348,7 @@ class PmsConnect(object):
                 transcode_container = helpers.get_xml_attr(transcode_session, 'container')
                 transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
             else:
+                transcode_key = ''
                 throttled = '0'
                 transcode_progress = '0'
                 transcode_speed = ''

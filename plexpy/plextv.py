@@ -71,37 +71,37 @@ def get_real_pms_url():
 
     if plexpy.CONFIG.PMS_SSL:
         result = PlexTV().get_server_urls(include_https=True)
-        process_urls = True
-    elif plexpy.CONFIG.PMS_IS_REMOTE:
-        result = PlexTV().get_server_urls(include_https=False)
-        process_urls = True
     else:
         result = PlexTV().get_server_urls(include_https=False)
-        process_urls = False
 
-    if process_urls:
-        found_url = False
-
+    # Only need to retrieve PMS_URL if using SSL
+    if plexpy.CONFIG.PMS_SSL:
         if result:
-            for item in result:
-                if plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '0':
-                        found_url = True
-                        plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
-                        plexpy.CONFIG.write()
-                        logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
-                if not plexpy.CONFIG.PMS_IS_REMOTE and item['local'] == '1' and 'plex.direct' in item['uri']:
-                        found_url = True
-                        plexpy.CONFIG.__setattr__('PMS_URL', item['uri'])
-                        plexpy.CONFIG.write()
-                        logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
+            if plexpy.CONFIG.PMS_IS_REMOTE:
+                # Get all remote connections
+                connections = [c for c in result if c['local'] == '0' and 'plex.direct' in c['uri']]
+            else:
+                # Get all local connections
+                connections = [c for c in result if c['local'] == '1' and 'plex.direct' in c['uri']]
 
-        if not found_url:
+            if connections:
+                # Get connection with matching address, otherwise return first connection
+                conn = next((c for c in connections if c['address'] == plexpy.CONFIG.PMS_IP), connections[0])
+                plexpy.CONFIG.__setattr__('PMS_URL', conn['uri'])
+                plexpy.CONFIG.write()
+                logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
+
+        # get_server_urls() failed or PMS_URL not found, fallback url doesn't use SSL
+        if not plexpy.CONFIG.PMS_URL:
             plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
             plexpy.CONFIG.write()
-            logger.warn(u"PlexPy PlexTV :: Unable to retrieve server URLs. Using user-defined value.")
+            logger.warn(u"PlexPy PlexTV :: Unable to retrieve server URLs. Using user-defined value without SSL.")
+
+    # Not using SSL, remote has no effect
     else:
         plexpy.CONFIG.__setattr__('PMS_URL', fallback_url)
         plexpy.CONFIG.write()
+        logger.info(u"PlexPy PlexTV :: Using user-defined URL.")
 
 
 class PlexTV(object):

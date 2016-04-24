@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.3.15 (2016-04-18)
+
+* Fix: Slack notifications failing when using and icon URL.
+* Fix: 127.0.0.1 showing as an external IP address on the history tables.
+* Fix: Regression file sizes not shown in the media info table footer.
+* Fix: Retrieving proper PMS URL when multiple connections are published to plex.tv.
+* Fix: Some typos in the logger.
+* Fix: Some other typos in the WebUI. (Thanks @xtjoeytx)
+* Change: Optimized mobile web app icons and spash screens. (Thanks @alotufo)
+
+
 ## v1.3.14 (2016-03-29)
 
 * Fix: Regression for missing notify_action for script notifications.
