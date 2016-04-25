@@ -49,15 +49,13 @@ def serve_template(templatename, **kwargs):
 
     server_name = plexpy.CONFIG.PMS_NAME
 
-    _session = {'username': None,
-                'user_id': None,
+    _session = {'user_id': None,
+                'user': None,
                 'user_group': 'admin',
                 'expiry': None}
 
     if cherrypy.config.get('tools.auth.on'):
-        _cp_session = cherrypy.session.get(SESSION_KEY)
-        _session['username'], _session['user_id'], _session['user_group'], _session['expiry'] = \
-            _cp_session if _cp_session else (None, None, 'admin', None)
+        _session = cherrypy.session.get(SESSION_KEY)
 
     try:
         template = _hplookup.get_template(templatename)
@@ -173,6 +171,7 @@ class WebInterface(object):
         return serve_template(templatename="index.html", title="Home", config=config)
 
     @cherrypy.expose
+    @requireAuth()
     @addtoapi()
     def get_date_formats(self):
         """ Get the date and time formats used by plexpy """
@@ -193,6 +192,7 @@ class WebInterface(object):
         return json.dumps(formats)
 
     @cherrypy.expose
+    @requireAuth()
     def get_current_activity(self, **kwargs):
 
         try:
@@ -215,6 +215,7 @@ class WebInterface(object):
             return serve_template(templatename="current_activity.html", data=None)
 
     @cherrypy.expose
+    @requireAuth()
     def get_current_activity_header(self, **kwargs):
 
         try:
@@ -230,6 +231,7 @@ class WebInterface(object):
             return serve_template(templatename="current_activity_header.html", data=None)
 
     @cherrypy.expose
+    @requireAuth()
     def home_stats(self, **kwargs):
         data_factory = datafactory.DataFactory()
 
@@ -250,6 +252,7 @@ class WebInterface(object):
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
 
     @cherrypy.expose
+    @requireAuth()
     def library_stats(self, **kwargs):
         data_factory = datafactory.DataFactory()
 
@@ -260,6 +263,7 @@ class WebInterface(object):
         return serve_template(templatename="library_stats.html", title="Library Stats", data=stats_data)
 
     @cherrypy.expose
+    @requireAuth()
     def get_recently_added(self, count='0', **kwargs):
 
         try:

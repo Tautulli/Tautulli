@@ -222,7 +222,7 @@ class Libraries(object):
         
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': rows,
+                'data': helpers.filter_session_info(rows, 'section_id'),
                 'draw': query['draw']
                 }
         
@@ -700,7 +700,7 @@ class Libraries(object):
                    }
             user_stats.append(row)
         
-        return helpers.filter_datatable_session(user_stats)
+        return helpers.filter_session_info(user_stats, 'user_id')
 
     def get_recently_watched(self, section_id=None, limit='10'):
         monitor_db = database.MonitorDatabase()

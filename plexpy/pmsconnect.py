@@ -94,7 +94,7 @@ class PmsConnect(object):
     Retrieve data from Plex Server
     """
 
-    def __init__(self):
+    def __init__(self, token=None):
         if plexpy.CONFIG.PMS_URL:
             url_parsed = urlparse(plexpy.CONFIG.PMS_URL)
             hostname = url_parsed.hostname
@@ -105,9 +105,11 @@ class PmsConnect(object):
             port = plexpy.CONFIG.PMS_PORT
             self.protocol = 'http'
 
+        token = token if token else plexpy.CONFIG.PMS_TOKEN
+
         self.request_handler = http_handler.HTTPHandler(host=hostname,
                                                         port=port,
-                                                        token=plexpy.CONFIG.PMS_TOKEN)
+                                                        token=token)
 
     def get_sessions(self, output_format=''):
         """
@@ -492,7 +494,8 @@ class PmsConnect(object):
                                     }
                     recents_list.append(recent_items)
 
-        output = {'recently_added': sorted(recents_list, key=lambda k: k['added_at'], reverse=True)}
+        output = {'recently_added': helpers.filter_session_info(
+                    sorted(recents_list, key=lambda k: k['added_at'], reverse=True), 'section_id')}
         return output
 
     def get_metadata_details(self, rating_key='', get_media_info=False):
@@ -972,7 +975,7 @@ class PmsConnect(object):
                     session_list.append(session_output)
 
         output = {'stream_count': helpers.get_xml_attr(xml_head[0], 'size'),
-                  'sessions': session_list
+                  'sessions': helpers.mask_session_info(session_list, True)
                   }
 
         return output

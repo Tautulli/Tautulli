@@ -401,7 +401,7 @@ class PlexTV(object):
 
                         synced_items.append(sync_details)
 
-        return helpers.filter_datatable_session(synced_items)
+        return helpers.filter_session_info(synced_items, 'user_id')
 
     def get_server_urls(self, include_https=True):
 

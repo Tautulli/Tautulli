@@ -884,6 +884,7 @@ a:hover .dashboard-activity-poster {
     float: right;
 }
 .dashboard-activity-metadata-user-thumb {
+    background-color: #282828;
     background-position: center;
     background-size: cover;
     margin-top: 5px;
