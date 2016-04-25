@@ -540,11 +540,13 @@ DOCUMENTATION :: END
                     <h4>
                         % if top_stat['rows'][0]['user_id']:
                         <a href="user?user_id=${top_stat['rows'][0]['user_id']}" title="${top_stat['rows'][0]['friendly_name']}">
-                        % else:
+                        % elif top_stat['rows'][0]['user']:
                         <a href="user?user=${top_stat['rows'][0]['user']}" title="${top_stat['rows'][0]['friendly_name']}">
                         % endif
                             ${top_stat['rows'][0]['friendly_name']}
+                        % if top_stat['rows'][0]['user_id'] or top_stat['rows'][0]['user']:
                         </a>
+                        % endif
                     </h4>
                     % if top_stat['stat_type'] == 'total_plays':
                     <h3>${top_stat['rows'][0]['total_plays']}</h3>
@@ -556,7 +558,7 @@ DOCUMENTATION :: END
             </div>
             % if top_stat['rows'][0]['user_id']:
             <a href="user?user_id=${top_stat['rows'][0]['user_id']}" title="${top_stat['rows'][0]['friendly_name']}">
-            % else:
+            % elif top_stat['rows'][0]['user']:
             <a href="user?user=${top_stat['rows'][0]['user']}" title="${top_stat['rows'][0]['friendly_name']}">
             % endif
                 % if top_stat['rows'][0]['user_thumb'] != '':
@@ -568,7 +570,9 @@ DOCUMENTATION :: END
                     <div class="home-platforms-instance-oval" style="background-image: url(${http_root}images/gravatar-default.png);"></div>
                 </div>
                 % endif
+            % if top_stat['rows'][0]['user_id'] or top_stat['rows'][0]['user']:
             </a>
+            % endif
             % if len(top_stat['rows']) > 1:
             <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
@@ -582,11 +586,13 @@ DOCUMENTATION :: END
                                     <h5>
                                         % if top_stat['rows'][loop.index]['user_id']:
                                         <a href="user?user_id=${top_stat['rows'][loop.index]['user_id']}" title="${top_stat['rows'][loop.index]['friendly_name']}">
-                                        % else:
+                                        % elif top_stat['rows'][loop.index]['user']:
                                         <a href="user?user=${top_stat['rows'][loop.index]['user']}" title="${top_stat['rows'][loop.index]['friendly_name']}">
                                         % endif
                                             ${top_stat['rows'][loop.index]['friendly_name']}
+                                        % if top_stat['rows'][loop.index]['user_id'] or top_stat['rows'][loop.index]['user']:
                                         </a>
+                                        % endif
                                     </h5>
                                 </div>
                                 <div class="home-platforms-instance-list-playcount">
@@ -600,7 +606,7 @@ DOCUMENTATION :: END
                             </div>
                             % if top_stat['rows'][loop.index]['user_id']:
                             <a href="user?user_id=${top_stat['rows'][loop.index]['user_id']}" title="${top_stat['rows'][loop.index]['friendly_name']}">
-                            % else:
+                            % elif top_stat['rows'][loop.index]['user']:
                             <a href="user?user=${top_stat['rows'][loop.index]['user']}" title="${top_stat['rows'][loop.index]['friendly_name']}">
                             % endif
                                 % if top_stat['rows'][loop.index]['user_thumb'] != '':
@@ -612,7 +618,9 @@ DOCUMENTATION :: END
                                     <div class="home-platforms-instance-list-oval" style="background-image: url(${http_root}images/gravatar-default.png);"></div>
                                 </div>
                                 % endif
-                                </a>
+                            % if top_stat['rows'][loop.index]['user_id'] or top_stat['rows'][loop.index]['user']:
+                            </a>
+                            % endif
                             <div class="home-platforms-instance-list-number">
                                 <h4>${loop.index + 1}</h4>
                             </div>

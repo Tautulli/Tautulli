@@ -148,7 +148,7 @@ class DataFactory(object):
 
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': helpers.filter_datatable_session(rows),
+                'data': helpers.filter_session_info(rows, 'user_id'),
                 'draw': query['draw'],
                 'filter_duration': helpers.human_duration(filter_duration, sig='dhm'),
                 'total_duration': helpers.human_duration(total_duration, sig='dhm')
@@ -168,7 +168,7 @@ class DataFactory(object):
             if stat == 'top_tv':
                 top_tv = []
                 try:
-                    query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, ' \
+                    query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -196,6 +196,7 @@ class DataFactory(object):
                            'last_play': item['last_watch'],
                            'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
+                           'section_id': item['section_id'],
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -206,12 +207,12 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': top_tv})
+                                   'rows': helpers.filter_session_info(top_tv, 'section_id')})
 
             elif stat == 'popular_tv':
                 popular_tv = []
                 try:
-                    query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, ' \
+                    query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -239,6 +240,7 @@ class DataFactory(object):
                            'total_plays': item['total_plays'],
                            'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
+                           'section_id': item['section_id'],
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -248,12 +250,12 @@ class DataFactory(object):
                     popular_tv.append(row)
 
                 home_stats.append({'stat_id': stat,
-                                   'rows': popular_tv})
+                                   'rows': helpers.filter_session_info(popular_tv, 'section_id')})
 
             elif stat == 'top_movies':
                 top_movies = []
                 try:
-                    query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, ' \
+                    query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.section_id, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -281,6 +283,7 @@ class DataFactory(object):
                            'last_play': item['last_watch'],
                            'grandparent_thumb': '',
                            'thumb': item['thumb'],
+                           'section_id': item['section_id'],
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -290,12 +293,12 @@ class DataFactory(object):
                     top_movies.append(row)
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': top_movies})
+                                   'rows': helpers.filter_session_info(top_movies, 'section_id')})
 
             elif stat == 'popular_movies':
                 popular_movies = []
                 try:
-                    query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, ' \
+                    query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.section_id, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -323,6 +326,7 @@ class DataFactory(object):
                            'total_plays': item['total_plays'],
                            'grandparent_thumb': '',
                            'thumb': item['thumb'],
+                           'section_id': item['section_id'],
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -332,12 +336,12 @@ class DataFactory(object):
                     popular_movies.append(row)
 
                 home_stats.append({'stat_id': stat,
-                                   'rows': popular_movies})
+                                   'rows': helpers.filter_session_info(popular_movies, 'section_id')})
 
             elif stat == 'top_music':
                 top_music = []
                 try:
-                    query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, ' \
+                    query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -365,6 +369,7 @@ class DataFactory(object):
                            'last_play': item['last_watch'],
                            'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
+                           'section_id': item['section_id'],
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -375,12 +380,12 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': top_music})
+                                   'rows': helpers.filter_session_info(top_music, 'section_id')})
 
             elif stat == 'popular_music':
                 popular_music = []
                 try:
-                    query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, ' \
+                    query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -408,6 +413,7 @@ class DataFactory(object):
                            'total_plays': item['total_plays'],
                            'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
+                           'section_id': item['section_id'],
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -417,7 +423,7 @@ class DataFactory(object):
                     popular_music.append(row)
 
                 home_stats.append({'stat_id': stat,
-                                   'rows': popular_music})
+                                   'rows': helpers.filter_session_info(popular_music, 'section_id')})
 
             elif stat == 'top_users':
                 top_users = []
@@ -470,7 +476,7 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': helpers.filter_datatable_session(top_users)})
+                                   'rows': helpers.mask_session_info(top_users)})
 
             elif stat == 'top_platforms':
                 top_platform = []
@@ -567,7 +573,7 @@ class DataFactory(object):
                     last_watched.append(row)
 
                 home_stats.append({'stat_id': stat,
-                                   'rows': helpers.filter_datatable_session(last_watched)})
+                                   'rows': helpers.filter_session_info(last_watched, 'user_id')})
 
             elif stat == 'most_concurrent':
 
@@ -686,7 +692,7 @@ class DataFactory(object):
                                }
                     library_stats.append(library)
 
-        return library_stats
+        return helpers.filter_session_info(library_stats, 'section_id')
 
     def get_stream_details(self, row_id=None):
         monitor_db = database.MonitorDatabase()

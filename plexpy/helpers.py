@@ -33,7 +33,8 @@ from xml.dom import minidom
 import xmltodict
 
 import plexpy
-from api2 import API2
+from plexpy import common
+from plexpy.api2 import API2
 
 
 def addtoapi(*dargs, **dkwargs):
@@ -564,18 +565,102 @@ def uploadToImgur(imgPath, imgTitle=''):
 
     return img_url
 
-def filter_datatable_session(list_of_dicts):
+
+def allow_session_user(user_id):
+    """
+    Returns True or False if the user_id is allowed for the user session
+    """
     import cherrypy
     from plexpy.webauth import SESSION_KEY
 
     if cherrypy.config.get('tools.auth.on'):
-        _session = {}
-        _cp_session = cherrypy.session.get(SESSION_KEY)
-        _session['username'], _session['user_id'], _session['user_group'], _session['expiry'] = \
-            _cp_session if _cp_session else (None, None, None, None)
+        _session = cherrypy.session.get(SESSION_KEY)
+        if str(user_id) != _session['user_id']:
+            return False
+
+    return True
+
+def allow_session_library(section_id):
+    """
+    Returns True or False if the section_id is allowed for the user session
+    """
+    import cherrypy
+    from plexpy.webauth import SESSION_KEY
+
+    if cherrypy.config.get('tools.auth.on'):
+        _session = cherrypy.session.get(SESSION_KEY)
+        if str(section_id) not in _session['user_libraries']:
+            return False
+
+    return True
+
+def filter_session_info(list_of_dicts, filter_key=None):
+    """
+    Filters a list of dictionary items to only return the info for the current logged in user
+    """
+    import cherrypy
+    from plexpy.webauth import SESSION_KEY
+
+    if cherrypy.config.get('tools.auth.on'):
+        _session = cherrypy.session.get(SESSION_KEY)
+
+        if filter_key == 'user_id' and _session['user_id']:
+            session_user_id = str(_session['user_id'])
+            return [d for d in list_of_dicts if str(d.get('user_id','')) == session_user_id]
+
+        elif filter_key == 'section_id' and _session['user_libraries']:
+            session_library_ids = _session['user_libraries']
+            return [d for d in list_of_dicts if str(d.get('section_id','')) in session_library_ids]
+
+    return list_of_dicts
+
+def mask_session_info(list_of_dicts, mask_metadata=False):
+    """
+    Masks user info in a list of dictionary items to only display info for the current logged in user
+    """
+    import cherrypy
+    from plexpy.webauth import SESSION_KEY
+
+    if cherrypy.config.get('tools.auth.on'):
+        _session = cherrypy.session.get(SESSION_KEY)
+
+        keys_to_mask = {'user_id': '',
+                        'user': '',
+                        'friendly_name': 'Plex User',
+                        'user_thumb': common.DEFAULT_USER_THUMB,
+                        'ip_address': 'N/A',
+                        'machine_id': ''
+                        }
+
+        metadata_to_mask = {'media_index': '',
+                            'parent_media_index': '',
+                            'art': common.DEFAULT_ART,
+                            'parent_thumb': common.DEFAULT_POSTER_THUMB,
+                            'grandparent_thumb': common.DEFAULT_POSTER_THUMB,
+                            'thumb': common.DEFAULT_POSTER_THUMB,
+                            'bif_thumb': '',
+                            'grandparent_title': '',
+                            'parent_title': '',
+                            'title': '',
+                            'rating_key': '',
+                            'parent_rating_key': '',
+                            'grandparent_rating_key': '',
+                            'year': ''
+                            }
 
         if _session['user_id']:
             session_user_id = str(_session['user_id'])
-            return [d for d in list_of_dicts if str(d.get('user_id')) == session_user_id]
+            session_library_ids = _session['user_libraries']
+
+            for d in list_of_dicts:
+                if not (str(d.get('user_id')) == session_user_id or d.get('user') == _session['user']):
+                    for k, v in keys_to_mask.iteritems():
+                        if k in d: d[k] = keys_to_mask[k]
+
+                if mask_metadata and str(d.get('section_id','')) not in session_library_ids:
+                    for k, v in metadata_to_mask.iteritems():
+                        if k in d: d[k] = metadata_to_mask[k]
+
+            return list_of_dicts
 
     return list_of_dicts

@@ -46,7 +46,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header">
-                <ul class="nav nav-header nav-dashboard pull-right">
+                <ul class="nav nav-header nav-dashboard pull-right" style="margin-top: -12px;">
                     <li>
                         <a href="#" id="recently-added-page-left" class="paginate btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
                     </li>
@@ -55,9 +55,9 @@
                     </li>
                 </ul>
                 <h3>Recently Added &nbsp;&nbsp;<small>
-                    <a href="#" class="toggle-recently-added-type" data-type="movie">Movies</a> &nbsp; 
-                    <a href="#" class="toggle-recently-added-type" data-type="season">TV Shows</a> &nbsp; 
-                    <a href="#" class="toggle-recently-added-type" data-type="album">Music</a></small></h3>
+                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-movie" data-type="movie">Movies</a> &nbsp; 
+                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-season" data-type="season">TV Shows</a> &nbsp; 
+                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-album" data-type="album">Music</a></small></h3>
             </div>
             <div id="recentlyAdded" style="margin-right: -15px;">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
@@ -138,6 +138,51 @@
             complete: function(xhr, status) {
                 $("#recentlyAdded").html(xhr.responseText);
                 highlightAddedScrollerButton();
+                if ($('.dashboard-recent-media-instance li[data-type=movie]').length) { $('#toggle-recently-added-movie').removeClass('disabled'); }
+                if ($('.dashboard-recent-media-instance li[data-type=season]').length) { $('#toggle-recently-added-season').removeClass('disabled'); }
+                if ($('.dashboard-recent-media-instance li[data-type=album]').length) { $('#toggle-recently-added-album').removeClass('disabled'); }
+
+                $('.toggle-recently-added-type').not('.disabled').click(function () {
+                    var scroller = $("#recently-added-row-scroller");
+                    var media_type = $(this).data('type');
+                    var margin_right = $(this).hasClass('text-muted') ? '25px' : 0;
+                    var toggle_items = $('.dashboard-recent-media-instance li[data-type=' + media_type + ']');
+                    var containerWidth = $("body").find(".container-fluid").width();
+
+                    if (margin_right == 0) {
+                        toggle_items.animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
+                            toggle_items.hide();
+
+                            var scroller_width = $('.dashboard-recent-media-instance li:visible').length * 175;
+                            scroller.width(scroller_width);
+
+                            if (scroller_width < containerWidth) {
+                                $("#recently-added-page-right").addClass("disabled").blur();
+                            } else {
+                                $("#recently-added-page-right").removeClass("disabled");
+                            }
+                        })
+                    } else {
+                        scroller.width(50 * 175);
+                        toggle_items.animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
+                            toggle_items.show();
+
+                            var scroller_width = $('.dashboard-recent-media-instance li:visible').length * 175;
+                            scroller.width(scroller_width);
+
+                            if (scroller_width < containerWidth) {
+                                $("#recently-added-page-right").addClass("disabled").blur();
+                            } else {
+                                $("#recently-added-page-right").removeClass("disabled");
+                            }
+                        })
+                    }
+
+                    leftTotal = 0;
+                    scroller.animate({ left: leftTotal }, 1000);
+                    $("#recently-added-page-left").addClass("disabled").blur();
+                    $(this).toggleClass('text-muted').blur();
+                });
             }
         });
     }
@@ -156,7 +201,7 @@
 
     function highlightAddedScrollerButton() {
         var scroller = $("#recently-added-row-scroller");
-        var numElems = scroller.find("li").length;
+        var numElems = scroller.find("li:visible").length;
         scroller.width(numElems * 175);
         if (scroller.width() > $("body").find(".container-fluid").width()) {
             $("#recently-added-page-right").removeClass("disabled");
@@ -191,13 +236,6 @@
         } else {
             $("#recently-added-page-right").removeClass("disabled");
         }
-    });
-
-    $('.toggle-recently-added-type').click(function () {
-        var media_type = $(this).data('type');
-        var margin_right = $(this).hasClass('text-muted') ? '25px' : 0;
-        $('.dashboard-recent-media-instance li[data-type=' + media_type + ']').animate({ width: 'toggle', marginRight: margin_right }, 1000);
-        $(this).toggleClass('text-muted').blur();
     });
 </script>
 

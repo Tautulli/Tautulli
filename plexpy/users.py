@@ -190,7 +190,7 @@ class Users(object):
 
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': helpers.filter_datatable_session(rows),
+                'data': helpers.filter_session_info(rows, 'user_id'),
                 'draw': query['draw']
                 }
 
@@ -284,7 +284,7 @@ class Users(object):
 
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': helpers.filter_datatable_session(rows),
+                'data': helpers.filter_session_info(rows, 'user_id'),
                 'draw': query['draw']
                 }
 
