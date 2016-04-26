@@ -495,7 +495,7 @@ class PmsConnect(object):
                     recents_list.append(recent_items)
         
         output = {'recently_added': session.filter_session_info(
-                    sorted(recents_list, key=lambda k: k['added_at'], reverse=True), 'section_id')}
+                    sorted(recents_list, key=lambda k: k['added_at'], reverse=True), filter_key='section_id')}
 
         return output
 
@@ -976,7 +976,7 @@ class PmsConnect(object):
                     session_list.append(session_output)
 
         output = {'stream_count': helpers.get_xml_attr(xml_head[0], 'size'),
-                  'sessions': session.mask_session_info(session_list, True)
+                  'sessions': session.mask_session_info(session_list)
                   }
 
         return output
