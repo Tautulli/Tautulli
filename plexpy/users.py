@@ -13,7 +13,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, datatables, common, database, helpers
+import plexpy
+from plexpy import logger, datatables, common, database, helpers, session
 
 def user_login(username=None, password=None):
     from plexpy import plextv
@@ -85,9 +86,18 @@ class Users(object):
         pass
 
     def get_datatables_list(self, kwargs=None):
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to execute database query.'}
+
         data_tables = datatables.DataTables()
 
-        custom_where = ['users.deleted_user', 0]
+        custom_where = [['users.deleted_user', 0]]
+
+        if session.get_session_user_id():
+            custom_where.append(['users.user_id', session.get_session_user_id()])
 
         columns = ['users.user_id',
                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
@@ -121,7 +131,7 @@ class Users(object):
         try:
             query = data_tables.ssp_query(table_name='users',
                                           columns=columns,
-                                          custom_where=[custom_where],
+                                          custom_where=custom_where,
                                           group_by=['users.user_id'],
                                           join_types=['LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN',
@@ -135,11 +145,7 @@ class Users(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn(u"PlexPy Users :: Unable to execute database query for get_list: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': 'null',
-                    'error': 'Unable to execute database query.'}
+            return default_return
 
         users = query['result']
 
@@ -190,13 +196,22 @@ class Users(object):
 
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': helpers.filter_session_info(rows, 'user_id'),
+                'data': session.friendly_name_to_username(rows),
                 'draw': query['draw']
                 }
 
         return dict
 
     def get_datatables_unique_ips(self, user_id=None, kwargs=None):
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to execute database query.'}
+
+        if not session.allow_session_user(user_id):
+            return default_return
+
         data_tables = datatables.DataTables()
 
         custom_where = ['users.user_id', user_id]
@@ -241,11 +256,7 @@ class Users(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn(u"PlexPy Users :: Unable to execute database query for get_unique_ips: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': 'null',
-                    'error': 'Unable to execute database query.'}
+            return default_return
 
         results = query['result']
 
@@ -284,7 +295,7 @@ class Users(object):
 
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': helpers.filter_session_info(rows, 'user_id'),
+                'data': session.friendly_name_to_username(rows),
                 'draw': query['draw']
                 }
 
@@ -356,7 +367,9 @@ class Users(object):
             user_details = {}
             if result:
                 for item in result:
-                    if item['friendly_name']:
+                    if session.get_session_user():
+                        friendly_name = session.get_session_user()
+                    elif item['friendly_name']:
                         friendly_name = item['friendly_name']
                     else:
                         friendly_name = item['username']
@@ -407,6 +420,9 @@ class Users(object):
                 return default_return
 
     def get_watch_time_stats(self, user_id=None):
+        if not session.allow_session_user(user_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
 
         time_queries = [1, 7, 30, 0]
@@ -457,6 +473,9 @@ class Users(object):
         return user_watch_time_stats
 
     def get_player_stats(self, user_id=None):
+        if not session.allow_session_user(user_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
 
         player_stats = []
@@ -491,6 +510,9 @@ class Users(object):
         return player_stats
 
     def get_recently_watched(self, user_id=None, limit='10'):
+        if not session.allow_session_user(user_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
         recently_watched = []
 

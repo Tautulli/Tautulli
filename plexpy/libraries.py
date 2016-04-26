@@ -13,8 +13,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, datatables, common, database, helpers
 import plexpy
+from plexpy import logger, datatables, common, database, helpers, session
 
 def update_section_ids():
     from plexpy import pmsconnect, activity_pinger
@@ -119,9 +119,18 @@ class Libraries(object):
         pass
 
     def get_datatables_list(self, kwargs=None):
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to execute database query.'}
+
         data_tables = datatables.DataTables()
 
-        custom_where = ['library_sections.deleted_section', 0]
+        custom_where = [['library_sections.deleted_section', 0]]
+
+        if session.get_session_libraries():
+            custom_where.append(['library_sections.section_id', session.get_session_libraries()])
 
         columns = ['library_sections.section_id',
                    'library_sections.section_name',
@@ -155,7 +164,7 @@ class Libraries(object):
         try:
             query = data_tables.ssp_query(table_name='library_sections',
                                           columns=columns,
-                                          custom_where=[custom_where],
+                                          custom_where=custom_where,
                                           group_by=['library_sections.server_id', 'library_sections.section_id'],
                                           join_types=['LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN',
@@ -169,11 +178,7 @@ class Libraries(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn(u"PlexPy Libraries :: Unable to execute database query for get_list: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': 'null',
-                    'error': 'Unable to execute database query.'}
+            return default_return
 
         result = query['result']
         
@@ -222,7 +227,7 @@ class Libraries(object):
         
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': helpers.filter_session_info(rows, 'section_id'),
+                'data': rows,
                 'draw': query['draw']
                 }
         
@@ -235,9 +240,12 @@ class Libraries(object):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
-                          'data': None,
+                          'data': 'null',
                           'error': 'Unable to execute database query.'}
 
+        if not session.allow_session_library(section_id):
+            return default_return
+        
         if section_id and not str(section_id).isdigit():
             logger.warn(u"PlexPy Libraries :: Datatable media info called by invalid section_id provided.")
             return default_return
@@ -443,6 +451,9 @@ class Libraries(object):
         from plexpy import pmsconnect
         import json, os
 
+        if not session.allow_session_library(section_id):
+            return False
+        
         if section_id and not str(section_id).isdigit():
             logger.warn(u"PlexPy Libraries :: Datatable media info file size called by invalid section_id provided.")
             return False
@@ -619,6 +630,9 @@ class Libraries(object):
                 return default_return
 
     def get_watch_time_stats(self, section_id=None):
+        if not session.allow_session_library(section_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
 
         time_queries = [1, 7, 30, 0]
@@ -671,6 +685,9 @@ class Libraries(object):
         return library_watch_time_stats
 
     def get_user_stats(self, section_id=None):
+        if not session.allow_session_library(section_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
 
         user_stats = []
@@ -678,7 +695,7 @@ class Libraries(object):
         try:
             if str(section_id).isdigit():
                 query = 'SELECT (CASE WHEN users.friendly_name IS NULL THEN users.username ' \
-                        'ELSE users.friendly_name END) AS user, users.user_id, users.thumb, COUNT(user) AS user_count ' \
+                        'ELSE users.friendly_name END) AS friendly_name, users.user_id, users.thumb, COUNT(user) AS user_count ' \
                         'FROM session_history ' \
                         'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                         'JOIN users ON users.user_id = session_history.user_id ' \
@@ -693,16 +710,19 @@ class Libraries(object):
             result = []
         
         for item in result:
-            row = {'user': item['user'],
+            row = {'friendly_name': item['friendly_name'],
                    'user_id': item['user_id'],
-                   'thumb': item['thumb'],
+                   'user_thumb': item['thumb'],
                    'total_plays': item['user_count']
                    }
             user_stats.append(row)
         
-        return helpers.filter_session_info(user_stats, 'user_id')
+        return session.mask_session_info(user_stats)
 
     def get_recently_watched(self, section_id=None, limit='10'):
+        if not session.allow_session_library(section_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
         recently_watched = []
 

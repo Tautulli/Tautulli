@@ -13,11 +13,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, users, http_handler, common, database
+import urllib2
 from urlparse import urlparse
 
 import plexpy
-import urllib2
+from plexpy import logger, helpers, users, http_handler, common, database, session
 
 
 def get_server_friendly_name():
@@ -462,7 +462,7 @@ class PmsConnect(object):
                                     'grandparent_title': helpers.get_xml_attr(item, 'grandparentTitle'),
                                     'media_index': helpers.get_xml_attr(item, 'index'),
                                     'parent_media_index': helpers.get_xml_attr(item, 'parentIndex'),
-                                    'section_id': helpers.get_xml_attr(item, 'librarySectionID'),
+                                    'section_id': section_id if section_id else helpers.get_xml_attr(item, 'librarySectionID'),
                                     'library_name': helpers.get_xml_attr(item, 'librarySectionTitle'),
                                     'year': helpers.get_xml_attr(item, 'year'),
                                     'thumb': helpers.get_xml_attr(item, 'thumb'),
@@ -484,7 +484,7 @@ class PmsConnect(object):
                                     'grandparent_title': helpers.get_xml_attr(item, 'grandparentTitle'),
                                     'media_index': helpers.get_xml_attr(item, 'index'),
                                     'parent_media_index': helpers.get_xml_attr(item, 'parentIndex'),
-                                    'section_id': helpers.get_xml_attr(item, 'librarySectionID'),
+                                    'section_id': section_id if section_id else helpers.get_xml_attr(item, 'librarySectionID'),
                                     'library_name': helpers.get_xml_attr(item, 'librarySectionTitle'),
                                     'year': helpers.get_xml_attr(item, 'year'),
                                     'thumb': helpers.get_xml_attr(item, 'thumb'),
@@ -493,9 +493,10 @@ class PmsConnect(object):
                                     'added_at': helpers.get_xml_attr(item, 'addedAt')
                                     }
                     recents_list.append(recent_items)
-
-        output = {'recently_added': helpers.filter_session_info(
+        
+        output = {'recently_added': session.filter_session_info(
                     sorted(recents_list, key=lambda k: k['added_at'], reverse=True), 'section_id')}
+
         return output
 
     def get_metadata_details(self, rating_key='', get_media_info=False):
@@ -975,7 +976,7 @@ class PmsConnect(object):
                     session_list.append(session_output)
 
         output = {'stream_count': helpers.get_xml_attr(xml_head[0], 'size'),
-                  'sessions': helpers.mask_session_info(session_list, True)
+                  'sessions': session.mask_session_info(session_list, True)
                   }
 
         return output

@@ -13,32 +13,24 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, \
-    datafactory, graphs, users, libraries, database, web_socket
-from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates
-from plexpy.webauth import AuthController, requireAuth, member_of, name_is, SESSION_KEY
-
-from mako.lookup import TemplateLookup
-from mako import exceptions
-from hashing_passwords import make_hash
-
-import plexpy
-import threading
 import cherrypy
 import hashlib
-import random
 import json
 import os
-from api2 import API2
+import random
+import threading
 
-try:
-    # pylint:disable=E0611
-    # ignore this error because we are catching the ImportError
-    from collections import OrderedDict
-    # pylint:enable=E0611
-except ImportError:
-    # Python 2.6.x fallback, from libs
-    from ordereddict import OrderedDict
+from hashing_passwords import make_hash
+from mako.lookup import TemplateLookup
+from mako import exceptions
+
+import plexpy
+from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, \
+    datafactory, graphs, users, libraries, database, web_socket
+from plexpy.api2 import API2
+from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates
+from plexpy.session import get_session_info, allow_session_user, allow_session_library
+from plexpy.webauth import AuthController, requireAuth, member_of, name_is, SESSION_KEY
 
 
 def serve_template(templatename, **kwargs):
@@ -49,13 +41,7 @@ def serve_template(templatename, **kwargs):
 
     server_name = plexpy.CONFIG.PMS_NAME
 
-    _session = {'user_id': None,
-                'user': None,
-                'user_group': 'admin',
-                'expiry': None}
-
-    if cherrypy.config.get('tools.auth.on'):
-        _session = cherrypy.session.get(SESSION_KEY)
+    _session = get_session_info()
 
     try:
         template = _hplookup.get_template(templatename)
@@ -351,6 +337,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def library(self, section_id=None):
+        if not allow_session_library(section_id):
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+
         config = {
             "get_file_sizes": plexpy.CONFIG.GET_FILE_SIZES,
             "get_file_sizes_hold": plexpy.CONFIG.GET_FILE_SIZES_HOLD
@@ -409,6 +398,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def get_library_watch_time_stats(self, section_id=None, **kwargs):
+        if not allow_session_library(section_id):
+            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
+
         if section_id:
             library_data = libraries.Libraries()
             result = library_data.get_watch_time_stats(section_id=section_id)
@@ -424,6 +416,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def get_library_user_stats(self, section_id=None, **kwargs):
+        if not allow_session_library(section_id):
+            return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
+
         if section_id:
             library_data = libraries.Libraries()
             result = library_data.get_user_stats(section_id=section_id)
@@ -439,6 +434,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def get_library_recently_watched(self, section_id=None, limit='10', **kwargs):
+        if not allow_session_library(section_id):
+            return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
+
         if section_id:
             library_data = libraries.Libraries()
             result = library_data.get_recently_watched(section_id=section_id, limit=limit)
@@ -454,6 +452,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def get_library_recently_added(self, section_id=None, limit='10', **kwargs):
+        if not allow_session_library(section_id):
+            return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
+
         if section_id:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_recently_added_details(section_id=section_id, count=limit)
@@ -649,6 +650,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def user(self, user_id=None):
+        if not allow_session_user(user_id):
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+
         user_data = users.Users()
         if user_id:
             try:
@@ -702,6 +706,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def get_user_watch_time_stats(self, user=None, user_id=None, **kwargs):
+        if not allow_session_user(user_id):
+            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
+
         if user_id or user:
             user_data = users.Users()
             result = user_data.get_watch_time_stats(user_id=user_id)
@@ -717,6 +724,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def get_user_player_stats(self, user=None, user_id=None, **kwargs):
+        if not allow_session_user(user_id):
+            return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
+
         if user_id or user:
             user_data = users.Users()
             result = user_data.get_player_stats(user_id=user_id)
@@ -732,6 +742,9 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def get_user_recently_watched(self, user=None, user_id=None, limit='10', **kwargs):
+        if not allow_session_user(user_id):
+            return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
+
         if user_id or user:
             user_data = users.Users()
             result = user_data.get_recently_watched(user_id=user_id, limit=limit)
@@ -1239,10 +1252,10 @@ class WebInterface(object):
     def log_js_errors(self, page, message, file, line):
         """ Logs javascript errors from the web interface. """
         logger.error(u"WebUI :: /%s : %s. (%s:%s)" % (page.rpartition('/')[-1],
-                                                    message,
-                                                    file.rpartition('/')[-1].partition('?')[0],
-                                                    line))
-        return True
+                                                      message,
+                                                      file.rpartition('/')[-1].partition('?')[0],
+                                                      line))
+        return "js error logged."
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
