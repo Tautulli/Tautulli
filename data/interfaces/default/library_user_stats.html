@@ -10,9 +10,9 @@ Variable names:     data [array]
 data[array_index] :: Usable parameters
 
 == Global keys ==
-user                    Returns the name of the user.
+friendly_name           Returns the friendly name of the user.
 user_id                 Returns the user id of the user.
-thumb                   Returns the avatar of the user.
+user_thumb              Returns the avatar of the user.
 total_plays             Returns the play count for the user.
 
 DOCUMENTATION :: END
@@ -23,12 +23,19 @@ DOCUMENTATION :: END
 <ul class="list-unstyled">
     <div class="user-player-instance">
         <li>
-            <a href="user?user_id=${a['user_id']}" title="${a['user']}">
-                <div class="library-user-instance-box" style="background-image: url(${a['thumb']});"></div>
+            % if a['user_id']:
+            <a href="user?user_id=${a['user_id']}" title="${a['friendly_name']}">
+                <div class="library-user-instance-box" style="background-image: url(${a['user_thumb']});"></div>
             </a>
             <div class=" user-player-instance-name">
-                <a href="user?user_id=${a['user_id']}" title="${a['user']}">${a['user']}</a>
+                <a href="user?user_id=${a['user_id']}" title="${a['friendly_name']}">${a['friendly_name']}</a>
             </div>
+            % else:
+            <div class="library-user-instance-box" style="background-image: url(${a['user_thumb']});"></div>
+            <div class=" user-player-instance-name">
+                ${a['friendly_name']}
+            </div>
+            % endif
             <div class="user-player-instance-playcount">
                 <h3>${a['total_plays']}</h3>
                 <p> plays</p>

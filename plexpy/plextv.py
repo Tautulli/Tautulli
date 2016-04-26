@@ -16,14 +16,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, http_handler, database, users
-import xmltodict
-import json
-from xml.dom import minidom
-import requests
-
 import base64
+import json
+import xmltodict
+from xml.dom import minidom
+
 import plexpy
+from plexpy import logger, helpers, http_handler, database, users, session
 
 
 def refresh_users():
@@ -401,7 +400,7 @@ class PlexTV(object):
 
                         synced_items.append(sync_details)
 
-        return helpers.filter_session_info(synced_items, 'user_id')
+        return session.filter_session_info(synced_items, 'user_id')
 
     def get_server_urls(self, include_https=True):
 
