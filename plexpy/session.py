@@ -91,7 +91,7 @@ def filter_session_info(list_of_dicts, filter_key=None):
 
     return list_of_dicts
 
-def mask_session_info(list_of_dicts, mask_metadata=False):
+def mask_session_info(list_of_dicts, mask_metadata=True):
     """
     Masks user info in a list of dictionary items to only display info for the current logged in session
     """

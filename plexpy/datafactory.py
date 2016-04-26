@@ -231,7 +231,7 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': session.mask_session_info(top_tv, mask_metadata=True)})
+                                   'rows': session.mask_session_info(top_tv)})
 
             elif stat == 'popular_tv':
                 popular_tv = []
@@ -274,7 +274,7 @@ class DataFactory(object):
                     popular_tv.append(row)
 
                 home_stats.append({'stat_id': stat,
-                                   'rows': session.mask_session_info(popular_tv, mask_metadata=True)})
+                                   'rows': session.mask_session_info(popular_tv)})
 
             elif stat == 'top_movies':
                 top_movies = []
@@ -318,7 +318,7 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': session.mask_session_info(top_movies, mask_metadata=True)})
+                                   'rows': session.mask_session_info(top_movies)})
 
             elif stat == 'popular_movies':
                 popular_movies = []
@@ -361,7 +361,7 @@ class DataFactory(object):
                     popular_movies.append(row)
 
                 home_stats.append({'stat_id': stat,
-                                   'rows': session.mask_session_info(popular_movies, mask_metadata=True)})
+                                   'rows': session.mask_session_info(popular_movies)})
 
             elif stat == 'top_music':
                 top_music = []
@@ -405,7 +405,7 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': session.mask_session_info(top_music, mask_metadata=True)})
+                                   'rows': session.mask_session_info(top_music)})
 
             elif stat == 'popular_music':
                 popular_music = []
@@ -448,7 +448,7 @@ class DataFactory(object):
                     popular_music.append(row)
 
                 home_stats.append({'stat_id': stat,
-                                   'rows': session.mask_session_info(popular_music, mask_metadata=True)})
+                                   'rows': session.mask_session_info(popular_music)})
 
             elif stat == 'top_users':
                 top_users = []
@@ -501,7 +501,7 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': session.mask_session_info(top_users, mask_metadata=True)})
+                                   'rows': session.mask_session_info(top_users)})
 
             elif stat == 'top_platforms':
                 top_platform = []
@@ -547,7 +547,7 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': session.mask_session_info(top_platform, mask_metadata=True)})
+                                   'rows': session.mask_session_info(top_platform)})
 
             elif stat == 'last_watched':
                 last_watched = []
@@ -599,7 +599,7 @@ class DataFactory(object):
                     last_watched.append(row)
 
                 home_stats.append({'stat_id': stat,
-                                   'rows': session.mask_session_info(last_watched, mask_metadata=True)})
+                                   'rows': session.mask_session_info(last_watched)})
 
             elif stat == 'most_concurrent':
 
@@ -718,7 +718,7 @@ class DataFactory(object):
                                }
                     library_stats.append(library)
 
-        return session.filter_session_info(library_stats, 'section_id')
+        return session.filter_session_info(library_stats, filter_key='section_id')
 
     def get_stream_details(self, row_id=None):
         monitor_db = database.MonitorDatabase()

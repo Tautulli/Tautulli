@@ -717,7 +717,7 @@ class Libraries(object):
                    }
             user_stats.append(row)
         
-        return session.mask_session_info(user_stats)
+        return session.mask_session_info(user_stats, mask_metadata=False)
 
     def get_recently_watched(self, section_id=None, limit='10'):
         if not session.allow_session_library(section_id):
