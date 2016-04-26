@@ -18,10 +18,11 @@
 # Form based authentication for CherryPy. Requires the
 # Session tool to be loaded.
 
-import cherrypy
 from cgi import escape
-from hashing_passwords import check_hash
+import cherrypy
 from datetime import datetime, timedelta
+from hashing_passwords import check_hash
+import re
 
 import plexpy
 from plexpy import logger
@@ -33,7 +34,7 @@ SESSION_KEY = '_cp_username'
 
 def check_credentials(username, password):
     """Verifies credentials for username and password.
-    Returns None on success or a string describing the error on failure"""
+    Returns True and the user group on success or False and no user group"""
 
     if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
         username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
@@ -146,7 +147,10 @@ class AuthController(object):
 
         if vaild_login:
             if user_group == 'guest':
-                user_details = Users().get_details(user=username)
+                if re.match(r"[^@]+@[^@]+\.[^@]+", username):
+                    user_details = Users().get_details(email=username)
+                else:
+                    user_details = Users().get_details(user=username)
                 user_id = user_details['user_id']
 
                 user_tokens = Users().get_tokens(user_id=user_details['user_id'])
@@ -173,7 +177,7 @@ class AuthController(object):
 
         else:
             logger.debug(u"Invalid login attempt from '%s'." % username)
-            return self.get_loginform(username, u"Incorrect username or password.")
+            return self.get_loginform(username, u"Incorrect username/email or password.")
     
     @cherrypy.expose
     def logout(self):
@@ -183,7 +187,7 @@ class AuthController(object):
         _session = cherrypy.session.get(SESSION_KEY)
         cherrypy.session[SESSION_KEY] = None
 
-        if _session['user']:
+        if _session and _session['user']:
             cherrypy.request.login = None
             self.on_logout(_session['user'])
         raise cherrypy.HTTPRedirect("login")

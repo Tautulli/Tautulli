@@ -306,7 +306,7 @@ class Users(object):
             except Exception as e:
                 logger.warn(u"PlexPy Users :: Unable to execute database query for set_config: %s." % e)
 
-    def get_details(self, user_id=None, user=None):
+    def get_details(self, user_id=None, user=None, email=None):
         from plexpy import plextv
 
         default_return = {'user_id': 0,
@@ -322,10 +322,10 @@ class Users(object):
                           'allow_guest': 0
                           }
 
-        if not user_id and not user:
+        if not user_id and not user and not email:
             return default_return
 
-        def get_user_details(user_id=user_id, user=user):
+        def get_user_details(user_id=user_id, user=user, email=email):
             monitor_db = database.MonitorDatabase()
 
             try:
@@ -341,6 +341,12 @@ class Users(object):
                             'FROM users ' \
                             'WHERE username = ? '
                     result = monitor_db.select(query, args=[user])
+                elif email:
+                    query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, allow_guest ' \
+                            'FROM users ' \
+                            'WHERE email = ? '
+                    result = monitor_db.select(query, args=[email])
                 else:
                     result = []
             except Exception as e:
