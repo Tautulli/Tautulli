@@ -878,9 +878,13 @@ class DataFactory(object):
 
         ip_address = 'N/A'
 
+        user_cond = ''
+        if session.get_session_user_id():
+            user_cond = 'AND user_id = %s ' % session.get_session_user_id()
+
         if session_key:
             try:
-                query = 'SELECT ip_address FROM sessions WHERE session_key = %d' % int(session_key)
+                query = 'SELECT ip_address FROM sessions WHERE session_key = %d %s' % (int(session_key), user_cond)
                 result = monitor_db.select(query)
             except Exception as e:
                 logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_session_ip: %s." % e)

@@ -1468,9 +1468,12 @@ class PmsConnect(object):
             if a.getElementsByTagName('Track'):
                 result_data = a.getElementsByTagName('Track')
 
+            section_id = helpers.get_xml_attr(a, 'librarySectionID')
+
             if result_data:
                 for result in result_data:
-                    children_output = {'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
+                    children_output = {'section_id': section_id,
+                                       'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
                                        'media_index': helpers.get_xml_attr(result, 'index'),
                                        'title': helpers.get_xml_attr(result, 'title'),
                                        'thumb': helpers.get_xml_attr(result, 'thumb'),
@@ -1482,7 +1485,7 @@ class PmsConnect(object):
         output = {'children_count': helpers.get_xml_attr(xml_head[0], 'size'),
                   'children_type': helpers.get_xml_attr(xml_head[0], 'viewGroup'),
                   'title': helpers.get_xml_attr(xml_head[0], 'title2'),
-                  'children_list': children_list
+                  'children_list': session.filter_session_info(children_list, 'section_id')
                   }
 
         return output
@@ -1902,7 +1905,7 @@ class PmsConnect(object):
                     search_results_count += 1
 
         output = {'results_count': search_results_count,
-                  'results_list': search_results_list
+                  'results_list': {k: session.filter_session_info(v, 'section_id') for k, v in search_results_list.iteritems()}
                   }
 
         return output
