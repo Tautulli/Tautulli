@@ -637,7 +637,7 @@ class PROWL(object):
             logger.info(u"PlexPy Notifiers :: Prowl notification sent.")
             return True
         elif request_status == 401:
-            logger.warn(u"PlexPy Notifiers :: Prowl notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Prowl notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Prowl notification failed.")
@@ -943,7 +943,7 @@ class PUSHBULLET(object):
             logger.info(u"PlexPy Notifiers :: PushBullet notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: PushBullet notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: PushBullet notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: PushBullet notification failed.")
@@ -1045,7 +1045,7 @@ class PUSHALOT(object):
             logger.info(u"PlexPy Notifiers :: Pushalot notification sent.")
             return True
         elif request_status == 410:
-            logger.warn(u"PlexPy Notifiers :: Pushalot notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Pushalot notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Pushalot notification failed.")
@@ -1104,7 +1104,7 @@ class PUSHOVER(object):
             logger.info(u"PlexPy Notifiers :: Pushover notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Pushover notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Pushover notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Pushover notification failed.")
@@ -1630,7 +1630,7 @@ class IFTTT(object):
             logger.info(u"PlexPy Notifiers :: Ifttt notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Ifttt notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Ifttt notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Ifttt notification failed.")
@@ -1699,7 +1699,7 @@ class TELEGRAM(object):
             logger.info(u"PlexPy Notifiers :: Telegram notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Telegram notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Telegram notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Telegram notification failed.")
@@ -1792,7 +1792,7 @@ class SLACK(object):
             logger.info(u"PlexPy Notifiers :: Slack notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Slack notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Slack notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Slack notification failed.")
