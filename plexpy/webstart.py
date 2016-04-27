@@ -66,10 +66,11 @@ def initialize(options):
 
     if options['http_password']:
         logger.info("Web server authentication is enabled, username is '%s'", options['http_username'])
-        options_dict['tools.auth.on'] = True
+        auth_enabled = True
         options_dict['tools.sessions.on'] = True
-        options_dict['tools.sessions.timeout'] = 30 * 24 * 60 # 30 days
         cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
+    else:
+        auth_enabled = False
 
     if not options['http_root'] or options['http_root'] == '/':
         plexpy.HTTP_ROOT = options['http_root'] = '/'
@@ -85,7 +86,10 @@ def initialize(options):
             'tools.gzip.on': True,
             'tools.gzip.mime_types': ['text/html', 'text/plain', 'text/css',
                                       'text/javascript', 'application/json',
-                                      'application/javascript']
+                                      'application/javascript'],
+            'tools.auth.on': auth_enabled,
+            'tools.sessions.on': True,
+            'tools.sessions.timeout': 30 * 24 * 60  # 30 days
         },
         '/interfaces': {
             'tools.staticdir.on': True,
@@ -94,7 +98,7 @@ def initialize(options):
             'tools.caching.force': True,
             'tools.caching.delay': 0,
             'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.auth.on': False,
             'tools.sessions.on': False
         },
@@ -105,7 +109,7 @@ def initialize(options):
             'tools.caching.force': True,
             'tools.caching.delay': 0,
             'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.auth.on': False,
             'tools.sessions.on': False
         },
@@ -116,7 +120,7 @@ def initialize(options):
             'tools.caching.force': True,
             'tools.caching.delay': 0,
             'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.auth.on': False,
             'tools.sessions.on': False
         },
@@ -127,7 +131,7 @@ def initialize(options):
             'tools.caching.force': True,
             'tools.caching.delay': 0,
             'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.auth.on': False,
             'tools.sessions.on': False
         },
@@ -138,7 +142,7 @@ def initialize(options):
             'tools.caching.force': True,
             'tools.caching.delay': 0,
             'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.auth.on': False,
             'tools.sessions.on': False
         },
@@ -149,7 +153,7 @@ def initialize(options):
             'tools.caching.force': True,
             'tools.caching.delay': 0,
             'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.auth.on': False,
             'tools.sessions.on': False
         },
@@ -160,7 +164,7 @@ def initialize(options):
             'tools.caching.force': True,
             'tools.caching.delay': 0,
             'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.auth.on': False,
             'tools.sessions.on': False
         },
@@ -171,7 +175,7 @@ def initialize(options):
             'tools.caching.force': True,
             'tools.caching.delay': 0,
             'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.auth.on': False,
             'tools.sessions.on': False
         },
@@ -182,7 +186,7 @@ def initialize(options):
             'tools.caching.force': True,
             'tools.caching.delay': 0,
             'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30, # 30 days
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.auth.on': False,
             'tools.sessions.on': False
         },
