@@ -1109,6 +1109,8 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def history_table_modal(self, **kwargs):
+        if kwargs.get('user_id') and not allow_session_user(kwargs['user_id']):
+            return serve_template(templatename="history_table_modal.html", title="History Data", data=None)
 
         return serve_template(templatename="history_table_modal.html", title="History Data", data=kwargs)
 

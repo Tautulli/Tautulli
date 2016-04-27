@@ -184,7 +184,7 @@ class DataFactory(object):
             library_cond = 'AND ('
             for section_id in session.get_session_libraries():
                 library_cond += 'session_history_metadata.section_id = %s OR ' % section_id
-            library_cond = library_cond.rstrip(' OR ') + ')'
+            library_cond = library_cond.rstrip(' OR ') + ') '
 
         home_stats = []
 
@@ -201,7 +201,7 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "episode" %s ' \
+                            '       AND session_history.media_type = "episode" %s' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
                             'ORDER BY %s DESC ' \
@@ -246,7 +246,7 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "episode" %s ' \
+                            '       AND session_history.media_type = "episode" %s' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
                             'ORDER BY users_watched DESC, %s DESC ' \
@@ -288,7 +288,7 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "movie" %s ' \
+                            '       AND session_history.media_type = "movie" %s' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.full_title ' \
                             'ORDER BY %s DESC ' \
@@ -333,7 +333,7 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "movie" %s ' \
+                            '       AND session_history.media_type = "movie" %s' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.full_title ' \
                             'ORDER BY users_watched DESC, %s DESC ' \
@@ -375,7 +375,7 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "track" %s ' \
+                            '       AND session_history.media_type = "track" %s' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
                             'ORDER BY %s DESC ' \
@@ -420,7 +420,7 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "track" %s ' \
+                            '       AND session_history.media_type = "track" %s' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
                             'ORDER BY users_watched DESC, %s DESC ' \
@@ -566,7 +566,7 @@ class DataFactory(object):
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
                             '       AND (session_history.media_type = "movie" ' \
-                            '           OR session_history_metadata.media_type = "episode") %s ' \
+                            '           OR session_history_metadata.media_type = "episode") %s' \
                             '   GROUP BY %s) AS t ' \
                             'WHERE percent_complete >= %s ' \
                             'GROUP BY t.id ' \

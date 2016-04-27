@@ -53,16 +53,16 @@ def initialize(options):
         'tools.decode.on': True
     }
 
+    if plexpy.DEV:
+        options_dict['environment'] = "test_suite"
+        options_dict['engine.autoreload.on'] = True
+
     if enable_https:
         options_dict['server.ssl_certificate'] = https_cert
         options_dict['server.ssl_private_key'] = https_key
         protocol = "https"
     else:
         protocol = "http"
-
-    if plexpy.DEV:
-        options_dict['environment'] = "test_suite"
-        options_dict['engine.autoreload.on'] = True
 
     if options['http_password']:
         logger.info("Web server authentication is enabled, username is '%s'", options['http_username'])
