@@ -150,7 +150,7 @@
                     var containerWidth = $("body").find(".container-fluid").width();
 
                     if (margin_right == 0) {
-                        toggle_items.animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
+                        toggle_items.stop().animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
                             toggle_items.hide();
 
                             var scroller_width = $('.dashboard-recent-media-instance li:visible').length * 175;
@@ -164,7 +164,7 @@
                         })
                     } else {
                         scroller.width(50 * 175);
-                        toggle_items.animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
+                        toggle_items.stop().animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
                             toggle_items.show();
 
                             var scroller_width = $('.dashboard-recent-media-instance li:visible').length * 175;
