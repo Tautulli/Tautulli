@@ -24,7 +24,7 @@ def get_session_info():
     """
     from plexpy.webauth import SESSION_KEY
 
-    if cherrypy.config.get('tools.auth.on'):
+    if cherrypy.config.get('tools.sessions.on'):
         _session = cherrypy.session.get(SESSION_KEY)
         if _session:
             return _session
@@ -134,7 +134,7 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
         if mask_metadata and session_library_ids and str(d.get('section_id','')) not in session_library_ids:
             for k, v in metadata_to_mask.iteritems():
                 if k in d: d[k] = metadata_to_mask[k]
-
+    
     return list_of_dicts
 
 def friendly_name_to_username(list_of_dicts):
