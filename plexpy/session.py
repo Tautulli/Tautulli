@@ -14,6 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import cherrypy
+import threading
 
 from plexpy import common
 
@@ -24,7 +25,8 @@ def get_session_info():
     """
     from plexpy.webauth import SESSION_KEY
 
-    if cherrypy.config.get('tools.sessions.on'):
+    # Hacky solution to exclude not cherrypy threads from sessions
+    if 'CP Server' in threading.current_thread().name and cherrypy.config.get('tools.sessions.on'):
         _session = cherrypy.session.get(SESSION_KEY)
         if _session:
             return _session
