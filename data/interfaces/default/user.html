@@ -180,13 +180,29 @@ from plexpy import helpers
                                             </span>
                                         </div>
                                         <div class="button-bar">
-                                            <div class="colvis-button-bar hidden-xs" id="button-bar-history"></div>
                                             % if _session['user_group'] == 'admin':
-                                            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                                                <i class="fa fa-trash-o"></i> Delete mode
-                                            </button>
                                             <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+                                            <div class="btn-group">
+                                                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                                                    <i class="fa fa-trash-o"></i> Delete mode
+                                                </button>&nbsp;
+                                            </div>
                                             % endif
+                                            <div class="btn-group" data-toggle="buttons" id="media_type-selection">
+                                                <label class="btn btn-dark active">
+                                                    <input type="radio" name="media_type-filter" id="history-all" value="" autocomplete="off"> All
+                                                </label>
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="media_type-filter" id="history-movies" value="movie" autocomplete="off"> Movies
+                                                </label>
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="media_type-filter" id="history-tv_shows" value="episode" autocomplete="off"> TV Shows
+                                                </label>
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="media_type-filter" id="history-music" value="track" autocomplete="off"> Music
+                                                </label>
+                                            </div>
+                                            <div class="btn-group colvis-button-bar hidden-xs" id="button-bar-history"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -226,7 +242,8 @@ from plexpy import helpers
                                                 </strong>
                                             </span>
                                         </div>
-                                        <div class="colvis-button-bar hidden-xs" id="button-bar-sync">
+                                        <div class="button-bar">
+                                            <div class="btn-group colvis-button-bar hidden-xs" id="button-bar-sync"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -368,21 +385,6 @@ from plexpy import helpers
 
             clearSearchButton('history_table-UID-${data["user_id"]}', history_table);
 
-            $('#history_table_filter').prepend('<div class="btn-group" data-toggle="buttons" id="media_type-selection" style="padding-right: 15px;"> \
-                <label class="btn btn-dark active"> \
-                    <input type="radio" name="media_type-filter" id="history-all" value="all" autocomplete="off"> All \
-                </label> \
-                <label class="btn btn-dark"> \
-                    <input type="radio" name="media_type-filter" id="history-movies" value="movie" autocomplete="off"> Movies \
-                </label> \
-                <label class="btn btn-dark"> \
-                    <input type="radio" name="media_type-filter" id="history-tv_shows" value="episode" autocomplete="off"> TV Shows \
-                </label> \
-                <label class="btn btn-dark"> \
-                    <input type="radio" name="media_type-filter" id="history-music" value="track" autocomplete="off"> Music \
-                </label> \
-            </div>');
-
             $('#media_type-selection').on('change', function () {
                 $('#media_type-selection > label').removeClass('active');
                 selected_filter = $('input[name=media_type-filter]:checked', '#media_type-selection');
@@ -393,7 +395,7 @@ from plexpy import helpers
         }
 
         $( "#history-tab-btn" ).one( "click", function() {
-            var media_type = 'all';
+            var media_type = null;
             loadHistoryTable(media_type);
         });
 

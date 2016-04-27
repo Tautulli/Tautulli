@@ -287,7 +287,6 @@ fieldset[disabled] .btn-bright.active {
     background-color: #3B3B3B;
     border-color: transparent;
     float: right;
-    margin-right: 5px;
 }
 .btn-danger.btn-edit:hover {
     color: #fff;
@@ -304,11 +303,17 @@ fieldset[disabled] .btn-bright.active {
   background-color: #ac2925;
   border-color: #761c19;
 }
+.btn-group select {
+    margin-top: 0;
+}
+#user-selection label {
+    margin-bottom: 0;
+}
 .alert-edit {
     display: none;
-    float: right;
+    float: left;
     margin-bottom: 0;
-    margin-right: 5px;
+    /*margin-right: 5px;*/
     padding: 6px 15px;
 }
 .modal-header {
@@ -2231,11 +2236,11 @@ a .home-platforms-instance-list-oval:hover,
 .colvis-button-bar,
 .refresh-users-button,
 .refresh-libraries-button {
-    float: right;
+    /*float: right;*/
 }
 .refresh-users-button,
 .refresh-libraries-button {
-    margin-right: 5px;
+    /*margin-right: 5px;*/
 }
 .nav-settings,
 .nav-settings ul {

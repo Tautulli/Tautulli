@@ -142,9 +142,11 @@ def friendly_name_to_username(list_of_dicts):
     Reverts the friendly name back to the username of the current logged in session
     """
     session_user = get_session_user()
-
-    for d in list_of_dicts:
-        if 'friendly_name' in d and d['friendly_name'] != session_user:
-            d['friendly_name'] = session_user
+    session_user_id = get_session_user_id()
+    
+    if session_user_id:
+        for d in list_of_dicts:
+            if 'friendly_name' in d and d['friendly_name'] != session_user:
+                d['friendly_name'] = session_user
 
     return list_of_dicts

@@ -180,13 +180,15 @@ DOCUMENTATION :: END
                                             </span>
                                         </div>
                                         <div class="button-bar">
-                                            <div class="colvis-button-bar hidden-xs" id="button-bar-history"></div>
                                             % if _session['user_group'] == 'admin':
-                                            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                                                <i class="fa fa-trash-o"></i> Delete mode
-                                            </button>
                                             <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+                                            <div class="btn-group">
+                                                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                                                    <i class="fa fa-trash-o"></i> Delete mode
+                                                </button>&nbsp;
+                                            </div>
                                             % endif
+                                            <div class="btn-group colvis-button-bar hidden-xs" id="button-bar-history"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -237,17 +239,19 @@ DOCUMENTATION :: END
                                         </div>
                                         <div class="button-bar">
                                             % if _session['user_group'] == 'admin':
-                                            % if config['get_file_sizes'] and data['section_id'] in config['get_file_sizes_hold']['section_ids']:
-                                            <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" style="margin-right: 5px;" disabled>
-                                                <i class="fa fa-refresh"></i> Refresh media info
-                                            </button>
-                                            % else:
-                                            <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" style="margin-right: 5px;">
-                                                <i class="fa fa-refresh"></i> Refresh media info
-                                            </button>
+                                            <div class="btn-group">
+                                                % if config['get_file_sizes'] and data['section_id'] in config['get_file_sizes_hold']['section_ids']:
+                                                <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" disabled>
+                                                    <i class="fa fa-refresh"></i> Refresh media info
+                                                </button>
+                                                % else:
+                                                <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table">
+                                                    <i class="fa fa-refresh"></i> Refresh media info
+                                                </button>
+                                                % endif
+                                            </div>
                                             % endif
-                                            % endif
-                                            <div class="colvis-button-bar hidden-xs" id="button-bar-media-info"></div>
+                                            <div class="btn-group colvis-button-bar hidden-xs" id="button-bar-media-info"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
