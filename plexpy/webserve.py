@@ -1859,6 +1859,9 @@ class WebInterface(object):
                 metadata['poster_url'] = poster_url
 
         if metadata:
+            if metadata['section_id'] and not allow_session_library(metadata['section_id']):
+                raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+
             return serve_template(templatename="info.html", data=metadata, title="Info", config=config, source=source)
         else:
             return self.update_metadata(rating_key, query)
@@ -1901,7 +1904,7 @@ class WebInterface(object):
                     cherrypy.response.headers['Content-type'] = 'image/png'
                     return fallback_image
                 except IOError, e:
-                    logger.error(u"Unable to read fallback  %s image: %s" % (fallback, e))
+                    logger.error(u"Unable to read fallback %s image: %s" % (fallback, e))
 
             return None
 
