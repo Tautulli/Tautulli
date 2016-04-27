@@ -340,29 +340,35 @@ DOCUMENTATION :: END
                             <span>Watch History for <strong>${data['title']}</strong></span>
                         </div>
                         <div class="button-bar">
-                            <div class="colvis-button-bar hidden-xs"></div>
                             % if _session['user_group'] == 'admin':
-                            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                                <i class="fa fa-trash-o"></i> Delete mode
-                            </button>
+                            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+                            <div class="btn-group">
+                                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                                    <i class="fa fa-trash-o"></i> Delete mode
+                                </button>&nbsp;
+                            </div>
                             % if source == 'history':
-                            <a href="update_metadata?rating_key=${data['rating_key']}&update=True" class="btn btn-danger btn-edit" id="fix-metadata">
-                                <i class="fa fa-wrench"></i> Fix Metadata
-                            </a>
+                            <div class="btn-group">
+                                <a href="update_metadata?rating_key=${data['rating_key']}&update=True" class="btn btn-danger btn-edit" id="fix-metadata">
+                                    <i class="fa fa-wrench"></i> Fix Metadata
+                                </a>
+                            </div>
                             % endif
                             % if data.get('poster_url'):
-                            % if data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
-                            <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="80" data-width="80" style="display: inline-flex;">
-                            % else:
-                            <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
+                            <div class="btn-group">
+                                % if data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
+                                <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="80" data-width="80" style="display: inline-flex;">
+                                % else:
+                                <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
+                                % endif
+                                    <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="delete-imgur-poster">
+                                        <i class="fa fa-picture-o"></i> Reset Imgur Poster
+                                    </button>
+                                </span>
+                            </div>
                             % endif
-                                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="delete-imgur-poster">
-                                    <i class="fa fa-picture-o"></i> Reset Imgur Poster
-                                </button>
-                            </span>
                             % endif
-                            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
-                            % endif
+                            <div class="btn-group colvis-button-bar hidden-xs"></div>
                         </div>
                     </div>
                     <div class="table-card-back">

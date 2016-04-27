@@ -7,20 +7,45 @@
 </%def>
 
 <%def name="body()">
-
 <div class='container-fluid'>
     <div class='table-card-header'>
         <div class="header-bar">
             <span><i class="fa fa-history"></i> History</span>
         </div>
         <div class="button-bar">
-            <div class="colvis-button-bar hidden-xs"></div>
             % if _session['user_group'] == 'admin':
-            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                <i class="fa fa-trash-o"></i> Delete mode
-            </button>
             <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+            <div class="btn-group">
+                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                    <i class="fa fa-trash-o"></i> Delete mode
+                </button>&nbsp
+            </div>
             % endif
+            % if _session['user_group'] == 'admin':
+            <div class="btn-group" id="user-selection">
+                <label>
+                    <select name="history-user" id="history-user" class="btn" style="color: inherit;">
+                        <option value="">All Users</option>
+                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                    </select>
+                </label>
+            </div>
+            % endif
+            <div class="btn-group" data-toggle="buttons" id="media_type-selection">
+                <label class="btn btn-dark active">
+                    <input type="radio" name="media_type-filter" id="history-all" value="" autocomplete="off"> All
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" name="media_type-filter" id="history-movies" value="movie" autocomplete="off"> Movies
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" name="media_type-filter" id="history-tv_shows" value="episode" autocomplete="off"> TV Shows
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" name="media_type-filter" id="history-music" value="track" autocomplete="off"> Music
+                </label>
+            </div>
+            <div class="btn-group colvis-button-bar hidden-xs"></div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -79,7 +104,25 @@
 <script src="${http_root}js/tables/history_table.js"></script>
 <script>
     $(document).ready(function () {
-        function loadHistoryTable(media_type) {
+        // Load user ids and names (for the selector)
+        $.ajax({
+            url: 'get_user_names',
+            type: 'get',
+            dataType: "json",
+            success: function (data) {
+                var select = $('#history-user');
+                data.sort(function (a, b) {
+                    return a.friendly_name.localeCompare(b.friendly_name);
+                });
+                data.forEach(function (item) {
+                    select.append('<option value="' + item.user_id + '">' +
+                        item.friendly_name + '</option>');
+                });
+            }
+        });
+
+        function loadHistoryTable(media_type, selected_user_id) {
+            console.log(selected_user_id)
             history_table_options.ajax = {
                 url: 'get_history',
                 type: 'post',
@@ -87,7 +130,7 @@
                     return {
                         json_data: JSON.stringify(d),
                         media_type: media_type,
-                        user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
+                        user_id: selected_user_id
                     };
                 }
             }
@@ -97,21 +140,6 @@
 
             clearSearchButton('history_table', history_table);
 
-            $('#history_table_filter').prepend('<div class="btn-group" data-toggle="buttons" id="media_type-selection" style="padding-right: 15px;"> \
-                <label class="btn btn-dark active"> \
-                    <input type="radio" name="media_type-filter" id="history-all" value="all" autocomplete="off"> All \
-                </label> \
-                <label class="btn btn-dark"> \
-                    <input type="radio" name="media_type-filter" id="history-movies" value="movie" autocomplete="off"> Movies \
-                </label> \
-                <label class="btn btn-dark"> \
-                    <input type="radio" name="media_type-filter" id="history-tv_shows" value="episode" autocomplete="off"> TV Shows \
-                </label> \
-                <label class="btn btn-dark"> \
-                    <input type="radio" name="media_type-filter" id="history-music" value="track" autocomplete="off"> Music \
-                </label> \
-            </div>');
-
             $('#media_type-selection').on('change', function () {
                 $('#media_type-selection > label').removeClass('active');
                 selected_filter = $('input[name=media_type-filter]:checked', '#media_type-selection');
@@ -119,10 +147,17 @@
                 media_type = $(selected_filter).val();
                 history_table.draw();
             });
+
+            $('#history-user').on('change', function () {
+                selected_user_id = $(this).val() || null;
+                console.log(selected_user_id)
+                history_table.draw();
+            });
         }
 
-        var media_type = 'all';
-        loadHistoryTable(media_type);
+        var media_type = null;
+        var selected_user_id = "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
+        loadHistoryTable(media_type, selected_user_id);
 
         $('#row-edit-mode').on('click', function() {
             $('#row-edit-mode-alert').fadeIn(200);

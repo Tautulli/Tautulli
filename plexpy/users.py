@@ -367,7 +367,7 @@ class Users(object):
             user_details = {}
             if result:
                 for item in result:
-                    if session.get_session_user():
+                    if session.get_session_user_id():
                         friendly_name = session.get_session_user()
                     elif item['friendly_name']:
                         friendly_name = item['friendly_name']

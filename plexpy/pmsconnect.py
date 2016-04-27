@@ -959,20 +959,20 @@ class PmsConnect(object):
             if a.getElementsByTagName('Track'):
                 session_data = a.getElementsByTagName('Track')
                 session_type = 'track'
-                for session in session_data:
-                    session_output = self.get_session_each(session_type, session)
+                for session_ in session_data:
+                    session_output = self.get_session_each(session_type, session_)
                     session_list.append(session_output)
             if a.getElementsByTagName('Video'):
                 session_data = a.getElementsByTagName('Video')
                 session_type = 'video'
-                for session in session_data:
-                    session_output = self.get_session_each(session_type, session)
+                for session_ in session_data:
+                    session_output = self.get_session_each(session_type, session_)
                     session_list.append(session_output)
             if a.getElementsByTagName('Photo'):
                 session_data = a.getElementsByTagName('Photo')
                 session_type = 'photo'
-                for session in session_data:
-                    session_output = self.get_session_each(session_type, session)
+                for session_ in session_data:
+                    session_output = self.get_session_each(session_type, session_)
                     session_list.append(session_output)
 
         output = {'stream_count': helpers.get_xml_attr(xml_head[0], 'size'),
