@@ -66,11 +66,10 @@ def initialize(options):
 
     if options['http_password']:
         logger.info("Web server authentication is enabled, username is '%s'", options['http_username'])
-        auth_enabled = True
-        options_dict['tools.sessions.on'] = True
+        options_dict['tools.sessions.on'] = auth_enabled = session_enabled = True
         cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
     else:
-        auth_enabled = False
+        auth_enabled = session_enabled = False
 
     if not options['http_root'] or options['http_root'] == '/':
         plexpy.HTTP_ROOT = options['http_root'] = '/'
@@ -88,7 +87,7 @@ def initialize(options):
                                       'text/javascript', 'application/json',
                                       'application/javascript'],
             'tools.auth.on': auth_enabled,
-            'tools.sessions.on': True,
+            'tools.sessions.on': session_enabled,
             'tools.sessions.timeout': 30 * 24 * 60  # 30 days
         },
         '/interfaces': {
