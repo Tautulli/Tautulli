@@ -28,7 +28,7 @@ users_list_table_options = {
                     '<button class="btn btn-xs btn-warning purge-user" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
                     '<input type="checkbox" id="do_notify-' + rowData['user_id'] + '" name="do_notify" value="1" ' + rowData['do_notify'] + '><label class="edit-tooltip" for="do_notify-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Notifications"><i class="fa fa-bell fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
-                    '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + rowData['allow_guest'] + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Allow Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + rowData['allow_guest'] + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
             },
             "width": "7%",
