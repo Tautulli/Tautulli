@@ -1,6 +1,23 @@
 var users_to_delete = [];
 var users_to_purge = [];
 
+function toggleEditNames() {
+    if ($('.edit-control').hasClass('hidden')) {
+        $('.edit-user-control > .edit-user-name').each(function () {
+            a = $(this).children('a');
+            input = $(this).children('input');
+            a.text(input.val());
+            a.removeClass('hidden');
+            input.addClass('hidden');
+        });
+    } else {
+        $('.edit-user-control > .edit-user-name').each(function () {
+            $(this).children('a').addClass('hidden');
+            $(this).children('input').removeClass('hidden');
+        });
+    }
+}
+
 users_list_table_options = {
     "language": {
         "search": "Search: ",
@@ -217,6 +234,7 @@ users_list_table_options = {
             $('.edit-control').each(function () {
                 $(this).removeClass('hidden');
             });
+            toggleEditNames();
         }
     },
     "preDrawCallback": function(settings) {
