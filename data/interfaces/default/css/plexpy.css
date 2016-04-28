@@ -2876,9 +2876,6 @@ a.no-highlight:hover {
     margin: 0 auto;
 }
 .login-logo {
-    background-image: url(../images/logo-plexpy@2x.png);
-    background-position: center;
-    background-repeat: no-repeat;
     margin: 0 auto 50px auto;
     width: 340px;
     height: 100px;
