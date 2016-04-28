@@ -41,9 +41,9 @@ DOCUMENTATION :: END
                 %if data['children_type'] == 'season':
                 <div class="item-children-poster">
                     % if child['thumb']:
-                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);">
+                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450&fallback=poster);">
                     % else:
-                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['parent_thumb']}&width=300&height=450);">
+                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['parent_thumb']}&width=300&height=450&fallback=poster);">
                     % endif
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
@@ -54,7 +54,7 @@ DOCUMENTATION :: END
                 </div>
                 % elif data['children_type'] == 'episode':
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face episode-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);">
+                    <div class="item-children-poster-face episode-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=500&height=250&fallback=art);">
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
                                 Episode ${child['media_index']}
@@ -67,7 +67,7 @@ DOCUMENTATION :: END
                 </div>
                 % elif data['children_type'] == 'album':
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300);"></div>
+                    <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300&fallback=cover);"></div>
                 </div>
                 <div class="item-children-instance-text-wrapper album-item">
                     <h3 title="${child['title']}">${child['title']}</h3>
