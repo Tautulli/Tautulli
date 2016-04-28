@@ -40,21 +40,21 @@ def get_session_user():
     Returns the user_id for the current logged in session
     """
     _session = get_session_info()
-    return _session['user']
+    return _session['user'] if _session and _session['user'] else None
 
 def get_session_user_id():
     """
     Returns the user_id for the current logged in session
     """
     _session = get_session_info()
-    return str(_session['user_id']) if _session['user_id'] else None
+    return str(_session['user_id']) if _session and _session['user_id'] else None
 
 def get_session_libraries():
     """
     Returns a tuple of section_id for the current logged in session
     """
     _session = get_session_info()
-    return _session['user_libraries']
+    return _session['user_libraries'] if _session and _session['user_libraries'] else None
 
 def allow_session_user(user_id):
     """
