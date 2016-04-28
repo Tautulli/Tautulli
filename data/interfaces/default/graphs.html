@@ -271,7 +271,7 @@
             var y = dateValue.getFullYear();
             var dateString = '' + y + '-' + (m<=9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
 
-            var media_type = 'all';
+            var media_type = null;
             var transcode_decision = null;
             switch(selectedSeries) {
                 case "TV": media_type = 'episode'; break;

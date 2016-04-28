@@ -451,9 +451,7 @@ class Graphs(object):
             time_range = '30'
 
         user_cond = ''
-        if session.get_session_user_id():
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
+        if user_id and user_id.isdigit() and not session.get_session_user_id():
             user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
@@ -505,7 +503,10 @@ class Graphs(object):
         session_user_id = session.get_session_user_id()
 
         for item in result:
-            categories.append(item['username'] if str(item['user_id']) == session_user_id else item['friendly_name'])
+            if session_user_id:
+                categories.append(item['username'] if str(item['user_id']) == session_user_id else 'Plex User')
+            else:
+                categories.append(item['friendly_name'])
             series_1.append(item['tv_count'])
             series_2.append(item['movie_count'])
             series_3.append(item['music_count'])
@@ -889,9 +890,7 @@ class Graphs(object):
             time_range = '30'
 
         user_cond = ''
-        if session.get_session_user_id():
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
+        if user_id and user_id.isdigit() and not session.get_session_user_id():
             user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
@@ -954,7 +953,10 @@ class Graphs(object):
         session_user_id = session.get_session_user_id()
 
         for item in result:
-            categories.append(item['username'] if str(item['user_id']) == session_user_id else item['friendly_name'])
+            if session_user_id:
+                categories.append(item['username'] if str(item['user_id']) == session_user_id else 'Plex User')
+            else:
+                categories.append(item['friendly_name'])
             series_1.append(item['dp_count'])
             series_2.append(item['ds_count'])
             series_3.append(item['tc_count'])
