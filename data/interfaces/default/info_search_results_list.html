@@ -64,7 +64,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
+                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450&fallback=poster);"></div>
                 </div>
                 <div class="item-children-instance-text-wrapper season-item">
                     <h3 title="${child['title']}">${child['title']}</h3>
@@ -86,7 +86,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
+                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450&fallback=poster);"></div>
                 </div>
                 <div class="item-children-instance-text-wrapper season-item">
                     <h3 title="${child['title']}">${child['title']}</h3>
@@ -108,7 +108,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
+                    <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450&fallback=poster);"></div>
                 </div>
                 <div class="item-children-instance-text-wrapper season-item">
                     <h3 title="${child['parent_title']}">${child['parent_title']}</h3>
@@ -130,7 +130,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face episode-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450);"></div>
+                    <div class="item-children-poster-face episode-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=500&height=250&fallback=art);"></div>
                 </div>
                 <div class="item-children-instance-text-wrapper episode-item">
                     <h3 title="${child['grandparent_title']}">${child['grandparent_title']}</h3>
@@ -153,7 +153,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300);"></div>
+                    <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300&fallback=cover);"></div>
                 </div>
                 <div class="item-children-instance-text-wrapper album-item">
                     <h3 title="${child['title']}">${child['title']}</h3>
@@ -174,7 +174,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300);"></div>
+                    <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300&fallback=cover);"></div>
                 </div>
                 <div class="item-children-instance-text-wrapper album-item">
                     <h3 title="${child['parent_title']}">${child['parent_title']}</h3>
@@ -196,7 +196,7 @@ DOCUMENTATION :: END
         <li>
             <a href="info?rating_key=${child['rating_key']}" id="${child['rating_key']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['parent_thumb']}&width=300&height=300);">
+                    <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['parent_thumb']}&width=300&height=300&fallback=cover);">
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
                                 Track ${child['media_index']}

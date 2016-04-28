@@ -1905,6 +1905,14 @@ class WebInterface(object):
                     return fallback_image
                 except IOError, e:
                     logger.error(u"Unable to read fallback %s image: %s" % (fallback, e))
+            elif fallback == 'art':
+                logger.info(u"Trying fallback image...")
+                try:
+                    fallback_image = open(self.interface_dir + common.DEFAULT_ART, 'rb')
+                    cherrypy.response.headers['Content-type'] = 'image/png'
+                    return fallback_image
+                except IOError, e:
+                    logger.error(u"Unable to read fallback %s image: %s" % (fallback, e))
 
             return None
 
