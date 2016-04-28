@@ -522,6 +522,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label>
                                 <input type="checkbox" id="allow_guest_access" name="allow_guest_access" value="1" ${config['allow_guest_access']}> Allow Guest Access to PlexPy
                             </label>
+                            <span id="allowGuestCheck" style="color: #eb8600; padding-left: 10px;"></span>
                             <p class="help-block">Allow shared users to login to PlexPy using their Plex.tv account. Individual user access needs to be enabled from Users > Edit Mode.</p>
                         </div>
 
@@ -2497,6 +2498,23 @@ $(document).ready(function() {
             $('#guidelines-modal').modal('hide');
         });
     });
+
+    function allowGuestAccessCheck () {
+        if ($('#http_username').val() == '' || $('#http_password').val() == '') {
+            $("#allow_guest_access").attr("disabled", true);
+            $("#allow_guest_access").attr("checked", false);
+            $("#allowGuestCheck").html("You must set an admin password above to allow guest access.");
+        } else {
+            $("#allow_guest_access").attr("disabled", false);
+            $("#allowGuestCheck").html("");
+        }
+    }
+    allowGuestAccessCheck();
+
+    $('#http_username, #http_password').change(function () {
+        allowGuestAccessCheck();
+    });
+
 
     $("#http_hash_password").click(function(){
         if (!($("#http_hash_password").is(":checked")) && $("#http_hashed_password").val() == "1" && $("#http_password").val() == "    ") {
