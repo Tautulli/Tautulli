@@ -269,7 +269,10 @@ ${next.headerIncludes()}
     });
 
     $("#nav-restart").click(function () {
-        window.location.href = "restart";
+        var r = confirm("Are you sure you want to restart PlexPy?");
+        if (r == true) {
+            window.location.href = "restart";
+        }
     });
 
     $("#nav-update").first().one("click", function () {
