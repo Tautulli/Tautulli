@@ -25,17 +25,15 @@ def get_session_info():
     """
     from plexpy.webauth import SESSION_KEY
 
-    # Hacky solution to exclude not cherrypy threads from sessions
-    if 'CP Server' in threading.current_thread().name and cherrypy.config.get('tools.sessions.on'):
-        _session = cherrypy.session.get(SESSION_KEY)
-        if _session:
-            return _session
-
-    return {'user_id': None,
-            'user': None,
-            'user_group': 'admin',
-            'user_libraries': None,
-            'expiry': None}
+    _session = {'user_id': None,
+                'user': None,
+                'user_group': 'admin',
+                'user_libraries': None,
+                'expiry': None}
+    try:
+        return cherrypy.session.get(SESSION_KEY, _session)
+    except AttributeError as e:
+        return _session
 
 def get_session_user():
     """
