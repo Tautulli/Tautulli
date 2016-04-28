@@ -165,7 +165,7 @@ class DataFactory(object):
 
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': rows,
+                'data': session.friendly_name_to_username(rows),
                 'draw': query['draw'],
                 'filter_duration': helpers.human_duration(filter_duration, sig='dhm'),
                 'total_duration': helpers.human_duration(total_duration, sig='dhm')
