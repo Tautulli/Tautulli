@@ -1054,6 +1054,7 @@ class PmsConnect(object):
                               'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                               'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                               'title': helpers.get_xml_attr(session, 'title'),
+                              'year': helpers.get_xml_attr(session, 'year'),
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                               'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                               'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
