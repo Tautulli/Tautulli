@@ -934,6 +934,7 @@ def build_server_notify_text(notify_action=None, agent_id=None):
 
     update_status = {}
     if notify_action == 'pmsupdate':
+        pms_connect = pmsconnect.PmsConnect()
         update_status = pms_connect.get_update_staus()
 
     if server_times:
