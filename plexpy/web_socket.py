@@ -105,7 +105,7 @@ def run():
             logger.info(u"PlexPy WebSocket :: Reconnecting websocket...")
             ws.shutdown()
             ws_connected = False
-            threading.Thread(target=run).start()
+            threading.Thread(target=start_thread).start()
     
     if not ws_connected and not ws_reconnect:
         logger.error(u"PlexPy WebSocket :: Connection unavailable, falling back to polling.")
