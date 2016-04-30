@@ -26,18 +26,21 @@ def user_login(username=None, password=None):
     
     # Try to login to Plex.tv to check if the user has a vaild account
     plex_tv = plextv.PlexTV(username=username, password=password)
-    user = plex_tv.get_token()
-    if user:
-        user_token = user['auth_token']
-        user_id = user['user_id']
+    plex_user = plex_tv.get_token()
+    if plex_user:
+        user_token = plex_user['auth_token']
+        user_id = plex_user['user_id']
 
         # Retrieve user token from the database and check against the Plex.tv token.
         # Also Make sure 'allow_guest' access is enabled for the user.
         # The user tokens should match if it is the same PlexPy install.
         tokens = user_data.get_tokens(user_id=user_id)
-        if tokens and tokens['allow_guest'] and user_token == tokens['user_token']:
-            # Successful login
-            return True
+        if not tokens:
+            # The user is not in the database
+            return None
+        elif not tokens['allow_guest'] or not user_token == tokens['user_token']:
+            # Guest access is disabled, or user tokens don't match
+            return None
 
         # Otherwise it is a new user or token is no longer valid.
         # Check if the user is in the database, not deleted, and 'allow_guest' access.
