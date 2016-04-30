@@ -18,17 +18,8 @@ from plexpy import logger, datatables, common, database, helpers, session
 
 def update_section_ids():
     from plexpy import pmsconnect, activity_pinger
-    #import threading
 
     plexpy.CONFIG.UPDATE_SECTION_IDS = -1
-
-    #logger.debug(u"PlexPy Libraries :: Disabling monitoring while update in progress.")
-    #plexpy.schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
-    #                    hours=0, minutes=0, seconds=0)
-    #plexpy.schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-    #                    hours=0, minutes=0, seconds=0)
-    #plexpy.schedule_job(activity_pinger.check_server_response, 'Check for server response',
-    #                    hours=0, minutes=0, seconds=0)
 
     monitor_db = database.MonitorDatabase()
 
@@ -44,9 +35,6 @@ def update_section_ids():
         logger.warn(u"PlexPy Libraries :: Unable to update section_id's in database.")
         plexpy.CONFIG.UPDATE_SECTION_IDS = 1
         plexpy.CONFIG.write()
-
-        #logger.debug(u"PlexPy Libraries :: Re-enabling monitoring.")
-        #plexpy.initialize_scheduler()
         return None
 
     if not history_results:
@@ -54,13 +42,7 @@ def update_section_ids():
         plexpy.CONFIG.write()
         return None
 
-    logger.info(u"PlexPy Libraries :: Updating section_id's in database.")
-
-    # Add thread filter to the logger
-    #logger.debug(u"PlexPy Libraries :: Disabling logging in the current thread while update in progress.")
-    #thread_filter = logger.NoThreadFilter(threading.current_thread().name)
-    #for handler in logger.logger.handlers:
-    #    handler.addFilter(thread_filter)
+    logger.debug(u"PlexPy Libraries :: Updating section_id's in database.")
 
     # Get rating_key: section_id mapping pairs
     key_mappings = {}
@@ -94,11 +76,6 @@ def update_section_ids():
         else:
             error_keys.add(item['rating_key'])
 
-    # Remove thread filter from the logger
-    #for handler in logger.logger.handlers:
-    #    handler.removeFilter(thread_filter)
-    #logger.debug(u"PlexPy Libraries :: Re-enabling logging in the current thread.")
-
     if error_keys:
         logger.info(u"PlexPy Libraries :: Updated all section_id's in database except for rating_keys: %s." %
                      ', '.join(str(key) for key in error_keys))
@@ -108,10 +85,86 @@ def update_section_ids():
     plexpy.CONFIG.UPDATE_SECTION_IDS = 0
     plexpy.CONFIG.write()
 
-    #logger.debug(u"PlexPy Libraries :: Re-enabling monitoring.")
-    #plexpy.initialize_scheduler()
+    return True
+
+def update_labels():
+    from plexpy import pmsconnect
+
+    plexpy.CONFIG.UPDATE_LABELS = -1
+
+    monitor_db = database.MonitorDatabase()
+
+    try:
+        query = 'SELECT section_id, section_type FROM library_sections'
+        library_results = monitor_db.select(query=query)
+    except Exception as e:
+        logger.warn(u"PlexPy Libraries :: Unable to execute database query for update_labels: %s." % e)
+
+        logger.warn(u"PlexPy Libraries :: Unable to update labels in database.")
+        plexpy.CONFIG.UPDATE_LABELS = 1
+        plexpy.CONFIG.write()
+        return None
+
+    if not library_results:
+        plexpy.CONFIG.UPDATE_LABELS = 0
+        plexpy.CONFIG.write()
+        return None
+
+    logger.debug(u"PlexPy Libraries :: Updating labels in database.")
+
+    # Get rating_key: section_id mapping pairs
+    key_mappings = {}
+
+    pms_connect = pmsconnect.PmsConnect()
+    for library in library_results:
+        section_id = library['section_id']
+        section_type = library['section_type']
+        
+        if section_type != 'photo':
+            library_children = []
+            library_labels = pms_connect.get_library_label_details(section_id=section_id)
+
+            if library_labels:
+                for label in library_labels:
+                    library_children = pms_connect.get_library_children_details(section_id=section_id,
+                                                                                section_type=section_type,
+                                                                                label_key=label['label_key'])
+
+                    if library_children:
+                        children_list = library_children['childern_list']
+                        rating_key_list = [child['rating_key'] for child in children_list]
+
+                        for rating_key in [child['rating_key'] for child in children_list]:
+                            if key_mappings.get(rating_key):
+                                key_mappings[rating_key].append(label['label_title'])
+                            else:
+                                key_mappings[rating_key] = [label['label_title']]
+
+                    else:
+                        logger.warn(u"PlexPy Libraries :: Unable to get a list of library items for section_id %s."
+                                    % section_id)
+
+    error_keys = set()
+    for rating_key, labels in key_mappings.iteritems():
+        try:
+            labels = ';'.join(labels)
+            monitor_db.action('UPDATE session_history_metadata SET labels = ? '
+                              'WHERE rating_key = ? OR parent_rating_key = ? OR grandparent_rating_key = ? ',
+                              args=[labels, rating_key, rating_key, rating_key])
+        except:
+            error_keys.add(rating_key)
+
+    if error_keys:
+        logger.info(u"PlexPy Libraries :: Updated all labels in database except for rating_keys: %s." %
+                     ', '.join(str(key) for key in error_keys))
+    else:
+        logger.info(u"PlexPy Libraries :: Updated all labels in database.")
+
+    plexpy.CONFIG.UPDATE_LABELS = 0
+    plexpy.CONFIG.write()
 
     return True
+
 
 class Libraries(object):
 

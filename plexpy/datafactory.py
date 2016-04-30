@@ -1155,6 +1155,7 @@ class DataFactory(object):
             writers = ";".join(metadata['writers'])
             actors = ";".join(metadata['actors'])
             genres = ";".join(metadata['genres'])
+            labels = ";".join(metadata['labels'])
 
             #logger.info(u"PlexPy DataFactory :: Updating metadata in the database for rating key: %s." % new_rating_key)
             monitor_db = database.MonitorDatabase()
