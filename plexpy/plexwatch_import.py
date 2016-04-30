@@ -148,6 +148,12 @@ def extract_plexwatch_xml(xml=None):
             for i in genre_elem:
                 genres.append(helpers.get_xml_attr(i, 'tag'))
 
+        labels = []
+        if a.getElementsByTagName('Lables'):
+            label_elem = a.getElementsByTagName('Lables')
+            for i in label_elem:
+                labels.append(helpers.get_xml_attr(i, 'tag'))
+
         output = {'added_at': added_at,
                   'art': art,
                   'duration': duration,
@@ -196,7 +202,8 @@ def extract_plexwatch_xml(xml=None):
                   'writers': writers,
                   'actors': actors,
                   'genres': genres,
-                  'studio': studio
+                  'studio': studio,
+                  'labels': labels
                   }
 
     return output
@@ -380,6 +387,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                                     'actors': extracted_xml['actors'],
                                     'genres': extracted_xml['genres'],
                                     'studio': extracted_xml['studio'],
+                                    'labels': extracted_xml['labels'],
                                     'full_title': row['full_title']
                                     }
 
