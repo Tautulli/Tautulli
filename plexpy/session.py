@@ -203,14 +203,14 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
                         'grandparent_thumb': common.DEFAULT_POSTER_THUMB,
                         'thumb': common.DEFAULT_POSTER_THUMB,
                         'bif_thumb': '',
-                        'grandparent_title': 'Title',
-                        'parent_title': 'Title',
-                        'title': 'Title',
+                        'grandparent_title': 'Plex Media',
+                        'parent_title': 'Plex Media',
+                        'title': 'Plex Media',
                         'rating_key': '',
                         'parent_rating_key': '',
                         'grandparent_rating_key': '',
                         'year': '',
-                        'last_played': 'Title'
+                        'last_played': 'Plex Media'
                         }
 
     list_of_dicts = friendly_name_to_username(list_of_dicts)
