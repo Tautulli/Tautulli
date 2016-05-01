@@ -98,7 +98,7 @@ def user_login(username=None, password=None):
 
     return None
 
-def check_credentials(username, password):
+def check_credentials(username, password, admin_login='0'):
     """Verifies credentials for username and password.
     Returns True and the user group on success or False and no user group"""
 
@@ -107,7 +107,7 @@ def check_credentials(username, password):
         return True, u'admin'
     elif username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
         return True, u'admin'
-    elif plexpy.CONFIG.ALLOW_GUEST_ACCESS and user_login(username, password):
+    elif not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS and user_login(username, password):
         return True, u'guest'
     else:
         return False, None
@@ -202,14 +202,14 @@ class AuthController(object):
         raise cherrypy.HTTPRedirect("login")
 
     @cherrypy.expose
-    def login(self, username=None, password=None, remember_me='0'):
+    def login(self, username=None, password=None, remember_me='0', admin_login='0'):
         if not cherrypy.config.get('tools.sessions.on'):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         if username is None or password is None:
             return self.get_loginform()
         
-        (vaild_login, user_group) = check_credentials(username, password)
+        (vaild_login, user_group) = check_credentials(username, password, admin_login)
 
         if vaild_login:
             if user_group == 'guest':
@@ -234,6 +234,9 @@ class AuthController(object):
             self.on_login(username)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
+        elif admin_login == '1':
+            logger.debug(u"Invalid admin login attempt from '%s'." % username)
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
         else:
             logger.debug(u"Invalid login attempt from '%s'." % username)
             return self.get_loginform(username, u"Incorrect username/email or password.")
