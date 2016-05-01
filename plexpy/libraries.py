@@ -182,8 +182,8 @@ class Libraries(object):
 
         custom_where = [['library_sections.deleted_section', 0]]
 
-        if session.get_session_libraries():
-            custom_where.append(['library_sections.section_id', session.get_session_libraries()])
+        if session.get_session_shared_libraries():
+            custom_where.append(['library_sections.section_id', session.get_session_shared_libraries()])
 
         columns = ['library_sections.section_id',
                    'library_sections.section_name',
@@ -210,6 +210,8 @@ class Libraries(object):
                    'session_history_metadata.year',
                    'session_history_metadata.media_index',
                    'session_history_metadata.parent_media_index',
+                   'session_history_metadata.content_rating',
+                   'session_history_metadata.labels',
                    'library_sections.do_notify',
                    'library_sections.do_notify_created',
                    'library_sections.keep_history'
@@ -271,6 +273,8 @@ class Libraries(object):
                    'year': item['year'],
                    'media_index': item['media_index'],
                    'parent_media_index': item['parent_media_index'],
+                   'content_rating': item['content_rating'],
+                   'labels': item['labels'].split(';') if item['labels'] else (),
                    'do_notify': helpers.checked(item['do_notify']),
                    'do_notify_created': helpers.checked(item['do_notify_created']),
                    'keep_history': helpers.checked(item['keep_history'])
@@ -280,7 +284,7 @@ class Libraries(object):
         
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': rows,
+                'data': session.mask_session_info(rows),
                 'draw': query['draw']
                 }
         
@@ -787,7 +791,7 @@ class Libraries(object):
                 query = 'SELECT session_history.id, session_history.media_type, ' \
                         'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
                         'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
-                        'year, started, user ' \
+                        'year, started, user, content_rating, labels, section_id ' \
                         'FROM session_history_metadata ' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                         'WHERE section_id = ? ' \
@@ -822,11 +826,14 @@ class Libraries(object):
                                  'parent_media_index': row['parent_media_index'],
                                  'year': row['year'],
                                  'time': row['started'],
-                                 'user': row['user']
+                                 'user': row['user'],
+                                 'section_id': row['section_id'],
+                                 'content_rating': row['content_rating'],
+                                 'labels': row['labels'].split(';') if row['labels'] else (),
                                  }
                 recently_watched.append(recent_output)
 
-        return recently_watched
+        return session.mask_session_info(recently_watched)
 
     def get_sections(self):
         monitor_db = database.MonitorDatabase()

@@ -16,73 +16,6 @@
 import plexpy
 from plexpy import logger, datatables, common, database, helpers, session
 
-def user_login(username=None, password=None):
-    from plexpy import plextv
-
-    if not username and not password:
-        return None
-
-    user_data = Users()
-    
-    # Try to login to Plex.tv to check if the user has a vaild account
-    plex_tv = plextv.PlexTV(username=username, password=password)
-    plex_user = plex_tv.get_token()
-    if plex_user:
-        user_token = plex_user['auth_token']
-        user_id = plex_user['user_id']
-
-        # Retrieve user token from the database and check against the Plex.tv token.
-        # Also Make sure 'allow_guest' access is enabled for the user.
-        # The user tokens should match if it is the same PlexPy install.
-        tokens = user_data.get_tokens(user_id=user_id)
-        if not tokens:
-            # The user is not in the database
-            return None
-        elif not tokens['allow_guest'] or not user_token == tokens['user_token']:
-            # Guest access is disabled, or user tokens don't match
-            return None
-
-        # Otherwise it is a new user or token is no longer valid.
-        # Check if the user is in the database, not deleted, and 'allow_guest' access.
-        user_details = user_data.get_details(user_id=user_id)
-        if user_id == str(user_details['user_id']) and \
-            not user_details['deleted_user'] and user_details['allow_guest']:
-
-            # The user is in the database, so try to retrieve a new server token.
-            # If a server token is returned, then the user is a valid friend
-            plex_tv = plextv.PlexTV(token=user_token)
-            server_token = plex_tv.get_server_token()
-            if server_token:
-
-                # Register the new user / update the access tokens.
-                monitor_db = database.MonitorDatabase()
-                try:
-                    logger.debug(u"PlexPy Users :: Regestering tokens for user '%s' in the database." % username)
-                    result = monitor_db.action('UPDATE users SET user_token = ?, server_token = ? WHERE user_id = ?',
-                                               [user_token, server_token, user_id])
-
-                    if result:
-                        # Successful login
-                        return True
-                    else:
-                        logger.warn(u"PlexPy Users :: Unable to register user '%s' in database." % username)
-                        return None
-                except Exception as e:
-                    logger.warn(u"PlexPy Users :: Unable to register user '%s' in database: %s." % (username, e))
-                    return None
-            else:
-                logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv server token for user '%s'." % username)
-                return None
-        else:
-            logger.warn(u"PlexPy Users :: Unable to register user '%s'. User not in the database." % username)
-            return None
-    else:
-        logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv user token for user '%s'." % username)
-        return None
-
-    return None
-
-
 class Users(object):
 
     def __init__(self):
@@ -333,7 +266,8 @@ class Users(object):
                           'is_restricted': 0,
                           'do_notify': 0,
                           'keep_history': 1,
-                          'allow_guest': 0
+                          'allow_guest': 0,
+                          'shared_libraries': ()
                           }
 
         if not user_id and not user and not email:
@@ -345,19 +279,22 @@ class Users(object):
             try:
                 if str(user_id).isdigit():
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, allow_guest ' \
+                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE user_id = ? '
                     result = monitor_db.select(query, args=[user_id])
                 elif user:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, allow_guest ' \
+                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE username = ? '
                     result = monitor_db.select(query, args=[user])
                 elif email:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, allow_guest ' \
+                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE email = ? '
                     result = monitor_db.select(query, args=[email])
@@ -395,7 +332,8 @@ class Users(object):
                                     'do_notify': item['do_notify'],
                                     'keep_history': item['keep_history'],
                                     'deleted_user': item['deleted_user'],
-                                    'allow_guest': item['allow_guest']
+                                    'allow_guest': item['allow_guest'],
+                                    'shared_libraries': tuple(item['shared_libraries'].split(';'))
                                     }
             return user_details
 
@@ -691,3 +629,33 @@ class Users(object):
                 return None
 
         return None
+
+    def get_filters(self, user_id=None):
+        import urlparse
+
+        if not user_id:
+            return {}
+
+        try:
+            monitor_db = database.MonitorDatabase()
+            query = 'SELECT filter_all, filter_movies, filter_tv, filter_music, filter_photos FROM users ' \
+                    'WHERE user_id = ?'
+            result = monitor_db.select_single(query, args=[user_id])
+        except Exception as e:
+            logger.warn(u"PlexPy Users :: Unable to execute database query for get_filters: %s." % e)
+            result = {}
+
+        filters_list = {}
+        for k, v in result.iteritems():
+            filters = {}
+                
+            for f in v.split('|'):
+                if 'contentRating=' in f or 'label=' in f:
+                    filters.update(dict(urlparse.parse_qsl(f)))
+                        
+            filters['content_rating'] = tuple(f for f in filters.pop('contentRating', '').split(',') if f)
+            filters['labels'] = tuple(f for f in filters.pop('label', '').split(',') if f)
+
+            filters_list[k] = filters
+
+        return filters_list

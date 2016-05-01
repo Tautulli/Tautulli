@@ -26,11 +26,77 @@ import re
 
 import plexpy
 from plexpy import logger
-from plexpy.users import Users, user_login
+from plexpy.database import MonitorDatabase
+from plexpy.users import Users
+from plexpy.plextv import PlexTV
 from plexpy.pmsconnect import PmsConnect
 
 
 SESSION_KEY = '_cp_username'
+
+def user_login(username=None, password=None):
+    if not username and not password:
+        return None
+
+    user_data = Users()
+    
+    # Try to login to Plex.tv to check if the user has a vaild account
+    plex_tv = PlexTV(username=username, password=password)
+    plex_user = plex_tv.get_token()
+    if plex_user:
+        user_token = plex_user['auth_token']
+        user_id = plex_user['user_id']
+
+        # Retrieve user token from the database and check against the Plex.tv token.
+        # Also Make sure 'allow_guest' access is enabled for the user.
+        # The user tokens should match if it is the same PlexPy install.
+        tokens = user_data.get_tokens(user_id=user_id)
+        if not tokens:
+            # The user is not in the database
+            return None
+        elif not tokens['allow_guest'] or not user_token == tokens['user_token']:
+            # Guest access is disabled, or user tokens don't match
+            return None
+
+        # Otherwise it is a new user or token is no longer valid.
+        # Check if the user is in the database, not deleted, and 'allow_guest' access.
+        user_details = user_data.get_details(user_id=user_id)
+        if user_id == str(user_details['user_id']) and \
+            not user_details['deleted_user'] and user_details['allow_guest']:
+
+            # The user is in the database, so try to retrieve a new server token.
+            # If a server token is returned, then the user is a valid friend
+            plex_tv = PlexTV(token=user_token)
+            server_token = plex_tv.get_server_token()
+            if server_token:
+
+                # Register the new user / update the access tokens.
+                monitor_db = MonitorDatabase()
+                try:
+                    logger.debug(u"PlexPy Users :: Regestering tokens for user '%s' in the database." % username)
+                    result = monitor_db.action('UPDATE users SET user_token = ?, server_token = ? WHERE user_id = ?',
+                                               [user_token, server_token, user_id])
+
+                    if result:
+                        # Successful login
+                        return True
+                    else:
+                        logger.warn(u"PlexPy Users :: Unable to register user '%s' in database." % username)
+                        return None
+                except Exception as e:
+                    logger.warn(u"PlexPy Users :: Unable to register user '%s' in database: %s." % (username, e))
+                    return None
+            else:
+                logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv server token for user '%s'." % username)
+                return None
+        else:
+            logger.warn(u"PlexPy Users :: Unable to register user '%s'. User not in the database." % username)
+            return None
+    else:
+        logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv user token for user '%s'." % username)
+        return None
+
+    return None
 
 def check_credentials(username, password):
     """Verifies credentials for username and password.
@@ -151,16 +217,10 @@ class AuthController(object):
                     user_details = Users().get_details(email=username)
                 else:
                     user_details = Users().get_details(user=username)
+
                 user_id = user_details['user_id']
-
-                user_tokens = Users().get_tokens(user_id=user_details['user_id'])
-                server_token = user_tokens['server_token']
-
-                library_details = PmsConnect(token=server_token).get_server_children()
-                user_libraries = tuple(d['section_id'] for d in library_details['libraries_list'])
             else:
                 user_id = None
-                user_libraries = None
 
             expiry = datetime.now() + (timedelta(days=30) if remember_me == '1' else timedelta(minutes=60))
 
@@ -169,7 +229,6 @@ class AuthController(object):
             cherrypy.session[SESSION_KEY] = {'user_id': user_id,
                                              'user': username,
                                              'user_group': user_group,
-                                             'user_libraries': user_libraries,
                                              'expiry': expiry}
 
             self.on_login(username)

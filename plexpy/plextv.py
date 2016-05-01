@@ -131,9 +131,7 @@ class PlexTV(object):
         self.password = password
         self.ssl_verify = plexpy.CONFIG.VERIFY_SSL_CERT
 
-        if token == 'admin':
-            token = plexpy.CONFIG.PMS_TOKEN
-        elif not token:
+        if not token:
             # Check if we should use the admin token, or the guest server token
             if session.get_session_user_id():
                 user_data = users.Users()

@@ -82,9 +82,13 @@ DOCUMENTATION :: END
                 </div>
                 <div class="home-platforms-instance-playcount">
                     <h4>
+                        % if top_stat['rows'][0]['rating_key']:
                         <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
+                        % else:
+                        ${top_stat['rows'][0]['title']}
+                        % endif
                     </h4>
                     % if top_stat['stat_type'] == 'total_plays':
                     <h3>${top_stat['rows'][0]['total_plays']}</h3>
@@ -94,6 +98,7 @@ DOCUMENTATION :: END
                     % endif
                 </div>
             </div>
+            % if top_stat['rows'][0]['rating_key']:
             <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                 % if top_stat['rows'][0]['grandparent_thumb']:
                 <div class="home-platforms-instance-poster">
@@ -105,6 +110,11 @@ DOCUMENTATION :: END
                 </div>
                 % endif
             </a>
+            % else:
+            <div class="home-platforms-instance-poster">
+                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+            </div>
+            % endif
             % if len(top_stat['rows']) > 1:
             <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
@@ -116,9 +126,13 @@ DOCUMENTATION :: END
                             <div class="home-platforms-instance-list-info">
                                 <div class="home-platforms-instance-list-name">
                                     <h5>
+                                        % if top_stat['rows'][loop.index]['rating_key']:
                                         <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                             ${top_stat['rows'][loop.index]['title']}
                                         </a>
+                                        % else:
+                                        ${top_stat['rows'][loop.index]['title']}
+                                        % endif
                                     </h5>
                                 </div>
                                 <div class="home-platforms-instance-list-playcount">
@@ -130,17 +144,23 @@ DOCUMENTATION :: END
                                     % endif
                                 </div>
                             </div>
+                            % if top_stat['rows'][loop.index]['rating_key']:
                             <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
-                            % if top_stat['rows'][loop.index]['grandparent_thumb']:
-                            <div class="home-platforms-instance-list-poster">
-                                <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
-                            </div>
+                                % if top_stat['rows'][loop.index]['grandparent_thumb']:
+                                <div class="home-platforms-instance-list-poster">
+                                    <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
+                                </div>
+                                % else:
+                                <div class="home-platforms-instance-list-poster">
+                                    <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                                </div>
+                                % endif
+                            </a>
                             % else:
-                            <div class="home-platforms-instance-poster2">
+                            <div class="home-platforms-instance-list-poster">
                                 <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
                             </div>
                             % endif
-                            </a>
                             <div class="home-platforms-instance-list-number">
                                 <h4>${loop.index + 1}</h4>
                             </div>
@@ -162,14 +182,19 @@ DOCUMENTATION :: END
                 </div>
                 <div class="home-platforms-instance-playcount">
                     <h4>
+                        % if top_stat['rows'][0]['rating_key']:
                         <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
+                        % else:
+                        ${top_stat['rows'][0]['title']}
+                        % endif
                     </h4>
                     <h3>${top_stat['rows'][0]['users_watched']}</h3>
                     <p> users</p>
                 </div>
             </div>
+            % if top_stat['rows'][0]['rating_key']:
             <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                 % if top_stat['rows'][0]['grandparent_thumb'] != '':
                 <div class="home-platforms-instance-poster">
@@ -181,6 +206,11 @@ DOCUMENTATION :: END
                 </div>
                 % endif
             </a>
+            % else:
+            <div class="home-platforms-instance-poster">
+                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+            </div>
+            % endif
             % if len(top_stat['rows']) > 1:
             <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
@@ -192,9 +222,13 @@ DOCUMENTATION :: END
                             <div class="home-platforms-instance-list-info">
                                 <div class="home-platforms-instance-list-name">
                                     <h5>
+                                        % if top_stat['rows'][loop.index]['rating_key']:
                                         <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                             ${top_stat['rows'][loop.index]['title']}
                                         </a>
+                                        % else:
+                                        ${top_stat['rows'][loop.index]['title']}
+                                        % endif
                                     </h5>
                                 </div>
                                 <div class="home-platforms-instance-list-playcount">
@@ -202,17 +236,23 @@ DOCUMENTATION :: END
                                     <p> users</p>
                                 </div>
                             </div>
+                            % if top_stat['rows'][loop.index]['rating_key']:
                             <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                 % if top_stat['rows'][loop.index]['grandparent_thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
                                 </div>
                                 % else:
-                                <div class="home-platforms-instance-poster2">
+                                <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
                                 </div>
                                 % endif
                             </a>
+                            % else:
+                            <div class="home-platforms-instance-list-poster">
+                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                            </div>
+                            % endif
                             <div class="home-platforms-instance-list-number">
                                 <h4>${loop.index + 1}</h4>
                             </div>
@@ -234,9 +274,13 @@ DOCUMENTATION :: END
                 </div>
                 <div class="home-platforms-instance-playcount">
                     <h4>
+                        % if top_stat['rows'][0]['rating_key']:
                         <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
+                        % else:
+                        ${top_stat['rows'][0]['title']}
+                        % endif
                     </h4>
                     % if top_stat['stat_type'] == 'total_plays':
                     <h3>${top_stat['rows'][0]['total_plays']}</h3>
@@ -246,6 +290,7 @@ DOCUMENTATION :: END
                     % endif
                 </div>
             </div>
+            % if top_stat['rows'][0]['rating_key']:
             <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                 % if top_stat['rows'][0]['thumb']:
                 <div class="home-platforms-instance-poster">
@@ -257,6 +302,11 @@ DOCUMENTATION :: END
                 </div>
                 % endif
             </a>
+            % else:
+            <div class="home-platforms-instance-poster">
+                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+            </div>
+            % endif
             % if len(top_stat['rows']) > 1:
             <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
@@ -268,9 +318,13 @@ DOCUMENTATION :: END
                             <div class="home-platforms-instance-list-info">
                                 <div class="home-platforms-instance-list-name">
                                     <h5>
+                                        % if top_stat['rows'][loop.index]['rating_key']:
                                         <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                             ${top_stat['rows'][loop.index]['title']}
                                         </a>
+                                        % else:
+                                        ${top_stat['rows'][loop.index]['title']}
+                                        % endif
                                     </h5>
                                 </div>
                                 <div class="home-platforms-instance-list-playcount">
@@ -282,17 +336,23 @@ DOCUMENTATION :: END
                                     % endif
                                 </div>
                             </div>
+                            % if top_stat['rows'][loop.index]['rating_key']:
                             <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                 % if top_stat['rows'][loop.index]['thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['thumb']}&width=300&height=450&fallback=poster);"></div>
                                 </div>
                                 % else:
-                                <div class="home-platforms-instance-poster2">
+                                <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
                                 </div>
                                 % endif
                             </a>
+                            % else:
+                            <div class="home-platforms-instance-list-poster">
+                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                            </div>
+                            % endif
                             <div class="home-platforms-instance-list-number">
                                 <h4>${loop.index + 1}</h4>
                             </div>
@@ -314,14 +374,19 @@ DOCUMENTATION :: END
                 </div>
                 <div class="home-platforms-instance-playcount">
                     <h4>
+                        % if top_stat['rows'][0]['rating_key']:
                         <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
+                        % else:
+                        ${top_stat['rows'][0]['title']}
+                        % endif
                     </h4>
                     <h3>${top_stat['rows'][0]['users_watched']}</h3>
                     <p> users</p>
                 </div>
             </div>
+            % if top_stat['rows'][0]['rating_key']:
             <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                 % if top_stat['rows'][0]['thumb']:
                 <div class="home-platforms-instance-poster">
@@ -333,6 +398,11 @@ DOCUMENTATION :: END
                 </div>
                 % endif
             </a>
+            % else:
+            <div class="home-platforms-instance-poster">
+                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+            </div>
+            % endif
             % if len(top_stat['rows']) > 1:
             <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
@@ -344,9 +414,13 @@ DOCUMENTATION :: END
                             <div class="home-platforms-instance-list-info">
                                 <div class="home-platforms-instance-list-name">
                                     <h5>
+                                        % if top_stat['rows'][loop.index]['rating_key']:
                                         <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                             ${top_stat['rows'][loop.index]['title']}
                                         </a>
+                                        % else:
+                                        ${top_stat['rows'][loop.index]['title']}
+                                        % endif
                                     </h5>
                                 </div>
                                 <div class="home-platforms-instance-list-playcount">
@@ -354,17 +428,23 @@ DOCUMENTATION :: END
                                     <p> users</p>
                                 </div>
                             </div>
+                            % if top_stat['rows'][loop.index]['rating_key']:
                             <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                 % if top_stat['rows'][loop.index]['thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['thumb']}&width=300&height=450&fallback=poster);"></div>
                                 </div>
                                 % else:
-                                <div class="home-platforms-instance-poster2">
+                                <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
                                 </div>
                                 % endif
                             </a>
+                            % else:
+                            <div class="home-platforms-instance-list-poster">
+                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                            </div>
+                            % endif
                             <div class="home-platforms-instance-list-number">
                                 <h4>${loop.index + 1}</h4>
                             </div>
@@ -386,9 +466,13 @@ DOCUMENTATION :: END
                 </div>
                 <div class="home-platforms-instance-playcount">
                     <h4>
+                        % if top_stat['rows'][0]['rating_key']:
                         <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
+                        % else:
+                        ${top_stat['rows'][0]['title']}
+                        % endif
                     </h4>
                     % if top_stat['stat_type'] == 'total_plays':
                     <h3>${top_stat['rows'][0]['total_plays']}</h3>
@@ -398,6 +482,7 @@ DOCUMENTATION :: END
                     % endif
                 </div>
             </div>
+            % if top_stat['rows'][0]['rating_key']:
             <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                 % if top_stat['rows'][0]['grandparent_thumb']:
                 <div class="home-platforms-instance-poster">
@@ -409,6 +494,11 @@ DOCUMENTATION :: END
                 </div>
                 % endif
             </a>
+            % else:
+            <div class="home-platforms-instance-poster">
+                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+            </div>
+            % endif
             % if len(top_stat['rows']) > 1:
             <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
@@ -420,9 +510,13 @@ DOCUMENTATION :: END
                             <div class="home-platforms-instance-list-info">
                                 <div class="home-platforms-instance-list-name">
                                     <h5>
+                                        % if top_stat['rows'][loop.index]['rating_key']:
                                         <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                             ${top_stat['rows'][loop.index]['title']}
                                         </a>
+                                        % else:
+                                        ${top_stat['rows'][loop.index]['title']}
+                                        % endif
                                     </h5>
                                 </div>
                                 <div class="home-platforms-instance-list-playcount">
@@ -434,17 +528,23 @@ DOCUMENTATION :: END
                                     % endif
                                 </div>
                             </div>
+                            % if top_stat['rows'][loop.index]['rating_key']:
                             <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                 % if top_stat['rows'][loop.index]['grandparent_thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
                                 </div>
                                 % else:
-                                <div class="home-platforms-instance-poster2">
+                                <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
                                 </div>
                                 % endif
                             </a>
+                            % else:
+                            <div class="home-platforms-instance-list-poster">
+                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                            </div>
+                            % endif
                             <div class="home-platforms-instance-list-number">
                                 <h4>${loop.index + 1}</h4>
                             </div>
@@ -466,14 +566,19 @@ DOCUMENTATION :: END
                 </div>
                 <div class="home-platforms-instance-playcount">
                     <h4>
+                        % if top_stat['rows'][0]['rating_key']:
                         <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
+                        % else:
+                        ${top_stat['rows'][0]['title']}
+                        % endif
                     </h4>
                     <h3>${top_stat['rows'][0]['users_watched']}</h3>
                     <p> users</p>
                 </div>
             </div>
+            % if top_stat['rows'][0]['rating_key']:
             <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                 % if top_stat['rows'][0]['grandparent_thumb'] != '':
                 <div class="home-platforms-instance-poster">
@@ -485,6 +590,11 @@ DOCUMENTATION :: END
                 </div>
                 % endif
             </a>
+            % else:
+            <div class="home-platforms-instance-poster">
+                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+            </div>
+            % endif
             % if len(top_stat['rows']) > 1:
             <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
@@ -496,9 +606,13 @@ DOCUMENTATION :: END
                             <div class="home-platforms-instance-list-info">
                                 <div class="home-platforms-instance-list-name">
                                     <h5>
+                                        % if top_stat['rows'][loop.index]['rating_key']:
                                         <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                             ${top_stat['rows'][loop.index]['title']}
                                         </a>
+                                        % else:
+                                        ${top_stat['rows'][loop.index]['title']}
+                                        % endif
                                     </h5>
                                 </div>
                                 <div class="home-platforms-instance-list-playcount">
@@ -506,17 +620,23 @@ DOCUMENTATION :: END
                                     <p> users</p>
                                 </div>
                             </div>
+                            % if top_stat['rows'][loop.index]['rating_key']:
                             <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                 % if top_stat['rows'][loop.index]['grandparent_thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
                                 </div>
                                 % else:
-                                <div class="home-platforms-instance-poster2">
+                                <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
                                 </div>
                                 % endif
                             </a>
+                            % else:
+                            <div class="home-platforms-instance-list-poster">
+                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                            </div>
+                            % endif
                             <div class="home-platforms-instance-list-number">
                                 <h4>${loop.index + 1}</h4>
                             </div>
@@ -696,9 +816,13 @@ DOCUMENTATION :: END
                 </div>
                 <div class="home-platforms-instance-last-user">
                     <h4>
+                        % if top_stat['rows'][0]['rating_key']:
                         <a href="info?source=history&rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                             ${top_stat['rows'][0]['title']}
                         </a>
+                        % else:
+                        ${top_stat['rows'][0]['title']}
+                        % endif
                     </h4>
                     <h5>
                         % if top_stat['rows'][0]['user_id']:
@@ -718,6 +842,7 @@ DOCUMENTATION :: END
                     </p>
                 </div>
             </div>
+            % if top_stat['rows'][0]['rating_key']:
             <a href="info?source=history&rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                 % if top_stat['rows'][0]['thumb']:
                 <div class="home-platforms-instance-poster">
@@ -729,6 +854,11 @@ DOCUMENTATION :: END
                 </div>
                 % endif
             </a>
+            % else:
+            <div class="home-platforms-instance-poster">
+                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+            </div>
+            % endif
             % if len(top_stat['rows']) > 1:
             <div class="home-platforms-instance-list-chevron"><i class="fa fa-chevron-down"></i></div>
             <ul class="list-unstyled">
@@ -740,9 +870,13 @@ DOCUMENTATION :: END
                             <div class="home-platforms-instance-list-info">
                                 <div class="home-platforms-instance-list-name">
                                     <h5>
+                                        % if top_stat['rows'][loop.index]['rating_key']:
                                         <a href="info?source=history&rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                             ${top_stat['rows'][loop.index]['title']}
                                         </a>
+                                        % else:
+                                        ${top_stat['rows'][loop.index]['title']}
+                                        % endif
                                     </h5>
                                 </div>
                                 <div class="home-platforms-instance-list-last-user">
@@ -764,6 +898,7 @@ DOCUMENTATION :: END
                                     </p>
                                 </div>
                             </div>
+                            % if top_stat['rows'][loop.index]['rating_key']:
                             <a href="info?source=history&rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                 % if top_stat['rows'][loop.index]['thumb']:
                                 <div class="home-platforms-instance-list-poster">
@@ -775,6 +910,11 @@ DOCUMENTATION :: END
                                 </div>
                                 % endif
                             </a>
+                            % else:
+                            <div class="home-platforms-instance-list-poster">
+                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                            </div>
+                            % endif
                             <div class="home-platforms-instance-list-number">
                                 <h4>${loop.index + 1}</h4>
                             </div>
