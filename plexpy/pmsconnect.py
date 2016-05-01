@@ -526,9 +526,8 @@ class PmsConnect(object):
                                     'added_at': helpers.get_xml_attr(item, 'addedAt')
                                     }
                     recents_list.append(recent_items)
-        
-        output = {'recently_added': session.filter_session_info(
-                    sorted(recents_list, key=lambda k: k['added_at'], reverse=True), filter_key='section_id')}
+
+        output = {'recently_added': sorted(recents_list, key=lambda k: k['added_at'], reverse=True)}
 
         return output
 
@@ -595,8 +594,8 @@ class PmsConnect(object):
                 genres.append(helpers.get_xml_attr(genre, 'tag'))
 
         if metadata_main.getElementsByTagName('Label'):
-            for labels in metadata_main.getElementsByTagName('Label'):
-                labels.append(helpers.get_xml_attr(labels, 'tag'))
+            for label in metadata_main.getElementsByTagName('Label'):
+                labels.append(helpers.get_xml_attr(label, 'tag'))
 
         if metadata_type == 'movie':
             metadata = {'media_type': metadata_type,
@@ -1531,7 +1530,7 @@ class PmsConnect(object):
         output = {'children_count': helpers.get_xml_attr(xml_head[0], 'size'),
                   'children_type': helpers.get_xml_attr(xml_head[0], 'viewGroup'),
                   'title': helpers.get_xml_attr(xml_head[0], 'title2'),
-                  'children_list': session.filter_session_info(children_list, 'section_id')
+                  'children_list': children_list
                   }
 
         return output
@@ -1979,7 +1978,7 @@ class PmsConnect(object):
                     search_results_count += 1
 
         output = {'results_count': search_results_count,
-                  'results_list': {k: session.filter_session_info(v, 'section_id') for k, v in search_results_list.iteritems()}
+                  'results_list': {k: v for k, v in search_results_list.iteritems()}
                   }
 
         return output

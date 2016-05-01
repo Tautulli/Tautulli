@@ -22,23 +22,39 @@ import xmltodict
 from xml.dom import minidom
 
 import plexpy
-from plexpy import logger, helpers, http_handler, database, users, session
+from plexpy import logger, helpers, http_handler, database, users, session, pmsconnect
 
 
 def refresh_users():
     logger.info(u"PlexPy PlexTV :: Requesting users list refresh...")
     result = PlexTV().get_full_users_list()
-    monitor_db = database.MonitorDatabase()
 
-    if len(result) > 0:
+    monitor_db = database.MonitorDatabase()
+    user_data = users.Users()
+
+    if result:
         for item in result:
+
+            shared_libraries = ''
+            user_tokens = user_data.get_tokens(user_id=item['user_id'])
+            if user_tokens and user_tokens['server_token']:
+                pms_connect = pmsconnect.PmsConnect(token=user_tokens['server_token'])
+                library_details = pms_connect.get_server_children()
+                shared_libraries = ';'.join(d['section_id'] for d in library_details['libraries_list'])
+
             control_value_dict = {"user_id": item['user_id']}
             new_value_dict = {"username": item['username'],
                               "thumb": item['thumb'],
                               "email": item['email'],
                               "is_home_user": item['is_home_user'],
                               "is_allow_sync": item['is_allow_sync'],
-                              "is_restricted": item['is_restricted']
+                              "is_restricted": item['is_restricted'],
+                              "shared_libraries": shared_libraries,
+                              "filter_all": item['filter_all'],
+                              "filter_movies": item['filter_movies'],
+                              "filter_tv": item['filter_tv'],
+                              "filter_music": item['filter_music'],
+                              "filter_photos": item['filter_photos']
                               }
 
             # Check if we've set a custom avatar if so don't overwrite it.
@@ -115,7 +131,16 @@ class PlexTV(object):
         self.password = password
         self.ssl_verify = plexpy.CONFIG.VERIFY_SSL_CERT
 
-        token = token if token else plexpy.CONFIG.PMS_TOKEN
+        if token == 'admin':
+            token = plexpy.CONFIG.PMS_TOKEN
+        elif not token:
+            # Check if we should use the admin token, or the guest server token
+            if session.get_session_user_id():
+                user_data = users.Users()
+                user_tokens = user_data.get_tokens(user_id=session.get_session_user_id())
+                token = user_tokens['server_token']
+            else:
+                token = plexpy.CONFIG.PMS_TOKEN
 
         self.request_handler = http_handler.HTTPHandler(host='plex.tv',
                                                         port=443,
@@ -262,7 +287,12 @@ class PlexTV(object):
                                "email": helpers.get_xml_attr(a, 'email'),
                                "is_home_user": helpers.get_xml_attr(a, 'home'),
                                "is_allow_sync": None,
-                               "is_restricted": helpers.get_xml_attr(a, 'restricted')
+                               "is_restricted": helpers.get_xml_attr(a, 'restricted'),
+                               "filter_all": helpers.get_xml_attr(a, 'filterAll'),
+                               "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
+                               "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
+                               "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
+                               "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
                                }
 
                 users_list.append(own_details)
@@ -287,7 +317,12 @@ class PlexTV(object):
                           "email": helpers.get_xml_attr(a, 'email'),
                           "is_home_user": helpers.get_xml_attr(a, 'home'),
                           "is_allow_sync": helpers.get_xml_attr(a, 'allowSync'),
-                          "is_restricted": helpers.get_xml_attr(a, 'restricted')
+                          "is_restricted": helpers.get_xml_attr(a, 'restricted'),
+                          "filter_all": helpers.get_xml_attr(a, 'filterAll'),
+                          "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
+                          "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
+                          "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
+                          "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
                           }
 
                 users_list.append(friend)

@@ -449,7 +449,8 @@ def dbcheck():
         'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
         'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, allow_guest INTEGER DEFAULT 0, '
-        'user_token TEXT, server_token TEXT)'
+        'user_token TEXT, server_token TEXT, shared_libraries TEXT, filter_all TEXT, filter_movies TEXT, filter_tv TEXT, '
+        'filter_music TEXT, filter_photos TEXT)'
     )
 
     # notify_log table :: This is a table which logs notifications sent
@@ -766,6 +767,30 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE users ADD COLUMN server_token TEXT'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT shared_libraries FROM users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN shared_libraries TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN filter_all TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN filter_movies TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN filter_tv TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN filter_music TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN filter_photos TEXT'
         )
 
     # Upgrade notify_log table from earlier versions
