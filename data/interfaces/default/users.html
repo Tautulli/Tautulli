@@ -156,14 +156,7 @@
                     $(this).addClass('hidden');
                     $('#row-edit-mode-alert').fadeOut(200);
                 });
-                $('.edit-user-control > .edit-user-name').each(function () {
-                    a = $(this).children('a');
-                    input = $(this).children('input');
-                    a.text(input.val());
-                    a.removeClass('hidden');
-                    input.addClass('hidden');
-                });
-
+                toggleEditNames();
             } else {
                 users_to_delete = [];
                 users_to_purge = [];
@@ -171,10 +164,7 @@
                     $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).removeClass('hidden');
                 });
-                $('.edit-user-control > .edit-user-name').each(function () {
-                    $(this).children('a').addClass('hidden');
-                    $(this).children('input').removeClass('hidden');
-                });
+                toggleEditNames();
             }
         });
     });

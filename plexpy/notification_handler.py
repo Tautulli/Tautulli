@@ -17,6 +17,7 @@
 import arrow
 import os
 import re
+import threading
 import time
 import urllib
 
@@ -622,11 +623,15 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         # If no previous poster_url
         if not poster_url and plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
             try:
+                thread_name = str(threading.current_thread().ident)
                 # Retrieve the poster from Plex and cache to file
                 urllib.urlretrieve(plexpy.CONFIG.PMS_URL + thumb + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN,
-                                   os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'))
+                                   os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-'+thread_name+'.jpg'))
                 # Upload thumb to Imgur and get link
-                poster_url = helpers.uploadToImgur(os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster.jpg'), poster_title)
+                poster_url = helpers.uploadToImgur(os.path.join(plexpy.CONFIG.CACHE_DIR,
+                                                                'cache-poster-'+thread_name+'.jpg'), poster_title)
+                # Delete the cached poster
+                os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-'+thread_name+'.jpg'))
             except Exception as e:
                 logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(rating_key), e))
 
@@ -929,6 +934,7 @@ def build_server_notify_text(notify_action=None, agent_id=None):
 
     update_status = {}
     if notify_action == 'pmsupdate':
+        pms_connect = pmsconnect.PmsConnect()
         update_status = pms_connect.get_update_staus()
 
     if server_times:
