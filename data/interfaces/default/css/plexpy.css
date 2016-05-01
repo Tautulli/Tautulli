@@ -2909,3 +2909,17 @@ a.no-highlight:hover {
     font-weight: 400;
     cursor: pointer;
 }
+#admin-login-modal .form-group label {
+    font-weight: 400;
+    color: #999;
+}
+#admin-login-modal .remember-group {
+    float: left;
+    color: #999;
+}
+#admin-login-modal .remember-group .control-label {
+    display: inline;
+    margin-bottom: 0;
+    font-weight: 400;
+    cursor: pointer;
+}
