@@ -245,7 +245,7 @@ DOCUMENTATION :: END
             % elif a['state'] == 'buffering':
             <i class="fa fa-spinner"></i>&nbsp;
             % endif
-            % if a['title']:
+            % if a['rating_key']:
             % if a['media_type'] == 'episode':
             <a href="info?rating_key=${a['rating_key']}" title="${a['grandparent_title']} - ${a['title']}">${a['grandparent_title']} - ${a['title']}</a>
             % elif a['media_type'] == 'movie':
@@ -260,11 +260,11 @@ DOCUMENTATION :: END
             <span title="${a['title']}">${a['title']}</span>
             % endif
             % else:
-                Title
+            Title
             % endif
         </div>
         <div class="dashboard-activity-metadata-subtitle">
-            % if a['media_index'] or a['parent_media_index'] or a['parent_title'] or a['title'] or a['year']:
+            % if a['rating_key']:
             % if a['media_type'] == 'episode':
             <span title="S${a['parent_media_index']} &middot; E${a['media_index']}">S${a['parent_media_index']} &middot; E${a['media_index']}</span>
             % elif a['media_type'] == 'movie':
