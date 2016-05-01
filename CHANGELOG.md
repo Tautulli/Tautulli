@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.3.16 (2016-05-01)
+
+* Fix: Viewing photos crashing PlexPy.
+* Fix: Persist Users > Edit mode on datatable page change.
+* Fix: PMS update notifications broken.
+* Change: Cache notifications poster with thread ID to avoid overwritting images.
+
+
 ## v1.3.15 (2016-04-18)
 
 * Fix: Slack notifications failing when using and icon URL.
