@@ -71,7 +71,9 @@ DOCUMENTATION :: END
                                 <ul class="user-info-nav">
                                     <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
                                     <li><a id="history-tab-btn" href="#libraryHistory" data-toggle="tab">History</a></li>
+                                    % if _session['user_group'] == 'admin':
                                     <li><a id="media-info-tab-btn" href="#libraryMediaInfo" data-toggle="tab">Media Info</a></li>
+                                    % endif
                                 </ul>
                             </div>
                         </div>

@@ -92,12 +92,18 @@ class DataTables(object):
                 if isinstance(w[1], (list, tuple)) and len(w[1]):
                     c_where += '('
                     for w_ in w[1]:
-                        c_where += w[0] + ' = ? OR '
-                        args.append(w_)
+                        if w_ == None:
+                            c_where += w[0] + ' IS NULL OR '
+                        else:
+                            c_where += w[0] + ' = ? OR '
+                            args.append(w_)
                     c_where = c_where.rstrip(' OR ') + ') AND '
                 else:
-                    c_where += w[0] + ' = ? AND '
-                    args.append(w[1])
+                    if w[1] == None:
+                        c_where += w[0] + ' IS NULL AND '
+                    else:
+                        c_where += w[0] + ' = ? AND '
+                        args.append(w[1])
 
             if c_where:
                 c_where = 'WHERE ' + c_where.rstrip(' AND ')

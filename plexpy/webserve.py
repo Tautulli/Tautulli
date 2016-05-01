@@ -29,7 +29,7 @@ from plexpy import logger, notifiers, plextv, pmsconnect, common, log_reader, \
     datafactory, graphs, users, libraries, database, web_socket
 from plexpy.api2 import API2
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates
-from plexpy.session import get_session_info, allow_session_user, allow_session_library
+from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
 from plexpy.webauth import AuthController, requireAuth, member_of, name_is, SESSION_KEY
 
 
@@ -182,7 +182,7 @@ class WebInterface(object):
     def get_current_activity(self, **kwargs):
 
         try:
-            pms_connect = pmsconnect.PmsConnect()
+            pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
             result = pms_connect.get_current_activity()
 
             data_factory = datafactory.DataFactory()
@@ -205,7 +205,7 @@ class WebInterface(object):
     def get_current_activity_header(self, **kwargs):
 
         try:
-            pms_connect = pmsconnect.PmsConnect()
+            pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
             result = pms_connect.get_current_activity()
         except:
             return serve_template(templatename="current_activity_header.html", data=None)
@@ -468,7 +468,7 @@ class WebInterface(object):
             return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
 
     @cherrypy.expose
-    @requireAuth()
+    @requireAuth(member_of("admin"))
     @addtoapi()
     def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, refresh='', **kwargs):
 
@@ -1864,7 +1864,10 @@ class WebInterface(object):
 
             return serve_template(templatename="info.html", data=metadata, title="Info", config=config, source=source)
         else:
-            return self.update_metadata(rating_key, query)
+            if get_session_user_id():
+                raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
+            else:
+                return self.update_metadata(rating_key, query)
 
     @cherrypy.expose
     @requireAuth()

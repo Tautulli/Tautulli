@@ -33,6 +33,7 @@ DOCUMENTATION :: END
             % for item in data:
             <li>
                 % if item['media_type'] == 'episode' or item['media_type'] == 'movie':
+                % if item['rating_key']:
                 <a href="info?source=history&rating_key=${item['rating_key']}">
                     <div class="dashboard-recent-media-poster">
                         <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=450&fallback=poster);">
@@ -64,7 +65,26 @@ DOCUMENTATION :: END
                     <h3 class="text-muted">${item['year']}</h3>
                     % endif
                 </div>
+                % else:
+                <div class="dashboard-recent-media-poster">
+                    <div class="dashboard-recent-media-poster-face" style="background-image: url(${http_root}images/poster.png);">
+                        <div class="dashboard-recent-media-overlay">
+                            <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
+                                <script>
+                                        $('#time-${item['time']}').text('Watched ' + moment(${item['time']}, "X").fromNow())
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-recent-media-metacontainer">
+                    <h3 title="${item['title']}">
+                        ${item['title']}
+                    </h3>
+                </div>
+                % endif
                 % elif item['media_type'] == 'track':
+                % if item['rating_key']:
                 <a href="info?source=history&rating_key=${item['rating_key']}">
                     <div class="dashboard-recent-media-cover">
                         <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?img=${item['thumb']}&width=300&height=300&fallback=cover);">
@@ -86,9 +106,27 @@ DOCUMENTATION :: END
                         <a href="info?source=history&rating_key=${item['rating_key']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">
-                        <a href="info?rating_key=${item['parent_rating_key']}">${item['parent_title']}</a></a>
+                        <a href="info?rating_key=${item['parent_rating_key']}">${item['parent_title']}</a>
                     </h3>
                 </div>
+                % else:
+                <div class="dashboard-recent-media-cover">
+                    <div class="dashboard-recent-media-cover-face" style="background-image: url(${http_root}images/cover.png);">
+                        <div class="dashboard-recent-media-overlay">
+                            <div class="dashboard-recent-media-overlay-text" id="time-${item['time']}">
+                                <script>
+                                        $('#time-${item['time']}').text('Watched ' + moment(${item['time']}, "X").fromNow())
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-recent-media-metacontainer">
+                    <h3 title="${item['title']}">
+                        ${item['title']}
+                    </h3>
+                </div>
+                % endif
                 % endif
             </li>
             % endfor

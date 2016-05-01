@@ -112,9 +112,7 @@ class PmsConnect(object):
             port = plexpy.CONFIG.PMS_PORT
             self.protocol = 'http'
 
-        if token == 'admin':
-            token = plexpy.CONFIG.PMS_TOKEN
-        elif not token:
+        if not token:
             # Check if we should use the admin token, or the guest server token
             if session.get_session_user_id():
                 user_data = users.Users()
@@ -1077,6 +1075,11 @@ class PmsConnect(object):
             else:
                 machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
 
+            labels = []
+            if session.getElementsByTagName('Label'):
+                for label in session.getElementsByTagName('Label'):
+                    labels.append(helpers.get_xml_attr(label, 'tag'))
+
             session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                               'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
                               'media_index': helpers.get_xml_attr(session, 'index'),
@@ -1102,6 +1105,8 @@ class PmsConnect(object):
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                               'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                               'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                              'content_rating': helpers.get_xml_attr(session, 'contentRating'),
+                              'labels': labels,
                               'transcode_key': transcode_key,
                               'throttled': throttled,
                               'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
@@ -1177,7 +1182,6 @@ class PmsConnect(object):
                 transcode_container = ''
                 transcode_protocol = ''
 
-            media_info = session.getElementsByTagName('Media')[0]
             if media_info.getElementsByTagName('Part'):
                 indexes = helpers.get_xml_attr(media_info.getElementsByTagName('Part')[0], 'indexes')
                 part_id = helpers.get_xml_attr(media_info.getElementsByTagName('Part')[0], 'id')
@@ -1201,6 +1205,11 @@ class PmsConnect(object):
                 machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')[:-6]
             else:
                 machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
+
+            labels = []
+            if session.getElementsByTagName('Label'):
+                for label in session.getElementsByTagName('Label'):
+                    labels.append(helpers.get_xml_attr(label, 'tag'))
 
             if helpers.get_xml_attr(session, 'type') == 'episode':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
@@ -1228,6 +1237,8 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'content_rating': helpers.get_xml_attr(session, 'contentRating'),
+                                  'labels': labels,
                                   'transcode_key': transcode_key,
                                   'throttled': throttled,
                                   'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
@@ -1287,6 +1298,8 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'content_rating': helpers.get_xml_attr(session, 'contentRating'),
+                                  'labels': labels,
                                   'transcode_key': transcode_key,
                                   'throttled': throttled,
                                   'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
@@ -1346,6 +1359,8 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'content_rating': helpers.get_xml_attr(session, 'contentRating'),
+                                  'labels': labels,
                                   'transcode_key': transcode_key,
                                   'throttled': throttled,
                                   'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
@@ -1415,6 +1430,11 @@ class PmsConnect(object):
             else:
                 machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
 
+            labels = []
+            if session.getElementsByTagName('Label'):
+                for label in session.getElementsByTagName('Label'):
+                    labels.append(helpers.get_xml_attr(label, 'tag'))
+
             session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                               'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
                               'media_index': helpers.get_xml_attr(session, 'index'),
@@ -1440,6 +1460,8 @@ class PmsConnect(object):
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                               'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                               'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                              'content_rating': helpers.get_xml_attr(session, 'contentRating'),
+                              'labels': labels,
                               'transcode_key': transcode_key,
                               'throttled': throttled,
                               'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),

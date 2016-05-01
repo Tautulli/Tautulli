@@ -2138,8 +2138,8 @@ a .home-platforms-instance-box:hover,
 a .home-platforms-instance-oval:hover,
 a .home-platforms-instance-list-box:hover,
 a .home-platforms-instance-list-oval:hover,
-.home-platforms-poster-face:hover,
-.home-platforms-list-poster-face:hover
+a .home-platforms-poster-face:hover,
+a .home-platforms-list-poster-face:hover
  {
     -webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;

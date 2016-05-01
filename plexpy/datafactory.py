@@ -179,13 +179,6 @@ class DataFactory(object):
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
         sort_type = 'total_plays' if stats_type == 0 else 'total_duration'
 
-        library_cond = ''
-        if session.get_session_libraries():
-            library_cond = 'AND ('
-            for section_id in session.get_session_libraries():
-                library_cond += 'session_history_metadata.section_id = %s OR ' % section_id
-            library_cond = library_cond.rstrip(' OR ') + ') '
-
         home_stats = []
 
         for stat in stats_cards:
@@ -193,6 +186,7 @@ class DataFactory(object):
                 top_tv = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
+                            't.media_type, t.content_rating, t.labels, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -201,11 +195,11 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "episode" %s' \
+                            '       AND session_history.media_type = "episode" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
                             'ORDER BY %s DESC ' \
-                            'LIMIT %s ' % (time_range, library_cond, group_by, sort_type, stats_count)
+                            'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: top_tv: %s." % e)
@@ -221,6 +215,9 @@ class DataFactory(object):
                            'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
                            'section_id': item['section_id'],
+                           'media_type': item['media_type'],
+                           'content_rating': item['content_rating'],
+                           'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -237,6 +234,7 @@ class DataFactory(object):
                 popular_tv = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
+                            't.media_type, t.content_rating, t.labels, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -246,11 +244,11 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "episode" %s' \
+                            '       AND session_history.media_type = "episode" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
                             'ORDER BY users_watched DESC, %s DESC ' \
-                            'LIMIT %s ' % (time_range, library_cond, group_by, sort_type, stats_count)
+                            'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: popular_tv: %s." % e)
@@ -265,6 +263,9 @@ class DataFactory(object):
                            'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
                            'section_id': item['section_id'],
+                           'media_type': item['media_type'],
+                           'content_rating': item['content_rating'],
+                           'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -280,6 +281,7 @@ class DataFactory(object):
                 top_movies = []
                 try:
                     query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.section_id, ' \
+                            't.media_type, t.content_rating, t.labels, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -288,11 +290,11 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "movie" %s' \
+                            '       AND session_history.media_type = "movie" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.full_title ' \
                             'ORDER BY %s DESC ' \
-                            'LIMIT %s ' % (time_range, library_cond, group_by, sort_type, stats_count)
+                            'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: top_movies: %s." % e)
@@ -308,6 +310,9 @@ class DataFactory(object):
                            'grandparent_thumb': '',
                            'thumb': item['thumb'],
                            'section_id': item['section_id'],
+                           'media_type': item['media_type'],
+                           'content_rating': item['content_rating'],
+                           'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -324,6 +329,7 @@ class DataFactory(object):
                 popular_movies = []
                 try:
                     query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.section_id, ' \
+                            't.media_type, t.content_rating, t.labels, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -333,11 +339,11 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "movie" %s' \
+                            '       AND session_history.media_type = "movie" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.full_title ' \
                             'ORDER BY users_watched DESC, %s DESC ' \
-                            'LIMIT %s ' % (time_range, library_cond, group_by, sort_type, stats_count)
+                            'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: popular_movies: %s." % e)
@@ -352,6 +358,9 @@ class DataFactory(object):
                            'grandparent_thumb': '',
                            'thumb': item['thumb'],
                            'section_id': item['section_id'],
+                           'media_type': item['media_type'],
+                           'content_rating': item['content_rating'],
+                           'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -367,6 +376,7 @@ class DataFactory(object):
                 top_music = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
+                            't.media_type, t.content_rating, t.labels, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -375,11 +385,11 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "track" %s' \
+                            '       AND session_history.media_type = "track" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
                             'ORDER BY %s DESC ' \
-                            'LIMIT %s ' % (time_range, library_cond, group_by, sort_type, stats_count)
+                            'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: top_music: %s." % e)
@@ -395,6 +405,9 @@ class DataFactory(object):
                            'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
                            'section_id': item['section_id'],
+                           'media_type': item['media_type'],
+                           'content_rating': item['content_rating'],
+                           'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -411,6 +424,7 @@ class DataFactory(object):
                 popular_music = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
+                            't.media_type, t.content_rating, t.labels, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -420,11 +434,11 @@ class DataFactory(object):
                             '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
-                            '       AND session_history.media_type = "track" %s' \
+                            '       AND session_history.media_type = "track" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
                             'ORDER BY users_watched DESC, %s DESC ' \
-                            'LIMIT %s ' % (time_range, library_cond, group_by, sort_type, stats_count)
+                            'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: popular_music: %s." % e)
@@ -439,6 +453,9 @@ class DataFactory(object):
                            'grandparent_thumb': item['grandparent_thumb'],
                            'thumb': '',
                            'section_id': item['section_id'],
+                           'media_type': item['media_type'],
+                           'content_rating': item['content_rating'],
+                           'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
                            'platform_type': '',
@@ -501,7 +518,7 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': session.mask_session_info(top_users)})
+                                   'rows': session.mask_session_info(top_users, mask_metadata=False)})
 
             elif stat == 'top_platforms':
                 top_platform = []
@@ -547,13 +564,14 @@ class DataFactory(object):
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
-                                   'rows': session.mask_session_info(top_platform)})
+                                   'rows': session.mask_session_info(top_platform, mask_metadata=False)})
 
             elif stat == 'last_watched':
                 last_watched = []
                 try:
                     query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.grandparent_thumb, ' \
                             't.user, t.user_id, t.custom_avatar_url as user_thumb, t.player, t.section_id, ' \
+                            't.media_type, t.content_rating, t.labels, ' \
                             '(CASE WHEN t.friendly_name IS NULL THEN t.username ELSE t.friendly_name END) ' \
                             '   AS friendly_name, ' \
                             'MAX(t.started) AS last_watch, ' \
@@ -566,12 +584,12 @@ class DataFactory(object):
                             '   WHERE datetime(session_history.stopped, "unixepoch", "localtime") ' \
                             '       >= datetime("now", "-%s days", "localtime") ' \
                             '       AND (session_history.media_type = "movie" ' \
-                            '           OR session_history_metadata.media_type = "episode") %s' \
+                            '           OR session_history_metadata.media_type = "episode") ' \
                             '   GROUP BY %s) AS t ' \
                             'WHERE percent_complete >= %s ' \
                             'GROUP BY t.id ' \
                             'ORDER BY last_watch DESC ' \
-                            'LIMIT %s' % (time_range, library_cond, group_by, notify_watched_percent, stats_count)
+                            'LIMIT %s' % (time_range, group_by, notify_watched_percent, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: last_watched: %s." % e)
@@ -593,6 +611,9 @@ class DataFactory(object):
                            'thumb': thumb,
                            'grandparent_thumb': item['grandparent_thumb'],
                            'section_id': item['section_id'],
+                           'media_type': item['media_type'],
+                           'content_rating': item['content_rating'],
+                           'labels': item['labels'].split(';') if item['labels'] else (),
                            'last_watch': item['last_watch'],
                            'player': item['player']
                            }
@@ -686,6 +707,9 @@ class DataFactory(object):
     def get_library_stats(self, library_cards=[]):
         monitor_db = database.MonitorDatabase()
 
+        if session.get_session_shared_libraries():
+            library_cards = session.get_session_shared_libraries()
+
         library_stats = []
 
         for id in library_cards:
@@ -718,7 +742,7 @@ class DataFactory(object):
                                }
                     library_stats.append(library)
 
-        return session.filter_session_info(library_stats, filter_key='section_id')
+        return library_stats
 
     def get_stream_details(self, row_id=None):
         monitor_db = database.MonitorDatabase()
