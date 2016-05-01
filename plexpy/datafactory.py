@@ -809,6 +809,7 @@ class DataFactory(object):
                     'session_history_metadata.tagline, session_history_metadata.rating, session_history_metadata.duration, ' \
                     'session_history_metadata.guid, session_history_metadata.directors, session_history_metadata.writers, ' \
                     'session_history_metadata.actors, session_history_metadata.genres, session_history_metadata.studio, ' \
+                    'session_history_metadata.labels, ' \
                     'session_history_media_info.container, session_history_media_info.bitrate, ' \
                     'session_history_media_info.video_codec, session_history_media_info.video_resolution, ' \
                     'session_history_media_info.video_framerate, session_history_media_info.audio_codec, ' \
@@ -821,12 +822,14 @@ class DataFactory(object):
         else:
             result = []
 
-        metadata = {}
+        metadata_list = []
+
         for item in result:
             directors = item['directors'].split(';') if item['directors'] else []
             writers = item['writers'].split(';') if item['writers'] else []
             actors = item['actors'].split(';') if item['actors'] else []
             genres = item['genres'].split(';') if item['genres'] else []
+            labels = item['labels'].split(';') if item['labels'] else []
 
             metadata = {'media_type': item['media_type'],
                         'rating_key': item['rating_key'],
@@ -853,10 +856,11 @@ class DataFactory(object):
                         'updated_at': item['updated_at'],
                         'last_viewed_at': item['last_viewed_at'],
                         'guid': item['guid'],
-                        'writers': writers,
                         'directors': directors,
-                        'genres': genres,
+                        'writers': writers,
                         'actors': actors,
+                        'genres': genres,
+                        'labels': labels,
                         'library_name': item['section_name'],
                         'section_id': item['section_id'],
                         'container': item['container'],
@@ -867,8 +871,14 @@ class DataFactory(object):
                         'audio_codec': item['audio_codec'],
                         'audio_channels': item['audio_channels']
                         }
+            metadata_list.append(metadata)
 
-        return metadata
+        metadata = session.filter_session_info(metadata_list, filter_key='section_id')
+
+        if metadata:
+            return {'metadata': session.filter_session_info(metadata_list, filter_key='section_id')[0]}
+        else:
+            return []
 
     def get_total_duration(self, custom_where=None):
         monitor_db = database.MonitorDatabase()

@@ -321,6 +321,8 @@ class Users(object):
                     else:
                         user_thumb = common.DEFAULT_USER_THUMB
 
+                    shared_libraries = tuple(item['shared_libraries'].split(';')) if item['shared_libraries'] else ()
+
                     user_details = {'user_id': item['user_id'],
                                     'username': item['username'],
                                     'friendly_name': friendly_name,
@@ -333,7 +335,7 @@ class Users(object):
                                     'keep_history': item['keep_history'],
                                     'deleted_user': item['deleted_user'],
                                     'allow_guest': item['allow_guest'],
-                                    'shared_libraries': tuple(item['shared_libraries'].split(';'))
+                                    'shared_libraries': shared_libraries
                                     }
             return user_details
 

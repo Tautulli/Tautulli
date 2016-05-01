@@ -53,7 +53,7 @@ def get_session_shared_libraries():
     """
     from plexpy import users
     user_details = users.Users().get_details(user_id=get_session_user_id())
-    return user_details['shared_libraries']
+    return tuple(str(s) for s in user_details['shared_libraries'])
 
 def get_session_library_filters():
     """
@@ -151,14 +151,24 @@ def filter_session_info(list_of_dicts, filter_key=None):
                 f_content_rating, f_labels = get_session_library_filters_type(session_library_filters,
                                                                               media_type=d['media_type'])
 
-                d_content_rating = d.get('content_rating', '').lower()
+                d_content_rating = d.get('content_rating', '')
                 d_labels = tuple(f.lower() for f in d.get('labels', ()))
 
-                if (not f_content_rating or set(d_content_rating).intersection(set(f_content_rating))) and \
-                    (not f_labels or set(d_labels).intersection(set(f_labels))):
-                    continue
+                keep = False
+                if not f_content_rating and not f_labels:
+                    keep = True
+                elif not f_content_rating and f_labels:
+                    if set(d_labels).intersection(set(f_labels)):
+                        keep = True
+                elif f_content_rating and not f_labels:
+                    if d_content_rating in f_content_rating:
+                        keep = True
+                elif f_content_rating and f_labels:
+                    if d_content_rating in f_content_rating or set(d_labels).intersection(set(f_labels)):
+                        keep = True
 
-            new_list_of_dicts.append(d)
+            if keep:
+                new_list_of_dicts.append(d)
 
         return new_list_of_dicts
 
@@ -223,13 +233,12 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
             f_content_rating, f_labels = get_session_library_filters_type(session_library_filters,
                                                                       media_type=d['media_type'])
 
-            if not f_content_rating and not f_labels:
-                continue
-
             d_content_rating = d.get('content_rating', '')
             d_labels = tuple(f.lower() for f in d.get('labels', ()))
 
-            if not f_content_rating and f_labels:
+            if not f_content_rating and not f_labels:
+                continue
+            elif not f_content_rating and f_labels:
                 if set(d_labels).intersection(set(f_labels)):
                     continue
             elif f_content_rating and not f_labels:
