@@ -135,6 +135,7 @@ from plexpy.helpers import anon_url
 <body class="content">
 <div class="container">
     <div id="ajaxMsg" class="ajaxMsg"></div>
+    % if _session['user_group'] == 'admin':
     % if plexpy.CONFIG.CHECK_GITHUB and not plexpy.CURRENT_VERSION:
     <div id="updatebar" style="display: none;">
         You're running an unknown version of PlexPy.<br />
@@ -147,6 +148,7 @@ from plexpy.helpers import anon_url
         You're ${plexpy.COMMITS_BEHIND} commits behind.<br />
         <a href="update">Update</a> or <a href="#" id="updateDismiss">Close</a>
     </div>
+    % endif
     % endif
     <nav class="navbar navbar-fixed-top">
         <div class="container-fluid">
