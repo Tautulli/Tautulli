@@ -290,14 +290,14 @@ class Users(object):
                             'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
                             'FROM users ' \
-                            'WHERE username = ? '
+                            'WHERE username = ? COLLATE NOCASE '
                     result = monitor_db.select(query, args=[user])
                 elif email:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
                             'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
                             'allow_guest, shared_libraries ' \
                             'FROM users ' \
-                            'WHERE email = ? '
+                            'WHERE email = ? COLLATE NOCASE '
                     result = monitor_db.select(query, args=[email])
                 else:
                     result = []
