@@ -38,8 +38,6 @@ def user_login(username=None, password=None):
     if not username and not password:
         return None
 
-    user_data = Users()
-    
     # Try to login to Plex.tv to check if the user has a vaild account
     plex_tv = PlexTV(username=username, password=password)
     plex_user = plex_tv.get_token()
@@ -47,52 +45,43 @@ def user_login(username=None, password=None):
         user_token = plex_user['auth_token']
         user_id = plex_user['user_id']
 
-        # Retrieve user token from the database and check against the Plex.tv token.
-        # Also Make sure 'allow_guest' access is enabled for the user.
-        # The user tokens should match if it is the same PlexPy install.
-        tokens = user_data.get_tokens(user_id=user_id)
-        if not tokens:
-            # The user is not in the database
-            return None
-        elif not tokens['allow_guest'] or not user_token == tokens['user_token']:
-            # Guest access is disabled, or user tokens don't match
-            return None
-
-        # Otherwise it is a new user or token is no longer valid.
-        # Check if the user is in the database, not deleted, and 'allow_guest' access.
+        # Try to retrieve the user from the database.
+        # Also make sure guest access is enabled for the user and the user is not deleted.
+        user_data = Users()
         user_details = user_data.get_details(user_id=user_id)
-        if user_id == str(user_details['user_id']) and \
-            not user_details['deleted_user'] and user_details['allow_guest']:
+        if user_id != str(user_details['user_id']):
+            # The user is not in the database.
+            return None
+        elif not user_details['allow_guest'] or user_details['deleted_user']:
+            # Guest access is disabled or the user is deleted.
+            return None
 
-            # The user is in the database, so try to retrieve a new server token.
-            # If a server token is returned, then the user is a valid friend
-            plex_tv = PlexTV(token=user_token)
-            server_token = plex_tv.get_server_token()
-            if server_token:
+        # The user is in the database, and guest access is enabled, so try to retrieve a server token.
+        # If a server token is returned, then the user is a valid friend of the server.
+        plex_tv = PlexTV(token=user_token)
+        server_token = plex_tv.get_server_token()
+        if server_token:
 
-                # Register the new user / update the access tokens.
-                monitor_db = MonitorDatabase()
-                try:
-                    logger.debug(u"PlexPy Users :: Regestering tokens for user '%s' in the database." % username)
-                    result = monitor_db.action('UPDATE users SET user_token = ?, server_token = ? WHERE user_id = ?',
-                                               [user_token, server_token, user_id])
+            # Register the new user / update the access tokens.
+            monitor_db = MonitorDatabase()
+            try:
+                logger.debug(u"PlexPy Users :: Regestering tokens for user '%s' in the database." % username)
+                result = monitor_db.action('UPDATE users SET user_token = ?, server_token = ? WHERE user_id = ?',
+                                            [user_token, server_token, user_id])
 
-                    if result:
-                        # Refresh the users list to make sure we have all the correct permissions
-                        plextv.refresh_users()
-                        # Successful login
-                        return True
-                    else:
-                        logger.warn(u"PlexPy Users :: Unable to register user '%s' in database." % username)
-                        return None
-                except Exception as e:
-                    logger.warn(u"PlexPy Users :: Unable to register user '%s' in database: %s." % (username, e))
+                if result:
+                    # Refresh the users list to make sure we have all the correct permissions.
+                    plextv.refresh_users()
+                    # Successful login
+                    return True
+                else:
+                    logger.warn(u"PlexPy Users :: Unable to register user '%s' in database." % username)
                     return None
-            else:
-                logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv server token for user '%s'." % username)
+            except Exception as e:
+                logger.warn(u"PlexPy Users :: Unable to register user '%s' in database: %s." % (username, e))
                 return None
         else:
-            logger.warn(u"PlexPy Users :: Unable to register user '%s'. User not in the database." % username)
+            logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv server token for user '%s'." % username)
             return None
     else:
         logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv user token for user '%s'." % username)

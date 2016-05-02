@@ -267,6 +267,7 @@ class Users(object):
                           'do_notify': 0,
                           'keep_history': 1,
                           'allow_guest': 0,
+                          'deleted_user': 0,
                           'shared_libraries': ()
                           }
 
