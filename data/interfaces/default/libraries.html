@@ -24,13 +24,13 @@
             <span><i class="fa fa-book"></i> All Libraries</span>
         </div>
         <div class="button-bar">
+            % if _session['user_group'] == 'admin':
             <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect libraries to delete/purge. Data is deleted/purged upon exiting edit mode.</div>
             <div class="btn-group">
                 <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
                     <i class="fa fa-pencil"></i> Edit mode
                 </button>&nbsp
             </div>
-            % if _session['user_group'] == 'admin':
             % if config['update_section_ids'] == -1:
             <div class="btn-group">
                 <button class="btn btn-dark refresh-libraries-button" id="refresh-libraries-list" disabled><i class="fa fa-refresh"></i> Refresh libraries</button>
