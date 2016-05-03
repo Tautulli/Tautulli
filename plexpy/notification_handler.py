@@ -569,6 +569,12 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     progress_percent = helpers.get_percent(view_offset, duration)
     remaining_duration = duration - view_offset
 
+    # Build Plex URL
+    metadata['plex_url'] = ('http://app.plex.tv/web/app#!/server/'
+                            + plexpy.CONFIG.PMS_IDENTIFIER
+                            + '/details/%2Flibrary%2Fmetadata%2F'
+                            + rating_key)
+
     # Get media IDs from guid and build URLs
     if 'imdb://' in metadata['guid']:
         metadata['imdb_id'] = metadata['guid'].split('imdb://')[1].split('?')[0]
@@ -725,6 +731,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
                         'rating': metadata['rating'],
                         'duration': duration,
                         'poster_url': metadata.get('poster_url',''),
+                        'plex_url': metadata.get('plex_url',''),
                         'imdb_id': metadata.get('imdb_id',''),
                         'imdb_url': metadata.get('imdb_url',''),
                         'thetvdb_id': metadata.get('thetvdb_id',''),
