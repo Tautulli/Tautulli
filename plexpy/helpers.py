@@ -17,6 +17,8 @@ import base64
 import datetime
 import fnmatch
 from functools import wraps
+import hashlib
+import imghdr
 from IPy import IP
 import json
 import math
@@ -564,3 +566,37 @@ def uploadToImgur(imgPath, imgTitle=''):
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % e)
 
     return img_url
+
+def cache_image(url, image=None):
+    """
+    Saves an image to the cache directory.
+    If no image is provided, tries to return the image from the cach directory.
+    """
+    from plexpy import logger
+
+    # Create image directory if it doesn't exist
+    imgdir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images/')
+    if not os.path.exists(imgdir):
+        logger.debug(u"PlexPy Helpers :: Creating image cache directory at %s" % imgdir)
+        os.makedirs(imgdir)
+
+    # Create a hash of the path to use as filename
+    imghash = hashlib.md5(url).hexdigest()
+    imagefile = os.path.join(imgdir, imghash)
+
+    # If an image was provided, save it to the cache directory
+    if image:
+        try:
+            with open(imagefile, 'wb') as cache_file:
+                cache_file.write(image)
+        except IOError as e:
+            logger.error(u"PlexPy Helpers :: Failed to cache image %s: %s" % (imagefile, e))
+
+    # Try to return the image from the cache directory
+    if os.path.isfile(imagefile):
+        imagetype = 'image/' + imghdr.what(os.path.abspath(imagefile))
+    else:
+        imagefile = None
+        imagetype = 'image/jpeg'
+
+    return imagefile, imagetype

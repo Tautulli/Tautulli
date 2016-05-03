@@ -1887,38 +1887,14 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def pms_image_proxy(self, img='', width='0', height='0', fallback=None, **kwargs):
-        try:
-            pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_image(img, width, height)
+
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_image(img, width, height, fallback)
+
+        if result:
             cherrypy.response.headers['Content-type'] = result[1]
             return result[0]
-        except:
-            logger.warn(u"Image proxy queried but errors occurred.")
-            if fallback == 'poster':
-                logger.info(u"Trying fallback image...")
-                try:
-                    fallback_image = open(self.interface_dir + common.DEFAULT_POSTER_THUMB, 'rb')
-                    cherrypy.response.headers['Content-type'] = 'image/png'
-                    return fallback_image
-                except IOError, e:
-                    logger.error(u"Unable to read fallback %s image: %s" % (fallback, e))
-            elif fallback == 'cover':
-                logger.info(u"Trying fallback image...")
-                try:
-                    fallback_image = open(self.interface_dir + common.DEFAULT_COVER_THUMB, 'rb')
-                    cherrypy.response.headers['Content-type'] = 'image/png'
-                    return fallback_image
-                except IOError, e:
-                    logger.error(u"Unable to read fallback %s image: %s" % (fallback, e))
-            elif fallback == 'art':
-                logger.info(u"Trying fallback image...")
-                try:
-                    fallback_image = open(self.interface_dir + common.DEFAULT_ART, 'rb')
-                    cherrypy.response.headers['Content-type'] = 'image/png'
-                    return fallback_image
-                except IOError, e:
-                    logger.error(u"Unable to read fallback %s image: %s" % (fallback, e))
-
+        else:
             return None
 
     @cherrypy.expose
