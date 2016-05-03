@@ -8,20 +8,24 @@ This module contains the transport adapters that Requests uses to define
 and maintain connections.
 """
 
+import os.path
 import socket
 
 from .models import Response
-from .packages.urllib3 import Retry
 from .packages.urllib3.poolmanager import PoolManager, proxy_from_url
 from .packages.urllib3.response import HTTPResponse
 from .packages.urllib3.util import Timeout as TimeoutSauce
+from .packages.urllib3.util.retry import Retry
 from .compat import urlparse, basestring
 from .utils import (DEFAULT_CA_BUNDLE_PATH, get_encoding_from_headers,
-                    prepend_scheme_if_needed, get_auth_from_url, urldefragauth)
+                    prepend_scheme_if_needed, get_auth_from_url, urldefragauth,
+                    select_proxy, to_native_string)
 from .structures import CaseInsensitiveDict
+from .packages.urllib3.exceptions import ClosedPoolError
 from .packages.urllib3.exceptions import ConnectTimeoutError
 from .packages.urllib3.exceptions import HTTPError as _HTTPError
 from .packages.urllib3.exceptions import MaxRetryError
+from .packages.urllib3.exceptions import NewConnectionError
 from .packages.urllib3.exceptions import ProxyError as _ProxyError
 from .packages.urllib3.exceptions import ProtocolError
 from .packages.urllib3.exceptions import ReadTimeoutError
@@ -29,12 +33,19 @@ from .packages.urllib3.exceptions import SSLError as _SSLError
 from .packages.urllib3.exceptions import ResponseError
 from .cookies import extract_cookies_to_jar
 from .exceptions import (ConnectionError, ConnectTimeout, ReadTimeout, SSLError,
-                         ProxyError, RetryError)
+                         ProxyError, RetryError, InvalidSchema)
 from .auth import _basic_auth_str
+
+try:
+    from .packages.urllib3.contrib.socks import SOCKSProxyManager
+except ImportError:
+    def SOCKSProxyManager(*args, **kwargs):
+        raise InvalidSchema("Missing dependencies for SOCKS support.")
 
 DEFAULT_POOLBLOCK = False
 DEFAULT_POOLSIZE = 10
 DEFAULT_RETRIES = 0
+DEFAULT_POOL_TIMEOUT = None
 
 
 class BaseAdapter(object):
@@ -60,7 +71,7 @@ class HTTPAdapter(BaseAdapter):
 
     :param pool_connections: The number of urllib3 connection pools to cache.
     :param pool_maxsize: The maximum number of connections to save in the pool.
-    :param int max_retries: The maximum number of retries each connection
+    :param max_retries: The maximum number of retries each connection
         should attempt. Note, this applies only to failed DNS lookups, socket
         connections and connection timeouts, never to requests where data has
         made it to the server. By default, Requests does not retry failed
@@ -103,7 +114,7 @@ class HTTPAdapter(BaseAdapter):
 
     def __setstate__(self, state):
         # Can't handle by adding 'proxy_manager' to self.__attrs__ because
-        # because self.poolmanager uses a lambda function, which isn't pickleable.
+        # self.poolmanager uses a lambda function, which isn't pickleable.
         self.proxy_manager = {}
         self.config = {}
 
@@ -144,9 +155,22 @@ class HTTPAdapter(BaseAdapter):
         :param proxy_kwargs: Extra keyword arguments used to configure the Proxy Manager.
         :returns: ProxyManager
         """
-        if not proxy in self.proxy_manager:
+        if proxy in self.proxy_manager:
+            manager = self.proxy_manager[proxy]
+        elif proxy.lower().startswith('socks'):
+            username, password = get_auth_from_url(proxy)
+            manager = self.proxy_manager[proxy] = SOCKSProxyManager(
+                proxy,
+                username=username,
+                password=password,
+                num_pools=self._pool_connections,
+                maxsize=self._pool_maxsize,
+                block=self._pool_block,
+                **proxy_kwargs
+            )
+        else:
             proxy_headers = self.proxy_headers(proxy)
-            self.proxy_manager[proxy] = proxy_from_url(
+            manager = self.proxy_manager[proxy] = proxy_from_url(
                 proxy,
                 proxy_headers=proxy_headers,
                 num_pools=self._pool_connections,
@@ -154,7 +178,7 @@ class HTTPAdapter(BaseAdapter):
                 block=self._pool_block,
                 **proxy_kwargs)
 
-        return self.proxy_manager[proxy]
+        return manager
 
     def cert_verify(self, conn, url, verify, cert):
         """Verify a SSL certificate. This method should not be called from user
@@ -181,10 +205,15 @@ class HTTPAdapter(BaseAdapter):
                 raise Exception("Could not find a suitable SSL CA certificate bundle.")
 
             conn.cert_reqs = 'CERT_REQUIRED'
-            conn.ca_certs = cert_loc
+
+            if not os.path.isdir(cert_loc):
+                conn.ca_certs = cert_loc
+            else:
+                conn.ca_cert_dir = cert_loc
         else:
             conn.cert_reqs = 'CERT_NONE'
             conn.ca_certs = None
+            conn.ca_cert_dir = None
 
         if cert:
             if not isinstance(cert, basestring):
@@ -237,8 +266,7 @@ class HTTPAdapter(BaseAdapter):
         :param url: The URL to connect to.
         :param proxies: (optional) A Requests-style dictionary of proxies used on this request.
         """
-        proxies = proxies or {}
-        proxy = proxies.get(urlparse(url.lower()).scheme)
+        proxy = select_proxy(url, proxies)
 
         if proxy:
             proxy = prepend_scheme_if_needed(proxy, 'http')
@@ -255,10 +283,12 @@ class HTTPAdapter(BaseAdapter):
     def close(self):
         """Disposes of any internal state.
 
-        Currently, this just closes the PoolManager, which closes pooled
-        connections.
+        Currently, this closes the PoolManager and any active ProxyManager,
+        which closes any pooled connections.
         """
         self.poolmanager.clear()
+        for proxy in self.proxy_manager.values():
+            proxy.clear()
 
     def request_url(self, request, proxies):
         """Obtain the url to use when making the final request.
@@ -271,16 +301,20 @@ class HTTPAdapter(BaseAdapter):
         :class:`HTTPAdapter <requests.adapters.HTTPAdapter>`.
 
         :param request: The :class:`PreparedRequest <PreparedRequest>` being sent.
-        :param proxies: A dictionary of schemes to proxy URLs.
+        :param proxies: A dictionary of schemes or schemes and hosts to proxy URLs.
         """
-        proxies = proxies or {}
+        proxy = select_proxy(request.url, proxies)
         scheme = urlparse(request.url).scheme
-        proxy = proxies.get(scheme)
 
-        if proxy and scheme != 'https':
+        is_proxied_http_request = (proxy and scheme != 'https')
+        using_socks_proxy = False
+        if proxy:
+            proxy_scheme = urlparse(proxy).scheme.lower()
+            using_socks_proxy = proxy_scheme.startswith('socks')
+
+        url = request.path_url
+        if is_proxied_http_request and not using_socks_proxy:
             url = urldefragauth(request.url)
-        else:
-            url = request.path_url
 
         return url
 
@@ -309,7 +343,6 @@ class HTTPAdapter(BaseAdapter):
         :class:`HTTPAdapter <requests.adapters.HTTPAdapter>`.
 
         :param proxies: The url of the proxy being used for this request.
-        :param kwargs: Optional additional keyword arguments.
         """
         headers = {}
         username, password = get_auth_from_url(proxy)
@@ -326,8 +359,8 @@ class HTTPAdapter(BaseAdapter):
         :param request: The :class:`PreparedRequest <PreparedRequest>` being sent.
         :param stream: (optional) Whether to stream the request content.
         :param timeout: (optional) How long to wait for the server to send
-            data before giving up, as a float, or a (`connect timeout, read
-            timeout <user/advanced.html#timeouts>`_) tuple.
+            data before giving up, as a float, or a :ref:`(connect timeout,
+            read timeout) <timeouts>` tuple.
         :type timeout: float or tuple
         :param verify: (optional) Whether to verify SSL certificates.
         :param cert: (optional) Any user-provided SSL certificate to be trusted.
@@ -375,7 +408,7 @@ class HTTPAdapter(BaseAdapter):
                 if hasattr(conn, 'proxy_pool'):
                     conn = conn.proxy_pool
 
-                low_conn = conn._get_conn(timeout=timeout)
+                low_conn = conn._get_conn(timeout=DEFAULT_POOL_TIMEOUT)
 
                 try:
                     low_conn.putrequest(request.method,
@@ -394,7 +427,15 @@ class HTTPAdapter(BaseAdapter):
                         low_conn.send(b'\r\n')
                     low_conn.send(b'0\r\n\r\n')
 
-                    r = low_conn.getresponse()
+                    # Receive the response from the server
+                    try:
+                        # For Python 2.7+ versions, use buffering of HTTP
+                        # responses
+                        r = low_conn.getresponse(buffering=True)
+                    except TypeError:
+                        # For compatibility with Python 2.6 versions and back
+                        r = low_conn.getresponse()
+
                     resp = HTTPResponse.from_httplib(
                         r,
                         pool=conn,
@@ -407,20 +448,25 @@ class HTTPAdapter(BaseAdapter):
                     # Then, reraise so that we can handle the actual exception.
                     low_conn.close()
                     raise
-                else:
-                    # All is well, return the connection to the pool.
-                    conn._put_conn(low_conn)
 
         except (ProtocolError, socket.error) as err:
             raise ConnectionError(err, request=request)
 
         except MaxRetryError as e:
             if isinstance(e.reason, ConnectTimeoutError):
-                raise ConnectTimeout(e, request=request)
+                # TODO: Remove this in 3.0.0: see #2811
+                if not isinstance(e.reason, NewConnectionError):
+                    raise ConnectTimeout(e, request=request)
 
             if isinstance(e.reason, ResponseError):
                 raise RetryError(e, request=request)
 
+            if isinstance(e.reason, _ProxyError):
+                raise ProxyError(e, request=request)
+
+            raise ConnectionError(e, request=request)
+
+        except ClosedPoolError as e:
             raise ConnectionError(e, request=request)
 
         except _ProxyError as e:
