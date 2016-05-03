@@ -624,14 +624,17 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         if not poster_url and plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
             try:
                 thread_name = str(threading.current_thread().ident)
+                poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-' + thread_name)
+
                 # Retrieve the poster from Plex and cache to file
                 urllib.urlretrieve(plexpy.CONFIG.PMS_URL + thumb + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN,
-                                   os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-'+thread_name+'.jpg'))
+                                   poster_file)
+
                 # Upload thumb to Imgur and get link
-                poster_url = helpers.uploadToImgur(os.path.join(plexpy.CONFIG.CACHE_DIR,
-                                                                'cache-poster-'+thread_name+'.jpg'), poster_title)
+                poster_url = helpers.uploadToImgur(poster_file, poster_title)
+
                 # Delete the cached poster
-                os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-'+thread_name+'.jpg'))
+                os.remove(poster_file)
             except Exception as e:
                 logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(rating_key), e))
 
@@ -1105,6 +1108,10 @@ def strip_tag(data, agent_id=None):
     # Allow tags b, i, u, a[href], font[color] for Pushover
     if agent_id == 7:
         p = re.compile(r'<(?!/?(b>|i>|u>)|(a\shref=\"[^\"\'\s]+\"|/a>|font\scolor=\"[^\"\'\s]+\"|/font>)).*?>',
+                       re.IGNORECASE | re.DOTALL)
+    # Allow tags b, i, code, pre, a[href] for Telegram
+    elif agent_id == 13:
+        p = re.compile(r'<(?!/?(b>|i>|code>|pre>)|(a\shref=\"[^\"\'\s]+\"|/a>)).*?>',
                        re.IGNORECASE | re.DOTALL)
     else:
         p = re.compile(r'<.*?>', re.IGNORECASE | re.DOTALL)

@@ -21,6 +21,7 @@ from email.mime.text import MIMEText
 import email.utils
 from httplib import HTTPSConnection
 import os
+import requests
 import shlex
 import smtplib
 import subprocess
@@ -481,7 +482,7 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
             iftttClient.notify(subject=subject, message=body, action=notify_action)
         elif agent_id == 13:
             telegramClient = TELEGRAM()
-            telegramClient.notify(message=body, event=subject)
+            telegramClient.notify(message=body, event=subject, **kwargs)
         elif agent_id == 14:
             slackClient = SLACK()
             slackClient.notify(message=body, event=subject)
@@ -1175,7 +1176,7 @@ class PUSHOVER(object):
                          {'label': 'Enable HTML Support',
                           'value': self.html_support,
                           'name': 'pushover_html_support',
-                          'description': 'Style your messages using these HTML Tags: b, i, u, a[href], font[color]',
+                          'description': 'Style your messages using these HTML tags: b, i, u, a[href], font[color]',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1668,29 +1669,52 @@ class TELEGRAM(object):
         self.enabled = plexpy.CONFIG.TELEGRAM_ENABLED
         self.bot_token = plexpy.CONFIG.TELEGRAM_BOT_TOKEN
         self.chat_id = plexpy.CONFIG.TELEGRAM_CHAT_ID
+        self.html_support = plexpy.CONFIG.TELEGRAM_HTML_SUPPORT
+        self.incl_poster = plexpy.CONFIG.TELEGRAM_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.TELEGRAM_INCL_SUBJECT
 
     def conf(self, options):
         return cherrypy.config['config'].get('Telegram', options)
 
-    def notify(self, message, event):
+    def notify(self, message, event, **kwargs):
         if not message or not event:
             return
 
-        http_handler = HTTPSConnection("api.telegram.org")
+        data = {'chat_id': self.chat_id}
 
         if self.incl_subject:
-            text = event.encode('utf-8') + ': ' + message.encode("utf-8")
+            text = event.encode('utf-8') + ': ' + message.encode('utf-8')
         else:
-            text = message.encode("utf-8")
+            text = message.encode('utf-8')
 
-        data = {'chat_id': self.chat_id,
-                'text': text}
+        if self.incl_poster and 'metadata' in kwargs:
+            metadata = kwargs['metadata']
+            poster_url = metadata.get('poster_url','')
 
-        http_handler.request("POST",
-                                "/bot%s/%s" % (self.bot_token, "sendMessage"),
-                                headers={'Content-type': "application/x-www-form-urlencoded"},
-                                body=urlencode(data))
+            if poster_url:
+                files = {'photo': (poster_url, urllib.urlopen(poster_url).read())}
+                response = requests.post('https://api.telegram.org/bot%s/%s' % (self.bot_token, 'sendPhoto'),
+                                         data=data,
+                                         files=files)
+                request_status = response.status_code
+                request_content = json.loads(response.text)
+
+                if request_status == 200:
+                    logger.info(u"PlexPy Notifiers :: Telegram poster sent.")
+                elif request_status >= 400 and request_status < 500:
+                    logger.warn(u"PlexPy Notifiers :: Telegram poster failed: %s" % request_content.get('description'))
+                else:
+                    logger.warn(u"PlexPy Notifiers :: Telegram poster failed.")
+
+        data['text'] = text
+        if self.html_support:
+            data['parse_mode'] = 'HTML'
+
+        http_handler = HTTPSConnection("api.telegram.org")
+        http_handler.request('POST',
+                             '/bot%s/%s' % (self.bot_token, 'sendMessage'),
+                             headers={'Content-type': 'application/x-www-form-urlencoded'},
+                             body=urlencode(data))
 
         response = http_handler.getresponse()
         request_status = response.status
@@ -1733,10 +1757,22 @@ class TELEGRAM(object):
                                          ' on Telegram to get an ID.',
                           'input_type': 'text'
                           },
+                         {'label': 'Include Poster Image',
+                          'value': self.incl_poster,
+                          'name': 'telegram_incl_poster',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
+                          },
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'telegram_incl_subject',
                           'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Enable HTML Support',
+                          'value': self.html_support,
+                          'name': 'telegram_html_support',
+                          'description': 'Style your messages using these HTML tags: b, i, a[href], code, pre',
                           'input_type': 'checkbox'
                           }
                          ]
