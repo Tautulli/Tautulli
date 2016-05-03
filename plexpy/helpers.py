@@ -570,7 +570,7 @@ def uploadToImgur(imgPath, imgTitle=''):
 def cache_image(url, image=None):
     """
     Saves an image to the cache directory.
-    If no image is provided, tries to return the image from the cach directory.
+    If no image is provided, tries to return the image from the cache directory.
     """
     from plexpy import logger
 
@@ -580,11 +580,11 @@ def cache_image(url, image=None):
         logger.debug(u"PlexPy Helpers :: Creating image cache directory at %s" % imgdir)
         os.makedirs(imgdir)
 
-    # Create a hash of the path to use as filename
+    # Create a hash of the url to use as the filename
     imghash = hashlib.md5(url).hexdigest()
     imagefile = os.path.join(imgdir, imghash)
 
-    # If an image was provided, save it to the cache directory
+    # If an image is provided, save it to the cache directory
     if image:
         try:
             with open(imagefile, 'wb') as cache_file:
