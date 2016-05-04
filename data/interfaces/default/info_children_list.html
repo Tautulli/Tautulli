@@ -37,8 +37,8 @@ DOCUMENTATION :: END
         % else:
         <li>
         % endif
-            <a href="info?rating_key=${child['rating_key']}">
-                %if data['children_type'] == 'season':
+            %if data['children_type'] == 'season':
+            <a href="info?rating_key=${child['rating_key']}" title="Season ${child['media_index']}">
                 <div class="item-children-poster">
                     % if child['thumb']:
                     <div class="item-children-poster-face season-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=450&fallback=poster);">
@@ -52,7 +52,9 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                 </div>
-                % elif data['children_type'] == 'episode':
+            </a>
+            % elif data['children_type'] == 'episode':
+            <a href="info?rating_key=${child['rating_key']}" title="Episode ${child['media_index']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face episode-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=500&height=250&fallback=art);">
                         <div class="item-children-card-overlay">
@@ -62,36 +64,42 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                 </div>
-                <div class="item-children-instance-text-wrapper episode-item">
-                    <h3 title="${child['title']}">${child['title']}</h3>
-                </div>
-                % elif data['children_type'] == 'album':
+            </a>
+            <div class="item-children-instance-text-wrapper episode-item">
+                <h3>
+                     <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                </h3>
+            </div>
+            % elif data['children_type'] == 'album':
+            <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300&fallback=cover);"></div>
                 </div>
-                <div class="item-children-instance-text-wrapper album-item">
-                    <h3 title="${child['title']}">${child['title']}</h3>
-                </div>
-                % elif data['children_type'] == 'track':
-                    % if loop.index % 2 == 0:
-                    <div class="item-children-list-item-even">
-                        <span class="item-children-list-item-index">${child['media_index']}</span>
-                        <span class="item-children-list-item-title">${child['title']}</span>
-                        <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
-                            <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("m:ss"));</script>
-                        </span>
-                    </div>
-                    % else:
-                    <div class="item-children-list-item-odd">
-                        <span class="item-children-list-item-index">${child['media_index']}</span>
-                        <span class="item-children-list-item-title">${child['title']}</span>
-                        <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
-                            <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("m:ss"));</script>
-                        </span>
-                    </div>
-                    % endif
-                % endif
             </a>
+            <div class="item-children-instance-text-wrapper album-item">
+                <h3>
+                    <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a>
+                </h3>
+            </div>
+            % elif data['children_type'] == 'track':
+                % if loop.index % 2 == 0:
+                <div class="item-children-list-item-even">
+                    <span class="item-children-list-item-index">${child['media_index']}</span>
+                    <span class="item-children-list-item-title"><a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a></span>
+                    <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
+                        <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("m:ss"));</script>
+                    </span>
+                </div>
+                % else:
+                <div class="item-children-list-item-odd">
+                    <span class="item-children-list-item-index">${child['media_index']}</span>
+                    <span class="item-children-list-item-title"><a href="info?rating_key=${child['rating_key']}" title="${child['title']}">${child['title']}</a></span>
+                    <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
+                        <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("m:ss"));</script>
+                    </span>
+                </div>
+                % endif
+            % endif
         </li>
         % endif
         % endfor
