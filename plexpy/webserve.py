@@ -211,7 +211,18 @@ class WebInterface(object):
             return serve_template(templatename="current_activity_header.html", data=None)
 
         if result:
-            return serve_template(templatename="current_activity_header.html", data=result['stream_count'])
+            data = {'stream_count': result['stream_count']}
+            data['direct_play'] = \
+                sum(1 for s in result['sessions']
+                    if s['video_decision'] == 'direct play' and s['audio_decision'] == 'direct play')
+            data['direct_stream'] = \
+                sum(1 for s in result['sessions']
+                    if s['video_decision'] == 'copy' and s['audio_decision'] == 'copy')
+            data['transcode'] = \
+                sum(1 for s in result['sessions']
+                    if s['video_decision'] == 'transcode' or s['audio_decision'] == 'transcode')
+
+            return serve_template(templatename="current_activity_header.html", data=data)
         else:
             logger.warn(u"Unable to retrieve data for get_current_activity_header.")
             return serve_template(templatename="current_activity_header.html", data=None)
