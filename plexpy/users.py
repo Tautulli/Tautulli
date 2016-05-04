@@ -599,19 +599,23 @@ class Users(object):
     def get_user_names(self, kwargs=None):
         monitor_db = database.MonitorDatabase()
         
+        user_cond = ''
+        if session.get_session_user_id():
+            user_cond = 'AND user_id = %s ' % session.get_session_user_id()
+
         try:
             query = 'SELECT user_id, ' \
                     '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
                     THEN users.username ELSE users.friendly_name END) AS friendly_name ' \
                     'FROM users ' \
-                    'WHERE deleted_user = 0'
+                    'WHERE deleted_user = 0 %s' % user_cond
 
             result = monitor_db.select(query)
         except Exception as e:
             logger.warn(u"PlexPy Users :: Unable to execute database query for get_user_names: %s." % e)
             return None
         
-        return result
+        return session.friendly_name_to_username(result)
     
     def get_tokens(self, user_id=None):
         if user_id:

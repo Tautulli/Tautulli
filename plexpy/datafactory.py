@@ -29,6 +29,9 @@ class DataFactory(object):
     def get_datatables_history(self, kwargs=None, custom_where=None, grouping=0, watched_percent=85):
         data_tables = datatables.DataTables()
 
+        if custom_where is None:
+            custon_where = []
+
         if session.get_session_user_id():
             session_user_id = str(session.get_session_user_id())
             added = False
@@ -44,7 +47,7 @@ class DataFactory(object):
                         added = True
 
             if not added:
-                custom_where = [['session_history.user_id', session.get_session_user_id()]]
+                custom_where.append(['session_history.user_id', session.get_session_user_id()])
 
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 

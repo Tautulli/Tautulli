@@ -942,7 +942,7 @@ class WebInterface(object):
         return "Updated graphs config values."
     
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_user_names(self, **kwargs):
 

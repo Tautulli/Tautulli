@@ -12,7 +12,6 @@
             <span><i class="fa fa-bar-chart"></i> Graphs</span>
         </div>
         <div class="button-bar hidden-xs">
-            % if _session['user_group'] == 'admin':
             <div class="btn-group" id="user-selection">
                 <label>
                     <select name="graph-user" id="graph-user" class="btn" style="color: inherit;">
@@ -21,7 +20,6 @@
                     </select>
                 </label>
             </div>
-            % endif
             <div class="btn-group" data-toggle="buttons" id="yaxis-selection">
                 % if config['graph_type'] == 'duration':
                 <label class="btn btn-dark">
@@ -258,7 +256,7 @@
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 
 <script>
-    var selected_user_id = "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
+    var selected_user_id = null
 
     // Modal popup dialog
     function selectHandler(selectedDate, selectedSeries) {

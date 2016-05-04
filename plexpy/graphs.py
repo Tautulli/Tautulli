@@ -31,7 +31,7 @@ class Graphs(object):
             time_range = '30'
         
         user_cond = ''
-        if session.get_session_user_id():
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
@@ -115,7 +115,7 @@ class Graphs(object):
             time_range = '30'
 
         user_cond = ''
-        if session.get_session_user_id():
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
@@ -212,7 +212,7 @@ class Graphs(object):
             time_range = '30'
 
         user_cond = ''
-        if session.get_session_user_id():
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
@@ -294,7 +294,7 @@ class Graphs(object):
         monitor_db = database.MonitorDatabase()
 
         user_cond = ''
-        if session.get_session_user_id():
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
@@ -382,7 +382,7 @@ class Graphs(object):
             time_range = '30'
 
         user_cond = ''
-        if session.get_session_user_id():
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
@@ -451,7 +451,9 @@ class Graphs(object):
             time_range = '30'
 
         user_cond = ''
-        if user_id and user_id.isdigit() and not session.get_session_user_id():
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
@@ -529,7 +531,7 @@ class Graphs(object):
             time_range = '30'
 
         user_cond = ''
-        if session.get_session_user_id():
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
@@ -627,7 +629,7 @@ class Graphs(object):
             time_range = '30'
 
         user_cond = ''
-        if session.get_session_user_id():
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
@@ -708,7 +710,7 @@ class Graphs(object):
             time_range = '30'
 
         user_cond = ''
-        if session.get_session_user_id():
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
@@ -809,7 +811,7 @@ class Graphs(object):
             time_range = '30'
 
         user_cond = ''
-        if session.get_session_user_id():
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
@@ -890,7 +892,9 @@ class Graphs(object):
             time_range = '30'
 
         user_cond = ''
-        if user_id and user_id.isdigit() and not session.get_session_user_id():
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
             user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
