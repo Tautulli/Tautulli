@@ -17,10 +17,12 @@ from urlparse import urlparse
 import base64
 import json
 import cherrypy
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email.utils
 from httplib import HTTPSConnection
 import os
+import re
 import requests
 import shlex
 import smtplib
@@ -1496,35 +1498,51 @@ class BOXCAR(object):
 class Email(object):
 
     def __init__(self):
-        pass
+        self.from_name = plexpy.CONFIG.EMAIL_FROM_NAME
+        self.email_from = plexpy.CONFIG.EMAIL_FROM
+        self.email_to = plexpy.CONFIG.EMAIL_TO
+        self.email_cc = plexpy.CONFIG.EMAIL_CC
+        self.email_bcc = plexpy.CONFIG.EMAIL_BCC
+        self.smtp_server = plexpy.CONFIG.EMAIL_SMTP_SERVER
+        self.smtp_port = plexpy.CONFIG.EMAIL_SMTP_PORT
+        self.smtp_user = plexpy.CONFIG.EMAIL_SMTP_USER
+        self.smtp_password = plexpy.CONFIG.EMAIL_SMTP_PASSWORD
+        self.tls = plexpy.CONFIG.EMAIL_TLS
+        self.html_support = plexpy.CONFIG.TELEGRAM_HTML_SUPPORT
 
     def notify(self, subject, message):
         if not subject or not message:
             return
 
-        message = MIMEText(message, 'plain', "utf-8")
-        message['Subject'] = subject
-        message['From'] = email.utils.formataddr((plexpy.CONFIG.EMAIL_FROM_NAME, plexpy.CONFIG.EMAIL_FROM))
-        message['To'] = plexpy.CONFIG.EMAIL_TO
-        message['CC'] = plexpy.CONFIG.EMAIL_CC
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = email.utils.formataddr((self.from_name, self.email_from))
+        msg['To'] = self.email_to
+        msg['CC'] = self.email_cc
 
-        recipients = [x.strip() for x in plexpy.CONFIG.EMAIL_TO.split(';')] \
-                   + [x.strip() for x in plexpy.CONFIG.EMAIL_CC.split(';')] \
-                   + [x.strip() for x in plexpy.CONFIG.EMAIL_BCC.split(';')]
+        p = re.compile(r'<.*?>')
+        plain_message = p.sub('', message)
+
+        msg.attach(MIMEText(plain_message, 'plain'))
+        msg.attach(MIMEText(message, 'html'))
+
+        recipients = [x.strip() for x in self.email_to.split(';')] \
+                   + [x.strip() for x in self.email_cc.split(';')] \
+                   + [x.strip() for x in self.email_bcc.split(';')]
         recipients = filter(None, recipients)
 
         try:
-            mailserver = smtplib.SMTP(plexpy.CONFIG.EMAIL_SMTP_SERVER, plexpy.CONFIG.EMAIL_SMTP_PORT)
+            mailserver = smtplib.SMTP(self.smtp_server, self.smtp_port)
 
-            if (plexpy.CONFIG.EMAIL_TLS):
+            if self.tls:
                 mailserver.starttls()
 
             mailserver.ehlo()
 
-            if plexpy.CONFIG.EMAIL_SMTP_USER:
-                mailserver.login(plexpy.CONFIG.EMAIL_SMTP_USER, plexpy.CONFIG.EMAIL_SMTP_PASSWORD)
+            if self.smtp_user:
+                mailserver.login(self.smtp_user, self.smtp_password)
 
-            mailserver.sendmail(plexpy.CONFIG.EMAIL_FROM, recipients, message.as_string())
+            mailserver.sendmail(self.email_from, recipients, msg.as_string())
             mailserver.quit()
 
             logger.info(u"PlexPy Notifiers :: Email notification sent.")
@@ -1536,63 +1554,69 @@ class Email(object):
 
     def return_config_options(self):
         config_option = [{'label': 'From Name',
-                          'value': plexpy.CONFIG.EMAIL_FROM_NAME,
+                          'value': self.from_name,
                           'name': 'email_from_name',
                           'description': 'The name of the sender.',
                           'input_type': 'text'
                           },
                          {'label': 'From',
-                          'value': plexpy.CONFIG.EMAIL_FROM,
+                          'value': self.email_from,
                           'name': 'email_from',
                           'description': 'The email address of the sender.',
                           'input_type': 'text'
                           },
                          {'label': 'To',
-                          'value': plexpy.CONFIG.EMAIL_TO,
+                          'value': self.email_to,
                           'name': 'email_to',
                           'description': 'The email address(es) of the recipients, separated by semicolons (;).',
                           'input_type': 'text'
                           },
                          {'label': 'CC',
-                          'value': plexpy.CONFIG.EMAIL_CC,
+                          'value': self.email_cc,
                           'name': 'email_cc',
                           'description': 'The email address(es) to CC, separated by semicolons (;).',
                           'input_type': 'text'
                           },
                          {'label': 'BCC',
-                          'value': plexpy.CONFIG.EMAIL_BCC,
+                          'value': self.email_bcc,
                           'name': 'email_bcc',
                           'description': 'The email address(es) to BCC, separated by semicolons (;).',
                           'input_type': 'text'
                           },
                          {'label': 'SMTP Server',
-                          'value': plexpy.CONFIG.EMAIL_SMTP_SERVER,
+                          'value': self.smtp_server,
                           'name': 'email_smtp_server',
                           'description': 'Host for the SMTP server.',
                           'input_type': 'text'
                           },
                          {'label': 'SMTP Port',
-                          'value': plexpy.CONFIG.EMAIL_SMTP_PORT,
+                          'value': self.smtp_port,
                           'name': 'email_smtp_port',
                           'description': 'Port for the SMTP server.',
                           'input_type': 'number'
                           },
                          {'label': 'SMTP User',
-                          'value': plexpy.CONFIG.EMAIL_SMTP_USER,
+                          'value': self.smtp_user,
                           'name': 'email_smtp_user',
                           'description': 'User for the SMTP server.',
                           'input_type': 'text'
                           },
                          {'label': 'SMTP Password',
-                          'value': plexpy.CONFIG.EMAIL_SMTP_PASSWORD,
+                          'value': self.smtp_password,
                           'name': 'email_smtp_password',
                           'description': 'Password for the SMTP server.',
                           'input_type': 'password'
                           },
                          {'label': 'TLS',
-                          'value': plexpy.CONFIG.EMAIL_TLS,
+                          'value': self.tls,
                           'name': 'email_tls',
                           'description': 'Does the server use encryption.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Enable HTML Support',
+                          'value': self.html_support,
+                          'name': 'email_html_support',
+                          'description': 'Style your messages using  HTML tags.',
                           'input_type': 'checkbox'
                           }
                          ]
