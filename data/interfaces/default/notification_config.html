@@ -189,32 +189,49 @@ from plexpy import helpers
         .done(function () { showMsg('<i class="fa fa-check"></i> Confirm Authorization. Check pop-up blocker if no response.', false, true, 3000); });
     });
 
+    $('#allow_browser').click(function () {
+        PNotify.desktop.permission();
+    })
+
     $('#test_notifier').click(function () {
         doAjaxCall('set_notification_config', $(this), 'tabs', true, sendTestNotification);
     });
 
     function sendTestNotification() {
-        $.ajax({
-            url: 'test_notifier',
-            data: {
-                agent_id: '${agent["id"]}',
-                subject: $('#test_subject').val(),
-                body: $('#test_body').val(),
-                script: $('#test_script').val(),
-                script_args: $('#test_script_args').val()
-            },
-            cache: false,
-            async: true,
-            complete: function (xhr, status) {
-                if (xhr.responseText.indexOf('sent') > -1) {
-                    msg = '<i class="fa fa-check"></i>&nbsp; ' + xhr.responseText;
-                    showMsg(msg, false, true, 2000);
-                } else {
-                    msg = '<i class="fa fa-times"></i>&nbsp; ' + xhr.responseText;
-                    showMsg(msg, false, true, 2000, true);
+        if ('${agent["id"]}' != '17') {
+            $.ajax({
+                url: 'test_notifier',
+                data: {
+                    agent_id: '${agent["id"]}',
+                    subject: $('#test_subject').val(),
+                    body: $('#test_body').val(),
+                    script: $('#test_script').val(),
+                    script_args: $('#test_script_args').val()
+                },
+                cache: false,
+                async: true,
+                complete: function (xhr, status) {
+                    if (xhr.responseText.indexOf('sent') > -1) {
+                        msg = '<i class="fa fa-check"></i>&nbsp; ' + xhr.responseText;
+                        showMsg(msg, false, true, 2000);
+                    } else {
+                        msg = '<i class="fa fa-times"></i>&nbsp; ' + xhr.responseText;
+                        showMsg(msg, false, true, 2000, true);
+                    }
                 }
+            });
+        } else {
+            if ($('#browser_auto_hide_delay').val() == "0") {
+                PNotify.prototype.options.hide = false;
+            } else {
+                PNotify.prototype.options.hide = true;
+                PNotify.prototype.options.delay = $('#browser_auto_hide_delay').val() * 1000;
             }
-        });
+            var notification = new PNotify({
+                title: $('#test_subject').val(),
+                text: $('#test_body').val()
+            });
+        }
     }
 
     $('#pushbullet_apikey, #pushover_apitoken, #scripts_folder').on('change', function () {

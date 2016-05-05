@@ -27,6 +27,7 @@ import requests
 import shlex
 import smtplib
 import subprocess
+import time
 
 from urllib import urlencode
 import urllib
@@ -40,7 +41,7 @@ import pythontwitter as twitter
 import pythonfacebook as facebook
 
 import plexpy
-from plexpy import logger, helpers, request
+from plexpy import logger, helpers, request, database
 from plexpy.helpers import checked
 
 AGENT_IDS = {"Growl": 0,
@@ -59,7 +60,8 @@ AGENT_IDS = {"Growl": 0,
              "Telegram": 13,
              "Slack": 14,
              "Scripts": 15,
-             "Facebook": 16}
+             "Facebook": 16,
+             "Browser": 17}
 
 
 def available_notification_agents():
@@ -350,6 +352,24 @@ def available_notification_agents():
                'on_extup': plexpy.CONFIG.FACEBOOK_ON_EXTUP,
                'on_intup': plexpy.CONFIG.FACEBOOK_ON_INTUP,
                'on_pmsupdate': plexpy.CONFIG.FACEBOOK_ON_PMSUPDATE
+              },
+              {'name': 'Browser',
+               'id': AGENT_IDS['Browser'],
+               'config_prefix': 'browser',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.BROWSER_ENABLED),
+               'on_play': plexpy.CONFIG.BROWSER_ON_PLAY,
+               'on_stop': plexpy.CONFIG.BROWSER_ON_STOP,
+               'on_pause': plexpy.CONFIG.BROWSER_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.BROWSER_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.BROWSER_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.BROWSER_ON_WATCHED,
+               'on_created': plexpy.CONFIG.BROWSER_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.BROWSER_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.BROWSER_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.BROWSER_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.BROWSER_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.BROWSER_ON_PMSUPDATE
                }
               ]
 
@@ -433,6 +453,9 @@ def get_notification_agent_config(agent_id):
         elif agent_id == 16:
             facebook = FacebookNotifier()
             return facebook.return_config_options()
+        elif agent_id == 17:
+            browser = Browser()
+            return browser.return_config_options()
         else:
             return []
     else:
@@ -494,6 +517,9 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
         elif agent_id == 16:
             facebook = FacebookNotifier()
             return facebook.notify(subject=subject, message=body, **kwargs)
+        elif agent_id == 17:
+            browser = Browser()
+            return browser.notify(subject=subject, message=body)
         else:
             logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
@@ -2393,6 +2419,56 @@ class FacebookNotifier(object):
                           'name': 'facebook_incl_subject',
                           'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+
+class Browser(object):
+
+    def __init__(self):
+        self.enabled = plexpy.CONFIG.BROWSER_ENABLED
+        self.auto_hide_delay = plexpy.CONFIG.BROWSER_AUTO_HIDE_DELAY
+
+    def notify(self, subject, message):
+        if not subject or not message:
+            return
+
+        logger.info(u"PlexPy Notifiers :: Browser notification sent.")
+        return True
+
+    def get_notifications(self):
+        monitor_db = database.MonitorDatabase()
+        result = monitor_db.select('SELECT subject_text, body_text FROM notify_log '
+                                   'WHERE agent_id = 17 AND timestamp >= ? ',
+                                   args=[time.time() - 3])
+
+        notifications = []
+        for item in result:
+            notification = {'subject_text': item['subject_text'],
+                            'body_text': item['body_text'],
+                            'delay': self.auto_hide_delay}
+            notifications.append(notification)
+
+        return {'notifications': notifications}
+
+    def test(self, bot_token, chat_id):
+        self.enabled = True
+        self.notify('PlexPy', 'Test Notification')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Allow Notifications',
+                          'value': 'Allow Notifications',
+                          'name': 'allow_browser',
+                          'description': 'Click to allow browser notifications. You must click this button for each browser.',
+                          'input_type': 'button'
+                          },
+                         {'label': 'Auto Hide Delay',
+                          'value': self.auto_hide_delay,
+                          'name': 'browser_auto_hide_delay',
+                          'description': 'Set the number of seconds for the notification to remain visible. \
+                                          Set 0 to disable auto hiding. (Note: Some browsers have a maximum time limit.)',
+                          'input_type': 'number'
                           }
                          ]
 

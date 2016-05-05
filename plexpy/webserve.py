@@ -1636,6 +1636,22 @@ class WebInterface(object):
             logger.debug(u"Unable to send test notification, no notification agent ID received.")
             return "No notification agent ID received."
 
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def get_browser_notifications(self, **kwargs):
+        browser = notifiers.Browser()
+        result = browser.get_notifications()
+
+        if result:
+            notifications = result['notifications']
+            if notifications:
+                cherrypy.response.headers['Content-type'] = 'application/json'
+                return json.dumps(notifications)
+            else:
+                return None
+        else:
+            logger.warn('Unable to retrieve browser notifications.')
+            return None
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
