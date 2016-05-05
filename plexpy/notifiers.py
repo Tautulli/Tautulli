@@ -15,6 +15,7 @@
 
 from urlparse import urlparse
 import base64
+import bleach
 import json
 import cherrypy
 from email.mime.multipart import MIMEMultipart
@@ -1538,23 +1539,24 @@ class Email(object):
         self.smtp_user = plexpy.CONFIG.EMAIL_SMTP_USER
         self.smtp_password = plexpy.CONFIG.EMAIL_SMTP_PASSWORD
         self.tls = plexpy.CONFIG.EMAIL_TLS
-        self.html_support = plexpy.CONFIG.TELEGRAM_HTML_SUPPORT
+        self.html_support = plexpy.CONFIG.EMAIL_HTML_SUPPORT
 
     def notify(self, subject, message):
         if not subject or not message:
             return
 
-        msg = MIMEMultipart('alternative')
+        if self.html_support:
+            msg = MIMEMultipart('alternative')
+            msg.attach(MIMEText(bleach.clean(message, strip=True), 'plain', 'utf-8'))
+            msg.attach(MIMEText(message, 'html', 'utf-8'))
+        else:
+            msg = MIMEText(message, 'plain', 'utf-8')
+
         msg['Subject'] = subject
         msg['From'] = email.utils.formataddr((self.from_name, self.email_from))
         msg['To'] = self.email_to
         msg['CC'] = self.email_cc
 
-        p = re.compile(r'<.*?>')
-        plain_message = p.sub('', message)
-
-        msg.attach(MIMEText(plain_message, 'plain'))
-        msg.attach(MIMEText(message, 'html'))
 
         recipients = [x.strip() for x in self.email_to.split(';')] \
                    + [x.strip() for x in self.email_cc.split(';')] \

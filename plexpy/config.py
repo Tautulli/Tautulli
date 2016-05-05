@@ -86,6 +86,7 @@ _CONFIG_DEFINITIONS = {
     'EMAIL_SMTP_PASSWORD': (str, 'Email', ''),
     'EMAIL_SMTP_PORT': (int, 'Email', 25),
     'EMAIL_TLS': (int, 'Email', 0),
+    'EMAIL_HTML_SUPPORT': (int, 'Email', 1),
     'EMAIL_ON_PLAY': (int, 'Email', 0),
     'EMAIL_ON_STOP': (int, 'Email', 0),
     'EMAIL_ON_PAUSE': (int, 'Email', 0),
