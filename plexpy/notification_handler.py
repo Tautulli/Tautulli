@@ -15,6 +15,7 @@
 
 
 import arrow
+import bleach
 import os
 import re
 import threading
@@ -1112,15 +1113,24 @@ def build_server_notify_text(notify_action=None, agent_id=None):
 
 
 def strip_tag(data, agent_id=None):
-    # Allow tags b, i, u, a[href], font[color] for Pushover
-    if agent_id == 7:
-        p = re.compile(r'<(?!/?(b>|i>|u>)|(a\shref=\"[^\"\'\s]+\"|/a>|font\scolor=\"[^\"\'\s]+\"|/font>)).*?>',
-                       re.IGNORECASE | re.DOTALL)
-    # Allow tags b, i, code, pre, a[href] for Telegram
-    elif agent_id == 13:
-        p = re.compile(r'<(?!/?(b>|i>|code>|pre>)|(a\shref=\"[^\"\'\s]+\"|/a>)).*?>',
-                       re.IGNORECASE | re.DOTALL)
-    else:
-        p = re.compile(r'<.*?>', re.IGNORECASE | re.DOTALL)
 
-    return p.sub('', data)
+    if agent_id == 7:
+        # Allow tags b, i, u, a[href], font[color] for Pushover
+        whitelist = {'b': [],
+                     'i': [],
+                     'u': [],
+                     'a': ['href'],
+                     'font': ['color']}
+        return bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
+    elif agent_id == 13:
+        # Allow tags b, i, code, pre, a[href] for Telegram
+        whitelist = {'b': [],
+                      'i': [],
+                      'code': [],
+                      'pre': [],
+                      'a': ['href']}
+        return bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
+
+    else:
+        whitelist = {}
+        return bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
