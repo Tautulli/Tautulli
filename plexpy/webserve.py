@@ -1625,8 +1625,10 @@ class WebInterface(object):
 
             if this_agent:
                 logger.debug(u"Sending test %s notification." % this_agent['name'])
-                notifiers.send_notification(this_agent['id'], subject, body, 'test', **kwargs)
-                return "Notification sent."
+                if notifiers.send_notification(this_agent['id'], subject, body, 'test', **kwargs):
+                    return "Notification sent."
+                else:
+                    return "Notification failed."
             else:
                 logger.debug(u"Unable to send test notification, invalid notification agent ID %s." % agent_id)
                 return "Invalid notification agent ID %s." % agent_id

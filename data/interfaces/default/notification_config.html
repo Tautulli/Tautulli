@@ -190,7 +190,10 @@ from plexpy import helpers
     });
 
     $('#test_notifier').click(function () {
-        doAjaxCall('set_notification_config', $(this), 'tabs', true);
+        doAjaxCall('set_notification_config', $(this), 'tabs', true, sendTestNotification);
+    });
+
+    function sendTestNotification() {
         $.ajax({
             url: 'test_notifier',
             data: {
@@ -203,11 +206,16 @@ from plexpy import helpers
             cache: false,
             async: true,
             complete: function (xhr, status) {
-                msg = '<i class="fa fa-check"></i>&nbsp; ' + xhr.responseText;
-                showMsg(msg, false, true, 2000);
+                if (xhr.responseText.indexOf('sent') > -1) {
+                    msg = '<i class="fa fa-check"></i>&nbsp; ' + xhr.responseText;
+                    showMsg(msg, false, true, 2000);
+                } else {
+                    msg = '<i class="fa fa-times"></i>&nbsp; ' + xhr.responseText;
+                    showMsg(msg, false, true, 2000, true);
+                }
             }
         });
-    });
+    }
 
     $('#pushbullet_apikey, #pushover_apitoken, #scripts_folder').on('change', function () {
         // Reload modal to update certain fields

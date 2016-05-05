@@ -445,55 +445,55 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
 
         if agent_id == 0:
             growl = GROWL()
-            growl.notify(message=body, event=subject)
+            return growl.notify(message=body, event=subject)
         elif agent_id == 1:
             prowl = PROWL()
-            prowl.notify(message=body, event=subject)
+            return prowl.notify(message=body, event=subject)
         elif agent_id == 2:
             xbmc = XBMC()
-            xbmc.notify(subject=subject, message=body)
+            return xbmc.notify(subject=subject, message=body)
         elif agent_id == 3:
             plex = Plex()
-            plex.notify(subject=subject, message=body)
+            return plex.notify(subject=subject, message=body)
         elif agent_id == 4:
             nma = NMA()
-            nma.notify(subject=subject, message=body)
+            return nma.notify(subject=subject, message=body)
         elif agent_id == 5:
             pushalot = PUSHALOT()
-            pushalot.notify(message=body, event=subject)
+            return pushalot.notify(message=body, event=subject)
         elif agent_id == 6:
             pushbullet = PUSHBULLET()
-            pushbullet.notify(message=body, subject=subject)
+            return pushbullet.notify(message=body, subject=subject)
         elif agent_id == 7:
             pushover = PUSHOVER()
-            pushover.notify(message=body, event=subject)
+            return pushover.notify(message=body, event=subject)
         elif agent_id == 8:
             osx_notify = OSX_NOTIFY()
-            osx_notify.notify(title=subject, text=body)
+            return osx_notify.notify(title=subject, text=body)
         elif agent_id == 9:
             boxcar = BOXCAR()
-            boxcar.notify(title=subject, message=body)
+            return boxcar.notify(title=subject, message=body)
         elif agent_id == 10:
             email = Email()
-            email.notify(subject=subject, message=body)
+            return email.notify(subject=subject, message=body)
         elif agent_id == 11:
             tweet = TwitterNotifier()
-            tweet.notify(subject=subject, message=body)
+            return tweet.notify(subject=subject, message=body)
         elif agent_id == 12:
             iftttClient = IFTTT()
-            iftttClient.notify(subject=subject, message=body, action=notify_action)
+            return iftttClient.notify(subject=subject, message=body, action=notify_action)
         elif agent_id == 13:
             telegramClient = TELEGRAM()
-            telegramClient.notify(message=body, event=subject, **kwargs)
+            return telegramClient.notify(message=body, event=subject, **kwargs)
         elif agent_id == 14:
             slackClient = SLACK()
-            slackClient.notify(message=body, event=subject)
+            return slackClient.notify(message=body, event=subject)
         elif agent_id == 15:
             scripts = Scripts()
-            scripts.notify(message=body, subject=subject, notify_action=notify_action, **kwargs)
+            return scripts.notify(message=body, subject=subject, notify_action=notify_action, **kwargs)
         elif agent_id == 16:
             facebook = FacebookNotifier()
-            facebook.notify(subject=subject, message=body, **kwargs)
+            return facebook.notify(subject=subject, message=body, **kwargs)
         else:
             logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
@@ -546,10 +546,10 @@ class GROWL(object):
             growl.register()
         except gntp.notifier.errors.NetworkError:
             logger.warn(u"PlexPy Notifiers :: Growl notification failed: network error")
-            return
+            return False
         except gntp.notifier.errors.AuthError:
             logger.warn(u"PlexPy Notifiers :: Growl notification failed: authentication error")
-            return
+            return False
 
         # Fix message
         message = message.encode(plexpy.SYS_ENCODING, "replace")
@@ -569,9 +569,10 @@ class GROWL(object):
                 icon=image
             )
             logger.info(u"PlexPy Notifiers :: Growl notification sent.")
+            return True
         except gntp.notifier.errors.NetworkError:
             logger.warn(u"PlexPy Notifiers :: Growl notification failed: network error")
-            return
+            return False
 
 
     def updateLibrary(self):
@@ -734,9 +735,11 @@ class XBMC(object):
                     raise Exception
                 else:
                     logger.info(u"PlexPy Notifiers :: XBMC notification sent.")
+                    return True
 
             except Exception:
                 logger.warn(u"PlexPy Notifiers :: XBMC notification filed.")
+                return False
 
     def return_config_options(self):
         config_option = [{'label': 'XBMC Host:Port',
@@ -816,9 +819,11 @@ class Plex(object):
                     raise Exception
                 else:
                     logger.info(u"PlexPy Notifiers :: Plex Home Theater notification sent.")
+                    return True
 
             except Exception:
                 logger.warn(u"PlexPy Notifiers :: Plex Home Theater notification filed.")
+                return False
 
     def return_config_options(self):
         config_option = [{'label': 'Plex Home Theater Host:Port',
@@ -1278,11 +1283,10 @@ class TwitterNotifier(object):
         try:
             api.PostUpdate(message)
             logger.info(u"PlexPy Notifiers :: Twitter notification sent.")
+            return True
         except Exception as e:
             logger.warn(u"PlexPy Notifiers :: Twitter notification failed: %s" % e)
             return False
-
-        return True
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
@@ -2062,11 +2066,14 @@ class Scripts(object):
             if error:
                 error = error.strip()
                 logger.error(u"PlexPy Notifiers :: Script error: %s" % error)
+                return False
             else:
                 logger.info(u"PlexPy Notifiers :: Script notification sent.")
+                return True
 
         except OSError as e:
             logger.error(u"PlexPy Notifiers :: Failed to run script: %s" % e)
+            return False
 
     def return_config_options(self):
         config_option = [{'label': 'Supported File Types',
@@ -2313,11 +2320,11 @@ class FacebookNotifier(object):
             try:
                 api.put_wall_post(profile_id=self.group_id, message=message, attachment=attachment)
                 logger.info(u"PlexPy Notifiers :: Facebook notification sent.")
+                return True
             except Exception as e:
                 logger.warn(u"PlexPy Notifiers :: Error sending Facebook post: %s" % e)
                 return False
 
-            return True
         else:
             logger.warn(u"PlexPy Notifiers :: Error sending Facebook post: No Facebook Group ID provided.")
             return False
