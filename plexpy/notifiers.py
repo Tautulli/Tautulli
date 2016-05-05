@@ -117,24 +117,24 @@ def available_notification_agents():
                'on_intup': plexpy.CONFIG.XBMC_ON_INTUP,
                'on_pmsupdate': plexpy.CONFIG.XBMC_ON_PMSUPDATE
                },
-              #{'name': 'Plex',
-              # 'id': AGENT_IDS['Plex'],
-              # 'config_prefix': 'plex',
-              # 'has_config': True,
-              # 'state': checked(plexpy.CONFIG.PLEX_ENABLED),
-              # 'on_play': plexpy.CONFIG.PLEX_ON_PLAY,
-              # 'on_stop': plexpy.CONFIG.PLEX_ON_STOP,
-              # 'on_pause': plexpy.CONFIG.PLEX_ON_PAUSE,
-              # 'on_resume': plexpy.CONFIG.PLEX_ON_RESUME,
-              # 'on_buffer': plexpy.CONFIG.PLEX_ON_BUFFER,
-              # 'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED,
-              # 'on_created': plexpy.CONFIG.PLEX_ON_CREATED,
-              # 'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
-              # 'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN,
-              # 'on_extup': plexpy.CONFIG.PLEX_ON_EXTUP,
-              # 'on_intup': plexpy.CONFIG.PLEX_ON_INTUP,
-              # 'on_pmsupdate': plexpy.CONFIG.PLEX_ON_PMSUPDATE
-              # },
+              {'name': 'Plex Home Theater',
+               'id': AGENT_IDS['Plex'],
+               'config_prefix': 'plex',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.PLEX_ENABLED),
+               'on_play': plexpy.CONFIG.PLEX_ON_PLAY,
+               'on_stop': plexpy.CONFIG.PLEX_ON_STOP,
+               'on_pause': plexpy.CONFIG.PLEX_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.PLEX_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.PLEX_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED,
+               'on_created': plexpy.CONFIG.PLEX_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PLEX_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PLEX_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PLEX_ON_PMSUPDATE
+               },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
                'config_prefix': 'nma',
@@ -682,7 +682,6 @@ class XBMC(object):
     """
 
     def __init__(self):
-
         self.hosts = plexpy.CONFIG.XBMC_HOST
         self.username = plexpy.CONFIG.XBMC_USERNAME
         self.password = plexpy.CONFIG.XBMC_PASSWORD
@@ -749,13 +748,13 @@ class XBMC(object):
                          {'label': 'XBMC Username',
                           'value': self.username,
                           'name': 'xbmc_username',
-                          'description': 'Your XBMC username.',
+                          'description': 'Username of your XBMC client API (blank for none).',
                           'input_type': 'text'
                           },
                          {'label': 'XBMC Password',
                           'value': self.password,
                           'name': 'xbmc_password',
-                          'description': 'Your XMBC password.',
+                          'description': 'Password of your XBMC client API (blank for none).',
                           'input_type': 'password'
                           }
                          ]
@@ -765,37 +764,31 @@ class XBMC(object):
 
 class Plex(object):
     def __init__(self):
-
         self.client_hosts = plexpy.CONFIG.PLEX_CLIENT_HOST
         self.username = plexpy.CONFIG.PLEX_USERNAME
         self.password = plexpy.CONFIG.PLEX_PASSWORD
 
     def _sendhttp(self, host, command):
-
-        username = self.username
-        password = self.password
-
         url_command = urllib.urlencode(command)
-
         url = host + '/xbmcCmds/xbmcHttp/?' + url_command
 
-        req = urllib2.Request(url)
+        if self.password:
+            return request.request_content(url, auth=(self.username, self.password))
+        else:
+            return request.request_content(url)
 
-        if password:
-            base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-            req.add_header("Authorization", "Basic %s" % base64string)
+    def _sendjson(self, host, method, params={}):
+        data = [{'id': 0, 'jsonrpc': '2.0', 'method': method, 'params': params}]
+        headers = {'Content-Type': 'application/json'}
+        url = host + '/jsonrpc'
 
-        # logger.info(u"PlexPy Notifiers :: Plex url: %s" % url)
+        if self.password:
+            response = request.request_json(url, method="post", data=json.dumps(data), headers=headers, auth=(self.username, self.password))
+        else:
+            response = request.request_json(url, method="post", data=json.dumps(data), headers=headers)
 
-        try:
-            handle = urllib2.urlopen(req)
-        except Exception as e:
-            logger.error(u"PlexPy Notifiers :: Error opening Plex url: %s" % e)
-            return
-
-        response = handle.read().decode(plexpy.SYS_ENCODING)
-
-        return response
+        if response:
+            return response[0]['result']
 
     def notify(self, subject=None, message=None):
 
@@ -806,37 +799,44 @@ class Plex(object):
         time = "3000"  # in ms
 
         for host in hosts:
-            logger.info(u"PlexPy Notifiers :: Sending notification command to Plex Media Server @ " + host)
+            logger.info(u"PlexPy Notifiers :: Sending notification command to Plex Home Theater @ " + host)
             try:
-                notification = header + "," + message + "," + time
-                notifycommand = {'command': 'ExecBuiltIn', 'parameter': 'Notification(' + notification + ')'}
-                request = self._sendhttp(host, notifycommand)
+                version = self._sendjson(host, 'Application.GetProperties', {'properties': ['version']})['version']['major']
+
+                if version < 12:  # Eden
+                    notification = header + "," + message + "," + time
+                    notifycommand = {'command': 'ExecBuiltIn', 'parameter': 'Notification(' + notification + ')'}
+                    request = self._sendhttp(host, notifycommand)
+
+                else:  # Frodo
+                    params = {'title': header, 'message': message, 'displaytime': int(time)}
+                    request = self._sendjson(host, 'GUI.ShowNotification', params)
 
                 if not request:
                     raise Exception
                 else:
-                    logger.info(u"PlexPy Notifiers :: Plex notification sent.")
+                    logger.info(u"PlexPy Notifiers :: Plex Home Theater notification sent.")
 
-            except:
-                logger.warn(u"PlexPy Notifiers :: Plex notification failed.")
+            except Exception:
+                logger.warn(u"PlexPy Notifiers :: Plex Home Theater notification filed.")
 
     def return_config_options(self):
-        config_option = [{'label': 'Plex Client Host:Port',
+        config_option = [{'label': 'Plex Home Theater Host:Port',
                           'value': self.client_hosts,
                           'name': 'plex_client_host',
-                          'description': 'Host running Plex Client (eg. http://192.168.1.100:3000).',
+                          'description': 'Host running Plex Home Theater (eg. http://localhost:3005). Separate multiple hosts with commas (,).',
                           'input_type': 'text'
                           },
-                         {'label': 'Plex Username',
+                         {'label': 'Plex Home Theater Username',
                           'value': self.username,
                           'name': 'plex_username',
-                          'description': 'Username of your Plex client API (blank for none).',
+                          'description': 'Username of your Plex Home Theater client API (blank for none).',
                           'input_type': 'text'
                           },
-                         {'label': 'Plex Password',
+                         {'label': 'Plex Home Theater Password',
                           'value': self.password,
                           'name': 'plex_password',
-                          'description': 'Password of your Plex client API (blank for none).',
+                          'description': 'Password of your Plex Home Theater client API (blank for none).',
                           'input_type': 'password'
                           }
                          ]
