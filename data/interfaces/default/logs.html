@@ -21,6 +21,7 @@ from plexpy import helpers
             <span><i class="fa fa-list-alt"></i> Logs</span>
         </div>
         <div class="button-bar">
+            <button class="btn btn-dark" id="download-plexpylog"><i class="fa fa-download"></i> Download log</button>
             <button class="btn btn-dark" id="clear-logs"><i class="fa fa-trash-o"></i> Clear log</button>
             <button class="btn btn-dark" id="clear-notify-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear log</button>
         </div>
@@ -120,7 +121,7 @@ from plexpy import helpers
             LoadPlexPyLogs();
             clearSearchButton('log_table', log_table);
         });
-        
+
         function LoadPlexPyLogs() {
             log_table_options.ajax = {
                 url: "getLog"
@@ -157,6 +158,7 @@ from plexpy import helpers
 
         $("#plexpy-logs-btn").click(function () {
             $("#clear-logs").show();
+            $("#download-plexpylog").show()
             $("#clear-notify-logs").hide();
             LoadPlexPyLogs();
             clearSearchButton('log_table', log_table);
@@ -164,6 +166,7 @@ from plexpy import helpers
 
         $("#plex-logs-btn").click(function () {
             $("#clear-logs").hide();
+            $("#download-plexpylog").hide()
             $("#clear-notify-logs").hide();
             LoadPlexLogs();
             clearSearchButton('plex_log_table', plex_log_table);
@@ -171,6 +174,7 @@ from plexpy import helpers
 
         $("#plex-scanner-logs-btn").click(function () {
             $("#clear-logs").hide();
+            $("#download-plexpylog").hide()
             $("#clear-notify-logs").hide();
             LoadPlexScannerLogs();
             clearSearchButton('plex_scanner_log_table', plex_scanner_log_table);
@@ -178,6 +182,7 @@ from plexpy import helpers
 
         $("#notification-logs-btn").click(function () {
             $("#clear-logs").hide();
+            $("#download-plexpylog").hide()
             $("#clear-notify-logs").show();
             LoadNotificationLogs();
             clearSearchButton('notification_log_table', notification_log_table);
@@ -189,6 +194,11 @@ from plexpy import helpers
                 window.location.href = "clearLogs";
             }
         });
+
+        $("#download-plexpylog").click(function () {
+            window.location.href = "download_log";
+        });
+
 
         $("#clear-notify-logs").click(function () {
             var r = confirm("Are you sure you want to clear the PlexPy notification log?");

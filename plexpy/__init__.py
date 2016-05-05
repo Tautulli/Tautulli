@@ -63,8 +63,6 @@ CONFIG_FILE = None
 
 DB_FILE = None
 
-LOG_LIST = []
-
 INSTALL_TYPE = None
 CURRENT_VERSION = None
 LATEST_VERSION = None
@@ -959,7 +957,7 @@ def shutdown(restart=False, update=False):
         if '--nolaunch' not in args:
             args += ['--nolaunch']
         logger.info('Restarting PlexPy with %s', args)
-        
+
         # os.execv fails with spaced names on Windows
         # https://bugs.python.org/issue19066
         if os.name == 'nt':
