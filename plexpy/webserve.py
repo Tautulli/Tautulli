@@ -1936,16 +1936,15 @@ class WebInterface(object):
     def pms_image_proxy(self, img='', ratingkey=None, width='0', height='0', fallback=None, **kwargs):
         """ Grabs the images from pms and saved them to disk """
 
-        if not img or ratingkey:
+        if not img and not ratingkey:
             logger.debug('No image input received')
             return
 
         if ratingkey and not img:
             img = '/library/metadata/%s/thumb/1337' % ratingkey
 
-        i = img.rsplit('/', 1)
-        i += [width, height]
-        img_string = '/'.join(i)
+        img_string = img.rsplit('/', 1)[0]
+        img_string += '%s%s' % (width, height)
         fp = hashlib.md5(img_string).hexdigest()
         fp += '.jpg'  # we want to be able to preview the thumbs
         c_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
@@ -1964,9 +1963,9 @@ class WebInterface(object):
             try:
                 pms_connect = pmsconnect.PmsConnect()
                 result = pms_connect.get_image(img, width, height)
-                cherrypy.response.headers['Content-type'] = result[1]
 
                 if result and result[0]:
+                    cherrypy.response.headers['Content-type'] = result[1]
                     if 'indexes' not in img:
                         with open(ffp, 'wb') as f:
                             f.write(result[0])
@@ -1976,6 +1975,7 @@ class WebInterface(object):
                     raise
 
             except Exception as e:
+                logger.debug('Failed to get image %s file %s falling back to %s' % (img, fp, e))
                 fbi = None
                 if fallback == 'poster':
                     fbi = common.DEFAULT_POSTER_THUMB
@@ -1988,14 +1988,13 @@ class WebInterface(object):
                     fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
                     return serve_file(path=fp, content_type='image/png')
 
-                logger.exception('%s' % e)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi()
     def download_log(self):
         try:
-            logger.flush()
+            logger.logger.flush()
         except:
             pass
 
