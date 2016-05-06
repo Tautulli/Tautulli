@@ -76,9 +76,9 @@ DOCUMENTATION :: END
         <div class="dashboard-activity-poster">
             % if not a['art'].startswith('interfaces') or not a['thumb'].startswith('interfaces'):
             % if (a['media_type'] == 'movie' and not a['indexes']) or (a['indexes'] and not a['view_offset']):
-            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280&fallback=poster&fallback=art);"></div>
+            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280&fallback=art);"></div>
             % elif (a['media_type'] == 'episode' and not a['indexes']) or (a['indexes'] and not a['view_offset']):
-            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280&fallback=poster&fallback=art);"></div>
+            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280&fallback=art);"></div>
             % elif a['indexes']:
             <div class="dashboard-activity-poster-face bif" style="background-image: url(pms_image_proxy?img=${a['bif_thumb']}&width=500&height=280&fallback=art); display: none;"></div>
             % else:
