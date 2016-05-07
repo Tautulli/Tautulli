@@ -959,7 +959,7 @@ def build_server_notify_text(notify_action=None, agent_id=None):
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
         server_uptime = 'N/A'
 
-    pattern = re.compile('\n*<tv>[^>]+.</tv>\n*|\n*<movie>[^>]+.</movie>\n*|\n*?<music>[^>]+.</music>\n*', re.IGNORECASE | re.DOTALL)
+    pattern = re.compile(r'<movie>.*?</movie>|<tv>.*?</tv>|<music>.*?</music>', re.IGNORECASE | re.DOTALL)
 
     on_extdown_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_EXTDOWN_SUBJECT_TEXT, agent_id)
     on_extdown_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_EXTDOWN_BODY_TEXT, agent_id)
