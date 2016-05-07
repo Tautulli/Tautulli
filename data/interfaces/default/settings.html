@@ -1164,7 +1164,11 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     % else:
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
                                     % endif
+                                    % if agent['id'] == 17:
+                                    ${agent['name']} <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
+                                    % else:
                                     ${agent['name']}
+                                    % endif
                                     % if agent['has_config']:
                                     <a href="javascript:void(0)" rel="tooltip" data-target="#notification-config-modal" data-placement="top" title data-title="Open configuration" data-id="${agent['id']}" class="toggle-notification-config-modal toggle-right" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
                                     % endif
