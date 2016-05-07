@@ -14,7 +14,14 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import plexpy
-from plexpy import logger, datatables, common, database, helpers, session
+import common
+import database
+import datatables
+import helpers
+import logger
+import plextv
+import session
+
 
 class Users(object):
 
@@ -254,8 +261,6 @@ class Users(object):
                 logger.warn(u"PlexPy Users :: Unable to execute database query for set_config: %s." % e)
 
     def get_details(self, user_id=None, user=None, email=None):
-        from plexpy import plextv
-
         default_return = {'user_id': 0,
                           'username': 'Local',
                           'friendly_name': 'Local',

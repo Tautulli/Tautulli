@@ -19,13 +19,15 @@
 # Session tool to be loaded.
 
 from cgi import escape
-import cherrypy
 from datetime import datetime, timedelta
-from hashing_passwords import check_hash
 import re
 
+import cherrypy
+from hashing_passwords import check_hash
+
 import plexpy
-from plexpy import logger, plextv
+import logger
+import plextv
 from plexpy.database import MonitorDatabase
 from plexpy.users import Users
 from plexpy.plextv import PlexTV

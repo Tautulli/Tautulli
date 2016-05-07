@@ -1,6 +1,23 @@
-﻿import plexpy.logger
+﻿# This file is part of PlexPy.
+#
+#  PlexPy is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  PlexPy is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+
 import re
+
 from configobj import ConfigObj
+
+import logger
 
 
 def bool_int(value):
@@ -484,7 +501,7 @@ class Config(object):
                     subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
                     blacklist.append(value.strip())
 
-        plexpy.logger._BLACKLIST_WORDS = blacklist
+        logger._BLACKLIST_WORDS = blacklist
 
     def _define(self, name):
         key = name.upper()
@@ -537,12 +554,12 @@ class Config(object):
             new_config[section][ini_key] = self._config[section][ini_key]
 
         # Write it to file
-        plexpy.logger.info("Writing configuration to file")
+        logger.info("Writing configuration to file")
 
         try:
             new_config.write()
         except IOError as e:
-            plexpy.logger.error("Error writing configuration file: %s", e)
+            logger.error("Error writing configuration file: %s", e)
 
         self._blacklist()
 

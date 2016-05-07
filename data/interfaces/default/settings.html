@@ -1,12 +1,13 @@
 <%inherit file="base.html"/>
 <%!
-import os
-import sys
-import plexpy
-from plexpy import notifiers, common, versioncheck
-from plexpy.helpers import anon_url
+    import os
+    import sys
 
-available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
+    import plexpy
+    from plexpy import common, notifiers, versioncheck
+    from plexpy.helpers import anon_url
+
+    available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
 %>
 <%def name="headIncludes()">
 </%def>

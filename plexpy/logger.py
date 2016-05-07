@@ -13,21 +13,21 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import helpers
-
 from logutils.queue import QueueHandler, QueueListener
 from logging import handlers
 
-import multiprocessing
 import contextlib
-import plexpy
-import threading
-import traceback
-import logging
 import errno
-import sys
+import logging
+import multiprocessing
 import os
 import re
+import sys
+import threading
+import traceback
+
+import plexpy
+import helpers
 
 # These settings are for file logging only
 FILENAME = "plexpy.log"

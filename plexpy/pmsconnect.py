@@ -13,11 +13,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import threading
 import urllib2
 from urlparse import urlparse
 
 import plexpy
-from plexpy import logger, helpers, users, http_handler, common, database, session
+import common
+import database
+import helpers
+import http_handler
+import libraries
+import logger
+import session
+import users
 
 
 def get_server_friendly_name():
@@ -78,16 +86,10 @@ def refresh_libraries():
             plexpy.CONFIG.write()
 
         if plexpy.CONFIG.UPDATE_SECTION_IDS == 1 or plexpy.CONFIG.UPDATE_SECTION_IDS == -1:
-            from plexpy import libraries
-            import threading
-
             # Start library section_id update on it's own thread
             threading.Thread(target=libraries.update_section_ids).start()
 
         if plexpy.CONFIG.UPDATE_LABELS == 1 or plexpy.CONFIG.UPDATE_LABELS == -1:
-            from plexpy import libraries
-            import threading
-
             # Start library labels update on it's own thread
             threading.Thread(target=libraries.update_labels).start()
 

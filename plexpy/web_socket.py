@@ -15,13 +15,16 @@
 
 # Mostly borrowed from https://github.com/trakt/Plex-Trakt-Scrobbler
 
-from plexpy import logger, activity_pinger
-
-import threading
-import plexpy
 import json
+import threading
 import time
+
 import websocket
+
+import plexpy
+import activity_handler
+import activity_pinger
+import logger
 
 name = 'websocket'
 opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
@@ -132,8 +135,6 @@ def receive(ws):
 
 
 def process(opcode, data):
-    from plexpy import activity_handler
-
     if opcode not in opcode_data:
         return False
 

@@ -15,7 +15,9 @@
 
 import cherrypy
 
-from plexpy import common
+import plexpy
+import common
+import users
 
 
 def get_session_info():
@@ -51,7 +53,6 @@ def get_session_shared_libraries():
     """
     Returns a tuple of section_id for the current logged in session
     """
-    from plexpy import users
     user_details = users.Users().get_details(user_id=get_session_user_id())
     return tuple(str(s) for s in user_details['shared_libraries'])
 
@@ -63,7 +64,6 @@ def get_session_library_filters():
          'labels': ('label1', label2')},
 
     """
-    from plexpy import users
     filters = users.Users().get_filters(user_id=get_session_user_id())
     return filters
 

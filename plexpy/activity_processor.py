@@ -13,12 +13,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, pmsconnect, notification_handler, log_reader, database, notifiers
-
 import threading
-import plexpy
-import re
 import time
+import re
+
+import plexpy
+import database
+import libraries
+import log_reader
+import logger
+import notification_handler
+import notifiers
+import pmsconnect
+import users
 
 
 class ActivityProcessor(object):
@@ -102,8 +109,6 @@ class ActivityProcessor(object):
                 return True
 
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
-        from plexpy import users, libraries
-
         section_id = session['section_id'] if not is_import else import_metadata['section_id']
 
         if not is_import:

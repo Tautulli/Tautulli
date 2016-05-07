@@ -27,13 +27,14 @@ import sys
 # Ensure lib added to path, before any other imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib/'))
 
-from plexpy import webstart, logger, web_socket
-
-import locale
-import time
-import signal
 import argparse
+import locale
+import signal
+import time
+
 import plexpy
+from plexpy import logger, web_socket, webstart
+
 
 # Register signals, such as CTRL + C
 signal.signal(signal.SIGINT, plexpy.sig_handler)

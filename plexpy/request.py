@@ -13,16 +13,17 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger
-
-from xml.dom import minidom
 from bs4 import BeautifulSoup
+from xml.dom import minidom
 
-import requests
 import feedparser
+import collections
+import requests
+
 import plexpy
 import plexpy.lock
-import collections
+import logger
+
 
 # Dictionary with last request times, for rate limiting.
 last_requests = collections.defaultdict(int)

@@ -22,13 +22,19 @@ import threading
 import time
 import urllib
 
-from plexpy import logger, config, notifiers, database, helpers, plextv, pmsconnect, datafactory
 import plexpy
-
+import config
+import database
+import datafactory
+import libraries
+import logger
+import helpers
+import notifiers
+import plextv
+import pmsconnect
+import users
 
 def notify(stream_data=None, notify_action=None):
-    from plexpy import users, libraries
-    
     if stream_data and notify_action:
         # Check if notifications enabled for user and library
         user_data = users.Users()

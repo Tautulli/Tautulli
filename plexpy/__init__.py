@@ -14,11 +14,10 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import sqlite3
 import sys
 import subprocess
 import threading
-import sqlite3
-import cherrypy
 import datetime
 import uuid
 # Some cut down versions of Python may not include this module and it's not critical for us
@@ -28,10 +27,15 @@ try:
 except ImportError:
     no_browser = True
 
+import cherrypy
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from plexpy import versioncheck, logger, activity_pinger, plextv, pmsconnect
+import activity_pinger
+import logger
+import plextv
+import pmsconnect
+import versioncheck
 import plexpy.config
 
 PROG_DIR = None

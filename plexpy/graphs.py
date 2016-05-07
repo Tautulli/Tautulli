@@ -13,10 +13,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, database, helpers, common, session
-import plexpy
-
 import datetime
+
+import plexpy
+import common
+import database
+import helpers
+import logger
+import session
 
 
 class Graphs(object):

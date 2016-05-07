@@ -42,7 +42,10 @@ import pythontwitter as twitter
 import pythonfacebook as facebook
 
 import plexpy
-from plexpy import logger, helpers, request, database
+import database
+import helpers
+import logger
+import request
 from plexpy.helpers import checked
 
 AGENT_IDS = {"Growl": 0,

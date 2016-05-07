@@ -10,11 +10,11 @@ DOCUMENTATION :: END
 </%doc>
 
 <%!
-import arrow
-import plexpy
-from plexpy import common
+    import arrow
+    import plexpy
+    from plexpy import common
 
-scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
+    scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
 %>
 
 <table class="config-scheduler-table small-muted">

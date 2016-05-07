@@ -19,7 +19,10 @@
 from httplib import HTTPSConnection
 from httplib import HTTPConnection
 import ssl
-from plexpy import logger, helpers
+
+import plexpy
+import helpers
+import logger
 
 
 class HTTPHandler(object):

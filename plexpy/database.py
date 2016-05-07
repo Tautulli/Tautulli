@@ -20,9 +20,8 @@ import shutil
 import threading
 import time
 
-import logger
 import plexpy
-
+import logger
 
 db_lock = threading.Lock()
 

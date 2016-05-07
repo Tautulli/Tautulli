@@ -22,7 +22,13 @@ import xmltodict
 from xml.dom import minidom
 
 import plexpy
-from plexpy import logger, helpers, http_handler, database, users, session, pmsconnect
+import database
+import helpers
+import http_handler
+import logger
+import users
+import pmsconnect
+import session
 
 
 def refresh_users():

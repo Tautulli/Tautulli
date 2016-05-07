@@ -13,11 +13,20 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, pmsconnect, plextv, notification_handler, database, helpers, activity_processor, libraries, notifiers
-
 import threading
-import plexpy
 import time
+
+import plexpy
+import activity_processor
+import database
+import helpers
+import libraries
+import logger
+import notification_handler
+import notifiers
+import plextv
+import pmsconnect
+
 
 monitor_lock = threading.Lock()
 ext_ping_count = 0

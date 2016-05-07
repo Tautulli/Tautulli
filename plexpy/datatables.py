@@ -13,9 +13,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, database
-
 import re
+
+import plexpy
+import database
+import helpers
+import logger
 
 
 class DataTables(object):

@@ -16,12 +16,12 @@
 import os
 import sys
 
-import cherrypy
-from plexpy import logger, webauth
 import plexpy
+import cherrypy
+import logger
+import webauth
 from plexpy.helpers import create_https_certificates
 from plexpy.webserve import WebInterface
-
 
 
 def initialize(options):

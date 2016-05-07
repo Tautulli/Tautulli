@@ -14,11 +14,17 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
-
-from plexpy import logger, helpers, activity_pinger, activity_processor, users, plextv
 from xml.dom import minidom
 
 import plexpy
+import activity_pinger
+import activity_processor
+import database
+import helpers
+import logger
+import plextv
+import users
+
 
 def extract_plexwatch_xml(xml=None):
     output = {}
@@ -408,8 +414,6 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
     plexpy.initialize_scheduler()
 
 def import_users():
-    from plexpy import database
-
     logger.debug(u"PlexPy Importer :: Importing PlexWatch Users...")
     monitor_db = database.MonitorDatabase()
 

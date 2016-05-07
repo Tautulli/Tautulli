@@ -23,15 +23,17 @@ import json
 import os
 import random
 import re
+import threading
 import time
 import traceback
 
 import cherrypy
 import xmltodict
 
+import plexpy
 import database
 import logger
-import plexpy
+import pmsconnect
 
 
 class API2:
@@ -299,6 +301,10 @@ class API2:
 
         plexpy.SIGNAL = 'update'
         self.msg = 'Updating plexpy'
+        self.result_type = 'success'
+
+    def refresh_libraries_list(self, **kwargs):
+        threading.Thread(target=pmsconnect.refresh_libraries).start()
         self.result_type = 'success'
 
     def _api_make_md(self):

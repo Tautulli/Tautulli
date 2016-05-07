@@ -20,7 +20,7 @@ Created on Aug 1, 2011
 '''
 import platform
 
-from plexpy import version
+import version
 
 # Identify Our Application
 USER_AGENT = 'PlexPy/-' + version.PLEXPY_VERSION + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \

@@ -13,12 +13,22 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+import os
+
 import plexpy
-from plexpy import logger, datatables, common, database, helpers, session
+import activity_pinger
+import common
+import database
+import datatables
+import helpers
+import logger
+import plextv
+import pmsconnect
+import session
+
 
 def update_section_ids():
-    from plexpy import pmsconnect, activity_pinger
-
     plexpy.CONFIG.UPDATE_SECTION_IDS = -1
 
     monitor_db = database.MonitorDatabase()
@@ -88,8 +98,6 @@ def update_section_ids():
     return True
 
 def update_labels():
-    from plexpy import pmsconnect
-
     plexpy.CONFIG.UPDATE_LABELS = -1
 
     monitor_db = database.MonitorDatabase()
@@ -291,9 +299,6 @@ class Libraries(object):
         return dict
 
     def get_datatables_media_info(self, section_id=None, section_type=None, rating_key=None, refresh=False, kwargs=None):
-        from plexpy import pmsconnect
-        import json, os
-
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
@@ -505,9 +510,6 @@ class Libraries(object):
         return dict
 
     def get_media_info_file_sizes(self, section_id=None, rating_key=None):
-        from plexpy import pmsconnect
-        import json, os
-
         if not session.allow_session_library(section_id):
             return False
         
@@ -605,8 +607,6 @@ class Libraries(object):
                 logger.warn(u"PlexPy Libraries :: Unable to execute database query for set_config: %s." % e)
 
     def get_details(self, section_id=None):
-        from plexpy import pmsconnect
-
         default_return = {'section_id': 0,
                           'section_name': 'Local',
                           'section_type': '',
@@ -950,8 +950,6 @@ class Libraries(object):
             logger.warn(u"PlexPy Libraries :: Unable to delete media info table cache: %s." % e)
 
     def delete_duplicate_libraries(self):
-        from plexpy import plextv
-
         monitor_db = database.MonitorDatabase()
 
         # Refresh the PMS_URL to make sure the server_id is updated

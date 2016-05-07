@@ -15,7 +15,14 @@
 
 import datetime
 
-from plexpy import logger, datatables, common, database, helpers, session
+import plexpy
+import common
+import database
+import datatables
+import helpers
+import logger
+import pmsconnect
+import session
 
 
 class DataFactory(object):
@@ -1126,7 +1133,6 @@ class DataFactory(object):
             return 'Unable to delete rows. Input row not valid.'
 
     def update_metadata(self, old_key_list='', new_key_list='', media_type=''):
-        from plexpy import pmsconnect
         pms_connect = pmsconnect.PmsConnect()
         monitor_db = database.MonitorDatabase()
 

@@ -13,14 +13,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
 import os
-import tarfile
 import platform
-import plexpy
+import re
 import subprocess
+import tarfile
 
-from plexpy import logger, version, request
+import plexpy
+import logger
+import request
+import version
 
 
 def runGit(args):

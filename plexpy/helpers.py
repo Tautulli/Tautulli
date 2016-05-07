@@ -35,7 +35,8 @@ from xml.dom import minidom
 import xmltodict
 
 import plexpy
-from plexpy import common
+import common
+import logger
 from plexpy.api2 import API2
 
 
@@ -388,9 +389,6 @@ def create_https_certificates(ssl_cert, ssl_key):
 
     This code is stolen from SickBeard (http://github.com/midgetspy/Sick-Beard).
     """
-
-    from plexpy import logger
-
     from OpenSSL import crypto
     from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
@@ -455,8 +453,6 @@ def get_percent(value1, value2):
     return math.trunc(percent)
 
 def parse_xml(unparsed=None):
-    from plexpy import logger
-
     if unparsed:
         try:
             xml_parse = minidom.parseString(unparsed)
@@ -508,7 +504,6 @@ def is_ip_public(host):
     return False
 
 def get_ip(host):
-    from plexpy import logger
     ip_address = ''
     try:
         socket.inet_aton(host)
@@ -530,8 +525,6 @@ def anon_url(*url):
     return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
 
 def uploadToImgur(imgPath, imgTitle=''):
-    from plexpy import logger
-
     client_id = '743b1a443ccd2b0'
     img_url = ''
 
@@ -572,8 +565,6 @@ def cache_image(url, image=None):
     Saves an image to the cache directory.
     If no image is provided, tries to return the image from the cache directory.
     """
-    from plexpy import logger
-
     # Create image directory if it doesn't exist
     imgdir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images/')
     if not os.path.exists(imgdir):
