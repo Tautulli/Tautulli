@@ -20,6 +20,9 @@ import os
 import random
 import threading
 
+from cherrypy.lib.static import serve_file, serve_download
+from cherrypy._cperror import NotFound
+
 from hashing_passwords import make_hash
 from mako.lookup import TemplateLookup
 from mako import exceptions
@@ -45,7 +48,7 @@ def serve_template(templatename, **kwargs):
 
     try:
         template = _hplookup.get_template(templatename)
-        return template.render(http_root=plexpy.HTTP_ROOT, server_name=server_name, 
+        return template.render(http_root=plexpy.HTTP_ROOT, server_name=server_name,
                                _session=_session, **kwargs)
     except:
         return exceptions.html_error_template().render()
@@ -54,7 +57,7 @@ def serve_template(templatename, **kwargs):
 class WebInterface(object):
 
     auth = AuthController()
-    
+
     def __init__(self):
         self.interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/')
 
@@ -278,7 +281,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def delete_temp_sessions(self):
-        
+
         result = database.delete_sessions()
 
         if result:
@@ -951,7 +954,7 @@ class WebInterface(object):
             plexpy.CONFIG.write()
 
         return "Updated graphs config values."
-    
+
     @cherrypy.expose
     @requireAuth()
     @addtoapi()
@@ -962,7 +965,7 @@ class WebInterface(object):
 
         cherrypy.response.headers['Content-type'] = 'application/json'
         return json.dumps(user_names)
-    
+
     @cherrypy.expose
     @requireAuth()
     @addtoapi()
@@ -1158,7 +1161,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def logs(self):
-        return serve_template(templatename="logs.html", title="Log", lineList=plexpy.LOG_LIST)
+        return serve_template(templatename="logs.html", title="Log")
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -1180,13 +1183,28 @@ class WebInterface(object):
             search_value = kwargs.get('search[value]', "")
 
         if 'search[regex]' in kwargs:
-            search_regex = kwargs.get('search[regex]', "")
+            search_regex = kwargs.get('search[regex]', "") # should this be removed?
+
+        filt = []
+        fa = filt.append
+        with open(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log')) as f:
+            for l in reversed(f.readlines()):
+                try:
+                    temp_loglevel_and_time = l.split('- ')
+                    loglvl = temp_loglevel_and_time[1].split(' :')[0].strip()
+                    msg = l.split(' : ')[1].replace('\n', '')
+                    fa([temp_loglevel_and_time[0], loglvl, msg])
+                except IndexError:
+                    # Add traceback message to previous msg..
+                    tl = (len(filt) - 1)
+                    filt[tl][2] += l.replace('\n', '')
+                    continue
 
         filtered = []
         if search_value == "":
-            filtered = plexpy.LOG_LIST[::]
+            filtered = filt
         else:
-            filtered = [row for row in plexpy.LOG_LIST for column in row if search_value.lower() in column.lower()]
+            filtered = [row for row in filt for column in row if search_value.lower() in column.lower()]
 
         sortcolumn = 0
         if order_column == '1':
@@ -1196,11 +1214,10 @@ class WebInterface(object):
         filtered.sort(key=lambda x: x[sortcolumn], reverse=order_dir == "desc")
 
         rows = filtered[start:(start + length)]
-        rows = [[row[0], row[2], row[1]] for row in rows]
 
         return json.dumps({
             'recordsFiltered': len(filtered),
-            'recordsTotal': len(plexpy.LOG_LIST),
+            'recordsTotal': len(filt),
             'data': rows,
         })
 
@@ -1230,24 +1247,25 @@ class WebInterface(object):
         return json.dumps(notifications)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def clearNotifyLogs(self, **kwargs):
         data_factory = datafactory.DataFactory()
         result = data_factory.delete_notification_log()
+        result = result if result else 'no data received'
 
-        if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': result})
-        else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+        return {'message': result}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def clearLogs(self):
-        plexpy.LOG_LIST = []
-        logger.info(u"Web logs cleared")
+        try:
+            open(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log'), 'w').close()
+        except Exception as e:
+            logger.exception(u'Failed to delete plexpy.log %s' % e)
+
+        logger.info(u'plexpy.log cleared')
         raise cherrypy.HTTPRedirect("logs")
 
     @cherrypy.expose
@@ -1443,7 +1461,7 @@ class WebInterface(object):
                     kwargs['http_hashed_password'] = 1
                 else:
                     kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
-                
+
             elif kwargs['http_password'] and kwargs.get('http_hash_password'):
                 kwargs['http_password'] = make_hash(kwargs['http_password'])
                 kwargs['http_hashed_password'] = 1
@@ -1915,21 +1933,97 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def pms_image_proxy(self, img='', width='0', height='0', fallback=None, **kwargs):
+    def pms_image_proxy(self, img='', ratingkey=None, width='0', height='0', fallback=None, **kwargs):
+        """ Grabs the images from pms and saved them to disk """
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_image(img, width, height, fallback)
+        if not img and not ratingkey:
+            logger.debug('No image input received')
+            return
 
-        if result:
-            cherrypy.response.headers['Content-type'] = result[1]
-            return result[0]
-        else:
-            return None
+        if ratingkey and not img:
+            img = '/library/metadata/%s/thumb/1337' % ratingkey
+
+        img_string = img.rsplit('/', 1)[0]
+        img_string += '%s%s' % (width, height)
+        fp = hashlib.md5(img_string).hexdigest()
+        fp += '.jpg'  # we want to be able to preview the thumbs
+        c_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
+        ffp = os.path.join(c_dir, fp)
+
+        if not os.path.exists(c_dir):
+            os.mkdir(c_dir)
+
+        try:
+            if 'indexes' in img:
+                raise
+            return serve_file(path=ffp, content_type='image/jpeg')
+
+        except NotFound:
+            # the image does not exist, download it from pms
+            try:
+                pms_connect = pmsconnect.PmsConnect()
+                result = pms_connect.get_image(img, width, height)
+
+                if result and result[0]:
+                    cherrypy.response.headers['Content-type'] = result[1]
+                    if 'indexes' not in img:
+                        with open(ffp, 'wb') as f:
+                            f.write(result[0])
+
+                    return result[0]
+                else:
+                    raise
+
+            except Exception as e:
+                logger.debug('Failed to get image %s file %s falling back to %s' % (img, fp, e))
+                fbi = None
+                if fallback == 'poster':
+                    fbi = common.DEFAULT_POSTER_THUMB
+                elif fallback == 'cover':
+                    fbi = common.DEFAULT_COVER_THUMB
+                elif fallback == 'art':
+                    fbi = common.DEFAULT_ART
+
+                if fbi:
+                    fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
+                    return serve_file(path=fp, content_type='image/png')
+
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def download_log(self):
+        try:
+            logger.logger.flush()
+        except:
+            pass
+
+        return serve_download(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log'), name='plexpy.log')
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_image_cache(self):
+        """ Deletes the image cache dir and recreates it """
+        cache_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
+        try:
+            os.rmdir(cache_dir)
+        except OSError as e:
+            logger.exception('Failed to delete %s %s' % (cache_dir, e))
+            return
+
+        try:
+            os.makedirs(cache_dir)
+        except OSError as e:
+            logger.exception('Faild to make %s %s' % (cache_dir, e))
+            return
+
+        return {'result': 'success', 'message': 'Deleted image cache'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def delete_poster_url(self, poster_url=''):
-        
+
         if poster_url:
             data_factory = datafactory.DataFactory()
             result = data_factory.delete_poster_url(poster_url=poster_url)
@@ -1985,8 +2079,8 @@ class WebInterface(object):
             return serve_template(templatename="info_search_results_list.html", data=None, title="Search Result List")
 
 
-    ##### Update Metadata #####        
-        
+    ##### Update Metadata #####
+
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def update_metadata(self, rating_key=None, query=None, update=False, **kwargs):
