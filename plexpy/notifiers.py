@@ -2438,6 +2438,9 @@ class Browser(object):
         return True
 
     def get_notifications(self):
+        if not self.enabled:
+            return
+
         monitor_db = database.MonitorDatabase()
         result = monitor_db.select('SELECT subject_text, body_text FROM notify_log '
                                    'WHERE agent_id = 17 AND timestamp >= ? ',
@@ -2457,7 +2460,13 @@ class Browser(object):
         self.notify('PlexPy', 'Test Notification')
 
     def return_config_options(self):
-        config_option = [{'label': 'Allow Notifications',
+        config_option = [{'label': 'Enable Browser Notifications',
+                          'value': self.enabled,
+                          'name': 'browser_enabled',
+                          'description': 'Enable to display desktop notifications from your browser.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Allow Notifications',
                           'value': 'Allow Notifications',
                           'name': 'allow_browser',
                           'description': 'Click to allow browser notifications. You must click this button for each browser.',

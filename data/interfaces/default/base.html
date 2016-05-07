@@ -296,6 +296,9 @@ ${next.headerIncludes()}
 <script src="${http_root}js/bootstrap-hover-dropdown.min.js"></script>
 <script src="${http_root}js/pnotify.custom.min.js"></script>
 <script src="${http_root}js/script.js"></script>
+% if plexpy.CONFIG.BROWSER_ENABLED:
+<script src="${http_root}js/ajaxNotifications.js"></script>
+% endif
 <script>
     $('#updateDismiss').click(function() {
         $('#updatebar').slideUp('slow');
