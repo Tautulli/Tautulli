@@ -627,7 +627,6 @@ class Config(object):
             self.CONFIG_VERSION = '4'
 
         if self.CONFIG_VERSION == '4':
-            print not len(self.HOME_STATS_CARDS) and 'watch_stats' in self.HOME_SECTIONS
             if not len(self.HOME_STATS_CARDS) and 'watch_stats' in self.HOME_SECTIONS:
                 home_sections = self.HOME_SECTIONS
                 home_sections.remove('watch_stats')
