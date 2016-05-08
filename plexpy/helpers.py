@@ -591,3 +591,27 @@ def cache_image(url, image=None):
         imagetype = 'image/jpeg'
 
     return imagefile, imagetype
+
+def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
+    """ Builds datatables json data
+
+        dt_columns:    list of tuples [("column name", "orderable", "searchable"), ...]
+    """
+
+    columns = [{"data": c[0], "orderable": c[1], "searchable": c[2]} for c in dt_columns]
+
+    if not default_sort_col:
+        default_sort_col = dt_columns[0][0]
+
+    order_column = [c[0] for c in dt_columns].index(kwargs.pop("order_column", default_sort_col))
+
+    # Build json data
+    json_data = {"draw": 1,
+                    "columns": columns,
+                    "order": [{"column": order_column,
+                            "dir": kwargs.pop("order_dir", "desc")}],
+                    "start": int(kwargs.pop("start", 0)),
+                    "length": int(kwargs.pop("length", 25)),
+                    "search": {"value": kwargs.pop("search", "")}
+                    }
+    return json.dumps(json_data)

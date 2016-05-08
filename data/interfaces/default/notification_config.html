@@ -200,13 +200,14 @@
     function sendTestNotification() {
         if ('${agent["id"]}' != '17') {
             $.ajax({
-                url: 'test_notifier',
+                url: 'send_notification',
                 data: {
                     agent_id: '${agent["id"]}',
                     subject: $('#test_subject').val(),
                     body: $('#test_body').val(),
                     script: $('#test_script').val(),
-                    script_args: $('#test_script_args').val()
+                    script_args: $('#test_script_args').val(),
+                    notify_action: 'test'
                 },
                 cache: false,
                 async: true,

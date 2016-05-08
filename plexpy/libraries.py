@@ -309,10 +309,13 @@ class Libraries(object):
             return default_return
         
         if section_id and not str(section_id).isdigit():
-            logger.warn(u"PlexPy Libraries :: Datatable media info called by invalid section_id provided.")
+            logger.warn(u"PlexPy Libraries :: Datatable media info called but invalid section_id provided.")
             return default_return
         elif rating_key and not str(rating_key).isdigit():
-            logger.warn(u"PlexPy Libraries :: Datatable media info called by invalid rating_key provided.")
+            logger.warn(u"PlexPy Libraries :: Datatable media info called but invalid rating_key provided.")
+            return default_return
+        elif not section_id and not rating_key:
+            logger.warn(u"PlexPy Libraries :: Datatable media info called but no input provided.")
             return default_return
 
         # Get the library details

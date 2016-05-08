@@ -78,8 +78,10 @@ def refresh_users():
             monitor_db.upsert('users', new_value_dict, control_value_dict)
 
         logger.info(u"PlexPy PlexTV :: Users list refreshed.")
+        return True
     else:
         logger.warn(u"PlexPy PlexTV :: Unable to refresh users list.")
+        return False
 
 
 def get_real_pms_url():

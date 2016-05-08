@@ -194,7 +194,7 @@
             var r = confirm("Are you sure you want to clear the PlexPy notification log?");
             if (r == true) {
                 $.ajax({
-                    url: 'clearNotifyLogs',
+                    url: 'delete_notification_log',
                     type: 'POST',
                     success: function (data) {
                         notification_log_table.draw();

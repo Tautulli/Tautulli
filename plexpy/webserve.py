@@ -42,7 +42,7 @@ import versioncheck
 import web_socket
 from plexpy.api import Api
 from plexpy.api2 import API2
-from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates
+from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json
 from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
 from plexpy.webauth import AuthController, requireAuth, member_of, name_is
 
@@ -118,41 +118,44 @@ class WebInterface(object):
             return serve_template(templatename="welcome.html", title="Welcome", config=config)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
-    def discover(self, token):
-        """ Gets all your servers that are published to plextv
+    @addtoapi("get_server_list")
+    def discover(self, token=None, **kwargs):
+        """ Get all your servers that are published to Plex.tv.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
 
             Returns:
                 json:
-                    ```
-                    [{"httpsRequired": "0",
-                      "ip": "10.0.0.97",
-                      "value": "10.0.0.97",
-                      "label": "dude-PC",
-                      "clientIdentifier": "1234",
-                      "local": "1", "port": "32400"},
-                      {"httpsRequired": "0",
-                      "ip": "85.167.100.100",
-                      "value": "85.167.100.100",
-                      "label": "dude-PC",
-                      "clientIdentifier": "1234",
-                      "local": "0",
-                      "port": "10294"}
-                    ]
-                    ```
-
+                    [{"clientIdentifier": "ds48g4r354a8v9byrrtr697g3g79w", 
+                      "httpsRequired": "0", 
+                      "ip": "xxx.xxx.xxx.xxx", 
+                      "label": "Winterfell-Server", 
+                      "local": "1", 
+                      "port": "32400", 
+                      "value": "xxx.xxx.xxx.xxx"
+                      },
+                     {...},
+                     {...}
+                     ]
+            ```
         """
-        # Need to set token so result doesn't return http 401
-        plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
-        plexpy.CONFIG.write()
+        if token:
+            # Need to set token so result doesn't return http 401
+            plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
+            plexpy.CONFIG.write()
 
         plex_tv = plextv.PlexTV()
         servers = plex_tv.discover()
 
         if servers:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(servers)
+            return servers
 
 
     ##### Home #####
@@ -171,11 +174,26 @@ class WebInterface(object):
         return serve_template(templatename="index.html", title="Home", config=config)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_date_formats(self):
-        """ Get the date and time formats used by plexpy """
+    def get_date_formats(self, **kwargs):
+        """ Get the date and time formats used by PlexPy.
 
+             ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"date_format": "YYYY-MM-DD",
+                     "time_format": "HH:mm",
+                     }
+            ```
+        """
         if plexpy.CONFIG.DATE_FORMAT:
             date_format = plexpy.CONFIG.DATE_FORMAT
         else:
@@ -188,8 +206,7 @@ class WebInterface(object):
         formats = {'date_format': date_format,
                    'time_format': time_format}
 
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(formats)
+        return formats
 
     @cherrypy.expose
     @requireAuth()
@@ -244,8 +261,6 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def home_stats(self, **kwargs):
-        data_factory = datafactory.DataFactory()
-
         grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
         time_range = plexpy.CONFIG.HOME_STATS_LENGTH
         stats_type = plexpy.CONFIG.HOME_STATS_TYPE
@@ -253,6 +268,7 @@ class WebInterface(object):
         stats_cards = plexpy.CONFIG.HOME_STATS_CARDS
         notify_watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
 
+        data_factory = datafactory.DataFactory()
         stats_data = data_factory.get_home_stats(grouping=grouping,
                                                  time_range=time_range,
                                                  stats_type=stats_type,
@@ -290,17 +306,16 @@ class WebInterface(object):
             return serve_template(templatename="recently_added.html", data=None)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def delete_temp_sessions(self):
         
         result = database.delete_sessions()
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': result})
+            return {'message': result}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return {'message': 'no data received'}
 
 
     ##### Libraries #####
@@ -315,46 +330,118 @@ class WebInterface(object):
         return serve_template(templatename="libraries.html", title="Libraries", config=config)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
-    @addtoapi()
+    @addtoapi("get_libraries_table")
     def get_library_list(self, **kwargs):
+        """ Get the data on the PlexPy libraries table.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                order_column (str):             "library_thumb", "section_name", "section_type", "count", "parent_count",
+                                                "child_count", "last_accessed", "last_played", "plays", "duration"
+                order_dir (str):                "desc" or "asc"
+                start (int):                    Row to start from, 0
+                length (int):                   Number of items to return, 25
+                search (str):                   A string to search for, "Movies"
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 10,
+                     "recordsFiltered": 10,
+                     "data":
+                        [{"child_count": 3745, 
+                          "content_rating": "TV-MA", 
+                          "count": 62, 
+                          "do_notify": "Checked", 
+                          "do_notify_created": "Checked", 
+                          "duration": 1578037, 
+                          "id": 1128, 
+                          "keep_history": "Checked", 
+                          "labels": [], 
+                          "last_accessed": 1462693216, 
+                          "last_played": "Game of Thrones - The Red Woman", 
+                          "library_art": "/:/resources/show-fanart.jpg", 
+                          "library_thumb": "", 
+                          "media_index": 1, 
+                          "media_type": "episode", 
+                          "parent_count": 240, 
+                          "parent_media_index": 6, 
+                          "parent_title": "", 
+                          "plays": 772, 
+                          "rating_key": 153037, 
+                          "section_id": 2, 
+                          "section_name": "TV Shows", 
+                          "section_type": "Show", 
+                          "thumb": "/library/metadata/153036/thumb/1462175062", 
+                          "year": 2016
+                          },
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("library_thumb", False, False),
+                          ("section_name", True, True),
+                          ("section_type", True, True),
+                          ("count", True, True),
+                          ("parent_count", True, True),
+                          ("child_count", True, True),
+                          ("last_accessed", True, False),
+                          ("last_played", True, True),
+                          ("plays", True, False),
+                          ("duration", True, False)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "section_name")
 
         library_data = libraries.Libraries()
         library_list = library_data.get_datatables_list(kwargs=kwargs)
 
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(library_list)
+        return library_list
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
+    @addtoapi("get_library_names")
     def get_library_sections(self, **kwargs):
-        """ Get the library sections from pms
+        """ Get a list of library sections and ids on the PMS.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
 
             Returns:
-                    json:
-                        ```
-                        [{"section_id": 1, "section_name": "Movies"},
-                         {"section_id": 7, "section_name": "Music"},
-                         {"section_id": 2, "section_name": "TV Shows"}
-                        ]
-                        ```
-
+                json:
+                    [{"section_id": 1, "section_name": "Movies"},
+                     {"section_id": 7, "section_name": "Music"},
+                     {"section_id": 2, "section_name": "TV Shows"},
+                     {...}
+                     ]
+            ```
         """
-
         library_data = libraries.Libraries()
         result = library_data.get_sections()
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_library_sections.")
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    @addtoapi() # should be added manually
     def refresh_libraries_list(self, **kwargs):
+        """ Refresh the libraries list on it's own thread. """
         threading.Thread(target=pmsconnect.refresh_libraries).start()
         logger.info(u"Manual libraries list refresh requested.")
         return True
@@ -400,6 +487,22 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def edit_library(self, section_id=None, **kwargs):
+        """ Update a library section on PlexPy.
+
+            ```
+            Required parameters:
+                section_id (str):           The id of the Plex library section
+
+            Optional parameters:
+                custom_thumb (str):         The URL for the custom library thumbnail
+                do_notify (int):            0 or 1
+                do_notify_created (int):    0 or 1
+                keep_history (int):         0 or 1
+
+            Returns:
+                None
+            ```
+        """
         custom_thumb = kwargs.get('custom_thumb', '')
         do_notify = kwargs.get('do_notify', 0)
         do_notify_created = kwargs.get('do_notify_created', 0)
@@ -414,11 +517,9 @@ class WebInterface(object):
                                         do_notify_created=do_notify_created,
                                         keep_history=keep_history)
 
-                status_message = "Successfully updated library."
-                return status_message
+                return "Successfully updated library."
             except:
-                status_message = "Failed to update library."
-                return status_message
+                return "Failed to update library."
 
     @cherrypy.expose
     @requireAuth()
@@ -493,9 +594,81 @@ class WebInterface(object):
             return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, refresh='', **kwargs):
+        """ Get the data on the PlexPy media info tables.
+
+            ```
+            Required parameters:
+                section_id (str):               The id of the Plex library section, OR
+                rating_key (str):               The grandparent or parent rating key
+
+            Optional parameters:
+                section_type (str):             "movie", "show", "artist", "photo"
+                order_column (str):             "added_at", "title", "container", "bitrate", "video_codec",
+                                                "video_resolution", "video_framerate", "audio_codec", "audio_channels",
+                                                "file_size", "last_played", "play_count"
+                order_dir (str):                "desc" or "asc"
+                start (int):                    Row to start from, 0
+                length (int):                   Number of items to return, 25
+                search (str):                   A string to search for, "Thrones"
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 82,
+                     "recordsFiltered": 82,
+                     "filtered_file_size": 2616760056742,
+                     "total_file_size": 2616760056742,
+                     "data":
+                        [{"added_at": "1403553078", 
+                          "audio_channels": "", 
+                          "audio_codec": "", 
+                          "bitrate": "", 
+                          "container": "", 
+                          "file_size": 253660175293, 
+                          "grandparent_rating_key": "", 
+                          "last_played": 1462380698, 
+                          "media_index": "1", 
+                          "media_type": "show", 
+                          "parent_media_index": "", 
+                          "parent_rating_key": "", 
+                          "play_count": 15, 
+                          "rating_key": "1219", 
+                          "section_id": 2, 
+                          "section_type": "show", 
+                          "thumb": "/library/metadata/1219/thumb/1436265995", 
+                          "title": "Game of Thrones", 
+                          "video_codec": "", 
+                          "video_framerate": "", 
+                          "video_resolution": "", 
+                          "year": "2011"
+                          },
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("added_at", True, False),
+                          ("title", True, True),
+                          ("container", True, True),
+                          ("bitrate", True, True),
+                          ("video_codec", True, True),
+                          ("video_resolution", True, True),
+                          ("video_framerate", True, True),
+                          ("audio_codec", True, True),
+                          ("audio_channels", True, True),
+                          ("file_size", True, False),
+                          ("last_played", True, False),
+                          ("play_count", True, False)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "title")
 
         if refresh == 'true':
             refresh = True
@@ -509,12 +682,11 @@ class WebInterface(object):
                                                         refresh=refresh,
                                                         kwargs=kwargs)
 
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(result)
+        return result
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
     def get_media_info_file_sizes(self, section_id=None, rating_key=None):
         get_file_sizes_hold = plexpy.CONFIG.GET_FILE_SIZES_HOLD
         section_ids = set(get_file_sizes_hold['section_ids'])
@@ -539,66 +711,100 @@ class WebInterface(object):
         else:
             result = False
 
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps({'success': result})
+        return {'success': result}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_all_library_history(self, section_id, **kwargs):
+        """ Delete all PlexPy history for a specific library.
+
+            ```
+            Required parameters:
+                section_id (str):       The id of the Plex library section
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         library_data = libraries.Libraries()
 
         if section_id:
             delete_row = library_data.delete_all_history(section_id=section_id)
 
             if delete_row:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': delete_row})
+                return {'message': delete_row}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return {'message': 'no data received'}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_library(self, section_id, **kwargs):
+        """ Delete a library section from PlexPy. Also erases all history for the library.
+
+            ```
+            Required parameters:
+                section_id (str):       The id of the Plex library section
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         library_data = libraries.Libraries()
 
         if section_id:
             delete_row = library_data.delete(section_id=section_id)
 
             if delete_row:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': delete_row})
+                return {'message': delete_row}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return {'message': 'no data received'}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def undelete_library(self, section_id=None, section_name=None, **kwargs):
+        """ Restore a deleted library section to PlexPy.
+
+            ```
+            Required parameters:
+                section_id (str):       The id of the Plex library section
+                section_name (str):     The name of the Plex library section
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         library_data = libraries.Libraries()
 
         if section_id:
             delete_row = library_data.undelete(section_id=section_id)
 
             if delete_row:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': delete_row})
+                return {'message': delete_row}
         elif section_name:
             delete_row = library_data.undelete(section_name=section_name)
 
             if delete_row:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': delete_row})
+                return {'message': delete_row}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return {'message': 'no data received'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    @addtoapi()
     def update_section_ids(self, **kwargs):
 
         logger.debug(u"Manual database section_id update called.")
@@ -611,9 +817,23 @@ class WebInterface(object):
             return "Unable to update section_id's in database. See logs for details."
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_datatable_media_info_cache(self, section_id, **kwargs):
+        """ Delete the media info table cache for a specific library.
+
+            ```
+            Required parameters:
+                section_id (str):       The id of the Plex library section
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         get_file_sizes_hold = plexpy.CONFIG.GET_FILE_SIZES_HOLD
         section_ids = set(get_file_sizes_hold['section_ids'])
 
@@ -623,15 +843,14 @@ class WebInterface(object):
                 delete_row = library_data.delete_datatable_media_info_cache(section_id=section_id)
 
                 if delete_row:
-                    cherrypy.response.headers['Content-type'] = 'application/json'
-                    return json.dumps({'message': delete_row})
+                    return {'message': delete_row}
             else:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': 'no data received'})
+                return {'message': 'no data received'}
         else:
-            return json.dumps({'message': 'Cannot refresh library while getting file sizes.'})
+            return {'message': 'Cannot refresh library while getting file sizes.'}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def delete_duplicate_libraries(self):
         library_data = libraries.Libraries()
@@ -639,11 +858,9 @@ class WebInterface(object):
         result = library_data.delete_duplicate_libraries()
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': result})
+            return {'message': result}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'Unable to delete duplicate libraries from the database.'})
+            return {'message': 'Unable to delete duplicate libraries from the database.'}
 
     ##### Users #####
 
@@ -653,21 +870,83 @@ class WebInterface(object):
         return serve_template(templatename="users.html", title="Users")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
-    @addtoapi()
+    @addtoapi("get_users_table")
     def get_user_list(self, **kwargs):
+        """ Get the data on PlexPy users table.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                order_column (str):             "user_thumb", "friendly_name", "last_seen", "ip_address", "platform",
+                                                "player", "last_played", "plays", "duration"
+                order_dir (str):                "desc" or "asc"
+                start (int):                    Row to start from, 0
+                length (int):                   Number of items to return, 25
+                search (str):                   A string to search for, "Jon Snow"
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 10,
+                     "recordsFiltered": 10,
+                     "data":
+                        [{"allow_guest": "Checked", 
+                          "do_notify": "Checked", 
+                          "duration": 2998290, 
+                          "friendly_name": "Jon Snow", 
+                          "id": 1121, 
+                          "ip_address": "xxx.xxx.xxx.xxx", 
+                          "keep_history": "Checked", 
+                          "last_played": "Game of Thrones - The Red Woman", 
+                          "last_seen": 1462591869, 
+                          "media_index": 1, 
+                          "media_type": "episode", 
+                          "parent_media_index": 6, 
+                          "parent_title": "", 
+                          "platform": "Chrome", 
+                          "player": "Plex Web (Chrome)", 
+                          "plays": 487, 
+                          "rating_key": 153037, 
+                          "thumb": "/library/metadata/153036/thumb/1462175062", 
+                          "transcode_decision": "transcode", 
+                          "user_id": 328871, 
+                          "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar", 
+                          "year": 2016
+                          }, 
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("user_thumb", False, False),
+                          ("friendly_name", True, True),
+                          ("last_seen", True, False),
+                          ("ip_address", True, True),
+                          ("platform", True, True),
+                          ("player", True, True),
+                          ("last_played", True, False),
+                          ("plays", True, False),
+                          ("duration", True, False)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "friendly_name")
 
         user_data = users.Users()
         user_list = user_data.get_datatables_list(kwargs=kwargs)
 
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(user_list)
+        return user_list
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    @addtoapi()
     def refresh_users_list(self, **kwargs):
-        """ Refresh a users list in a own thread """
+        """ Refresh the users list on it's own thread. """
         threading.Thread(target=plextv.refresh_users).start()
         logger.info(u"Manual users list refresh requested.")
         return True
@@ -706,7 +985,25 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
+    @addtoapi()
     def edit_user(self, user_id=None, **kwargs):
+        """ Update a user on PlexPy.
+
+            ```
+            Required parameters:
+                user_id (str):              The id of the Plex user
+
+            Optional paramters:
+                friendly_name(str):         The friendly name of the user
+                custom_thumb (str):         The URL for the custom user thumbnail
+                do_notify (int):            0 or 1
+                do_notify_created (int):    0 or 1
+                keep_history (int):         0 or 1
+
+            Returns:
+                None
+            ```
+        """
         friendly_name = kwargs.get('friendly_name', '')
         custom_thumb = kwargs.get('custom_thumb', '')
         do_notify = kwargs.get('do_notify', 0)
@@ -783,64 +1080,159 @@ class WebInterface(object):
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
+    @addtoapi()
     def get_user_ips(self, user_id=None, **kwargs):
+        """ Get the data on PlexPy users IP table.
+
+            ```
+            Required parameters:
+                user_id (str):              The id of the Plex user
+
+            Optional parameters:
+                order_column (str):             "last_seen", "ip_address", "platform", "player",
+                                                "last_played", "play_count"
+                order_dir (str):                "desc" or "asc"
+                start (int):                    Row to start from, 0
+                length (int):                   Number of items to return, 25
+                search (str):                   A string to search for, "xxx.xxx.xxx.xxx"
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 2344,
+                     "recordsFiltered": 10,
+                     "data":
+                        [{"friendly_name": "Jon Snow", 
+                          "id": 1121, 
+                          "ip_address": "xxx.xxx.xxx.xxx", 
+                          "last_played": "Game of Thrones - The Red Woman", 
+                          "last_seen": 1462591869, 
+                          "media_index": 1, 
+                          "media_type": "episode", 
+                          "parent_media_index": 6, 
+                          "parent_title": "", 
+                          "platform": "Chrome", 
+                          "play_count": 149, 
+                          "player": "Plex Web (Chrome)", 
+                          "rating_key": 153037, 
+                          "thumb": "/library/metadata/153036/thumb/1462175062", 
+                          "transcode_decision": "transcode", 
+                          "user_id": 328871, 
+                          "year": 2016
+                          },  
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("last_seen", True, False),
+                          ("ip_address", True, True),
+                          ("platform", True, True),
+                          ("player", True, True),
+                          ("last_played", True, True),
+                          ("play_count", True, True)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "last_seen")
 
         user_data = users.Users()
         history = user_data.get_datatables_unique_ips(user_id=user_id, kwargs=kwargs)
 
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(history)
+        return history
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    @addtoapi()
     def delete_all_user_history(self, user_id, **kwargs):
+        """ Delete all PlexPy history for a specific user.
+
+            ```
+            Required parameters:
+                user_id (str):          The id of the Plex user
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         user_data = users.Users()
 
         if user_id:
             delete_row = user_data.delete_all_history(user_id=user_id)
             if delete_row:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': delete_row})
+                return {'message': delete_row}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return {'message': 'no data received'}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    @addtoapi()
     def delete_user(self, user_id, **kwargs):
+        """ Delete a user from PlexPy. Also erases all history for the user.
+
+            ```
+            Required parameters:
+                user_id (str):          The id of the Plex user
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         user_data = users.Users()
 
         if user_id:
             delete_row = user_data.delete(user_id=user_id)
 
             if delete_row:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': delete_row})
+                return {'message': delete_row}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return {'message': 'no data received'}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    @addtoapi()
     def undelete_user(self, user_id=None, username=None, **kwargs):
+        """ Restore a deleted user to PlexPy.
+
+            ```
+            Required parameters:
+                user_id (str):          The id of the Plex user
+                username (str):         The username of the Plex user
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         user_data = users.Users()
 
         if user_id:
             delete_row = user_data.undelete(user_id=user_id)
 
             if delete_row:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': delete_row})
+                return {'message': delete_row}
         elif username:
             delete_row = delete_user.undelete(username=username)
 
             if delete_row:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': delete_row})
+                return {'message': delete_row}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return {'message': 'no data received'}
 
 
     ##### History #####
@@ -851,10 +1243,95 @@ class WebInterface(object):
         return serve_template(templatename="history.html", title="History")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
+    @addtoapi()
     def get_history(self, user=None, user_id=None, grouping=0, **kwargs):
+        """ Get the PlexPy history.
 
-        if grouping == 'false':
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                grouping (int):                 0 or 1
+                user (str):                     "Jon Snow"
+                user_id (int):                  133788
+                rating_key (int):               4348
+                parent_rating_key (int):        544
+                grandparent_rating_key (int):   351
+                start_date (str):               "YYYY-MM-DD"
+                section_id (int):               2
+                media_type (str):               "movie", "episode", "track"
+                transcode_decision (str):       "direct play", "copy", "transcode",
+                order_column (str):             "date", "friendly_name", "ip_address", "platform", "player",
+                                                "full_title", "started", "paused_counter", "stopped", "duration"
+                order_dir (str):                "desc" or "asc"
+                start (int):                    Row to start from, 0
+                length (int):                   Number of items to return, 25
+                search (str):                   A string to search for, "Thrones"
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 1000,
+                     "recordsFiltered": 250,
+                     "total_duration": "42 days 5 hrs 18 mins",
+                     "filter_duration": "10 hrs 12 mins",
+                     "data":
+                        [{"year": 2016,
+                          "paused_counter": 0,
+                          "player": "Plex Web (Chrome)",
+                          "parent_rating_key": 544,
+                          "parent_title": "",
+                          "duration": 263,
+                          "transcode_decision": "transcode",
+                          "rating_key": 4348,
+                          "user_id": 8008135,
+                          "thumb": "/library/metadata/4348/thumb/1462414561",
+                          "id": 1124,
+                          "platform": "Chrome",
+                          "media_type": "episode",
+                          "grandparent_rating_key": 351,
+                          "started": 1462688107,
+                          "full_title": "Game of Thrones - The Red Woman",
+                          "reference_id": 1123,
+                          "date": 1462687607,
+                          "percent_complete": 84,
+                          "ip_address": "xxx.xxx.xxx.xxx",
+                          "group_ids": "1124",
+                          "media_index": 17,
+                          "friendly_name": "Mother of Dragons",
+                          "watched_status": 0,
+                          "group_count": 1,
+                          "stopped": 1462688370,
+                          "parent_media_index": 7,
+                          "user": "DanyKhaleesi69"
+                          },
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("date", True, False),
+                          ("friendly_name", True, True),
+                          ("ip_address", True, True),
+                          ("platform", True, True),
+                          ("player", True, True),
+                          ("full_title", True, True),
+                          ("started", True, False),
+                          ("paused_counter", True, False),
+                          ("stopped", True, False),
+                          ("duration", True, False),
+                          ("watched_status", False, False)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "date")
+
+        if not grouping or grouping == 'false':
             grouping = 0
         else:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -896,8 +1373,7 @@ class WebInterface(object):
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
 
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(history)
+        return history
 
     @cherrypy.expose
     @requireAuth()
@@ -921,6 +1397,7 @@ class WebInterface(object):
         return serve_template(templatename="ip_address_modal.html", title="IP Address Details", data=ip_address)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def delete_history_rows(self, row_id, **kwargs):
         data_factory = datafactory.DataFactory()
@@ -929,11 +1406,9 @@ class WebInterface(object):
             delete_row = data_factory.delete_session_history_rows(row_id=row_id)
 
             if delete_row:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps({'message': delete_row})
+                return {'message': delete_row}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return {'message': 'no data received'}
 
 
     ##### Graphs #####
@@ -967,167 +1442,426 @@ class WebInterface(object):
         return "Updated graphs config values."
     
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_user_names(self, **kwargs):
+        """ Get a list of all user and user ids.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    [{"friendly_name": "Jon Snow", "user_id": 133788},
+                     {"friendly_name": "DanyKhaleesi69", "user_id": 8008135},
+                     {"friendly_name": "Tyrion Lannister", "user_id": 696969},
+                     {...},
+                    ]
+            ```
+        """
         user_data = users.Users()
         user_names = user_data.get_user_names(kwargs=kwargs)
 
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(user_names)
+        return user_names
     
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_plays_by_date(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
+        """ Get graph data by date.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                y_axis (str):           "plays" or "duration"
+                user_id (str):          The user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["YYYY-MM-DD", "YYYY-MM-DD", ...]
+                     "series":
+                        [{"name": "Movies", "data": [...]}
+                         {"name": "TV", "data": [...]},
+                         {"name": "Music", "data": [...]}
+                         ]
+                     }
+            ```
+        """
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_day(time_range=time_range, user_id=user_id, y_axis=y_axis)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_plays_by_date.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_plays_by_dayofweek(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
+        """ Get graph data by day of the week.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                y_axis (str):           "plays" or "duration"
+                user_id (str):          The user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["Sunday", "Monday", "Tuesday", ..., "Saturday"]
+                     "series":
+                        [{"name": "Movies", "data": [...]}
+                         {"name": "TV", "data": [...]},
+                         {"name": "Music", "data": [...]}
+                         ]
+                     }
+            ```
+        """
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_dayofweek(time_range=time_range, user_id=user_id, y_axis=y_axis)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_plays_by_dayofweek.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_plays_by_hourofday(self, time_range='30', user_id=None, y_axis='plays', **kwargs):
+        """ Get graph data by hour of the day.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                y_axis (str):           "plays" or "duration"
+                user_id (str):          The user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["00", "01", "02", ..., "23"]
+                     "series":
+                        [{"name": "Movies", "data": [...]}
+                         {"name": "TV", "data": [...]},
+                         {"name": "Music", "data": [...]}
+                         ]
+                     }
+            ```
+        """
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_hourofday(time_range=time_range, user_id=user_id, y_axis=y_axis)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_plays_by_hourofday.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_plays_per_month(self, y_axis='plays', user_id=None, **kwargs):
+        """ Get graph data by month.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                y_axis (str):           "plays" or "duration"
+                user_id (str):          The user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["Jan 2016", "Feb 2016", "Mar 2016", ...]
+                     "series":
+                        [{"name": "Movies", "data": [...]}
+                         {"name": "TV", "data": [...]},
+                         {"name": "Music", "data": [...]}
+                         ]
+                     }
+            ```
+        """
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_month(y_axis=y_axis, user_id=user_id)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_plays_per_month.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+        """ Get graph data by top 10 platforms.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                y_axis (str):           "plays" or "duration"
+                user_id (str):          The user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["iOS", "Android", "Chrome", ...]
+                     "series":
+                        [{"name": "Movies", "data": [...]}
+                         {"name": "TV", "data": [...]},
+                         {"name": "Music", "data": [...]}
+                         ]
+                     }
+            ```
+        """
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_top_10_platforms(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_plays_by_top_10_platforms.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+        """ Get graph data by top 10 users.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                y_axis (str):           "plays" or "duration"
+                user_id (str):          The user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["Jon Snow", "DanyKhaleesi69", "A Girl", ...]
+                     "series":
+                        [{"name": "Movies", "data": [...]}
+                         {"name": "TV", "data": [...]},
+                         {"name": "Music", "data": [...]}
+                         ]
+                     }
+            ```
+        """
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_top_10_users(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_plays_by_top_10_users.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_plays_by_stream_type(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+        """ Get graph data by stream type by date.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                y_axis (str):           "plays" or "duration"
+                user_id (str):          The user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["YYYY-MM-DD", "YYYY-MM-DD", ...]
+                     "series":
+                        [{"name": "Direct Play", "data": [...]}
+                         {"name": "Direct Stream", "data": [...]},
+                         {"name": "Transcode", "data": [...]}
+                         ]
+                     }
+            ```
+        """
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_stream_type(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_plays_by_stream_type.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+        """ Get graph data by source resolution.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                y_axis (str):           "plays" or "duration"
+                user_id (str):          The user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["720", "1080", "sd", ...]
+                     "series":
+                        [{"name": "Direct Play", "data": [...]}
+                         {"name": "Direct Stream", "data": [...]},
+                         {"name": "Transcode", "data": [...]}
+                         ]
+                     }
+            ```
+        """
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_source_resolution(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_plays_by_source_resolution.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+        """ Get graph data by stream resolution.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                y_axis (str):           "plays" or "duration"
+                user_id (str):          The user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["720", "1080", "sd", ...]
+                     "series":
+                        [{"name": "Direct Play", "data": [...]}
+                         {"name": "Direct Stream", "data": [...]},
+                         {"name": "Transcode", "data": [...]}
+                         ]
+                     }
+            ```
+        """
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_stream_resolution(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_plays_by_stream_resolution.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+        """ Get graph data by stream type by top 10 users.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                y_axis (str):           "plays" or "duration"
+                user_id (str):          The user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["Jon Snow", "DanyKhaleesi69", "A Girl", ...]
+                     "series":
+                        [{"name": "Direct Play", "data": [...]}
+                         {"name": "Direct Stream", "data": [...]},
+                         {"name": "Transcode", "data": [...]}
+                        ]
+                     }
+            ```
+        """
         graph = graphs.Graphs()
         result = graph.get_stream_type_by_top_10_users(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_stream_type_by_top_10_users.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
     def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, **kwargs):
+        """ Get graph data by stream type by top 10 platforms.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                y_axis (str):           "plays" or "duration"
+                user_id (str):          The user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["iOS", "Android", "Chrome", ...]
+                     "series":
+                        [{"name": "Direct Play", "data": [...]}
+                         {"name": "Direct Stream", "data": [...]},
+                         {"name": "Transcode", "data": [...]}
+                         ]
+                     }
+            ```
+        """
         graph = graphs.Graphs()
         result = graph.get_stream_type_by_top_10_platforms(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_stream_type_by_top_10_platforms.")
 
@@ -1148,6 +1882,7 @@ class WebInterface(object):
         return serve_template(templatename="sync.html", title="Synced Items")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth()
     def get_sync(self, machine_id=None, user_id=None, **kwargs):
 
@@ -1163,8 +1898,7 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_sync.")
             output = {"data": []}
 
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(output)
+        return output
 
 
     ##### Logs #####
@@ -1219,9 +1953,31 @@ class WebInterface(object):
         })
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_plex_log(self, window=1000, **kwargs):
+        """ Get the PMS logs.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                window (int):           The number of tail lines to return
+                log_type (str):         "server" or "scanner"
+
+            Returns:
+                json:
+                    [["May 08, 2016 09:35:37", 
+                      "DEBUG", 
+                      "Auth: Came in with a super-token, authorization succeeded."
+                      ],
+                     [...],
+                     [...]
+                     ]
+            ```
+        """
         log_lines = []
         log_type = kwargs.get('log_type', 'server')
 
@@ -1230,32 +1986,95 @@ class WebInterface(object):
         except:
             logger.warn(u"Unable to retrieve Plex Logs.")
 
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(log_lines)
+        return log_lines
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_notification_log(self, **kwargs):
+        """ Get the data on the PlexPy notification logs table.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                order_column (str):             "timestamp", "agent_name", "notify_action",
+                                                "subject_text", "body_text", "script_args"
+                order_dir (str):                "desc" or "asc"
+                start (int):                    Row to start from, 0
+                length (int):                   Number of items to return, 25
+                search (str):                   A string to search for, "Telegram"
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 1039,
+                     "recordsFiltered": 163,
+                     "data":
+                        [{"agent_id": 13, 
+                          "agent_name": "Telegram", 
+                          "body_text": "Game of Thrones - S06E01 - The Red Woman [Transcode].", 
+                          "id": 1000, 
+                          "notify_action": "play", 
+                          "poster_url": "http://i.imgur.com/ZSqS8Ri.jpg", 
+                          "rating_key": 153037, 
+                          "script_args": "[]", 
+                          "session_key": 147, 
+                          "subject_text": "PlexPy (Winterfell-Server)", 
+                          "timestamp": 1462253821, 
+                          "user": "DanyKhaleesi69", 
+                          "user_id": 8008135
+                          }, 
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
+        """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("timestamp", True, True),
+                          ("agent_name", True, True),
+                          ("notify_action", True, True),
+                          ("subject_text", True, True),
+                          ("body_text", True, True),
+                          ("script_args", True, True)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "timestamp")
+
         data_factory = datafactory.DataFactory()
         notifications = data_factory.get_notification_log(kwargs=kwargs)
 
-        cherrypy.response.headers['Content-type'] = 'application/json'
-        return json.dumps(notifications)
+        return notifications
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def clearNotifyLogs(self, **kwargs):
+    def delete_notification_log(self, **kwargs):
+        """ Delete the notification logs.
+
+            ```
+            Required paramters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         data_factory = datafactory.DataFactory()
         result = data_factory.delete_notification_log()
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': result})
+            return {'message': result}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return {'message': 'no data received'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -1571,6 +2390,7 @@ class WebInterface(object):
         return serve_template(templatename="scheduler_table.html")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def backup_db(self):
         """ Creates a manual backup of the plexpy.db file """
@@ -1578,11 +2398,9 @@ class WebInterface(object):
         result = database.make_backup()
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'Database backup successful.'})
+            return {'message': 'Database backup successful.'}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'Database backup failed.'})
+            return {'message': 'Database backup failed.'}
 
 
     @cherrypy.expose
@@ -1623,10 +2441,27 @@ class WebInterface(object):
                               data=this_agent)
 
     @cherrypy.expose
-    @addtoapi('notify')
     @requireAuth(member_of("admin"))
-    def test_notifier(self, agent_id=None, subject='PlexPy', body='Test notification', **kwargs):
+    @addtoapi("notify")
+    def send_notification(self, agent_id=None, subject='PlexPy', body='Test notification', notify_action=None, **kwargs):
+        """ Send a notification using PlexPy.
+
+            ```
+            Required parameters:
+                agent_id(str):          The id of the notification agent to use
+                subject(str):           The subject of the message
+                body(str):              The body of the message
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+
+        test = 'test ' if notify_action == 'test' else ''
 
         if agent_id.isdigit():
             agents = notifiers.available_notification_agents()
@@ -1638,19 +2473,20 @@ class WebInterface(object):
                     this_agent = None
 
             if this_agent:
-                logger.debug(u"Sending test %s notification." % this_agent['name'])
-                if notifiers.send_notification(this_agent['id'], subject, body, 'test', **kwargs):
+                logger.debug(u"Sending %s%s notification." % (test, this_agent['name']))
+                if notifiers.send_notification(this_agent['id'], subject, body, notify_action, **kwargs):
                     return "Notification sent."
                 else:
                     return "Notification failed."
             else:
-                logger.debug(u"Unable to send test notification, invalid notification agent ID %s." % agent_id)
-                return "Invalid notification agent ID %s." % agent_id
+                logger.debug(u"Unable to send %snotification, invalid notification agent id %s." % (test, agent_id))
+                return "Invalid notification agent id %s." % agent_id
         else:
-            logger.debug(u"Unable to send test notification, no notification agent ID received.")
-            return "No notification agent ID received."
+            logger.debug(u"Unable to send %snotification, no notification agent id received." % test)
+            return "No notification agent id received."
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def get_browser_notifications(self, **kwargs):
         browser = notifiers.Browser()
@@ -1659,8 +2495,7 @@ class WebInterface(object):
         if result:
             notifications = result['notifications']
             if notifications:
-                cherrypy.response.headers['Content-type'] = 'application/json'
-                return json.dumps(notifications)
+                return notifications
             else:
                 return None
         else:
@@ -1738,10 +2573,22 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    @addtoapi()
+    @addtoapi("import_plexwatch_database")
     def get_plexwatch_export_data(self, database_path=None, table_name=None, import_ignore_interval=0, **kwargs):
-        from plexpy import plexwatch_import
+        """ Import a plexwatch database into PlexPy.
 
+            ```
+            Required parameters:
+                database_path (str):            The full path to the plexwatch database file
+                table_name (str):               "processed" or "grouped"
+
+            Optional parameters:
+                import_ignore_interval (int):   The minimum number of seconds for a stream to import
+
+            Returns:
+                None
+            ```
+        """
         db_check_msg = plexwatch_import.validate_database(database=database_path,
                                                           table_name=table_name)
         if db_check_msg == 'success':
@@ -1772,11 +2619,27 @@ class WebInterface(object):
             return False
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, **kwargs):
-        from plexpy import http_handler
+        """ Get the PMS server identifier.
 
+            ```
+            Required parameters:
+                None
+
+                hostname (str):     'localhost' or '192.160.0.10'
+                port (int):         32400
+
+            Optional parameters:
+                ssl (int):          0 or 1
+                remote (int):       0 or 1
+
+            Returns:
+                string:             The unique PMS identifier
+            ```
+        """
         # Attempt to get the pms_identifier from plex.tv if the server is published
         # Works for all PMS SSL settings
         if not identifier and hostname and port:
@@ -1807,8 +2670,7 @@ class WebInterface(object):
                     identifier = xml_head.getAttribute('machineIdentifier')
 
         if identifier:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(identifier)
+            return identifier
         else:
             logger.warn('Unable to retrieve the PMS identifier.')
             return None
@@ -1817,14 +2679,15 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_server_pref(self, pref=None, **kwargs):
-        """ Return a specified server preference.
+        """ Get a specified PMS server preference.
 
-                Args:
-                    pref(string): 'name of preference'
+            ```
+            Required parameters:
+                pref (str):         Name of preference
 
-                Returns:
-                    String: ''
-
+            Returns:
+                string:             Value of preference
+            ```
         """
 
         pms_connect = pmsconnect.PmsConnect()
@@ -1845,8 +2708,6 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def checkGithub(self):
-        from plexpy import versioncheck
-
         versioncheck.checkGithub()
         raise cherrypy.HTTPRedirect("home")
 
@@ -1941,6 +2802,7 @@ class WebInterface(object):
             return None
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def delete_poster_url(self, poster_url=''):
         
@@ -1951,11 +2813,9 @@ class WebInterface(object):
             result = None
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': result})
+            return {'message': result}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return {'message': 'no data received'}
 
 
     ##### Search #####
@@ -1966,16 +2826,39 @@ class WebInterface(object):
         return serve_template(templatename="search.html", title="Search", query=query)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi('search')
     def search_results(self, query, **kwargs):
+        """ Get search results from the PMS.
 
+            ```
+            Required parameters:
+                query (str):        The query string to search for
+
+            Returns:
+                json:
+                    {"results_count": 69, 
+                     "results_list":
+                        {"movie":
+                            [{...},
+                             {...},
+                             ]
+                         },
+                        {"episode":
+                            [{...},
+                             {...},
+                             ]
+                         },
+                        {...}
+                     }
+            ```
+        """
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_search_results(query)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for search_results.")
 
@@ -2019,13 +2902,31 @@ class WebInterface(object):
             return serve_template(templatename="update_metadata.html", query=query, update=update, title="Info")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def update_metadata_details(self, old_rating_key, new_rating_key, media_type, **kwargs):
-        data_factory = datafactory.DataFactory()
-        pms_connect = pmsconnect.PmsConnect()
+        """ Update the metadata in the PlexPy database by matching rating keys.
+            Also updates all parents or children of the media item if it is a show/season/episode
+            or artist/album/track.
 
+            ```
+            Required parameters:
+                old_rating_key (str):       12345
+                new_rating_key (str):       54321
+                media_type (str):           "movie", "show", "season", "episode", "artist", "album", "track"
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
         if new_rating_key:
+            data_factory = datafactory.DataFactory()
+            pms_connect = pmsconnect.PmsConnect()
+
             old_key_list = data_factory.get_rating_keys_list(rating_key=old_rating_key, media_type=media_type)
             new_key_list = pms_connect.get_rating_keys_list(rating_key=new_rating_key, media_type=media_type)
 
@@ -2034,416 +2935,695 @@ class WebInterface(object):
                                                   media_type=media_type)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': result})
+            return {'message': result}
         else:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps({'message': 'no data received'})
+            return {'message': 'no data received'}
 
     # test code
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_new_rating_keys(self, rating_key='', media_type='', **kwargs):
-        """
-            Grap the new rating keys
+        """ Get a list of new rating keys for the PMS of all of the item's parent/children.
 
-            Args:
-                rating_key(string): '',
-                media_type(string): ''
+            ```
+            Required parameters:
+                rating_key (str):       '12345'
+                media_type (str):       "movie", "show", "season", "episode", "artist", "album", "track"
+
+            Optional parameters:
+                None
 
             Returns:
-                    json: ''
-
+                json:
+                    {}
+            ```
         """
 
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_rating_keys_list(rating_key=rating_key, media_type=media_type)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_new_rating_keys.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_old_rating_keys(self, rating_key='', media_type='', **kwargs):
-        """
-        Grap the old rating keys
-        Args:
-            rating_key(string): '',
-            media_type(string): ''
-        Returns:
-                json: ''
+        """ Get a list of old rating keys from the PlexPy database for all of the item's parent/children.
 
+            ```
+            Required parameters:
+                rating_key (str):       '12345'
+                media_type (str):       "movie", "show", "season", "episode", "artist", "album", "track"
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {}
+            ```
         """
 
         data_factory = datafactory.DataFactory()
         result = data_factory.get_rating_keys_list(rating_key=rating_key, media_type=media_type)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_old_rating_keys.")
 
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi('get_sessions')
     def get_pms_sessions_json(self, **kwargs):
-
+        """ Get all the current sessions. """
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_sessions('json')
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
             return result
         else:
             logger.warn(u"Unable to retrieve data for get_pms_sessions_json.")
             return False
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi('get_metadata')
-    def get_metadata_json(self, rating_key='', **kwargs):
+    @addtoapi("get_metadata")
+    def get_metadata_details(self, rating_key='', media_info=False, **kwargs):
+        """ Get the metadata for a media item.
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_metadata(rating_key, 'json')
+            ```
+            Required parameters:
+                rating_key (str):       Rating key of the item
+                media_info (bool):      True or False wheter to get media info
 
-        if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return result
-        else:
-            logger.warn(u"Unable to retrieve data for get_metadata_json.")
-
-    @cherrypy.expose
-    @requireAuth(member_of("admin"))
-    def get_metadata_xml(self, rating_key='', **kwargs):
-
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_metadata(rating_key)
-
-        if result:
-            cherrypy.response.headers['Content-type'] = 'application/xml'
-            return result
-        else:
-            logger.warn(u"Unable to retrieve data for get_metadata_xml.")
-
-    @cherrypy.expose
-    @requireAuth(member_of("admin"))
-    @addtoapi('get_recently_added')
-    def get_recently_added_json(self, count='0', **kwargs):
-        """ Get all items that where recelty added to plex
-
-            Args:
-                count(string): Number of items
+            Optional parameters:
+                None
 
             Returns:
-                dict: of all added items
-
+                json:
+                    {"metadata":
+                        {"actors": [
+                            "Kit Harington", 
+                            "Emilia Clarke", 
+                            "Isaac Hempstead-Wright", 
+                            "Maisie Williams", 
+                            "Liam Cunningham", 
+                         ], 
+                         "added_at": "1461572396", 
+                         "art": "/library/metadata/1219/art/1462175063", 
+                         "content_rating": "TV-MA", 
+                         "directors": [
+                            "Jeremy Podeswa"
+                         ], 
+                         "duration": "2998290", 
+                         "genres": [
+                            "Adventure", 
+                            "Drama", 
+                            "Fantasy"
+                         ], 
+                         "grandparent_rating_key": "1219", 
+                         "grandparent_thumb": "/library/metadata/1219/thumb/1462175063", 
+                         "grandparent_title": "Game of Thrones", 
+                         "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en", 
+                         "labels": [], 
+                         "last_viewed_at": "1462165717", 
+                         "library_name": "TV Shows", 
+                         "media_index": "1", 
+                         "media_type": "episode", 
+                         "originally_available_at": "2016-04-24", 
+                         "parent_media_index": "6", 
+                         "parent_rating_key": "153036", 
+                         "parent_thumb": "/library/metadata/153036/thumb/1462175062", 
+                         "parent_title": "", 
+                         "rating": "7.8", 
+                         "rating_key": "153037", 
+                         "section_id": "2", 
+                         "studio": "HBO", 
+                         "summary": "Jon Snow is dead. Daenerys meets a strong man. Cersei sees her daughter again.", 
+                         "tagline": "", 
+                         "thumb": "/library/metadata/153037/thumb/1462175060", 
+                         "title": "The Red Woman", 
+                         "updated_at": "1462175060", 
+                         "writers": [
+                            "David Benioff", 
+                            "D. B. Weiss"
+                         ], 
+                         "year": "2016"
+                         }
+                     }
+            ```
         """
-
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_recently_added(count, 'json')
+        result = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=media_info)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_recently_added_json.")
+            logger.warn(u"Unable to retrieve data for get_metadata_details.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
+    @addtoapi("get_recently_added")
+    def get_recently_added_details(self, count='0', section_id='', **kwargs):
+        """ Get all items that where recelty added to plex.
+
+            ```
+            Required parameters:
+                count (str):        Number of items to return
+
+            Optional parameters:
+                section_id (str):   The id of the Plex library section
+
+            Returns:
+                json:
+                    {"recently_added":
+                        [{"added_at": "1461572396", 
+                          "grandparent_rating_key": "1219", 
+                          "grandparent_thumb": "/library/metadata/1219/thumb/1462175063", 
+                          "grandparent_title": "Game of Thrones", 
+                          "library_name": "", 
+                          "media_index": "1", 
+                          "media_type": "episode", 
+                          "parent_media_index": "6", 
+                          "parent_rating_key": "153036", 
+                          "parent_thumb": "/library/metadata/153036/thumb/1462175062", 
+                          "parent_title": "", 
+                          "rating_key": "153037", 
+                          "section_id": "2", 
+                          "thumb": "/library/metadata/153037/thumb/1462175060", 
+                          "title": "The Red Woman", 
+                          "year": "2016"
+                          },
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
+        """
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_recently_added_details(count=count, section_id=section_id)
+
+        if result:
+            return result
+        else:
+            logger.warn(u"Unable to retrieve data for get_recently_added_details.")
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
     def get_friends_list(self, **kwargs):
-        """ Gets the friends list of the server owner for plex.tv """
+        """ Get the friends list of the server owner for Plex.tv. """
 
         plex_tv = plextv.PlexTV()
         result = plex_tv.get_plextv_friends('json')
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
             return result
         else:
             logger.warn(u"Unable to retrieve data for get_friends_list.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
     def get_user_details(self, **kwargs):
-        """ Get all details about a user from plextv """
+        """ Get all details about a the server's owner from Plex.tv. """
 
         plex_tv = plextv.PlexTV()
         result = plex_tv.get_plextv_user_details('json')
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
             return result
         else:
             logger.warn(u"Unable to retrieve data for get_user_details.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
     def get_server_list(self, **kwargs):
-        """ Find all servers published on plextv"""
+        """ Find all servers published on Plex.tv """
 
         plex_tv = plextv.PlexTV()
         result = plex_tv.get_plextv_server_list('json')
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
             return result
         else:
             logger.warn(u"Unable to retrieve data for get_server_list.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
     def get_sync_lists(self, machine_id='', **kwargs):
-
+        """ Get all items that are currently synced from the PMS. """
         plex_tv = plextv.PlexTV()
         result = plex_tv.get_plextv_sync_lists(machine_id=machine_id, output_format='json')
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
             return result
         else:
             logger.warn(u"Unable to retrieve data for get_sync_lists.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
     def get_servers(self, **kwargs):
-        """ All servers
-
-            Returns:
-                    json:
-                        ```
-                        {"MediaContainer": {"@size": "1", "Server":
-                            {"@name": "dude-PC",
-                            "@host": "10.0.0.97",
-                            "@address": "10.0.0.97",
-                            "@port": "32400",
-                            "@machineIdentifier": "1234",
-                            "@version": "0.9.15.2.1663-7efd046"}}}
-                        ```
-        """
-
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_server_list(output_format='json')
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
             return result
         else:
             logger.warn(u"Unable to retrieve data for get_servers.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_servers_info(self, **kwargs):
-        """ Grabs list of info about the servers
+        """ Get info about the PMS.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
 
             Returns:
-                    json:
-                        ```
-                        [{"port": "32400",
-                          "host": "10.0.0.97",
-                          "version": "0.9.15.2.1663-7efd046",
-                          "name": "dude-PC",
-                          "machine_identifier": "1234"
-                          }
-                        ]
-                        ```
+                json:
+                    [{"port": "32400",
+                      "host": "10.0.0.97",
+                      "version": "0.9.15.2.1663-7efd046",
+                      "name": "Winterfell-Server",
+                      "machine_identifier": "ds48g4r354a8v9byrrtr697g3g79w"
+                      }
+                     ]
+            ```
         """
-
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_servers_info()
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_servers_info.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_server_identity(self, **kwargs):
-        """ Grabs info about the local server
+        """ Get info about the local server.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
 
             Returns:
-                    json:
-                        ```
-                        [{"machine_identifier": "1234",
-                          "version": "0.9.15.x.xxx-xxxxxxx"
-                          }
-                        ]
-                        ```
+                json:
+                    [{"machine_identifier": "ds48g4r354a8v9byrrtr697g3g79w",
+                      "version": "0.9.15.x.xxx-xxxxxxx"
+                      }
+                     ]
+            ```
         """
-
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_server_identity()
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_server_identity.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_server_friendly_name(self, **kwargs):
+        """ Get the name of the PMS.
 
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                string:     "Winterfell-Server"
+            ```
+        """
         result = pmsconnect.get_server_friendly_name()
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
             return result
         else:
             logger.warn(u"Unable to retrieve data for get_server_friendly_name.")
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def get_server_prefs(self, pref=None, **kwargs):
-
-        if pref:
-            pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_server_pref(pref=pref)
-        else:
-            result = None
-
-        if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return result
-        else:
-            logger.warn(u"Unable to retrieve data for get_server_prefs.")
-
-    @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_activity(self, **kwargs):
-        """ Return processed and validated session list.
+        """ Get the current activity on the PMS.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
 
             Returns:
                 json:
-                    ```
-                    {stream_count: 1,
-                     session: [{dict}]
-                    }
-                    ```
+                    {"stream_count": 3,
+                     "session":
+                        [{"art": "/library/metadata/1219/art/1462175063", 
+                          "aspect_ratio": "1.78", 
+                          "audio_channels": "6", 
+                          "audio_codec": "ac3", 
+                          "audio_decision": "transcode", 
+                          "bif_thumb": "/library/parts/274169/indexes/sd/", 
+                          "bitrate": "10617", 
+                          "container": "mkv", 
+                          "content_rating": "TV-MA", 
+                          "duration": "2998290", 
+                          "friendly_name": "Mother of Dragons", 
+                          "grandparent_rating_key": "1219", 
+                          "grandparent_thumb": "/library/metadata/1219/thumb/1462175063", 
+                          "grandparent_title": "Game of Thrones", 
+                          "height": "1078", 
+                          "indexes": 1, 
+                          "ip_address": "xxx.xxx.xxx.xxx", 
+                          "labels": [], 
+                          "machine_id": "83f189w617623ccs6a1lqpby", 
+                          "media_index": "1", 
+                          "media_type": "episode", 
+                          "parent_media_index": "6", 
+                          "parent_rating_key": "153036", 
+                          "parent_thumb": "/library/metadata/153036/thumb/1462175062", 
+                          "parent_title": "", 
+                          "platform": "Chrome", 
+                          "player": "Plex Web (Chrome)", 
+                          "progress_percent": "0", 
+                          "rating_key": "153037", 
+                          "section_id": "2", 
+                          "session_key": "291", 
+                          "state": "playing", 
+                          "throttled": "1", 
+                          "thumb": "/library/metadata/153037/thumb/1462175060", 
+                          "title": "The Red Woman", 
+                          "transcode_audio_channels": "2", 
+                          "transcode_audio_codec": "aac", 
+                          "transcode_container": "mkv", 
+                          "transcode_height": "1078", 
+                          "transcode_key": "tiv5p524wcupe8nxegc26s9k9", 
+                          "transcode_progress": 2, 
+                          "transcode_protocol": "http", 
+                          "transcode_speed": "0.0", 
+                          "transcode_video_codec": "h264", 
+                          "transcode_width": "1920", 
+                          "user": "DanyKhaleesi69", 
+                          "user_id": 8008135, 
+                          "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar", 
+                          "video_codec": "h264", 
+                          "video_decision": "copy", 
+                          "video_framerate": "24p", 
+                          "video_resolution": "1080", 
+                          "view_offset": "", 
+                          "width": "1920", 
+                          "year": "2016"
+                          },
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
         """
-
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_current_activity()
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_activity.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
-    def get_full_users_list(self, **kwargs):
-        """ Get a list all users that has access to your server
+    @addtoapi("get_libraries")
+    def get_full_libraries_list(self, **kwargs):
+        """ Get a list of all libraries on your server.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
 
             Returns:
-                    json:
-                        ```
-                        [{"username": "Hellowlol", "user_id": "1345",
-                          "thumb": "https://plex.tv/users/123aa/avatar",
-                          "is_allow_sync": null,
-                          "is_restricted": "0",
-                          "is_home_user": "0",
-                          "email": "John.Doe@email.com"}]
-                        ```
-
+                json:
+                    [{"art": "/:/resources/show-fanart.jpg", 
+                      "child_count": "3745", 
+                      "count": "62", 
+                      "parent_count": "240", 
+                      "section_id": "2",
+                      "section_name": "TV Shows", 
+                      "section_type": "show", 
+                      "thumb": "/:/resources/show.png"
+                      },
+                     {...},
+                     {...}
+                     ]
+            ```
         """
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.get_library_details()
 
+        if result:
+            return result
+        else:
+            logger.warn(u"Unable to retrieve data for get_full_libraries_list.")
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi("get_users")
+    def get_full_users_list(self, **kwargs):
+        """ Get a list of all users that have access to your server.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    [{"email": "Jon.Snow.1337@CastleBlack.com", 
+                      "filter_all": "", 
+                      "filter_movies": "", 
+                      "filter_music": "", 
+                      "filter_photos": "", 
+                      "filter_tv": "", 
+                      "is_allow_sync": null, 
+                      "is_home_user": "1", 
+                      "is_restricted": "0", 
+                      "thumb": "https://plex.tv/users/k10w42309cynaopq/avatar", 
+                      "user_id": "328871", 
+                      "username": "Jon Snow"
+                      },
+                     {...},
+                     {...}
+                     ]
+            ```
+        """
         plex_tv = plextv.PlexTV()
         result = plex_tv.get_full_users_list()
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
-            return json.dumps(result)
+            return result
         else:
             logger.warn(u"Unable to retrieve data for get_full_users_list.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_sync_item(self, sync_id, **kwargs):
-        """ Return sync item details.
+    def get_synced_items(self, machine_id='', user_id='', **kwargs):
+        """ Get a list of synced items on the PMS.
 
-            Args:
-                sync_id(string): unique sync id for item
-                output_format(string, optional): 'xml/json'
+            ```
+            Required parameters:
+                machine_id (str):       The PMS identifier
+
+            Optional parameters:
+                user_id (str):          The id of the Plex user
 
             Returns:
-                List:
-                    ```
-                    {"data": [
-                                {"username": "username",
-                                 "item_downloaded_percent_complete": 100,
-                                 "user_id": "134",
-                                 "failure": "",
-                                 "title": "Some Movie",
-                                 "total_size": "747195119",
-                                 "root_title": "Movies",
-                                 "music_bitrate": "128",
-                                 "photo_quality": "49",
-                                 "friendly_name": "username",
-                                 "device_name": "Username iPad",
-                                 "platform": "iOS",
-                                 "state": "complete",
-                                 "item_downloaded_count": "1",
-                                 "content_type": "video",
-                                 "metadata_type": "movie",
-                                 "video_quality": "49",
-                                 "item_count": "1",
-                                 "rating_key": "59207",
-                                 "item_complete_count": "1",
-                                 "sync_id": "1234"}
-                            ]
-                    }
-                    ```
+                json:
+                    [{"content_type": "video", 
+                      "device_name": "Tyrion's iPad", 
+                      "failure": "", 
+                      "friendly_name": "Tyrion Lannister", 
+                      "item_complete_count": "0", 
+                      "item_count": "1", 
+                      "item_downloaded_count": "0", 
+                      "item_downloaded_percent_complete": 0, 
+                      "metadata_type": "movie", 
+                      "music_bitrate": "192", 
+                      "photo_quality": "74", 
+                      "platform": "iOS", 
+                      "rating_key": "154092", 
+                      "root_title": "Deadpool", 
+                      "state": "pending", 
+                      "sync_id": "11617019", 
+                      "title": "Deadpool", 
+                      "total_size": "0", 
+                      "user_id": "328871", 
+                      "username": "DrukenDwarfMan", 
+                      "video_quality": "60"
+                      },
+                     {...},
+                     {...}
+                     ]
+            ```
         """
-
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_sync_item(sync_id, output_format='json')
+        plex_tv = plextv.PlexTV()
+        result = plex_tv.get_synced_items(machine_id=machine_id, user_id=user_id)
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
             return result
         else:
-            logger.warn(u"Unable to retrieve data for get_sync_item.")
+            logger.warn(u"Unable to retrieve data for get_synced_items.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi()
     def get_sync_transcode_queue(self, **kwargs):
-
+        """ Return details for currently syncing items. """
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_sync_transcode_queue(output_format='json')
 
         if result:
-            cherrypy.response.headers['Content-type'] = 'application/json'
             return result
         else:
             logger.warn(u"Unable to retrieve data for get_sync_transcode_queue.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
+    def get_home_stats(self, grouping=0, time_range='30', stats_type=0, stats_count='5', **kwargs):
+        """ Get the homepage watch statistics.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                grouping (int):         0 or 1
+                time_range (str):       The time range to calculate statistics, '30'
+                stats_type (int):       0 for plays, 1 for duration
+                stats_count (str):      The number of top items to list, '5'
+
+            Returns:
+                json:
+                    [{"stat_id": "top_movies",
+                      "stat_type": "total_plays",
+                      "rows": [{...}]
+                      },
+                     {"stat_id": "popular_movies",
+                      "rows": [{...}]
+                      },
+                     {"stat_id": "top_tv",
+                      "stat_type": "total_plays",
+                      "rows":
+                        [{"content_rating": "TV-MA", 
+                          "friendly_name": "", 
+                          "grandparent_thumb": "/library/metadata/1219/thumb/1462175063", 
+                          "labels": [], 
+                          "last_play": 1462380698, 
+                          "media_type": "episode", 
+                          "platform": "", 
+                          "platform_type": "", 
+                          "rating_key": 1219, 
+                          "row_id": 1116, 
+                          "section_id": 2, 
+                          "thumb": "", 
+                          "title": "Game of Thrones", 
+                          "total_duration": 213302, 
+                          "total_plays": 69, 
+                          "user": "", 
+                          "users_watched": ""
+                          },
+                         {...},
+                         {...}
+                         ]
+                      },
+                     {"stat_id": "popular_tv",
+                      "rows": [{...}]
+                      },
+                     {"stat_id": "top_music",
+                      "stat_type": "total_plays",
+                      "rows": [{...}]
+                      },
+                     {"stat_id": "popular_music",
+                      "rows": [{...}]
+                      },
+                     {"stat_id": "last_watched",
+                      "rows": [{...}]
+                      },
+                     {"stat_id": "top_users",
+                      "stat_type": "total_plays",
+                      "rows": [{...}]
+                      },
+                     {"stat_id": "top_platforms",
+                      "stat_type": "total_plays",
+                      "rows": [{...}]
+                      },
+                     {"stat_id": "most_concurrent",
+                      "rows": [{...}]
+                      }
+                     ]
+            ```
+        """
+        stats_cards = plexpy.CONFIG.HOME_STATS_CARDS
+        notify_watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
+
+        data_factory = datafactory.DataFactory()
+        result = data_factory.get_home_stats(grouping=grouping,
+                                             time_range=time_range,
+                                             stats_type=stats_type,
+                                             stats_count=stats_count,
+                                             stats_cards=stats_cards,
+                                             notify_watched_percent=notify_watched_percent)
+
+        if result:
+            return result
+        else:
+            logger.warn(u"Unable to retrieve data for get_home_stats.")
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi("arnold")
     def random_arnold_quotes(self, **kwargs):
+        """ Get to the chopper! """
         from random import randint
         quote_list = ['To crush your enemies, see them driven before you, and to hear the lamentation of their women!',
                       'Your clothes, give them to me, now!',
@@ -2487,14 +3667,14 @@ class WebInterface(object):
         if args and 'v2' in args[0]:
             return API2()._api_run(**kwargs)
         else:
-            from plexpy.api import Api
             a = Api()
             a.checkParams(*args, **kwargs)
             return a.fetchData()
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def check_pms_updater(self):
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_update_staus()
-        return json.dumps(result)
+        return result

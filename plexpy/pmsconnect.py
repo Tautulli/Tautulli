@@ -94,8 +94,10 @@ def refresh_libraries():
             threading.Thread(target=libraries.update_labels).start()
 
         logger.info(u"PlexPy Pmsconnect :: Libraries list refreshed.")
+        return True
     else:
         logger.warn(u"PlexPy Pmsconnect :: Unable to refresh libraries list.")
+        return False
 
 
 class PmsConnect(object):
