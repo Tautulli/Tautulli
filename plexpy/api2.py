@@ -443,6 +443,9 @@ General optional parameters:
         if self._api_cmd == 'docs_md':
             return out['response']['data']
 
+        elif self._api_cmd == 'download_log':
+            return
+
         if self._api_out_type == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             try:

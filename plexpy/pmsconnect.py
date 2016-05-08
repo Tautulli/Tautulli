@@ -1890,7 +1890,7 @@ class PmsConnect(object):
 
         return labels_list
 
-    def get_image(self, img=None, width=None, height=None, fallback=None):
+    def get_image(self, img=None, width=None, height=None):
         """
         Return image data as array.
         Array contains the image content type and image binary
@@ -1900,51 +1900,24 @@ class PmsConnect(object):
                                 height { the image height }
         Output: array
         """
-        if not img:
-            logger.error(u"PlexPy Pmsconnect :: Image proxy queried but no input received.")
-            return None
 
-        # Remove the timestamp from PMS image uri
-        image_uri = img.rsplit('/', 1)[0]
-
-        # Try to retrieve the image from cache if it isn't a bif index.
-        if not 'indexes' in image_uri:
-            image_path, content_type = helpers.cache_image(image_uri)
-
-            if image_path and content_type:
-                return [open(image_path, 'rb'), content_type]
-
-        try:
+        if img:
+            uri = '/photo/:/transcode?url=http://127.0.0.1:32400%s' % img
             if width.isdigit() and height.isdigit():
-                uri = '/photo/:/transcode?url=http://127.0.0.1:32400' + img + '&width=' + width + '&height=' + height
+                uri += '&width=%s&height=%s' % (width, height)
+
+            result = self.request_handler.make_request(uri=uri,
+                                                       proto=self.protocol,
+                                                       request_type='GET',
+                                                       return_type=True)
+
+            if result is None:
+                return
             else:
-                logger.error(u"PlexPy Pmsconnect :: Image proxy queried but no width or height specified.")
-                raise Exception
+                return result[0], result[1]
 
-            request, content_type = self.request_handler.make_request(uri=uri,
-                                                                      proto=self.protocol,
-                                                                      request_type='GET',
-                                                                      return_type=True)
-            # Save the image to cache if it isn't a bif index.
-            if not 'indexes' in image_uri:
-                helpers.cache_image(image_uri, request)
-
-            return [request, content_type]
-
-        except Exception as e:
-            if fallback:
-                logger.debug(u"PlexPy Pmsconnect :: Trying fallback %s image." % fallback)
-                try:
-                    if fallback == 'poster':
-                        return [open(common.DEFAULT_POSTER_THUMB, 'rb'), 'image/png']
-                    elif fallback == 'cover':
-                        return [open(common.DEFAULT_COVER_THUMB, 'rb'), 'image/png']
-                    elif fallback == 'art':
-                        return [open(common.DEFAULT_ART, 'rb'), 'image/png']
-                except IOError as e:
-                    logger.error(u"PlexPy Pmsconnect :: Unable to read fallback %s image: %s" % (fallback, e))
-
-        return None
+        else:
+            logger.error(u"PlexPy Pmsconnect :: Image proxy queries but no input received.")
 
     def get_search_results(self, query=''):
         """

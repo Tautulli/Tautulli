@@ -20,6 +20,9 @@ import random
 import threading
 
 import cherrypy
+from cherrypy.lib.static import serve_file, serve_download
+from cherrypy._cperror import NotFound
+
 from hashing_passwords import make_hash
 from mako.lookup import TemplateLookup
 from mako import exceptions
@@ -59,7 +62,7 @@ def serve_template(templatename, **kwargs):
 
     try:
         template = _hplookup.get_template(templatename)
-        return template.render(http_root=plexpy.HTTP_ROOT, server_name=server_name, 
+        return template.render(http_root=plexpy.HTTP_ROOT, server_name=server_name,
                                _session=_session, **kwargs)
     except:
         return exceptions.html_error_template().render()
@@ -68,7 +71,7 @@ def serve_template(templatename, **kwargs):
 class WebInterface(object):
 
     auth = AuthController()
-    
+
     def __init__(self):
         self.interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/')
 
@@ -133,12 +136,12 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [{"clientIdentifier": "ds48g4r354a8v9byrrtr697g3g79w", 
-                      "httpsRequired": "0", 
-                      "ip": "xxx.xxx.xxx.xxx", 
-                      "label": "Winterfell-Server", 
-                      "local": "1", 
-                      "port": "32400", 
+                    [{"clientIdentifier": "ds48g4r354a8v9byrrtr697g3g79w",
+                      "httpsRequired": "0",
+                      "ip": "xxx.xxx.xxx.xxx",
+                      "label": "Winterfell-Server",
+                      "local": "1",
+                      "port": "32400",
                       "value": "xxx.xxx.xxx.xxx"
                       },
                      {...},
@@ -296,7 +299,7 @@ class WebInterface(object):
         try:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_recently_added_details(count=count)
-        except IOError, e:
+        except IOError as e:
             return serve_template(templatename="recently_added.html", data=None)
 
         if result:
@@ -309,7 +312,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def delete_temp_sessions(self):
-        
+
         result = database.delete_sessions()
 
         if result:
@@ -354,30 +357,30 @@ class WebInterface(object):
                      "recordsTotal": 10,
                      "recordsFiltered": 10,
                      "data":
-                        [{"child_count": 3745, 
-                          "content_rating": "TV-MA", 
-                          "count": 62, 
-                          "do_notify": "Checked", 
-                          "do_notify_created": "Checked", 
-                          "duration": 1578037, 
-                          "id": 1128, 
-                          "keep_history": "Checked", 
-                          "labels": [], 
-                          "last_accessed": 1462693216, 
-                          "last_played": "Game of Thrones - The Red Woman", 
-                          "library_art": "/:/resources/show-fanart.jpg", 
-                          "library_thumb": "", 
-                          "media_index": 1, 
-                          "media_type": "episode", 
-                          "parent_count": 240, 
-                          "parent_media_index": 6, 
-                          "parent_title": "", 
-                          "plays": 772, 
-                          "rating_key": 153037, 
-                          "section_id": 2, 
-                          "section_name": "TV Shows", 
-                          "section_type": "Show", 
-                          "thumb": "/library/metadata/153036/thumb/1462175062", 
+                        [{"child_count": 3745,
+                          "content_rating": "TV-MA",
+                          "count": 62,
+                          "do_notify": "Checked",
+                          "do_notify_created": "Checked",
+                          "duration": 1578037,
+                          "id": 1128,
+                          "keep_history": "Checked",
+                          "labels": [],
+                          "last_accessed": 1462693216,
+                          "last_played": "Game of Thrones - The Red Woman",
+                          "library_art": "/:/resources/show-fanart.jpg",
+                          "library_thumb": "",
+                          "media_index": 1,
+                          "media_type": "episode",
+                          "parent_count": 240,
+                          "parent_media_index": 6,
+                          "parent_title": "",
+                          "plays": 772,
+                          "rating_key": 153037,
+                          "section_id": 2,
+                          "section_name": "TV Shows",
+                          "section_type": "Show",
+                          "thumb": "/library/metadata/153036/thumb/1462175062",
                           "year": 2016
                           },
                          {...},
@@ -623,27 +626,27 @@ class WebInterface(object):
                      "filtered_file_size": 2616760056742,
                      "total_file_size": 2616760056742,
                      "data":
-                        [{"added_at": "1403553078", 
-                          "audio_channels": "", 
-                          "audio_codec": "", 
-                          "bitrate": "", 
-                          "container": "", 
-                          "file_size": 253660175293, 
-                          "grandparent_rating_key": "", 
-                          "last_played": 1462380698, 
-                          "media_index": "1", 
-                          "media_type": "show", 
-                          "parent_media_index": "", 
-                          "parent_rating_key": "", 
-                          "play_count": 15, 
-                          "rating_key": "1219", 
-                          "section_id": 2, 
-                          "section_type": "show", 
-                          "thumb": "/library/metadata/1219/thumb/1436265995", 
-                          "title": "Game of Thrones", 
-                          "video_codec": "", 
-                          "video_framerate": "", 
-                          "video_resolution": "", 
+                        [{"added_at": "1403553078",
+                          "audio_channels": "",
+                          "audio_codec": "",
+                          "bitrate": "",
+                          "container": "",
+                          "file_size": 253660175293,
+                          "grandparent_rating_key": "",
+                          "last_played": 1462380698,
+                          "media_index": "1",
+                          "media_type": "show",
+                          "parent_media_index": "",
+                          "parent_rating_key": "",
+                          "play_count": 15,
+                          "rating_key": "1219",
+                          "section_id": 2,
+                          "section_type": "show",
+                          "thumb": "/library/metadata/1219/thumb/1436265995",
+                          "title": "Game of Thrones",
+                          "video_codec": "",
+                          "video_framerate": "",
+                          "video_resolution": "",
                           "year": "2011"
                           },
                          {...},
@@ -894,29 +897,29 @@ class WebInterface(object):
                      "recordsTotal": 10,
                      "recordsFiltered": 10,
                      "data":
-                        [{"allow_guest": "Checked", 
-                          "do_notify": "Checked", 
-                          "duration": 2998290, 
-                          "friendly_name": "Jon Snow", 
-                          "id": 1121, 
-                          "ip_address": "xxx.xxx.xxx.xxx", 
-                          "keep_history": "Checked", 
-                          "last_played": "Game of Thrones - The Red Woman", 
-                          "last_seen": 1462591869, 
-                          "media_index": 1, 
-                          "media_type": "episode", 
-                          "parent_media_index": 6, 
-                          "parent_title": "", 
-                          "platform": "Chrome", 
-                          "player": "Plex Web (Chrome)", 
-                          "plays": 487, 
-                          "rating_key": 153037, 
-                          "thumb": "/library/metadata/153036/thumb/1462175062", 
-                          "transcode_decision": "transcode", 
-                          "user_id": 328871, 
-                          "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar", 
+                        [{"allow_guest": "Checked",
+                          "do_notify": "Checked",
+                          "duration": 2998290,
+                          "friendly_name": "Jon Snow",
+                          "id": 1121,
+                          "ip_address": "xxx.xxx.xxx.xxx",
+                          "keep_history": "Checked",
+                          "last_played": "Game of Thrones - The Red Woman",
+                          "last_seen": 1462591869,
+                          "media_index": 1,
+                          "media_type": "episode",
+                          "parent_media_index": 6,
+                          "parent_title": "",
+                          "platform": "Chrome",
+                          "player": "Plex Web (Chrome)",
+                          "plays": 487,
+                          "rating_key": 153037,
+                          "thumb": "/library/metadata/153036/thumb/1462175062",
+                          "transcode_decision": "transcode",
+                          "user_id": 328871,
+                          "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar",
                           "year": 2016
-                          }, 
+                          },
                          {...},
                          {...}
                          ]
@@ -1104,24 +1107,24 @@ class WebInterface(object):
                      "recordsTotal": 2344,
                      "recordsFiltered": 10,
                      "data":
-                        [{"friendly_name": "Jon Snow", 
-                          "id": 1121, 
-                          "ip_address": "xxx.xxx.xxx.xxx", 
-                          "last_played": "Game of Thrones - The Red Woman", 
-                          "last_seen": 1462591869, 
-                          "media_index": 1, 
-                          "media_type": "episode", 
-                          "parent_media_index": 6, 
-                          "parent_title": "", 
-                          "platform": "Chrome", 
-                          "play_count": 149, 
-                          "player": "Plex Web (Chrome)", 
-                          "rating_key": 153037, 
-                          "thumb": "/library/metadata/153036/thumb/1462175062", 
-                          "transcode_decision": "transcode", 
-                          "user_id": 328871, 
+                        [{"friendly_name": "Jon Snow",
+                          "id": 1121,
+                          "ip_address": "xxx.xxx.xxx.xxx",
+                          "last_played": "Game of Thrones - The Red Woman",
+                          "last_seen": 1462591869,
+                          "media_index": 1,
+                          "media_type": "episode",
+                          "parent_media_index": 6,
+                          "parent_title": "",
+                          "platform": "Chrome",
+                          "play_count": 149,
+                          "player": "Plex Web (Chrome)",
+                          "rating_key": 153037,
+                          "thumb": "/library/metadata/153036/thumb/1462175062",
+                          "transcode_decision": "transcode",
+                          "user_id": 328871,
                           "year": 2016
-                          },  
+                          },
                          {...},
                          {...}
                          ]
@@ -1227,7 +1230,7 @@ class WebInterface(object):
             if delete_row:
                 return {'message': delete_row}
         elif username:
-            delete_row = delete_user.undelete(username=username)
+            delete_row = user_data.undelete(username=username)
 
             if delete_row:
                 return {'message': delete_row}
@@ -1440,7 +1443,7 @@ class WebInterface(object):
             plexpy.CONFIG.write()
 
         return "Updated graphs config values."
-    
+
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
@@ -1468,7 +1471,7 @@ class WebInterface(object):
         user_names = user_data.get_user_names(kwargs=kwargs)
 
         return user_names
-    
+
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
@@ -1902,11 +1905,17 @@ class WebInterface(object):
 
 
     ##### Logs #####
+    @cherrypy.expose
+    def makeerror(self):
+        try:
+            1 / 0
+        except Exception as e:
+            logger.exception(e)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def logs(self):
-        return serve_template(templatename="logs.html", title="Log", lineList=plexpy.LOG_LIST)
+        return serve_template(templatename="logs.html", title="Log")
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -1930,11 +1939,26 @@ class WebInterface(object):
         if 'search[regex]' in kwargs:
             search_regex = kwargs.get('search[regex]', "")
 
+        filt = []
+        fa = filt.append
+        with open(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log')) as f:
+            for l in f.readlines():
+                try:
+                    temp_loglevel_and_time = l.split('- ')
+                    loglvl = temp_loglevel_and_time[1].split(' :')[0].strip()
+                    msg = l.split(' : ')[1].replace('\n', '')
+                    fa([temp_loglevel_and_time[0], loglvl, msg])
+                except IndexError:
+                    # Add traceback message to previous msg..
+                    tl = (len(filt) - 1)
+                    filt[tl][2] += ' ' + l.replace('\n', '')
+                    continue
+
         filtered = []
-        if search_value == "":
-            filtered = plexpy.LOG_LIST[::]
+        if search_value == '':
+            filtered = filt
         else:
-            filtered = [row for row in plexpy.LOG_LIST for column in row if search_value.lower() in column.lower()]
+            filtered = [row for row in filt for column in row if search_value.lower() in column.lower()]
 
         sortcolumn = 0
         if order_column == '1':
@@ -1944,11 +1968,10 @@ class WebInterface(object):
         filtered.sort(key=lambda x: x[sortcolumn], reverse=order_dir == "desc")
 
         rows = filtered[start:(start + length)]
-        rows = [[row[0], row[2], row[1]] for row in rows]
 
         return json.dumps({
             'recordsFiltered': len(filtered),
-            'recordsTotal': len(plexpy.LOG_LIST),
+            'recordsTotal': len(filt),
             'data': rows,
         })
 
@@ -1969,8 +1992,8 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [["May 08, 2016 09:35:37", 
-                      "DEBUG", 
+                    [["May 08, 2016 09:35:37",
+                      "DEBUG",
                       "Auth: Came in with a super-token, authorization succeeded."
                       ],
                      [...],
@@ -2013,20 +2036,20 @@ class WebInterface(object):
                      "recordsTotal": 1039,
                      "recordsFiltered": 163,
                      "data":
-                        [{"agent_id": 13, 
-                          "agent_name": "Telegram", 
-                          "body_text": "Game of Thrones - S06E01 - The Red Woman [Transcode].", 
-                          "id": 1000, 
-                          "notify_action": "play", 
-                          "poster_url": "http://i.imgur.com/ZSqS8Ri.jpg", 
-                          "rating_key": 153037, 
-                          "script_args": "[]", 
-                          "session_key": 147, 
-                          "subject_text": "PlexPy (Winterfell-Server)", 
-                          "timestamp": 1462253821, 
-                          "user": "DanyKhaleesi69", 
+                        [{"agent_id": 13,
+                          "agent_name": "Telegram",
+                          "body_text": "Game of Thrones - S06E01 - The Red Woman [Transcode].",
+                          "id": 1000,
+                          "notify_action": "play",
+                          "poster_url": "http://i.imgur.com/ZSqS8Ri.jpg",
+                          "rating_key": 153037,
+                          "script_args": "[]",
+                          "session_key": 147,
+                          "subject_text": "PlexPy (Winterfell-Server)",
+                          "timestamp": 1462253821,
+                          "user": "DanyKhaleesi69",
                           "user_id": 8008135
-                          }, 
+                          },
                          {...},
                          {...}
                          ]
@@ -2070,17 +2093,19 @@ class WebInterface(object):
         """
         data_factory = datafactory.DataFactory()
         result = data_factory.delete_notification_log()
+        result = result if result else 'no data received'
 
-        if result:
-            return {'message': result}
-        else:
-            return {'message': 'no data received'}
+        return {'message': result}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def clearLogs(self):
-        plexpy.LOG_LIST = []
-        logger.info(u"Web logs cleared")
+        try:
+            open(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log'), 'w').close()
+        except Exception as e:
+            logger.exception(u'Failed to delete plexpy.log %s' % e)
+
+        logger.info(u'plexpy.log cleared')
         raise cherrypy.HTTPRedirect("logs")
 
     @cherrypy.expose
@@ -2277,7 +2302,7 @@ class WebInterface(object):
                     kwargs['http_hashed_password'] = 1
                 else:
                     kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
-                
+
             elif kwargs['http_password'] and kwargs.get('http_hash_password'):
                 kwargs['http_password'] = make_hash(kwargs['http_password'])
                 kwargs['http_hashed_password'] = 1
@@ -2402,7 +2427,6 @@ class WebInterface(object):
             return {'message': 'Database backup successful.'}
         else:
             return {'message': 'Database backup failed.'}
-
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -2791,22 +2815,98 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def pms_image_proxy(self, img='', width='0', height='0', fallback=None, **kwargs):
+    def pms_image_proxy(self, img='', ratingkey=None, width='0', height='0', fallback=None, **kwargs):
+        """ Grabs the images from pms and saved them to disk """
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_image(img, width, height, fallback)
+        if not img and not ratingkey:
+            logger.debug('No image input received')
+            return
 
-        if result:
-            cherrypy.response.headers['Content-type'] = result[1]
-            return result[0]
-        else:
-            return None
+        if ratingkey and not img:
+            img = '/library/metadata/%s/thumb/1337' % ratingkey
+
+        img_string = img.rsplit('/', 1)[0]
+        img_string += '%s%s' % (width, height)
+        fp = hashlib.md5(img_string).hexdigest()
+        fp += '.jpg'  # we want to be able to preview the thumbs
+        c_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
+        ffp = os.path.join(c_dir, fp)
+
+        if not os.path.exists(c_dir):
+            os.mkdir(c_dir)
+
+        try:
+            if 'indexes' in img:
+                raise
+            return serve_file(path=ffp, content_type='image/jpeg')
+
+        except NotFound:
+            # the image does not exist, download it from pms
+            try:
+                pms_connect = pmsconnect.PmsConnect()
+                result = pms_connect.get_image(img, width, height)
+
+                if result and result[0]:
+                    cherrypy.response.headers['Content-type'] = result[1]
+                    if 'indexes' not in img:
+                        with open(ffp, 'wb') as f:
+                            f.write(result[0])
+
+                    return result[0]
+                else:
+                    raise
+
+            except Exception as e:
+                logger.debug('Failed to get image %s file %s falling back to %s' % (img, fp, e))
+                fbi = None
+                if fallback == 'poster':
+                    fbi = common.DEFAULT_POSTER_THUMB
+                elif fallback == 'cover':
+                    fbi = common.DEFAULT_COVER_THUMB
+                elif fallback == 'art':
+                    fbi = common.DEFAULT_ART
+
+                if fbi:
+                    fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
+                    return serve_file(path=fp, content_type='image/png')
+
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def download_log(self):
+        try:
+            logger.logger.flush()
+        except:
+            pass
+
+        return serve_download(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log'), name='plexpy.log')
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_image_cache(self):
+        """ Deletes the image cache dir and recreates it """
+        cache_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
+        try:
+            os.rmdir(cache_dir)
+        except OSError as e:
+            logger.exception('Failed to delete %s %s' % (cache_dir, e))
+            return
+
+        try:
+            os.makedirs(cache_dir)
+        except OSError as e:
+            logger.exception('Faild to make %s %s' % (cache_dir, e))
+            return
+
+        return {'result': 'success', 'message': 'Deleted image cache'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def delete_poster_url(self, poster_url=''):
-        
+
         if poster_url:
             data_factory = datafactory.DataFactory()
             result = data_factory.delete_poster_url(poster_url=poster_url)
@@ -2839,7 +2939,7 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    {"results_count": 69, 
+                    {"results_count": 69,
                      "results_list":
                         {"movie":
                             [{...},
@@ -2883,8 +2983,8 @@ class WebInterface(object):
             return serve_template(templatename="info_search_results_list.html", data=None, title="Search Result List")
 
 
-    ##### Update Metadata #####        
-        
+    ##### Update Metadata #####
+
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def update_metadata(self, rating_key=None, query=None, update=False, **kwargs):
@@ -3033,51 +3133,51 @@ class WebInterface(object):
                 json:
                     {"metadata":
                         {"actors": [
-                            "Kit Harington", 
-                            "Emilia Clarke", 
-                            "Isaac Hempstead-Wright", 
-                            "Maisie Williams", 
-                            "Liam Cunningham", 
-                         ], 
-                         "added_at": "1461572396", 
-                         "art": "/library/metadata/1219/art/1462175063", 
-                         "content_rating": "TV-MA", 
+                            "Kit Harington",
+                            "Emilia Clarke",
+                            "Isaac Hempstead-Wright",
+                            "Maisie Williams",
+                            "Liam Cunningham",
+                         ],
+                         "added_at": "1461572396",
+                         "art": "/library/metadata/1219/art/1462175063",
+                         "content_rating": "TV-MA",
                          "directors": [
                             "Jeremy Podeswa"
-                         ], 
-                         "duration": "2998290", 
+                         ],
+                         "duration": "2998290",
                          "genres": [
-                            "Adventure", 
-                            "Drama", 
+                            "Adventure",
+                            "Drama",
                             "Fantasy"
-                         ], 
-                         "grandparent_rating_key": "1219", 
-                         "grandparent_thumb": "/library/metadata/1219/thumb/1462175063", 
-                         "grandparent_title": "Game of Thrones", 
-                         "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en", 
-                         "labels": [], 
-                         "last_viewed_at": "1462165717", 
-                         "library_name": "TV Shows", 
-                         "media_index": "1", 
-                         "media_type": "episode", 
-                         "originally_available_at": "2016-04-24", 
-                         "parent_media_index": "6", 
-                         "parent_rating_key": "153036", 
-                         "parent_thumb": "/library/metadata/153036/thumb/1462175062", 
-                         "parent_title": "", 
-                         "rating": "7.8", 
-                         "rating_key": "153037", 
-                         "section_id": "2", 
-                         "studio": "HBO", 
-                         "summary": "Jon Snow is dead. Daenerys meets a strong man. Cersei sees her daughter again.", 
-                         "tagline": "", 
-                         "thumb": "/library/metadata/153037/thumb/1462175060", 
-                         "title": "The Red Woman", 
-                         "updated_at": "1462175060", 
+                         ],
+                         "grandparent_rating_key": "1219",
+                         "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
+                         "grandparent_title": "Game of Thrones",
+                         "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
+                         "labels": [],
+                         "last_viewed_at": "1462165717",
+                         "library_name": "TV Shows",
+                         "media_index": "1",
+                         "media_type": "episode",
+                         "originally_available_at": "2016-04-24",
+                         "parent_media_index": "6",
+                         "parent_rating_key": "153036",
+                         "parent_thumb": "/library/metadata/153036/thumb/1462175062",
+                         "parent_title": "",
+                         "rating": "7.8",
+                         "rating_key": "153037",
+                         "section_id": "2",
+                         "studio": "HBO",
+                         "summary": "Jon Snow is dead. Daenerys meets a strong man. Cersei sees her daughter again.",
+                         "tagline": "",
+                         "thumb": "/library/metadata/153037/thumb/1462175060",
+                         "title": "The Red Woman",
+                         "updated_at": "1462175060",
                          "writers": [
-                            "David Benioff", 
+                            "David Benioff",
                             "D. B. Weiss"
-                         ], 
+                         ],
                          "year": "2016"
                          }
                      }
@@ -3108,21 +3208,21 @@ class WebInterface(object):
             Returns:
                 json:
                     {"recently_added":
-                        [{"added_at": "1461572396", 
-                          "grandparent_rating_key": "1219", 
-                          "grandparent_thumb": "/library/metadata/1219/thumb/1462175063", 
-                          "grandparent_title": "Game of Thrones", 
-                          "library_name": "", 
-                          "media_index": "1", 
-                          "media_type": "episode", 
-                          "parent_media_index": "6", 
-                          "parent_rating_key": "153036", 
-                          "parent_thumb": "/library/metadata/153036/thumb/1462175062", 
-                          "parent_title": "", 
-                          "rating_key": "153037", 
-                          "section_id": "2", 
-                          "thumb": "/library/metadata/153037/thumb/1462175060", 
-                          "title": "The Red Woman", 
+                        [{"added_at": "1461572396",
+                          "grandparent_rating_key": "1219",
+                          "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
+                          "grandparent_title": "Game of Thrones",
+                          "library_name": "",
+                          "media_index": "1",
+                          "media_type": "episode",
+                          "parent_media_index": "6",
+                          "parent_rating_key": "153036",
+                          "parent_thumb": "/library/metadata/153036/thumb/1462175062",
+                          "parent_title": "",
+                          "rating_key": "153037",
+                          "section_id": "2",
+                          "thumb": "/library/metadata/153037/thumb/1462175060",
+                          "title": "The Red Woman",
                           "year": "2016"
                           },
                          {...},
@@ -3312,60 +3412,60 @@ class WebInterface(object):
                 json:
                     {"stream_count": 3,
                      "session":
-                        [{"art": "/library/metadata/1219/art/1462175063", 
-                          "aspect_ratio": "1.78", 
-                          "audio_channels": "6", 
-                          "audio_codec": "ac3", 
-                          "audio_decision": "transcode", 
-                          "bif_thumb": "/library/parts/274169/indexes/sd/", 
-                          "bitrate": "10617", 
-                          "container": "mkv", 
-                          "content_rating": "TV-MA", 
-                          "duration": "2998290", 
-                          "friendly_name": "Mother of Dragons", 
-                          "grandparent_rating_key": "1219", 
-                          "grandparent_thumb": "/library/metadata/1219/thumb/1462175063", 
-                          "grandparent_title": "Game of Thrones", 
-                          "height": "1078", 
-                          "indexes": 1, 
-                          "ip_address": "xxx.xxx.xxx.xxx", 
-                          "labels": [], 
-                          "machine_id": "83f189w617623ccs6a1lqpby", 
-                          "media_index": "1", 
-                          "media_type": "episode", 
-                          "parent_media_index": "6", 
-                          "parent_rating_key": "153036", 
-                          "parent_thumb": "/library/metadata/153036/thumb/1462175062", 
-                          "parent_title": "", 
-                          "platform": "Chrome", 
-                          "player": "Plex Web (Chrome)", 
-                          "progress_percent": "0", 
-                          "rating_key": "153037", 
-                          "section_id": "2", 
-                          "session_key": "291", 
-                          "state": "playing", 
-                          "throttled": "1", 
-                          "thumb": "/library/metadata/153037/thumb/1462175060", 
-                          "title": "The Red Woman", 
-                          "transcode_audio_channels": "2", 
-                          "transcode_audio_codec": "aac", 
-                          "transcode_container": "mkv", 
-                          "transcode_height": "1078", 
-                          "transcode_key": "tiv5p524wcupe8nxegc26s9k9", 
-                          "transcode_progress": 2, 
-                          "transcode_protocol": "http", 
-                          "transcode_speed": "0.0", 
-                          "transcode_video_codec": "h264", 
-                          "transcode_width": "1920", 
-                          "user": "DanyKhaleesi69", 
-                          "user_id": 8008135, 
-                          "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar", 
-                          "video_codec": "h264", 
-                          "video_decision": "copy", 
-                          "video_framerate": "24p", 
-                          "video_resolution": "1080", 
-                          "view_offset": "", 
-                          "width": "1920", 
+                        [{"art": "/library/metadata/1219/art/1462175063",
+                          "aspect_ratio": "1.78",
+                          "audio_channels": "6",
+                          "audio_codec": "ac3",
+                          "audio_decision": "transcode",
+                          "bif_thumb": "/library/parts/274169/indexes/sd/",
+                          "bitrate": "10617",
+                          "container": "mkv",
+                          "content_rating": "TV-MA",
+                          "duration": "2998290",
+                          "friendly_name": "Mother of Dragons",
+                          "grandparent_rating_key": "1219",
+                          "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
+                          "grandparent_title": "Game of Thrones",
+                          "height": "1078",
+                          "indexes": 1,
+                          "ip_address": "xxx.xxx.xxx.xxx",
+                          "labels": [],
+                          "machine_id": "83f189w617623ccs6a1lqpby",
+                          "media_index": "1",
+                          "media_type": "episode",
+                          "parent_media_index": "6",
+                          "parent_rating_key": "153036",
+                          "parent_thumb": "/library/metadata/153036/thumb/1462175062",
+                          "parent_title": "",
+                          "platform": "Chrome",
+                          "player": "Plex Web (Chrome)",
+                          "progress_percent": "0",
+                          "rating_key": "153037",
+                          "section_id": "2",
+                          "session_key": "291",
+                          "state": "playing",
+                          "throttled": "1",
+                          "thumb": "/library/metadata/153037/thumb/1462175060",
+                          "title": "The Red Woman",
+                          "transcode_audio_channels": "2",
+                          "transcode_audio_codec": "aac",
+                          "transcode_container": "mkv",
+                          "transcode_height": "1078",
+                          "transcode_key": "tiv5p524wcupe8nxegc26s9k9",
+                          "transcode_progress": 2,
+                          "transcode_protocol": "http",
+                          "transcode_speed": "0.0",
+                          "transcode_video_codec": "h264",
+                          "transcode_width": "1920",
+                          "user": "DanyKhaleesi69",
+                          "user_id": 8008135,
+                          "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar",
+                          "video_codec": "h264",
+                          "video_decision": "copy",
+                          "video_framerate": "24p",
+                          "video_resolution": "1080",
+                          "view_offset": "",
+                          "width": "1920",
                           "year": "2016"
                           },
                          {...},
@@ -3398,13 +3498,13 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [{"art": "/:/resources/show-fanart.jpg", 
-                      "child_count": "3745", 
-                      "count": "62", 
-                      "parent_count": "240", 
+                    [{"art": "/:/resources/show-fanart.jpg",
+                      "child_count": "3745",
+                      "count": "62",
+                      "parent_count": "240",
                       "section_id": "2",
-                      "section_name": "TV Shows", 
-                      "section_type": "show", 
+                      "section_name": "TV Shows",
+                      "section_type": "show",
                       "thumb": "/:/resources/show.png"
                       },
                      {...},
@@ -3436,17 +3536,17 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [{"email": "Jon.Snow.1337@CastleBlack.com", 
-                      "filter_all": "", 
-                      "filter_movies": "", 
-                      "filter_music": "", 
-                      "filter_photos": "", 
-                      "filter_tv": "", 
-                      "is_allow_sync": null, 
-                      "is_home_user": "1", 
-                      "is_restricted": "0", 
-                      "thumb": "https://plex.tv/users/k10w42309cynaopq/avatar", 
-                      "user_id": "328871", 
+                    [{"email": "Jon.Snow.1337@CastleBlack.com",
+                      "filter_all": "",
+                      "filter_movies": "",
+                      "filter_music": "",
+                      "filter_photos": "",
+                      "filter_tv": "",
+                      "is_allow_sync": null,
+                      "is_home_user": "1",
+                      "is_restricted": "0",
+                      "thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
+                      "user_id": "328871",
                       "username": "Jon Snow"
                       },
                      {...},
@@ -3478,26 +3578,26 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [{"content_type": "video", 
-                      "device_name": "Tyrion's iPad", 
-                      "failure": "", 
-                      "friendly_name": "Tyrion Lannister", 
-                      "item_complete_count": "0", 
-                      "item_count": "1", 
-                      "item_downloaded_count": "0", 
-                      "item_downloaded_percent_complete": 0, 
-                      "metadata_type": "movie", 
-                      "music_bitrate": "192", 
-                      "photo_quality": "74", 
-                      "platform": "iOS", 
-                      "rating_key": "154092", 
-                      "root_title": "Deadpool", 
-                      "state": "pending", 
-                      "sync_id": "11617019", 
-                      "title": "Deadpool", 
-                      "total_size": "0", 
-                      "user_id": "328871", 
-                      "username": "DrukenDwarfMan", 
+                    [{"content_type": "video",
+                      "device_name": "Tyrion's iPad",
+                      "failure": "",
+                      "friendly_name": "Tyrion Lannister",
+                      "item_complete_count": "0",
+                      "item_count": "1",
+                      "item_downloaded_count": "0",
+                      "item_downloaded_percent_complete": 0,
+                      "metadata_type": "movie",
+                      "music_bitrate": "192",
+                      "photo_quality": "74",
+                      "platform": "iOS",
+                      "rating_key": "154092",
+                      "root_title": "Deadpool",
+                      "state": "pending",
+                      "sync_id": "11617019",
+                      "title": "Deadpool",
+                      "total_size": "0",
+                      "user_id": "328871",
+                      "username": "DrukenDwarfMan",
                       "video_quality": "60"
                       },
                      {...},
@@ -3555,22 +3655,22 @@ class WebInterface(object):
                      {"stat_id": "top_tv",
                       "stat_type": "total_plays",
                       "rows":
-                        [{"content_rating": "TV-MA", 
-                          "friendly_name": "", 
-                          "grandparent_thumb": "/library/metadata/1219/thumb/1462175063", 
-                          "labels": [], 
-                          "last_play": 1462380698, 
-                          "media_type": "episode", 
-                          "platform": "", 
-                          "platform_type": "", 
-                          "rating_key": 1219, 
-                          "row_id": 1116, 
-                          "section_id": 2, 
-                          "thumb": "", 
-                          "title": "Game of Thrones", 
-                          "total_duration": 213302, 
-                          "total_plays": 69, 
-                          "user": "", 
+                        [{"content_rating": "TV-MA",
+                          "friendly_name": "",
+                          "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
+                          "labels": [],
+                          "last_play": 1462380698,
+                          "media_type": "episode",
+                          "platform": "",
+                          "platform_type": "",
+                          "rating_key": 1219,
+                          "row_id": 1116,
+                          "section_id": 2,
+                          "thumb": "",
+                          "title": "Game of Thrones",
+                          "total_duration": 213302,
+                          "total_plays": 69,
+                          "user": "",
                           "users_watched": ""
                           },
                          {...},

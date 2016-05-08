@@ -75,7 +75,7 @@ def initialize(options):
         plexpy.HTTP_ROOT = options['http_root'] = '/'
     else:
         plexpy.HTTP_ROOT = options['http_root'] = '/' + options['http_root'].strip('/') + '/'
-    
+
     cherrypy.config.update(options_dict)
 
     conf = {
@@ -170,6 +170,17 @@ def initialize(options):
         '/cache': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': plexpy.CONFIG.CACHE_DIR,
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
+        },
+        '/pms_image_proxy': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': os.path.join(plexpy.CONFIG.CACHE_DIR, 'images'),
             'tools.caching.on': True,
             'tools.caching.force': True,
             'tools.caching.delay': 0,
