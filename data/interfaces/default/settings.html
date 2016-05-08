@@ -832,7 +832,7 @@
                     <div role="tabpanel" class="tab-pane" id="tabs-9">
 
                         <div class="padded-header">
-                            <h3>Global Notification Toggles</h3>
+                            <h3>Global Notification Settings</h3>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -860,6 +860,18 @@
                                 <input type="checkbox" name="notify_upload_posters" id="notify_upload_posters" value="1" ${config['notify_upload_posters']}> Enable Posters in Notifications
                             </label>
                             <p class="help-block">Enable to upload Plex posters to Imgur for notifications. Disable if posters are not being used to save bandwidth.</p>
+                        </div>
+                        <div id="imgur_upload_options">
+                            <div class="form-group">
+                                <label for="imgur_client_id">Imgur Client ID</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="imgur_client_id" name="imgur_client_id" value="${config['imgur_client_id']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">Enter your Imgur API client ID in order to upload posters. 
+                                    You can register a new anonymous usage application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.
+                            </div>
                         </div>
 
                         <div class="padded-header">
@@ -2145,6 +2157,20 @@ $(document).ready(function() {
             $("#git_update_options").slideDown();
         } else {
             $("#git_update_options").slideUp();
+        }
+    });
+
+    if ($("#notify_upload_posters").is(":checked")) {
+        $("#imgur_upload_options").show();
+    } else {
+        $("#imgur_upload_options").hide();
+    }
+
+    $("#notify_upload_posters").click(function(){
+        if ($("#notify_upload_posters").is(":checked")) {
+            $("#imgur_upload_options").slideDown();
+        } else {
+            $("#imgur_upload_options").slideUp();
         }
     });
 

@@ -203,6 +203,7 @@ _CONFIG_DEFINITIONS = {
     'IFTTT_ON_EXTUP': (int, 'IFTTT', 0),
     'IFTTT_ON_INTUP': (int, 'IFTTT', 0),
     'IFTTT_ON_PMSUPDATE': (int, 'IFTTT', 0),
+    'IMGUR_CLIENT_ID': (str, 'Monitoring', ''),
     'JOURNAL_MODE': (str, 'Advanced', 'wal'),
     'LAUNCH_BROWSER': (int, 'General', 1),
     'LOG_BLACKLIST': (int, 'General', 1),

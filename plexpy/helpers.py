@@ -525,8 +525,13 @@ def anon_url(*url):
     return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
 
 def uploadToImgur(imgPath, imgTitle=''):
-    client_id = '743b1a443ccd2b0'
+    """ Uploads an image to Imgur """
+    client_id = plexpy.CONFIG.IMGUR_CLIENT_ID
     img_url = ''
+
+    if not client_id:
+        logger.error(u"PlexPy Helpers :: Cannot upload poster to Imgur. No client id specifiec in the settings.")
+        return img_url
 
     try:
         with open(imgPath, 'rb') as imgFile:
