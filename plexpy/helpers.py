@@ -530,8 +530,13 @@ def uploadToImgur(imgPath, imgTitle=''):
     img_url = ''
 
     if not client_id:
-        logger.error(u"PlexPy Helpers :: Cannot upload poster to Imgur. No client id specifiec in the settings.")
-        return img_url
+        #logger.error(u"PlexPy Helpers :: Cannot upload poster to Imgur. No Imgur client id specified in the settings.")
+        #return img_url
+        # Fallback to shared client id for now. This will be remove in a future update.
+        logger.warn(u"PlexPy Helpers :: No Imgur client id specified in the settings. Falling back to the shared client id.")
+        logger.warn(u"***** The shared Imgur client id will be removed in a future PlexPy update! "
+                    "Please enter your own client id in the settings to continue uploading posters! *****")
+        client_id = '743b1a443ccd2b0'
 
     try:
         with open(imgPath, 'rb') as imgFile:
