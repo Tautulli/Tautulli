@@ -17,6 +17,7 @@ import hashlib
 import json
 import os
 import random
+import shutil
 import threading
 
 import cherrypy
@@ -1906,13 +1907,6 @@ class WebInterface(object):
 
     ##### Logs #####
     @cherrypy.expose
-    def makeerror(self):
-        try:
-            1 / 0
-        except Exception as e:
-            logger.exception(e)
-
-    @cherrypy.expose
     @requireAuth(member_of("admin"))
     def logs(self):
         return serve_template(templatename="logs.html", title="Log")
@@ -1939,6 +1933,14 @@ class WebInterface(object):
         if 'search[regex]' in kwargs:
             search_regex = kwargs.get('search[regex]', "")
 
+        def oh_i_feel_so_dirty(s):
+            """ Really inefficient helper to only allow one pre tag,
+                atleast it better then regex..
+            """
+            s = s.encode('utf-8').replace('<pre>', '').replace('</pre>', '')
+            s = '<pre>%s</pre>' % s
+            return s
+
         filt = []
         fa = filt.append
         with open(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log')) as f:
@@ -1951,7 +1953,9 @@ class WebInterface(object):
                 except IndexError:
                     # Add traceback message to previous msg..
                     tl = (len(filt) - 1)
-                    filt[tl][2] += ' ' + l.replace('\n', '')
+                    filt[tl][2] += ' ' + l
+                    # Inject the pre tag since we only want it on tracebacks
+                    filt[tl][2] = oh_i_feel_so_dirty(filt[tl][2])
                     continue
 
         filtered = []
@@ -2883,24 +2887,31 @@ class WebInterface(object):
         return serve_download(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log'), name='plexpy.log')
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_image_cache(self):
         """ Deletes the image cache dir and recreates it """
         cache_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
+        result = 'success'
+        msg = 'Deleted your cache images'
         try:
-            os.rmdir(cache_dir)
+            shutil.rmtree(cache_dir, ignore_errors=True)
         except OSError as e:
-            logger.exception('Failed to delete %s %s' % (cache_dir, e))
+            result = 'error'
+            msg = 'Failed to delete %s %s' % (cache_dir, e)
+            logger.exception(msg)
             return
 
         try:
             os.makedirs(cache_dir)
         except OSError as e:
-            logger.exception('Faild to make %s %s' % (cache_dir, e))
+            result = 'error'
+            msg = 'Failed to make %s %s' % (cache_dir, e)
+            logger.exception(msg)
             return
 
-        return {'result': 'success', 'message': 'Deleted image cache'}
+        return {'result': result, 'message': msg}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
