@@ -47,6 +47,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_URL': (str, 'PMS', ''),
     'PMS_USE_BIF': (int, 'PMS', 0),
     'PMS_UUID': (str, 'PMS', ''),
+    'PMS_TIMEOUT': (int, 'Advanced', 15),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
     'ANON_REDIRECT': (str, 'General', 'http://dereferer.org/?'),
     'API_ENABLED': (int, 'General', 0),

@@ -48,7 +48,10 @@ class HTTPHandler(object):
                      output_format='raw',
                      return_type=False,
                      no_token=False,
-                     timeout=20):
+                     timeout=None):
+
+        if timeout is None:
+            timeout = plexpy.CONFIG.PMS_TIMEOUT
 
         valid_request_types = ['GET', 'POST', 'PUT', 'DELETE']
 
