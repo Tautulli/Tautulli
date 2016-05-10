@@ -233,6 +233,12 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
+    def get_current_activity_instance(self, **kwargs):
+
+        return serve_template(templatename="current_activity_instance.html", data=kwargs)
+
+    @cherrypy.expose
+    @requireAuth()
     def get_current_activity_header(self, **kwargs):
 
         try:
@@ -3296,7 +3302,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     @addtoapi()
     def get_activity(self, **kwargs):
         """ Get the current activity on the PMS.
@@ -3374,8 +3380,14 @@ class WebInterface(object):
                      }
             ```
         """
-        pms_connect = pmsconnect.PmsConnect()
+        pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
         result = pms_connect.get_current_activity()
+
+        data_factory = datafactory.DataFactory()
+        for session in result['sessions']:
+            if not session['ip_address']:
+                ip_address = data_factory.get_session_ip(session['session_key'])
+                session['ip_address'] = ip_address
 
         if result:
             return result
