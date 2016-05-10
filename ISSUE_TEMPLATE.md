@@ -1,42 +1,41 @@
-### Reporting Issues:
+<!---
+Reporting Issues:
+  * To ensure that a develpoer has enough information to work with please include all of the information below.
+    Please provide as much detail as possible. Screenshots can be very useful to see the problem.
+  * Use proper markdown syntax to structure your post (i.e. code/log in code blocks).
+    See: https://help.github.com/articles/basic-writing-and-formatting-syntax/
+  * Iclude a link to your **FULL** log file that has the error(not just a few lines!).
+    Please use [Gist](http://gist.github.com) or [Pastebin](http://pastebin.com/).
 
-To ensure that a develpoer has enough information to work with please include all of the following information.
+Feature Requests:
+  * Feature requests are handled on FeatHub: http://feathub.com/drzoidberg33/plexpy
+  * Do not post them on the GitHub issues tracker.
+-->
 
-**Use proper markdown syntax to structure your post (i.e. code/log in code blocks).**
+**Version:**
 
-**Make sure you provide the following information below:**
-- [ ] Version
+**Branch:**
 
+**Commit hash:**
 
-- [ ] Branch
+**Operating system:**
 
+**Python version:**
 
-- [ ] Commit hash
+**What you did?**
 
+**What happened?**
 
-- [ ] Operating system
+**What you expected?**
 
+**How can we reproduce your issue?**
+<!-- Provide a detailed step-by-step. -->
 
-- [ ] Python version
+**What are your (relevant) settings?**
 
-
-- [ ] What you did?
-
-
-- [ ] What happened?
-
-
-- [ ] What you expected?
-
-
-- [ ] How can we reproduce your issue?
+**Link to logs:**
 
 
-- [ ] What are your (relevant) settings?
-
-
-- [ ] Include a link to your **FULL** (not just a few lines!) log file that has the error. Please use [Gist](http://gist.github.com) or [Pastebin](http://pastebin.com/).
-
+<!--
 Close your issue when it's solved! If you found the solution yourself please comment so that others benefit from it.
-
-#### Link to log: 
+-->
