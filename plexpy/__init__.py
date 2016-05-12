@@ -67,8 +67,6 @@ CONFIG_FILE = None
 
 DB_FILE = None
 
-LOG_LIST = []
-
 INSTALL_TYPE = None
 CURRENT_VERSION = None
 LATEST_VERSION = None
@@ -134,7 +132,7 @@ def initialize(config_file):
             try:
                 os.makedirs(CONFIG.BACKUP_DIR)
             except OSError as e:
-                logger.error("Could not create backup dir '%s': %s", BACKUP_DIR, e)
+                logger.error("Could not create backup dir '%s': %s" % (BACKUP_DIR, e))
 
         if not CONFIG.CACHE_DIR:
             CONFIG.CACHE_DIR = os.path.join(DATA_DIR, 'cache')
@@ -142,14 +140,14 @@ def initialize(config_file):
             try:
                 os.makedirs(CONFIG.CACHE_DIR)
             except OSError as e:
-                logger.error("Could not create cache dir '%s': %s", CACHE_DIR, e)
+                logger.error("Could not create cache dir '%s': %s" % (CACHE_DIR, e))
 
         # Initialize the database
         logger.info('Checking to see if the database has all tables....')
         try:
             dbcheck()
         except Exception as e:
-            logger.error("Can't connect to the database: %s", e)
+            logger.error("Can't connect to the database: %s" % e)
 
         # Check if PlexPy has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
@@ -171,8 +169,8 @@ def initialize(config_file):
                 with open(version_lock_file, "w") as fp:
                     fp.write(CURRENT_VERSION)
             except IOError as e:
-                logger.error("Unable to write current version to file '%s': %s",
-                             version_lock_file, e)
+                logger.error("Unable to write current version to file '%s': %s" %
+                             (version_lock_file, e))
 
         # Check for new versions
         if CONFIG.CHECK_GITHUB_ON_STARTUP and CONFIG.CHECK_GITHUB:
@@ -219,7 +217,7 @@ def daemonize():
         pid = os.fork()  # @UndefinedVariable - only available in UNIX
         if pid != 0:
             sys.exit(0)
-    except OSError, e:
+    except OSError as e:
         raise RuntimeError("1st fork failed: %s [%d]", e.strerror, e.errno)
 
     os.setsid()
@@ -233,7 +231,7 @@ def daemonize():
         pid = os.fork()  # @UndefinedVariable - only available in UNIX
         if pid != 0:
             sys.exit(0)
-    except OSError, e:
+    except OSError as e:
         raise RuntimeError("2nd fork failed: %s [%d]", e.strerror, e.errno)
 
     dev_null = file('/dev/null', 'r')
@@ -269,7 +267,7 @@ def launch_browser(host, port, root):
         try:
             webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
         except Exception as e:
-            logger.error('Could not launch browser: %s', e)
+            logger.error('Could not launch browser: %s' % e)
 
 
 def initialize_scheduler():
@@ -949,7 +947,7 @@ def shutdown(restart=False, update=False):
         try:
             versioncheck.update()
         except Exception as e:
-            logger.warn('PlexPy failed to update: %s. Restarting.', e)
+            logger.warn('PlexPy failed to update: %s. Restarting.' % e)
 
     if CREATEPID:
         logger.info('Removing pidfile %s', PIDFILE)
@@ -963,7 +961,7 @@ def shutdown(restart=False, update=False):
         if '--nolaunch' not in args:
             args += ['--nolaunch']
         logger.info('Restarting PlexPy with %s', args)
-        
+
         # os.execv fails with spaced names on Windows
         # https://bugs.python.org/issue19066
         if os.name == 'nt':
