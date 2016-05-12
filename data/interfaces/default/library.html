@@ -401,6 +401,11 @@ DOCUMENTATION :: END
             clearSearchButton('history_table-SID-${data["section_id"]}', history_table);
         }
 
+        $( "#history-tab-btn" ).one( "click", function() {
+            loadHistoryTable();
+        });
+
+        % if _session['user_group'] == 'admin':
         function loadMediaInfoTable() {
             // Build media info table
             media_info_table_options.ajax = {
@@ -422,9 +427,6 @@ DOCUMENTATION :: END
             clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
         }
 
-        $( "#history-tab-btn" ).one( "click", function() {
-            loadHistoryTable();
-        });
         $( "#media-info-tab-btn" ).one( "click", function() {
             loadMediaInfoTable();
         });        
@@ -487,6 +489,7 @@ DOCUMENTATION :: END
                 });
             }
         });
+        % endif
 
         function recentlyWatched() {
             // Populate recently watched

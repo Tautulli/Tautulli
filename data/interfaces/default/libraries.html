@@ -113,6 +113,7 @@
 
         clearSearchButton('libraries_list_table', libraries_list_table);
 
+        % if _session['user_group'] == 'admin':
         $('#row-edit-mode').on('click', function () {
             $('#row-edit-mode-alert').fadeIn(200);
             $('#libraries-to-delete').html('');
@@ -186,8 +187,10 @@
                 });
             }
         });
+        % endif
     });
 
+    % if _session['user_group'] == 'admin':
     $("#refresh-libraries-list").click(function () {
         if ("${config['update_section_ids']}" == "1") {
             $('#update_section_ids_message').html(
@@ -212,5 +215,6 @@
             }
         });
     });
+    % endif
 </script>
 </%def>

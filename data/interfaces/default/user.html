@@ -433,6 +433,7 @@ DOCUMENTATION :: END
             clearSearchButton('sync_table-UID-${data["user_id"]}', sync_table);
         });
 
+        % if _session['user_group'] == 'admin':
         // Load edit user modal
         $("#toggle-edit-user-modal").click(function() {
             $("#edit-user-tooltip").tooltip('hide');
@@ -483,6 +484,7 @@ DOCUMENTATION :: END
                 });
             }
         });
+        % endif
 
         function recentlyWatched() {
             // Populate recently watched

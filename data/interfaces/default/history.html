@@ -159,6 +159,7 @@
         var selected_user_id = "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
         loadHistoryTable(media_type, selected_user_id);
 
+        % if _session['user_group'] == 'admin':
         $('#row-edit-mode').on('click', function() {
             $('#row-edit-mode-alert').fadeIn(200);
 
@@ -195,6 +196,7 @@
                 });
             }
         });
+        % endif
     });
 </script>
 </%def>

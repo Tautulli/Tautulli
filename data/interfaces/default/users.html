@@ -99,6 +99,7 @@
 
         clearSearchButton('users_list_table', users_list_table);
 
+        % if _session['user_group'] == 'admin':
         $('#row-edit-mode').on('click', function () {
             $('#row-edit-mode-alert').fadeIn(200);
             $('#users-to-delete').html('');
@@ -173,8 +174,10 @@
                 toggleEditNames();
             }
         });
+        % endif
     });
 
+    % if _session['user_group'] == 'admin':
     $("#refresh-users-list").click(function() {
         $.ajax({
             url: 'refresh_users_list',
@@ -191,5 +194,6 @@
             }
         });
     });
+    % endif
 </script>
 </%def>

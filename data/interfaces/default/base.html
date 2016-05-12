@@ -315,10 +315,11 @@ ${next.headerIncludes()}
 <script src="${http_root}js/bootstrap-hover-dropdown.min.js"></script>
 <script src="${http_root}js/pnotify.custom.min.js"></script>
 <script src="${http_root}js/script.js"></script>
-% if plexpy.CONFIG.BROWSER_ENABLED:
+% if _session['user_group'] == 'admin' and plexpy.CONFIG.BROWSER_ENABLED:
 <script src="${http_root}js/ajaxNotifications.js"></script>
 % endif
 <script>
+    % if _session['user_group'] == 'admin':
     $('#updateDismiss').click(function() {
         $('#updatebar').slideUp('slow');
         // Set cookie to remember dismiss decision for 1 hour.
@@ -351,6 +352,7 @@ ${next.headerIncludes()}
         $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking');
         window.location.href = "checkGithub";
     });
+    % endif
 
     $('.dropdown-toggle').click(function (e) {
         if (!(('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0))) {
