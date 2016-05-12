@@ -58,7 +58,9 @@ def run():
 
     # Set authentication token (if one is available)
     if plexpy.CONFIG.PMS_TOKEN:
-        uri += '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN
+        header = ["X-Plex-Token: %s" % plexpy.CONFIG.PMS_TOKEN]
+    else:
+        header = []
 
     global ws_reconnect
     ws_reconnect = False
@@ -69,7 +71,7 @@ def run():
     while not ws_connected and reconnects <= 15:
         try:
             logger.info(u"PlexPy WebSocket :: Opening%s websocket, connection attempt %s." % (secure, str(reconnects + 1)))
-            ws = create_connection(uri)
+            ws = create_connection(uri, header=header)
             reconnects = 0
             ws_connected = True
             logger.info(u"PlexPy WebSocket :: Ready")
@@ -94,7 +96,7 @@ def run():
 
                 logger.warn(u"PlexPy WebSocket :: Connection has closed, reconnecting...")
                 try:
-                    ws = create_connection(uri)
+                    ws = create_connection(uri, header=header)
                 except IOError, e:
                     logger.info(u"PlexPy WebSocket :: %s." % e)
 

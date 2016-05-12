@@ -72,16 +72,16 @@ class HTTPHandler(object):
 
             token_string = ''
             if not no_token:
-                if uri.find('?') > 0:
-                    token_string = '&X-Plex-Token=' + self.token
+                if headers:
+                    headers.update({'X-Plex-Token': self.token})
                 else:
-                    token_string = '?X-Plex-Token=' + self.token
+                    headers = {'X-Plex-Token': self.token}
 
             try:
                 if headers:
-                    handler.request(request_type, uri + token_string, headers=headers)
+                    handler.request(request_type, uri, headers=headers)
                 else:
-                    handler.request(request_type, uri + token_string)
+                    handler.request(request_type, uri)
                 response = handler.getresponse()
                 request_status = response.status
                 request_content = response.read()
