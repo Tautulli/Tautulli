@@ -570,6 +570,10 @@ a .users-poster-face:hover {
     margin-left: 5px;
     float: left;
 }
+#dashboard-checking-activity,
+#dashboard-no-activity {
+    margin-bottom: 20px;
+}
 .dashboard-instance {
     float: left;
     position: relative;

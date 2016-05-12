@@ -60,6 +60,10 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data is not None:
+<%
+    from plexpy import helpers
+    data['indexes'] = helpers.cast_to_int(data['indexes'])
+%>
 <div class="dashboard-instance" id="instance-${data['session_key']}" data-id="${data['session_key']}">
     <div class="dashboard-hover-container">
         % if (data['media_type'] == 'movie' or data['media_type'] == 'episode' or data['media_type'] == 'track') and data['rating_key']:
@@ -80,9 +84,9 @@ DOCUMENTATION :: END
                     <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
                     <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
                     % elif data['media_type'] == 'clip':
-                    % if data['art'][:4] == 'http':
+                    % if data['art'].startswith('http'):
                     <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
-                    % elif data['thumb'][:4] == 'http':
+                    % elif data['thumb'].startswith('http'):
                     <div class="dashboard-activity-poster-face" style="background-image: url(${data['thumb']});"></div>
                     % else:
                     % if data['art']:
@@ -92,7 +96,7 @@ DOCUMENTATION :: END
                     % endif
                     % endif
                     % elif data['media_type'] == 'photo':
-                    <div class="dashboard-activity-poster-face bif" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=cover);"></div>
+                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=cover);"></div>
                     % else:
                     <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
                     % endif

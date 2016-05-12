@@ -14,7 +14,6 @@
             </div>
             <div id="currentActivity">
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
-                <br>
             </div>
         </div>
     </div>
@@ -108,7 +107,6 @@
                 $('#dashboard-checking-activity').remove();
 
                 var current_activity = $.parseJSON(xhr.responseText);
-                console.log(current_activity)
                 var stream_count = parseInt(current_activity.stream_count);
                 var sessions = current_activity.sessions;
 
@@ -147,7 +145,7 @@
                         $('#play-state-' + key).html(state_icon);
 
                         // if using bif indexes, update the bif thumbnail
-                        if (s.indexes == 1) {
+                        if (s.indexes) {
                             var bif_poster = $('#bif-' + key);
                             bif_poster.animate({ opacity: 0 }, { duration: 1000, queue: false });
                             bif_poster.after($('<div id="bif-' + key + '"class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img='
@@ -184,7 +182,7 @@
                     });
 
                 } else {
-                    $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted" style="margin-bottom: 20px;">Nothing is currently being played.</div>');
+                    $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">Nothing is currently being played.</div>');
                 }
             }
         });
@@ -216,6 +214,10 @@
     $('#currentActivity').on('click', '.btn-activity-info', function (e) {
         e.preventDefault();
         $($(this).attr('data-target')).toggle();
+        var id = $(this).closest('.dashboard-instance').data('id');
+        var filterVal = $('#stream-' + id).is(':visible') ? 'blur(5px)' : '';
+        $($(this).closest('.dashboard-activity-poster').find('.dashboard-activity-poster-face, .dashboard-activity-cover-face'))
+        .css('filter',filterVal).css('webkitFilter',filterVal).css('mozFilter',filterVal).css('oFilter',filterVal).css('msFilter',filterVal);
     });
 
     // Add hover class to dashboard-instance
