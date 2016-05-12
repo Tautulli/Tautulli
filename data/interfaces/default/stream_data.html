@@ -20,6 +20,7 @@ transcode_width             Returns the value of the video width for any transco
 transcode_audio_dec         Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
 transcode_audio_codec       Returns the name of the audio codec for any transcode session.
 transcode_audio_channels    Returns the number of audio channels for any transcode session.
+transcode_container         Returns the type of container for any transcode session.
 container                   Returns the type of container for the original media.
 height                      Returns the value of the video height for the original media.
 bitrate                     Returns the value of the video bitrate for the original media.
@@ -42,7 +43,7 @@ DOCUMENTATION :: END
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <h4 class="modal-title" id="info-modal-title">
-                % if data['media_type'] == 'episode':
+                % if data['media_type'] == 'episode' or data['media_type'] == 'track':
                 Stream Info: <strong>${data['grandparent_title']} - ${data['title']} (${user})</strong>
                 % else:
                 Stream Info: <strong>${data['title']} (${user})</strong>
@@ -52,45 +53,51 @@ DOCUMENTATION :: END
         <div class="modal-body">
             <div class="container-fluid">
                 <div class="row">
+                    <h4><strong>Stream Details</strong></h4>
                     <div class="col-md-4">
-                        <h4><strong>Stream Details</strong></h4>
-                        % if data['media_type'] != 'track':
-                        <h5>Video</h5>
+                        <h5>Media</h5>
                         <ul class="list-unstyled">
-                            % if data['transcode_video_dec'] != 'direct play':
-                            <li>Stream Type: <strong>${data['transcode_video_dec']}</strong></li>
-                            <li>Video Resolution: <strong>${data['transcode_height']}p</strong></li>
-                            <li>Video Codec: <strong>${data['transcode_video_codec']}</strong></li>
-                            <li>Video Width: <strong>${data['transcode_width']}</strong></li>
-                            <li>Video Height: <strong>${data['transcode_height']}</strong></li>
-                            % else:
-                            <li>Stream Type: <strong>${data['transcode_video_dec']}</strong></li>
-                                % if data['video_resolution'] != 'sd':
-                                <li>Video Resolution: <strong>${data['video_resolution']}p</strong></li>
-                                % else:
-                                <li>Video Resolution: <strong>${data['video_resolution']}</strong></li>
-                                % endif
-                            <li>Video Codec: <strong>${data['video_codec']}</strong></li>
-                            <li>Video Width: <strong>${data['width']}</strong></li>
-                            <li>Video Height: <strong>${data['height']}</strong></li>
-                            % endif
-                        </ul>
-                        % endif
-                        <h5>Audio</h5>
-                        <ul class="list-unstyled">
-                            % if data['transcode_audio_dec'] != 'direct play':
-                            <li>Stream Type: <strong>${data['transcode_audio_dec']}</strong></li>
-                            <li>Audio Codec: <strong>${data['transcode_audio_codec']}</strong></li>
-                            <li>Audio Channels: <strong>${data['transcode_audio_channels']}</strong></li>
-                            % else:
-                            <li>Stream Type: <strong>${data['transcode_audio_dec']}</strong></li>
-                            <li>Audio Codec: <strong>${data['audio_codec']}</strong></li>
-                            <li>Audio Channels: <strong>${data['audio_channels']}</strong></li>
+                            <li>Container: <strong>${data['transcode_container'] if data['transcode_container'] else data['container']}</strong></li>
+                            % if data['media_type'] != 'track':
+                            <li>Resolution: <strong>${data['video_resolution'] + 'p'  if data['video_resolution'] != 'sd' else data['video_resolution']}</strong></li>
                             % endif
                         </ul>
                     </div>
+                    % if data['media_type'] != 'track':
                     <div class="col-md-4">
-                        <h4><strong>Media Source Details</strong></h4>
+                        <h5>Video</h5>
+                        <ul class="list-unstyled">
+                            <li>Stream: <strong>${data['transcode_video_dec']}</strong></li>
+                            % if data['transcode_video_dec'] != 'direct play':
+                            <li>Width: <strong>${data['transcode_width']}</strong></li>
+                            <li>Height: <strong>${data['transcode_height']}</strong></li>
+                            <li>Codec: <strong>${data['transcode_video_codec']}</strong></li>
+                            % else:
+                            <li>Width: <strong>${data['width']}</strong></li>
+                            <li>Height: <strong>${data['height']}</strong></li>
+                            <li>Codec: <strong>${data['video_codec']}</strong></li>
+                            % endif
+                        </ul>
+                    </div>
+                    % endif
+                    <div class="col-md-4">
+                        <h5>Audio</h5>
+                        <ul class="list-unstyled">
+                            <li>Stream: <strong>${data['transcode_audio_dec']}</strong></li>
+                            % if data['transcode_audio_dec'] != 'direct play':
+                            <li>Codec: <strong>${data['transcode_audio_codec']}</strong></li>
+                            <li>Channels: <strong>${data['transcode_audio_channels']}</strong></li>
+                            % else:
+                            <li>Codec: <strong>${data['audio_codec']}</strong></li>
+                            <li>Channels: <strong>${data['audio_channels']}</strong></li>
+                            % endif
+                        </ul>
+                    </div>
+                </div>
+                <div class="row">
+                    <h4><strong>Source Details</strong></h4>
+                    <div class="col-md-4">
+                        <h5>Media</h5>
                         <ul class="list-unstyled">
                             <li>Container: <strong>${data['container']}</strong></li>
                             % if data['media_type'] != 'track':
@@ -99,21 +106,23 @@ DOCUMENTATION :: END
                             <li>Bitrate: <strong>${data['bitrate']} kbps</strong></li>
                         </ul>
                     </div>
+                    % if data['media_type'] != 'track':
                     <div class="col-md-4">
-                        % if data['media_type'] != 'track':
-                        <h4><strong>Video Source Details</strong></h4>
+                        <h5>Video</h5>
                         <ul class="list-unstyled">
                             <li>Width: <strong>${data['width']}</strong></li>
                             <li>Height: <strong>${data['height']}</strong></li>
+                            <li>Codec: <strong>${data['video_codec']}</strong></li>
                             <li>Aspect Ratio: <strong>${data['aspect_ratio']}</strong></li>
-                            <li>Video Frame Rate: <strong>${data['video_framerate']}</strong></li>
-                            <li>Video Codec: <strong>${data['video_codec']}</strong></li>
+                            <li>Frame Rate: <strong>${data['video_framerate']}</strong></li>
                         </ul>
-                        % endif
-                        <h4><strong>Audio Source Details</strong></h4>
+                    </div>
+                    % endif
+                    <div class="col-md-4">
+                        <h5>Audio</h5>
                         <ul class="list-unstyled">
-                            <li>Audio Codec: <strong>${data['audio_codec']}</strong></li>
-                            <li>Audio Channels: <strong>${data['audio_channels']}</strong></li>
+                            <li>Codec: <strong>${data['audio_codec']}</strong></li>
+                            <li>Channels: <strong>${data['audio_channels']}</strong></li>
                         </ul>
                     </div>
                 </div>

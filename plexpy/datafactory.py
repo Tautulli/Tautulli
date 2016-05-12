@@ -764,7 +764,7 @@ class DataFactory(object):
         if row_id:
             query = 'SELECT container, bitrate, video_resolution, width, height, aspect_ratio, video_framerate, ' \
                     'video_codec, audio_codec, audio_channels, video_decision, transcode_video_codec, transcode_height, ' \
-                    'transcode_width, audio_decision, transcode_audio_codec, transcode_audio_channels, ' \
+                    'transcode_width, audio_decision, transcode_audio_codec, transcode_audio_channels, transcode_container, ' \
                     'session_history_metadata.media_type, title, grandparent_title ' \
                     'FROM session_history_media_info ' \
                     'JOIN session_history ON session_history_media_info.id = session_history.id ' \
@@ -794,6 +794,7 @@ class DataFactory(object):
                              'transcode_audio_dec': item['audio_decision'],
                              'transcode_audio_codec': item['transcode_audio_codec'],
                              'transcode_audio_channels': item['transcode_audio_channels'],
+                             'transcode_container': item['transcode_container'],
                              'media_type': item['media_type'],
                              'title': item['title'],
                              'grandparent_title': item['grandparent_title']
