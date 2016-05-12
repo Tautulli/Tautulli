@@ -2856,7 +2856,7 @@ class WebInterface(object):
 
         try:
             if 'indexes' in img:
-                raise
+                raise NotFound
             return serve_file(path=ffp, content_type='image/jpeg')
 
         except NotFound:
@@ -2873,7 +2873,7 @@ class WebInterface(object):
 
                     return result[0]
                 else:
-                    raise
+                    raise Exception(u'PMS image request failed')
 
             except Exception as e:
                 logger.exception(u'Failed to get image %s, falling back to %s.' % (img, fallback))
