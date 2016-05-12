@@ -322,7 +322,7 @@ class API2:
         self.result_type = 'success'
 
     def refresh_libraries_list(self, **kwargs):
-        """ Refreshe the PlexPy libraries list. """
+        """ Refresh the PlexPy libraries list. """
         data = pmsconnect.refresh_libraries()
 
         if data:
@@ -333,7 +333,7 @@ class API2:
         return data
 
     def refresh_users_list(self, **kwargs):
-        """ Refreshe the PlexPy users list. """
+        """ Refresh the PlexPy users list. """
         data = plextv.refresh_users()
 
         if data:

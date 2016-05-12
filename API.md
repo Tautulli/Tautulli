@@ -1459,11 +1459,11 @@ Returns:
 
 
 ### refresh_libraries_list
-Refreshe the PlexPy libraries list. 
+Refresh the PlexPy libraries list. 
 
 
 ### refresh_users_list
-Refreshe the PlexPy users list. 
+Refresh the PlexPy users list. 
 
 
 ### restart
