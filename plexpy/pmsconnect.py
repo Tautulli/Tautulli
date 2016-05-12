@@ -1890,7 +1890,7 @@ class PmsConnect(object):
 
         return labels_list
 
-    def get_image(self, img=None, width=None, height=None):
+    def get_image(self, img=None, width='1000', height='1500'):
         """
         Return image data as array.
         Array contains the image content type and image binary

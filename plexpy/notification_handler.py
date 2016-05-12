@@ -20,7 +20,6 @@ import os
 import re
 import threading
 import time
-import urllib
 
 import plexpy
 import config
@@ -635,11 +634,15 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         if not poster_url and plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
             try:
                 thread_name = str(threading.current_thread().ident)
-                poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-' + thread_name)
+                poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-%s' % thread_name)
 
                 # Retrieve the poster from Plex and cache to file
-                urllib.urlretrieve(plexpy.CONFIG.PMS_URL + thumb + '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN,
-                                   poster_file)
+                result = pms_connect.get_image(img=thumb)
+                if result and result[0]:
+                    with open(poster_file, 'wb') as f:
+                        f.write(result[0])
+                else:
+                    raise Exception(u'PMS request failed')
 
                 # Upload thumb to Imgur and get link
                 poster_url = helpers.uploadToImgur(poster_file, poster_title)
