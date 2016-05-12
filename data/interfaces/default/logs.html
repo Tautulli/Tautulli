@@ -22,8 +22,8 @@
         </div>
         <div class="button-bar">
             <button class="btn btn-dark" id="download-plexpylog"><i class="fa fa-download"></i> Download log</button>
-            <button class="btn btn-dark" id="clear-logs"><i class="fa fa-trash-o"></i> Clear log</button>
-            <button class="btn btn-dark" id="clear-notify-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear log</button>
+            <button class="btn btn-dark" id="clear-logs"><i class="fa fa-trash-o"></i> Clear logs</button>
+            <button class="btn btn-dark" id="clear-notify-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear logs</button>
         </div>
     </div>
     <div class='table-card-back'>
@@ -189,10 +189,24 @@
         });
 
         $("#clear-logs").click(function () {
-            var r = confirm("Are you sure you want to clear the PlexPy log?");
-            if (r == true) {
-                window.location.href = "clearLogs";
-            }
+            $("#confirm-message").text("Are you sure you want to clear the PlexPy logs?");
+            $('#confirm-modal').modal();
+            $('#confirm-modal').one('click', '#confirm-button', function () {
+                $.ajax({
+                    url: 'delete_logs',
+                    type: 'POST',
+                    complete: function (xhr, status) {
+                        result = $.parseJSON(xhr.responseText);
+                        msg = result.message;
+                        if (result.result == 'success') {
+                            showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                        } else {
+                            showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+                        }
+                        log_table.draw();
+                    }
+                });
+            });
         });
 
         $("#download-plexpylog").click(function () {
@@ -201,16 +215,24 @@
 
 
         $("#clear-notify-logs").click(function () {
-            var r = confirm("Are you sure you want to clear the PlexPy notification log?");
-            if (r == true) {
+            $("#confirm-message").text("Are you sure you want to clear the PlexPy notification logs?");
+            $('#confirm-modal').modal();
+            $('#confirm-modal').one('click', '#confirm-button', function () {
                 $.ajax({
                     url: 'delete_notification_log',
                     type: 'POST',
-                    success: function (data) {
+                    complete: function (xhr, status) {
+                        result = $.parseJSON(xhr.responseText);
+                        msg = result.message;
+                        if (result.result == 'success') {
+                            showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                        } else {
+                            showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+                        }
                         notification_log_table.draw();
                     }
                 });
-            }
+            });
         });
 
         var timer;

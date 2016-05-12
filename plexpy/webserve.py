@@ -1948,17 +1948,9 @@ class WebInterface(object):
         if 'search[regex]' in kwargs:
             search_regex = kwargs.get('search[regex]', "")
 
-        def oh_i_feel_so_dirty(s):
-            """ Really inefficient helper to only allow one pre tag,
-                atleast it better then regex..
-            """
-            s = s.encode('utf-8').replace('<pre>', '').replace('</pre>', '')
-            s = '<pre>%s</pre>' % s
-            return s
-
         filt = []
         fa = filt.append
-        with open(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log')) as f:
+        with open(os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)) as f:
             for l in f.readlines():
                 try:
                     temp_loglevel_and_time = l.split('- ')
@@ -1966,11 +1958,11 @@ class WebInterface(object):
                     msg = l.split(' : ')[1].replace('\n', '')
                     fa([temp_loglevel_and_time[0], loglvl, msg])
                 except IndexError:
-                    # Add traceback message to previous msg..
+                    # Add traceback message to previous msg.
                     tl = (len(filt) - 1)
-                    filt[tl][2] += ' ' + l
-                    # Inject the pre tag since we only want it on tracebacks
-                    filt[tl][2] = oh_i_feel_so_dirty(filt[tl][2])
+                    n = len(l) - len(l.lstrip(' '))
+                    l = '&nbsp;' * (2*n) + l[n:]
+                    filt[tl][2] += '<br>' + l
                     continue
 
         filtered = []
@@ -2112,20 +2104,27 @@ class WebInterface(object):
         """
         data_factory = datafactory.DataFactory()
         result = data_factory.delete_notification_log()
-        result = result if result else 'no data received'
+        res = 'success' if result else 'error'
+        msg = 'Cleared notification logs.' if result else 'Failed to clear notification logs.'
 
-        return {'message': result}
+        return {'result': res, 'message': msg}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def clearLogs(self):
+    def delete_logs(self):
+        log_file = logger.FILENAME
         try:
-            open(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log'), 'w').close()
+            open(os.path.join(plexpy.CONFIG.LOG_DIR, log_file), 'w').close()
+            result = 'success'
+            msg = 'Cleared the %s file.' % log_file
+            logger.info(msg)
         except Exception as e:
-            logger.exception(u'Failed to delete plexpy.log %s' % e)
+            result = 'error'
+            msg = 'Failed to clear the %s file.' % log_file
+            logger.exception(u'Failed to clear the %s file: %s.' % (log_file, e))
 
-        logger.info(u'plexpy.log cleared')
-        raise cherrypy.HTTPRedirect("logs")
+        return {'result': result, 'message': msg}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -2151,7 +2150,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def logFile(self):
         try:
-            with open(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log'), 'r') as f:
+            with open(os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME), 'r') as f:
                 return '<pre>%s</pre>' % f.read()
         except IOError as e:
             return "Log file not found."
@@ -2282,7 +2281,8 @@ class WebInterface(object):
             "buffer_wait": plexpy.CONFIG.BUFFER_WAIT,
             "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES),
             "git_token": plexpy.CONFIG.GIT_TOKEN,
-            "imgur_client_id": plexpy.CONFIG.IMGUR_CLIENT_ID
+            "imgur_client_id": plexpy.CONFIG.IMGUR_CLIENT_ID,
+            "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)
@@ -2304,7 +2304,7 @@ class WebInterface(object):
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_recently_added_grandparent",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
-            "allow_guest_access"
+            "allow_guest_access", "cache_images"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -2443,9 +2443,9 @@ class WebInterface(object):
         result = database.make_backup()
 
         if result:
-            return {'message': 'Database backup successful.'}
+            return {'result': 'success', 'message': 'Database backup successful.'}
         else:
-            return {'message': 'Database backup failed.'}
+            return {'result': 'error', 'message': 'Database backup failed.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -2834,15 +2834,15 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def pms_image_proxy(self, img='', ratingkey=None, width='0', height='0', fallback=None, **kwargs):
-        """ Grabs the images from pms and saved them to disk """
+    def pms_image_proxy(self, img='', rating_key=None, width='0', height='0', fallback=None, **kwargs):
+        """ Gets an image from the PMS and saves it to the image cache directory. """
 
-        if not img and not ratingkey:
-            logger.debug('No image input received')
+        if not img and not rating_key:
+            logger.error('No image input received.')
             return
 
-        if ratingkey and not img:
-            img = '/library/metadata/%s/thumb/1337' % ratingkey
+        if rating_key and not img:
+            img = '/library/metadata/%s/thumb/1337' % rating_key
 
         img_string = img.rsplit('/', 1)[0]
         img_string += '%s%s' % (width, height)
@@ -2867,7 +2867,7 @@ class WebInterface(object):
 
                 if result and result[0]:
                     cherrypy.response.headers['Content-type'] = result[1]
-                    if 'indexes' not in img:
+                    if plexpy.CONFIG.CACHE_IMAGES and 'indexes' not in img:
                         with open(ffp, 'wb') as f:
                             f.write(result[0])
 
@@ -2876,7 +2876,7 @@ class WebInterface(object):
                     raise
 
             except Exception as e:
-                logger.debug('Failed to get image %s file %s falling back to %s' % (img, fp, e))
+                logger.exception(u'Failed to get image %s, falling back to %s.' % (img, fallback))
                 fbi = None
                 if fallback == 'poster':
                     fbi = common.DEFAULT_POSTER_THUMB
@@ -2894,38 +2894,49 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def download_log(self):
+        """ Download the PlexPy log file. """
+        log_file = logger.FILENAME
         try:
             logger.logger.flush()
         except:
             pass
 
-        return serve_download(os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log'), name='plexpy.log')
+        return serve_download(os.path.join(plexpy.CONFIG.LOG_DIR, log_file), name=log_file)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_image_cache(self):
-        """ Deletes the image cache dir and recreates it """
-        cache_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
+        """ Delete and recreate the image cache directory. """
+        return self.delete_cache(folder='images')
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_cache(self, folder=''):
+        """ Delete and recreate the cache directory. """
+        cache_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, folder)
         result = 'success'
-        msg = 'Deleted your cache images'
+        msg = 'Cleared the %scache.' % (folder + ' ' if folder else '')
         try:
             shutil.rmtree(cache_dir, ignore_errors=True)
         except OSError as e:
             result = 'error'
-            msg = 'Failed to delete %s %s' % (cache_dir, e)
-            logger.exception(msg)
-            return
+            msg = 'Failed to delete %s.' % cache_dir
+            logger.exception(u'Failed to delete %s: %s.' % (cache_dir, e))
+            return {'result': result, 'message': msg}
 
         try:
             os.makedirs(cache_dir)
         except OSError as e:
             result = 'error'
-            msg = 'Failed to make %s %s' % (cache_dir, e)
-            logger.exception(msg)
-            return
+            msg = 'Failed to make %s.' % cache_dir
+            logger.exception(u'Failed to create %s: %s.' % (cache_dir, e))
+            return {'result': result, 'message': msg}
 
+        logger.info(msg)
         return {'result': result, 'message': msg}
 
     @cherrypy.expose

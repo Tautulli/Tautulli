@@ -214,7 +214,7 @@ class Api(object):
                                 }
                     ]
         """
-        logfile = os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log')
+        logfile = os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)
         templog = []
         start = int(kwargs.get('start', 0))
         end = int(kwargs.get('end', 0))

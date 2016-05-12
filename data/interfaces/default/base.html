@@ -244,6 +244,25 @@
     </nav>
 </div>
 
+<div id="confirm-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Confirm</h4>
+            </div>
+            <div class="modal-body">
+                <div id="confirm-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-button">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 % if _session['user_group'] != 'admin':
 <div id="admin-login-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="admin-login-modal">
     <div class="modal-dialog" role="document">
@@ -310,18 +329,20 @@ ${next.headerIncludes()}
         $('#updatebar').show();
     }
 
-    $("#nav-shutdown").click(function () {
-        var r = confirm("Are you sure you want to shutdown PlexPy?");
-        if (r == true) {
+    $("#nav-shutdown").click(function() {
+        $("#confirm-message").text("Are you sure you want to shutdown PlexPy?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = "shutdown";
-        }
+        });
     });
 
-    $("#nav-restart").click(function () {
-        var r = confirm("Are you sure you want to restart PlexPy?");
-        if (r == true) {
+    $("#nav-restart").click(function() {
+        $("#confirm-message").text("Are you sure you want to restart PlexPy?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = "restart";
-        }
+        });
     });
 
     $("#nav-update").first().one("click", function () {

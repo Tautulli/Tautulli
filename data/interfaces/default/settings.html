@@ -4,7 +4,7 @@
     import sys
 
     import plexpy
-    from plexpy import common, notifiers, versioncheck
+    from plexpy import common, logger, notifiers, versioncheck
     from plexpy.helpers import anon_url
 
     available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
@@ -84,7 +84,7 @@
                                 </tr>
                                 <tr>
                                     <td>Log File:</td>
-                                    <td><a class="no-highlight" href="logFile" target="_blank">${os.path.join(config['log_dir'],'plexpy.log')}</a></td>
+                                    <td><a class="no-highlight" href="logFile" target="_blank">${os.path.join(config['log_dir'], logger.FILENAME)}</a></td>
                                 </tr>
                                 <tr>
                                     <td>Backup Directory:</td>
@@ -198,24 +198,39 @@
                         <div class="form-group">
                             <label for="backup_dir">Backup Directory</label>
                             <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="backup_database">Backup Database</button>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="cache_dir">Cache Directory</label>
                             <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="clear_cache">Clear Cache</button>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="log_dir">Log Directory</label>
                             <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -722,6 +737,14 @@
                             <p class="help-block">
                                 Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
                                 Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
+                            </p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="cache_images" name="cache_images" value="1" ${config['cache_images']}> Cache Plex Images
+                            </label>
+                            <p class="help-block">
+                                Enable to cache images from Plex to reduce API calls and improve loading times.
                             </p>
                         </div>
                         <div class="form-group">
@@ -2056,7 +2079,7 @@ $(document).ready(function() {
             postSaveChecks();
             return false;
         } else {
-            showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your settings.', false, true, 2000, true)
+            showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true)
         }
     }
 
@@ -2069,17 +2092,19 @@ $(document).ready(function() {
     });
 
     $("#menu_link_shutdown").click(function() {
-        var r = confirm("Are you sure you want to shutdown PlexPy?");
-        if (r == true) {
+        $("#confirm-message").text("Are you sure you want to shutdown PlexPy?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = "shutdown";
-        }
+        });
     });
 
     $("#menu_link_restart").click(function() {
-        var r = confirm("Are you sure you want to restart PlexPy?");
-        if (r == true) {
+        $("#confirm-message").text("Are you sure you want to restart PlexPy?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = "restart";
-        }
+        });
     });
 
     $("#menu_link_update_check").click(function() {
@@ -2092,6 +2117,66 @@ $(document).ready(function() {
 
     $("#modal_link_restart").click(function() {
         window.location.href = "restart";
+    });
+
+    $("#backup_database").click(function () {
+        $("#confirm-message").text("Are you sure you want to create a backup of the PlexPy database?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
+            $.ajax({
+                url: 'backup_db',
+                type: 'POST',
+                complete: function (xhr, status) {
+                    result = $.parseJSON(xhr.responseText);
+                    msg = result.message;
+                    if (result.result == 'success') {
+                        showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                    } else {
+                        showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+                    }
+                }
+            });
+        });
+    });
+
+    $("#clear_cache").click(function () {
+        $("#confirm-message").text("Are you sure you want to clear the PlexPy cache?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
+            $.ajax({
+                url: 'delete_cache',
+                type: 'POST',
+                complete: function (xhr, status) {
+                    result = $.parseJSON(xhr.responseText);
+                    msg = result.message;
+                    if (result.result == 'success') {
+                        showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                    } else {
+                        showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+                    }
+                }
+            });
+        });
+    });
+
+    $("#clear_logs").click(function () {
+        $("#confirm-message").text("Are you sure you want to clear the PlexPy logs?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
+            $.ajax({
+                url: 'delete_logs',
+                type: 'POST',
+                complete: function (xhr, status) {
+                    result = $.parseJSON(xhr.responseText);
+                    msg = result.message;
+                    if (result.result == 'success') {
+                        showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                    } else {
+                        showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+                    }
+                }
+            });
+        });
     });
 
     if ($("#api_enabled").is(":checked")) {
@@ -2235,7 +2320,7 @@ $(document).ready(function() {
                         $("#pms-verify").html('<i class="fa fa-close"></i>');
                         $('#pms-verify').fadeIn('fast');
                         $("#pms-ip-group").addClass("has-error");
-                        showMsg('<i class="fa fa-exclamation-circle"></i>&nbspCould not verify your server.', false, true, 2000, true)
+                        showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
                     }
                 }
             });
@@ -2243,7 +2328,7 @@ $(document).ready(function() {
             $("#pms-verify").html('<i class="fa fa-close"></i>');
             $('#pms-verify').fadeIn('fast');
             $("#pms-ip-group").addClass("has-error");
-            showMsg('<i class="fa fa-exclamation-circle"></i>&nbspCould not verify your server.', false, true, 2000, true)
+            showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
         }
     }
 
@@ -2326,7 +2411,7 @@ $(document).ready(function() {
 
     $('#osxnotifyregister').click(function () {
         var osx_notify_app = $("#osx_notify_reg").val();
-        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { showMsg("<div class='msg'><span class='ui-icon ui-icon-check'></span>" + data + "</div>", false, true, 3000); });
+        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { showMsg("<div class='msg'><span class='fa fa-check'></span>" + data + "</div>", false, true, 3000); });
     })
 
     pms_version = false;

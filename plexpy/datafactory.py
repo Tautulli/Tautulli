@@ -1301,7 +1301,7 @@ class DataFactory(object):
             logger.info(u"PlexPy DataFactory :: Clearing notification logs from database.")
             monitor_db.action('DELETE FROM notify_log')
             monitor_db.action('VACUUM')
-            return 'Cleared notification logs.'
+            return True
         except Exception as e:
             logger.warn(u"PlexPy DataFactory :: Unable to execute database query for delete_notification_log: %s." % e)
-            return 'Unable to clear notification logs.'
+            return False

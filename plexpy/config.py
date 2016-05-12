@@ -86,6 +86,7 @@ _CONFIG_DEFINITIONS = {
     'BUFFER_WAIT': (int, 'Monitoring', 900),
     'BACKUP_DIR': (str, 'General', ''),
     'CACHE_DIR': (str, 'General', ''),
+    'CACHE_IMAGES': (int, 'General', 1),
     'CACHE_SIZEMB': (int, 'Advanced', 32),
     'CHECK_GITHUB': (int, 'General', 1),
     'CHECK_GITHUB_INTERVAL': (int, 'General', 360),

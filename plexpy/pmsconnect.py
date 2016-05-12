@@ -1917,7 +1917,7 @@ class PmsConnect(object):
                 return result[0], result[1]
 
         else:
-            logger.error(u"PlexPy Pmsconnect :: Image proxy queries but no input received.")
+            logger.error(u"PlexPy Pmsconnect :: Image proxy queried but no input received.")
 
     def get_search_results(self, query=''):
         """
