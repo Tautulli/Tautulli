@@ -248,16 +248,25 @@ class WebInterface(object):
             return serve_template(templatename="current_activity_header.html", data=None)
 
         if result:
-            data = {'stream_count': result['stream_count']}
-            data['direct_play'] = \
-                sum(1 for s in result['sessions']
-                    if s['video_decision'] == 'direct play' and s['audio_decision'] == 'direct play')
-            data['direct_stream'] = \
-                sum(1 for s in result['sessions']
-                    if s['video_decision'] == 'copy' and s['audio_decision'] == 'copy')
-            data['transcode'] = \
-                sum(1 for s in result['sessions']
-                    if s['video_decision'] == 'transcode' or s['audio_decision'] == 'transcode')
+            data = {'stream_count': result['stream_count'],
+                    'direct_play': 0,
+                    'direct_stream': 0,
+                    'transcode': 0}
+            for s in result['sessions']:
+                if s['media_type'] == 'track':
+                    if s['audio_decision'] == 'transcode':
+                        data['transcode'] += 1
+                    elif s['audio_decision'] == 'copy':
+                        data['direct_stream'] += 1
+                    else:
+                        data['direct_play'] += 1
+                else:
+                    if s['video_decision'] == 'transcode' or s['audio_decision'] == 'transcode':
+                        data['transcode'] += 1
+                    elif s['video_decision'] == 'direct copy' or s['audio_decision'] == 'copy play':
+                        data['direct_stream'] += 1
+                    else:
+                        data['direct_play'] += 1
 
             return serve_template(templatename="current_activity_header.html", data=data)
         else:
