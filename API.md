@@ -36,6 +36,10 @@ General optional parameters:
 Get to the chopper!
 
 
+### backup_config
+Create a manual backup of the `config.ini` file. 
+
+
 ### backup_db
 Create a manual backup of the `plexpy.db` file. 
 

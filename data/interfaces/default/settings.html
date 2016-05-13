@@ -198,12 +198,11 @@
                         <div class="form-group">
                             <label for="backup_dir">Backup Directory</label>
                             <div class="row">
-                                <div class="col-md-8">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}">
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="backup_database">Backup Database</button>
-                                        </span>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="backup_config">Backup Config</button>
+                                        <button class="btn btn-form" type="button" id="backup_database">Backup Database</button>
                                     </div>
                                 </div>
                             </div>
@@ -211,12 +210,11 @@
                         <div class="form-group">
                             <label for="cache_dir">Cache Directory</label>
                             <div class="row">
-                                <div class="col-md-8">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}">
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="clear_cache">Clear Cache</button>
-                                        </span>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_cache">Clear All Cache</button>
+                                        <button class="btn btn-form" type="button" id="clear_image_cache">Clear Image Cache</button>
                                     </div>
                                 </div>
                             </div>
@@ -224,12 +222,10 @@
                         <div class="form-group">
                             <label for="log_dir">Log Directory</label>
                             <div class="row">
-                                <div class="col-md-8">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
-                                        </span>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
                                     </div>
                                 </div>
                             </div>
@@ -525,7 +521,7 @@
                             <label>
                                 <input type="checkbox" name="http_hash_password" id="http_hash_password" value="1" ${config['http_hash_password']} data-parsley-trigger="change"> Hash Password in the Config File
                             </label>
-                            <p class="help-block">Store a hashed password in the config.ini file.<br />Warning: Your password cannot be recovered if forgotten!</p>
+                            <p class="help-block">Store a hashed password in the config file.<br />Warning: Your password cannot be recovered if forgotten!</p>
                         </div>
                         <input type="text" id="http_hashed_password" name="http_hashed_password" value="${config['http_hashed_password']}" style="display: none;" data-parsley-trigger="change" data-parsley-type="integer" data-parsley-range="[0, 1]" 
                                data-parsley-errors-container="#http_hash_password_error" data-parsley-error-message="Cannot un-hash password, please set a new password." data-parsley-no-focus required>
@@ -2138,12 +2134,12 @@ $(document).ready(function() {
     }
     getSchedulerTable();
 
-    $("#backup_database").click(function () {
-        $("#confirm-message").text("Are you sure you want to create a backup of the PlexPy database?");
+    function confirmAjaxCall (url, msg) {
+        $("#confirm-message").text(msg);
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
             $.ajax({
-                url: 'backup_db',
+                url: url,
                 type: 'POST',
                 complete: function (xhr, status) {
                     result = $.parseJSON(xhr.responseText);
@@ -2156,46 +2152,36 @@ $(document).ready(function() {
                 }
             });
         });
+    }
+
+    $("#backup_config").click(function () {
+        var msg = 'Are you sure you want to create a backup of the PlexPy config?';
+        var url = 'backup_config';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#backup_database").click(function () {
+        var msg = 'Are you sure you want to create a backup of the PlexPy database?';
+        var url = 'backup_db';
+        confirmAjaxCall(url, msg);
     });
 
     $("#clear_cache").click(function () {
-        $("#confirm-message").text("Are you sure you want to clear the PlexPy cache?");
-        $('#confirm-modal').modal();
-        $('#confirm-modal').one('click', '#confirm-button', function () {
-            $.ajax({
-                url: 'delete_cache',
-                type: 'POST',
-                complete: function (xhr, status) {
-                    result = $.parseJSON(xhr.responseText);
-                    msg = result.message;
-                    if (result.result == 'success') {
-                        showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
-                    } else {
-                        showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
-                    }
-                }
-            });
-        });
+        var msg = 'Are you sure you want to clear the PlexPy cache?';
+        var url = 'delete_cache';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#clear_image_cache").click(function () {
+        var msg = 'Are you sure you want to clear the PlexPy image cache?';
+        var url = 'delete_image_cache';
+        confirmAjaxCall(url, msg);
     });
 
     $("#clear_logs").click(function () {
-        $("#confirm-message").text("Are you sure you want to clear the PlexPy logs?");
-        $('#confirm-modal').modal();
-        $('#confirm-modal').one('click', '#confirm-button', function () {
-            $.ajax({
-                url: 'delete_logs',
-                type: 'POST',
-                complete: function (xhr, status) {
-                    result = $.parseJSON(xhr.responseText);
-                    msg = result.message;
-                    if (result.result == 'success') {
-                        showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
-                    } else {
-                        showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
-                    }
-                }
-            });
-        });
+        var msg = 'Are you sure you want to clear the PlexPy logs?';
+        var url = 'delete_logs';
+        confirmAjaxCall(url, msg);
     });
 
 

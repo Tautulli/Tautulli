@@ -30,6 +30,7 @@ from mako import exceptions
 
 import plexpy
 import common
+import config
 import database
 import datafactory
 import graphs
@@ -2427,6 +2428,19 @@ class WebInterface(object):
             threading.Thread(target=plextv.refresh_users).start()
 
         return {'result': 'success', 'message': 'Settings saved.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def backup_config(self):
+        """ Creates a manual backup of the plexpy.db file """
+
+        result = config.make_backup()
+
+        if result:
+            return {'result': 'success', 'message': 'Config backup successful.'}
+        else:
+            return {'result': 'error', 'message': 'Config backup failed.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))

@@ -345,6 +345,7 @@ def initialize_scheduler():
                          hours=hours, minutes=0, seconds=0)
 
         schedule_job(database.make_backup, 'Backup PlexPy database', hours=6, minutes=0, seconds=0, args=(True, True))
+        schedule_job(config.make_backup, 'Backup PlexPy config', hours=6, minutes=0, seconds=0, args=(True, True))
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):

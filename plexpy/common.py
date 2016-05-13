@@ -69,5 +69,6 @@ SCHEDULER_LIST = ['Check GitHub for updates',
                   'Refresh libraries list',
                   'Refresh Plex server URLs',
                   'Refresh Plex server name',
-                  'Backup PlexPy database'
+                  'Backup PlexPy database',
+                  'Backup PlexPy config'
                   ]

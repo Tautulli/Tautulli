@@ -23,6 +23,7 @@ import time
 import plexpy
 import logger
 
+FILENAME = "plexpy.db"
 db_lock = threading.Lock()
 
 
@@ -52,7 +53,7 @@ def delete_sessions():
         logger.warn(u"PlexPy Database :: Unable to clear temporary sessions from database: %s." % e)
         return 'Unable to clear temporary sessions.'
 
-def db_filename(filename="plexpy.db"):
+def db_filename(filename=FILENAME):
     """ Returns the filepath to the db """
 
     return os.path.join(plexpy.DATA_DIR, filename)
@@ -115,7 +116,7 @@ def dict_factory(cursor, row):
 
 class MonitorDatabase(object):
 
-    def __init__(self, filename='plexpy.db'):
+    def __init__(self, filename=FILENAME):
         self.filename = filename
         self.connection = sqlite3.connect(db_filename(filename), timeout=20)
         # Don't wait for the disk to finish writing

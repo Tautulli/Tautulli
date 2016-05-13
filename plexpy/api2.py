@@ -31,6 +31,7 @@ import cherrypy
 import xmltodict
 
 import plexpy
+import config
 import database
 import logger
 import plextv
@@ -294,6 +295,18 @@ class API2:
         rows = db.select(query)
         self.data = rows
         return rows
+
+    def backup_config(self):
+        """ Create a manual backup of the `config.ini` file. """
+
+        data = config.make_backup()
+
+        if data:
+            self.result_type = 'success'
+        else:
+            self.result_type = 'failed'
+
+        return data
 
     def backup_db(self):
         """ Create a manual backup of the `plexpy.db` file. """

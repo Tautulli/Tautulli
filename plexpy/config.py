@@ -13,10 +13,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import arrow
+import os
 import re
+import shutil
 
 from configobj import ConfigObj
 
+import plexpy
 import logger
 
 
@@ -28,6 +32,8 @@ def bool_int(value):
         if value.lower() in ('', '0', 'false', 'f', 'no', 'n', 'off'):
             value = 0
     return int(bool(value))
+
+FILENAME = "config.ini"
 
 _CONFIG_DEFINITIONS = {
     'ALLOW_GUEST_ACCESS': (int, 'General', 0),
@@ -480,6 +486,43 @@ _BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIK
 _WHITELIST_KEYS = ['HTTPS_KEY', 'UPDATE_SECTION_IDS']
 
 
+def make_backup(cleanup=False, scheduler=False):
+    """ Makes a backup of config file, removes all but the last 5 backups """
+
+    if scheduler:
+        backup_file = 'config.backup-%s.sched.ini' % arrow.now().format('YYYYMMDDHHmmss')
+    else:
+        backup_file = 'config.backup-%s.ini' % arrow.now().format('YYYYMMDDHHmmss')
+    backup_folder = plexpy.CONFIG.BACKUP_DIR
+    backup_file_fp = os.path.join(backup_folder, backup_file)
+
+    # In case the user has deleted it manually
+    if not os.path.exists(backup_folder):
+        os.makedirs(backup_folder)
+
+    plexpy.CONFIG.write()
+    shutil.copyfile(plexpy.CONFIG_FILE, backup_file_fp)
+
+    if cleanup:
+        # Delete all scheduled backup files except from the last 5.
+        for root, dirs, files in os.walk(backup_folder):
+            db_files = [os.path.join(root, f) for f in files if f.endswith('.sched.ini')]
+            if len(db_files) > 5:
+                backups_sorted_on_age = sorted(db_files, key=os.path.getctime, reverse=True)
+                for file_ in backups_sorted_on_age[5:]:
+                    try:
+                        os.remove(file_)
+                    except OSError as e:
+                        logger.error(u"PlexPy Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
+
+    if backup_file in os.listdir(backup_folder):
+        logger.debug(u"PlexPy Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        return True
+    else:
+        logger.warn(u"PlexPy Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        return False
+
+
 # pylint:disable=R0902
 # it might be nice to refactor for fewer instance variables
 class Config(object):
@@ -557,12 +600,12 @@ class Config(object):
             new_config[section][ini_key] = self._config[section][ini_key]
 
         # Write it to file
-        logger.info("Writing configuration to file")
+        logger.info(u"PlexPy Config :: Writing configuration to file")
 
         try:
             new_config.write()
         except IOError as e:
-            logger.error("Error writing configuration file: %s", e)
+            logger.error(u"PlexPy Config :: Error writing configuration file: %s", e)
 
         self._blacklist()
 
