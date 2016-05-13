@@ -33,11 +33,14 @@ class DataFactory(object):
     def __init__(self):
         pass
 
-    def get_datatables_history(self, kwargs=None, custom_where=None, grouping=0, watched_percent=85):
+    def get_datatables_history(self, kwargs=None, custom_where=None, grouping=None):
         data_tables = datatables.DataTables()
 
         if custom_where is None:
             custon_where = []
+
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
         if session.get_session_user_id():
             session_user_id = str(session.get_session_user_id())
@@ -119,6 +122,7 @@ class DataFactory(object):
 
         filter_duration = 0
         total_duration = self.get_total_duration(custom_where=custom_where)
+        watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
 
         rows = []
         for item in history:

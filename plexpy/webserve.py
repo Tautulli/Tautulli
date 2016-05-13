@@ -1265,7 +1265,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_history(self, user=None, user_id=None, grouping=0, **kwargs):
+    def get_history(self, user=None, user_id=None, grouping=None, **kwargs):
         """ Get the PlexPy history.
 
             ```
@@ -1350,12 +1350,10 @@ class WebInterface(object):
                           ("watched_status", False, False)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "date")
 
-        if not grouping or grouping == 'false':
+        if grouping and str(grouping).isdigit():
+            grouping = int(grouping)
+        elif grouping == 'false':
             grouping = 0
-        else:
-            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
-
-        watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
 
         custom_where = []
         if user_id:
@@ -1390,7 +1388,7 @@ class WebInterface(object):
                 custom_where.append(['session_history_media_info.transcode_decision', transcode_decision])
 
         data_factory = datafactory.DataFactory()
-        history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping, watched_percent=watched_percent)
+        history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where, grouping=grouping)
 
         return history
 
