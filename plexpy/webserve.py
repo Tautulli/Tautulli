@@ -2286,6 +2286,7 @@ class WebInterface(object):
         return serve_template(templatename="settings.html", title="Settings", config=config)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def configUpdate(self, **kwargs):
         # Handle the variable config options. Note - keys with False values aren't getting passed
@@ -2425,7 +2426,7 @@ class WebInterface(object):
         if refresh_users:
             threading.Thread(target=plextv.refresh_users).start()
 
-        raise cherrypy.HTTPRedirect("settings")
+        return {'result': 'success', 'message': 'Settings saved.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
