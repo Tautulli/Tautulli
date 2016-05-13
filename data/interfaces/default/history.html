@@ -122,7 +122,6 @@
         });
 
         function loadHistoryTable(media_type, selected_user_id) {
-            console.log(selected_user_id)
             history_table_options.ajax = {
                 url: 'get_history',
                 type: 'post',
@@ -150,7 +149,6 @@
 
             $('#history-user').on('change', function () {
                 selected_user_id = $(this).val() || null;
-                console.log(selected_user_id)
                 history_table.draw();
             });
         }

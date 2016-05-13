@@ -2071,13 +2071,13 @@ $(document).ready(function() {
           $('#restart-modal').modal('show');
         }
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0)
+        getSchedulerTable();
     }
 
     var configForm = $("#configUpdate");
     function saveSettings() {
         if (configForm.parsley().validate()) {
-            doAjaxCall('configUpdate', $(this), 'tabs', true, getSchedulerTable);
-            postSaveChecks();
+            doAjaxCall('configUpdate', $(this), 'tabs', true, postSaveChecks);
             return false;
         } else {
             showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true)
@@ -2091,6 +2091,12 @@ $(document).ready(function() {
             saveSettings();
         }
     });
+
+    initConfigCheckbox('#api_enabled');
+    initConfigCheckbox('#enable_https');
+    initConfigCheckbox('#https_create_cert');
+    initConfigCheckbox('#check_github');
+    initConfigCheckbox('#notify_upload_posters');
 
     $("#menu_link_shutdown").click(function() {
         $("#confirm-message").text("Are you sure you want to shutdown PlexPy?");
@@ -2119,6 +2125,18 @@ $(document).ready(function() {
     $("#modal_link_restart").click(function() {
         window.location.href = "restart";
     });
+
+    function getSchedulerTable() {
+        $.ajax({
+            url: 'get_scheduler_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-scheduler-table").html(xhr.responseText);
+            }
+        });
+    }
+    getSchedulerTable();
 
     $("#backup_database").click(function () {
         $("#confirm-message").text("Are you sure you want to create a backup of the PlexPy database?");
@@ -2180,86 +2198,17 @@ $(document).ready(function() {
         });
     });
 
-    if ($("#api_enabled").is(":checked")) {
-        $("#apioptions").show();
-    } else {
-        $("#apioptions").hide();
-    }
-
-    $("#api_enabled").click(function(){
-        if ($("#api_enabled").is(":checked")) {
-            $("#apioptions").slideDown();
-        } else {
-            $("#apioptions").slideUp();
-        }
-    });
 
     $('#api_key').click(function(){ $('#api_key').select() });
-        $("#generate_api").click(function() {
-            $.get('generateAPI',
-                function(data){
-                    if (data.error != undefined) {
-                        alert(data.error);
-                        return;
-                    }
-                    $('#api_key').val(data);
-            });
+    $("#generate_api").click(function() {
+        $.get('generateAPI',
+            function(data){
+                if (data.error != undefined) {
+                    alert(data.error);
+                    return;
+                }
+                $('#api_key').val(data);
         });
-
-    if ($("#enable_https").is(":checked")) {
-            $("#https_options").show();
-        } else {
-            $("#https_options").hide();
-        }
-
-    $("#enable_https").click(function(){
-        if ($("#enable_https").is(":checked")) {
-            $("#https_options").slideDown();
-        } else {
-            $("#https_options").slideUp();
-        }
-    });
-
-    if ($("#https_create_cert").is(":checked")) {
-        $("#https_options_self-signed").show();
-    } else {
-        $("#https_options_self-signed").hide();
-    }
-
-    $("#https_create_cert").click(function(){
-        if ($("#https_create_cert").is(":checked")) {
-            $("#https_options_self-signed").slideDown();
-        } else {
-            $("#https_options_self-signed").slideUp();
-        }
-    });
-
-    if ($("#check_github").is(":checked")) {
-        $("#git_update_options").show();
-    } else {
-        $("#git_update_options").hide();
-    }
-
-    $("#check_github").click(function(){
-        if ($("#check_github").is(":checked")) {
-            $("#git_update_options").slideDown();
-        } else {
-            $("#git_update_options").slideUp();
-        }
-    });
-
-    if ($("#notify_upload_posters").is(":checked")) {
-        $("#imgur_upload_options").show();
-    } else {
-        $("#imgur_upload_options").hide();
-    }
-
-    $("#notify_upload_posters").click(function(){
-        if ($("#notify_upload_posters").is(":checked")) {
-            $("#imgur_upload_options").slideDown();
-        } else {
-            $("#imgur_upload_options").slideUp();
-        }
     });
 
     $( ".http-settings" ).change(function() {
@@ -2342,8 +2291,8 @@ $(document).ready(function() {
         $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i> Fetching token...');
         if (($("#pms_username").val() !== '') || ($("#pms_password").val() !== '')) {
             $.ajax({
-                type: "post",
-                url: "https://plex.tv/users/sign_in.xml",
+                type: 'POST',
+                url: 'https://plex.tv/users/sign_in.xml',
                 dataType: 'xml',
                 async: true,
                 headers: {'Content-Type': 'application/xml; charset=utf-8',
@@ -2594,18 +2543,6 @@ $(document).ready(function() {
         };
         $(this).on('focus keyup input', function() { resizeTextarea(this); }).removeAttr('data-autoresize');
     });
-
-    function getSchedulerTable() {
-        $.ajax({
-            url: 'get_scheduler_table',
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#plexpy-scheduler-table").html(xhr.responseText);
-            }
-        });
-    }
-    getSchedulerTable();
 
     $("#notify_recently_added_grandparent").change(function () {
         var c = this.checked ? '#eb8600' : '#737373';
