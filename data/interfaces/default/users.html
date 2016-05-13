@@ -50,7 +50,7 @@
         </div>
         <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
         </div>
-        <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+        <div class="modal fade" id="confirm-delete-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-delete-modal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -129,8 +129,8 @@
                         }
                     }
 
-                    $('#confirm-modal').modal();
-                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                    $('#confirm-delete-modal').modal();
+                    $('#confirm-delete-modal').one('click', '#confirm-delete', function () {
                         for (var i = 0; i < users_to_delete.length; i++) {
                             $.ajax({
                                 url: 'delete_user',
