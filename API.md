@@ -1429,11 +1429,12 @@ Returns:
 ```
 
 
-### import_plexwatch_database
-Import a plexwatch database into PlexPy.
+### import_database
+Import a PlexWatch or Plexivity database into PlexPy.
 
 ```
 Required parameters:
+    app (str):                      "plexwatch" or "plexivity"
     database_path (str):            The full path to the plexwatch database file
     table_name (str):               "processed" or "grouped"
 

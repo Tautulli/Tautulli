@@ -585,7 +585,7 @@ class Users(object):
         except Exception as e:
             logger.warn(u"PlexPy Users :: Unable to execute database query for undelete: %s." % e)
 
-    # Keep method for PlexWatch import
+    # Keep method for PlexWatch/Plexivity import
     def get_user_id(self, user=None):
         if user:
             try:

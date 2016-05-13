@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import arrow
 import sqlite3
 from xml.dom import minidom
 
@@ -26,24 +27,27 @@ import plextv
 import users
 
 
-def extract_plexwatch_xml(xml=None):
+def extract_plexivity_xml(xml=None):
     output = {}
     clean_xml = helpers.latinToAscii(xml)
     try:
         xml_parse = minidom.parseString(clean_xml)
     except:
-        logger.warn(u"PlexPy Importer :: Error parsing XML for PlexWatch database.")
+        logger.warn(u"PlexPy Importer :: Error parsing XML for Plexivity database.")
         return None
 
-    xml_head = xml_parse.getElementsByTagName('opt')
+    # I think Plexivity only tracked videos and not music?
+    xml_head = xml_parse.getElementsByTagName('Video')
     if not xml_head:
-        logger.warn(u"PlexPy Importer :: Error parsing XML for PlexWatch database.")
+        logger.warn(u"PlexPy Importer :: Error parsing XML for Plexivity database.")
         return None
 
     for a in xml_head:
+        rating_key = helpers.get_xml_attr(a, 'ratingKey')
         added_at = helpers.get_xml_attr(a, 'addedAt')
         art = helpers.get_xml_attr(a, 'art')
         duration = helpers.get_xml_attr(a, 'duration')
+        grandparent_rating_key = helpers.get_xml_attr(a, 'grandparentRatingKey')
         grandparent_thumb = helpers.get_xml_attr(a, 'grandparentThumb')
         grandparent_title = helpers.get_xml_attr(a, 'grandparentTitle')
         guid = helpers.get_xml_attr(a, 'guid')
@@ -51,15 +55,16 @@ def extract_plexwatch_xml(xml=None):
         media_index = helpers.get_xml_attr(a, 'index')
         originally_available_at = helpers.get_xml_attr(a, 'originallyAvailableAt')
         last_viewed_at = helpers.get_xml_attr(a, 'lastViewedAt')
+        parent_rating_key = helpers.get_xml_attr(a, 'parentRatingKey')
         parent_media_index = helpers.get_xml_attr(a, 'parentIndex')
         parent_thumb = helpers.get_xml_attr(a, 'parentThumb')
+        parent_title = helpers.get_xml_attr(a, 'parentTitle')
         rating = helpers.get_xml_attr(a, 'rating')
         thumb = helpers.get_xml_attr(a, 'thumb')
         media_type = helpers.get_xml_attr(a, 'type')
         updated_at = helpers.get_xml_attr(a, 'updatedAt')
         view_offset = helpers.get_xml_attr(a, 'viewOffset')
         year = helpers.get_xml_attr(a, 'year')
-        parent_title = helpers.get_xml_attr(a, 'parentTitle')
         studio = helpers.get_xml_attr(a, 'studio')
         title = helpers.get_xml_attr(a, 'title')
         tagline = helpers.get_xml_attr(a, 'tagline')
@@ -161,9 +166,11 @@ def extract_plexwatch_xml(xml=None):
             for i in label_elem:
                 labels.append(helpers.get_xml_attr(i, 'tag'))
 
-        output = {'added_at': added_at,
+        output = {'rating_key': rating_key,
+                  'added_at': added_at,
                   'art': art,
                   'duration': duration,
+                  'grandparent_rating_key': grandparent_rating_key,
                   'grandparent_thumb': grandparent_thumb,
                   'grandparent_title': grandparent_title,
                   'parent_title': parent_title,
@@ -174,6 +181,7 @@ def extract_plexwatch_xml(xml=None):
                   'media_index': media_index,
                   'originally_available_at': originally_available_at,
                   'last_viewed_at': last_viewed_at,
+                  'parent_rating_key': parent_rating_key,
                   'parent_media_index': parent_media_index,
                   'parent_thumb': parent_thumb,
                   'rating': rating,
@@ -230,7 +238,7 @@ def validate_database(database=None, table_name=None):
         return 'Uncaught exception.'
 
     try:
-        connection.execute('SELECT ratingKey from %s' % table_name)
+        connection.execute('SELECT xml from %s' % table_name)
         connection.close()
     except sqlite3.OperationalError:
         logger.error(u"PlexPy Importer :: Invalid database specified.")
@@ -241,7 +249,7 @@ def validate_database(database=None, table_name=None):
 
     return 'success'
 
-def import_from_plexwatch(database=None, table_name=None, import_ignore_interval=0):
+def import_from_plexivity(database=None, table_name=None, import_ignore_interval=0):
 
     try:
         connection = sqlite3.connect(database, timeout=20)
@@ -254,12 +262,12 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
         return None
 
     try:
-        connection.execute('SELECT ratingKey from %s' % table_name)
+        connection.execute('SELECT xml from %s' % table_name)
     except sqlite3.OperationalError:
         logger.error(u"PlexPy Importer :: Database specified does not contain the required fields.")
         return None
 
-    logger.debug(u"PlexPy Importer :: PlexWatch data import in progress...")
+    logger.debug(u"PlexPy Importer :: Plexivity data import in progress...")
 
     logger.debug(u"PlexPy Importer :: Disabling monitoring while import in progress.")
     plexpy.schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
@@ -279,9 +287,9 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
         logger.debug(u"PlexPy Importer :: Unable to refresh the users list. Aborting import.")
         return None
 
-    query = 'SELECT time AS started, ' \
+    query = 'SELECT id AS id, ' \
+            'time AS started, ' \
             'stopped, ' \
-            'cast(ratingKey as text) AS rating_key, ' \
             'null AS user_id, ' \
             'user, ' \
             'ip_address, ' \
@@ -289,36 +297,34 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
             'platform AS player, ' \
             'null AS platform, ' \
             'null as machine_id, ' \
-            'parentRatingKey as parent_rating_key, ' \
-            'grandparentRatingKey as grandparent_rating_key, ' \
             'null AS media_type, ' \
             'null AS view_offset, ' \
             'xml, ' \
             'rating as content_rating,' \
             'summary,' \
             'title AS full_title,' \
-            '(case when orig_title_ep = "" then orig_title else ' \
+            '(case when orig_title_ep = "n/a" then orig_title else ' \
             'orig_title_ep end) as title,' \
-            '(case when orig_title_ep != "" then orig_title else ' \
+            '(case when orig_title_ep != "n/a" then orig_title else ' \
             'null end) as grandparent_title ' \
             'FROM ' + table_name + ' ORDER BY id'
 
     result = connection.execute(query)
 
     for row in result:
-        # Extract the xml from the Plexwatch db xml field.
-        extracted_xml = extract_plexwatch_xml(row['xml'])
+        # Extract the xml from the Plexivity db xml field.
+        extracted_xml = extract_plexivity_xml(row['xml'])
 
         # If we get back None from our xml extractor skip over the record and log error.
         if not extracted_xml:
-            logger.error(u"PlexPy Importer :: Skipping record with ratingKey %s due to malformed xml."
-                         % str(row['rating_key']))
+            logger.error(u"PlexPy Importer :: Skipping record with id %s due to malformed xml."
+                         % str(row['id']))
             continue
 
         # Skip line if we don't have a ratingKey to work with
-        if not row['rating_key']:
-            logger.error(u"PlexPy Importer :: Skipping record due to null ratingKey.")
-            continue
+        #if not row['rating_key']:
+        #    logger.error(u"PlexPy Importer :: Skipping record due to null ratingKey.")
+        #    continue
 
         # If the user_id no longer exists in the friends list, pull it from the xml.
         if user_data.get_user_id(user=row['user']):
@@ -326,9 +332,9 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
         else:
             user_id = extracted_xml['user_id']
 
-        session_history = {'started': row['started'],
-                           'stopped': row['stopped'],
-                           'rating_key': row['rating_key'],
+        session_history = {'started': arrow.get(row['started']).timestamp,
+                           'stopped': arrow.get(row['stopped']).timestamp,
+                           'rating_key': extracted_xml['rating_key'],
                            'title': row['title'],
                            'parent_title': extracted_xml['parent_title'],
                            'grandparent_title': row['grandparent_title'],
@@ -339,8 +345,8 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                            'player': row['player'],
                            'platform': extracted_xml['platform'],
                            'machine_id': extracted_xml['machine_id'],
-                           'parent_rating_key': row['parent_rating_key'],
-                           'grandparent_rating_key': row['grandparent_rating_key'],
+                           'parent_rating_key': extracted_xml['parent_rating_key'],
+                           'grandparent_rating_key': extracted_xml['grandparent_rating_key'],
                            'media_type': extracted_xml['media_type'],
                            'view_offset': extracted_xml['view_offset'],
                            'video_decision': extracted_xml['video_decision'],
@@ -365,9 +371,9 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                            'transcode_height': extracted_xml['transcode_height']
                            }
 
-        session_history_metadata = {'rating_key': helpers.latinToAscii(row['rating_key']),
-                                    'parent_rating_key': row['parent_rating_key'],
-                                    'grandparent_rating_key': row['grandparent_rating_key'],
+        session_history_metadata = {'rating_key': extracted_xml['rating_key'],
+                                    'parent_rating_key': extracted_xml['parent_rating_key'],
+                                    'grandparent_rating_key': extracted_xml['grandparent_rating_key'],
                                     'title': row['title'],
                                     'parent_title': extracted_xml['parent_title'],
                                     'grandparent_title': row['grandparent_title'],
@@ -409,14 +415,14 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
         else:
             logger.debug(u"PlexPy Importer :: Item has bad rating_key: %s" % session_history_metadata['rating_key'])
 
-    logger.debug(u"PlexPy Importer :: PlexWatch data import complete.")
+    logger.debug(u"PlexPy Importer :: Plexivity data import complete.")
     import_users()
 
     logger.debug(u"PlexPy Importer :: Re-enabling monitoring.")
     plexpy.initialize_scheduler()
 
 def import_users():
-    logger.debug(u"PlexPy Importer :: Importing PlexWatch Users...")
+    logger.debug(u"PlexPy Importer :: Importing Plexivity Users...")
     monitor_db = database.MonitorDatabase()
 
     query = 'INSERT OR IGNORE INTO users (user_id, username) ' \

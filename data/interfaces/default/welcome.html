@@ -141,11 +141,11 @@
             </div>
 
             <div class="wizard-card" data-cardname="card6">
-                <h3>PlexWatch Import</h3>
-                <p class="help-block">If you have an existing PlexWatch database, you can import the data into PlexPy.</p>
+                <h3>PlexWatch/Plexivity Import</h3>
+                <p class="help-block">If you have an existing PlexWatch/Plexivity database, you can import the data into PlexPy.</p>
                 <p class="help-block">
                     When you complete this wizard navigate to the settings menu and to the Extra Settings tab. You will find an import tool there
-                    which will convert your plexWatch database into a format that PlexPy can read.
+                    which will convert your PlexWatch/Plexivity database into a format that PlexPy can read.
                 </p>
                 <!-- Figure out best way to get friends list refreshed before adding this back
                     You can skip this and do it later if you wish.</p>
@@ -468,25 +468,25 @@
     });
 
     // Send database path to import script
-    $("#plexwatch-import").click(function() {
-        var database_path = $("#db_location").val();
-        var table_name = 'processed';
-        var import_ignore_interval = 0;
-        $.ajax({
-            url: 'get_plexwatch_export_data',
-            data: {database_path: database_path, table_name:table_name, import_ignore_interval:import_ignore_interval},
-            cache: false,
-            async: true,
-            success: function(data) {
-                if (data === 'Import has started. Check the PlexPy logs to monitor any problems.') {
-                    $("#plexwatch-import-status").html('Started');
-                } else {
-                    $("#plexwatch-import-status").html(data);
-                }
-                $("#db_location").val('')
-            }
-        });
-    });
+    //$("#plexwatch-import").click(function() {
+    //    var database_path = $("#db_location").val();
+    //    var table_name = 'processed';
+    //    var import_ignore_interval = 0;
+    //    $.ajax({
+    //        url: 'get_plexwatch_export_data',
+    //        data: {database_path: database_path, table_name:table_name, import_ignore_interval:import_ignore_interval},
+    //        cache: false,
+    //        async: true,
+    //        success: function(data) {
+    //            if (data === 'Import has started. Check the PlexPy logs to monitor any problems.') {
+    //                $("#plexwatch-import-status").html('Started');
+    //            } else {
+    //                $("#plexwatch-import-status").html(data);
+    //            }
+    //            $("#db_location").val('')
+    //        }
+    //    });
+    //});
 
     function getServerOptions(token) {
         /* Set token and returns server options */

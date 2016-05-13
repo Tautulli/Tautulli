@@ -40,6 +40,7 @@ import log_reader
 import logger
 import notifiers
 import plextv
+import plexivity_import
 import plexwatch_import
 import pmsconnect
 import users
@@ -2630,12 +2631,13 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    @addtoapi("import_plexwatch_database")
-    def get_plexwatch_export_data(self, database_path=None, table_name=None, import_ignore_interval=0, **kwargs):
-        """ Import a plexwatch database into PlexPy.
+    @addtoapi()
+    def import_database(self, app=None, database_path=None, table_name=None, import_ignore_interval=0, **kwargs):
+        """ Import a PlexWatch or Plexivity database into PlexPy.
 
             ```
             Required parameters:
+                app (str):                      "plexwatch" or "plexivity"
                 database_path (str):            The full path to the plexwatch database file
                 table_name (str):               "processed" or "grouped"
 
@@ -2646,21 +2648,44 @@ class WebInterface(object):
                 None
             ```
         """
-        db_check_msg = plexwatch_import.validate_database(database=database_path,
-                                                          table_name=table_name)
-        if db_check_msg == 'success':
-            threading.Thread(target=plexwatch_import.import_from_plexwatch,
-                             kwargs={'database': database_path,
-                                     'table_name': table_name,
-                                     'import_ignore_interval': import_ignore_interval}).start()
-            return 'Import has started. Check the PlexPy logs to monitor any problems.'
+        if not app:
+            return 'No app specified for import'
+
+        if app.lower() == 'plexwatch':
+            db_check_msg = plexwatch_import.validate_database(database=database_path,
+                                                              table_name=table_name)
+            if db_check_msg == 'success':
+                threading.Thread(target=plexwatch_import.import_from_plexwatch,
+                                 kwargs={'database': database_path,
+                                         'table_name': table_name,
+                                         'import_ignore_interval': import_ignore_interval}).start()
+                return 'Import has started. Check the PlexPy logs to monitor any problems.'
+            else:
+                return db_check_msg
+        elif app.lower() == 'plexivity':
+            db_check_msg = plexivity_import.validate_database(database=database_path,
+                                                              table_name=table_name)
+            if db_check_msg == 'success':
+                threading.Thread(target=plexivity_import.import_from_plexivity,
+                                 kwargs={'database': database_path,
+                                         'table_name': table_name,
+                                         'import_ignore_interval': import_ignore_interval}).start()
+                return 'Import has started. Check the PlexPy logs to monitor any problems.'
+            else:
+                return db_check_msg
         else:
-            return db_check_msg
+            return 'App not recognized for import'
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def plexwatch_import(self, **kwargs):
-        return serve_template(templatename="plexwatch_import.html", title="Import PlexWatch Database")
+    def import_database_tool(self, app=None, **kwargs):
+        if app == 'plexwatch':
+            return serve_template(templatename="app_import.html", title="Import PlexWatch Database", app="PlexWatch")
+        elif app == 'plexivity':
+            return serve_template(templatename="app_import.html", title="Import Plexivity Database", app="Plexivity")
+
+        logger.warn(u"No app specified for import.")
+        return
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
