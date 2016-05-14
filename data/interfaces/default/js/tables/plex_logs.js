@@ -1,7 +1,7 @@
 var plex_log_table_options = {
     "destroy": true,
+    "serverSide": true,
     "processing": false,
-    "serverSide": false,
     "pagingType": "full_numbers",
     "order": [ 0, 'desc'],
     "pageLength": 50,
@@ -15,20 +15,31 @@ var plex_log_table_options = {
                 "infoFiltered": "(filtered from _MAX_ total lines)",
                 "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
+    "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
             "width": "15%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [1],
             "width": "10%",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [2],
             "width": "75%"
         }
-    ]
+    ],
+    "drawCallback": function (settings) {
+        // Jump to top of page
+        //$('html,body').scrollTop(0);
+        $('#ajaxMsg').fadeOut();
+    },
+    "preDrawCallback": function(settings) {
+        var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
+        showMsg(msg, false, false, 0)
+    }
 }

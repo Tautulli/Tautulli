@@ -27,7 +27,8 @@ history_table_modal_options = {
     "pageLength": 10,
     "lengthChange": false,
     "autoWidth": false,
-    "order": [ 0, 'desc'],
+    "scrollX": true,
+    "order": [0, 'desc'],
     "columnDefs": [
         {
             "targets": [0],
@@ -72,7 +73,7 @@ history_table_modal_options = {
                 }
             },
             "width": "15%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [3],
@@ -91,7 +92,7 @@ history_table_modal_options = {
                 }
             },
             "width": "25%",
-            "className": "no-wrap hidden-sm hidden-xs modal-control"
+            "className": "no-wrap modal-control"
         },
         {
             "targets": [4],
@@ -121,7 +122,8 @@ history_table_modal_options = {
                     }
                 }
             },
-            "width": "40%"
+            "width": "40%",
+            "className": "datatable-wrap"
         }
     ],
     "drawCallback": function (settings) {

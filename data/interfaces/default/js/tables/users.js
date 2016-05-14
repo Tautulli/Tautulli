@@ -33,9 +33,10 @@ users_list_table_options = {
     "serverSide": true,
     "pageLength": 10,
     "order": [ 2, 'asc'],
-    "autoWidth": true,
     "stateSave": true,
     "pagingType": "full_numbers",
+    "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -97,7 +98,7 @@ users_list_table_options = {
             },
             "searchable": false,
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [4],
@@ -118,7 +119,7 @@ users_list_table_options = {
                 }
             },
             "width": "10%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control-ip"
+            "className": "no-wrap modal-control-ip"
         },
         {
             "targets": [5],
@@ -131,7 +132,7 @@ users_list_table_options = {
                 }
             },
             "width": "10%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+            "className": "no-wrap modal-control"
         },
         {
             "targets": [6],
@@ -152,7 +153,7 @@ users_list_table_options = {
                 }
             },
             "width": "15%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+            "className": "no-wrap modal-control"
         },
         {
             "targets": [7],
@@ -185,7 +186,7 @@ users_list_table_options = {
                 }
             },
             "width": "23%",
-            "className": "hidden-sm hidden-xs"
+            "className": "datatable-wrap"
         },
         {
             "targets": [8],
@@ -196,7 +197,8 @@ users_list_table_options = {
                 }
             },
             "searchable": false,
-            "width": "7%"
+            "width": "7%",
+            "className": "no-wrap"
         },
         {
             "targets": [9],
@@ -207,7 +209,8 @@ users_list_table_options = {
                 }
             },
             "searchable": false,
-            "width": "10%"
+            "width": "10%",
+            "className": "no-wrap"
         }
 
     ],

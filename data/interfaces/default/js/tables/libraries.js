@@ -16,9 +16,10 @@ libraries_list_table_options = {
     "serverSide": true,
     "pageLength": 10,
     "order": [ 2, 'asc'],
-    "autoWidth": true,
     "stateSave": true,
     "pagingType": "full_numbers",
+    "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -80,7 +81,7 @@ libraries_list_table_options = {
                 }
             },
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [4],
@@ -92,7 +93,7 @@ libraries_list_table_options = {
 
             },
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [5],
@@ -104,7 +105,7 @@ libraries_list_table_options = {
 
             },
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [6],
@@ -116,7 +117,7 @@ libraries_list_table_options = {
 
             },
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [7],
@@ -130,7 +131,7 @@ libraries_list_table_options = {
             },
             "searchable": false,
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [8],
@@ -182,7 +183,7 @@ libraries_list_table_options = {
                 }
             },
             "width": "18%",
-            "className": "hidden-sm hidden-xs"
+            "className": "datatable-wrap"
         },
         {
             "targets": [9],
@@ -193,7 +194,8 @@ libraries_list_table_options = {
                 }
             },
             "searchable": false,
-            "width": "7%"
+            "width": "7%",
+            "className": "no-wrap"
         },
         {
             "targets": [10],
@@ -204,7 +206,8 @@ libraries_list_table_options = {
                 }
             },
             "searchable": false,
-            "width": "10%"
+            "width": "10%",
+            "className": "no-wrap"
         }
 
     ],

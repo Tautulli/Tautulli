@@ -190,7 +190,7 @@ DOCUMENTATION :: END
                                                 </button>&nbsp;
                                             </div>
                                             % endif
-                                            <div class="btn-group colvis-button-bar hidden-xs" id="button-bar-history"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-history"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -253,7 +253,7 @@ DOCUMENTATION :: END
                                                 % endif
                                             </div>
                                             % endif
-                                            <div class="btn-group colvis-button-bar hidden-xs" id="button-bar-media-info"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-media-info"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -601,6 +601,11 @@ DOCUMENTATION :: END
             } else {
                 $("#recently-added-page-right").removeClass("disabled");
             }
+        });
+
+        $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
+            $(".dataTables_scrollHeadInner").css("width","100%");
+            $("table.display").css("width","100%");
         });
     });
 </script>

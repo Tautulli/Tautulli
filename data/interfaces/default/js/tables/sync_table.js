@@ -14,6 +14,8 @@ sync_table_options = {
         "infoFiltered": "(filtered from _MAX_ total lines)",
         "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
+    "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -26,7 +28,7 @@ sync_table_options = {
                     $(td).html(cellData.toProperCase());
                 }
             },
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [1],
@@ -55,25 +57,26 @@ sync_table_options = {
                         $(td).html(cellData);
                     }
                 }
-            }
-        },
+            },
+            "className": "datatable-wrap"
+},
         {
             "targets": [3],
             "data": "metadata_type",
             "render": function ( data, type, full ) {
                 return data.toProperCase();
             },
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [4],
             "data": "platform",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [5],
             "data": "device_name",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [6],
@@ -86,22 +89,22 @@ sync_table_options = {
                     $(td).html('0MB');
                 }
             },
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [7],
             "data": "item_count",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [8],
             "data": "item_complete_count",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [9],
             "data": "item_downloaded_count",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [10],
@@ -113,7 +116,7 @@ sync_table_options = {
                     $(td).html('<span class="badge">0%</span>');
                 }
             },
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         }
     ],
     "drawCallback": function (settings) {

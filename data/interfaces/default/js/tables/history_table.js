@@ -29,6 +29,7 @@ history_table_options = {
     "pageLength": 25,
     "order": [ 1, 'desc'],
     "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -75,7 +76,7 @@ history_table_options = {
                 }
             },
             "width": "9%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [3],
@@ -97,7 +98,7 @@ history_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control-ip"
+            "className": "no-wrap modal-control-ip"
         },
         {
             "targets": [4],
@@ -108,7 +109,7 @@ history_table_options = {
                 }
             },
             "width": "10%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [5],
@@ -127,7 +128,7 @@ history_table_options = {
                 }
             },
             "width": "12%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+            "className": "no-wrap modal-control"
         },
         {
             "targets": [6],
@@ -157,8 +158,9 @@ history_table_options = {
                     }
                 }
             },
-            "width": "33%"
-        },
+            "width": "33%",
+            "className": "datatable-wrap"
+},
         {
             "targets": [7],
             "data":"started",
@@ -171,7 +173,7 @@ history_table_options = {
             },
             "searchable": false,
             "width": "5%",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [8],
@@ -185,7 +187,7 @@ history_table_options = {
             },
             "searchable": false,
             "width": "5%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [9],
@@ -199,7 +201,7 @@ history_table_options = {
             },
             "searchable": false,
             "width": "5%",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [10],
@@ -213,7 +215,7 @@ history_table_options = {
             },
             "searchable": false,
             "width": "5%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [11],
@@ -229,7 +231,7 @@ history_table_options = {
             },
             "searchable": false,
             "orderable": false,
-            "className": "no-wrap hidden-md hidden-sm hidden-xs",
+            "className": "no-wrap",
             "width": "2%"
         },
     ],

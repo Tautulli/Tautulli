@@ -16,6 +16,7 @@ login_table_options = {
     "pageLength": 10,
     "order": [0, 'desc'],
     "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -45,7 +46,7 @@ login_table_options = {
             },
             "searchable": false,
             "width": "10%",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [2],

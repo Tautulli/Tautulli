@@ -30,6 +30,7 @@ media_info_table_options = {
     "pageLength": 25,
     "order": [ 1, 'asc'],
     "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -107,8 +108,9 @@ media_info_table_options = {
                     }
                 }
             },
-            "width": "20%"
-        },
+            "width": "20%",
+            "className": "no-wrap",
+},
         {
             "targets": [2],
             "data": "container",
@@ -118,7 +120,7 @@ media_info_table_options = {
                 }
             },
             "width": "6%",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [3],
@@ -129,7 +131,7 @@ media_info_table_options = {
                 }
             },
             "width": "6%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs",
+            "className": "no-wrap",
             "searchable": false
         },
         {
@@ -141,7 +143,7 @@ media_info_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [5],
@@ -152,7 +154,7 @@ media_info_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [6],
@@ -163,7 +165,7 @@ media_info_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [7],
@@ -174,7 +176,7 @@ media_info_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [8],
@@ -185,7 +187,7 @@ media_info_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [9],
@@ -200,7 +202,7 @@ media_info_table_options = {
                 }
             },
             "width": "7%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs",
+            "className": "no-wrap",
             "searchable": false
         },
         {
@@ -213,7 +215,7 @@ media_info_table_options = {
                 }
             },
             "width": "7%",
-            "className": "no-wrap hidden-xs",
+            "className": "no-wrap",
             "searchable": false
         },
         {
@@ -225,7 +227,7 @@ media_info_table_options = {
                 }
             },
             "width": "5%",
-            "className": "no-wrap hidden-xs",
+            "className": "no-wrap",
             "searchable": false
         }
     ],

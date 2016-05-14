@@ -16,6 +16,7 @@ user_ip_table_options = {
     "pageLength": 10,
     "order": [ 0, 'desc'],
     "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -25,7 +26,7 @@ user_ip_table_options = {
             },
             "searchable": false,
             "width": "15%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [1],
@@ -58,7 +59,7 @@ user_ip_table_options = {
                 }
             },
             "width": "15%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [3],
@@ -79,7 +80,7 @@ user_ip_table_options = {
                 }
             },
             "width": "15%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+            "className": "no-wrap modal-control"
         },
         {
             "targets": [4],
@@ -112,13 +113,14 @@ user_ip_table_options = {
                 }
             },
             "width": "30%",
-            "className": "hidden-sm hidden-xs"
+            "className": "datatable-wrap"
         },
         {
             "targets": [5],
             "data":"play_count",
             "searchable": false,
-            "width": "10%"
+            "width": "10%",
+            "className": "no-wrap"
             }
     ],
     "drawCallback": function (settings) {

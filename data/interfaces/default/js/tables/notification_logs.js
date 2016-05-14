@@ -15,6 +15,8 @@ notification_log_table_options = {
                 "infoFiltered": "(filtered from _MAX_ total lines)",
                 "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
+    "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -25,7 +27,7 @@ notification_log_table_options = {
                 }
             },
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [1],
@@ -36,7 +38,7 @@ notification_log_table_options = {
                 }
             },
             "width": "7%",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [2],
@@ -46,7 +48,8 @@ notification_log_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "5%"
+            "width": "5%",
+            "className": "no-wrap"
         },
         {
             "targets": [3],

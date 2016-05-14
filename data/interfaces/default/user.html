@@ -61,7 +61,7 @@ DOCUMENTATION :: END
                                 % endif
                             </div>
                             <div class="user-info-nav">
-                                <ul class="user-info-nav">
+                                <ul class="">
                                     <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
                                     <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
                                     <li><a id="history-tab-btn" href="#userHistory" data-toggle="tab">History</a></li>
@@ -203,7 +203,7 @@ DOCUMENTATION :: END
                                                     <input type="radio" name="media_type-filter" id="history-music" value="track" autocomplete="off"> Music
                                                 </label>
                                             </div>
-                                            <div class="btn-group colvis-button-bar hidden-xs" id="button-bar-history"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-history"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -244,7 +244,7 @@ DOCUMENTATION :: END
                                             </span>
                                         </div>
                                         <div class="button-bar">
-                                            <div class="btn-group colvis-button-bar hidden-xs" id="button-bar-sync"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-sync"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -284,7 +284,7 @@ DOCUMENTATION :: END
                                             </span>
                                         </div>
                                         <div class="button-bar">
-                                            <div class="btn-group colvis-button-bar hidden-xs" id="button-bar-login"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-login"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -594,6 +594,11 @@ DOCUMENTATION :: END
             } else {
                 $("#recently-watched-page-right").removeClass("disabled");
             }
+        });
+
+        $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
+            $(".dataTables_scrollHeadInner").css("width","100%");
+            $("table.display").css("width","100%");
         });
     });
 </script>
