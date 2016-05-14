@@ -125,7 +125,7 @@
                     <p class="help-block">The interval (in seconds) PlexPy will wait for a video item to be active before logging it. 0 to disable.</p>
                 </div>
             </div>
-            <div class="wizard-card" data-cardname="card5" data-validate="validateNotifications">
+            <div class="wizard-card" data-cardname="card5">
                 <h3>Notifications</h3>
                 <p class="help-block">PlexPy supports a wide variety of notification options. To set up a notification agent configure this in <strong>Settings -> Notification Agents</strong>
                 after you have completed this setup wizard.</p><br/>
@@ -141,7 +141,7 @@
             </div>
 
             <div class="wizard-card" data-cardname="card6">
-                <h3>PlexWatch/Plexivity Import</h3>
+                <h3>Database Import</h3>
                 <p class="help-block">If you have an existing PlexWatch/Plexivity database, you can import the data into PlexPy.</p>
                 <p class="help-block">
                     When you complete this wizard navigate to the settings menu and to the Extra Settings tab. You will find an import tool there
@@ -169,9 +169,11 @@
                     <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}>
                     <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}>
                     <input type="checkbox" name="refresh_libraries_on_startup" id="refresh_libraries_on_startup" value="1" ${config['refresh_libraries_on_startup']}>
+                    <input type="checkbox" name="check_github" id="check_github" value="1" ${config['check_github']}>
+                    <input type="checkbox" name="log_blacklist" id="log_blacklist" value="1" ${config['log_blacklist']}>
+                    <input type="checkbox" name="cache_images" id="cache_images" value="1" ${config['cache_images']}>
                     <input type="checkbox" name="server_changed" id="server_changed" value="1" checked>
                     <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
-                    <input type="checkbox" name="check_github" id="check_github" value="1" checked>
                     <input type="text" name="home_stats_cards" id="home_stats_cards" value="first_run_wizard">
                     <input type="text" name="home_library_cards" id="home_library_cards" value="first_run_wizard">
                 </div>
@@ -342,25 +344,6 @@
             $('#ignore-int-status').fadeIn('fast').delay(2000).fadeOut('fast');
         } else {
             retValue.status = true;
-        }
-
-        return retValue;
-    }
-
-    function validateNotifications(el) {
-        var retValue = {};
-        retValue.status = true;
-
-        if ($('#movie_notify_on_start').is(':checked')) {
-            $('#movie_notify_enable').prop('checked', true);
-        }
-
-        if ($('#tv_notify_on_start').is(':checked')) {
-            $('#tv_notify_enable').prop('checked', true);
-        }
-
-        if ($('#music_notify_on_start').is(':checked')) {
-            $('#music_notify_enable').prop('checked', true);
         }
 
         return retValue;

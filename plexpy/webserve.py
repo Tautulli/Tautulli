@@ -106,14 +106,13 @@ class WebInterface(object):
             "movie_notify_enable": checked(plexpy.CONFIG.MOVIE_NOTIFY_ENABLE),
             "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
             "music_notify_enable": checked(plexpy.CONFIG.MUSIC_NOTIFY_ENABLE),
-            "movie_notify_on_start": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_START),
-            "tv_notify_on_start": checked(plexpy.CONFIG.TV_NOTIFY_ON_START),
-            "music_notify_on_start": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_START),
             "movie_logging_enable": checked(plexpy.CONFIG.MOVIE_LOGGING_ENABLE),
             "tv_logging_enable": checked(plexpy.CONFIG.TV_LOGGING_ENABLE),
             "music_logging_enable": checked(plexpy.CONFIG.MUSIC_LOGGING_ENABLE),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
-            "check_github": checked(plexpy.CONFIG.CHECK_GITHUB)
+            "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),
+            "log_blacklist": checked(plexpy.CONFIG.LOG_BLACKLIST),
+            "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES)
         }
 
         # The setup wizard just refreshes the page on submit so we must redirect to home if config set.
@@ -2217,15 +2216,6 @@ class WebInterface(object):
             "movie_notify_enable": checked(plexpy.CONFIG.MOVIE_NOTIFY_ENABLE),
             "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
             "music_notify_enable": checked(plexpy.CONFIG.MUSIC_NOTIFY_ENABLE),
-            "tv_notify_on_start": checked(plexpy.CONFIG.TV_NOTIFY_ON_START),
-            "movie_notify_on_start": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_START),
-            "music_notify_on_start": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_START),
-            "tv_notify_on_stop": checked(plexpy.CONFIG.TV_NOTIFY_ON_STOP),
-            "movie_notify_on_stop": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_STOP),
-            "music_notify_on_stop": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_STOP),
-            "tv_notify_on_pause": checked(plexpy.CONFIG.TV_NOTIFY_ON_PAUSE),
-            "movie_notify_on_pause": checked(plexpy.CONFIG.MOVIE_NOTIFY_ON_PAUSE),
-            "music_notify_on_pause": checked(plexpy.CONFIG.MUSIC_NOTIFY_ON_PAUSE),
             "monitor_pms_updates": checked(plexpy.CONFIG.MONITOR_PMS_UPDATES),
             "monitor_remote_access": checked(plexpy.CONFIG.MONITOR_REMOTE_ACCESS),
             "monitoring_interval": plexpy.CONFIG.MONITORING_INTERVAL,
@@ -2298,9 +2288,6 @@ class WebInterface(object):
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
             "pms_use_bif", "pms_ssl", "pms_is_remote", "home_stats_type",
             "movie_notify_enable", "tv_notify_enable", "music_notify_enable", "monitoring_use_websocket",
-            "tv_notify_on_start", "movie_notify_on_start", "music_notify_on_start",
-            "tv_notify_on_stop", "movie_notify_on_stop", "music_notify_on_stop",
-            "tv_notify_on_pause", "movie_notify_on_pause", "music_notify_on_pause",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_recently_added_grandparent",
