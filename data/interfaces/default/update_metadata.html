@@ -98,7 +98,7 @@ DOCUMENTATION :: END
                     <div class='table-card-back'>
                         <div id="search-results-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading search results...</div>
                     </div>
-                    <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+                    <div class="modal fade" id="confirm-modal-update" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-update">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -195,8 +195,8 @@ DOCUMENTATION :: END
 
         $('#new_title').html($(this).find('.item-children-instance-text-wrapper').html());
 
-        $('#confirm-modal').modal();
-        $('#confirm-modal').one('click', '#confirm-update', function () {
+        $('#confirm-modal-update').modal();
+        $('#confirm-modal-update').one('click', '#confirm-update', function () {
             $(this).prop('disabled', true);
             var msg = '<i class="fa fa-refresh fa-spin"></i>&nbspUpdating database...'
             showMsg(msg, false, false, 0)

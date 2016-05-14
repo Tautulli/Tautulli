@@ -64,7 +64,7 @@
             <tbody>
             </tbody>
         </table>
-        <div class="modal fade" id="confirm-delete-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-delete-modal">
+        <div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -143,8 +143,8 @@
                         }
                     }
 
-                    $('#confirm-delete-modal').modal();
-                    $('#confirm-delete-modal').one('click', '#confirm-delete', function () {
+                    $('#confirm-modal-delete').modal();
+                    $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
                         for (var i = 0; i < libraries_to_delete.length; i++) {
                             $.ajax({
                                 url: 'delete_library',

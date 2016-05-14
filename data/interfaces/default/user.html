@@ -310,7 +310,7 @@ DOCUMENTATION :: END
                     </div>
                     <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
                     </div>
-                    <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+                    <div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -507,8 +507,8 @@ DOCUMENTATION :: END
             if ($(this).hasClass('active')) {
                 if (history_to_delete.length > 0) {
                     $('#deleteCount').text(history_to_delete.length);
-                    $('#confirm-modal').modal();
-                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                    $('#confirm-modal-delete').modal();
+                    $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
                         for (var i = 0; i < history_to_delete.length; i++) {
                             $.ajax({
                                 url: 'delete_history_rows',
