@@ -2,11 +2,12 @@ user_ip_table_options = {
     "destroy": true,
     "language": {
         "search": "Search: ",
-        "lengthMenu":"Show _MENU_ entries per page",
-        "info":"Showing _START_ to _END_ of _TOTAL_ results",
-        "infoEmpty":"Showing 0 to 0 of 0 entries",
-        "infoFiltered":"(filtered from _MAX_ total entries)",
+        "lengthMenu": "Show _MENU_ entries per page",
+        "info": "Showing _START_ to _END_ of _TOTAL_ results",
+        "infoEmpty": "Showing 0 to 0 of 0 entries",
+        "infoFiltered": "(filtered from _MAX_ total entries)",
         "emptyTable": "No data in table",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
     "stateSave": true,
     "pagingType": "full_numbers",
@@ -38,7 +39,8 @@ user_ip_table_options = {
                             $(td).html('n/a');
                         }
                     } else {
-                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal"><span data-toggle="ip-tooltip" data-placement="left" title="IP Address Info" id="ip-info"><i class="fa fa-map-marker"></i></span>&nbsp' + cellData +'</a>');
+                        external_ip = '<span class="external-ip-tooltip" data-toggle="tooltip" title="External IP"><i class="fa fa-map-marker fa-fw"></i></span>';
+                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">' + external_ip + cellData + '</a>');
                     }
                 } else {
                     $(td).html('n/a');
@@ -125,9 +127,10 @@ user_ip_table_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.transcode-tooltip').tooltip();
-        $('.media-type-tooltip').tooltip();
-        $('.watched-tooltip').tooltip();
+        $('.external-ip-tooltip').tooltip({ container: 'body' });
+        $('.transcode-tooltip').tooltip({ container: 'body' });
+        $('.media-type-tooltip').tooltip({ container: 'body' });
+        $('.watched-tooltip').tooltip({ container: 'body' });
         $('.thumb-tooltip').popover({
             html: true,
             container: 'body',

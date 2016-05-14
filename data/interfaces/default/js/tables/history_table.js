@@ -15,12 +15,13 @@ history_table_options = {
     "destroy": true,
     "language": {
         "search": "Search: ",
-        "lengthMenu":"Show _MENU_ entries per page",
-        "info":"Showing _START_ to _END_ of _TOTAL_ history items",
-        "infoEmpty":"Showing 0 to 0 of 0 entries",
-        "infoFiltered":"<span class='hidden-md hidden-sm hidden-xs'>(filtered from _MAX_ total entries)</span>",
-        "emptyTable": "No data in table"
-    },
+        "lengthMenu": "Show _MENU_ entries per page",
+        "info": "Showing _START_ to _END_ of _TOTAL_ history items",
+        "infoEmpty": "Showing 0 to 0 of 0 entries",
+        "infoFiltered": "<span class='hidden-md hidden-sm hidden-xs'>(filtered from _MAX_ total entries)</span>",
+        "emptyTable": "No data in table",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
+},
     "pagingType": "full_numbers",
     "stateSave": true,
     "processing": false,

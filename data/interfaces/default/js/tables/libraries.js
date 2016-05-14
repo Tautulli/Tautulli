@@ -4,11 +4,12 @@ var libraries_to_purge = [];
 libraries_list_table_options = {
     "language": {
         "search": "Search: ",
-        "lengthMenu":"Show _MENU_ entries per page",
-        "info":"Showing _START_ to _END_ of _TOTAL_ active libraries",
-        "infoEmpty":"Showing 0 to 0 of 0 entries",
-        "infoFiltered":"",
+        "lengthMenu": "Show _MENU_ entries per page",
+        "info": "Showing _START_ to _END_ of _TOTAL_ active libraries",
+        "infoEmpty": "Showing 0 to 0 of 0 entries",
+        "infoFiltered": "",
         "emptyTable": "No data in table",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
     "destroy": true,
     "processing": false,

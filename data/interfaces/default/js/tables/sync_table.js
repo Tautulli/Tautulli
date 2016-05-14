@@ -6,13 +6,13 @@ sync_table_options = {
     "pageLength": 25,
     "stateSave": true,
     "language": {
-        "search":"Search: ",
-        "lengthMenu":"Show _MENU_ lines per page",
+        "search": "Search: ",
+        "lengthMenu": "Show _MENU_ lines per page",
         "emptyTable": "No synced items",
-        "info":"Showing _START_ to _END_ of _TOTAL_ lines",
-        "infoEmpty":"Showing 0 to 0 of 0 lines",
-        "infoFiltered":"(filtered from _MAX_ total lines)",
-        "loadingRecords":'<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
+        "info": "Showing _START_ to _END_ of _TOTAL_ lines",
+        "infoEmpty": "Showing 0 to 0 of 0 lines",
+        "infoFiltered": "(filtered from _MAX_ total lines)",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
     "columnDefs": [
         {
@@ -118,6 +118,12 @@ sync_table_options = {
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
-        $('html,body').scrollTop(0);
+        // $('html,body').scrollTop(0);
+
+        $('#ajaxMsg').fadeOut();
+    },
+    "preDrawCallback": function (settings) {
+        var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
+        showMsg(msg, false, false, 0)
     }
 }

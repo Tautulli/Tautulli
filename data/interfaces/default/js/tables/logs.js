@@ -8,11 +8,13 @@ var log_table_options = {
     "stateSave": true,
     "language": {
                 "search":"Search: ",
-                "lengthMenu":"Show _MENU_ lines per page",
+                "lengthMenu": "Show _MENU_ lines per page",
                 "emptyTable": "No log information available",
-                "info":"Showing _START_ to _END_ of _TOTAL_ lines",
-                "infoEmpty":"Showing 0 to 0 of 0 lines",
-                "infoFiltered":"(filtered from _MAX_ total lines)"},
+                "info": "Showing _START_ to _END_ of _TOTAL_ lines",
+                "infoEmpty": "Showing 0 to 0 of 0 lines",
+                "infoFiltered": "(filtered from _MAX_ total lines)",
+                "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
+    },
     "columnDefs": [
         {
             "targets": [0],

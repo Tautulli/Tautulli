@@ -20,7 +20,8 @@ media_info_table_options = {
         "info":"Showing _START_ to _END_ of _TOTAL_ library items",
         "infoEmpty":"Showing 0 to 0 of 0 entries",
         "infoFiltered":"<span class='hidden-md hidden-sm hidden-xs'>(filtered from _MAX_ total entries)</span>",
-        "emptyTable": "No data in table"
+        "emptyTable": "No data in table",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
     "pagingType": "full_numbers",
     "stateSave": true,

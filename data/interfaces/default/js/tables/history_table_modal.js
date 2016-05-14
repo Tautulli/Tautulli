@@ -14,10 +14,11 @@ history_table_modal_options = {
     "destroy": true,
     "language": {
         "search": "Search: ",
-        "info":"Showing _START_ to _END_ of _TOTAL_ history items",
-        "infoEmpty":"Showing 0 to 0 of 0 entries",
-        "infoFiltered":"",
+        "info": "Showing _START_ to _END_ of _TOTAL_ history items",
+        "infoEmpty": "Showing 0 to 0 of 0 entries",
+        "infoFiltered": "",
         "emptyTable": "No data in table",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
     "pagingType": "simple_numbers",
     "stateSave": false,
