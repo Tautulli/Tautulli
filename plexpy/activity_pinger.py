@@ -206,8 +206,24 @@ def check_active_sessions(ws_request=False):
                         monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
                                           [stream['session_key'], stream['rating_key']])
                     else:
-                        logger.warn(u"PlexPy Monitor :: Failed to write sessionKey %s ratingKey %s to the database. " \
-                                    "Will try again on the next pass." % (stream['session_key'], stream['rating_key']))
+                        stream['write_attempts'] += 1
+
+                        if stream['write_attempts'] < plexpy.CONFIG.SESSION_DB_WRITE_ATTEMPTS:
+                            logger.warn(u"PlexPy Monitor :: Failed to write sessionKey %s ratingKey %s to the database. " \
+                                        "Will try again on the next pass. Write attempt %s."
+                                        % (stream['session_key'], stream['rating_key'], str(stream['write_attempts'])))
+                            monitor_db.action('UPDATE sessions SET write_attempts = ? '
+                                              'WHERE session_key = ? AND rating_key = ?',
+                                              [stream['write_attempts'], stream['session_key'], stream['rating_key']])
+                        else:
+                            logger.warn(u"PlexPy Monitor :: Failed to write sessionKey %s ratingKey %s to the database. " \
+                                        "Removing session from the database. Write attempt %s."
+                                        % (stream['session_key'], stream['rating_key'], str(stream['write_attempts'])))
+                            logger.debug(u"PlexPy Monitor :: Removing sessionKey %s ratingKey %s from session queue"
+                                         % (stream['session_key'], stream['rating_key']))
+                            monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
+                                              [stream['session_key'], stream['rating_key']])
+
 
             # Process the newly received session data
             for session in media_container:

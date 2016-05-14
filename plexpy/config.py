@@ -374,6 +374,7 @@ _CONFIG_DEFINITIONS = {
     'REFRESH_LIBRARIES_ON_STARTUP': (int, 'Monitoring', 1),
     'REFRESH_USERS_INTERVAL': (int, 'Monitoring', 12),
     'REFRESH_USERS_ON_STARTUP': (int, 'Monitoring', 1),
+    'SESSION_DB_WRITE_ATTEMPTS': (int, 'Monitoring', 5),
     'SLACK_ENABLED': (int, 'Slack', 0),
     'SLACK_HOOK': (str, 'Slack', ''),
     'SLACK_CHANNEL': (str, 'Slack', ''),
