@@ -178,13 +178,26 @@ def all_of(*conditions):
 
 class AuthController(object):
     
-    def on_login(self, username):
+    def on_login(self, user_id, username, user_group):
         """Called on successful login"""
-        logger.debug(u"User '%s' logged into PlexPy." % username)
+
+        # Save login to the database
+        ip_address = cherrypy.request.headers.get('X-Forwarded-For', cherrypy.request.headers.get('Remote-Addr'))
+        host = cherrypy.request.headers.get('Origin')
+        user_agent = cherrypy.request.headers.get('User-Agent')
+
+        Users().set_user_login(user_id=user_id,
+                               user=username,
+                               user_group=user_group,
+                               ip_address=ip_address,
+                               host=host,
+                               user_agent=user_agent)
+
+        logger.debug(u"%s user '%s' logged into PlexPy." % (user_group.capitalize(), username))
     
-    def on_logout(self, username):
+    def on_logout(self, username, user_group):
         """Called on logout"""
-        logger.debug(u"User '%s' logged out of PlexPy." % username)
+        logger.debug(u"%s User '%s' logged out of PlexPy." % (user_group.capitalize(), username))
     
     def get_loginform(self, username="", msg=""):
         from plexpy.webserve import serve_template
@@ -224,7 +237,7 @@ class AuthController(object):
                                              'user_group': user_group,
                                              'expiry': expiry}
 
-            self.on_login(username)
+            self.on_login(user_id, username, user_group)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         elif admin_login == '1':
@@ -244,5 +257,5 @@ class AuthController(object):
 
         if _session and _session['user']:
             cherrypy.request.login = None
-            self.on_logout(_session['user'])
+            self.on_logout(_session['user'], _session['user_group'])
         raise cherrypy.HTTPRedirect("login")

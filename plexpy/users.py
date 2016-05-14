@@ -13,6 +13,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import httpagentparser
+import time
+
 import plexpy
 import common
 import database
@@ -671,3 +674,87 @@ class Users(object):
             filters_list[k] = filters
 
         return filters_list
+
+    def set_user_login(self, user_id=None, user=None, user_group=None, ip_address=None, host=None, user_agent=None):
+
+        if user_id is None or str(user_id).isdigit():
+            monitor_db = database.MonitorDatabase()
+
+            keys = {'timestamp': int(time.time()),
+                    'user_id': user_id}
+
+            values = {'user': user,
+                      'user_group': user_group,
+                      'ip_address': ip_address,
+                      'host': host,
+                      'user_agent': user_agent}
+
+            try:
+                monitor_db.upsert(table_name='user_login', key_dict=keys, value_dict=values)
+            except Exception as e:
+                logger.warn(u"PlexPy Users :: Unable to execute database query for set_login_log: %s." % e)
+
+    def get_datatables_user_login(self, user_id=None, kwargs=None):
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to execute database query.'}
+
+        if not session.allow_session_user(user_id):
+            return default_return
+
+        data_tables = datatables.DataTables()
+
+        custom_where = [['user_id', user_id]]
+
+        columns = ['user_login.user_id',
+                   'user_login.user',
+                   'user_login.user_group',
+                   'user_login.ip_address',
+                   'user_login.host',
+                   'user_login.user_agent',
+                   'user_login.timestamp',
+                   'users.friendly_name'
+                   ]
+
+        try:
+            query = data_tables.ssp_query(table_name='user_login',
+                                          columns=columns,
+                                          custom_where=custom_where,
+                                          group_by=[],
+                                          join_types=['LEFT OUTER JOIN'],
+                                          join_tables=['users'],
+                                          join_evals=[['user_login.user_id', 'users.user_id']],
+                                          kwargs=kwargs)
+        except Exception as e:
+            logger.warn(u"PlexPy Users :: Unable to execute database query for get_datatables_user_login: %s." % e)
+            return default_return
+
+        results = query['result']
+
+        rows = []
+        for item in results:
+            (os, browser) = httpagentparser.simple_detect(item['user_agent'])
+
+            row = {'user_id': item['user_id'],
+                   'user': item['user'],
+                   'user_group': item['user_group'],
+                   'ip_address': item['ip_address'],
+                   'host': item['host'],
+                   'user_agent': item['user_agent'],
+                   'os': os,
+                   'browser': browser,
+                   'timestamp': item['timestamp'],
+                   'friendly_name': item['friendly_name']
+                   }
+
+            rows.append(row)
+
+        dict = {'recordsFiltered': query['filteredCount'],
+                'recordsTotal': query['totalCount'],
+                'data': session.friendly_name_to_username(rows),
+                'draw': query['draw']
+                }
+
+        return dict

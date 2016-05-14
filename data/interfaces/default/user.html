@@ -66,6 +66,7 @@ DOCUMENTATION :: END
                                     <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
                                     <li><a id="history-tab-btn" href="#userHistory" data-toggle="tab">History</a></li>
                                     <li><a id="sync-tab-btn" href="#userSyncItems" data-toggle="tab">Synced Items</a></li>
+                                    <li><a id="login-tab-btn" href="#userLogins" data-toggle="tab">PlexPy Logins</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -270,6 +271,41 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    <div class="tab-pane" id="userLogins">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class='table-card-header'>
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-sign-in"></i> PlexPy Login for <strong>
+                                                    <span class="set-username">${data['friendly_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="button-bar">
+                                            <div class="btn-group colvis-button-bar hidden-xs" id="button-bar-login"></div>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display login_table" id="login_table-UID-${data['user_id']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left" id="date">Date</th>
+                                                    <th align="left" id="time">Time</th>
+                                                    <th align="left" id="ip_address">IP Address</th>
+                                                    <th align="left" id="host">Host</th>
+                                                    <th align="left" id="os">Operating System</th>
+                                                    <th align="left" id="browser">Browser</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
                     </div>
                     <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
@@ -331,6 +367,7 @@ DOCUMENTATION :: END
 <script src="${http_root}js/tables/history_table.js"></script>
 <script src="${http_root}js/tables/user_ips.js"></script>
 <script src="${http_root}js/tables/sync_table.js"></script>
+<script src="${http_root}js/tables/login_table.js"></script>
 <script>
     $(document).ready(function () {
 
@@ -431,6 +468,22 @@ DOCUMENTATION :: END
             $( colvis_sync.button() ).appendTo('#button-bar-sync');
 
             clearSearchButton('sync_table-UID-${data["user_id"]}', sync_table);
+        });
+
+        $( "#login-tab-btn" ).one( "click", function() {
+            // Build user login table
+            login_table_options.ajax = {
+                url: 'get_user_logins',
+                data: function(d) {
+                    d.user_id = user_id;
+                }
+            }
+            login_table = $('#login_table-UID-${data["user_id"]}').DataTable(login_table_options);
+
+            var colvis_login = new $.fn.dataTable.ColVis( login_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' } );
+            $( colvis_login.button() ).appendTo('#button-bar-login');
+
+            clearSearchButton('login_table-UID-${data["user_id"]}', login_table);
         });
 
         % if _session['user_group'] == 'admin':

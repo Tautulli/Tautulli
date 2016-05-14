@@ -473,6 +473,12 @@ def dbcheck():
         'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
     )
 
+    # user_login table :: This table keeps record of the PlexPy guest logins
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS user_login (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, ip_address TEXT, host TEXT, user_agent TEXT)'
+    )
+
     # Upgrade sessions table from earlier versions
     try:
         c_db.execute('SELECT started FROM sessions')

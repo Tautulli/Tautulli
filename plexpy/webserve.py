@@ -1167,6 +1167,27 @@ class WebInterface(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
+    @requireAuth()
+    def get_user_logins(self, user_id=None, **kwargs):
+        """ Get the data on PlexPy user login table. """
+        # Check if datatables json_data was received.
+        # If not, then build the minimal amount of json data for a query
+        if not kwargs.get('json_data'):
+            # TODO: Find some one way to automatically get the columns
+            dt_columns = [("time", True, False),
+                          ("ip_address", True, True),
+                          ("host", True, True),
+                          ("os", True, True),
+                          ("browser", True, True)]
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "time")
+
+        user_data = users.Users()
+        history = user_data.get_datatables_user_login(user_id=user_id, kwargs=kwargs)
+
+        return history
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_all_user_history(self, user_id, **kwargs):
