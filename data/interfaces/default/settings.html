@@ -2059,11 +2059,20 @@ $(document).ready(function() {
     });
 
     // Global Variables
+    settingsChanged = false;
     serverChanged = false;
     authChanged = false;
     httpChanged = false;
     monitorChanged = false;
     directoryChanged = false;
+
+    // Alert if leaving the page without saving changes to settings
+    window.onbeforeunload = confirmExit;
+    function confirmExit() {
+        if (settingsChanged) {
+            return "Settings were changed without saving!";
+        }
+    }
 
     // Alert the user that their changes require a restart.
     function postSaveChecks() {
@@ -2072,9 +2081,14 @@ $(document).ready(function() {
         }
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0)
         getSchedulerTable();
+        settingsChanged = false;
     }
 
     var configForm = $("#configUpdate");
+    configForm.change(function () {
+        settingsChanged = true;
+    });
+
     function saveSettings() {
         if (configForm.parsley().validate()) {
             doAjaxCall('configUpdate', $(this), 'tabs', true, postSaveChecks);
