@@ -13,10 +13,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, database, helpers, common
-import plexpy
-
 import datetime
+
+import plexpy
+import common
+import database
+import logger
+import session
 
 
 class Graphs(object):
@@ -30,7 +33,11 @@ class Graphs(object):
         if not time_range.isdigit():
             time_range = '30'
         
-        user_cond = ('AND user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:    
             if y_axis == 'plays':
@@ -110,7 +117,11 @@ class Graphs(object):
         if not time_range.isdigit():
             time_range = '30'
 
-        user_cond = ('AND user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
             if y_axis == 'plays':
@@ -203,7 +214,11 @@ class Graphs(object):
         if not time_range.isdigit():
             time_range = '30'
 
-        user_cond = ('AND user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
             if y_axis == 'plays':
@@ -281,7 +296,11 @@ class Graphs(object):
 
         monitor_db = database.MonitorDatabase()
 
-        user_cond = ('AND user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
             if y_axis == 'plays':
@@ -365,7 +384,11 @@ class Graphs(object):
         if not time_range.isdigit():
             time_range = '30'
 
-        user_cond = ('AND user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
             if y_axis == 'plays':
@@ -430,11 +453,16 @@ class Graphs(object):
         if not time_range.isdigit():
             time_range = '30'
 
-        user_cond = ('AND users.user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
             if y_axis == 'plays':
                 query = 'SELECT ' \
+                        'users.user_id, users.username, ' \
                         '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) AS friendly_name,' \
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
@@ -450,6 +478,7 @@ class Graphs(object):
                 result = monitor_db.select(query)
             else:
                 query = 'SELECT ' \
+                        'users.user_id, users.username, ' \
                         '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) AS friendly_name,' \
                         'SUM(CASE WHEN media_type = "episode" AND stopped > 0 THEN (stopped - started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS tv_count, ' \
@@ -476,8 +505,13 @@ class Graphs(object):
         series_2 = []
         series_3 = []
 
+        session_user_id = session.get_session_user_id()
+
         for item in result:
-            categories.append(item['friendly_name'])
+            if session_user_id:
+                categories.append(item['username'] if str(item['user_id']) == session_user_id else 'Plex User')
+            else:
+                categories.append(item['friendly_name'])
             series_1.append(item['tv_count'])
             series_2.append(item['movie_count'])
             series_3.append(item['music_count'])
@@ -499,7 +533,11 @@ class Graphs(object):
         if not time_range.isdigit():
             time_range = '30'
 
-        user_cond = ('AND user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
             if y_axis == 'plays':
@@ -593,7 +631,11 @@ class Graphs(object):
         if not time_range.isdigit():
             time_range = '30'
 
-        user_cond = ('AND user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
             if y_axis == 'plays':
@@ -670,7 +712,11 @@ class Graphs(object):
         if not time_range.isdigit():
             time_range = '30'
 
-        user_cond = ('AND user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
             if y_axis == 'plays':
@@ -767,7 +813,11 @@ class Graphs(object):
         if not time_range.isdigit():
             time_range = '30'
 
-        user_cond = ('AND user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
             if y_axis == 'plays':
@@ -844,12 +894,17 @@ class Graphs(object):
         if not time_range.isdigit():
             time_range = '30'
 
-        user_cond = ('AND users.user_id = %s ' % user_id) if user_id and user_id.isdigit() else ''
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
         
         try:
             if y_axis == 'plays':
                 query = 'SELECT ' \
-                        '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) AS username, ' \
+                        'users.user_id, users.username, ' \
+                        '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'THEN 1 ELSE 0 END) AS dp_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "copy" ' \
@@ -869,7 +924,8 @@ class Graphs(object):
                 result = monitor_db.select(query)
             else:
                 query = 'SELECT ' \
-                        '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) AS username, ' \
+                        'users.user_id, users.username, ' \
+                        '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'AND session_history.stopped > 0 THEN (session_history.stopped - session_history.started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS dp_count, ' \
@@ -901,8 +957,13 @@ class Graphs(object):
         series_2 = []
         series_3 = []
 
+        session_user_id = session.get_session_user_id()
+
         for item in result:
-            categories.append(item['username'])
+            if session_user_id:
+                categories.append(item['username'] if str(item['user_id']) == session_user_id else 'Plex User')
+            else:
+                categories.append(item['friendly_name'])
             series_1.append(item['dp_count'])
             series_2.append(item['ds_count'])
             series_3.append(item['tc_count'])

@@ -2,7 +2,7 @@ import struct
 import time
 
 import cherrypy
-from cherrypy._cpcompat import basestring, BytesIO, ntob, set, unicodestr
+from cherrypy._cpcompat import basestring, BytesIO, ntob, unicodestr
 from cherrypy.lib import file_generator
 from cherrypy.lib import is_closable_iterator
 from cherrypy.lib import set_vary_header

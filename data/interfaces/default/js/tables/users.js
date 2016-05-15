@@ -21,20 +21,22 @@ function toggleEditNames() {
 users_list_table_options = {
     "language": {
         "search": "Search: ",
-        "lengthMenu":"Show _MENU_ entries per page",
-        "info":"Showing _START_ to _END_ of _TOTAL_ active users",
-        "infoEmpty":"Showing 0 to 0 of 0 entries",
-        "infoFiltered":"",
+        "lengthMenu": "Show _MENU_ entries per page",
+        "info": "Showing _START_ to _END_ of _TOTAL_ active users",
+        "infoEmpty": "Showing 0 to 0 of 0 entries",
+        "infoFiltered": "",
         "emptyTable": "No data in table",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
     "destroy": true,
     "processing": false,
     "serverSide": true,
-    "pageLength": 10,
+    "pageLength": 25,
     "order": [ 2, 'asc'],
-    "autoWidth": true,
     "stateSave": true,
     "pagingType": "full_numbers",
+    "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -45,6 +47,7 @@ users_list_table_options = {
                     '<button class="btn btn-xs btn-warning purge-user" data-id="' + rowData['user_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
                     '<input type="checkbox" id="do_notify-' + rowData['user_id'] + '" name="do_notify" value="1" ' + rowData['do_notify'] + '><label class="edit-tooltip" for="do_notify-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Notifications"><i class="fa fa-bell fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + rowData['allow_guest'] + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
             },
             "width": "7%",
@@ -57,7 +60,7 @@ users_list_table_options = {
             "data": "user_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData === '') {
-                    $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(interfaces/default/images/gravatar-default-80x80.png);"></div></a>');
+                    $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(../../images/gravatar-default-80x80.png);"></div></a>');
                 } else {
                     $(td).html('<a href="user?user_id=' + rowData['user_id'] + '"><div class="users-poster-face" style="background-image: url(' + rowData['user_thumb'] + ');"></div></a>');
                 }
@@ -95,7 +98,7 @@ users_list_table_options = {
             },
             "searchable": false,
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [4],
@@ -116,7 +119,7 @@ users_list_table_options = {
                 }
             },
             "width": "10%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control-ip"
+            "className": "no-wrap modal-control-ip"
         },
         {
             "targets": [5],
@@ -129,7 +132,7 @@ users_list_table_options = {
                 }
             },
             "width": "10%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+            "className": "no-wrap modal-control"
         },
         {
             "targets": [6],
@@ -150,7 +153,7 @@ users_list_table_options = {
                 }
             },
             "width": "15%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+            "className": "no-wrap modal-control"
         },
         {
             "targets": [7],
@@ -173,7 +176,7 @@ users_list_table_options = {
                     } else if (rowData['media_type'] === 'track') {
                         if (rowData['parent_title']) { parent_info = ' (' + rowData['parent_title'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=cover" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
                         $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type']) {
                         $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
@@ -183,7 +186,7 @@ users_list_table_options = {
                 }
             },
             "width": "23%",
-            "className": "hidden-sm hidden-xs"
+            "className": "datatable-wrap"
         },
         {
             "targets": [8],
@@ -194,7 +197,8 @@ users_list_table_options = {
                 }
             },
             "searchable": false,
-            "width": "7%"
+            "width": "7%",
+            "className": "no-wrap"
         },
         {
             "targets": [9],
@@ -205,7 +209,8 @@ users_list_table_options = {
                 }
             },
             "searchable": false,
-            "width": "10%"
+            "width": "10%",
+            "className": "no-wrap"
         }
 
     ],
@@ -300,11 +305,15 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
 
     var do_notify = 0;
     var keep_history = 0;
+    var allow_guest = 0;
     if ($('#do_notify-' + rowData['user_id']).is(':checked')) {
         do_notify = 1;
     }
     if ($('#keep_history-' + rowData['user_id']).is(':checked')) {
         keep_history = 1;
+    }
+    if ($('#allow_guest-' + rowData['user_id']).is(':checked')) {
+        allow_guest = 1;
     }
 
     friendly_name = tr.find('td.edit-user-control > .edit-user-name > input').val();
@@ -316,6 +325,7 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
             friendly_name: friendly_name,
             do_notify: do_notify,
             keep_history: keep_history,
+            allow_guest: allow_guest,
             thumb: rowData['user_thumb']
         },
         cache: false,

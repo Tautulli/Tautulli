@@ -1,6 +1,27 @@
-﻿import plexpy.logger
+﻿# This file is part of PlexPy.
+#
+#  PlexPy is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  PlexPy is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
+
+import arrow
+import os
 import re
+import shutil
+
 from configobj import ConfigObj
+
+import plexpy
+import logger
 
 
 def bool_int(value):
@@ -12,7 +33,10 @@ def bool_int(value):
             value = 0
     return int(bool(value))
 
+FILENAME = "config.ini"
+
 _CONFIG_DEFINITIONS = {
+    'ALLOW_GUEST_ACCESS': (int, 'General', 0),
     'DATE_FORMAT': (str, 'General', 'YYYY-MM-DD'),
     'GROUPING_GLOBAL_HISTORY': (int, 'PlexWatch', 0),
     'GROUPING_USER_HISTORY': (int, 'PlexWatch', 0),
@@ -29,6 +53,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_URL': (str, 'PMS', ''),
     'PMS_USE_BIF': (int, 'PMS', 0),
     'PMS_UUID': (str, 'PMS', ''),
+    'PMS_TIMEOUT': (int, 'Advanced', 15),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
     'ANON_REDIRECT': (str, 'General', 'http://dereferer.org/?'),
     'API_ENABLED': (int, 'General', 0),
@@ -49,10 +74,25 @@ _CONFIG_DEFINITIONS = {
     'BOXCAR_ON_EXTUP': (int, 'Boxcar', 0),
     'BOXCAR_ON_INTUP': (int, 'Boxcar', 0),
     'BOXCAR_ON_PMSUPDATE': (int, 'Boxcar', 0),
+    'BROWSER_ENABLED': (int, 'Boxcar', 0),
+    'BROWSER_AUTO_HIDE_DELAY': (int, 'Boxcar', 5),
+    'BROWSER_ON_PLAY': (int, 'BROWSER', 0),
+    'BROWSER_ON_STOP': (int, 'BROWSER', 0),
+    'BROWSER_ON_PAUSE': (int, 'BROWSER', 0),
+    'BROWSER_ON_RESUME': (int, 'BROWSER', 0),
+    'BROWSER_ON_BUFFER': (int, 'BROWSER', 0),
+    'BROWSER_ON_WATCHED': (int, 'BROWSER', 0),
+    'BROWSER_ON_CREATED': (int, 'BROWSER', 0),
+    'BROWSER_ON_EXTDOWN': (int, 'BROWSER', 0),
+    'BROWSER_ON_INTDOWN': (int, 'BROWSER', 0),
+    'BROWSER_ON_EXTUP': (int, 'BROWSER', 0),
+    'BROWSER_ON_INTUP': (int, 'BROWSER', 0),
+    'BROWSER_ON_PMSUPDATE': (int, 'BROWSER', 0),
     'BUFFER_THRESHOLD': (int, 'Monitoring', 3),
     'BUFFER_WAIT': (int, 'Monitoring', 900),
     'BACKUP_DIR': (str, 'General', ''),
     'CACHE_DIR': (str, 'General', ''),
+    'CACHE_IMAGES': (int, 'General', 1),
     'CACHE_SIZEMB': (int, 'Advanced', 32),
     'CHECK_GITHUB': (int, 'General', 1),
     'CHECK_GITHUB_INTERVAL': (int, 'General', 360),
@@ -71,6 +111,7 @@ _CONFIG_DEFINITIONS = {
     'EMAIL_SMTP_PASSWORD': (str, 'Email', ''),
     'EMAIL_SMTP_PORT': (int, 'Email', 25),
     'EMAIL_TLS': (int, 'Email', 0),
+    'EMAIL_HTML_SUPPORT': (int, 'Email', 1),
     'EMAIL_ON_PLAY': (int, 'Email', 0),
     'EMAIL_ON_STOP': (int, 'Email', 0),
     'EMAIL_ON_PAUSE': (int, 'Email', 0),
@@ -132,11 +173,12 @@ _CONFIG_DEFINITIONS = {
     'GROWL_ON_EXTUP': (int, 'Growl', 0),
     'GROWL_ON_INTUP': (int, 'Growl', 0),
     'GROWL_ON_PMSUPDATE': (int, 'Growl', 0),
+    'HOME_SECTIONS': (list, 'General', ['current_activity','watch_stats','library_stats','recently_added']),
     'HOME_LIBRARY_CARDS': (list, 'General', ['first_run']),
     'HOME_STATS_LENGTH': (int, 'General', 30),
     'HOME_STATS_TYPE': (int, 'General', 0),
     'HOME_STATS_COUNT': (int, 'General', 5),
-    'HOME_STATS_CARDS': (list, 'General', ['top_tv', 'popular_tv', 'top_movies', 'popular_movies', 'top_music', \
+    'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', \
         'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent']),
     'HTTPS_CREATE_CERT': (int, 'General', 1),
     'HTTPS_CERT': (str, 'General', ''),
@@ -144,11 +186,13 @@ _CONFIG_DEFINITIONS = {
     'HTTPS_DOMAIN': (str, 'General', 'localhost'),
     'HTTPS_IP': (str, 'General', '127.0.0.1'),
     'HTTP_ENVIRONMENT': (str, 'General', 'production'),
+    'HTTP_HASH_PASSWORD': (int, 'General', 0),
+    'HTTP_HASHED_PASSWORD': (int, 'General', 0),
     'HTTP_HOST': (str, 'General', '0.0.0.0'),
     'HTTP_PASSWORD': (str, 'General', ''),
     'HTTP_PORT': (int, 'General', 8181),
     'HTTP_PROXY': (int, 'General', 0),
-    'HTTP_ROOT': (str, 'General', '/'),
+    'HTTP_ROOT': (str, 'General', ''),
     'HTTP_USERNAME': (str, 'General', ''),
     'INTERFACE': (str, 'General', 'default'),
     'IP_LOGGING_ENABLE': (int, 'General', 0),
@@ -167,6 +211,22 @@ _CONFIG_DEFINITIONS = {
     'IFTTT_ON_EXTUP': (int, 'IFTTT', 0),
     'IFTTT_ON_INTUP': (int, 'IFTTT', 0),
     'IFTTT_ON_PMSUPDATE': (int, 'IFTTT', 0),
+    'IMGUR_CLIENT_ID': (str, 'Monitoring', ''),
+    'JOIN_APIKEY': (str, 'Join', ''),
+    'JOIN_DEVICEID': (str, 'Join', ''),
+    'JOIN_ENABLED': (int, 'Join', 0),
+    'JOIN_ON_PLAY': (int, 'Join', 0),
+    'JOIN_ON_STOP': (int, 'Join', 0),
+    'JOIN_ON_PAUSE': (int, 'Join', 0),
+    'JOIN_ON_RESUME': (int, 'Join', 0),
+    'JOIN_ON_BUFFER': (int, 'Join', 0),
+    'JOIN_ON_WATCHED': (int, 'Join', 0),
+    'JOIN_ON_CREATED': (int, 'Join', 0),
+    'JOIN_ON_EXTDOWN': (int, 'Join', 0),
+    'JOIN_ON_INTDOWN': (int, 'Join', 0),
+    'JOIN_ON_EXTUP': (int, 'Join', 0),
+    'JOIN_ON_INTUP': (int, 'Join', 0),
+    'JOIN_ON_PMSUPDATE': (int, 'Join', 0),
     'JOURNAL_MODE': (str, 'Advanced', 'wal'),
     'LAUNCH_BROWSER': (int, 'General', 1),
     'LOG_BLACKLIST': (int, 'General', 1),
@@ -329,10 +389,13 @@ _CONFIG_DEFINITIONS = {
     'REFRESH_LIBRARIES_ON_STARTUP': (int, 'Monitoring', 1),
     'REFRESH_USERS_INTERVAL': (int, 'Monitoring', 12),
     'REFRESH_USERS_ON_STARTUP': (int, 'Monitoring', 1),
+    'SESSION_DB_WRITE_ATTEMPTS': (int, 'Monitoring', 5),
     'SLACK_ENABLED': (int, 'Slack', 0),
     'SLACK_HOOK': (str, 'Slack', ''),
     'SLACK_CHANNEL': (str, 'Slack', ''),
     'SLACK_ICON_EMOJI': (str, 'Slack', ''),
+    'SLACK_INCL_PMSLINK': (int, 'Slack', 0),
+    'SLACK_INCL_POSTER': (int, 'Slack', 1),
     'SLACK_INCL_SUBJECT': (int, 'Slack', 1),
     'SLACK_USERNAME': (str, 'Slack', ''),
     'SLACK_ON_PLAY': (int, 'Slack', 0),
@@ -376,6 +439,8 @@ _CONFIG_DEFINITIONS = {
     'TELEGRAM_BOT_TOKEN': (str, 'Telegram', ''),
     'TELEGRAM_ENABLED': (int, 'Telegram', 0),
     'TELEGRAM_CHAT_ID': (str, 'Telegram', ''),
+    'TELEGRAM_HTML_SUPPORT': (int, 'Telegram', 1),
+    'TELEGRAM_INCL_POSTER': (int, 'Telegram', 0),
     'TELEGRAM_INCL_SUBJECT': (int, 'Telegram', 1),
     'TELEGRAM_ON_PLAY': (int, 'Telegram', 0),
     'TELEGRAM_ON_STOP': (int, 'Telegram', 0),
@@ -399,6 +464,7 @@ _CONFIG_DEFINITIONS = {
     'TWITTER_ACCESS_TOKEN_SECRET': (str, 'Twitter', ''),
     'TWITTER_CONSUMER_KEY': (str, 'Twitter', ''),
     'TWITTER_CONSUMER_SECRET': (str, 'Twitter', ''),
+    'TWITTER_INCL_POSTER': (int, 'Twitter', 1),
     'TWITTER_INCL_SUBJECT': (int, 'Twitter', 1),
     'TWITTER_ON_PLAY': (int, 'Twitter', 0),
     'TWITTER_ON_STOP': (int, 'Twitter', 0),
@@ -414,6 +480,7 @@ _CONFIG_DEFINITIONS = {
     'TWITTER_ON_PMSUPDATE': (int, 'Twitter', 0),
     'UPDATE_DB_INTERVAL': (int, 'General', 24),
     'UPDATE_SECTION_IDS': (int, 'General', 1),
+    'UPDATE_LABELS': (int, 'General', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'XBMC_ENABLED': (int, 'XBMC', 0),
@@ -436,6 +503,43 @@ _CONFIG_DEFINITIONS = {
 
 _BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID']
 _WHITELIST_KEYS = ['HTTPS_KEY', 'UPDATE_SECTION_IDS']
+
+
+def make_backup(cleanup=False, scheduler=False):
+    """ Makes a backup of config file, removes all but the last 5 backups """
+
+    if scheduler:
+        backup_file = 'config.backup-%s.sched.ini' % arrow.now().format('YYYYMMDDHHmmss')
+    else:
+        backup_file = 'config.backup-%s.ini' % arrow.now().format('YYYYMMDDHHmmss')
+    backup_folder = plexpy.CONFIG.BACKUP_DIR
+    backup_file_fp = os.path.join(backup_folder, backup_file)
+
+    # In case the user has deleted it manually
+    if not os.path.exists(backup_folder):
+        os.makedirs(backup_folder)
+
+    plexpy.CONFIG.write()
+    shutil.copyfile(plexpy.CONFIG_FILE, backup_file_fp)
+
+    if cleanup:
+        # Delete all scheduled backup files except from the last 5.
+        for root, dirs, files in os.walk(backup_folder):
+            db_files = [os.path.join(root, f) for f in files if f.endswith('.sched.ini')]
+            if len(db_files) > 5:
+                backups_sorted_on_age = sorted(db_files, key=os.path.getctime, reverse=True)
+                for file_ in backups_sorted_on_age[5:]:
+                    try:
+                        os.remove(file_)
+                    except OSError as e:
+                        logger.error(u"PlexPy Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
+
+    if backup_file in os.listdir(backup_folder):
+        logger.debug(u"PlexPy Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        return True
+    else:
+        logger.warn(u"PlexPy Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        return False
 
 
 # pylint:disable=R0902
@@ -462,7 +566,7 @@ class Config(object):
                     subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
                     blacklist.append(value.strip())
 
-        plexpy.logger._BLACKLIST_WORDS = blacklist
+        logger._BLACKLIST_WORDS = blacklist
 
     def _define(self, name):
         key = name.upper()
@@ -515,12 +619,12 @@ class Config(object):
             new_config[section][ini_key] = self._config[section][ini_key]
 
         # Write it to file
-        plexpy.logger.info("Writing configuration to file")
+        logger.info(u"PlexPy Config :: Writing configuration to file")
 
         try:
             new_config.write()
         except IOError as e:
-            plexpy.logger.error("Error writing configuration file: %s", e)
+            logger.error(u"PlexPy Config :: Error writing configuration file: %s", e)
 
         self._blacklist()
 
@@ -599,3 +703,18 @@ class Config(object):
             self.NOTIFY_ON_WATCHED_BODY_TEXT = self.NOTIFY_ON_WATCHED_BODY_TEXT.replace('{progress}','{progress_duration}')
             self.NOTIFY_SCRIPTS_ARGS_TEXT = self.NOTIFY_SCRIPTS_ARGS_TEXT.replace('{progress}','{progress_duration}')
             self.CONFIG_VERSION = '3'
+
+        if self.CONFIG_VERSION == '3':
+            if self.HTTP_ROOT == '/': self.HTTP_ROOT = ''
+            self.CONFIG_VERSION = '4'
+
+        if self.CONFIG_VERSION == '4':
+            if not len(self.HOME_STATS_CARDS) and 'watch_stats' in self.HOME_SECTIONS:
+                home_sections = self.HOME_SECTIONS
+                home_sections.remove('watch_stats')
+                self.HOME_SECTIONS = home_sections
+            if not len(self.HOME_LIBRARY_CARDS) and 'library_stats' in self.HOME_SECTIONS:
+                home_sections = self.HOME_SECTIONS
+                home_sections.remove('library_stats')
+                self.HOME_SECTIONS = home_sections
+            self.CONFIG_VERSION = '5'

@@ -14,10 +14,11 @@ history_table_modal_options = {
     "destroy": true,
     "language": {
         "search": "Search: ",
-        "info":"Showing _START_ to _END_ of _TOTAL_ history items",
-        "infoEmpty":"Showing 0 to 0 of 0 entries",
-        "infoFiltered":"",
+        "info": "Showing _START_ to _END_ of _TOTAL_ history items",
+        "infoEmpty": "Showing 0 to 0 of 0 entries",
+        "infoFiltered": "",
         "emptyTable": "No data in table",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
     "pagingType": "simple_numbers",
     "stateSave": false,
@@ -26,7 +27,8 @@ history_table_modal_options = {
     "pageLength": 10,
     "lengthChange": false,
     "autoWidth": false,
-    "order": [ 0, 'desc'],
+    "scrollX": true,
+    "order": [0, 'desc'],
     "columnDefs": [
         {
             "targets": [0],
@@ -71,7 +73,7 @@ history_table_modal_options = {
                 }
             },
             "width": "15%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [3],
@@ -90,7 +92,7 @@ history_table_modal_options = {
                 }
             },
             "width": "25%",
-            "className": "no-wrap hidden-sm hidden-xs modal-control"
+            "className": "no-wrap modal-control"
         },
         {
             "targets": [4],
@@ -113,14 +115,15 @@ history_table_modal_options = {
                     } else if (rowData['media_type'] === 'track') {
                         if (rowData['parent_title']) { parent_info = ' (' + rowData['parent_title'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=cover" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
                         $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else {
                         $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
                     }
                 }
             },
-            "width": "40%"
+            "width": "40%",
+            "className": "datatable-wrap"
         }
     ],
     "drawCallback": function (settings) {

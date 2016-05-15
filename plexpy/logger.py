@@ -13,25 +13,25 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import helpers
-
 from logutils.queue import QueueHandler, QueueListener
 from logging import handlers
 
-import multiprocessing
 import contextlib
-import plexpy
-import threading
-import traceback
-import logging
 import errno
-import sys
+import logging
+import multiprocessing
 import os
 import re
+import sys
+import threading
+import traceback
+
+import plexpy
+import helpers
 
 # These settings are for file logging only
 FILENAME = "plexpy.log"
-MAX_SIZE = 1000000 # 1 MB
+MAX_SIZE = 5000000  # 5 MB
 MAX_FILES = 5
 
 _BLACKLIST_WORDS = []
@@ -41,18 +41,6 @@ logger = logging.getLogger("plexpy")
 
 # Global queue for multiprocessing logging
 queue = None
-
-class LogListHandler(logging.Handler):
-    """
-    Log handler for Web UI.
-    """
-
-    def emit(self, record):
-        message = self.format(record)
-        message = message.replace("\n", "<br />")
-
-        plexpy.LOG_LIST.insert(0, (helpers.now(), message, record.levelname, record.threadName))
-
 
 class NoThreadFilter(logging.Filter):
     """
@@ -208,12 +196,6 @@ def initLogger(console=False, log_dir=False, verbose=False):
     # Configure the logger to accept all messages
     logger.propagate = False
     logger.setLevel(logging.DEBUG if verbose else logging.INFO)
-
-    # Add list logger
-    loglist_handler = LogListHandler()
-    loglist_handler.setLevel(logging.DEBUG)
-
-    logger.addHandler(loglist_handler)
 
     # Setup file logger
     if log_dir:

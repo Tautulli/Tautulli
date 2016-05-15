@@ -183,8 +183,7 @@ class ServerAdapter(object):
         if not self.httpserver:
             return ''
         host, port = self.bind_addr
-        if getattr(self.httpserver, 'ssl_certificate', None) or \
-                getattr(self.httpserver, 'ssl_adapter', None):
+        if getattr(self.httpserver, 'ssl_adapter', None):
             scheme = "https"
             if port != 443:
                 host += ":%s" % port

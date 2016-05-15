@@ -1,12 +1,13 @@
 <%inherit file="base.html"/>
 <%!
-import os
-import sys
-import plexpy
-from plexpy import notifiers, common, versioncheck
-from plexpy.helpers import anon_url
+    import os
+    import sys
 
-available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
+    import plexpy
+    from plexpy import common, logger, notifiers, versioncheck
+    from plexpy.helpers import anon_url
+
+    available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
 %>
 <%def name="headIncludes()">
 </%def>
@@ -20,7 +21,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
         <div class="col-md-12">
             <div class='card-back-full'>
                 <div class="header-bar">
-                    <span><i class="fa fa-cog"></i> Settings</span>
+                    <span><i class="fa fa-cogs"></i> Settings</span>
                 </div>
                 <div class="button-bar">
                     % if config['check_github']:
@@ -38,7 +39,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
             <ul class="nav-settings list-unstyled" role="tablist">
                 <li role="presentation" class="active"><a href="#tabs-0" aria-controls="tabs-0" role="tab" data-toggle="tab">Help & Info</a></li>
                 <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">General</a></li>
-                <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Homepage Statistics</a></li>
+                <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Homepage</a></li>
                 <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Web Interface</a></li>
                 <li role="presentation"><a href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Access Control</a></li>
                 <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Plex Media Server</a></li>
@@ -83,7 +84,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 </tr>
                                 <tr>
                                     <td>Log File:</td>
-                                    <td><a class="no-highlight" href="logFile" target="_blank">${os.path.join(config['log_dir'],'plexpy.log')}</a></td>
+                                    <td><a class="no-highlight" href="logFile" target="_blank">${os.path.join(config['log_dir'], logger.FILENAME)}</a></td>
                                 </tr>
                                 <tr>
                                     <td>Backup Directory:</td>
@@ -134,7 +135,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </tbody>
                         </table>
                         <div class="padded-header">
-                            <h3>PlexPy Scheduler</h3>
+                            <h3>PlexPy Scheduled Tasks</h3>
                         </div>
                         <div id="plexpy-scheduler-table">
                             <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading scheduler table...</div>
@@ -190,13 +191,6 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Group successive play history by the same user as a single entry in the tables and watch statistics.</p>
                         </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
-                            </label>
-                            <p class="help-block">Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
-                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!</p>
-                        </div>
 
                         <div class="padded-header">
                             <h3>Directories</h3>
@@ -206,6 +200,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <div class="row">
                                 <div class="col-md-6">
                                     <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="backup_config">Backup Config</button>
+                                        <button class="btn btn-form" type="button" id="backup_database">Backup Database</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -214,6 +212,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <div class="row">
                                 <div class="col-md-6">
                                     <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_cache">Clear All Cache</button>
+                                        <button class="btn btn-form" type="button" id="clear_image_cache">Clear Image Cache</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -222,38 +224,69 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <div class="row">
                                 <div class="col-md-6">
                                     <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
+
                     <div role="tabpanel" class="tab-pane" id="tabs-2">
+                        <div class="padded-header">
+                            <h3>Sections</h3>
+                        </div>
+
+                        <p class="help-block">
+                            Select the sections to show on the homepage.
+                            Drag the items below to reorder your homepage content.
+                        </p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled" id="sortable_home_sections" data-parsley-trigger="change">
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-current_activity" name="hsec-current_activity" value="current_activity"> Current Activity
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-watch_stats" name="hsec-watch_stats" value="watch_stats"> Watch Statistics
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-library_stats" name="hsec-library_stats" value="library_stats"> Library Statistics
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-recently_added" name="hsec-recently_added" value="recently_added"> Recently Added
+                                        </label>
+                                    </li>
+                                </ul>
+                                <input type="text" id="home_sections" name="home_sections" style="display: none;"/>
+                            </div>
+                        </div>
+
                         <div class="padded-header">
                             <h3>Watch Statistics</h3>
                         </div>
 
                         <div class="form-group">
-                            <label for="sortable_home_stats_cards">Cards</label>
                             <p class="help-block">
-                                Select the cards to show in the watch statistics on the home page. Select none to disable.<br>
+                                Select the cards to show in the watch statistics on the home page.
                                 Drag the items below to reorder your homepage content.
                             </p>
                             <div class="row">
                                 <div class="col-md-6">
                                     <ul class="list-unstyled" id="sortable_home_stats_cards" data-parsley-trigger="change">
-                                        <li class="card card-sortable">
-                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
-                                            <label>
-                                                <input type="checkbox" id="hscard-top_tv" name="hscard-top_tv" value="top_tv"> Most Watched TV
-                                            </label>
-                                        </li>
-                                        <li class="card card-sortable">
-                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
-                                            <label>
-                                                <input type="checkbox" id="hscard-popular_tv" name="hscard-popular_tv" value="popular_tv"> Most Popular TV
-                                            </label>
-                                        </li>
                                         <li class="card card-sortable">
                                             <div class="card-handle"><i class="fa fa-bars"></i></div>
                                             <label>
@@ -264,6 +297,18 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                             <div class="card-handle"><i class="fa fa-bars"></i></div>
                                             <label>
                                                 <input type="checkbox" id="hscard-popular_movies" name="hscard-popular_movies" value="popular_movies"> Most Popular Movie
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_tv" name="hscard-top_tv" value="top_tv"> Most Watched TV
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_tv" name="hscard-popular_tv" value="popular_tv"> Most Popular TV
                                             </label>
                                         </li>
                                         <li class="card card-sortable">
@@ -339,19 +384,18 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
 
                         <div class="form-group">
-                            <label for="home_library_cards">Cards</label>
                             <p class="help-block">
-                                Select the cards to show in the library statistics on the home page. Select none to disable.<br>
+                                Select the cards to show in the library statistics on the home page.
                                 Drag the items below to reorder your homepage content.
                             </p>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <ul class="list-unstyled" id="sortable_home_library_cards" data-parsley-trigger="change">
-                                    </ul>
+                                    <ul class="list-unstyled" id="sortable_home_library_cards" data-parsley-trigger="change"></ul>
                                     <input type="text" id="home_library_cards" name="home_library_cards" style="display: none;" />
                                 </div>
                             </div>
                         </div>
+
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
                     </div>
@@ -379,11 +423,20 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </div>
                             <p class="help-block">Port to bind web server to. Note that ports below 1024 may require root.</p>
                         </div>
+                        <div class="form-group">
+                            <label for="http_root">HTTP Root</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control http-settings" id="http_root" name="http_root" value="${config['http_root']}" data-parsley-trigger="change">
+                                </div>
+                            </div>
+                            <p class="help-block">The base URL of the web server. Used for reverse proxies.</p>
+                        </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="launch_browser" value="1" ${config['launch_browser']}> Launch Browser on Startup
+                                <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}> Launch Browser on Startup
                             </label>
-                            <p class="help-block">Launch browser pointed to PlexPy, on startup.</p>
+                            <p class="help-block">Launch browser pointed to PlexPy on startup.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -460,10 +513,30 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <div class="col-md-4">
                                     <input type="password" class="form-control auth-settings" id="http_password" name="http_password" value="${config['http_password']}" size="30">
                                 </div>
+                                <div id="http_hash_password_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">Password for web server authentication. Leave empty to disable.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="http_hash_password" id="http_hash_password" value="1" ${config['http_hash_password']} data-parsley-trigger="change"> Hash Password in the Config File
+                            </label>
+                            <p class="help-block">Store a hashed password in the config file.<br />Warning: Your password cannot be recovered if forgotten!</p>
+                        </div>
+                        <input type="text" id="http_hashed_password" name="http_hashed_password" value="${config['http_hashed_password']}" style="display: none;" data-parsley-trigger="change" data-parsley-type="integer" data-parsley-range="[0, 1]" 
+                               data-parsley-errors-container="#http_hash_password_error" data-parsley-error-message="Cannot un-hash password, please set a new password." data-parsley-no-focus required>
 
+
+                        <div class="padded-header">
+                            <h3>Guest Access</h3>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="allow_guest_access" name="allow_guest_access" value="1" ${config['allow_guest_access']}> Allow Guest Access to PlexPy
+                            </label>
+                            <span id="allowGuestCheck" style="color: #eb8600; padding-left: 10px;"></span>
+                            <p class="help-block">Allow shared users to login to PlexPy using their Plex.tv account. Individual user access needs to be enabled from Users > Edit Mode.</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>API</h3>
@@ -516,8 +589,13 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             <label for="pms_ip">Plex IP or Hostname</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
-                                    <span class="form-control-feedback" id="pms-verify" aria-hidden="true" style="display: none;"></span>
+                                    <div class="input-group">
+                                        <input type="text" class="pms-settings form-control" id="pms_ip" name="pms_ip" value="${config['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="verify_server_button">Verify Server</button>
+                                        </span>
+                                    </div>
+                                    <span class="form-control-feedback" id="pms-verify" aria-hidden="true" style="display: none; right: 110px;"></span>
                                 </div>
                                 <div id="pms_ip_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
@@ -648,6 +726,24 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                             </label>
                             <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
+                            </label>
+                            <p class="help-block">
+                                Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
+                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
+                            </p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="cache_images" name="cache_images" value="1" ${config['cache_images']}> Cache Plex Images
+                            </label>
+                            <p class="help-block">
+                                Enable to cache images from Plex to reduce API calls and improve loading times.<br />
+                                Note: Video preview thumbnails (BIF) are not cached.
+                            </p>
+                        </div>
                         <div class="form-group">
                             <label for="anon_redirect">Anonymous Redirect</label>
                             <div class="row">
@@ -659,9 +755,13 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                         </div>
 
                         <div class="padded-header">
-                            <h3>PlexWatch Import Tool</h3>
+                            <h3>Database Import Tool</h3>
                         </div>
-                        <p class="help-block"><a href="javascript:void(0)" id="toggle-plexwatch-import-modal" data-target="#plexwatch-import-modal" data-toggle="modal">Click here to Import an existing Plexwatch database.</a></p>
+                        <p class="help-block">Click a button below to import an exisiting database from another app.</p>
+                        <div class="btn-group">
+                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexwatch">PlexWatch</button>
+                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexivity">Plexivity</button>
+                        </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
@@ -756,7 +856,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                     <div role="tabpanel" class="tab-pane" id="tabs-9">
 
                         <div class="padded-header">
-                            <h3>Global Notification Toggles</h3>
+                            <h3>Global Notification Settings</h3>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -784,6 +884,20 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                 <input type="checkbox" name="notify_upload_posters" id="notify_upload_posters" value="1" ${config['notify_upload_posters']}> Enable Posters in Notifications
                             </label>
                             <p class="help-block">Enable to upload Plex posters to Imgur for notifications. Disable if posters are not being used to save bandwidth.</p>
+                        </div>
+                        <div id="imgur_upload_options">
+                            <div class="form-group">
+                                <label for="imgur_client_id">Imgur Client ID</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="imgur_client_id" name="imgur_client_id" value="${config['imgur_client_id']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">Enter your Imgur API client ID in order to upload posters. 
+                                    You can register a new application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br />
+                                    <span style="color: #eb8600;">Note: The shared Imgur client id will be removed in a future PlexPy update!
+                                        Please enter your own client id in to continue uploading posters!</span>
+                            </div>
                         </div>
 
                         <div class="padded-header">
@@ -1089,7 +1203,11 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     % else:
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
                                     % endif
+                                    % if agent['id'] == 17:
+                                    ${agent['name']} <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
+                                    % else:
                                     ${agent['name']}
+                                    % endif
                                     % if agent['has_config']:
                                     <a href="javascript:void(0)" rel="tooltip" data-target="#notification-config-modal" data-placement="top" title data-title="Open configuration" data-id="${agent['id']}" class="toggle-notification-config-modal toggle-right" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
                                     % endif
@@ -1418,7 +1536,7 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
             </div>
         </div>
     </div>
-    <div id="plexwatch-import-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="plexwatch-import-modal"></div>
+    <div id="app-import-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="app-import-modal"></div>
     <div id="notification-config-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notification-config-modal"></div>
     <div id="notification-triggers-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notification-triggers-modal"></div>
     <div id="notify-text-sub-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notify-text-sub-modal">
@@ -1738,6 +1856,10 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
                                     <td>A URL for the movie, TV show, or album poster.</td>
                                 </tr>
                                 <tr>
+                                    <td><strong>{plex_url}</strong></td>
+                                    <td>The Plex URL to your server for the item.</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{imdb_id}</strong></td>
                                     <td>The IMDB ID for the movie. <span class="small-muted">(e.g. tt2488496)</span>
                                     <p class="small-muted">(PMS agent must be Freebase)</p></td>
@@ -1918,9 +2040,9 @@ available_notification_agents = sorted(notifiers.available_notification_agents()
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/parsley.min.js"></script>
-<script src="interfaces/default/js/Sortable.min.js"></script>
-<script src="interfaces/default/js/moment-with-locale.js"></script>
+<script src="${http_root}js/parsley.min.js"></script>
+<script src="${http_root}js/Sortable.min.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
 <script>
 $(document).ready(function() {
 
@@ -1937,27 +2059,42 @@ $(document).ready(function() {
     });
 
     // Global Variables
+    settingsChanged = false;
     serverChanged = false;
     authChanged = false;
     httpChanged = false;
     monitorChanged = false;
     directoryChanged = false;
 
+    // Alert if leaving the page without saving changes to settings
+    window.onbeforeunload = confirmExit;
+    function confirmExit() {
+        if (settingsChanged) {
+            return "Settings were changed without saving!";
+        }
+    }
+
     // Alert the user that their changes require a restart.
     function postSaveChecks() {
         if ((serverChanged && $('#monitoring_use_websocket').is(":checked")) || authChanged || httpChanged || monitorChanged || directoryChanged) {
           $('#restart-modal').modal('show');
         }
+        $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0)
+        getSchedulerTable();
+        settingsChanged = false;
     }
 
     var configForm = $("#configUpdate");
+    configForm.change(function () {
+        settingsChanged = true;
+    });
+
     function saveSettings() {
         if (configForm.parsley().validate()) {
-            doAjaxCall('configUpdate', $(this), 'tabs', true, getSchedulerTable);
-            postSaveChecks();
+            doAjaxCall('configUpdate', $(this), 'tabs', true, postSaveChecks);
             return false;
         } else {
-            showMsg('<i class="fa fa-exclamation-circle"></i>&nbspPlease verify your settings.', false, true, 2000, true)
+            showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true)
         }
     }
 
@@ -1969,21 +2106,32 @@ $(document).ready(function() {
         }
     });
 
+    initConfigCheckbox('#api_enabled');
+    initConfigCheckbox('#enable_https');
+    initConfigCheckbox('#https_create_cert');
+    initConfigCheckbox('#check_github');
+    initConfigCheckbox('#notify_upload_posters');
+
     $("#menu_link_shutdown").click(function() {
-        var r = confirm("Are you sure you want to shutdown PlexPy?");
-        if (r == true) {
+        $("#confirm-message").text("Are you sure you want to shutdown PlexPy?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = "shutdown";
-        }
+        });
     });
 
     $("#menu_link_restart").click(function() {
-        window.location.href = "restart";
+        $("#confirm-message").text("Are you sure you want to restart PlexPy?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
+            window.location.href = "restart";
+        });
     });
 
     $("#menu_link_update_check").click(function() {
         // Allow the update bar to show again if previously dismissed.
         setCookie('updateDismiss', 'true', 0);
-        $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking</button>');
+        $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking');
         $(this).prop('disabled', true);
         window.location.href = "checkGithub";
     });
@@ -1992,72 +2140,79 @@ $(document).ready(function() {
         window.location.href = "restart";
     });
 
-    if ($("#api_enabled").is(":checked")) {
-        $("#apioptions").show();
-    } else {
-        $("#apioptions").hide();
+    function getSchedulerTable() {
+        $.ajax({
+            url: 'get_scheduler_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-scheduler-table").html(xhr.responseText);
+            }
+        });
     }
+    getSchedulerTable();
 
-    $("#api_enabled").click(function(){
-        if ($("#api_enabled").is(":checked")) {
-            $("#apioptions").slideDown();
-        } else {
-            $("#apioptions").slideUp();
-        }
-    });
-
-    $('#api_key').click(function(){ $('#api_key').select() });
-        $("#generate_api").click(function() {
-            $.get('generateAPI',
-                function(data){
-                    if (data.error != undefined) {
-                        alert(data.error);
-                        return;
+    function confirmAjaxCall (url, msg) {
+        $("#confirm-message").text(msg);
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
+            $.ajax({
+                url: url,
+                type: 'POST',
+                complete: function (xhr, status) {
+                    result = $.parseJSON(xhr.responseText);
+                    msg = result.message;
+                    if (result.result == 'success') {
+                        showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                    } else {
+                        showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
                     }
-                    $('#api_key').val(data);
+                }
             });
         });
-
-    if ($("#enable_https").is(":checked")) {
-            $("#https_options").show();
-        } else {
-            $("#https_options").hide();
-        }
-
-    $("#enable_https").click(function(){
-        if ($("#enable_https").is(":checked")) {
-            $("#https_options").slideDown();
-        } else {
-            $("#https_options").slideUp();
-        }
-    });
-
-    if ($("#https_create_cert").is(":checked")) {
-        $("#https_options_self-signed").show();
-    } else {
-        $("#https_options_self-signed").hide();
     }
 
-    $("#https_create_cert").click(function(){
-        if ($("#https_create_cert").is(":checked")) {
-            $("#https_options_self-signed").slideDown();
-        } else {
-            $("#https_options_self-signed").slideUp();
-        }
+    $("#backup_config").click(function () {
+        var msg = 'Are you sure you want to create a backup of the PlexPy config?';
+        var url = 'backup_config';
+        confirmAjaxCall(url, msg);
     });
 
-    if ($("#check_github").is(":checked")) {
-        $("#git_update_options").show();
-    } else {
-        $("#git_update_options").hide();
-    }
+    $("#backup_database").click(function () {
+        var msg = 'Are you sure you want to create a backup of the PlexPy database?';
+        var url = 'backup_db';
+        confirmAjaxCall(url, msg);
+    });
 
-    $("#check_github").click(function(){
-        if ($("#check_github").is(":checked")) {
-            $("#git_update_options").slideDown();
-        } else {
-            $("#git_update_options").slideUp();
-        }
+    $("#clear_cache").click(function () {
+        var msg = 'Are you sure you want to clear the PlexPy cache?';
+        var url = 'delete_cache';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#clear_image_cache").click(function () {
+        var msg = 'Are you sure you want to clear the PlexPy image cache?';
+        var url = 'delete_image_cache';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#clear_logs").click(function () {
+        var msg = 'Are you sure you want to clear the PlexPy logs?';
+        var url = 'delete_logs';
+        confirmAjaxCall(url, msg);
+    });
+
+
+    $('#api_key').click(function(){ $('#api_key').select() });
+    $("#generate_api").click(function() {
+        $.get('generateAPI',
+            function(data){
+                if (data.error != undefined) {
+                    alert(data.error);
+                    return;
+                }
+                $('#api_key').val(data);
+        });
     });
 
     $( ".http-settings" ).change(function() {
@@ -2119,7 +2274,7 @@ $(document).ready(function() {
                         $("#pms-verify").html('<i class="fa fa-close"></i>');
                         $('#pms-verify').fadeIn('fast');
                         $("#pms-ip-group").addClass("has-error");
-                        showMsg('<i class="fa fa-exclamation-circle"></i>&nbspCould not verify your server.', false, true, 2000, true)
+                        showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
                     }
                 }
             });
@@ -2127,51 +2282,54 @@ $(document).ready(function() {
             $("#pms-verify").html('<i class="fa fa-close"></i>');
             $('#pms-verify').fadeIn('fast');
             $("#pms-ip-group").addClass("has-error");
-            showMsg('<i class="fa fa-exclamation-circle"></i>&nbspCould not verify your server.', false, true, 2000, true)
+            showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
         }
     }
+
+    $('#verify_server_button').on('click', function(){
+        verifyServer();
+    });
 
     // Plex.tv auth token fetch
     $("#get-pms-auth-token").click(function() {
         $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i> Fetching token...');
-        if (($("#pms_username").val() !== '') || ($("#pms_password").val() !== '')) {
+        var pms_username = $("#pms_username").val().trim();
+        var pms_password = $("#pms_password").val().trim();
+        if ((pms_username !== '') && (pms_password !== '')) {
             $.ajax({
-                type: "post",
-                url: "https://plex.tv/users/sign_in.xml",
-                dataType: 'xml',
+                type: 'GET',
+                url: 'get_pms_token',
+                data: {
+                    username: pms_username,
+                    password: pms_password
+                },
+                cache: false,
                 async: true,
-                headers: {'Content-Type': 'application/xml; charset=utf-8',
-                          'X-Plex-Device-Name': 'PlexPy',
-                          'X-Plex-Product': 'PlexPy',
-                          'X-Plex-Version': '${common.VERSION_NUMBER}',
-                          'X-Plex-Platform': '${common.PLATFORM}',
-                          'X-Plex-Platform-Version': '${common.PLATFORM_VERSION}',
-                          'X-Plex-Client-Identifier': '${config["pms_uuid"]}',
-                          'Authorization': 'Basic ' + btoa($("#pms_username").val() + ':' + $("#pms_password").val())
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Authentication failed!');
-                },
-                success: function (xml) {
-                    var authToken = $(xml).find('user').attr('authenticationToken');
-                    $("#pms-token-status").html('<i class="fa fa-check"></i> Authentication successful!');
-                    $("#pms_token").val(authToken);
-                    $('#pms-auth-modal').modal('hide');
+                complete: function(xhr, status) {
+                    var authToken = $.parseJSON(xhr.responseText);
+                    if (authToken) {
+                        $("#pms-token-status").html('<i class="fa fa-check"></i> Authentication successful!');
+                        $("#pms_token").val(authToken);
+                        $('#pms-auth-modal').modal('hide');
+                    } else {
+                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Invalid username or password.');
+                    }
                 }
             });
         } else {
-            $("#pms-token-status").html("You must enter both fields.");
+            $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Username and password required.');
         }
     });
 
-    // Load PlexWatch import modal
-    $("#toggle-plexwatch-import-modal").click(function() {
+    // Load database import modal
+    $(".toggle-app-import-modal").click(function() {
         $.ajax({
-            url: 'plexwatch_import',
+            url: 'import_database_tool',
+            data: { app: $(this).data('app') },
             cache: false,
             async: true,
             complete: function(xhr, status) {
-                $("#plexwatch-import-modal").html(xhr.responseText);
+                $("#app-import-modal").html(xhr.responseText);
             }
         });
     });
@@ -2206,7 +2364,7 @@ $(document).ready(function() {
 
     $('#osxnotifyregister').click(function () {
         var osx_notify_app = $("#osx_notify_reg").val();
-        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { showMsg("<div class='msg'><span class='ui-icon ui-icon-check'></span>" + data + "</div>", false, true, 3000); });
+        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { showMsg("<div class='msg'><span class='fa fa-check'></span>" + data + "</div>", false, true, 3000); });
     })
 
     pms_version = false;
@@ -2282,6 +2440,31 @@ $(document).ready(function() {
     var accordion_timeline = new Accordion($('#accordion-timeline'), false);
     var accordion_scripts = new Accordion($('#accordion-scripts'), false);
 
+    // Sortable home_sections
+    function set_home_sections() {
+        var home_sections = [];
+        var hsecs = $('[id^=hsec-]').serializeArray();
+        $.each(hsecs, function(i, sec) {
+            home_sections.push(sec.value);
+        });
+        $('#home_sections').val(home_sections);
+    };
+
+    var sec_cards = ${config['home_sections'] | n};
+    sec_cards.reverse().forEach(function (item) {
+        $('#hsec-' + item).prop('checked', !$(this).prop('checked'))
+        $('#hsec-' + item).closest('li.card').prependTo('#sortable_home_sections');
+    });
+
+    Sortable.create(sortable_home_sections, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_sections();
+        }
+    });
+
+    $('[id^=hsec-]').change(function() { set_home_sections(); });
+    set_home_sections()
 
     // Sortable home_stats_cards
     function set_home_stats_cards() {
@@ -2308,7 +2491,6 @@ $(document).ready(function() {
 
     $('[id^=hscard-]').change(function() { set_home_stats_cards(); });
     set_home_stats_cards()
-
 
     // Sortable home_library_cards
     function set_home_library_cards() {
@@ -2365,18 +2547,6 @@ $(document).ready(function() {
         $(this).on('focus keyup input', function() { resizeTextarea(this); }).removeAttr('data-autoresize');
     });
 
-    function getSchedulerTable() {
-        $.ajax({
-            url: 'get_scheduler_table',
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#plexpy-scheduler-table").html(xhr.responseText);
-            }
-        });
-    }
-    getSchedulerTable();
-
     $("#notify_recently_added_grandparent").change(function () {
         var c = this.checked ? '#eb8600' : '#737373';
         $('#notify_recently_added_grandparent_note').css('color', c);
@@ -2392,6 +2562,36 @@ $(document).ready(function() {
         });
     });
 
+    function allowGuestAccessCheck () {
+        if ($('#http_username').val() == '' || $('#http_password').val() == '') {
+            $("#allow_guest_access").attr("disabled", true);
+            $("#allow_guest_access").attr("checked", false);
+            $("#allowGuestCheck").html("You must set an admin password above to allow guest access.");
+        } else {
+            $("#allow_guest_access").attr("disabled", false);
+            $("#allowGuestCheck").html("");
+        }
+    }
+    allowGuestAccessCheck();
+
+    $('#http_username, #http_password').change(function () {
+        allowGuestAccessCheck();
+    });
+
+
+    $("#http_hash_password").click(function(){
+        if (!($("#http_hash_password").is(":checked")) && $("#http_hashed_password").val() == "1" && $("#http_password").val() == "    ") {
+            $("#http_hashed_password").val(-1);
+        } else if ($("#http_hash_password").is(":checked") && $("#http_hashed_password").val() == "-1" && $("#http_password").val() == "    ") {
+            $("#http_hashed_password").val(1);
+            $("#http_hash_password_error").html("");
+        }
+    });
+
+    $('#http_password').change(function () {
+        $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0);
+        $("#http_hash_password_error").html("");
+    });
 });
 </script>
 </%def>

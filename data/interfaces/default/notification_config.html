@@ -1,5 +1,5 @@
 <%!
-from plexpy import helpers
+    from plexpy import helpers
 %>
 % if data:
 <div class="modal-dialog" role="document">
@@ -74,7 +74,7 @@ from plexpy import helpers
                     </form>
                     <div class="col-md-12" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
                         <h4>Test ${agent['name']}</h4>
-                        <p class="help-block">Test if ${agent['name']} notifications are working. See <a href="/logs">logs</a> for troubleshooting.</p>
+                        <p class="help-block">Test if ${agent['name']} notifications are working. See <a href="logs">logs</a> for troubleshooting.</p>
                         % if agent['name'] == 'Scripts':
                         <div class="form-group">
                             <label for="test_script">Script</label>
@@ -152,24 +152,6 @@ from plexpy import helpers
         return false;
     });
 
-    function disableTwitterVerify() {
-        if ($('#twitter_key').val() != '') { $('#twitterStep2').prop('disabled', false); }
-        else { $('#twitterStep2').prop('disabled', true); }
-    }
-    disableTwitterVerify();
-    $('#twitter_key').on('change', function () {
-        disableTwitterVerify()
-    });
-
-    $('#twitterStep1').click(function () {
-        $.get('twitterStep1', function (data) {window.open(data); })
-        .done(function () { showMsg('<i class="fa fa-check"></i> Confirm Authorization. Check pop-up blocker if no response.', false, true, 3000); });
-    });
-    $('#twitterStep2').click(function () {
-        var twitter_key = $('#twitter_key').val();
-        $.get('twitterStep2', { 'key': twitter_key }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
-    });
-
     function disableFacebookRequest() {
         if ($('#facebook_app_id').val() != '' && $('#facebook_app_secret').val() != '') { $('#facebookStep1').prop('disabled', false); }
         else { $('#facebookStep1').prop('disabled', true); }
@@ -189,25 +171,51 @@ from plexpy import helpers
         .done(function () { showMsg('<i class="fa fa-check"></i> Confirm Authorization. Check pop-up blocker if no response.', false, true, 3000); });
     });
 
+    $('#allow_browser').click(function () {
+        PNotify.desktop.permission();
+    })
+
     $('#test_notifier').click(function () {
-        doAjaxCall('set_notification_config', $(this), 'tabs', true);
-        $.ajax({
-            url: 'test_notifier',
-            data: {
-                agent_id: '${agent["id"]}',
-                subject: $('#test_subject').val(),
-                body: $('#test_body').val(),
-                script: $('#test_script').val(),
-                script_args: $('#test_script_args').val()
-            },
-            cache: false,
-            async: true,
-            complete: function (xhr, status) {
-                msg = '<i class="fa fa-check"></i>&nbsp; ' + xhr.responseText;
-                showMsg(msg, false, true, 2000);
-            }
-        });
+        doAjaxCall('set_notification_config', $(this), 'tabs', true, sendTestNotification);
     });
+
+    function sendTestNotification() {
+        if ('${agent["id"]}' != '17') {
+            $.ajax({
+                url: 'send_notification',
+                data: {
+                    agent_id: '${agent["id"]}',
+                    subject: $('#test_subject').val(),
+                    body: $('#test_body').val(),
+                    script: $('#test_script').val(),
+                    script_args: $('#test_script_args').val(),
+                    notify_action: 'test'
+                },
+                cache: false,
+                async: true,
+                complete: function (xhr, status) {
+                    if (xhr.responseText.indexOf('sent') > -1) {
+                        msg = '<i class="fa fa-check"></i>&nbsp; ' + xhr.responseText;
+                        showMsg(msg, false, true, 2000);
+                    } else {
+                        msg = '<i class="fa fa-times"></i>&nbsp; ' + xhr.responseText;
+                        showMsg(msg, false, true, 2000, true);
+                    }
+                }
+            });
+        } else {
+            if ($('#browser_auto_hide_delay').val() == "0") {
+                PNotify.prototype.options.hide = false;
+            } else {
+                PNotify.prototype.options.hide = true;
+                PNotify.prototype.options.delay = $('#browser_auto_hide_delay').val() * 1000;
+            }
+            var notification = new PNotify({
+                title: $('#test_subject').val(),
+                text: $('#test_body').val()
+            });
+        }
+    }
 
     $('#pushbullet_apikey, #pushover_apitoken, #scripts_folder').on('change', function () {
         // Reload modal to update certain fields

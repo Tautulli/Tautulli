@@ -1,27 +1,54 @@
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
-<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
+<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
 </%def>
 
 <%def name="body()">
-
 <div class='container-fluid'>
     <div class='table-card-header'>
         <div class="header-bar">
             <span><i class="fa fa-history"></i> History</span>
         </div>
         <div class="button-bar">
-            <div class="colvis-button-bar hidden-xs"></div>
-            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                <i class="fa fa-trash-o"></i> Delete mode
-            </button>
+            % if _session['user_group'] == 'admin':
             <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+            <div class="btn-group">
+                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                    <i class="fa fa-trash-o"></i> Delete mode
+                </button>&nbsp
+            </div>
+            % endif
+            % if _session['user_group'] == 'admin':
+            <div class="btn-group" id="user-selection">
+                <label>
+                    <select name="history-user" id="history-user" class="btn" style="color: inherit;">
+                        <option value="">All Users</option>
+                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                    </select>
+                </label>
+            </div>
+            % endif
+            <div class="btn-group" data-toggle="buttons" id="media_type-selection">
+                <label class="btn btn-dark active">
+                    <input type="radio" name="media_type-filter" id="history-all" value="" autocomplete="off"> All
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" name="media_type-filter" id="history-movies" value="movie" autocomplete="off"> Movies
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" name="media_type-filter" id="history-tv_shows" value="episode" autocomplete="off"> TV Shows
+                </label>
+                <label class="btn btn-dark">
+                    <input type="radio" name="media_type-filter" id="history-music" value="track" autocomplete="off"> Music
+                </label>
+            </div>
+            <div class="btn-group colvis-button-bar"></div>
         </div>
     </div>
-    <div class='table-card-back'>
+    <div class="table-card-back">
         <table class="display history_table" id="history_table" width="100%">
             <thead>
             <tr>
@@ -46,7 +73,7 @@
         </div>
         <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
         </div>
-        <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+        <div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -69,22 +96,40 @@
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/dataTables.colVis.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
-<script src="interfaces/default/js/moment-with-locale.js"></script>
-<script src="interfaces/default/js/tables/history_table.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/tables/history_table.js"></script>
 <script>
     $(document).ready(function () {
-        function loadHistoryTable(media_type) {
+        // Load user ids and names (for the selector)
+        $.ajax({
+            url: 'get_user_names',
+            type: 'get',
+            dataType: "json",
+            success: function (data) {
+                var select = $('#history-user');
+                data.sort(function (a, b) {
+                    return a.friendly_name.localeCompare(b.friendly_name);
+                });
+                data.forEach(function (item) {
+                    select.append('<option value="' + item.user_id + '">' +
+                        item.friendly_name + '</option>');
+                });
+            }
+        });
+
+        function loadHistoryTable(media_type, selected_user_id) {
             history_table_options.ajax = {
                 url: 'get_history',
                 type: 'post',
                 data: function (d) {
                     return {
                         json_data: JSON.stringify(d),
-                        media_type: media_type
+                        media_type: media_type,
+                        user_id: selected_user_id
                     };
                 }
             }
@@ -94,21 +139,6 @@
 
             clearSearchButton('history_table', history_table);
 
-            $('#history_table_filter').prepend('<div class="btn-group" data-toggle="buttons" id="media_type-selection" style="padding-right: 15px;"> \
-                <label class="btn btn-dark active"> \
-                    <input type="radio" name="media_type-filter" id="history-all" value="all" autocomplete="off"> All \
-                </label> \
-                <label class="btn btn-dark"> \
-                    <input type="radio" name="media_type-filter" id="history-movies" value="movie" autocomplete="off"> Movies \
-                </label> \
-                <label class="btn btn-dark"> \
-                    <input type="radio" name="media_type-filter" id="history-tv_shows" value="episode" autocomplete="off"> TV Shows \
-                </label> \
-                <label class="btn btn-dark"> \
-                    <input type="radio" name="media_type-filter" id="history-music" value="track" autocomplete="off"> Music \
-                </label> \
-            </div>');
-
             $('#media_type-selection').on('change', function () {
                 $('#media_type-selection > label').removeClass('active');
                 selected_filter = $('input[name=media_type-filter]:checked', '#media_type-selection');
@@ -116,19 +146,26 @@
                 media_type = $(selected_filter).val();
                 history_table.draw();
             });
+
+            $('#history-user').on('change', function () {
+                selected_user_id = $(this).val() || null;
+                history_table.draw();
+            });
         }
 
-        var media_type = 'all';
-        loadHistoryTable(media_type);
+        var media_type = null;
+        var selected_user_id = "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
+        loadHistoryTable(media_type, selected_user_id);
 
+        % if _session['user_group'] == 'admin':
         $('#row-edit-mode').on('click', function() {
             $('#row-edit-mode-alert').fadeIn(200);
 
             if ($(this).hasClass('active')) {
                 if (history_to_delete.length > 0) {
                     $('#deleteCount').text(history_to_delete.length);
-                    $('#confirm-modal').modal();
-                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                    $('#confirm-modal-delete').modal();
+                    $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
                         for (var i = 0; i < history_to_delete.length; i++) {
                             $.ajax({
                                 url: 'delete_history_rows',
@@ -157,6 +194,7 @@
                 });
             }
         });
+        % endif
     });
 </script>
 </%def>

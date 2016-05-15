@@ -27,13 +27,14 @@ import sys
 # Ensure lib added to path, before any other imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib/'))
 
-from plexpy import webstart, logger, web_socket
-
-import locale
-import time
-import signal
 import argparse
+import locale
+import signal
+import time
+
 import plexpy
+from plexpy import config, database, logger, web_socket, webstart
+
 
 # Register signals, such as CTRL + C
 signal.signal(signal.SIGINT, plexpy.sig_handler)
@@ -147,7 +148,7 @@ def main():
     if args.config:
         config_file = args.config
     else:
-        config_file = os.path.join(plexpy.DATA_DIR, 'config.ini')
+        config_file = os.path.join(plexpy.DATA_DIR, config.FILENAME)
 
     # Try to create the DATA_DIR if it doesn't exist
     if not os.path.exists(plexpy.DATA_DIR):
@@ -163,7 +164,7 @@ def main():
             'Cannot write to the data directory: ' + plexpy.DATA_DIR + '. Exiting...')
 
     # Put the database in the DATA_DIR
-    plexpy.DB_FILE = os.path.join(plexpy.DATA_DIR, 'plexpy.db')
+    plexpy.DB_FILE = os.path.join(plexpy.DATA_DIR, database.FILENAME)
 
     if plexpy.DAEMON:
         plexpy.daemonize()

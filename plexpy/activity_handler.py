@@ -13,10 +13,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import threading
 import time
-import plexpy
 
-from plexpy import logger, pmsconnect, activity_processor, threading, notification_handler, helpers, notifiers
+import plexpy
+import activity_processor
+import helpers
+import logger
+import notification_handler
+import notifiers
+import pmsconnect
 
 
 class ActivityHandler(object):

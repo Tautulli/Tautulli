@@ -20,7 +20,7 @@ Created on Aug 1, 2011
 '''
 import platform
 
-from plexpy import version
+import version
 
 # Identify Our Application
 USER_AGENT = 'PlexPy/-' + version.PLEXPY_VERSION + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \
@@ -42,6 +42,7 @@ notify_strings[NOTIFY_STOPPED] = "Playback stopped"
 DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
 DEFAULT_POSTER_THUMB = "interfaces/default/images/poster.png"
 DEFAULT_COVER_THUMB = "interfaces/default/images/cover.png"
+DEFAULT_ART = "interfaces/default/images/art.png"
 
 PLATFORM_NAME_OVERRIDES = {'Konvergo': 'Plex Media Player',
                            'Mystery 3': 'Playstation 3',
@@ -68,5 +69,6 @@ SCHEDULER_LIST = ['Check GitHub for updates',
                   'Refresh libraries list',
                   'Refresh Plex server URLs',
                   'Refresh Plex server name',
-                  'Backup PlexPy database'
+                  'Backup PlexPy database',
+                  'Backup PlexPy config'
                   ]

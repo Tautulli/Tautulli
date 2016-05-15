@@ -1,0 +1,63 @@
+﻿<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>PlexPy - ${title}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
+    <link href="${http_root}css/plexpy.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,800" rel="stylesheet" type="text/css">
+    <link href="${http_root}css/font-awesome.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="${http_root}images/favicon.ico"/>
+    <link rel="shortcut icon" href="${http_root}images/favicon.ico">
+</head>
+
+<body>
+<div class="body-container">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="login-container">
+                <div class="login-logo">
+                    <img alt="PlexPy" src="${http_root}images/logo-plexpy@2x.png">
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3">
+                        <form action="${http_root}auth/login" method="post">
+                            % if msg:
+                            <div class="alert alert-danger" style="text-align: center; padding: 8px;">
+                                ${msg}
+                            </div>
+                            % endif
+                            <div class="form-group">
+                                <label for="username" class="control-label">
+                                    Username
+                                </label>
+                                <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off" value="${username}" autofocus>
+                            </div>
+                            <div class="form-group">
+                                <label for="password" class="control-label">
+                                    Password
+                                </label>
+                                <input type="password" id="password" name="password" class="form-control">
+                            </div>
+                            <div class="form-footer">
+                                <div class="remember-group">
+                                    <label class="control-label">
+                                        <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> Remember me
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -15,12 +15,23 @@ DOCUMENTATION :: END
 </%doc>
 
 % if data != None:
-	% if data == '0':
+<%
+    s = '('
+    if data['direct_play']:
+        s += str(data['direct_play']) + ' direct play' + ('s' if data['direct_play'] > 1 else '') + ', '
+    if data['direct_stream']:
+        s += str(data['direct_stream']) + ' direct stream' + ('s' if data['direct_stream'] > 1 else '') + ', '
+    if data['transcode']:
+        s += str(data['transcode']) + ' transcode' + ('s' if data['transcode'] > 1 else '') + ', '
+    s = s.rstrip(', ')
+    s += ')'
+%>
+	% if data['stream_count'] == '0':
 	<h3>Activity</h3>
-	% elif data == '1':
-	<h3>Activity <small>${data} stream</small></h3>
+	% elif data['stream_count'] == '1':
+	<h3>Activity &nbsp;&nbsp;<small>${data['stream_count']} stream ${s}</small></h3>
 	% else:
-	<h3>Activity <small>${data} streams</small></h3>
+	<h3>Activity &nbsp;&nbsp;<small>${data['stream_count']} streams ${s}</small></h3>
 	% endif
 % else:
 <h3>Activity</h3>

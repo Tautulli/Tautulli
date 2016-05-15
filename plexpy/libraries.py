@@ -13,22 +13,22 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, datatables, common, database, helpers
+import json
+import os
+
 import plexpy
+import common
+import database
+import datatables
+import helpers
+import logger
+import plextv
+import pmsconnect
+import session
+
 
 def update_section_ids():
-    from plexpy import pmsconnect, activity_pinger
-    #import threading
-
     plexpy.CONFIG.UPDATE_SECTION_IDS = -1
-
-    #logger.debug(u"PlexPy Libraries :: Disabling monitoring while update in progress.")
-    #plexpy.schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
-    #                    hours=0, minutes=0, seconds=0)
-    #plexpy.schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-    #                    hours=0, minutes=0, seconds=0)
-    #plexpy.schedule_job(activity_pinger.check_server_response, 'Check for server response',
-    #                    hours=0, minutes=0, seconds=0)
 
     monitor_db = database.MonitorDatabase()
 
@@ -44,9 +44,6 @@ def update_section_ids():
         logger.warn(u"PlexPy Libraries :: Unable to update section_id's in database.")
         plexpy.CONFIG.UPDATE_SECTION_IDS = 1
         plexpy.CONFIG.write()
-
-        #logger.debug(u"PlexPy Libraries :: Re-enabling monitoring.")
-        #plexpy.initialize_scheduler()
         return None
 
     if not history_results:
@@ -54,13 +51,7 @@ def update_section_ids():
         plexpy.CONFIG.write()
         return None
 
-    logger.info(u"PlexPy Libraries :: Updating section_id's in database.")
-
-    # Add thread filter to the logger
-    #logger.debug(u"PlexPy Libraries :: Disabling logging in the current thread while update in progress.")
-    #thread_filter = logger.NoThreadFilter(threading.current_thread().name)
-    #for handler in logger.logger.handlers:
-    #    handler.addFilter(thread_filter)
+    logger.debug(u"PlexPy Libraries :: Updating section_id's in database.")
 
     # Get rating_key: section_id mapping pairs
     key_mappings = {}
@@ -94,11 +85,6 @@ def update_section_ids():
         else:
             error_keys.add(item['rating_key'])
 
-    # Remove thread filter from the logger
-    #for handler in logger.logger.handlers:
-    #    handler.removeFilter(thread_filter)
-    #logger.debug(u"PlexPy Libraries :: Re-enabling logging in the current thread.")
-
     if error_keys:
         logger.info(u"PlexPy Libraries :: Updated all section_id's in database except for rating_keys: %s." %
                      ', '.join(str(key) for key in error_keys))
@@ -108,10 +94,84 @@ def update_section_ids():
     plexpy.CONFIG.UPDATE_SECTION_IDS = 0
     plexpy.CONFIG.write()
 
-    #logger.debug(u"PlexPy Libraries :: Re-enabling monitoring.")
-    #plexpy.initialize_scheduler()
+    return True
+
+def update_labels():
+    plexpy.CONFIG.UPDATE_LABELS = -1
+
+    monitor_db = database.MonitorDatabase()
+
+    try:
+        query = 'SELECT section_id, section_type FROM library_sections'
+        library_results = monitor_db.select(query=query)
+    except Exception as e:
+        logger.warn(u"PlexPy Libraries :: Unable to execute database query for update_labels: %s." % e)
+
+        logger.warn(u"PlexPy Libraries :: Unable to update labels in database.")
+        plexpy.CONFIG.UPDATE_LABELS = 1
+        plexpy.CONFIG.write()
+        return None
+
+    if not library_results:
+        plexpy.CONFIG.UPDATE_LABELS = 0
+        plexpy.CONFIG.write()
+        return None
+
+    logger.debug(u"PlexPy Libraries :: Updating labels in database.")
+
+    # Get rating_key: section_id mapping pairs
+    key_mappings = {}
+
+    pms_connect = pmsconnect.PmsConnect()
+    for library in library_results:
+        section_id = library['section_id']
+        section_type = library['section_type']
+        
+        if section_type != 'photo':
+            library_children = []
+            library_labels = pms_connect.get_library_label_details(section_id=section_id)
+
+            if library_labels:
+                for label in library_labels:
+                    library_children = pms_connect.get_library_children_details(section_id=section_id,
+                                                                                section_type=section_type,
+                                                                                label_key=label['label_key'])
+
+                    if library_children:
+                        children_list = library_children['childern_list']
+                        # rating_key_list = [child['rating_key'] for child in children_list]
+
+                        for rating_key in [child['rating_key'] for child in children_list]:
+                            if key_mappings.get(rating_key):
+                                key_mappings[rating_key].append(label['label_title'])
+                            else:
+                                key_mappings[rating_key] = [label['label_title']]
+
+                    else:
+                        logger.warn(u"PlexPy Libraries :: Unable to get a list of library items for section_id %s."
+                                    % section_id)
+
+    error_keys = set()
+    for rating_key, labels in key_mappings.iteritems():
+        try:
+            labels = ';'.join(labels)
+            monitor_db.action('UPDATE session_history_metadata SET labels = ? '
+                              'WHERE rating_key = ? OR parent_rating_key = ? OR grandparent_rating_key = ? ',
+                              args=[labels, rating_key, rating_key, rating_key])
+        except:
+            error_keys.add(rating_key)
+
+    if error_keys:
+        logger.info(u"PlexPy Libraries :: Updated all labels in database except for rating_keys: %s." %
+                     ', '.join(str(key) for key in error_keys))
+    else:
+        logger.info(u"PlexPy Libraries :: Updated all labels in database.")
+
+    plexpy.CONFIG.UPDATE_LABELS = 0
+    plexpy.CONFIG.write()
 
     return True
+
 
 class Libraries(object):
 
@@ -119,9 +179,18 @@ class Libraries(object):
         pass
 
     def get_datatables_list(self, kwargs=None):
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to execute database query.'}
+
         data_tables = datatables.DataTables()
 
-        custom_where = ['library_sections.deleted_section', 0]
+        custom_where = [['library_sections.deleted_section', 0]]
+
+        if session.get_session_shared_libraries():
+            custom_where.append(['library_sections.section_id', session.get_session_shared_libraries()])
 
         columns = ['library_sections.section_id',
                    'library_sections.section_name',
@@ -148,6 +217,8 @@ class Libraries(object):
                    'session_history_metadata.year',
                    'session_history_metadata.media_index',
                    'session_history_metadata.parent_media_index',
+                   'session_history_metadata.content_rating',
+                   'session_history_metadata.labels',
                    'library_sections.do_notify',
                    'library_sections.do_notify_created',
                    'library_sections.keep_history'
@@ -155,7 +226,7 @@ class Libraries(object):
         try:
             query = data_tables.ssp_query(table_name='library_sections',
                                           columns=columns,
-                                          custom_where=[custom_where],
+                                          custom_where=custom_where,
                                           group_by=['library_sections.server_id', 'library_sections.section_id'],
                                           join_types=['LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN',
@@ -169,11 +240,7 @@ class Libraries(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn(u"PlexPy Libraries :: Unable to execute database query for get_list: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': 'null',
-                    'error': 'Unable to execute database query.'}
+            return default_return
 
         result = query['result']
         
@@ -213,6 +280,8 @@ class Libraries(object):
                    'year': item['year'],
                    'media_index': item['media_index'],
                    'parent_media_index': item['parent_media_index'],
+                   'content_rating': item['content_rating'],
+                   'labels': item['labels'].split(';') if item['labels'] else (),
                    'do_notify': helpers.checked(item['do_notify']),
                    'do_notify_created': helpers.checked(item['do_notify_created']),
                    'keep_history': helpers.checked(item['keep_history'])
@@ -222,27 +291,30 @@ class Libraries(object):
         
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': rows,
+                'data': session.mask_session_info(rows),
                 'draw': query['draw']
                 }
         
         return dict
 
     def get_datatables_media_info(self, section_id=None, section_type=None, rating_key=None, refresh=False, kwargs=None):
-        from plexpy import pmsconnect
-        import json, os
-
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
-                          'data': None,
+                          'data': 'null',
                           'error': 'Unable to execute database query.'}
 
+        if not session.allow_session_library(section_id):
+            return default_return
+        
         if section_id and not str(section_id).isdigit():
-            logger.warn(u"PlexPy Libraries :: Datatable media info called by invalid section_id provided.")
+            logger.warn(u"PlexPy Libraries :: Datatable media info called but invalid section_id provided.")
             return default_return
         elif rating_key and not str(rating_key).isdigit():
-            logger.warn(u"PlexPy Libraries :: Datatable media info called by invalid rating_key provided.")
+            logger.warn(u"PlexPy Libraries :: Datatable media info called but invalid rating_key provided.")
+            return default_return
+        elif not section_id and not rating_key:
+            logger.warn(u"PlexPy Libraries :: Datatable media info called but no input provided.")
             return default_return
 
         # Get the library details
@@ -440,9 +512,9 @@ class Libraries(object):
         return dict
 
     def get_media_info_file_sizes(self, section_id=None, rating_key=None):
-        from plexpy import pmsconnect
-        import json, os
-
+        if not session.allow_session_library(section_id):
+            return False
+        
         if section_id and not str(section_id).isdigit():
             logger.warn(u"PlexPy Libraries :: Datatable media info file size called by invalid section_id provided.")
             return False
@@ -533,12 +605,10 @@ class Libraries(object):
                           'keep_history': keep_history}
             try:
                 monitor_db.upsert('library_sections', value_dict, key_dict)
-            except:
+            except Exception as e:
                 logger.warn(u"PlexPy Libraries :: Unable to execute database query for set_config: %s." % e)
 
     def get_details(self, section_id=None):
-        from plexpy import pmsconnect
-
         default_return = {'section_id': 0,
                           'section_name': 'Local',
                           'section_type': '',
@@ -619,6 +689,9 @@ class Libraries(object):
                 return default_return
 
     def get_watch_time_stats(self, section_id=None):
+        if not session.allow_session_library(section_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
 
         time_queries = [1, 7, 30, 0]
@@ -671,6 +744,9 @@ class Libraries(object):
         return library_watch_time_stats
 
     def get_user_stats(self, section_id=None):
+        if not session.allow_session_library(section_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
 
         user_stats = []
@@ -678,7 +754,7 @@ class Libraries(object):
         try:
             if str(section_id).isdigit():
                 query = 'SELECT (CASE WHEN users.friendly_name IS NULL THEN users.username ' \
-                        'ELSE users.friendly_name END) AS user, users.user_id, users.thumb, COUNT(user) AS user_count ' \
+                        'ELSE users.friendly_name END) AS friendly_name, users.user_id, users.thumb, COUNT(user) AS user_count ' \
                         'FROM session_history ' \
                         'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                         'JOIN users ON users.user_id = session_history.user_id ' \
@@ -693,16 +769,19 @@ class Libraries(object):
             result = []
         
         for item in result:
-            row = {'user': item['user'],
+            row = {'friendly_name': item['friendly_name'],
                    'user_id': item['user_id'],
-                   'thumb': item['thumb'],
+                   'user_thumb': item['thumb'],
                    'total_plays': item['user_count']
                    }
             user_stats.append(row)
         
-        return user_stats
+        return session.mask_session_info(user_stats, mask_metadata=False)
 
     def get_recently_watched(self, section_id=None, limit='10'):
+        if not session.allow_session_library(section_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
         recently_watched = []
 
@@ -711,9 +790,10 @@ class Libraries(object):
 
         try:
             if str(section_id).isdigit():
-                query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, session_history.parent_rating_key, ' \
+                query = 'SELECT session_history.id, session_history.media_type, ' \
+                        'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
                         'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
-                        'year, started, user ' \
+                        'year, started, user, content_rating, labels, section_id ' \
                         'FROM session_history_metadata ' \
                         'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                         'WHERE section_id = ? ' \
@@ -738,6 +818,8 @@ class Libraries(object):
                 recent_output = {'row_id': row['id'],
                                  'media_type': row['media_type'],
                                  'rating_key': row['rating_key'],
+                                 'parent_rating_key': row['parent_rating_key'],
+                                 'grandparent_rating_key': row['grandparent_rating_key'],
                                  'title': row['title'],
                                  'parent_title': row['parent_title'],
                                  'grandparent_title': row['grandparent_title'],
@@ -746,11 +828,14 @@ class Libraries(object):
                                  'parent_media_index': row['parent_media_index'],
                                  'year': row['year'],
                                  'time': row['started'],
-                                 'user': row['user']
+                                 'user': row['user'],
+                                 'section_id': row['section_id'],
+                                 'content_rating': row['content_rating'],
+                                 'labels': row['labels'].split(';') if row['labels'] else (),
                                  }
                 recently_watched.append(recent_output)
 
-        return recently_watched
+        return session.mask_session_info(recently_watched)
 
     def get_sections(self):
         monitor_db = database.MonitorDatabase()
@@ -867,8 +952,6 @@ class Libraries(object):
             logger.warn(u"PlexPy Libraries :: Unable to delete media info table cache: %s." % e)
 
     def delete_duplicate_libraries(self):
-        from plexpy import plextv
-
         monitor_db = database.MonitorDatabase()
 
         # Refresh the PMS_URL to make sure the server_id is updated

@@ -13,11 +13,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, users, http_handler, common, database
+import threading
+import urllib2
 from urlparse import urlparse
 
 import plexpy
-import urllib2
+import common
+import database
+import helpers
+import http_handler
+import libraries
+import logger
+import session
+import users
 
 
 def get_server_friendly_name():
@@ -78,15 +86,18 @@ def refresh_libraries():
             plexpy.CONFIG.write()
 
         if plexpy.CONFIG.UPDATE_SECTION_IDS == 1 or plexpy.CONFIG.UPDATE_SECTION_IDS == -1:
-            from plexpy import libraries
-            import threading
-
             # Start library section_id update on it's own thread
             threading.Thread(target=libraries.update_section_ids).start()
 
+        if plexpy.CONFIG.UPDATE_LABELS == 1 or plexpy.CONFIG.UPDATE_LABELS == -1:
+            # Start library labels update on it's own thread
+            threading.Thread(target=libraries.update_labels).start()
+
         logger.info(u"PlexPy Pmsconnect :: Libraries list refreshed.")
+        return True
     else:
         logger.warn(u"PlexPy Pmsconnect :: Unable to refresh libraries list.")
+        return False
 
 
 class PmsConnect(object):
@@ -94,7 +105,7 @@ class PmsConnect(object):
     Retrieve data from Plex Server
     """
 
-    def __init__(self):
+    def __init__(self, token=None):
         if plexpy.CONFIG.PMS_URL:
             url_parsed = urlparse(plexpy.CONFIG.PMS_URL)
             hostname = url_parsed.hostname
@@ -105,9 +116,18 @@ class PmsConnect(object):
             port = plexpy.CONFIG.PMS_PORT
             self.protocol = 'http'
 
+        if not token:
+            # Check if we should use the admin token, or the guest server token
+            if session.get_session_user_id():
+                user_data = users.Users()
+                user_tokens = user_data.get_tokens(user_id=session.get_session_user_id())
+                token = user_tokens['server_token']
+            else:
+                token = plexpy.CONFIG.PMS_TOKEN
+
         self.request_handler = http_handler.HTTPHandler(host=hostname,
                                                         port=port,
-                                                        token=plexpy.CONFIG.PMS_TOKEN)
+                                                        token=token)
 
     def get_sessions(self, output_format=''):
         """
@@ -291,7 +311,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_library_list(self, section_id='', list_type='all', count='0', sort_type='', output_format=''):
+    def get_library_list(self, section_id='', list_type='all', count='0', sort_type='', label_key='', output_format=''):
         """
         Return list of items in library on server.
 
@@ -300,8 +320,25 @@ class PmsConnect(object):
         Output: array
         """
         count = '&X-Plex-Container-Size=' + count if count else ''
+        label_key = '&label=' + label_key if label_key else ''
 
-        uri = '/library/sections/' + section_id + '/' + list_type + '?X-Plex-Container-Start=0' + count + sort_type
+        uri = '/library/sections/' + section_id + '/' + list_type + '?X-Plex-Container-Start=0' + count + sort_type + label_key
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    def get_library_labels(self, section_id='', output_format=''):
+        """
+        Return list of labels for a library on server.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
+        uri = '/library/sections/' + section_id + '/label'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -460,7 +497,7 @@ class PmsConnect(object):
                                     'grandparent_title': helpers.get_xml_attr(item, 'grandparentTitle'),
                                     'media_index': helpers.get_xml_attr(item, 'index'),
                                     'parent_media_index': helpers.get_xml_attr(item, 'parentIndex'),
-                                    'section_id': helpers.get_xml_attr(item, 'librarySectionID'),
+                                    'section_id': section_id if section_id else helpers.get_xml_attr(item, 'librarySectionID'),
                                     'library_name': helpers.get_xml_attr(item, 'librarySectionTitle'),
                                     'year': helpers.get_xml_attr(item, 'year'),
                                     'thumb': helpers.get_xml_attr(item, 'thumb'),
@@ -482,7 +519,7 @@ class PmsConnect(object):
                                     'grandparent_title': helpers.get_xml_attr(item, 'grandparentTitle'),
                                     'media_index': helpers.get_xml_attr(item, 'index'),
                                     'parent_media_index': helpers.get_xml_attr(item, 'parentIndex'),
-                                    'section_id': helpers.get_xml_attr(item, 'librarySectionID'),
+                                    'section_id': section_id if section_id else helpers.get_xml_attr(item, 'librarySectionID'),
                                     'library_name': helpers.get_xml_attr(item, 'librarySectionTitle'),
                                     'year': helpers.get_xml_attr(item, 'year'),
                                     'thumb': helpers.get_xml_attr(item, 'thumb'),
@@ -493,6 +530,7 @@ class PmsConnect(object):
                     recents_list.append(recent_items)
 
         output = {'recently_added': sorted(recents_list, key=lambda k: k['added_at'], reverse=True)}
+
         return output
 
     def get_metadata_details(self, rating_key='', get_media_info=False):
@@ -535,26 +573,31 @@ class PmsConnect(object):
             section_id = helpers.get_xml_attr(a, 'librarySectionID')
             library_name = helpers.get_xml_attr(a, 'librarySectionTitle')
 
-        genres = []
-        actors = []
-        writers = []
         directors = []
+        writers = []
+        actors = []
+        genres = []
+        labels = []
 
-        if metadata_main.getElementsByTagName('Genre'):
-            for genre in metadata_main.getElementsByTagName('Genre'):
-                genres.append(helpers.get_xml_attr(genre, 'tag'))
-
-        if metadata_main.getElementsByTagName('Role'):
-            for actor in metadata_main.getElementsByTagName('Role'):
-                actors.append(helpers.get_xml_attr(actor, 'tag'))
+        if metadata_main.getElementsByTagName('Director'):
+            for director in metadata_main.getElementsByTagName('Director'):
+                directors.append(helpers.get_xml_attr(director, 'tag'))
 
         if metadata_main.getElementsByTagName('Writer'):
             for writer in metadata_main.getElementsByTagName('Writer'):
                 writers.append(helpers.get_xml_attr(writer, 'tag'))
 
-        if metadata_main.getElementsByTagName('Director'):
-            for director in metadata_main.getElementsByTagName('Director'):
-                directors.append(helpers.get_xml_attr(director, 'tag'))
+        if metadata_main.getElementsByTagName('Role'):
+            for actor in metadata_main.getElementsByTagName('Role'):
+                actors.append(helpers.get_xml_attr(actor, 'tag'))
+
+        if metadata_main.getElementsByTagName('Genre'):
+            for genre in metadata_main.getElementsByTagName('Genre'):
+                genres.append(helpers.get_xml_attr(genre, 'tag'))
+
+        if metadata_main.getElementsByTagName('Label'):
+            for label in metadata_main.getElementsByTagName('Label'):
+                labels.append(helpers.get_xml_attr(label, 'tag'))
 
         if metadata_type == 'movie':
             metadata = {'media_type': metadata_type,
@@ -584,10 +627,11 @@ class PmsConnect(object):
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
                         'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
                         'guid': helpers.get_xml_attr(metadata_main, 'guid'),
-                        'genres': genres,
-                        'actors': actors,
+                        'directors': directors,
                         'writers': writers,
-                        'directors': directors
+                        'actors': actors,
+                        'genres': genres,
+                        'labels': labels
                         }
             metadata_list = {'metadata': metadata}
 
@@ -619,10 +663,11 @@ class PmsConnect(object):
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
                         'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
                         'guid': helpers.get_xml_attr(metadata_main, 'guid'),
-                        'writers': writers,
                         'directors': directors,
+                        'writers': writers,
+                        'actors': actors,
                         'genres': genres,
-                        'actors': actors
+                        'labels': labels
                         }
             metadata_list = {'metadata': metadata}
 
@@ -656,10 +701,11 @@ class PmsConnect(object):
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
                         'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
                         'guid': helpers.get_xml_attr(metadata_main, 'guid'),
-                        'genres': show_details['metadata']['genres'],
-                        'actors': show_details['metadata']['actors'],
+                        'directors': show_details['metadata']['directors'],
                         'writers': show_details['metadata']['writers'],
-                        'directors': show_details['metadata']['directors']
+                        'actors': show_details['metadata']['actors'],
+                        'genres': show_details['metadata']['genres'],
+                        'labels': show_details['metadata']['labels']
                         }
             metadata_list = {'metadata': metadata}
 
@@ -693,10 +739,11 @@ class PmsConnect(object):
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
                         'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
                         'guid': helpers.get_xml_attr(metadata_main, 'guid'),
-                        'genres': show_details['metadata']['genres'],
-                        'actors': show_details['metadata']['actors'],
+                        'directors': directors,
                         'writers': writers,
-                        'directors': directors
+                        'actors': show_details['metadata']['actors'],
+                        'genres': show_details['metadata']['genres'],
+                        'labels': show_details['metadata']['labels']
                         }
             metadata_list = {'metadata': metadata}
 
@@ -728,10 +775,11 @@ class PmsConnect(object):
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
                         'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
                         'guid': helpers.get_xml_attr(metadata_main, 'guid'),
-                        'writers': writers,
                         'directors': directors,
+                        'writers': writers,
+                        'actors': actors,
                         'genres': genres,
-                        'actors': actors
+                        'labels': labels
                         }
             metadata_list = {'metadata': metadata}
 
@@ -765,10 +813,11 @@ class PmsConnect(object):
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
                         'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
                         'guid': helpers.get_xml_attr(metadata_main, 'guid'),
-                        'genres': genres,
-                        'actors': actors,
+                        'directors': directors,
                         'writers': writers,
-                        'directors': directors
+                        'actors': actors,
+                        'genres': genres,
+                        'labels': labels
                         }
             metadata_list = {'metadata': metadata}
 
@@ -802,10 +851,11 @@ class PmsConnect(object):
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
                         'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
                         'guid': helpers.get_xml_attr(metadata_main, 'guid'),
-                        'genres': album_details['metadata']['genres'],
-                        'actors': actors,
+                        'directors': directors,
                         'writers': writers,
-                        'directors': directors
+                        'actors': actors,
+                        'genres': album_details['metadata']['genres'],
+                        'labels': album_details['metadata']['labels']
                         }
             metadata_list = {'metadata': metadata}
 
@@ -955,24 +1005,24 @@ class PmsConnect(object):
             if a.getElementsByTagName('Track'):
                 session_data = a.getElementsByTagName('Track')
                 session_type = 'track'
-                for session in session_data:
-                    session_output = self.get_session_each(session_type, session)
+                for session_ in session_data:
+                    session_output = self.get_session_each(session_type, session_)
                     session_list.append(session_output)
             if a.getElementsByTagName('Video'):
                 session_data = a.getElementsByTagName('Video')
                 session_type = 'video'
-                for session in session_data:
-                    session_output = self.get_session_each(session_type, session)
+                for session_ in session_data:
+                    session_output = self.get_session_each(session_type, session_)
                     session_list.append(session_output)
             if a.getElementsByTagName('Photo'):
                 session_data = a.getElementsByTagName('Photo')
                 session_type = 'photo'
-                for session in session_data:
-                    session_output = self.get_session_each(session_type, session)
+                for session_ in session_data:
+                    session_output = self.get_session_each(session_type, session_)
                     session_list.append(session_output)
 
         output = {'stream_count': helpers.get_xml_attr(xml_head[0], 'size'),
-                  'sessions': session_list
+                  'sessions': session.mask_session_info(session_list)
                   }
 
         return output
@@ -1029,6 +1079,11 @@ class PmsConnect(object):
             else:
                 machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
 
+            labels = []
+            if session.getElementsByTagName('Label'):
+                for label in session.getElementsByTagName('Label'):
+                    labels.append(helpers.get_xml_attr(label, 'tag'))
+
             session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                               'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
                               'media_index': helpers.get_xml_attr(session, 'index'),
@@ -1050,9 +1105,12 @@ class PmsConnect(object):
                               'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                               'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                               'title': helpers.get_xml_attr(session, 'title'),
+                              'year': helpers.get_xml_attr(session, 'year'),
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                               'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                               'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                              'content_rating': helpers.get_xml_attr(session, 'contentRating'),
+                              'labels': labels,
                               'transcode_key': transcode_key,
                               'throttled': throttled,
                               'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
@@ -1128,7 +1186,6 @@ class PmsConnect(object):
                 transcode_container = ''
                 transcode_protocol = ''
 
-            media_info = session.getElementsByTagName('Media')[0]
             if media_info.getElementsByTagName('Part'):
                 indexes = helpers.get_xml_attr(media_info.getElementsByTagName('Part')[0], 'indexes')
                 part_id = helpers.get_xml_attr(media_info.getElementsByTagName('Part')[0], 'id')
@@ -1152,6 +1209,11 @@ class PmsConnect(object):
                 machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')[:-6]
             else:
                 machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
+
+            labels = []
+            if session.getElementsByTagName('Label'):
+                for label in session.getElementsByTagName('Label'):
+                    labels.append(helpers.get_xml_attr(label, 'tag'))
 
             if helpers.get_xml_attr(session, 'type') == 'episode':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
@@ -1179,6 +1241,8 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'content_rating': helpers.get_xml_attr(session, 'contentRating'),
+                                  'labels': labels,
                                   'transcode_key': transcode_key,
                                   'throttled': throttled,
                                   'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
@@ -1238,6 +1302,8 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'content_rating': helpers.get_xml_attr(session, 'contentRating'),
+                                  'labels': labels,
                                   'transcode_key': transcode_key,
                                   'throttled': throttled,
                                   'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
@@ -1297,6 +1363,8 @@ class PmsConnect(object):
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                                   'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                                  'content_rating': helpers.get_xml_attr(session, 'contentRating'),
+                                  'labels': labels,
                                   'transcode_key': transcode_key,
                                   'throttled': throttled,
                                   'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
@@ -1366,6 +1434,11 @@ class PmsConnect(object):
             else:
                 machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
 
+            labels = []
+            if session.getElementsByTagName('Label'):
+                for label in session.getElementsByTagName('Label'):
+                    labels.append(helpers.get_xml_attr(label, 'tag'))
+
             session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                               'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
                               'media_index': helpers.get_xml_attr(session, 'index'),
@@ -1391,6 +1464,8 @@ class PmsConnect(object):
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                               'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
                               'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
+                              'content_rating': helpers.get_xml_attr(session, 'contentRating'),
+                              'labels': labels,
                               'transcode_key': transcode_key,
                               'throttled': throttled,
                               'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
@@ -1464,9 +1539,12 @@ class PmsConnect(object):
             if a.getElementsByTagName('Track'):
                 result_data = a.getElementsByTagName('Track')
 
+            section_id = helpers.get_xml_attr(a, 'librarySectionID')
+
             if result_data:
                 for result in result_data:
-                    children_output = {'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
+                    children_output = {'section_id': section_id,
+                                       'rating_key': helpers.get_xml_attr(result, 'ratingKey'),
                                        'media_index': helpers.get_xml_attr(result, 'index'),
                                        'title': helpers.get_xml_attr(result, 'title'),
                                        'thumb': helpers.get_xml_attr(result, 'thumb'),
@@ -1603,7 +1681,8 @@ class PmsConnect(object):
 
         return output
 
-    def get_library_children_details(self, section_id='', section_type='', list_type='all', count='', rating_key='', get_media_info=False):
+    def get_library_children_details(self, section_id='', section_type='', list_type='all', count='',
+                                     rating_key='', label_key='', get_media_info=False):
         """
         Return processed and validated server library items list.
 
@@ -1637,7 +1716,7 @@ class PmsConnect(object):
             sort_type = ''
 
         if str(section_id).isdigit():
-            library_data = self.get_library_list(str(section_id), list_type, count, sort_type, output_format='xml')
+            library_data = self.get_library_list(str(section_id), list_type, count, sort_type, label_key, output_format='xml')
         elif str(rating_key).isdigit():
             library_data = self.get_children_list(str(rating_key), output_format='xml')
         else:
@@ -1784,7 +1863,34 @@ class PmsConnect(object):
 
         return server_library_stats
 
-    def get_image(self, img=None, width=None, height=None):
+    def get_library_label_details(self, section_id=''):
+        labels_data = self.get_library_labels(section_id=str(section_id), output_format='xml')
+
+        try:
+            xml_head = labels_data.getElementsByTagName('MediaContainer')
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_library_label_details: %s." % e)
+            return None
+
+        labels_list = []
+
+        for a in xml_head:
+            if a.getAttribute('size'):
+                if a.getAttribute('size') == '0':
+                    logger.debug(u"PlexPy Pmsconnect :: No labels data.")
+                    return labels_list
+
+            if a.getElementsByTagName('Directory'):
+                labels_main = a.getElementsByTagName('Directory')
+                for item in labels_main:
+                    label = {'label_key': helpers.get_xml_attr(item, 'key'),
+                             'label_title': helpers.get_xml_attr(item, 'title')
+                             }
+                    labels_list.append(label)
+
+        return labels_list
+
+    def get_image(self, img=None, width='1000', height='1500'):
         """
         Return image data as array.
         Array contains the image content type and image binary
@@ -1794,21 +1900,24 @@ class PmsConnect(object):
                                 height { the image height }
         Output: array
         """
+
         if img:
+            uri = '/photo/:/transcode?url=http://127.0.0.1:32400%s' % img
             if width.isdigit() and height.isdigit():
-                uri = '/photo/:/transcode?url=http://127.0.0.1:32400' + img + '&width=' + width + '&height=' + height
+                uri += '&width=%s&height=%s' % (width, height)
+
+            result = self.request_handler.make_request(uri=uri,
+                                                       proto=self.protocol,
+                                                       request_type='GET',
+                                                       return_type=True)
+
+            if result is None:
+                return
             else:
-                uri = '/photo/:/transcode?url=http://127.0.0.1:32400' + img
+                return result[0], result[1]
 
-            request, content_type = self.request_handler.make_request(uri=uri,
-                                                                      proto=self.protocol,
-                                                                      request_type='GET',
-                                                                      return_type=True)
-
-            return [request, content_type]
         else:
-            logger.error(u"PlexPy Pmsconnect :: Image proxy queries but no input received.")
-            return None
+            logger.error(u"PlexPy Pmsconnect :: Image proxy queried but no input received.")
 
     def get_search_results(self, query=''):
         """
@@ -1898,7 +2007,7 @@ class PmsConnect(object):
                     search_results_count += 1
 
         output = {'results_count': search_results_count,
-                  'results_list': search_results_list
+                  'results_list': {k: v for k, v in search_results_list.iteritems()}
                   }
 
         return output

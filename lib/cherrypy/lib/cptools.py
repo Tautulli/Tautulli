@@ -2,9 +2,10 @@
 
 import logging
 import re
+from hashlib import md5
 
 import cherrypy
-from cherrypy._cpcompat import basestring, md5, set, unicodestr
+from cherrypy._cpcompat import basestring, unicodestr
 from cherrypy.lib import httputil as _httputil
 from cherrypy.lib import is_iterator
 
@@ -192,11 +193,10 @@ def proxy(base=None, local='X-Forwarded-Host', remote='X-Forwarded-For',
         if lbase is not None:
             base = lbase.split(',')[0]
     if not base:
+        base = request.headers.get('Host', '127.0.0.1')
         port = request.local.port
-        if port == 80:
-            base = '127.0.0.1'
-        else:
-            base = '127.0.0.1:%s' % port
+        if port != 80:
+            base += ':%s' % port
 
     if base.find("://") == -1:
         # add http:// or https:// if needed

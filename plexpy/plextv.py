@@ -16,29 +16,49 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, http_handler, database, users
-import xmltodict
-import json
+import base64
 from xml.dom import minidom
 
-import base64
 import plexpy
+import database
+import helpers
+import http_handler
+import logger
+import users
+import pmsconnect
+import session
 
 
 def refresh_users():
     logger.info(u"PlexPy PlexTV :: Requesting users list refresh...")
     result = PlexTV().get_full_users_list()
-    monitor_db = database.MonitorDatabase()
 
-    if len(result) > 0:
+    monitor_db = database.MonitorDatabase()
+    user_data = users.Users()
+
+    if result:
         for item in result:
+
+            shared_libraries = ''
+            user_tokens = user_data.get_tokens(user_id=item['user_id'])
+            if user_tokens and user_tokens['server_token']:
+                pms_connect = pmsconnect.PmsConnect(token=user_tokens['server_token'])
+                library_details = pms_connect.get_server_children()
+                shared_libraries = ';'.join(d['section_id'] for d in library_details['libraries_list'])
+
             control_value_dict = {"user_id": item['user_id']}
             new_value_dict = {"username": item['username'],
                               "thumb": item['thumb'],
                               "email": item['email'],
                               "is_home_user": item['is_home_user'],
                               "is_allow_sync": item['is_allow_sync'],
-                              "is_restricted": item['is_restricted']
+                              "is_restricted": item['is_restricted'],
+                              "shared_libraries": shared_libraries,
+                              "filter_all": item['filter_all'],
+                              "filter_movies": item['filter_movies'],
+                              "filter_tv": item['filter_tv'],
+                              "filter_music": item['filter_music'],
+                              "filter_photos": item['filter_photos']
                               }
 
             # Check if we've set a custom avatar if so don't overwrite it.
@@ -56,8 +76,10 @@ def refresh_users():
             monitor_db.upsert('users', new_value_dict, control_value_dict)
 
         logger.info(u"PlexPy PlexTV :: Users list refreshed.")
+        return True
     else:
         logger.warn(u"PlexPy PlexTV :: Unable to refresh users list.")
+        return False
 
 
 def get_real_pms_url():
@@ -109,34 +131,45 @@ class PlexTV(object):
     Plex.tv authentication
     """
 
-    def __init__(self, username=None, password=None):
+    def __init__(self, username=None, password=None, token=None):
         self.protocol = 'HTTPS'
         self.username = username
         self.password = password
         self.ssl_verify = plexpy.CONFIG.VERIFY_SSL_CERT
 
+        if not token:
+            # Check if we should use the admin token, or the guest server token
+            if session.get_session_user_id():
+                user_data = users.Users()
+                user_tokens = user_data.get_tokens(user_id=session.get_session_user_id())
+                token = user_tokens['server_token']
+            else:
+                token = plexpy.CONFIG.PMS_TOKEN
+
         self.request_handler = http_handler.HTTPHandler(host='plex.tv',
                                                         port=443,
-                                                        token=plexpy.CONFIG.PMS_TOKEN,
+                                                        token=token,
                                                         ssl_verify=self.ssl_verify)
 
     def get_plex_auth(self, output_format='raw'):
         uri = '/users/sign_in.xml'
         base64string = base64.encodestring('%s:%s' % (self.username, self.password)).replace('\n', '')
         headers = {'Content-Type': 'application/xml; charset=utf-8',
-                   'Content-Length': '0',
                    'X-Plex-Device-Name': 'PlexPy',
                    'X-Plex-Product': 'PlexPy',
-                   'X-Plex-Version': 'v0.1 dev',
+                   'X-Plex-Version': plexpy.common.VERSION_NUMBER,
+                   'X-Plex-Platform': plexpy.common.PLATFORM,
+                   'X-Plex-Platform-Version': plexpy.common.PLATFORM_VERSION,
                    'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
-                   'Authorization': 'Basic %s' % base64string + ":"
+                   'Authorization': 'Basic %s' % base64string
                    }
-
+        
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='POST',
                                                     headers=headers,
-                                                    output_format=output_format)
+                                                    output_format=output_format,
+                                                    no_token=True)
 
         return request
 
@@ -147,16 +180,35 @@ class PlexTV(object):
             try:
                 xml_head = plextv_response.getElementsByTagName('user')
                 if xml_head:
-                    auth_token = xml_head[0].getAttribute('authenticationToken')
+                    user = {'auth_token': xml_head[0].getAttribute('authenticationToken'),
+                            'user_id': xml_head[0].getAttribute('id')
+                            }
                 else:
                     logger.warn(u"PlexPy PlexTV :: Could not get Plex authentication token.")
             except Exception as e:
                 logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_token: %s." % e)
-                return []
+                return None
 
-            return auth_token
+            return user
         else:
-            return []
+            return None
+
+    def get_server_token(self):
+        servers = self.get_plextv_server_list(output_format='xml')
+        server_token = ''
+
+        try:
+            xml_head = servers.getElementsByTagName('Server')
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_token: %s." % e)
+            return None
+
+        for a in xml_head:
+            if helpers.get_xml_attr(a, 'machineIdentifier') == plexpy.CONFIG.PMS_IDENTIFIER:
+                server_token = helpers.get_xml_attr(a, 'accessToken')
+                break
+
+        return server_token
 
     def get_plextv_user_data(self):
         plextv_response = self.get_plex_auth(output_format='dict')
@@ -239,7 +291,12 @@ class PlexTV(object):
                                "email": helpers.get_xml_attr(a, 'email'),
                                "is_home_user": helpers.get_xml_attr(a, 'home'),
                                "is_allow_sync": None,
-                               "is_restricted": helpers.get_xml_attr(a, 'restricted')
+                               "is_restricted": helpers.get_xml_attr(a, 'restricted'),
+                               "filter_all": helpers.get_xml_attr(a, 'filterAll'),
+                               "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
+                               "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
+                               "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
+                               "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
                                }
 
                 users_list.append(own_details)
@@ -264,7 +321,12 @@ class PlexTV(object):
                           "email": helpers.get_xml_attr(a, 'email'),
                           "is_home_user": helpers.get_xml_attr(a, 'home'),
                           "is_allow_sync": helpers.get_xml_attr(a, 'allowSync'),
-                          "is_restricted": helpers.get_xml_attr(a, 'restricted')
+                          "is_restricted": helpers.get_xml_attr(a, 'restricted'),
+                          "filter_all": helpers.get_xml_attr(a, 'filterAll'),
+                          "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
+                          "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
+                          "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
+                          "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
                           }
 
                 users_list.append(friend)
@@ -377,7 +439,7 @@ class PlexTV(object):
 
                         synced_items.append(sync_details)
 
-        return synced_items
+        return session.filter_session_info(synced_items, filter_key='user_id')
 
     def get_server_urls(self, include_https=True):
 

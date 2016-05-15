@@ -5,22 +5,23 @@
 
 <%def name="body()">
 <div class="container-fluid">
+    % for section in config['home_sections']:
+    % if section == 'current_activity':
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header" id="current-activity-header">
                 <h3>Activity</h3>
             </div>
             <div id="currentActivity">
-                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
-                <br>
+                <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
             </div>
         </div>
     </div>
-    % if config['home_stats_cards']:
+    % elif section == 'watch_stats':
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header">
-                <h3>Watch Statistics <small>Last ${config['home_stats_length']} days</small></h3>
+                <h3>Watch Statistics &nbsp;&nbsp;<small>Last ${config['home_stats_length']} days</small></h3>
             </div>
             <div id="home-stats" class="home-platforms">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
@@ -28,12 +29,11 @@
             </div>
         </div>
     </div>
-    % endif
-    % if config['home_library_cards']:
+    % elif section == 'library_stats':
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header" id="library-statistics-header">
-                <h3>Library Statistics <small>${config['pms_name']}</small></h3>
+                <h3>Library Statistics &nbsp;&nbsp;<small>${config['pms_name']}</small></h3>
             </div>
             <div id="library-stats" class="library-platforms">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
@@ -41,11 +41,11 @@
             </div>
         </div>
     </div>
-    % endif
+    % elif section == 'recently_added':
     <div class="row">
         <div class="col-md-12">
             <div class="padded-header">
-                <ul class="nav nav-header nav-dashboard pull-right">
+                <ul class="nav nav-header nav-dashboard pull-right" style="margin-top: -12px;">
                     <li>
                         <a href="#" id="recently-added-page-left" class="paginate btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
                     </li>
@@ -53,7 +53,10 @@
                         <a href="#" id="recently-added-page-right" class="paginate btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
                     </li>
                 </ul>
-                <h3>Recently Added</h3>
+                <h3>Recently Added &nbsp;&nbsp;<small>
+                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-movie" data-type="movie">Movies</a> &nbsp; 
+                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-season" data-type="season">TV Shows</a> &nbsp; 
+                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-album" data-type="album">Music</a></small></h3>
             </div>
             <div id="recentlyAdded" style="margin-right: -15px;">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
@@ -61,96 +64,272 @@
             </div>
         </div>
     </div>
+    % endif
+    % endfor
 </div>
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/moment-with-locale.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
+<script>
+    var date_format = 'YYYY-MM-DD';
+    var time_format = 'hh:mm a';
+    $.ajax({
+        url: 'get_date_formats',
+        type: 'GET',
+        success: function (data) {
+            date_format = data.date_format;
+            time_format = data.time_format;
+        }
+    });
+</script>
+% if 'current_activity' in config['home_sections']:
 <script>
     function currentActivityHeader() {
         $.ajax({
             url: 'get_current_activity_header',
             cache: false,
             async: true,
-            complete: function(xhr, status) {
+            complete: function (xhr, status) {
                 $("#current-activity-header").html(xhr.responseText);
             }
         });
     }
     currentActivityHeader();
 
-    function currentActivity() {
+    function getCurrentActivity() {
         $.ajax({
-            url: 'get_current_activity',
+            url: 'get_activity',
+            type: 'GET',
             cache: false,
             async: true,
-            complete: function(xhr, status) {
-                $("#currentActivity").html(xhr.responseText);
+            complete: function (xhr, status) {
+                $('#dashboard-checking-activity').remove();
+
+                var current_activity = $.parseJSON(xhr.responseText);
+                var stream_count = parseInt(current_activity.stream_count);
+                var sessions = current_activity.sessions;
+
+                if (stream_count) {
+                    $('#dashboard-no-activity').remove();
+
+                    sessions.forEach(function (s) {
+                        var key = s.session_key;
+                        var instance = $('#instance-' + key);
+
+                        // create a new instance if it doesn't exist
+                        if (!(instance.length)) {
+                            getActivityInstance(s);
+                            return;
+                        }
+
+                        // update play state
+                        switch (s.state) {
+                            case 'playing':
+                                var overlay_state = 'State &nbsp;<strong>Playing</strong>';
+                                var state_icon = '<i class="fa fa-fw fa-play"></i>&nbsp;';
+                                break;
+                            case 'paused':
+                                var overlay_state = 'State &nbsp;<strong>Paused</strong>';
+                                var state_icon = '<i class="fa fa-fw fa-pause"></i>&nbsp;';
+                                break;
+                            case 'buffering':
+                                var overlay_state = 'State &nbsp;<strong>Buffering</strong>';
+                                var state_icon = '<i class="fa fa-fw fa-spinner"></i>&nbsp;';
+                                break;
+                            default:
+                                var overlay_state = 'State &nbsp;<strong>Unknown</strong>';
+                                var state_icon = '<i class="fa fa-fw fa-question-circle"></i>&nbsp;';
+                        }
+                        $('#overlay-play-state-' + key).html(overlay_state);
+                        $('#play-state-' + key).html(state_icon);
+
+                        // if using bif indexes, update the bif thumbnail
+                        if (s.indexes) {
+                            var bif_poster = $('#bif-' + key);
+                            bif_poster.animate({ opacity: 0 }, { duration: 1000, queue: false });
+                            bif_poster.after($('<div id="bif-' + key + '"class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img='
+                                + s.bif_thumb + '&width=500&height=280&fallback=art);"></div>').fadeIn(1000, function () { bif_poster.remove() }));
+                        }
+
+                        // if transcoding, update the transcode state
+                        if (s.video_decision == 'transcode' || s.audio_decision == 'transcode') {
+                            var throttled = (s.throttled == '1') ? ' (Throttled)' : '';
+                            $('#transcode-state-' + key).html('(Speed: ' + s.transcode_speed + ')' + throttled);
+                        }
+
+                        // update the stream progress times
+                        $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));
+                        $('#stream-view-offset-' + key).html(millisecondsToMinutes(s.view_offset, false));
+
+                        // update the progress bars
+                        // percent - 3 because of 3px padding-right
+                        $('#bufferbar-' + key).width(parseInt(s.transcode_progress) - 3 + '%').html(s.transcode_progress + '%');
+                        $('#bar-' + key).width(parseInt(s.progress_percent) - 3 + '%').html(s.progress_percent + '%');
+
+                        // add temporary class so we know which instances are still active
+                        instance.addClass('updated-temp');
+                    });
+
+                    // Remove finished instances
+                    var all_instances = $('div[id^=instance-]');
+                    all_instances.each(function (i, instance) {
+                        if ($(instance).hasClass('updated-temp')) {
+                            $(instance).removeClass('updated-temp');
+                        } else {
+                            $(instance).remove();
+                        }
+                    });
+
+                } else {
+                    $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">Nothing is currently being played.</div>');
+                }
             }
         });
     }
-    currentActivity();
 
+    function getActivityInstance(session) {
+        $.ajax({
+            url: 'get_current_activity_instance',
+            type: 'GET',
+            cache: false,
+            async: true,
+            data: session,
+            complete: function(xhr, status) {
+                $('#currentActivity').append(xhr.responseText);
+                $('#instance-' + session.session_key).find('.dashboard-activity-poster-face').hide().fadeIn(1000);
+                $('#bufferbar-' + session.session_key).tooltip({ container: 'body', placement: 'right', delay: 50 });
+                $('#bar-' + session.session_key).tooltip({ container: 'body', placement: 'right', delay: 50 });
+            }
+        });
+    }
+
+    getCurrentActivity();
     setInterval(function () {
-        $('.bar, .bufferbar').tooltip('destroy');
         currentActivityHeader();
-        currentActivity();
+        getCurrentActivity();
     }, 15000);
 
+    // Show/Hide activity info
+    $('#currentActivity').on('click', '.btn-activity-info', function (e) {
+        e.preventDefault();
+        $($(this).attr('data-target')).toggle();
+        var id = $(this).closest('.dashboard-instance').data('id');
+        var filterVal = $('#stream-' + id).is(':visible') ? 'blur(5px)' : '';
+        $($(this).closest('.dashboard-activity-poster').find('.dashboard-activity-poster-face, .dashboard-activity-cover-face'))
+        .css('filter',filterVal).css('webkitFilter',filterVal).css('mozFilter',filterVal).css('oFilter',filterVal).css('msFilter',filterVal);
+    });
+
+    // Add hover class to dashboard-instance
+    $('#currentActivity').on('mouseover', '.dashboard-hover-container', function () {
+        $(this).closest('.dashboard-instance').addClass('hover');
+    });
+    $('#currentActivity').on('mouseleave', '.dashboard-hover-container', function () {
+        var id = $(this).closest('.dashboard-instance').data('id');
+        if (!($('#stream-' + id).is(':visible'))) {
+            $(this).closest('.dashboard-instance').removeClass('hover');
+        }
+    });
+</script>
+% endif
+% if 'watch_stats' in config['home_sections']:
+<script>
     function getHomeStats(days) {
         $.ajax({
             url: 'home_stats',
+            type: 'GET',
             cache: false,
             async: true,
             data: { },
-            complete: function(xhr, status) {
+            complete: function (xhr, status) {
                 $("#home-stats").html(xhr.responseText);
             }
         });
     }
     getHomeStats();
-
+</script>
+% endif
+% if 'library_stats' in config['home_sections']:
+<script>
     function getLibraryStats() {
         $.ajax({
             url: 'library_stats',
+            type: 'GET',
             cache: false,
             async: true,
             data: { },
-            complete: function(xhr, status) {
+            complete: function (xhr, status) {
                 $("#library-stats").html(xhr.responseText);
             }
         });
     }
     getLibraryStats();
-
+</script>
+% endif
+% if 'recently_added' in config['home_sections']:
+<script>
     function recentlyAdded() {
         $.ajax({
             url: 'get_recently_added',
             type: "GET",
             async: true,
             data: { count : 50 },
-            complete: function(xhr, status) {
+            complete: function (xhr, status) {
                 $("#recentlyAdded").html(xhr.responseText);
                 highlightAddedScrollerButton();
+                if ($('.dashboard-recent-media-instance li[data-type=movie]').length) { $('#toggle-recently-added-movie').removeClass('disabled'); }
+                if ($('.dashboard-recent-media-instance li[data-type=season]').length) { $('#toggle-recently-added-season').removeClass('disabled'); }
+                if ($('.dashboard-recent-media-instance li[data-type=album]').length) { $('#toggle-recently-added-album').removeClass('disabled'); }
+
+                $('.toggle-recently-added-type').not('.disabled').click(function () {
+                    var scroller = $("#recently-added-row-scroller");
+                    var media_type = $(this).data('type');
+                    var margin_right = $(this).hasClass('text-muted') ? '25px' : 0;
+                    var toggle_items = $('.dashboard-recent-media-instance li[data-type=' + media_type + ']');
+                    var containerWidth = $("body").find(".container-fluid").width();
+
+                    if (margin_right == 0) {
+                        toggle_items.stop().animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
+                            toggle_items.hide();
+
+                            var scroller_width = $('.dashboard-recent-media-instance li:visible').length * 175;
+                            scroller.width(scroller_width);
+
+                            if (scroller_width < containerWidth) {
+                                $("#recently-added-page-right").addClass("disabled").blur();
+                            } else {
+                                $("#recently-added-page-right").removeClass("disabled");
+                            }
+                        })
+                    } else {
+                        scroller.width(50 * 175);
+                        toggle_items.stop().animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
+                            toggle_items.show();
+
+                            var scroller_width = $('.dashboard-recent-media-instance li:visible').length * 175;
+                            scroller.width(scroller_width);
+
+                            if (scroller_width < containerWidth) {
+                                $("#recently-added-page-right").addClass("disabled").blur();
+                            } else {
+                                $("#recently-added-page-right").removeClass("disabled");
+                            }
+                        })
+                    }
+
+                    leftTotal = 0;
+                    scroller.animate({ left: leftTotal }, 1000);
+                    $("#recently-added-page-left").addClass("disabled").blur();
+                    $(this).toggleClass('text-muted').blur();
+                });
             }
         });
     }
     recentlyAdded();
 
-    var date_format = 'YYYY-MM-DD';
-    var time_format = 'hh:mm a';
-    $.ajax({
-        url: 'get_date_formats',
-        type: 'GET',
-        success: function(data) {
-            date_format = data.date_format;
-            time_format = data.time_format;
-        }
-    });
-
     function highlightAddedScrollerButton() {
         var scroller = $("#recently-added-row-scroller");
-        var numElems = scroller.find("li").length;
+        var numElems = scroller.find("li:visible").length;
         scroller.width(numElems * 175);
         if (scroller.width() > $("body").find(".container-fluid").width()) {
             $("#recently-added-page-right").removeClass("disabled");
@@ -187,5 +366,5 @@
         }
     });
 </script>
-
+% endif
 </%def>

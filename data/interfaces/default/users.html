@@ -1,9 +1,9 @@
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
-<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
+<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
 </%def>
 
 <%def name="body()">
@@ -13,12 +13,18 @@
             <span><i class="fa fa-group"></i> All Users</span>
         </div>
         <div class="button-bar">
-            <div class="colvis-button-bar hidden-xs"></div>
-            <button class="btn btn-dark refresh-users-button" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
-            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                <i class="fa fa-pencil"></i> Edit mode
-            </button>&nbsp
+            % if _session['user_group'] == 'admin':
             <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect users to delete/purge. Data is deleted/purged upon exiting edit mode.</div>
+            <div class="btn-group">
+                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                    <i class="fa fa-pencil"></i> Edit mode
+                </button>&nbsp
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-dark refresh-users-button" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
+            </div>
+            % endif
+            <div class="btn-group colvis-button-bar"></div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -44,7 +50,7 @@
         </div>
         <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
         </div>
-        <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+        <div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -69,12 +75,12 @@
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/dataTables.colVis.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
-<script src="interfaces/default/js/moment-with-locale.js"></script>
-<script src="interfaces/default/js/tables/users.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/tables/users.js"></script>
 <script>
     $(document).ready(function () {
         users_list_table_options.ajax = {
@@ -93,6 +99,7 @@
 
         clearSearchButton('users_list_table', users_list_table);
 
+        % if _session['user_group'] == 'admin':
         $('#row-edit-mode').on('click', function () {
             $('#row-edit-mode-alert').fadeIn(200);
             $('#users-to-delete').html('');
@@ -122,8 +129,8 @@
                         }
                     }
 
-                    $('#confirm-modal').modal();
-                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                    $('#confirm-modal-delete').modal();
+                    $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
                         for (var i = 0; i < users_to_delete.length; i++) {
                             $.ajax({
                                 url: 'delete_user',
@@ -167,8 +174,10 @@
                 toggleEditNames();
             }
         });
+        % endif
     });
 
+    % if _session['user_group'] == 'admin':
     $("#refresh-users-list").click(function() {
         $.ajax({
             url: 'refresh_users_list',
@@ -185,5 +194,6 @@
             }
         });
     });
+    % endif
 </script>
 </%def>

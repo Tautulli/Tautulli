@@ -68,20 +68,23 @@ DOCUMENTATION :: END
 % if data['stream_count'] != '0':
 % for a in data['sessions']:
 <div class="dashboard-instance" id="instance-${a['session_key']}">
-    % if a['media_type'] == 'movie' or a['media_type'] == 'episode' or a['media_type'] == 'track':
+    % if (a['media_type'] == 'movie' or a['media_type'] == 'episode' or a['media_type'] == 'track') and a['rating_key']:
     <a href="info?rating_key=${a['rating_key']}">
+    % else:
+    <a href="#">
     % endif
         <div class="dashboard-activity-poster">
+            % if not a['art'].startswith('interfaces') or not a['thumb'].startswith('interfaces'):
             % if (a['media_type'] == 'movie' and not a['indexes']) or (a['indexes'] and not a['view_offset']):
-            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
+            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280&fallback=art);"></div>
             % elif (a['media_type'] == 'episode' and not a['indexes']) or (a['indexes'] and not a['view_offset']):
-            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
+            <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280&fallback=art);"></div>
             % elif a['indexes']:
-            <div class="dashboard-activity-poster-face bif" style="background-image: url(pms_image_proxy?img=${a['bif_thumb']}&width=500&height=280); display: none;"></div>
+            <div class="dashboard-activity-poster-face bif" style="background-image: url(pms_image_proxy?img=${a['bif_thumb']}&width=500&height=280&fallback=art); display: none;"></div>
             % else:
                 % if a['media_type'] == 'track':
-                <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
-                <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300);"></div>
+                <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300&fallback=cover);"></div>
+                <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300&fallback=cover);"></div>
                 % elif a['media_type'] == 'clip':
                     % if a['art'][:4] == 'http':
                     <div class="dashboard-activity-poster-face" style="background-image: url(${a['art']});"></div>
@@ -89,16 +92,19 @@ DOCUMENTATION :: END
                     <div class="dashboard-activity-poster-face" style="background-image: url(${a['thumb']});"></div>
                     % else:
                         % if a['art']:
-                        <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280);"></div>
+                        <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['art']}&width=500&height=280&fallback=art);"></div>
                         % else:
-                        <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=280);"></div>
+                        <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=280&fallback=art);"></div>
                         % endif
                     % endif
                 % elif a['media_type'] == 'photo':
-                <div class="dashboard-activity-poster-face bif" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=500);"></div>
+                <div class="dashboard-activity-poster-face bif" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=500&height=500&fallback=cover);"></div>
                 % else:
                 <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${a['thumb']}&width=300&height=300&fallback=cover);"></div>
                 % endif
+            % endif
+            % else:
+            <div class="dashboard-activity-poster-face" style="background-image: url(${a['art']});"></div>
             % endif
             <div class="dashboard-activity-button-info">
                 <button type="button" class="btn btn-activity-info btn-lg" data-target="#stream-${a['session_key']}">
@@ -212,7 +218,9 @@ DOCUMENTATION :: END
             </div>
             % endif
         </div>
-    % if a['media_type'] == 'movie' or a['media_type'] == 'episode' or a['media_type'] == 'track':
+    % if (a['media_type'] == 'movie' or a['media_type'] == 'episode' or a['media_type'] == 'track') and a['rating_key']:
+    </a>
+    % else:
     </a>
     % endif
     <div class="dashboard-activity-progress">
@@ -222,9 +230,13 @@ DOCUMENTATION :: END
         </div>
     </div>
     <div class="dashboard-activity-metadata-wrapper">
+        % if a['user_id']:
         <a href="user?user_id=${a['user_id']}">
             <div class="dashboard-activity-metadata-user-thumb" style="background-image: url(${a['user_thumb']});"></div>
         </a>
+        % else:
+        <div class="dashboard-activity-metadata-user-thumb" style="background-image: url(${a['user_thumb']});"></div>
+        % endif
         <div class="dashboard-activity-metadata-title">
             % if a['state'] == 'playing':
             <i class="fa fa-play"></i>&nbsp;
@@ -233,6 +245,7 @@ DOCUMENTATION :: END
             % elif a['state'] == 'buffering':
             <i class="fa fa-spinner"></i>&nbsp;
             % endif
+            % if a['rating_key']:
             % if a['media_type'] == 'episode':
             <a href="info?rating_key=${a['rating_key']}" title="${a['grandparent_title']} - ${a['title']}">${a['grandparent_title']} - ${a['title']}</a>
             % elif a['media_type'] == 'movie':
@@ -246,8 +259,12 @@ DOCUMENTATION :: END
             % else:
             <span title="${a['title']}">${a['title']}</span>
             % endif
+            % else:
+            ${a['title']}
+            % endif
         </div>
         <div class="dashboard-activity-metadata-subtitle">
+            % if a['rating_key']:
             % if a['media_type'] == 'episode':
             <span title="S${a['parent_media_index']} &middot; E${a['media_index']}">S${a['parent_media_index']} &middot; E${a['media_index']}</span>
             % elif a['media_type'] == 'movie':
@@ -259,9 +276,14 @@ DOCUMENTATION :: END
             % else:
             <span title="${a['year']}">${a['year']}</span>
             % endif
+            % endif
         </div>
         <div class="dashboard-activity-metadata-user">
+            % if a['user_id']:
             <a href="user?user_id=${a['user_id']}" title="${a['friendly_name']}">${a['friendly_name']}</a>
+            % else:
+            ${a['friendly_name']}
+            % endif
         </div>
 </div>
 </div>

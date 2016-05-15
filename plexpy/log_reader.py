@@ -13,10 +13,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import helpers, logger
-import re
 import os
+
 import plexpy
+import helpers
+import logger
 
 def get_log_tail(window=20, parsed=True, log_type="server"):
 
@@ -31,7 +32,7 @@ def get_log_tail(window=20, parsed=True, log_type="server"):
 
     try:
         logfile = open(log_file, "r")
-    except IOError, e:
+    except IOError as e:
         logger.error('Unable to open Plex Log file. %s' % e)
         return []
 

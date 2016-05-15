@@ -4,20 +4,22 @@ var libraries_to_purge = [];
 libraries_list_table_options = {
     "language": {
         "search": "Search: ",
-        "lengthMenu":"Show _MENU_ entries per page",
-        "info":"Showing _START_ to _END_ of _TOTAL_ active libraries",
-        "infoEmpty":"Showing 0 to 0 of 0 entries",
-        "infoFiltered":"",
+        "lengthMenu": "Show _MENU_ entries per page",
+        "info": "Showing _START_ to _END_ of _TOTAL_ active libraries",
+        "infoEmpty": "Showing 0 to 0 of 0 entries",
+        "infoFiltered": "",
         "emptyTable": "No data in table",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
     "destroy": true,
     "processing": false,
     "serverSide": true,
-    "pageLength": 10,
+    "pageLength": 25,
     "order": [ 2, 'asc'],
-    "autoWidth": true,
     "stateSave": true,
     "pagingType": "full_numbers",
+    "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -44,10 +46,10 @@ libraries_list_table_options = {
                     if (rowData['library_thumb'].substring(0, 4) == "http") {
                         $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['library_thumb'] + ');"></div></a>');
                     } else {
-                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(pms_image_proxy?img=' + rowData['library_thumb'] + '&width=80&height=80&fallback=poster);"></div></a>');
+                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(pms_image_proxy?img=' + rowData['library_thumb'] + '&width=80&height=80&fallback=cover);"></div></a>');
                     }
                 } else {
-                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(interfaces/default/images/cover.png);"></div></a>');
+                    $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(../../images/cover.png);"></div></a>');
                 }
             },
             "orderable": false,
@@ -79,7 +81,7 @@ libraries_list_table_options = {
                 }
             },
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [4],
@@ -91,7 +93,7 @@ libraries_list_table_options = {
 
             },
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [5],
@@ -103,7 +105,7 @@ libraries_list_table_options = {
 
             },
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [6],
@@ -115,7 +117,7 @@ libraries_list_table_options = {
 
             },
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [7],
@@ -129,7 +131,7 @@ libraries_list_table_options = {
             },
             "searchable": false,
             "width": "10%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [8],
@@ -140,29 +142,48 @@ libraries_list_table_options = {
                     var media_type = '';
                     var thumb_popover = '';
                     if (rowData['media_type'] === 'movie') {
-                        if (rowData['year']) { parent_info = ' (' + rowData['year'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Movie"><i class="fa fa-film fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + parent_info + '</span>'
-                        $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        if (rowData['rating_key']) {
+                            if (rowData['year']) { parent_info = ' (' + rowData['year'] + ')'; }
+                            thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + parent_info + '</span>'
+                            $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        } else {
+                            thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="images/poster.png" data-height="120" data-width="80">' + cellData + parent_info + '</span>'
+                            $(td).html('<div class="history-title"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></div>');
+                        }
                     } else if (rowData['media_type'] === 'episode') {
-                        if (rowData['parent_media_index'] && rowData['media_index']) { parent_info = ' (S' + rowData['parent_media_index'] + '&middot; E' + rowData['media_index'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + parent_info + '</span>'
-                        $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;" >' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        if (rowData['rating_key']) {
+                            if (rowData['parent_media_index'] && rowData['media_index']) { parent_info = ' (S' + rowData['parent_media_index'] + '&middot; E' + rowData['media_index'] + ')'; }
+                            thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="120" data-width="80">' + cellData + parent_info + '</span>'
+                            $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;" >' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        } else {
+                            thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="images/poster.png" data-height="120" data-width="80">' + cellData + parent_info + '</span>'
+                            $(td).html('<div class="history-title"><div style="float: left;" >' + media_type + '&nbsp;' + thumb_popover + '</div></div>');
+                        }
                     } else if (rowData['media_type'] === 'track') {
-                        if (rowData['parent_title']) { parent_info = ' (' + rowData['parent_title'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
-                        $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        if (rowData['rating_key']) {
+                            if (rowData['parent_title']) { parent_info = ' (' + rowData['parent_title'] + ')'; }
+                            thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=cover" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
+                            $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        } else {
+                            thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="images/cover.png" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
+                            $(td).html('<div class="history-title"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></div>');
+                        }
                     } else if (rowData['media_type']) {
-                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                        if (rowData['rating_key']) {
+                            $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
+                        } else {
+                            $(td).html(cellData);
+                        }
                     }
                 } else {
                     $(td).html('n/a');
                 }
             },
             "width": "18%",
-            "className": "hidden-sm hidden-xs"
+            "className": "datatable-wrap"
         },
         {
             "targets": [9],
@@ -173,7 +194,8 @@ libraries_list_table_options = {
                 }
             },
             "searchable": false,
-            "width": "7%"
+            "width": "7%",
+            "className": "no-wrap"
         },
         {
             "targets": [10],
@@ -184,7 +206,8 @@ libraries_list_table_options = {
                 }
             },
             "searchable": false,
-            "width": "10%"
+            "width": "10%",
+            "className": "no-wrap"
         }
 
     ],

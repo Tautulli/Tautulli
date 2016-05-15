@@ -2,19 +2,21 @@ user_ip_table_options = {
     "destroy": true,
     "language": {
         "search": "Search: ",
-        "lengthMenu":"Show _MENU_ entries per page",
-        "info":"Showing _START_ to _END_ of _TOTAL_ results",
-        "infoEmpty":"Showing 0 to 0 of 0 entries",
-        "infoFiltered":"(filtered from _MAX_ total entries)",
+        "lengthMenu": "Show _MENU_ entries per page",
+        "info": "Showing _START_ to _END_ of _TOTAL_ results",
+        "infoEmpty": "Showing 0 to 0 of 0 entries",
+        "infoFiltered": "(filtered from _MAX_ total entries)",
         "emptyTable": "No data in table",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
     "stateSave": true,
     "pagingType": "full_numbers",
     "processing": false,
     "serverSide": true,
-    "pageLength": 10,
+    "pageLength": 25,
     "order": [ 0, 'desc'],
     "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -24,7 +26,7 @@ user_ip_table_options = {
             },
             "searchable": false,
             "width": "15%",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [1],
@@ -38,7 +40,8 @@ user_ip_table_options = {
                             $(td).html('n/a');
                         }
                     } else {
-                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal"><span data-toggle="ip-tooltip" data-placement="left" title="IP Address Info" id="ip-info"><i class="fa fa-map-marker"></i></span>&nbsp' + cellData +'</a>');
+                        external_ip = '<span class="external-ip-tooltip" data-toggle="tooltip" title="External IP"><i class="fa fa-map-marker fa-fw"></i></span>';
+                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">' + external_ip + cellData + '</a>');
                     }
                 } else {
                     $(td).html('n/a');
@@ -56,7 +59,7 @@ user_ip_table_options = {
                 }
             },
             "width": "15%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [3],
@@ -77,7 +80,7 @@ user_ip_table_options = {
                 }
             },
             "width": "15%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs modal-control"
+            "className": "no-wrap modal-control"
         },
         {
             "targets": [4],
@@ -100,7 +103,7 @@ user_ip_table_options = {
                     } else if (rowData['media_type'] === 'track') {
                         if (rowData['parent_title']) { parent_info = ' (' + rowData['parent_title'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=cover" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
                         $(td).html('<div class="history-title"><a href="info?source=history&rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type']) {
                         $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
@@ -110,13 +113,14 @@ user_ip_table_options = {
                 }
             },
             "width": "30%",
-            "className": "hidden-sm hidden-xs"
+            "className": "datatable-wrap"
         },
         {
             "targets": [5],
             "data":"play_count",
             "searchable": false,
-            "width": "10%"
+            "width": "10%",
+            "className": "no-wrap"
             }
     ],
     "drawCallback": function (settings) {
@@ -125,9 +129,10 @@ user_ip_table_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.transcode-tooltip').tooltip();
-        $('.media-type-tooltip').tooltip();
-        $('.watched-tooltip').tooltip();
+        $('.external-ip-tooltip').tooltip({ container: 'body' });
+        $('.transcode-tooltip').tooltip({ container: 'body' });
+        $('.media-type-tooltip').tooltip({ container: 'body' });
+        $('.watched-tooltip').tooltip({ container: 'body' });
         $('.thumb-tooltip').popover({
             html: true,
             container: 'body',

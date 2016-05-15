@@ -15,15 +15,15 @@
 
 import base64
 import datetime
-import fnmatch
 from functools import wraps
+import hashlib
+import imghdr
 from IPy import IP
 import json
 import math
 from operator import itemgetter
 import os
 import re
-import shutil
 import socket
 import sys
 import time
@@ -33,7 +33,8 @@ from xml.dom import minidom
 import xmltodict
 
 import plexpy
-from api2 import API2
+import logger
+from plexpy.api2 import API2
 
 
 def addtoapi(*dargs, **dkwargs):
@@ -385,9 +386,6 @@ def create_https_certificates(ssl_cert, ssl_key):
 
     This code is stolen from SickBeard (http://github.com/midgetspy/Sick-Beard).
     """
-
-    from plexpy import logger
-
     from OpenSSL import crypto
     from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
@@ -452,13 +450,11 @@ def get_percent(value1, value2):
     return math.trunc(percent)
 
 def parse_xml(unparsed=None):
-    from plexpy import logger
-
     if unparsed:
         try:
             xml_parse = minidom.parseString(unparsed)
             return xml_parse
-        except Exception, e:
+        except Exception as e:
             logger.warn("Error parsing XML. %s" % e)
             return []
         except:
@@ -505,7 +501,6 @@ def is_ip_public(host):
     return False
 
 def get_ip(host):
-    from plexpy import logger
     ip_address = ''
     try:
         socket.inet_aton(host)
@@ -527,10 +522,18 @@ def anon_url(*url):
     return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
 
 def uploadToImgur(imgPath, imgTitle=''):
-    from plexpy import logger
-
-    client_id = '743b1a443ccd2b0'
+    """ Uploads an image to Imgur """
+    client_id = plexpy.CONFIG.IMGUR_CLIENT_ID
     img_url = ''
+
+    if not client_id:
+        #logger.error(u"PlexPy Helpers :: Cannot upload poster to Imgur. No Imgur client id specified in the settings.")
+        #return img_url
+        # Fallback to shared client id for now. This will be remove in a future update.
+        logger.warn(u"PlexPy Helpers :: No Imgur client id specified in the settings. Falling back to the shared client id.")
+        logger.warn(u"***** The shared Imgur client id will be removed in a future PlexPy update! "
+                    "Please enter your own client id in the settings to continue uploading posters! *****")
+        client_id = '743b1a443ccd2b0'
 
     try:
         with open(imgPath, 'rb') as imgFile:
@@ -563,3 +566,59 @@ def uploadToImgur(imgPath, imgTitle=''):
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % e)
 
     return img_url
+
+def cache_image(url, image=None):
+    """
+    Saves an image to the cache directory.
+    If no image is provided, tries to return the image from the cache directory.
+    """
+    # Create image directory if it doesn't exist
+    imgdir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images/')
+    if not os.path.exists(imgdir):
+        logger.debug(u"PlexPy Helpers :: Creating image cache directory at %s" % imgdir)
+        os.makedirs(imgdir)
+
+    # Create a hash of the url to use as the filename
+    imghash = hashlib.md5(url).hexdigest()
+    imagefile = os.path.join(imgdir, imghash)
+
+    # If an image is provided, save it to the cache directory
+    if image:
+        try:
+            with open(imagefile, 'wb') as cache_file:
+                cache_file.write(image)
+        except IOError as e:
+            logger.error(u"PlexPy Helpers :: Failed to cache image %s: %s" % (imagefile, e))
+
+    # Try to return the image from the cache directory
+    if os.path.isfile(imagefile):
+        imagetype = 'image/' + imghdr.what(os.path.abspath(imagefile))
+    else:
+        imagefile = None
+        imagetype = 'image/jpeg'
+
+    return imagefile, imagetype
+
+def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
+    """ Builds datatables json data
+
+        dt_columns:    list of tuples [("column name", "orderable", "searchable"), ...]
+    """
+
+    columns = [{"data": c[0], "orderable": c[1], "searchable": c[2]} for c in dt_columns]
+
+    if not default_sort_col:
+        default_sort_col = dt_columns[0][0]
+
+    order_column = [c[0] for c in dt_columns].index(kwargs.pop("order_column", default_sort_col))
+
+    # Build json data
+    json_data = {"draw": 1,
+                    "columns": columns,
+                    "order": [{"column": order_column,
+                            "dir": kwargs.pop("order_dir", "desc")}],
+                    "start": int(kwargs.pop("start", 0)),
+                    "length": int(kwargs.pop("length", 25)),
+                    "search": {"value": kwargs.pop("search", "")}
+                    }
+    return json.dumps(json_data)

@@ -15,13 +15,16 @@
 
 # Mostly borrowed from https://github.com/trakt/Plex-Trakt-Scrobbler
 
-from plexpy import logger, activity_pinger
-
-import threading
-import plexpy
 import json
+import threading
 import time
+
 import websocket
+
+import plexpy
+import activity_handler
+import activity_pinger
+import logger
 
 name = 'websocket'
 opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
@@ -55,7 +58,9 @@ def run():
 
     # Set authentication token (if one is available)
     if plexpy.CONFIG.PMS_TOKEN:
-        uri += '?X-Plex-Token=' + plexpy.CONFIG.PMS_TOKEN
+        header = ["X-Plex-Token: %s" % plexpy.CONFIG.PMS_TOKEN]
+    else:
+        header = []
 
     global ws_reconnect
     ws_reconnect = False
@@ -66,11 +71,11 @@ def run():
     while not ws_connected and reconnects <= 15:
         try:
             logger.info(u"PlexPy WebSocket :: Opening%s websocket, connection attempt %s." % (secure, str(reconnects + 1)))
-            ws = create_connection(uri)
+            ws = create_connection(uri, header=header)
             reconnects = 0
             ws_connected = True
             logger.info(u"PlexPy WebSocket :: Ready")
-        except IOError, e:
+        except IOError as e:
             logger.error(u"PlexPy WebSocket :: %s." % e)
             reconnects += 1
             time.sleep(5)
@@ -91,8 +96,8 @@ def run():
 
                 logger.warn(u"PlexPy WebSocket :: Connection has closed, reconnecting...")
                 try:
-                    ws = create_connection(uri)
-                except IOError, e:
+                    ws = create_connection(uri, header=header)
+                except IOError as e:
                     logger.info(u"PlexPy WebSocket :: %s." % e)
 
             else:
@@ -132,8 +137,6 @@ def receive(ws):
 
 
 def process(opcode, data):
-    from plexpy import activity_handler
-
     if opcode not in opcode_data:
         return False
 

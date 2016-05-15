@@ -1,5 +1,56 @@
 # Changelog
 
+## v1.4.0 (2016-05-15)
+
+* New: An HTML form login page with sessions support.
+* New: Guest access control for shared users using Plex.tv authentication.
+  * Enable the option in the settings and toggle guest access per user from Users > Edit mode.
+  * Guests can only view their own user data. Other user info is removed/masked.
+  * Guests can only view media from libraries that are shared with them (content rating and label filters are respected). Other libraries are removed/masked.
+  * All settings and admin controls are restricted from guests.
+  * All current activity on the server is shown, but with masked user/metadata info.
+* New: Login logs table on the User and Logs pages.
+* New: Filter the history table by user.
+* New: Filter the graphs by user. (Thanks @Otger)
+* New: Option to hash the admin passowrd in the config file.
+* New: Options to enable/disable/rearrange each section on the homepage
+* New: Toggle media types for recently added items on the homepage.
+* New: Option to enter an Imgur API client ID for uploading posters.
+  * Note: The shared Imgur client id will be removed in a future PlexPy update! Please enter your own client id in the settings to continue uploading posters!
+* New: HTML support for Email.
+* New: Posters and HTML support for Telegram.
+* New: Poster support for Slack.
+* New: Poster support for Twitter.
+* New: Re-added Plex Home Theater notification agent.
+* New: Browser notification agent (experimental).
+* New: Added {plex_url} as a notification option.
+* New: Added transcode decision to the activity header.
+* New: Documentation for APIv2 (see API.md for details).
+* New: Import a Plexivity database into PlexPy.
+* New: Prettier fallback image for art/episodes.
+* New: Prettier confirm modal dialogues.
+* New: Cache images to reduce Plex API calls. This can be disabled in the under Settings > Extra Settings. (Thanks @Hellowlol)
+* New: Scheduled backups of the config file.
+* New: Button to clear the PlexPy cache/images in the settings.
+* New: Button to manually backup the PlexPy database/config in the settings.
+* New: Button to clear the PlexPy logs in the settings.
+* New: Button to download PlexPy log file on the Logs tab.
+* New: Advanced setting in config file to change the Plex API timeout value.
+* Fix: Mixed content HTTP request in settings (for reverse proxies with SSL).
+* Fix: Rename recently "watched" music to "played".
+* Change: Current activity details now persists across refreshes.
+* Change: Smoother transitions between preview thumbnails in current activity.
+* Change: Datatables now display all columns and scroll horizontally on smaller screens.
+* Change: Ability to change the base URL for reverse proxies in the web interface.
+* Change: Added a "Verify Server" button in the settings.
+* Change: Added request status code in the logs for notifer errors.
+* Change: Remove in-memory logs and read lines from log file instead. (Thanks @Hellowlol)
+* Change: Limit number of failed attempts to write sessions to history. Default is 5 attempts.
+* Change: A bunch of UI updates.
+* Change: A bunch of backend code cleanup.
+* Removed: All unused Python packages.
+
+
 ## v1.3.16 (2016-05-01)
 
 * Fix: Viewing photos crashing PlexPy.

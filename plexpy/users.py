@@ -13,7 +13,17 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, datatables, common, database, helpers
+import httpagentparser
+import time
+
+import plexpy
+import common
+import database
+import datatables
+import helpers
+import logger
+import plextv
+import session
 
 
 class Users(object):
@@ -21,27 +31,19 @@ class Users(object):
     def __init__(self):
         pass
 
-    def get_user_names(self, kwargs=None):
-        monitor_db = database.MonitorDatabase()
-        
-        try:
-            query = 'SELECT user_id, ' \
-                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
-                    THEN users.username ELSE users.friendly_name END) AS friendly_name ' \
-                    'FROM users ' \
-                    'WHERE deleted_user = 0'
-
-            result = monitor_db.select(query)
-        except Exception as e:
-            logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_user_names: %s." % e)
-            return None
-        
-        return result
-    
     def get_datatables_list(self, kwargs=None):
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to execute database query.'}
+
         data_tables = datatables.DataTables()
 
-        custom_where = ['users.deleted_user', 0]
+        custom_where = [['users.deleted_user', 0]]
+
+        if session.get_session_user_id():
+            custom_where.append(['users.user_id', session.get_session_user_id()])
 
         columns = ['users.user_id',
                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
@@ -69,12 +71,13 @@ class Users(object):
                    'session_history_metadata.parent_media_index',
                    'session_history_media_info.transcode_decision',
                    'users.do_notify as do_notify',
-                   'users.keep_history as keep_history'
+                   'users.keep_history as keep_history',
+                   'users.allow_guest as allow_guest'
                    ]
         try:
             query = data_tables.ssp_query(table_name='users',
                                           columns=columns,
-                                          custom_where=[custom_where],
+                                          custom_where=custom_where,
                                           group_by=['users.user_id'],
                                           join_types=['LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN',
@@ -88,11 +91,7 @@ class Users(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn(u"PlexPy Users :: Unable to execute database query for get_list: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': 'null',
-                    'error': 'Unable to execute database query.'}
+            return default_return
 
         users = query['result']
 
@@ -135,20 +134,30 @@ class Users(object):
                    'parent_media_index': item['parent_media_index'],
                    'transcode_decision': item['transcode_decision'],
                    'do_notify': helpers.checked(item['do_notify']),
-                   'keep_history': helpers.checked(item['keep_history'])
+                   'keep_history': helpers.checked(item['keep_history']),
+                   'allow_guest': helpers.checked(item['allow_guest'])
                    }
 
             rows.append(row)
 
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': rows,
+                'data': session.friendly_name_to_username(rows),
                 'draw': query['draw']
                 }
 
         return dict
 
     def get_datatables_unique_ips(self, user_id=None, kwargs=None):
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to execute database query.'}
+
+        if not session.allow_session_user(user_id):
+            return default_return
+
         data_tables = datatables.DataTables()
 
         custom_where = ['users.user_id', user_id]
@@ -193,11 +202,7 @@ class Users(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn(u"PlexPy Users :: Unable to execute database query for get_unique_ips: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': 'null',
-                    'error': 'Unable to execute database query.'}
+            return default_return
 
         results = query['result']
 
@@ -228,20 +233,21 @@ class Users(object):
                    'media_index': item['media_index'],
                    'parent_media_index': item['parent_media_index'],
                    'transcode_decision': item['transcode_decision'],
-                   'friendly_name': item['friendly_name']
+                   'friendly_name': item['friendly_name'],
+                   'user_id': item['custom_user_id']
                    }
 
             rows.append(row)
 
         dict = {'recordsFiltered': query['filteredCount'],
                 'recordsTotal': query['totalCount'],
-                'data': rows,
+                'data': session.friendly_name_to_username(rows),
                 'draw': query['draw']
                 }
 
         return dict
 
-    def set_config(self, user_id=None, friendly_name='', custom_thumb='', do_notify=1, keep_history=1):
+    def set_config(self, user_id=None, friendly_name='', custom_thumb='', do_notify=1, keep_history=1, allow_guest=1):
         if str(user_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
@@ -249,15 +255,15 @@ class Users(object):
             value_dict = {'friendly_name': friendly_name,
                           'custom_avatar_url': custom_thumb,
                           'do_notify': do_notify,
-                          'keep_history': keep_history}
+                          'keep_history': keep_history,
+                          'allow_guest': allow_guest
+                          }
             try:
                 monitor_db.upsert('users', value_dict, key_dict)
             except Exception as e:
                 logger.warn(u"PlexPy Users :: Unable to execute database query for set_config: %s." % e)
 
-    def get_details(self, user_id=None, user=None):
-        from plexpy import plextv
-
+    def get_details(self, user_id=None, user=None, email=None):
         default_return = {'user_id': 0,
                           'username': 'Local',
                           'friendly_name': 'Local',
@@ -267,28 +273,40 @@ class Users(object):
                           'is_allow_sync': 0,
                           'is_restricted': 0,
                           'do_notify': 0,
-                          'keep_history': 1
+                          'keep_history': 1,
+                          'allow_guest': 0,
+                          'deleted_user': 0,
+                          'shared_libraries': ()
                           }
 
-        if not user_id and not user:
+        if not user_id and not user and not email:
             return default_return
 
-        def get_user_details(user_id=user_id, user=user):
+        def get_user_details(user_id=user_id, user=user, email=email):
             monitor_db = database.MonitorDatabase()
 
             try:
                 if str(user_id).isdigit():
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history ' \
+                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'allow_guest, shared_libraries ' \
                             'FROM users ' \
                             'WHERE user_id = ? '
                     result = monitor_db.select(query, args=[user_id])
                 elif user:
                     query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history ' \
+                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'allow_guest, shared_libraries ' \
                             'FROM users ' \
-                            'WHERE username = ? '
+                            'WHERE username = ? COLLATE NOCASE '
                     result = monitor_db.select(query, args=[user])
+                elif email:
+                    query = 'SELECT user_id, username, friendly_name, thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                            'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user, ' \
+                            'allow_guest, shared_libraries ' \
+                            'FROM users ' \
+                            'WHERE email = ? COLLATE NOCASE '
+                    result = monitor_db.select(query, args=[email])
                 else:
                     result = []
             except Exception as e:
@@ -298,7 +316,9 @@ class Users(object):
             user_details = {}
             if result:
                 for item in result:
-                    if item['friendly_name']:
+                    if session.get_session_user_id():
+                        friendly_name = session.get_session_user()
+                    elif item['friendly_name']:
                         friendly_name = item['friendly_name']
                     else:
                         friendly_name = item['username']
@@ -310,6 +330,8 @@ class Users(object):
                     else:
                         user_thumb = common.DEFAULT_USER_THUMB
 
+                    shared_libraries = tuple(item['shared_libraries'].split(';')) if item['shared_libraries'] else ()
+
                     user_details = {'user_id': item['user_id'],
                                     'username': item['username'],
                                     'friendly_name': friendly_name,
@@ -319,7 +341,10 @@ class Users(object):
                                     'is_allow_sync': item['is_allow_sync'],
                                     'is_restricted': item['is_restricted'],
                                     'do_notify': item['do_notify'],
-                                    'keep_history': item['keep_history']
+                                    'keep_history': item['keep_history'],
+                                    'deleted_user': item['deleted_user'],
+                                    'allow_guest': item['allow_guest'],
+                                    'shared_libraries': shared_libraries
                                     }
             return user_details
 
@@ -347,6 +372,9 @@ class Users(object):
                 return default_return
 
     def get_watch_time_stats(self, user_id=None):
+        if not session.allow_session_user(user_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
 
         time_queries = [1, 7, 30, 0]
@@ -397,6 +425,9 @@ class Users(object):
         return user_watch_time_stats
 
     def get_player_stats(self, user_id=None):
+        if not session.allow_session_user(user_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
 
         player_stats = []
@@ -431,6 +462,9 @@ class Users(object):
         return player_stats
 
     def get_recently_watched(self, user_id=None, limit='10'):
+        if not session.allow_session_user(user_id):
+            return []
+
         monitor_db = database.MonitorDatabase()
         recently_watched = []
 
@@ -439,7 +473,8 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                query = 'SELECT session_history.id, session_history.media_type, session_history.rating_key, session_history.parent_rating_key, ' \
+                query = 'SELECT session_history.id, session_history.media_type, ' \
+                        'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
                         'title, parent_title, grandparent_title, thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
                         'year, started, user ' \
                         'FROM session_history_metadata ' \
@@ -466,6 +501,8 @@ class Users(object):
                 recent_output = {'row_id': row['id'],
                                  'media_type': row['media_type'],
                                  'rating_key': row['rating_key'],
+                                 'parent_rating_key': row['parent_rating_key'],
+                                 'grandparent_rating_key': row['grandparent_rating_key'],
                                  'title': row['title'],
                                  'parent_title': row['parent_title'],
                                  'grandparent_title': row['grandparent_title'],
@@ -485,7 +522,7 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                logger.info(u"PlexPy DataFactory :: Deleting all history for user id %s from database." % user_id)
+                logger.info(u"PlexPy Users :: Deleting all history for user id %s from database." % user_id)
                 session_history_media_info_del = \
                     monitor_db.action('DELETE FROM '
                                       'session_history_media_info '
@@ -517,7 +554,7 @@ class Users(object):
         try:
             if str(user_id).isdigit():
                 self.delete_all_history(user_id)
-                logger.info(u"PlexPy DataFactory :: Deleting user with id %s from database." % user_id)
+                logger.info(u"PlexPy Users :: Deleting user with id %s from database." % user_id)
                 monitor_db.action('UPDATE users SET deleted_user = 1 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET keep_history = 0 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET do_notify = 0 WHERE user_id = ?', [user_id])
@@ -533,14 +570,14 @@ class Users(object):
 
         try:
             if user_id and str(user_id).isdigit():
-                logger.info(u"PlexPy DataFactory :: Re-adding user with id %s to database." % user_id)
+                logger.info(u"PlexPy Users :: Re-adding user with id %s to database." % user_id)
                 monitor_db.action('UPDATE users SET deleted_user = 0 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET keep_history = 1 WHERE user_id = ?', [user_id])
                 monitor_db.action('UPDATE users SET do_notify = 1 WHERE user_id = ?', [user_id])
 
                 return 'Re-added user with id %s.' % user_id
             elif username:
-                logger.info(u"PlexPy DataFactory :: Re-adding user with username %s to database." % username)
+                logger.info(u"PlexPy Users :: Re-adding user with username %s to database." % username)
                 monitor_db.action('UPDATE users SET deleted_user = 0 WHERE username = ?', [username])
                 monitor_db.action('UPDATE users SET keep_history = 1 WHERE username = ?', [username])
                 monitor_db.action('UPDATE users SET do_notify = 1 WHERE username = ?', [username])
@@ -551,7 +588,7 @@ class Users(object):
         except Exception as e:
             logger.warn(u"PlexPy Users :: Unable to execute database query for undelete: %s." % e)
 
-    # Keep method for PlexWatch import
+    # Keep method for PlexWatch/Plexivity import
     def get_user_id(self, user=None):
         if user:
             try:
@@ -566,3 +603,172 @@ class Users(object):
                 return None
 
         return None
+
+    def get_user_names(self, kwargs=None):
+        monitor_db = database.MonitorDatabase()
+        
+        user_cond = ''
+        if session.get_session_user_id():
+            user_cond = 'AND user_id = %s ' % session.get_session_user_id()
+
+        try:
+            query = 'SELECT user_id, ' \
+                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
+                    THEN users.username ELSE users.friendly_name END) AS friendly_name ' \
+                    'FROM users ' \
+                    'WHERE deleted_user = 0 %s' % user_cond
+
+            result = monitor_db.select(query)
+        except Exception as e:
+            logger.warn(u"PlexPy Users :: Unable to execute database query for get_user_names: %s." % e)
+            return None
+        
+        return session.friendly_name_to_username(result)
+    
+    def get_tokens(self, user_id=None):
+        if user_id:
+            try:
+                monitor_db = database.MonitorDatabase()
+                query = 'SELECT allow_guest, user_token, server_token FROM users ' \
+                        'WHERE user_id = ? AND deleted_user = 0'
+                result = monitor_db.select_single(query, args=[user_id])
+                if result:
+                    tokens = {'allow_guest': result['allow_guest'],
+                              'user_token': result['user_token'],
+                              'server_token': result['server_token']
+                              }
+                    return tokens
+                else:
+                    return None
+            except:
+                return None
+
+        return None
+
+    def get_filters(self, user_id=None):
+        import urlparse
+
+        if not user_id:
+            return {}
+
+        try:
+            monitor_db = database.MonitorDatabase()
+            query = 'SELECT filter_all, filter_movies, filter_tv, filter_music, filter_photos FROM users ' \
+                    'WHERE user_id = ?'
+            result = monitor_db.select_single(query, args=[user_id])
+        except Exception as e:
+            logger.warn(u"PlexPy Users :: Unable to execute database query for get_filters: %s." % e)
+            result = {}
+
+        filters_list = {}
+        for k, v in result.iteritems():
+            filters = {}
+                
+            for f in v.split('|'):
+                if 'contentRating=' in f or 'label=' in f:
+                    filters.update(dict(urlparse.parse_qsl(f)))
+                        
+            filters['content_rating'] = tuple(f for f in filters.pop('contentRating', '').split(',') if f)
+            filters['labels'] = tuple(f for f in filters.pop('label', '').split(',') if f)
+
+            filters_list[k] = filters
+
+        return filters_list
+
+    def set_user_login(self, user_id=None, user=None, user_group=None, ip_address=None, host=None, user_agent=None):
+
+        if user_id is None or str(user_id).isdigit():
+            monitor_db = database.MonitorDatabase()
+
+            keys = {'timestamp': int(time.time()),
+                    'user_id': user_id}
+
+            values = {'user': user,
+                      'user_group': user_group,
+                      'ip_address': ip_address,
+                      'host': host,
+                      'user_agent': user_agent}
+
+            try:
+                monitor_db.upsert(table_name='user_login', key_dict=keys, value_dict=values)
+            except Exception as e:
+                logger.warn(u"PlexPy Users :: Unable to execute database query for set_login_log: %s." % e)
+
+    def get_datatables_user_login(self, user_id=None, kwargs=None):
+        default_return = {'recordsFiltered': 0,
+                          'recordsTotal': 0,
+                          'draw': 0,
+                          'data': 'null',
+                          'error': 'Unable to execute database query.'}
+
+        if not session.allow_session_user(user_id):
+            return default_return
+
+        data_tables = datatables.DataTables()
+
+        if session.get_session_user_id():
+            custom_where = [['user_id', session.get_session_user_id()]]
+        else:
+            custom_where = [['user_id', user_id]] if user_id else []
+
+        columns = ['user_login.user_id',
+                   'user_login.user_group',
+                   'user_login.ip_address',
+                   'user_login.host',
+                   'user_login.user_agent',
+                   'user_login.timestamp',
+                   '(CASE WHEN users.friendly_name IS NULL THEN user_login.user ELSE users.friendly_name END) \
+                    AS friendly_name'
+                   ]
+
+        try:
+            query = data_tables.ssp_query(table_name='user_login',
+                                          columns=columns,
+                                          custom_where=custom_where,
+                                          group_by=[],
+                                          join_types=['LEFT OUTER JOIN'],
+                                          join_tables=['users'],
+                                          join_evals=[['user_login.user_id', 'users.user_id']],
+                                          kwargs=kwargs)
+        except Exception as e:
+            logger.warn(u"PlexPy Users :: Unable to execute database query for get_datatables_user_login: %s." % e)
+            return default_return
+
+        results = query['result']
+
+        rows = []
+        for item in results:
+            (os, browser) = httpagentparser.simple_detect(item['user_agent'])
+
+            row = {'user_id': item['user_id'],
+                   'user_group': item['user_group'],
+                   'ip_address': item['ip_address'],
+                   'host': item['host'],
+                   'user_agent': item['user_agent'],
+                   'os': os,
+                   'browser': browser,
+                   'timestamp': item['timestamp'],
+                   'friendly_name': item['friendly_name']
+                   }
+
+            rows.append(row)
+
+        dict = {'recordsFiltered': query['filteredCount'],
+                'recordsTotal': query['totalCount'],
+                'data': session.friendly_name_to_username(rows),
+                'draw': query['draw']
+                }
+
+        return dict
+
+    def delete_login_log(self):
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            logger.info(u"PlexPy Users :: Clearing login logs from database.")
+            monitor_db.action('DELETE FROM user_login')
+            monitor_db.action('VACUUM')
+            return True
+        except Exception as e:
+            logger.warn(u"PlexPy Users :: Unable to execute database query for delete_login_log: %s." % e)
+            return False

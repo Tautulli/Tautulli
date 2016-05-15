@@ -19,7 +19,10 @@
 from httplib import HTTPSConnection
 from httplib import HTTPConnection
 import ssl
-from plexpy import logger, helpers
+
+import plexpy
+import helpers
+import logger
 
 
 class HTTPHandler(object):
@@ -45,7 +48,10 @@ class HTTPHandler(object):
                      output_format='raw',
                      return_type=False,
                      no_token=False,
-                     timeout=20):
+                     timeout=None):
+
+        if timeout is None:
+            timeout = plexpy.CONFIG.PMS_TIMEOUT
 
         valid_request_types = ['GET', 'POST', 'PUT', 'DELETE']
 
@@ -64,33 +70,32 @@ class HTTPHandler(object):
             else:
                 handler = HTTPConnection(host=self.host, port=self.port, timeout=timeout)
 
-            token_string = ''
             if not no_token:
-                if uri.find('?') > 0:
-                    token_string = '&X-Plex-Token=' + self.token
+                if headers:
+                    headers.update({'X-Plex-Token': self.token})
                 else:
-                    token_string = '?X-Plex-Token=' + self.token
+                    headers = {'X-Plex-Token': self.token}
 
             try:
                 if headers:
-                    handler.request(request_type, uri + token_string, headers=headers)
+                    handler.request(request_type, uri, headers=headers)
                 else:
-                    handler.request(request_type, uri + token_string)
+                    handler.request(request_type, uri)
                 response = handler.getresponse()
                 request_status = response.status
                 request_content = response.read()
                 content_type = response.getheader('content-type')
-            except IOError, e:
+            except IOError as e:
                 logger.warn(u"Failed to access uri endpoint %s with error %s" % (uri, e))
                 return None
-            except Exception, e:
+            except Exception as e:
                 logger.warn(u"Failed to access uri endpoint %s. Is your server maybe accepting SSL connections only? %s" % (uri, e))
                 return None
             except:
                 logger.warn(u"Failed to access uri endpoint %s with Uncaught exception." % uri)
                 return None
 
-            if request_status == 200:
+            if request_status in (200, 201):
                 try:
                     if output_format == 'dict':
                         output = helpers.convert_xml_to_dict(request_content)

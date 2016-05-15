@@ -29,7 +29,7 @@
 </div>
 <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
 </div>
-<script src="interfaces/default/js/tables/history_table_modal.js"></script>
+<script src="${http_root}js/tables/history_table_modal.js"></script>
 <script>
     $(document).ready(function() {
         $('#date-header').html(moment('${data["start_date"]}','YYYY-MM-DD').format('ddd MMM Do YYYY'));
@@ -40,6 +40,7 @@
                 return {
                     json_data: JSON.stringify(d),
                     grouping: false,
+                    user_id: "${data['user_id']}",
                     start_date: "${data['start_date']}",
                     media_type: "${data.get('media_type')}",
                     transcode_decision: "${data.get('transcode_decision')}"

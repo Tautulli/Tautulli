@@ -14,11 +14,10 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import sqlite3
 import sys
 import subprocess
 import threading
-import sqlite3
-import cherrypy
 import datetime
 import uuid
 # Some cut down versions of Python may not include this module and it's not critical for us
@@ -28,10 +27,17 @@ try:
 except ImportError:
     no_browser = True
 
+import cherrypy
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from plexpy import versioncheck, logger, activity_pinger, plextv, pmsconnect
+import activity_pinger
+import config
+import database
+import logger
+import plextv
+import pmsconnect
+import versioncheck
 import plexpy.config
 
 PROG_DIR = None
@@ -63,8 +69,6 @@ CONFIG_FILE = None
 
 DB_FILE = None
 
-LOG_LIST = []
-
 INSTALL_TYPE = None
 CURRENT_VERSION = None
 LATEST_VERSION = None
@@ -73,6 +77,8 @@ COMMITS_BEHIND = None
 UMASK = None
 
 POLLING_FAILOVER = False
+
+HTTP_ROOT = None
 
 DEV = False
 
@@ -128,7 +134,7 @@ def initialize(config_file):
             try:
                 os.makedirs(CONFIG.BACKUP_DIR)
             except OSError as e:
-                logger.error("Could not create backup dir '%s': %s", BACKUP_DIR, e)
+                logger.error("Could not create backup dir '%s': %s" % (CONFIG.BACKUP_DIR, e))
 
         if not CONFIG.CACHE_DIR:
             CONFIG.CACHE_DIR = os.path.join(DATA_DIR, 'cache')
@@ -136,14 +142,14 @@ def initialize(config_file):
             try:
                 os.makedirs(CONFIG.CACHE_DIR)
             except OSError as e:
-                logger.error("Could not create cache dir '%s': %s", CACHE_DIR, e)
+                logger.error("Could not create cache dir '%s': %s" % (CONFIG.CACHE_DIR, e))
 
         # Initialize the database
         logger.info('Checking to see if the database has all tables....')
         try:
             dbcheck()
         except Exception as e:
-            logger.error("Can't connect to the database: %s", e)
+            logger.error("Can't connect to the database: %s" % e)
 
         # Check if PlexPy has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
@@ -165,8 +171,8 @@ def initialize(config_file):
                 with open(version_lock_file, "w") as fp:
                     fp.write(CURRENT_VERSION)
             except IOError as e:
-                logger.error("Unable to write current version to file '%s': %s",
-                             version_lock_file, e)
+                logger.error("Unable to write current version to file '%s': %s" %
+                             (version_lock_file, e))
 
         # Check for new versions
         if CONFIG.CHECK_GITHUB_ON_STARTUP and CONFIG.CHECK_GITHUB:
@@ -213,7 +219,7 @@ def daemonize():
         pid = os.fork()  # @UndefinedVariable - only available in UNIX
         if pid != 0:
             sys.exit(0)
-    except OSError, e:
+    except OSError as e:
         raise RuntimeError("1st fork failed: %s [%d]", e.strerror, e.errno)
 
     os.setsid()
@@ -227,7 +233,7 @@ def daemonize():
         pid = os.fork()  # @UndefinedVariable - only available in UNIX
         if pid != 0:
             sys.exit(0)
-    except OSError, e:
+    except OSError as e:
         raise RuntimeError("2nd fork failed: %s [%d]", e.strerror, e.errno)
 
     dev_null = file('/dev/null', 'r')
@@ -263,7 +269,7 @@ def launch_browser(host, port, root):
         try:
             webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
         except Exception as e:
-            logger.error('Could not launch browser: %s', e)
+            logger.error('Could not launch browser: %s' % e)
 
 
 def initialize_scheduler():
@@ -341,6 +347,7 @@ def initialize_scheduler():
                          hours=hours, minutes=0, seconds=0)
 
         schedule_job(database.make_backup, 'Backup PlexPy database', hours=6, minutes=0, seconds=0, args=(True, True))
+        schedule_job(config.make_backup, 'Backup PlexPy config', hours=6, minutes=0, seconds=0, args=(True, True))
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
@@ -407,7 +414,7 @@ def dbcheck():
         'audio_channels INTEGER, transcode_protocol TEXT, transcode_container TEXT, '
         'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
         'transcode_width INTEGER, transcode_height INTEGER, buffer_count INTEGER DEFAULT 0, '
-        'buffer_last_triggered INTEGER, last_paused INTEGER)'
+        'buffer_last_triggered INTEGER, last_paused INTEGER, write_attempts INTEGER DEFAULT 0)'
     )
 
     # session_history table :: This is a history table which logs essential stream details
@@ -436,7 +443,8 @@ def dbcheck():
         'parent_media_index INTEGER, section_id INTEGER, thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, '
         'art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, '
         'last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, '
-        'duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT)'
+        'duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT, '
+        'labels TEXT)'
     )
 
     # users table :: This table keeps record of the friends list
@@ -445,7 +453,9 @@ def dbcheck():
         'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
         'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
-        'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0)'
+        'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, allow_guest INTEGER DEFAULT 0, '
+        'user_token TEXT, server_token TEXT, shared_libraries TEXT, filter_all TEXT, filter_movies TEXT, filter_tv TEXT, '
+        'filter_music TEXT, filter_photos TEXT)'
     )
 
     # notify_log table :: This is a table which logs notifications sent
@@ -463,6 +473,12 @@ def dbcheck():
         'thumb TEXT, custom_thumb_url TEXT, art TEXT, count INTEGER, parent_count INTEGER, child_count INTEGER, '
         'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
         'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
+    )
+
+    # user_login table :: This table keeps record of the PlexPy guest logins
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS user_login (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, ip_address TEXT, host TEXT, user_agent TEXT)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -639,6 +655,15 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN transcode_key TEXT'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT write_attempts FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN write_attempts INTEGER DEFAULT 0'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')
@@ -687,6 +712,15 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN section_id INTEGER'
+        )
+
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute('SELECT labels FROM session_history_metadata')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_metadata.")
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN labels TEXT'
         )
 
     # Upgrade session_history_media_info table from earlier versions
@@ -738,6 +772,45 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table users.")
         c_db.execute(
             'ALTER TABLE users ADD COLUMN deleted_user INTEGER DEFAULT 0'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT allow_guest FROM users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN allow_guest INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN user_token TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN server_token TEXT'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT shared_libraries FROM users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN shared_libraries TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN filter_all TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN filter_movies TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN filter_tv TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN filter_music TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN filter_photos TEXT'
         )
 
     # Upgrade notify_log table from earlier versions
@@ -892,7 +965,7 @@ def shutdown(restart=False, update=False):
         try:
             versioncheck.update()
         except Exception as e:
-            logger.warn('PlexPy failed to update: %s. Restarting.', e)
+            logger.warn('PlexPy failed to update: %s. Restarting.' % e)
 
     if CREATEPID:
         logger.info('Removing pidfile %s', PIDFILE)
@@ -906,7 +979,7 @@ def shutdown(restart=False, update=False):
         if '--nolaunch' not in args:
             args += ['--nolaunch']
         logger.info('Restarting PlexPy with %s', args)
-        
+
         # os.execv fails with spaced names on Windows
         # https://bugs.python.org/issue19066
         if os.name == 'nt':

@@ -6,14 +6,16 @@ sync_table_options = {
     "pageLength": 25,
     "stateSave": true,
     "language": {
-        "search":"Search: ",
-        "lengthMenu":"Show _MENU_ lines per page",
+        "search": "Search: ",
+        "lengthMenu": "Show _MENU_ lines per page",
         "emptyTable": "No synced items",
-        "info":"Showing _START_ to _END_ of _TOTAL_ lines",
-        "infoEmpty":"Showing 0 to 0 of 0 lines",
-        "infoFiltered":"(filtered from _MAX_ total lines)",
-        "loadingRecords":'<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
+        "info": "Showing _START_ to _END_ of _TOTAL_ lines",
+        "infoEmpty": "Showing 0 to 0 of 0 lines",
+        "infoFiltered": "(filtered from _MAX_ total lines)",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
+    "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -26,7 +28,7 @@ sync_table_options = {
                     $(td).html(cellData.toProperCase());
                 }
             },
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [1],
@@ -55,25 +57,26 @@ sync_table_options = {
                         $(td).html(cellData);
                     }
                 }
-            }
-        },
+            },
+            "className": "datatable-wrap"
+},
         {
             "targets": [3],
             "data": "metadata_type",
             "render": function ( data, type, full ) {
                 return data.toProperCase();
             },
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [4],
             "data": "platform",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [5],
             "data": "device_name",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [6],
@@ -86,22 +89,22 @@ sync_table_options = {
                     $(td).html('0MB');
                 }
             },
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [7],
             "data": "item_count",
-            "className": "no-wrap hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [8],
             "data": "item_complete_count",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [9],
             "data": "item_downloaded_count",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [10],
@@ -113,11 +116,17 @@ sync_table_options = {
                     $(td).html('<span class="badge">0%</span>');
                 }
             },
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         }
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
-        $('html,body').scrollTop(0);
+        // $('html,body').scrollTop(0);
+
+        $('#ajaxMsg').fadeOut();
+    },
+    "preDrawCallback": function (settings) {
+        var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
+        showMsg(msg, false, false, 0)
     }
 }

@@ -20,7 +20,8 @@ media_info_table_options = {
         "info":"Showing _START_ to _END_ of _TOTAL_ library items",
         "infoEmpty":"Showing 0 to 0 of 0 entries",
         "infoFiltered":"<span class='hidden-md hidden-sm hidden-xs'>(filtered from _MAX_ total entries)</span>",
-        "emptyTable": "No data in table"
+        "emptyTable": "No data in table",
+        "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
     "pagingType": "full_numbers",
     "stateSave": true,
@@ -29,6 +30,7 @@ media_info_table_options = {
     "pageLength": 25,
     "order": [ 1, 'asc'],
     "autoWidth": false,
+    "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
@@ -87,27 +89,28 @@ media_info_table_options = {
                         $(td).html('<div class="history-title"><a href="info?rating_key=' + rowData['rating_key'] + '"><div style="float: left; padding-left: 15px;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'episode') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=poster" data-height="80" data-width="140">E' + rowData['media_index'] + ' - ' + cellData + '</span>'
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=450&fallback=art" data-height="80" data-width="140">E' + rowData['media_index'] + ' - ' + cellData + '</span>'
                         $(td).html('<div class="history-title"><a href="info?rating_key=' + rowData['rating_key'] + '"><div style="float: left; padding-left: 30px;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'artist') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Artist"><i class="fa fa-music fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80" data-width="80">' + cellData + '</span>'
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=cover" data-height="80" data-width="80">' + cellData + '</span>'
                         $(td).html('<div class="history-title"><a href="info?rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'album') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Album"><i class="fa fa-music fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80" data-width="80">' + cellData + '</span>'
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=cover" data-height="80" data-width="80">' + cellData + '</span>'
                         $(td).html('<div class="history-title"><a href="info?rating_key=' + rowData['rating_key'] + '"><div style="float: left; padding-left: 15px;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'track') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=poster" data-height="80" data-width="80">T' + rowData['media_index'] + ' - ' + cellData + '</span>'
+                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=cover" data-height="80" data-width="80">T' + rowData['media_index'] + ' - ' + cellData + '</span>'
                         $(td).html('<div class="history-title"><a href="info?rating_key=' + rowData['rating_key'] + '"><div style="float: left; padding-left: 30px;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else {
                         $(td).html(cellData);
                     }
                 }
             },
-            "width": "20%"
-        },
+            "width": "20%",
+            "className": "no-wrap",
+},
         {
             "targets": [2],
             "data": "container",
@@ -117,7 +120,7 @@ media_info_table_options = {
                 }
             },
             "width": "6%",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [3],
@@ -128,7 +131,7 @@ media_info_table_options = {
                 }
             },
             "width": "6%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs",
+            "className": "no-wrap",
             "searchable": false
         },
         {
@@ -140,7 +143,7 @@ media_info_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [5],
@@ -151,7 +154,7 @@ media_info_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [6],
@@ -162,7 +165,7 @@ media_info_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [7],
@@ -173,7 +176,7 @@ media_info_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [8],
@@ -184,7 +187,7 @@ media_info_table_options = {
                 }
             },
             "width": "8%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs"
+            "className": "no-wrap"
         },
         {
             "targets": [9],
@@ -199,7 +202,7 @@ media_info_table_options = {
                 }
             },
             "width": "7%",
-            "className": "no-wrap hidden-md hidden-sm hidden-xs",
+            "className": "no-wrap",
             "searchable": false
         },
         {
@@ -212,7 +215,7 @@ media_info_table_options = {
                 }
             },
             "width": "7%",
-            "className": "no-wrap hidden-xs",
+            "className": "no-wrap",
             "searchable": false
         },
         {
@@ -224,7 +227,7 @@ media_info_table_options = {
                 }
             },
             "width": "5%",
-            "className": "no-wrap hidden-xs",
+            "className": "no-wrap",
             "searchable": false
         }
     ],

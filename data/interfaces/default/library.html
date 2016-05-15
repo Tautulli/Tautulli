@@ -28,9 +28,9 @@ DOCUMENTATION :: END
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
-<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
+<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
 </%def>
 
 <%def name="body()">
@@ -50,7 +50,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
             </div>
-            <div class="summary-content-wrapper">
+            <div class="summary-content-wrapper" style="min-height: calc(100% - 50px);">
                 <div class="col-md-12">
                     <div class="table-card-back">
                         <div class="user-info-wrapper">
@@ -61,15 +61,19 @@ DOCUMENTATION :: END
                             % endif
                             <div class="user-info-username">
                                 <span class="set-username">${data['section_name']}</span>
+                                % if _session['user_group'] == 'admin':
                                 <span id="edit-library-tooltip" data-target="tooltip" title="Edit library details">
                                     <a href="#" data-toggle="modal" data-target="#edit-library-modal" id="toggle-edit-library-modal"><i class="fa fa-pencil"></i></a>
                                 </span>
+                                % endif
                             </div>
                             <div class="user-info-nav">
                                 <ul class="user-info-nav">
                                     <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
                                     <li><a id="history-tab-btn" href="#libraryHistory" data-toggle="tab">History</a></li>
+                                    % if _session['user_group'] == 'admin':
                                     <li><a id="media-info-tab-btn" href="#libraryMediaInfo" data-toggle="tab">Media Info</a></li>
+                                    % endif
                                 </ul>
                             </div>
                         </div>
@@ -172,17 +176,21 @@ DOCUMENTATION :: END
                                     <div class='table-card-header'>
                                         <div class="header-bar">
                                             <span>
-                                                <i class="fa fa-history"></i> Watch History for <strong>
+                                                <i class="fa fa-history"></i> History for <strong>
                                                     <span class="set-username">${data['section_name']}</span>
                                                 </strong>
                                             </span>
                                         </div>
                                         <div class="button-bar">
-                                            <div class="colvis-button-bar hidden-xs" id="button-bar-history"></div>
-                                            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                                                <i class="fa fa-trash-o"></i> Delete mode
-                                            </button>
+                                            % if _session['user_group'] == 'admin':
                                             <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+                                            <div class="btn-group">
+                                                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                                                    <i class="fa fa-trash-o"></i> Delete mode
+                                                </button>&nbsp;
+                                            </div>
+                                            % endif
+                                            <div class="btn-group colvis-button-bar" id="button-bar-history"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -226,22 +234,26 @@ DOCUMENTATION :: END
                                     <div class='table-card-header'>
                                         <div class="header-bar">
                                             <span>
-                                                <i class="fa fa-history"></i> All Media Info for <strong>
+                                                <i class="fa fa-history"></i> Media Info for <strong>
                                                     <span class="set-username">${data['section_name']}</span>
                                                 </strong>
                                             </span>
                                         </div>
                                         <div class="button-bar">
-                                            % if config['get_file_sizes'] and data['section_id'] in config['get_file_sizes_hold']['section_ids']:
-                                            <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" style="margin-right: 5px;" disabled>
-                                                <i class="fa fa-refresh"></i> Refresh media info
-                                            </button>
-                                            % else:
-                                            <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" style="margin-right: 5px;">
-                                                <i class="fa fa-refresh"></i> Refresh media info
-                                            </button>
+                                            % if _session['user_group'] == 'admin':
+                                            <div class="btn-group">
+                                                % if config['get_file_sizes'] and data['section_id'] in config['get_file_sizes_hold']['section_ids']:
+                                                <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table" disabled>
+                                                    <i class="fa fa-refresh"></i> Refresh media info
+                                                </button>
+                                                % else:
+                                                <button class="btn btn-dark refresh-media-info-table-button" id="refresh-media-info-table">
+                                                    <i class="fa fa-refresh"></i> Refresh media info
+                                                </button>
+                                                % endif
+                                            </div>
                                             % endif
-                                            <div class="colvis-button-bar hidden-xs" id="button-bar-media-info"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-media-info"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -273,7 +285,7 @@ DOCUMENTATION :: END
                     </div>
                     <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
                     </div>
-                    <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+                    <div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -321,10 +333,10 @@ DOCUMENTATION :: END
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/dataTables.colVis.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 % if data:
 <script>
     % if str(data['section_id']).isdigit():
@@ -341,9 +353,9 @@ DOCUMENTATION :: END
     var get_file_sizes = null;
     % endif
 </script>
-<script src="interfaces/default/js/moment-with-locale.js"></script>
-<script src="interfaces/default/js/tables/history_table.js"></script>
-<script src="interfaces/default/js/tables/media_info_table.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/tables/history_table.js"></script>
+<script src="${http_root}js/tables/media_info_table.js"></script>
 <script>
     $(document).ready(function () {
         $("#edit-library-tooltip").tooltip();
@@ -376,7 +388,8 @@ DOCUMENTATION :: END
                 data: function ( d ) {
                     return {
                         json_data: JSON.stringify( d ),
-                        section_id: section_id
+                        section_id: section_id,
+                        user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
                     };
                 }
             }
@@ -388,6 +401,15 @@ DOCUMENTATION :: END
             clearSearchButton('history_table-SID-${data["section_id"]}', history_table);
         }
 
+        $( "#history-tab-btn" ).one( "click", function() {
+            loadHistoryTable();
+        });
+
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+        });
+
+        % if _session['user_group'] == 'admin':
         function loadMediaInfoTable() {
             // Build media info table
             media_info_table_options.ajax = {
@@ -409,9 +431,6 @@ DOCUMENTATION :: END
             clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
         }
 
-        $( "#history-tab-btn" ).one( "click", function() {
-            loadHistoryTable();
-        });
         $( "#media-info-tab-btn" ).one( "click", function() {
             loadMediaInfoTable();
         });        
@@ -444,8 +463,8 @@ DOCUMENTATION :: END
             if ($(this).hasClass('active')) {
                 if (history_to_delete.length > 0) {
                     $('#deleteCount').text(history_to_delete.length);
-                    $('#confirm-modal').modal();
-                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                    $('#confirm-modal-delete').modal();
+                    $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
                         for (var i = 0; i < history_to_delete.length; i++) {
                             $.ajax({
                                 url: 'delete_history_rows',
@@ -474,6 +493,7 @@ DOCUMENTATION :: END
                 });
             }
         });
+        % endif
 
         function recentlyWatched() {
             // Populate recently watched

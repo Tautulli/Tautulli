@@ -13,9 +13,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, helpers, database
-
 import re
+
+import database
+import helpers
+import logger
 
 
 class DataTables(object):
@@ -89,16 +91,21 @@ class DataTables(object):
         # Build custom where parameters
         if custom_where:
             for w in custom_where:
-                c_where += w[0] + ' = ? AND '
-
-                # The order of our args changes if we are grouping
-                #if grouping:
-                #    args.insert(0, w[1])
-                #else:
-                #    args.append(w[1])
-
-                # My testing shows that order of args doesn't change
-                args.append(w[1])
+                if isinstance(w[1], (list, tuple)) and len(w[1]):
+                    c_where += '('
+                    for w_ in w[1]:
+                        if w_ == None:
+                            c_where += w[0] + ' IS NULL OR '
+                        else:
+                            c_where += w[0] + ' = ? OR '
+                            args.append(w_)
+                    c_where = c_where.rstrip(' OR ') + ') AND '
+                else:
+                    if w[1] == None:
+                        c_where += w[0] + ' IS NULL AND '
+                    else:
+                        c_where += w[0] + ' = ? AND '
+                        args.append(w[1])
 
             if c_where:
                 c_where = 'WHERE ' + c_where.rstrip(' AND ')

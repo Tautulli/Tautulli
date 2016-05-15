@@ -29,9 +29,12 @@ import traceback
 import cherrypy
 import xmltodict
 
+import plexpy
+import config
 import database
 import logger
-import plexpy
+import plextv
+import pmsconnect
 
 
 class API2:
@@ -49,7 +52,7 @@ class API2:
         self._api_kwargs = None  # Cleaned kwargs
 
     def _api_docs(self, md=False):
-        """ Makes the api docs """
+        """ Makes the api docs. """
 
         docs = {}
         for f, _ in inspect.getmembers(self, predicate=inspect.ismethod):
@@ -61,17 +64,17 @@ class API2:
         return docs
 
     def docs_md(self):
-        """ Return a API.md to simplify api docs because of the decorator. """
+        """ Return the api docs formatted with markdown. """
 
         return self._api_make_md()
 
     def docs(self):
-        """ Returns a dict where commands are keys, docstring are value. """
+        """ Return the api docs as a dict where commands are keys, docstring are value. """
 
         return self._api_docs()
 
     def _api_validate(self, *args, **kwargs):
-        """ sets class vars and remove unneeded parameters. """
+        """ Sets class vars and remove unneeded parameters. """
 
         if not plexpy.CONFIG.API_ENABLED:
             self._api_msg = 'API not enabled'
@@ -112,40 +115,40 @@ class API2:
             self._api_msg = None
             self._api_kwargs = kwargs
 
-        logger.debug(u'PlexPy APIv2 :: Cleaned kwargs %s' % self._api_kwargs)
+        logger.debug(u'PlexPy APIv2 :: Cleaned kwargs: %s' % self._api_kwargs)
 
         return self._api_kwargs
 
     def get_logs(self, sort='', search='', order='desc', regex='', start=0, end=0, **kwargs):
         """
-            Returns the log
+            Get the PlexPy logs.
 
-            Args:
-                sort(string, optional): time, thread, msg, loglevel
-                search(string, optional): 'string'
-                order(string, optional): desc, asc
-                regex(string, optional): 'regexstring'
-                start(int, optional): int
-                end(int, optional): int
+            ```
+            Required parameters:
+                None
 
+            Optional parameters:
+                sort (str):         "time", "thread", "msg", "loglevel"
+                search (str):       A string to search for
+                order (str):        "desc" or "asc"
+                regex (str):        A regex string to search for
+                start (int):        Row number to start from
+                end (int):          Row number to end at
 
             Returns:
-                     ```{"response":
-                           {"msg": "Hey",
-                           "result": "success"},
-                           "data": [
-                                {"time": "29-sept.2015",
-                                "thread: "MainThread",
-                                "msg: "Called x from y",
-                                "loglevel": "DEBUG"
-                                }
-                            ]
-                        }
-                    ```
-
+                json:
+                    [{"loglevel": "DEBUG", 
+                      "msg": "Latest version is 2d10b0748c7fa2ee4cf59960c3d3fffc6aa9512b", 
+                      "thread": "MainThread", 
+                      "time": "2016-05-08 09:36:51 "
+                      }, 
+                     {...},
+                     {...}
+                     ]
+            ```
         """
 
-        logfile = os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log')
+        logfile = os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)
         templog = []
         start = int(kwargs.get('start', 0))
         end = int(kwargs.get('end', 0))
@@ -214,17 +217,22 @@ class API2:
         return templog
 
     def get_settings(self, key=''):
-        """ Fetches all settings from the config file
+        """ Gets all settings from the config file.
 
-            Args:
-                key(string, optional): 'Run the it without args to see all args'
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                key (str):      Name of a config section to return
 
             Returns:
-                    json:
-                        ```
-                        {General: {api_enabled: true, ...}
-                         Advanced: {cache_sizemb: "32", ...}}
-                        ```
+                json:
+                    {"General": {"api_enabled": true, ...}
+                     "Advanced": {"cache_sizemb": "32", ...},
+                     ...
+                     }
+            ```
         """
 
         interface_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/')
@@ -254,8 +262,20 @@ class API2:
         return config
 
     def sql(self, query=''):
-        """ Query the db with raw sql, makes backup of
-            the db if the backup is older then 24h
+        """ Query the PlexPy database with raw SQL. Automatically makes a backup of
+            the database if the latest backup is older then 24h. `api_sql` must be
+            manually enabled in the config file.
+
+            ```
+            Required parameters:
+                query (str):        The SQL query
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
         """
         if not plexpy.CONFIG.API_SQL or not query:
             return
@@ -275,8 +295,20 @@ class API2:
         self.data = rows
         return rows
 
-    def backupdb(self):
-        """ Creates a manual backup of the plexpy.db file """
+    def backup_config(self):
+        """ Create a manual backup of the `config.ini` file. """
+
+        data = config.make_backup()
+
+        if data:
+            self.result_type = 'success'
+        else:
+            self.result_type = 'failed'
+
+        return data
+
+    def backup_db(self):
+        """ Create a manual backup of the `plexpy.db` file. """
 
         data = database.make_backup()
 
@@ -288,29 +320,51 @@ class API2:
         return data
 
     def restart(self, **kwargs):
-        """ Restarts plexpy """
+        """ Restart PlexPy. """
 
         plexpy.SIGNAL = 'restart'
         self.msg = 'Restarting plexpy'
         self.result_type = 'success'
 
     def update(self, **kwargs):
-        """ Check for updates on Github """
+        """ Check for PlexPy updates on Github. """
 
         plexpy.SIGNAL = 'update'
         self.msg = 'Updating plexpy'
         self.result_type = 'success'
 
+    def refresh_libraries_list(self, **kwargs):
+        """ Refresh the PlexPy libraries list. """
+        data = pmsconnect.refresh_libraries()
+
+        if data:
+            self.result_type = 'success'
+        else:
+            self.result_type = 'failed'
+
+        return data
+
+    def refresh_users_list(self, **kwargs):
+        """ Refresh the PlexPy users list. """
+        data = plextv.refresh_users()
+
+        if data:
+            self.result_type = 'success'
+        else:
+            self.result_type = 'failed'
+
+        return data
+
     def _api_make_md(self):
-        """ Tries to make a API.md to simplify the api docs """
+        """ Tries to make a API.md to simplify the api docs. """
 
         head = '''# API Reference\n
 The API is still pretty new and needs some serious cleaning up on the backend but should be reasonably functional. There are no error codes yet.
 
 ## General structure
-The API endpoint is `http://ip:port + HTTP_ROOT + /api?apikey=$apikey&cmd=$command`
+The API endpoint is `http://ip:port + HTTP_ROOT + /api/v2?apikey=$apikey&cmd=$command`
 
-Response example
+Response example (default `json`)
 ```
 {
     "response": {
@@ -327,11 +381,13 @@ Response example
     }
 }
 ```
+```
+General optional parameters:
 
-General parameters:
-    out_type: 'xml',
-    callback: 'pong',
-    'debug': 1
+    out_type:   "json" or "xml"
+    callback:   "pong"
+    debug:      1
+```
 
 ## API methods'''
 
@@ -344,18 +400,23 @@ General parameters:
             body += '\n\n'
 
         result = head + '\n\n' + body
-        return '<div style="white-space: pre-wrap">' + result + '</div>'
+        return '<pre>' + result + '</pre>'
 
     def get_apikey(self, username='', password=''):
-        """ Fetches apikey
+        """ Get the apikey. Username and password are required
+            if auth is enabled. Makes and saves the apikey if it does not exist.
 
-            Args:
-                username(string, optional): Your username
-                password(string, optional): Your password
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                username (str):     Your PlexPy username
+                password (str):     Your PlexPy password
 
             Returns:
-                string: Apikey, args are required if auth is enabled
-                        makes and saves the apikey it does not exist
+                string:             "apikey"
+            ```
          """
 
         apikey = hashlib.sha224(str(random.getrandbits(256))).hexdigest()[0:32]
@@ -393,6 +454,9 @@ General parameters:
 
         if self._api_cmd == 'docs_md':
             return out['response']['data']
+
+        elif self._api_cmd == 'download_log':
+            return
 
         if self._api_out_type == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
@@ -437,7 +501,7 @@ General parameters:
         """ handles the stuff from the handler """
 
         result = {}
-        logger.debug(u'PlexPy APIv2 :: Original kwargs was %s' % kwargs)
+        logger.debug(u'PlexPy APIv2 :: API called with kwargs: %s' % kwargs)
 
         self._api_validate(**kwargs)
 

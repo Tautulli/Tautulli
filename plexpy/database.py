@@ -20,10 +20,10 @@ import shutil
 import threading
 import time
 
-import logger
 import plexpy
+import logger
 
-
+FILENAME = "plexpy.db"
 db_lock = threading.Lock()
 
 
@@ -53,7 +53,7 @@ def delete_sessions():
         logger.warn(u"PlexPy Database :: Unable to clear temporary sessions from database: %s." % e)
         return 'Unable to clear temporary sessions.'
 
-def db_filename(filename="plexpy.db"):
+def db_filename(filename=FILENAME):
     """ Returns the filepath to the db """
 
     return os.path.join(plexpy.DATA_DIR, filename)
@@ -116,7 +116,7 @@ def dict_factory(cursor, row):
 
 class MonitorDatabase(object):
 
-    def __init__(self, filename='plexpy.db'):
+    def __init__(self, filename=FILENAME):
         self.filename = filename
         self.connection = sqlite3.connect(db_filename(filename), timeout=20)
         # Don't wait for the disk to finish writing
@@ -145,7 +145,7 @@ class MonitorDatabase(object):
                     # Our transaction was successful, leave the loop
                     break
 
-                except sqlite3.OperationalError, e:
+                except sqlite3.OperationalError as e:
                     if "unable to open database file" in e.message or "database is locked" in e.message:
                         logger.warn(u"PlexPy Database :: Database Error: %s", e)
                         attempts += 1
@@ -154,7 +154,7 @@ class MonitorDatabase(object):
                         logger.error(u"PlexPy Database :: Database error: %s", e)
                         raise
 
-                except sqlite3.DatabaseError, e:
+                except sqlite3.DatabaseError as e:
                     logger.error(u"PlexPy Database :: Fatal Error executing %s :: %s", query, e)
                     raise
 

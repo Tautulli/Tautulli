@@ -13,14 +13,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
 import os
-import tarfile
 import platform
-import plexpy
+import re
 import subprocess
+import tarfile
 
-from plexpy import logger, version, request
+import plexpy
+import logger
+import request
+import version
 
 
 def runGit(args):
@@ -250,7 +252,7 @@ def read_changelog():
 
     try:
         logfile = open(changelog_file, "r")
-    except IOError, e:
+    except IOError as e:
         logger.error('PlexPy Version Checker :: Unable to open changelog file. %s' % e)
         return '<h4>Unable to open changelog file</h4>'
 
@@ -265,9 +267,15 @@ def read_changelog():
                 output += '<h4>' + line[3:] + '</h4>'
             elif line[:2] == '* ' and previous_line.strip() == '':
                 output += '<ul><li>' + line[2:] + '</li>'
+            elif line[:2] == '* ' and previous_line[:4] == '  * ':
+                output += '</ul><li>' + line[2:] + '</li>'
             elif line[:2] == '* ':
                 output += '<li>' + line[2:] + '</li>'
-            elif line.strip() == '' and previous_line[:2] == '* ':
+            elif line[:4] == '  * ' and previous_line[:2] == '* ':
+                output += '<ul><li>' + line[4:] + '</li>'
+            elif line[:4] == '  * ':
+                output += '<li>' + line[4:] + '</li>'
+            elif line.strip() == '' and (previous_line[:2] == '* ' or previous_line[:4] == '  * '):
                 output += '</ul></br>'
             else:
                 output += line + '</br>'

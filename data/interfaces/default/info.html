@@ -36,8 +36,9 @@ DOCUMENTATION :: END
 </%doc>
 
 <%!
-    from plexpy import common
     import re
+
+    from plexpy import common
 
     # Get audio codec file
     def af(codec):
@@ -57,9 +58,9 @@ DOCUMENTATION :: END
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
-<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
+<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
 </%def>
 
 <%def name="body()">
@@ -113,13 +114,13 @@ DOCUMENTATION :: END
                         <a href="http://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details/%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="_blank" title="View in Plex Web">
                         % endif
                             % if data['media_type'] == 'episode':
-                            <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=poster);">
+                            <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=art);">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
                             </div>
                             % elif data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
-                            <div class="summary-poster-face-track" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=poster);">
+                            <div class="summary-poster-face-track" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=cover);">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
@@ -172,16 +173,16 @@ DOCUMENTATION :: END
                         % if data['media_type'] == 'movie' or data['media_type'] == 'episode' or data['media_type'] == 'track':
                         <div class="summary-content-media-info-wrapper">
                             % if data['media_type'] != 'track' and data['video_codec']:
-                            <img class="summary-content-media-flag" title="${data['video_codec']}" src="interfaces/default/images/media_flags/video_codec/${data['video_codec'] | vf}.png" />
+                            <img class="summary-content-media-flag" title="${data['video_codec']}" src="${http_root}images/media_flags/video_codec/${data['video_codec'] | vf}.png" />
                             % endif
                             % if data['media_type'] != 'track' and data['video_resolution']:
-                            <img class="summary-content-media-flag" title="${data['video_resolution']}" src="interfaces/default/images/media_flags/video_resolution/${data['video_resolution']}.png" />
+                            <img class="summary-content-media-flag" title="${data['video_resolution']}" src="${http_root}images/media_flags/video_resolution/${data['video_resolution']}.png" />
                             % endif
                             % if data['audio_codec']:
-                            <img class="summary-content-media-flag" title="${data['audio_codec']}" src="interfaces/default/images/media_flags/audio_codec/${data['audio_codec'] | af}.png" />
+                            <img class="summary-content-media-flag" title="${data['audio_codec']}" src="${http_root}images/media_flags/audio_codec/${data['audio_codec'] | af}.png" />
                             % endif
                             % if data['audio_channels']:
-                            <img class="summary-content-media-flag" title="${data['audio_channels']}" src="interfaces/default/images/media_flags/audio_channels/${data['audio_channels']}.png" />
+                            <img class="summary-content-media-flag" title="${data['audio_channels']}" src="${http_root}images/media_flags/audio_channels/${data['audio_channels']}.png" />
                             % endif
                         </div>
                         % endif
@@ -290,7 +291,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % if data['media_type'] == 'show':
-                <div class='col-md-12'>
+                <div class="col-md-12">
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Season List for <strong>${data['title']}</strong></span>
@@ -301,7 +302,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % elif data['media_type'] == 'season':
-                <div class='col-md-12'>
+                <div class="col-md-12">
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Episode List for <strong>${data['title']}</strong></span>
@@ -312,7 +313,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % elif data['media_type'] == 'artist':
-                <div class='col-md-12'>
+                <div class="col-md-12">
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Album List for <strong>${data['title']}</strong></span>
@@ -323,7 +324,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % elif data['media_type'] == 'album':
-                <div class='col-md-12'>
+                <div class="col-md-12">
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Track List for <strong>${data['title']}</strong></span>
@@ -334,33 +335,41 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % endif
-                <div class='col-md-12'>
+                <div class="col-md-12">
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Watch History for <strong>${data['title']}</strong></span>
                         </div>
                         <div class="button-bar">
-                            <div class="colvis-button-bar hidden-xs"></div>
-                            <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                                <i class="fa fa-trash-o"></i> Delete mode
-                            </button>
+                            % if _session['user_group'] == 'admin':
+                            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+                            <div class="btn-group">
+                                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                                    <i class="fa fa-trash-o"></i> Delete mode
+                                </button>&nbsp;
+                            </div>
                             % if source == 'history':
-                            <a href="update_metadata?rating_key=${data['rating_key']}&update=True" class="btn btn-danger btn-edit" id="fix-metadata">
-                                <i class="fa fa-wrench"></i> Fix Metadata
-                            </a>
+                            <div class="btn-group">
+                                <a href="update_metadata?rating_key=${data['rating_key']}&update=True" class="btn btn-danger btn-edit" id="fix-metadata">
+                                    <i class="fa fa-wrench"></i> Fix Metadata
+                                </a>
+                            </div>
                             % endif
                             % if data.get('poster_url'):
-                            % if data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
-                            <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="80" data-width="80" style="display: inline-flex;">
-                            % else:
-                            <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
+                            <div class="btn-group">
+                                % if data['media_type'] == 'artist' or data['media_type'] == 'album' or data['media_type'] == 'track':
+                                <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="80" data-width="80" style="display: inline-flex;">
+                                % else:
+                                <span class="imgur-poster-tooltip" data-toggle="popover" data-img="${data['poster_url']}" data-height="120" data-width="80" style="display: inline-flex;">
+                                % endif
+                                    <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="delete-imgur-poster">
+                                        <i class="fa fa-picture-o"></i> Reset Imgur Poster
+                                    </button>
+                                </span>
+                            </div>
                             % endif
-                                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="delete-imgur-poster">
-                                    <i class="fa fa-picture-o"></i> Reset Imgur Poster
-                                </button>
-                            </span>
                             % endif
-                            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect rows to delete. Data is deleted upon exiting delete mode.</div>
+                            <div class="btn-group colvis-button-bar"></div>
                         </div>
                     </div>
                     <div class="table-card-back">
@@ -388,7 +397,7 @@ DOCUMENTATION :: END
                     </div>
                     <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
                     </div>
-                    <div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+                    <div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -415,16 +424,14 @@ DOCUMENTATION :: END
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/jquery.rateit.min.js"></script>
-<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/dataTables.colVis.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
-<script src="interfaces/default/js/moment-with-locale.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
 
 % if data:
-<script src="interfaces/default/js/tables/history_table.js"></script>
-<!-- Need to find a place to put this -->
+<script src="${http_root}js/tables/history_table.js"></script>
 % if data['media_type'] == 'show' or data['media_type'] == 'artist':
 <script>
     function get_history() {
@@ -434,7 +441,8 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return { 
                     json_data: JSON.stringify( d ),
-                    grandparent_rating_key: "${data['rating_key']}"
+                    grandparent_rating_key: "${data['rating_key']}",
+                    user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
                 };
             }
         }
@@ -449,7 +457,8 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return { 
                     json_data: JSON.stringify( d ),
-                    parent_rating_key: "${data['rating_key']}"
+                    parent_rating_key: "${data['rating_key']}",
+                    user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
                 };
             }
         }
@@ -464,7 +473,8 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return { 
                     json_data: JSON.stringify( d ),
-                    rating_key: "${data['rating_key']}"
+                    rating_key: "${data['rating_key']}",
+                    user_id: "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
                 };
             }
         }
@@ -486,8 +496,8 @@ DOCUMENTATION :: END
             if ($(this).hasClass('active')) {
                 if (history_to_delete.length > 0) {
                     $('#deleteCount').text(history_to_delete.length);
-                    $('#confirm-modal').modal();
-                    $('#confirm-modal').one('click', '#confirm-delete', function () {
+                    $('#confirm-modal-delete').modal();
+                    $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
                         for (var i = 0; i < history_to_delete.length; i++) {
                             $.ajax({
                                 url: 'delete_history_rows',

@@ -14,11 +14,17 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
-
-from plexpy import logger, helpers, activity_pinger, activity_processor, users, plextv
 from xml.dom import minidom
 
 import plexpy
+import activity_pinger
+import activity_processor
+import database
+import helpers
+import logger
+import plextv
+import users
+
 
 def extract_plexwatch_xml(xml=None):
     output = {}
@@ -26,12 +32,12 @@ def extract_plexwatch_xml(xml=None):
     try:
         xml_parse = minidom.parseString(clean_xml)
     except:
-        logger.warn(u"PlexPy Importer :: Error parsing XML for Plexwatch database.")
+        logger.warn(u"PlexPy Importer :: Error parsing XML for PlexWatch database.")
         return None
 
     xml_head = xml_parse.getElementsByTagName('opt')
     if not xml_head:
-        logger.warn(u"PlexPy Importer :: Error parsing XML for Plexwatch database.")
+        logger.warn(u"PlexPy Importer :: Error parsing XML for PlexWatch database.")
         return None
 
     for a in xml_head:
@@ -96,6 +102,7 @@ def extract_plexwatch_xml(xml=None):
         if a.getElementsByTagName('Player'):
             player_elem = a.getElementsByTagName('Player')
             for d in player_elem:
+                ip_address = helpers.get_xml_attr(d, 'address')
                 machine_id = helpers.get_xml_attr(d, 'machineIdentifier')
                 platform = helpers.get_xml_attr(d, 'platform')
                 player = helpers.get_xml_attr(d, 'title')
@@ -148,6 +155,12 @@ def extract_plexwatch_xml(xml=None):
             for i in genre_elem:
                 genres.append(helpers.get_xml_attr(i, 'tag'))
 
+        labels = []
+        if a.getElementsByTagName('Lables'):
+            label_elem = a.getElementsByTagName('Lables')
+            for i in label_elem:
+                labels.append(helpers.get_xml_attr(i, 'tag'))
+
         output = {'added_at': added_at,
                   'art': art,
                   'duration': duration,
@@ -180,6 +193,7 @@ def extract_plexwatch_xml(xml=None):
                   'video_framerate': video_framerate,
                   'video_resolution': video_resolution,
                   'width': width,
+                  'ip_address': ip_address,
                   'machine_id': machine_id,
                   'platform': platform,
                   'player': player,
@@ -196,7 +210,8 @@ def extract_plexwatch_xml(xml=None):
                   'writers': writers,
                   'actors': actors,
                   'genres': genres,
-                  'studio': studio
+                  'studio': studio,
+                  'labels': labels
                   }
 
     return output
@@ -319,7 +334,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                            'grandparent_title': row['grandparent_title'],
                            'user_id': user_id,
                            'user': row['user'],
-                           'ip_address': row['ip_address'],
+                           'ip_address': row['ip_address'] if row['ip_address'] else extracted_xml['ip_address'],
                            'paused_counter': row['paused_counter'],
                            'player': row['player'],
                            'platform': extracted_xml['platform'],
@@ -380,6 +395,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                                     'actors': extracted_xml['actors'],
                                     'genres': extracted_xml['genres'],
                                     'studio': extracted_xml['studio'],
+                                    'labels': extracted_xml['labels'],
                                     'full_title': row['full_title']
                                     }
 
@@ -400,8 +416,6 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
     plexpy.initialize_scheduler()
 
 def import_users():
-    from plexpy import database
-
     logger.debug(u"PlexPy Importer :: Importing PlexWatch Users...")
     monitor_db = database.MonitorDatabase()
 

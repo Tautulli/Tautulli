@@ -16,12 +16,12 @@
 import os
 import sys
 
-import cherrypy
-from plexpy import logger
 import plexpy
+import cherrypy
+import logger
+import webauth
 from plexpy.helpers import create_https_certificates
 from plexpy.webserve import WebInterface
-
 
 
 def initialize(options):
@@ -36,11 +36,11 @@ def initialize(options):
         if plexpy.CONFIG.HTTPS_CREATE_CERT and \
             (not (https_cert and os.path.exists(https_cert)) or not (https_key and os.path.exists(https_key))):
             if not create_https_certificates(https_cert, https_key):
-                logger.warn("Unable to create certificate and key. Disabling HTTPS")
+                logger.warn(u"PlexPy WebStart :: Unable to create certificate and key. Disabling HTTPS")
                 enable_https = False
 
         if not (os.path.exists(https_cert) and os.path.exists(https_key)):
-            logger.warn("Disabled HTTPS because of missing certificate and key.")
+            logger.warn(u"PlexPy WebStart :: Disabled HTTPS because of missing certificate and key.")
             enable_https = False
 
     options_dict = {
@@ -50,8 +50,12 @@ def initialize(options):
         'server.thread_pool': 10,
         'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
-        'tools.decode.on': True,
+        'tools.decode.on': True
     }
+
+    if plexpy.DEV:
+        options_dict['environment'] = "test_suite"
+        options_dict['engine.autoreload.on'] = True
 
     if enable_https:
         options_dict['server.ssl_certificate'] = https_cert
@@ -60,12 +64,18 @@ def initialize(options):
     else:
         protocol = "http"
 
-    if plexpy.DEV:
-        options_dict['environment'] = "test_suite"
-        options_dict['engine.autoreload.on'] = True
+    if options['http_password']:
+        logger.info(u"PlexPy WebStart :: Web server authentication is enabled, username is '%s'", options['http_username'])
+        options_dict['tools.sessions.on'] = auth_enabled = session_enabled = True
+        cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
+    else:
+        auth_enabled = session_enabled = False
 
-    logger.info("Starting PlexPy web server on %s://%s:%d/", protocol,
-                options['http_host'], options['http_port'])
+    if not options['http_root'] or options['http_root'] == '/':
+        plexpy.HTTP_ROOT = options['http_root'] = '/'
+    else:
+        plexpy.HTTP_ROOT = options['http_root'] = '/' + options['http_root'].strip('/') + '/'
+
     cherrypy.config.update(options_dict)
 
     conf = {
@@ -75,52 +85,130 @@ def initialize(options):
             'tools.gzip.on': True,
             'tools.gzip.mime_types': ['text/html', 'text/plain', 'text/css',
                                       'text/javascript', 'application/json',
-                                      'application/javascript']
+                                      'application/javascript'],
+            'tools.auth.on': auth_enabled,
+            'tools.sessions.on': session_enabled,
+            'tools.sessions.timeout': 30 * 24 * 60  # 30 days
         },
         '/interfaces': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces"
+            'tools.staticdir.dir': "interfaces",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/images': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "images"
+            'tools.staticdir.dir': "interfaces/default/images",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/css': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "css"
+            'tools.staticdir.dir': "interfaces/default/css",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
+        },
+        '/fonts': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': "interfaces/default/fonts",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/js': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': "js"
+            'tools.staticdir.dir': "interfaces/default/js",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
+        },
+        '/json': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': "interfaces/default/json",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
+        },
+        '/xml': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': "interfaces/default/xml",
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/cache': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': plexpy.CONFIG.CACHE_DIR
+            'tools.staticdir.dir': plexpy.CONFIG.CACHE_DIR,
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
+        },
+        '/pms_image_proxy': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': os.path.join(plexpy.CONFIG.CACHE_DIR, 'images'),
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
         },
         '/favicon.ico': {
             'tools.staticfile.on': True,
-            'tools.staticfile.filename': os.path.abspath(os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images/favicon.ico'))
-        }
-
+            'tools.staticfile.filename': os.path.abspath(os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images/favicon.ico')),
+            'tools.caching.on': True,
+            'tools.caching.force': True,
+            'tools.caching.delay': 0,
+            'tools.expires.on': True,
+            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
+            'tools.auth.on': False,
+            'tools.sessions.on': False
+        },
     }
-
-    if options['http_password']:
-        logger.info("Web server authentication is enabled, username is '%s'", options['http_username'])
-
-        conf['/'].update({
-            'tools.auth_basic.on': True,
-            'tools.auth_basic.realm': 'PlexPy web server',
-            'tools.auth_basic.checkpassword': cherrypy.lib.auth_basic.checkpassword_dict({
-                options['http_username']: options['http_password']
-            })
-        })
-        conf['/api'] = {'tools.auth_basic.on': False}
 
     # Prevent time-outs
     cherrypy.engine.timeout_monitor.unsubscribe()
-    cherrypy.tree.mount(WebInterface(), str(options['http_root']), config=conf)
+    cherrypy.tree.mount(WebInterface(), options['http_root'], config=conf)
 
     try:
+        logger.info(u"PlexPy WebStart :: Starting PlexPy web server on %s://%s:%d%s", protocol,
+                    options['http_host'], options['http_port'], options['http_root'])
         cherrypy.process.servers.check_port(str(options['http_host']), options['http_port'])
         if not plexpy.DEV:
             cherrypy.server.start()

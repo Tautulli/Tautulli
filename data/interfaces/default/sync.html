@@ -1,9 +1,9 @@
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.bootstrap.css">
-<link rel="stylesheet" href="interfaces/default/css/plexpy-dataTables.css">
-<link rel="stylesheet" href="interfaces/default/css/dataTables.colVis.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="${http_root}css/plexpy-dataTables.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
 <style>
     td {word-wrap: break-word}
 </style>
@@ -18,7 +18,8 @@
         <div class="header-bar">
             <span><i class="fa fa-cloud-download"></i> Synced Items</span>
         </div>
-        <div class="colvis-button-bar hidden-phone">
+        <div class="button-bar">
+            <div class="btn-group colvis-button-bar"></div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -46,15 +47,18 @@
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="interfaces/default/js/jquery.dataTables.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.min.js"></script>
-<script src="interfaces/default/js/dataTables.bootstrap.pagination.js"></script>
-<script src="interfaces/default/js/dataTables.colVis.js"></script>
-<script src="interfaces/default/js/tables/sync_table.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/tables/sync_table.js"></script>
 <script>
     $(document).ready(function() {
         sync_table_options.ajax = {
-            url: 'get_sync'
+            url: 'get_sync',
+            data: function (d) {
+                d.user_id = "${_session['user_id']}" == "None" ? null : "${_session['user_id']}"
+            }
         }
         sync_table = $('#sync_table').DataTable(sync_table_options);
         var colvis = new $.fn.dataTable.ColVis( sync_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' } );

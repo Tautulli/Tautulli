@@ -13,31 +13,35 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from urlparse import urlparse
 import base64
+import bleach
 import json
 import cherrypy
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email.utils
 from httplib import HTTPSConnection
 import os
+import requests
 import shlex
 import smtplib
 import subprocess
-
-from urllib import urlencode
+import time
 import urllib
+from urllib import urlencode
 import urllib2
-from urlparse import parse_qsl
+from urlparse import urlparse
 
-from pynma import pynma
 import gntp.notifier
-import oauth2 as oauth
-import pythontwitter as twitter
-import pythonfacebook as facebook
+import facebook
+import twitter
+import pynma
 
 import plexpy
-from plexpy import logger, helpers, request
+import database
+import helpers
+import logger
+import request
 from plexpy.helpers import checked
 
 AGENT_IDS = {"Growl": 0,
@@ -56,7 +60,9 @@ AGENT_IDS = {"Growl": 0,
              "Telegram": 13,
              "Slack": 14,
              "Scripts": 15,
-             "Facebook": 16}
+             "Facebook": 16,
+             "Browser": 17,
+             "Join": 18}
 
 
 def available_notification_agents():
@@ -114,24 +120,24 @@ def available_notification_agents():
                'on_intup': plexpy.CONFIG.XBMC_ON_INTUP,
                'on_pmsupdate': plexpy.CONFIG.XBMC_ON_PMSUPDATE
                },
-              #{'name': 'Plex',
-              # 'id': AGENT_IDS['Plex'],
-              # 'config_prefix': 'plex',
-              # 'has_config': True,
-              # 'state': checked(plexpy.CONFIG.PLEX_ENABLED),
-              # 'on_play': plexpy.CONFIG.PLEX_ON_PLAY,
-              # 'on_stop': plexpy.CONFIG.PLEX_ON_STOP,
-              # 'on_pause': plexpy.CONFIG.PLEX_ON_PAUSE,
-              # 'on_resume': plexpy.CONFIG.PLEX_ON_RESUME,
-              # 'on_buffer': plexpy.CONFIG.PLEX_ON_BUFFER,
-              # 'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED,
-              # 'on_created': plexpy.CONFIG.PLEX_ON_CREATED,
-              # 'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
-              # 'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN,
-              # 'on_extup': plexpy.CONFIG.PLEX_ON_EXTUP,
-              # 'on_intup': plexpy.CONFIG.PLEX_ON_INTUP,
-              # 'on_pmsupdate': plexpy.CONFIG.PLEX_ON_PMSUPDATE
-              # },
+              {'name': 'Plex Home Theater',
+               'id': AGENT_IDS['Plex'],
+               'config_prefix': 'plex',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.PLEX_ENABLED),
+               'on_play': plexpy.CONFIG.PLEX_ON_PLAY,
+               'on_stop': plexpy.CONFIG.PLEX_ON_STOP,
+               'on_pause': plexpy.CONFIG.PLEX_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.PLEX_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.PLEX_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.PLEX_ON_WATCHED,
+               'on_created': plexpy.CONFIG.PLEX_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.PLEX_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.PLEX_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.PLEX_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.PLEX_ON_PMSUPDATE
+               },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
                'config_prefix': 'nma',
@@ -347,6 +353,42 @@ def available_notification_agents():
                'on_extup': plexpy.CONFIG.FACEBOOK_ON_EXTUP,
                'on_intup': plexpy.CONFIG.FACEBOOK_ON_INTUP,
                'on_pmsupdate': plexpy.CONFIG.FACEBOOK_ON_PMSUPDATE
+              },
+              {'name': 'Browser',
+               'id': AGENT_IDS['Browser'],
+               'config_prefix': 'browser',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.BROWSER_ENABLED),
+               'on_play': plexpy.CONFIG.BROWSER_ON_PLAY,
+               'on_stop': plexpy.CONFIG.BROWSER_ON_STOP,
+               'on_pause': plexpy.CONFIG.BROWSER_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.BROWSER_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.BROWSER_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.BROWSER_ON_WATCHED,
+               'on_created': plexpy.CONFIG.BROWSER_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.BROWSER_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.BROWSER_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.BROWSER_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.BROWSER_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.BROWSER_ON_PMSUPDATE
+               },
+              {'name': 'Join',
+               'id': AGENT_IDS['Join'],
+               'config_prefix': 'join',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.JOIN_ENABLED),
+               'on_play': plexpy.CONFIG.JOIN_ON_PLAY,
+               'on_stop': plexpy.CONFIG.JOIN_ON_STOP,
+               'on_pause': plexpy.CONFIG.JOIN_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.JOIN_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.JOIN_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.JOIN_ON_WATCHED,
+               'on_created': plexpy.CONFIG.JOIN_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.JOIN_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.JOIN_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.JOIN_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.JOIN_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.JOIN_ON_PMSUPDATE
                }
               ]
 
@@ -430,6 +472,12 @@ def get_notification_agent_config(agent_id):
         elif agent_id == 16:
             facebook = FacebookNotifier()
             return facebook.return_config_options()
+        elif agent_id == 17:
+            browser = Browser()
+            return browser.return_config_options()
+        elif agent_id == 18:
+            join = JOIN()
+            return join.return_config_options()
         else:
             return []
     else:
@@ -442,55 +490,61 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
 
         if agent_id == 0:
             growl = GROWL()
-            growl.notify(message=body, event=subject)
+            return growl.notify(message=body, event=subject)
         elif agent_id == 1:
             prowl = PROWL()
-            prowl.notify(message=body, event=subject)
+            return prowl.notify(message=body, event=subject)
         elif agent_id == 2:
             xbmc = XBMC()
-            xbmc.notify(subject=subject, message=body)
+            return xbmc.notify(subject=subject, message=body)
         elif agent_id == 3:
             plex = Plex()
-            plex.notify(subject=subject, message=body)
+            return plex.notify(subject=subject, message=body)
         elif agent_id == 4:
             nma = NMA()
-            nma.notify(subject=subject, message=body)
+            return nma.notify(subject=subject, message=body)
         elif agent_id == 5:
             pushalot = PUSHALOT()
-            pushalot.notify(message=body, event=subject)
+            return pushalot.notify(message=body, event=subject)
         elif agent_id == 6:
             pushbullet = PUSHBULLET()
-            pushbullet.notify(message=body, subject=subject)
+            return pushbullet.notify(message=body, subject=subject)
         elif agent_id == 7:
             pushover = PUSHOVER()
-            pushover.notify(message=body, event=subject)
+            return pushover.notify(message=body, event=subject)
         elif agent_id == 8:
             osx_notify = OSX_NOTIFY()
-            osx_notify.notify(title=subject, text=body)
+            return osx_notify.notify(title=subject, text=body)
         elif agent_id == 9:
             boxcar = BOXCAR()
-            boxcar.notify(title=subject, message=body)
+            return boxcar.notify(title=subject, message=body)
         elif agent_id == 10:
             email = Email()
-            email.notify(subject=subject, message=body)
+            return email.notify(subject=subject, message=body)
         elif agent_id == 11:
-            tweet = TwitterNotifier()
-            tweet.notify(subject=subject, message=body)
+            twitter = TwitterNotifier()
+            return twitter.notify(subject=subject, message=body, **kwargs)
         elif agent_id == 12:
             iftttClient = IFTTT()
-            iftttClient.notify(subject=subject, message=body, action=notify_action)
+            return iftttClient.notify(subject=subject, message=body, action=notify_action)
         elif agent_id == 13:
             telegramClient = TELEGRAM()
-            telegramClient.notify(message=body, event=subject)
+            return telegramClient.notify(message=body, event=subject, **kwargs)
         elif agent_id == 14:
             slackClient = SLACK()
-            slackClient.notify(message=body, event=subject)
+            return slackClient.notify(message=body, event=subject, **kwargs)
         elif agent_id == 15:
             scripts = Scripts()
-            scripts.notify(message=body, subject=subject, notify_action=notify_action, **kwargs)
+            return scripts.notify(message=body, subject=subject, notify_action=notify_action, **kwargs)
         elif agent_id == 16:
             facebook = FacebookNotifier()
-            facebook.notify(subject=subject, message=body, **kwargs)
+            return facebook.notify(subject=subject, message=body, **kwargs)
+        elif agent_id == 17:
+            browser = Browser()
+            return browser.notify(subject=subject, message=body)
+        elif agent_id == 18:
+            join = JOIN()
+            return join.notify(message=body, subject=subject)
         else:
             logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
@@ -543,10 +597,10 @@ class GROWL(object):
             growl.register()
         except gntp.notifier.errors.NetworkError:
             logger.warn(u"PlexPy Notifiers :: Growl notification failed: network error")
-            return
+            return False
         except gntp.notifier.errors.AuthError:
             logger.warn(u"PlexPy Notifiers :: Growl notification failed: authentication error")
-            return
+            return False
 
         # Fix message
         message = message.encode(plexpy.SYS_ENCODING, "replace")
@@ -566,9 +620,10 @@ class GROWL(object):
                 icon=image
             )
             logger.info(u"PlexPy Notifiers :: Growl notification sent.")
+            return True
         except gntp.notifier.errors.NetworkError:
             logger.warn(u"PlexPy Notifiers :: Growl notification failed: network error")
-            return
+            return False
 
 
     def updateLibrary(self):
@@ -619,11 +674,11 @@ class PROWL(object):
 
         http_handler = HTTPSConnection("api.prowlapp.com")
 
-        data = {'apikey': plexpy.CONFIG.PROWL_KEYS,
+        data = {'apikey': self.keys,
                 'application': 'PlexPy',
                 'event': event.encode("utf-8"),
                 'description': message.encode("utf-8"),
-                'priority': plexpy.CONFIG.PROWL_PRIORITY}
+                'priority': self.priority}
 
         http_handler.request("POST",
                              "/publicapi/add",
@@ -637,7 +692,7 @@ class PROWL(object):
             logger.info(u"PlexPy Notifiers :: Prowl notification sent.")
             return True
         elif request_status == 401:
-            logger.warn(u"PlexPy Notifiers :: Prowl notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Prowl notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Prowl notification failed.")
@@ -679,7 +734,6 @@ class XBMC(object):
     """
 
     def __init__(self):
-
         self.hosts = plexpy.CONFIG.XBMC_HOST
         self.username = plexpy.CONFIG.XBMC_USERNAME
         self.password = plexpy.CONFIG.XBMC_PASSWORD
@@ -732,9 +786,11 @@ class XBMC(object):
                     raise Exception
                 else:
                     logger.info(u"PlexPy Notifiers :: XBMC notification sent.")
+                    return True
 
             except Exception:
                 logger.warn(u"PlexPy Notifiers :: XBMC notification filed.")
+                return False
 
     def return_config_options(self):
         config_option = [{'label': 'XBMC Host:Port',
@@ -746,13 +802,13 @@ class XBMC(object):
                          {'label': 'XBMC Username',
                           'value': self.username,
                           'name': 'xbmc_username',
-                          'description': 'Your XBMC username.',
+                          'description': 'Username of your XBMC client API (blank for none).',
                           'input_type': 'text'
                           },
                          {'label': 'XBMC Password',
                           'value': self.password,
                           'name': 'xbmc_password',
-                          'description': 'Your XMBC password.',
+                          'description': 'Password of your XBMC client API (blank for none).',
                           'input_type': 'password'
                           }
                          ]
@@ -762,37 +818,31 @@ class XBMC(object):
 
 class Plex(object):
     def __init__(self):
-
         self.client_hosts = plexpy.CONFIG.PLEX_CLIENT_HOST
         self.username = plexpy.CONFIG.PLEX_USERNAME
         self.password = plexpy.CONFIG.PLEX_PASSWORD
 
     def _sendhttp(self, host, command):
-
-        username = self.username
-        password = self.password
-
         url_command = urllib.urlencode(command)
-
         url = host + '/xbmcCmds/xbmcHttp/?' + url_command
 
-        req = urllib2.Request(url)
+        if self.password:
+            return request.request_content(url, auth=(self.username, self.password))
+        else:
+            return request.request_content(url)
 
-        if password:
-            base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-            req.add_header("Authorization", "Basic %s" % base64string)
+    def _sendjson(self, host, method, params={}):
+        data = [{'id': 0, 'jsonrpc': '2.0', 'method': method, 'params': params}]
+        headers = {'Content-Type': 'application/json'}
+        url = host + '/jsonrpc'
 
-        # logger.info(u"PlexPy Notifiers :: Plex url: %s" % url)
+        if self.password:
+            response = request.request_json(url, method="post", data=json.dumps(data), headers=headers, auth=(self.username, self.password))
+        else:
+            response = request.request_json(url, method="post", data=json.dumps(data), headers=headers)
 
-        try:
-            handle = urllib2.urlopen(req)
-        except Exception as e:
-            logger.error(u"PlexPy Notifiers :: Error opening Plex url: %s" % e)
-            return
-
-        response = handle.read().decode(plexpy.SYS_ENCODING)
-
-        return response
+        if response:
+            return response[0]['result']
 
     def notify(self, subject=None, message=None):
 
@@ -803,37 +853,46 @@ class Plex(object):
         time = "3000"  # in ms
 
         for host in hosts:
-            logger.info(u"PlexPy Notifiers :: Sending notification command to Plex Media Server @ " + host)
+            logger.info(u"PlexPy Notifiers :: Sending notification command to Plex Home Theater @ " + host)
             try:
-                notification = header + "," + message + "," + time
-                notifycommand = {'command': 'ExecBuiltIn', 'parameter': 'Notification(' + notification + ')'}
-                request = self._sendhttp(host, notifycommand)
+                version = self._sendjson(host, 'Application.GetProperties', {'properties': ['version']})['version']['major']
+
+                if version < 12:  # Eden
+                    notification = header + "," + message + "," + time
+                    notifycommand = {'command': 'ExecBuiltIn', 'parameter': 'Notification(' + notification + ')'}
+                    request = self._sendhttp(host, notifycommand)
+
+                else:  # Frodo
+                    params = {'title': header, 'message': message, 'displaytime': int(time)}
+                    request = self._sendjson(host, 'GUI.ShowNotification', params)
 
                 if not request:
                     raise Exception
                 else:
-                    logger.info(u"PlexPy Notifiers :: Plex notification sent.")
+                    logger.info(u"PlexPy Notifiers :: Plex Home Theater notification sent.")
+                    return True
 
-            except:
-                logger.warn(u"PlexPy Notifiers :: Plex notification failed.")
+            except Exception:
+                logger.warn(u"PlexPy Notifiers :: Plex Home Theater notification filed.")
+                return False
 
     def return_config_options(self):
-        config_option = [{'label': 'Plex Client Host:Port',
+        config_option = [{'label': 'Plex Home Theater Host:Port',
                           'value': self.client_hosts,
                           'name': 'plex_client_host',
-                          'description': 'Host running Plex Client (eg. http://192.168.1.100:3000).',
+                          'description': 'Host running Plex Home Theater (eg. http://localhost:3005). Separate multiple hosts with commas (,).',
                           'input_type': 'text'
                           },
-                         {'label': 'Plex Username',
+                         {'label': 'Plex Home Theater Username',
                           'value': self.username,
                           'name': 'plex_username',
-                          'description': 'Username of your Plex client API (blank for none).',
+                          'description': 'Username of your Plex Home Theater client API (blank for none).',
                           'input_type': 'text'
                           },
-                         {'label': 'Plex Password',
+                         {'label': 'Plex Home Theater Password',
                           'value': self.password,
                           'name': 'plex_password',
-                          'description': 'Password of your Plex client API (blank for none).',
+                          'description': 'Password of your Plex Home Theater client API (blank for none).',
                           'input_type': 'password'
                           }
                          ]
@@ -844,16 +903,14 @@ class Plex(object):
 class NMA(object):
 
     def __init__(self):
-        self.api = plexpy.CONFIG.NMA_APIKEY
-        self.nma_priority = plexpy.CONFIG.NMA_PRIORITY
+        self.apikey = plexpy.CONFIG.NMA_APIKEY
+        self.priority = plexpy.CONFIG.NMA_PRIORITY
 
     def notify(self, subject=None, message=None):
         if not subject or not message:
             return
 
         title = 'PlexPy'
-        api = plexpy.CONFIG.NMA_APIKEY
-        nma_priority = plexpy.CONFIG.NMA_PRIORITY
 
         # logger.debug(u"NMA title: " + title)
         # logger.debug(u"NMA API: " + api)
@@ -867,15 +924,15 @@ class NMA(object):
         batch = False
 
         p = pynma.PyNMA()
-        keys = api.split(',')
+        keys = self.apikey.split(',')
         p.addkey(keys)
 
         if len(keys) > 1:
             batch = True
 
-        response = p.push(title, event, message, priority=nma_priority, batch_mode=batch)
+        response = p.push(title, event, message, priority=self.priority, batch_mode=batch)
 
-        if not response[api][u'code'] == u'200':
+        if not response[self.apikey][u'code'] == u'200':
             logger.warn(u"PlexPy Notifiers :: NotifyMyAndroid notification failed.")
             return False
         else:
@@ -884,13 +941,13 @@ class NMA(object):
 
     def return_config_options(self):
         config_option = [{'label': 'NotifyMyAndroid API Key',
-                          'value': plexpy.CONFIG.NMA_APIKEY,
+                          'value': self.apikey,
                           'name': 'nma_apikey',
                           'description': 'Your NotifyMyAndroid API key. Separate multiple api keys with commas.',
                           'input_type': 'text'
                           },
                          {'label': 'Priority',
-                          'value': plexpy.CONFIG.NMA_PRIORITY,
+                          'value': self.priority,
                           'name': 'nma_priority',
                           'description': 'Set the priority.',
                           'input_type': 'select',
@@ -915,8 +972,6 @@ class PUSHBULLET(object):
         if not message or not subject:
             return
 
-        http_handler = HTTPSConnection("api.pushbullet.com")
-
         data = {'type': "note",
                 'title': subject.encode("utf-8"),
                 'body': message.encode("utf-8")}
@@ -927,10 +982,11 @@ class PUSHBULLET(object):
         elif self.channel_tag:
             data['channel_tag'] = self.channel_tag
 
+        http_handler = HTTPSConnection("api.pushbullet.com")
         http_handler.request("POST",
                              "/v2/pushes",
                              headers={'Content-type': "application/json",
-                             'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")},
+                             'Authorization': 'Basic %s' % base64.b64encode(self.apikey + ":")},
                              body=json.dumps(data))
 
         response = http_handler.getresponse()
@@ -943,7 +999,7 @@ class PUSHBULLET(object):
             logger.info(u"PlexPy Notifiers :: PushBullet notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: PushBullet notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: PushBullet notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: PushBullet notification failed.")
@@ -958,11 +1014,11 @@ class PUSHBULLET(object):
         self.notify('Main Screen Activate', 'Test Message')
 
     def get_devices(self):
-        if plexpy.CONFIG.PUSHBULLET_APIKEY:
+        if self.apikey:
             http_handler = HTTPSConnection("api.pushbullet.com")
             http_handler.request("GET", "/v2/devices",
                                  headers={'Content-type': "application/json",
-                                 'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")})
+                                 'Authorization': 'Basic %s' % base64.b64encode(self.apikey + ":")})
 
             response = http_handler.getresponse()
             request_status = response.status
@@ -1012,21 +1068,19 @@ class PUSHBULLET(object):
 class PUSHALOT(object):
 
     def __init__(self):
-        self.api_key = plexpy.CONFIG.PUSHALOT_APIKEY
+        self.apikey = plexpy.CONFIG.PUSHALOT_APIKEY
 
     def notify(self, message, event):
         if not message or not event:
             return
 
-        pushalot_authorizationtoken = plexpy.CONFIG.PUSHALOT_APIKEY
-
         # logger.debug(u"Pushalot event: " + event)
         # logger.debug(u"Pushalot message: " + message)
-        # logger.debug(u"Pushalot api: " + pushalot_authorizationtoken)
+        # logger.debug(u"Pushalot api: " + self.api_key)
 
         http_handler = HTTPSConnection("pushalot.com")
 
-        data = {'AuthorizationToken': pushalot_authorizationtoken,
+        data = {'AuthorizationToken': self.apikey,
                 'Title': event.encode('utf-8'),
                 'Body': message.encode("utf-8")}
 
@@ -1045,7 +1099,7 @@ class PUSHALOT(object):
             logger.info(u"PlexPy Notifiers :: Pushalot notification sent.")
             return True
         elif request_status == 410:
-            logger.warn(u"PlexPy Notifiers :: Pushalot notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Pushalot notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Pushalot notification failed.")
@@ -1053,7 +1107,7 @@ class PUSHALOT(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Pushalot API Key',
-                          'value': plexpy.CONFIG.PUSHALOT_APIKEY,
+                          'value': self.apikey,
                           'name': 'pushalot_apikey',
                           'description': 'Your Pushalot API key.',
                           'input_type': 'text'
@@ -1067,11 +1121,11 @@ class PUSHOVER(object):
 
     def __init__(self):
         self.enabled = plexpy.CONFIG.PUSHOVER_ENABLED
-        self.application_token = plexpy.CONFIG.PUSHOVER_APITOKEN
+        self.apitoken = plexpy.CONFIG.PUSHOVER_APITOKEN
         self.keys = plexpy.CONFIG.PUSHOVER_KEYS
+        self.html_support = plexpy.CONFIG.PUSHOVER_HTML_SUPPORT
         self.priority = plexpy.CONFIG.PUSHOVER_PRIORITY
         self.sound = plexpy.CONFIG.PUSHOVER_SOUND
-        self.html_support = plexpy.CONFIG.PUSHOVER_HTML_SUPPORT
 
     def conf(self, options):
         return cherrypy.config['config'].get('Pushover', options)
@@ -1082,13 +1136,13 @@ class PUSHOVER(object):
 
         http_handler = HTTPSConnection("api.pushover.net")
 
-        data = {'token': self.application_token,
-                'user': plexpy.CONFIG.PUSHOVER_KEYS,
+        data = {'token': self.apitoken,
+                'user': self.keys,
                 'title': event.encode("utf-8"),
                 'message': message.encode("utf-8"),
-                'sound': plexpy.CONFIG.PUSHOVER_SOUND,
-                'html': plexpy.CONFIG.PUSHOVER_HTML_SUPPORT,
-                'priority': plexpy.CONFIG.PUSHOVER_PRIORITY}
+                'sound': self.sound,
+                'html': self.html_support,
+                'priority': self.priority}
 
         http_handler.request("POST",
                              "/1/messages.json",
@@ -1104,7 +1158,7 @@ class PUSHOVER(object):
             logger.info(u"PlexPy Notifiers :: Pushover notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Pushover notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Pushover notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Pushover notification failed.")
@@ -1124,9 +1178,9 @@ class PUSHOVER(object):
         self.notify('Main Screen Activate', 'Test Message')
 
     def get_sounds(self):
-        if plexpy.CONFIG.PUSHOVER_APITOKEN:
+        if self.apitoken:
             http_handler = HTTPSConnection("api.pushover.net")
-            http_handler.request("GET", "/1/sounds.json?token=" + self.application_token)
+            http_handler.request("GET", "/1/sounds.json?token=" + self.apitoken)
             response = http_handler.getresponse()
             request_status = response.status
 
@@ -1147,7 +1201,7 @@ class PUSHOVER(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Pushover API Token',
-                          'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
+                          'value': self.apitoken,
                           'name': 'pushover_apitoken',
                           'description': 'Your Pushover API token.',
                           'input_type': 'text'
@@ -1175,7 +1229,7 @@ class PUSHOVER(object):
                          {'label': 'Enable HTML Support',
                           'value': self.html_support,
                           'name': 'pushover_html_support',
-                          'description': 'Style your messages using these HTML Tags: b, i, u, a[href], font[color]',
+                          'description': 'Style your messages using these HTML tags: b, i, u, a[href], font[color]',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1195,74 +1249,27 @@ class TwitterNotifier(object):
         self.access_token_secret = plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET
         self.consumer_key = plexpy.CONFIG.TWITTER_CONSUMER_KEY
         self.consumer_secret = plexpy.CONFIG.TWITTER_CONSUMER_SECRET
+        self.incl_poster = plexpy.CONFIG.TWITTER_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.TWITTER_INCL_SUBJECT
 
-    def notify(self, subject, message):
+    def notify(self, subject, message, **kwargs):
         if not subject or not message:
             return
+
+        poster_url = ''
+        if self.incl_poster and 'metadata' in kwargs:
+            metadata = kwargs['metadata']
+            poster_url = metadata.get('poster_url','')
+
+        if self.incl_subject:
+            self._send_tweet(subject + ': ' + message, attachment=poster_url)
         else:
-            if self.incl_subject:
-                self._send_tweet(subject + ': ' + message)
-            else:
-                self._send_tweet(message)
+            self._send_tweet(message, attachment=poster_url)
 
     def test_notify(self):
         return self._send_tweet("This is a test notification from PlexPy at " + helpers.now())
 
-    def _get_authorization(self):
-
-        oauth_consumer = oauth.Consumer(key=self.consumer_key, secret=self.consumer_secret)
-        oauth_client = oauth.Client(oauth_consumer)
-
-        logger.info("PlexPy Notifiers :: Requesting temp token from Twitter")
-
-        resp, content = oauth_client.request(self.REQUEST_TOKEN_URL, 'GET')
-
-        if resp['status'] != '200':
-            logger.warn("PlexPy Notifiers :: Invalid respond from Twitter requesting temp token: %s" % resp['status'])
-        else:
-            request_token = dict(parse_qsl(content))
-
-            plexpy.CONFIG.TWITTER_ACCESS_TOKEN = request_token['oauth_token']
-            plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET = request_token['oauth_token_secret']
-
-            return self.AUTHORIZATION_URL + "?oauth_token=" + request_token['oauth_token']
-
-    def _get_credentials(self, key):
-        request_token = {}
-
-        request_token['oauth_token'] = plexpy.CONFIG.TWITTER_ACCESS_TOKEN
-        request_token['oauth_token_secret'] = plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET
-        request_token['oauth_callback_confirmed'] = 'true'
-
-        token = oauth.Token(request_token['oauth_token'], request_token['oauth_token_secret'])
-        token.set_verifier(key)
-
-        # logger.debug(u"Generating and signing request for an access token using key " + key)
-
-        oauth_consumer = oauth.Consumer(key=self.consumer_key, secret=self.consumer_secret)
-        # logger.debug(u"oauth_consumer: " + str(oauth_consumer))
-        oauth_client = oauth.Client(oauth_consumer, token)
-        # logger.debug(u"oauth_client: " + str(oauth_client))
-        resp, content = oauth_client.request(self.ACCESS_TOKEN_URL, method='POST', body='oauth_verifier=%s' % key)
-        # logger.debug(u"resp, content: " + str(resp) + ',' + str(content))
-
-        access_token = dict(parse_qsl(content))
-        # logger.debug(u"access_token: " + str(access_token))
-
-        # logger.debug(u"resp[status] = " + str(resp['status']))
-        if resp['status'] != '200':
-            logger.error(u"PlexPy Notifiers :: The request for a Twitter token did not succeed: " + str(resp['status']), logger.ERROR)
-            return False
-        else:
-            # logger.info(u"PlexPy Notifiers :: Your Twitter Access Token key: %s" % access_token['oauth_token'])
-            # logger.info(u"PlexPy Notifiers :: Access Token secret: %s" % access_token['oauth_token_secret'])
-            plexpy.CONFIG.TWITTER_ACCESS_TOKEN = access_token['oauth_token']
-            plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET = access_token['oauth_token_secret']
-            plexpy.CONFIG.write()
-            return True
-
-    def _send_tweet(self, message=None):
+    def _send_tweet(self, message=None, attachment=None):
         consumer_key = self.consumer_key
         consumer_secret = self.consumer_secret
         access_token = self.access_token
@@ -1273,13 +1280,12 @@ class TwitterNotifier(object):
         api = twitter.Api(consumer_key, consumer_secret, access_token, access_token_secret)
 
         try:
-            api.PostUpdate(message)
+            api.PostUpdate(message, media=attachment)
             logger.info(u"PlexPy Notifiers :: Twitter notification sent.")
+            return True
         except Exception as e:
             logger.warn(u"PlexPy Notifiers :: Twitter notification failed: %s" % e)
             return False
-
-        return True
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
@@ -1315,6 +1321,12 @@ class TwitterNotifier(object):
                           'description': 'Your Twitter access token secret.',
                           'input_type': 'text'
                           },
+                         {'label': 'Include Poster Image',
+                          'value': self.incl_poster,
+                          'name': 'twitter_incl_poster',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
+                          },
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'twitter_incl_subject',
@@ -1329,6 +1341,8 @@ class TwitterNotifier(object):
 class OSX_NOTIFY(object):
 
     def __init__(self):
+        self.app = plexpy.CONFIG.OSX_NOTIFY_APP
+
         try:
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
@@ -1399,7 +1413,7 @@ class OSX_NOTIFY(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Register Notify App',
-                          'value': plexpy.CONFIG.OSX_NOTIFY_APP,
+                          'value': self.app,
                           'name': 'osx_notify_app',
                           'description': 'Enter the path/application name to be registered with the '
                                          'Notification Center, default is /Applications/PlexPy.',
@@ -1423,10 +1437,10 @@ class BOXCAR(object):
 
         try:
             data = urllib.urlencode({
-                'user_credentials': plexpy.CONFIG.BOXCAR_TOKEN,
+                'user_credentials': self.token,
                 'notification[title]': title.encode('utf-8'),
                 'notification[long_message]': message.encode('utf-8'),
-                'notification[sound]': plexpy.CONFIG.BOXCAR_SOUND
+                'notification[sound]': self.sound
                 })
 
             req = urllib2.Request(self.url)
@@ -1475,7 +1489,7 @@ class BOXCAR(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Boxcar Access Token',
-                          'value': plexpy.CONFIG.BOXCAR_TOKEN,
+                          'value': self.token,
                           'name': 'boxcar_token',
                           'description': 'Your Boxcar access token.',
                           'input_type': 'text'
@@ -1495,35 +1509,52 @@ class BOXCAR(object):
 class Email(object):
 
     def __init__(self):
-        pass
+        self.from_name = plexpy.CONFIG.EMAIL_FROM_NAME
+        self.email_from = plexpy.CONFIG.EMAIL_FROM
+        self.email_to = plexpy.CONFIG.EMAIL_TO
+        self.email_cc = plexpy.CONFIG.EMAIL_CC
+        self.email_bcc = plexpy.CONFIG.EMAIL_BCC
+        self.smtp_server = plexpy.CONFIG.EMAIL_SMTP_SERVER
+        self.smtp_port = plexpy.CONFIG.EMAIL_SMTP_PORT
+        self.smtp_user = plexpy.CONFIG.EMAIL_SMTP_USER
+        self.smtp_password = plexpy.CONFIG.EMAIL_SMTP_PASSWORD
+        self.tls = plexpy.CONFIG.EMAIL_TLS
+        self.html_support = plexpy.CONFIG.EMAIL_HTML_SUPPORT
 
     def notify(self, subject, message):
         if not subject or not message:
             return
 
-        message = MIMEText(message, 'plain', "utf-8")
-        message['Subject'] = subject
-        message['From'] = email.utils.formataddr((plexpy.CONFIG.EMAIL_FROM_NAME, plexpy.CONFIG.EMAIL_FROM))
-        message['To'] = plexpy.CONFIG.EMAIL_TO
-        message['CC'] = plexpy.CONFIG.EMAIL_CC
+        if self.html_support:
+            msg = MIMEMultipart('alternative')
+            msg.attach(MIMEText(bleach.clean(message, strip=True), 'plain', 'utf-8'))
+            msg.attach(MIMEText(message, 'html', 'utf-8'))
+        else:
+            msg = MIMEText(message, 'plain', 'utf-8')
 
-        recipients = [x.strip() for x in plexpy.CONFIG.EMAIL_TO.split(';')] \
-                   + [x.strip() for x in plexpy.CONFIG.EMAIL_CC.split(';')] \
-                   + [x.strip() for x in plexpy.CONFIG.EMAIL_BCC.split(';')]
+        msg['Subject'] = subject
+        msg['From'] = email.utils.formataddr((self.from_name, self.email_from))
+        msg['To'] = self.email_to
+        msg['CC'] = self.email_cc
+
+
+        recipients = [x.strip() for x in self.email_to.split(';')] \
+                   + [x.strip() for x in self.email_cc.split(';')] \
+                   + [x.strip() for x in self.email_bcc.split(';')]
         recipients = filter(None, recipients)
 
         try:
-            mailserver = smtplib.SMTP(plexpy.CONFIG.EMAIL_SMTP_SERVER, plexpy.CONFIG.EMAIL_SMTP_PORT)
+            mailserver = smtplib.SMTP(self.smtp_server, self.smtp_port)
 
-            if (plexpy.CONFIG.EMAIL_TLS):
+            if self.tls:
                 mailserver.starttls()
 
             mailserver.ehlo()
 
-            if plexpy.CONFIG.EMAIL_SMTP_USER:
-                mailserver.login(plexpy.CONFIG.EMAIL_SMTP_USER, plexpy.CONFIG.EMAIL_SMTP_PASSWORD)
+            if self.smtp_user:
+                mailserver.login(self.smtp_user, self.smtp_password)
 
-            mailserver.sendmail(plexpy.CONFIG.EMAIL_FROM, recipients, message.as_string())
+            mailserver.sendmail(self.email_from, recipients, msg.as_string())
             mailserver.quit()
 
             logger.info(u"PlexPy Notifiers :: Email notification sent.")
@@ -1535,63 +1566,69 @@ class Email(object):
 
     def return_config_options(self):
         config_option = [{'label': 'From Name',
-                          'value': plexpy.CONFIG.EMAIL_FROM_NAME,
+                          'value': self.from_name,
                           'name': 'email_from_name',
                           'description': 'The name of the sender.',
                           'input_type': 'text'
                           },
                          {'label': 'From',
-                          'value': plexpy.CONFIG.EMAIL_FROM,
+                          'value': self.email_from,
                           'name': 'email_from',
                           'description': 'The email address of the sender.',
                           'input_type': 'text'
                           },
                          {'label': 'To',
-                          'value': plexpy.CONFIG.EMAIL_TO,
+                          'value': self.email_to,
                           'name': 'email_to',
                           'description': 'The email address(es) of the recipients, separated by semicolons (;).',
                           'input_type': 'text'
                           },
                          {'label': 'CC',
-                          'value': plexpy.CONFIG.EMAIL_CC,
+                          'value': self.email_cc,
                           'name': 'email_cc',
                           'description': 'The email address(es) to CC, separated by semicolons (;).',
                           'input_type': 'text'
                           },
                          {'label': 'BCC',
-                          'value': plexpy.CONFIG.EMAIL_BCC,
+                          'value': self.email_bcc,
                           'name': 'email_bcc',
                           'description': 'The email address(es) to BCC, separated by semicolons (;).',
                           'input_type': 'text'
                           },
                          {'label': 'SMTP Server',
-                          'value': plexpy.CONFIG.EMAIL_SMTP_SERVER,
+                          'value': self.smtp_server,
                           'name': 'email_smtp_server',
                           'description': 'Host for the SMTP server.',
                           'input_type': 'text'
                           },
                          {'label': 'SMTP Port',
-                          'value': plexpy.CONFIG.EMAIL_SMTP_PORT,
+                          'value': self.smtp_port,
                           'name': 'email_smtp_port',
                           'description': 'Port for the SMTP server.',
                           'input_type': 'number'
                           },
                          {'label': 'SMTP User',
-                          'value': plexpy.CONFIG.EMAIL_SMTP_USER,
+                          'value': self.smtp_user,
                           'name': 'email_smtp_user',
                           'description': 'User for the SMTP server.',
                           'input_type': 'text'
                           },
                          {'label': 'SMTP Password',
-                          'value': plexpy.CONFIG.EMAIL_SMTP_PASSWORD,
+                          'value': self.smtp_password,
                           'name': 'email_smtp_password',
                           'description': 'Password for the SMTP server.',
                           'input_type': 'password'
                           },
                          {'label': 'TLS',
-                          'value': plexpy.CONFIG.EMAIL_TLS,
+                          'value': self.tls,
                           'name': 'email_tls',
                           'description': 'Does the server use encryption.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Enable HTML Support',
+                          'value': self.html_support,
+                          'name': 'email_html_support',
+                          'description': 'Style your messages using  HTML tags.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1630,7 +1667,7 @@ class IFTTT(object):
             logger.info(u"PlexPy Notifiers :: Ifttt notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Ifttt notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Ifttt notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Ifttt notification failed.")
@@ -1668,29 +1705,52 @@ class TELEGRAM(object):
         self.enabled = plexpy.CONFIG.TELEGRAM_ENABLED
         self.bot_token = plexpy.CONFIG.TELEGRAM_BOT_TOKEN
         self.chat_id = plexpy.CONFIG.TELEGRAM_CHAT_ID
+        self.html_support = plexpy.CONFIG.TELEGRAM_HTML_SUPPORT
+        self.incl_poster = plexpy.CONFIG.TELEGRAM_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.TELEGRAM_INCL_SUBJECT
 
     def conf(self, options):
         return cherrypy.config['config'].get('Telegram', options)
 
-    def notify(self, message, event):
+    def notify(self, message, event, **kwargs):
         if not message or not event:
             return
 
-        http_handler = HTTPSConnection("api.telegram.org")
+        data = {'chat_id': self.chat_id}
 
         if self.incl_subject:
-            text = event.encode('utf-8') + ': ' + message.encode("utf-8")
+            text = event.encode('utf-8') + ': ' + message.encode('utf-8')
         else:
-            text = message.encode("utf-8")
+            text = message.encode('utf-8')
 
-        data = {'chat_id': self.chat_id,
-                'text': text}
+        if self.incl_poster and 'metadata' in kwargs:
+            metadata = kwargs['metadata']
+            poster_url = metadata.get('poster_url','')
 
-        http_handler.request("POST",
-                                "/bot%s/%s" % (self.bot_token, "sendMessage"),
-                                headers={'Content-type': "application/x-www-form-urlencoded"},
-                                body=urlencode(data))
+            if poster_url:
+                files = {'photo': (poster_url, urllib.urlopen(poster_url).read())}
+                response = requests.post('https://api.telegram.org/bot%s/%s' % (self.bot_token, 'sendPhoto'),
+                                         data=data,
+                                         files=files)
+                request_status = response.status_code
+                request_content = json.loads(response.text)
+
+                if request_status == 200:
+                    logger.info(u"PlexPy Notifiers :: Telegram poster sent.")
+                elif request_status >= 400 and request_status < 500:
+                    logger.warn(u"PlexPy Notifiers :: Telegram poster failed: %s" % request_content.get('description'))
+                else:
+                    logger.warn(u"PlexPy Notifiers :: Telegram poster failed.")
+
+        data['text'] = text
+        if self.html_support:
+            data['parse_mode'] = 'HTML'
+
+        http_handler = HTTPSConnection("api.telegram.org")
+        http_handler.request('POST',
+                             '/bot%s/%s' % (self.bot_token, 'sendMessage'),
+                             headers={'Content-type': 'application/x-www-form-urlencoded'},
+                             body=urlencode(data))
 
         response = http_handler.getresponse()
         request_status = response.status
@@ -1699,7 +1759,7 @@ class TELEGRAM(object):
             logger.info(u"PlexPy Notifiers :: Telegram notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Telegram notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Telegram notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Telegram notification failed.")
@@ -1733,10 +1793,22 @@ class TELEGRAM(object):
                                          ' on Telegram to get an ID.',
                           'input_type': 'text'
                           },
+                         {'label': 'Include Poster Image',
+                          'value': self.incl_poster,
+                          'name': 'telegram_incl_poster',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
+                          },
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'telegram_incl_subject',
                           'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Enable HTML Support',
+                          'value': self.html_support,
+                          'name': 'telegram_html_support',
+                          'description': 'Style your messages using these HTML tags: b, i, a[href], code, pre',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1754,15 +1826,16 @@ class SLACK(object):
         self.channel = plexpy.CONFIG.SLACK_CHANNEL
         self.username = plexpy.CONFIG.SLACK_USERNAME
         self.icon_emoji = plexpy.CONFIG.SLACK_ICON_EMOJI
+        self.incl_pmslink = plexpy.CONFIG.SLACK_INCL_PMSLINK
+        self.incl_poster = plexpy.CONFIG.SLACK_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.SLACK_INCL_SUBJECT
 
     def conf(self, options):
         return cherrypy.config['config'].get('Slack', options)
 
-    def notify(self, message, event):
+    def notify(self, message, event, **kwargs):
         if not message or not event:
             return
-        http_handler = HTTPSConnection("hooks.slack.com")
 
         if self.incl_subject:
             text = event.encode('utf-8') + ': ' + message.encode("utf-8")
@@ -1778,8 +1851,80 @@ class SLACK(object):
             else:
                 data['icon_url'] = self.icon_emoji
 
+        if self.incl_poster and 'metadata' in kwargs:
+            attachment = {}
+            metadata = kwargs['metadata']
+            poster_url = metadata.get('poster_url','')
+            poster_link = ''
+            caption = ''
+
+            # Use default posters if no poster_url
+            if not poster_url:
+                if metadata['media_type'] in ['artist', 'track']:
+                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
+                else:
+                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
+
+            if metadata['media_type'] == 'movie':
+                title = '%s (%s)' % (metadata['title'], metadata['year'])
+                if metadata.get('imdb_url',''):
+                    poster_link = metadata.get('imdb_url', '')
+                    caption = 'View on IMDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'show':
+                title = '%s (%s)' % (metadata['title'], metadata['year'])
+                if metadata.get('thetvdb_url',''):
+                    poster_link = metadata.get('thetvdb_url', '')
+                    caption = 'View on TheTVDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'episode':
+                title = '%s - %s (S%s - E%s)' % (metadata['grandparent_title'],
+                                                    metadata['title'],
+                                                    metadata['parent_media_index'],
+                                                    metadata['media_index'])
+                if metadata.get('thetvdb_url',''):
+                    poster_link = metadata.get('thetvdb_url', '')
+                    caption = 'View on TheTVDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'artist':
+                title = metadata['title']
+                if metadata.get('lastfm_url',''):
+                    poster_link = metadata.get('lastfm_url', '')
+                    caption = 'View on Last.fm'
+
+            elif metadata['media_type'] == 'track':
+                title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+                if metadata.get('lastfm_url',''):
+                    poster_link = metadata.get('lastfm_url', '')
+                    caption = 'View on Last.fm'
+
+            # Build Facebook post attachment
+            if self.incl_pmslink:
+                caption = 'View on Plex Web'
+                attachment['title_link'] = metadata['plex_url']
+                attachment['text'] = caption
+            elif poster_link:
+                attachment['title_link'] = poster_link
+                attachment['text'] = caption
+
+            attachment['fallback'] = 'Image for %s' % title
+            attachment['title'] = title
+            attachment['image_url'] = poster_url
+
+            data['attachments'] = [attachment]
+
         url = urlparse(self.slack_hook).path
 
+        http_handler = HTTPSConnection("hooks.slack.com")
         http_handler.request("POST",
                                 url,
                                 headers={'Content-type': "application/x-www-form-urlencoded"},
@@ -1792,7 +1937,7 @@ class SLACK(object):
             logger.info(u"PlexPy Notifiers :: Slack notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Slack notification failed: %s" % response.reason)
+            logger.warn(u"PlexPy Notifiers :: Slack notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Slack notification failed.")
@@ -1831,6 +1976,19 @@ class SLACK(object):
                            'name': 'slack_icon_emoji',
                            'input_type': 'text'
                           },
+                         {'label': 'Include Poster Image',
+                          'value': self.incl_poster,
+                          'name': 'slack_incl_poster',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Link to Plex Web',
+                          'value': self.incl_pmslink,
+                          'name': 'slack_incl_pmslink',
+                          'description': 'Include a link to the media in Plex Web with the notifications.<br>'
+                                         'If disabled, the link will go to IMDB, TVDB, TMDb, or Last.fm instead, if available.',
+                          'input_type': 'checkbox'
+                          },
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'slack_incl_subject',
@@ -1846,6 +2004,7 @@ class Scripts(object):
 
     def __init__(self, **kwargs):
         self.script_exts = ('.bat', '.cmd', '.exe', '.php', '.pl', '.ps1', '.py', '.pyw', '.rb', '.sh')
+        self.script_folder = plexpy.CONFIG.SCRIPTS_FOLDER
 
     def conf(self, options):
         return cherrypy.config['config'].get('Scripts', options)
@@ -1859,7 +2018,7 @@ class Scripts(object):
         return
 
     def list_scripts(self):
-        scriptdir = plexpy.CONFIG.SCRIPTS_FOLDER
+        scriptdir = self.script_folder
         scripts = {'': ''}
 
         if scriptdir and not os.path.exists(scriptdir):
@@ -1889,7 +2048,7 @@ class Scripts(object):
         if script_args is None:
             script_args = []
 
-        if not plexpy.CONFIG.SCRIPTS_FOLDER:
+        if not self.script_folder:
             return
 
         # Make sure we use the correct script..
@@ -2002,11 +2161,14 @@ class Scripts(object):
             if error:
                 error = error.strip()
                 logger.error(u"PlexPy Notifiers :: Script error: %s" % error)
+                return False
             else:
                 logger.info(u"PlexPy Notifiers :: Script notification sent.")
+                return True
 
         except OSError as e:
             logger.error(u"PlexPy Notifiers :: Failed to run script: %s" % e)
+            return False
 
     def return_config_options(self):
         config_option = [{'label': 'Supported File Types',
@@ -2014,7 +2176,7 @@ class Scripts(object):
                           'input_type': 'help'
                           },
                          {'label': 'Script Folder',
-                          'value': plexpy.CONFIG.SCRIPTS_FOLDER,
+                          'value': self.script_folder,
                           'name': 'scripts_folder',
                           'description': 'Add your script folder.',
                           'input_type': 'text',
@@ -2123,11 +2285,89 @@ class FacebookNotifier(object):
     def notify(self, subject, message, **kwargs):
         if not subject or not message:
             return
-        else:
-            if self.incl_subject:
-                self._post_facebook(subject + ': ' + message, **kwargs)
+
+        attachment = {}
+
+        if self.incl_poster and 'metadata' in kwargs:
+            metadata = kwargs['metadata']
+            poster_url = metadata.get('poster_url','')
+            poster_link = ''
+            caption = ''
+
+            # Use default posters if no poster_url
+            if not poster_url:
+                if metadata['media_type'] in ['artist', 'track']:
+                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
+                else:
+                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
+
+            if metadata['media_type'] == 'movie':
+                title = '%s (%s)' % (metadata['title'], metadata['year'])
+                subtitle = metadata['summary']
+                if metadata.get('imdb_url',''):
+                    poster_link = metadata.get('imdb_url', '')
+                    caption = 'View on IMDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'show':
+                title = '%s (%s)' % (metadata['title'], metadata['year'])
+                subtitle = metadata['summary']
+                if metadata.get('thetvdb_url',''):
+                    poster_link = metadata.get('thetvdb_url', '')
+                    caption = 'View on TheTVDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'episode':
+                title = '%s - %s (S%s %s E%s)' % (metadata['grandparent_title'],
+                                                    metadata['title'],
+                                                    metadata['parent_media_index'],
+                                                    '\xc2\xb7'.decode('utf8'),
+                                                    metadata['media_index'])
+                subtitle = metadata['summary']
+                if metadata.get('thetvdb_url',''):
+                    poster_link = metadata.get('thetvdb_url', '')
+                    caption = 'View on TheTVDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'artist':
+                title = metadata['title']
+                subtitle = metadata['summary']
+                if metadata.get('lastfm_url',''):
+                    poster_link = metadata.get('lastfm_url', '')
+                    caption = 'View on Last.fm'
+
+            elif metadata['media_type'] == 'track':
+                title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+                subtitle = metadata['parent_title']
+                if metadata.get('lastfm_url',''):
+                    poster_link = metadata.get('lastfm_url', '')
+                    caption = 'View on Last.fm'
+
+            # Build Facebook post attachment
+            if self.incl_pmslink:
+                caption = 'View on Plex Web'
+                attachment['link'] = metadata['plex_url']
+                attachment['caption'] = caption
+            elif poster_link:
+                attachment['link'] = poster_link
+                attachment['caption'] = caption
             else:
-                self._post_facebook(message, **kwargs)
+                attachment['link'] = poster_url
+
+            attachment['picture'] = poster_url
+            attachment['name'] = title
+            attachment['description'] = subtitle
+
+        if self.incl_subject:
+            self._post_facebook(subject + ': ' + message, attachment=attachment)
+        else:
+            self._post_facebook(message, attachment=attachment)
 
     def test_notify(self):
         return self._post_facebook(u"PlexPy Notifiers :: This is a test notification from PlexPy at " + helpers.now())
@@ -2163,101 +2403,18 @@ class FacebookNotifier(object):
 
         return True
 
-    def _post_facebook(self, message=None, **kwargs):
+    def _post_facebook(self, message=None, attachment=None):
         if self.group_id:
             api = facebook.GraphAPI(access_token=self.access_token, version='2.5')
-
-            attachment = {}
-
-            if self.incl_poster and 'metadata' in kwargs:
-                metadata = kwargs['metadata']
-                poster_url = metadata.get('poster_url','')
-                poster_link = ''
-                caption = ''
-
-                # Use default posters if no poster_url
-                if not poster_url:
-                    if metadata['media_type'] in ['artist', 'track']:
-                        poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
-                    else:
-                        poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
-
-                if metadata['media_type'] == 'movie':
-                    title = '%s (%s)' % (metadata['title'], metadata['year'])
-                    subtitle = metadata['summary']
-                    rating_key = metadata['rating_key']
-                    if metadata.get('imdb_url',''):
-                        poster_link = metadata.get('imdb_url', '')
-                        caption = 'View on IMDB'
-                    elif metadata.get('themoviedb_url',''):
-                        poster_link = metadata.get('themoviedb_url', '')
-                        caption = 'View on The Movie Database'
-
-                elif metadata['media_type'] == 'show':
-                    title = '%s (%s)' % (metadata['title'], metadata['year'])
-                    subtitle = metadata['summary']
-                    rating_key = metadata['rating_key']
-                    if metadata.get('thetvdb_url',''):
-                        poster_link = metadata.get('thetvdb_url', '')
-                        caption = 'View on TheTVDB'
-                    elif metadata.get('themoviedb_url',''):
-                        poster_link = metadata.get('themoviedb_url', '')
-                        caption = 'View on The Movie Database'
-
-                elif metadata['media_type'] == 'episode':
-                    title = '%s - %s (S%s %s E%s)' % (metadata['grandparent_title'],
-                                                        metadata['title'],
-                                                        metadata['parent_media_index'],
-                                                        '\xc2\xb7'.decode('utf8'),
-                                                        metadata['media_index'])
-                    subtitle = metadata['summary']
-                    rating_key = metadata['rating_key']
-                    if metadata.get('thetvdb_url',''):
-                        poster_link = metadata.get('thetvdb_url', '')
-                        caption = 'View on TheTVDB'
-                    elif metadata.get('themoviedb_url',''):
-                        poster_link = metadata.get('themoviedb_url', '')
-                        caption = 'View on The Movie Database'
-
-                elif metadata['media_type'] == 'artist':
-                    title = metadata['title']
-                    subtitle = metadata['summary']
-                    rating_key = metadata['rating_key']
-                    if metadata.get('lastfm_url',''):
-                        poster_link = metadata.get('lastfm_url', '')
-                        caption = 'View on Last.fm'
-
-                elif metadata['media_type'] == 'track':
-                    title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
-                    subtitle = metadata['parent_title']
-                    rating_key = metadata['parent_rating_key']
-                    if metadata.get('lastfm_url',''):
-                        poster_link = metadata.get('lastfm_url', '')
-                        caption = 'View on Last.fm'
-
-                # Build Facebook post attachment
-                if self.incl_pmslink:
-                    caption = 'View on Plex Web'
-                    attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
-                                            '/details/%2Flibrary%2Fmetadata%2F' + rating_key
-                elif poster_link:
-                    attachment['link'] = poster_link
-                else:
-                    attachment['link'] = poster_url
-
-                attachment['picture'] = poster_url
-                attachment['name'] = title
-                attachment['description'] = subtitle
-                attachment['caption'] = caption
 
             try:
                 api.put_wall_post(profile_id=self.group_id, message=message, attachment=attachment)
                 logger.info(u"PlexPy Notifiers :: Facebook notification sent.")
+                return True
             except Exception as e:
                 logger.warn(u"PlexPy Notifiers :: Error sending Facebook post: %s" % e)
                 return False
 
-            return True
         else:
             logger.warn(u"PlexPy Notifiers :: Error sending Facebook post: No Facebook Group ID provided.")
             return False
@@ -2266,15 +2423,13 @@ class FacebookNotifier(object):
         config_option = [{'label': 'Instructions',
                           'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank"> \
                                           Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>\
-                                          Step 2: Go to <strong>Settings > Basic</strong> and fill in a \
-                                          <strong>Contact Email</strong>.<br>\
-                                          Step 3: Go to <strong>Settings > Advanced</strong> and fill in \
+                                          Step 2: Go to <strong>Settings > Advanced</strong> and fill in \
                                           <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (e.g. http://localhost:8181).<br>\
-                                          Step 4: Go to <strong>App Review</strong> and toggle public to <strong>Yes</strong>.<br>\
-                                          Step 5: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
-                                          Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
-                                          Step 7: Click the <strong>Request Authorization</strong> button below.<br>\
-                                          Step 8: Fill in the <strong>Group ID</strong> below.',
+                                          Step 3: Go to <strong>App Review</strong> and toggle public to <strong>Yes</strong>.<br>\
+                                          Step 4: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
+                                          Step 5: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
+                                          Step 6: Click the <strong>Request Authorization</strong> button below.<br>\
+                                          Step 7: Fill in your <strong>Group ID</strong> below.',
                           'input_type': 'help'
                           },
                          {'label': 'PlexPy URL',
@@ -2326,6 +2481,175 @@ class FacebookNotifier(object):
                           'name': 'facebook_incl_subject',
                           'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+
+
+class Browser(object):
+
+    def __init__(self):
+        self.enabled = plexpy.CONFIG.BROWSER_ENABLED
+        self.auto_hide_delay = plexpy.CONFIG.BROWSER_AUTO_HIDE_DELAY
+
+    def notify(self, subject, message):
+        if not subject or not message:
+            return
+
+        logger.info(u"PlexPy Notifiers :: Browser notification sent.")
+        return True
+
+    def get_notifications(self):
+        if not self.enabled:
+            return
+
+        monitor_db = database.MonitorDatabase()
+        result = monitor_db.select('SELECT subject_text, body_text FROM notify_log '
+                                   'WHERE agent_id = 17 AND timestamp >= ? ',
+                                   args=[time.time() - 3])
+
+        notifications = []
+        for item in result:
+            notification = {'subject_text': item['subject_text'],
+                            'body_text': item['body_text'],
+                            'delay': self.auto_hide_delay}
+            notifications.append(notification)
+
+        return {'notifications': notifications}
+
+    def test(self, bot_token, chat_id):
+        self.enabled = True
+        self.notify('PlexPy', 'Test Notification')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Enable Browser Notifications',
+                          'value': self.enabled,
+                          'name': 'browser_enabled',
+                          'description': 'Enable to display desktop notifications from your browser.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Allow Notifications',
+                          'value': 'Allow Notifications',
+                          'name': 'allow_browser',
+                          'description': 'Click to allow browser notifications. You must click this button for each browser.',
+                          'input_type': 'button'
+                          },
+                         {'label': 'Auto Hide Delay',
+                          'value': self.auto_hide_delay,
+                          'name': 'browser_auto_hide_delay',
+                          'description': 'Set the number of seconds for the notification to remain visible. \
+                                          Set 0 to disable auto hiding. (Note: Some browsers have a maximum time limit.)',
+                          'input_type': 'number'
+                          }
+                         ]
+
+        return config_option
+
+
+class JOIN(object):
+
+    def __init__(self):
+        self.apikey = plexpy.CONFIG.JOIN_APIKEY
+        self.deviceid = plexpy.CONFIG.JOIN_DEVICEID
+
+    def conf(self, options):
+        return cherrypy.config['config'].get('PUSHBULLET', options)
+
+    def notify(self, message, subject):
+        if not message or not subject:
+            return
+
+        deviceid_key = 'deviceId%s' % ('s' if len(self.deviceid.split(',')) > 1 else '')
+
+        data = {'apikey': self.apikey,
+                deviceid_key: self.deviceid,
+                'title': subject.encode("utf-8"),
+                'text': message.encode("utf-8")}
+
+        http_handler = HTTPSConnection("joinjoaomgcd.appspot.com")
+        http_handler.request("POST",
+                             "/_ah/api/messaging/v1/sendPush?%s" % urlencode(data))
+
+        response = http_handler.getresponse()
+        request_status = response.status
+        # logger.debug(u"PushBullet response status: %r" % request_status)
+        # logger.debug(u"PushBullet response headers: %r" % response.getheaders())
+        # logger.debug(u"PushBullet response body: %r" % response.read())
+
+        if request_status == 200:
+            data = json.loads(response.read())
+            if data.get('success'):
+                logger.info(u"PlexPy Notifiers :: Join notification sent.")
+                return True
+            else:
+                error_msg = data.get('errorMessage')
+                logger.info(u"PlexPy Notifiers :: Join notification failed: %s" % error_msg)
+                return False
+        elif request_status >= 400 and request_status < 500:
+            logger.warn(u"PlexPy Notifiers :: Join notification failed: [%s] %s" % (request_status, response.reason))
+            return False
+        else:
+            logger.warn(u"PlexPy Notifiers :: Join notification failed.")
+            return False
+
+    def test(self, apikey, deviceid):
+
+        self.enabled = True
+        self.apikey = apikey
+        self.deviceid = deviceid
+
+        self.notify('Main Screen Activate', 'Test Message')
+
+    def get_devices(self):
+        if self.apikey:
+            http_handler = HTTPSConnection("joinjoaomgcd.appspot.com")
+            http_handler.request("GET",
+                                 "/_ah/api/registration/v1/listDevices?%s" % urlencode({'apikey': self.apikey}))
+
+            response = http_handler.getresponse()
+            request_status = response.status
+
+            if request_status == 200:
+                data = json.loads(response.read())
+                if data.get('success'):
+                    devices = data.get('records', [])
+                    devices = {d['deviceId']: d['deviceName'] for d in devices}
+                    devices.update({'': ''})
+                    return devices
+                else:
+                    error_msg = data.get('errorMessage')
+                    logger.info(u"PlexPy Notifiers :: Unable to retrieve Join devices list: %s" % error_msg)
+                    return {'': ''}
+            elif request_status >= 400 and request_status < 500:
+                logger.warn(u"PlexPy Notifiers :: Unable to retrieve Join devices list: %s" % response.reason)
+                return {'': ''}
+            else:
+                logger.warn(u"PlexPy Notifiers :: Unable to retrieve Join devices list.")
+                return {'': ''}
+
+        else:
+            return {'': ''}
+
+    def return_config_options(self):
+        devices = '<br>'.join(['%s: %s' % (v, k) for k, v in self.get_devices().iteritems() if k])
+
+        config_option = [{'label': 'Join API Key',
+                          'value': self.apikey,
+                          'name': 'join_apikey',
+                          'description': 'Your Join API key. Required for group notifications.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Device ID(s) or Group ID',
+                          'value': self.deviceid,
+                          'name': 'join_deviceid',
+                          'description': 'Set your Join device ID or group ID. ' \
+                              'Separate multiple devices with commas (,).',
+                          'input_type': 'text',
+                          },
+                         {'label': 'Your Devices IDs',
+                          'description': devices,
+                          'input_type': 'help'
                           }
                          ]
 

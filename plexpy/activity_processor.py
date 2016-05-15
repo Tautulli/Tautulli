@@ -13,12 +13,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import logger, pmsconnect, notification_handler, log_reader, database, notifiers
-
 import threading
-import plexpy
-import re
 import time
+import re
+
+import plexpy
+import database
+import libraries
+import log_reader
+import logger
+import notification_handler
+import notifiers
+import pmsconnect
+import users
 
 
 class ActivityProcessor(object):
@@ -102,8 +109,6 @@ class ActivityProcessor(object):
                 return True
 
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
-        from plexpy import users, libraries
-
         section_id = session['section_id'] if not is_import else import_metadata['section_id']
 
         if not is_import:
@@ -278,6 +283,7 @@ class ActivityProcessor(object):
                 writers = ";".join(metadata['writers'])
                 actors = ";".join(metadata['actors'])
                 genres = ";".join(metadata['genres'])
+                labels = ";".join(metadata['labels'])
 
                 # Build media item title
                 if session['media_type'] == 'episode' or session['media_type'] == 'track':
@@ -292,9 +298,9 @@ class ActivityProcessor(object):
                         'grandparent_rating_key, title, parent_title, grandparent_title, full_title, media_index, ' \
                         'parent_media_index, section_id, thumb, parent_thumb, grandparent_thumb, art, media_type, ' \
                         'year, originally_available_at, added_at, updated_at, last_viewed_at, content_rating, ' \
-                        'summary, tagline, rating, duration, guid, directors, writers, actors, genres, studio) VALUES ' \
-                        '(last_insert_rowid(), ' \
-                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                        'summary, tagline, rating, duration, guid, directors, writers, actors, genres, studio, labels) ' \
+                        'VALUES (last_insert_rowid(), ' \
+                        '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
                 args = [session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
                         session['title'], session['parent_title'], session['grandparent_title'], full_title,
@@ -303,7 +309,7 @@ class ActivityProcessor(object):
                         metadata['year'], metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
                         metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['tagline'], 
                         metadata['rating'], metadata['duration'], metadata['guid'], directors, writers, actors, genres,
-                        metadata['studio']]
+                        metadata['studio'], labels]
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history_metadata transaction...")
                 self.db.action(query=query, args=args)

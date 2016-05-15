@@ -16,16 +16,26 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from plexpy import versioncheck, logger, plextv, pmsconnect, datafactory, graphs, users
-import os
-import plexpy
 import json
-import traceback
-import cherrypy
-import re
 import hashlib
+import os
 import random
+import re
+import traceback
+
+import cherrypy
 import xmltodict
+
+import plexpy
+import database
+import datafactory
+import graphs
+import logger
+import plextv
+import pmsconnect
+import users
+import versioncheck
+
 
 cmd_list = ['getLogs', 'getVersion', 'checkGithub', 'shutdown',
             'getSettings', 'restart', 'update', 'getApikey', 'getHistory',
@@ -152,8 +162,8 @@ class Api(object):
 
     def _dic_from_query(self, query):
 
-        myDB = database.DBConnection()
-        rows = myDB.select(query)
+        db = database.MonitorDatabase()
+        rows = db.select(query)
 
         rows_as_dic = []
 
@@ -205,7 +215,7 @@ class Api(object):
                                 }
                     ]
         """
-        logfile = os.path.join(plexpy.CONFIG.LOG_DIR, 'plexpy.log')
+        logfile = os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)
         templog = []
         start = int(kwargs.get('start', 0))
         end = int(kwargs.get('end', 0))
