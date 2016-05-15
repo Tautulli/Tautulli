@@ -394,6 +394,8 @@ _CONFIG_DEFINITIONS = {
     'SLACK_HOOK': (str, 'Slack', ''),
     'SLACK_CHANNEL': (str, 'Slack', ''),
     'SLACK_ICON_EMOJI': (str, 'Slack', ''),
+    'SLACK_INCL_PMSLINK': (int, 'Slack', 0),
+    'SLACK_INCL_POSTER': (int, 'Slack', 1),
     'SLACK_INCL_SUBJECT': (int, 'Slack', 1),
     'SLACK_USERNAME': (str, 'Slack', ''),
     'SLACK_ON_PLAY': (int, 'Slack', 0),

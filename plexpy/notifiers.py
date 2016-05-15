@@ -536,7 +536,7 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
             return telegramClient.notify(message=body, event=subject, **kwargs)
         elif agent_id == 14:
             slackClient = SLACK()
-            return slackClient.notify(message=body, event=subject)
+            return slackClient.notify(message=body, event=subject, **kwargs)
         elif agent_id == 15:
             scripts = Scripts()
             return scripts.notify(message=body, subject=subject, notify_action=notify_action, **kwargs)
@@ -1873,15 +1873,16 @@ class SLACK(object):
         self.channel = plexpy.CONFIG.SLACK_CHANNEL
         self.username = plexpy.CONFIG.SLACK_USERNAME
         self.icon_emoji = plexpy.CONFIG.SLACK_ICON_EMOJI
+        self.incl_pmslink = plexpy.CONFIG.SLACK_INCL_PMSLINK
+        self.incl_poster = plexpy.CONFIG.SLACK_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.SLACK_INCL_SUBJECT
 
     def conf(self, options):
         return cherrypy.config['config'].get('Slack', options)
 
-    def notify(self, message, event):
+    def notify(self, message, event, **kwargs):
         if not message or not event:
             return
-        http_handler = HTTPSConnection("hooks.slack.com")
 
         if self.incl_subject:
             text = event.encode('utf-8') + ': ' + message.encode("utf-8")
@@ -1897,8 +1898,80 @@ class SLACK(object):
             else:
                 data['icon_url'] = self.icon_emoji
 
+        if self.incl_poster and 'metadata' in kwargs:
+            attachment = {}
+            metadata = kwargs['metadata']
+            poster_url = metadata.get('poster_url','')
+            poster_link = ''
+            caption = ''
+
+            # Use default posters if no poster_url
+            if not poster_url:
+                if metadata['media_type'] in ['artist', 'track']:
+                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
+                else:
+                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
+
+            if metadata['media_type'] == 'movie':
+                title = '%s (%s)' % (metadata['title'], metadata['year'])
+                if metadata.get('imdb_url',''):
+                    poster_link = metadata.get('imdb_url', '')
+                    caption = 'View on IMDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'show':
+                title = '%s (%s)' % (metadata['title'], metadata['year'])
+                if metadata.get('thetvdb_url',''):
+                    poster_link = metadata.get('thetvdb_url', '')
+                    caption = 'View on TheTVDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'episode':
+                title = '%s - %s (S%s - E%s)' % (metadata['grandparent_title'],
+                                                    metadata['title'],
+                                                    metadata['parent_media_index'],
+                                                    metadata['media_index'])
+                if metadata.get('thetvdb_url',''):
+                    poster_link = metadata.get('thetvdb_url', '')
+                    caption = 'View on TheTVDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'artist':
+                title = metadata['title']
+                if metadata.get('lastfm_url',''):
+                    poster_link = metadata.get('lastfm_url', '')
+                    caption = 'View on Last.fm'
+
+            elif metadata['media_type'] == 'track':
+                title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+                if metadata.get('lastfm_url',''):
+                    poster_link = metadata.get('lastfm_url', '')
+                    caption = 'View on Last.fm'
+
+            # Build Facebook post attachment
+            if self.incl_pmslink:
+                caption = 'View on Plex Web'
+                attachment['title_link'] = metadata['plex_url']
+                attachment['text'] = caption
+            elif poster_link:
+                attachment['title_link'] = poster_link
+                attachment['text'] = caption
+
+            attachment['fallback'] = 'Image for %s' % title
+            attachment['title'] = title
+            attachment['image_url'] = poster_url
+
+            data['attachments'] = [attachment]
+
         url = urlparse(self.slack_hook).path
 
+        http_handler = HTTPSConnection("hooks.slack.com")
         http_handler.request("POST",
                                 url,
                                 headers={'Content-type': "application/x-www-form-urlencoded"},
@@ -1949,6 +2022,19 @@ class SLACK(object):
                            'description': 'The icon you wish to show, use Slack emoji or image url. Leave blank for webhook integration default.',
                            'name': 'slack_icon_emoji',
                            'input_type': 'text'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.incl_poster,
+                          'name': 'slack_incl_poster',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Link to Plex Web',
+                          'value': self.incl_pmslink,
+                          'name': 'slack_incl_pmslink',
+                          'description': 'Include a link to the media in Plex Web with the notifications.<br>'
+                                         'If disabled, the link will go to IMDB, TVDB, TMDb, or Last.fm instead, if available.',
+                          'input_type': 'checkbox'
                           },
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
@@ -2307,7 +2393,6 @@ class FacebookNotifier(object):
                 if metadata['media_type'] == 'movie':
                     title = '%s (%s)' % (metadata['title'], metadata['year'])
                     subtitle = metadata['summary']
-                    rating_key = metadata['rating_key']
                     if metadata.get('imdb_url',''):
                         poster_link = metadata.get('imdb_url', '')
                         caption = 'View on IMDB'
@@ -2318,7 +2403,6 @@ class FacebookNotifier(object):
                 elif metadata['media_type'] == 'show':
                     title = '%s (%s)' % (metadata['title'], metadata['year'])
                     subtitle = metadata['summary']
-                    rating_key = metadata['rating_key']
                     if metadata.get('thetvdb_url',''):
                         poster_link = metadata.get('thetvdb_url', '')
                         caption = 'View on TheTVDB'
@@ -2333,7 +2417,6 @@ class FacebookNotifier(object):
                                                         '\xc2\xb7'.decode('utf8'),
                                                         metadata['media_index'])
                     subtitle = metadata['summary']
-                    rating_key = metadata['rating_key']
                     if metadata.get('thetvdb_url',''):
                         poster_link = metadata.get('thetvdb_url', '')
                         caption = 'View on TheTVDB'
@@ -2344,7 +2427,6 @@ class FacebookNotifier(object):
                 elif metadata['media_type'] == 'artist':
                     title = metadata['title']
                     subtitle = metadata['summary']
-                    rating_key = metadata['rating_key']
                     if metadata.get('lastfm_url',''):
                         poster_link = metadata.get('lastfm_url', '')
                         caption = 'View on Last.fm'
@@ -2352,7 +2434,6 @@ class FacebookNotifier(object):
                 elif metadata['media_type'] == 'track':
                     title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
                     subtitle = metadata['parent_title']
-                    rating_key = metadata['parent_rating_key']
                     if metadata.get('lastfm_url',''):
                         poster_link = metadata.get('lastfm_url', '')
                         caption = 'View on Last.fm'
@@ -2360,17 +2441,17 @@ class FacebookNotifier(object):
                 # Build Facebook post attachment
                 if self.incl_pmslink:
                     caption = 'View on Plex Web'
-                    attachment['link'] = 'http://app.plex.tv/web/app#!/server/' + plexpy.CONFIG.PMS_IDENTIFIER + \
-                                            '/details/%2Flibrary%2Fmetadata%2F' + rating_key
+                    attachment['link'] = metadata['plex_url']
+                    attachment['caption'] = caption
                 elif poster_link:
                     attachment['link'] = poster_link
+                    attachment['caption'] = caption
                 else:
                     attachment['link'] = poster_url
 
                 attachment['picture'] = poster_url
                 attachment['name'] = title
                 attachment['description'] = subtitle
-                attachment['caption'] = caption
 
             try:
                 api.put_wall_post(profile_id=self.group_id, message=message, attachment=attachment)
@@ -2509,7 +2590,7 @@ class Browser(object):
                           }
                          ]
 
-        return config_option        return config_option
+        return config_option
 
 
 class JOIN(object):
