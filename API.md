@@ -1037,6 +1037,22 @@ Returns:
 ```
 
 
+### get_pms_token
+Get the user's Plex token used for PlexPy.
+
+```
+Required parameters:
+    username (str):     The Plex.tv username
+    password (str):     The Plex.tv password
+
+Optional parameters:
+    None
+
+Returns:
+    string:             The Plex token used for PlexPy
+```
+
+
 ### get_recently_added
 Get all items that where recelty added to plex.
 
@@ -1094,8 +1110,6 @@ Get the PMS server identifier.
 
 ```
 Required parameters:
-    None
-
     hostname (str):     'localhost' or '192.160.0.10'
     port (int):         32400
 

@@ -2293,33 +2293,31 @@ $(document).ready(function() {
     // Plex.tv auth token fetch
     $("#get-pms-auth-token").click(function() {
         $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i> Fetching token...');
-        if (($("#pms_username").val() !== '') || ($("#pms_password").val() !== '')) {
+        var pms_username = $("#pms_username").val().trim();
+        var pms_password = $("#pms_password").val().trim();
+        if ((pms_username !== '') && (pms_password !== '')) {
             $.ajax({
-                type: 'POST',
-                url: 'https://plex.tv/users/sign_in.xml',
-                dataType: 'xml',
+                type: 'GET',
+                url: 'get_pms_token',
+                data: {
+                    username: pms_username,
+                    password: pms_password
+                },
+                cache: false,
                 async: true,
-                headers: {'Content-Type': 'application/xml; charset=utf-8',
-                          'X-Plex-Device-Name': 'PlexPy',
-                          'X-Plex-Product': 'PlexPy',
-                          'X-Plex-Version': '${common.VERSION_NUMBER}',
-                          'X-Plex-Platform': '${common.PLATFORM}',
-                          'X-Plex-Platform-Version': '${common.PLATFORM_VERSION}',
-                          'X-Plex-Client-Identifier': '${config["pms_uuid"]}',
-                          'Authorization': 'Basic ' + btoa($("#pms_username").val() + ':' + $("#pms_password").val())
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Authentication failed!');
-                },
-                success: function (xml) {
-                    var authToken = $(xml).find('user').attr('authenticationToken');
-                    $("#pms-token-status").html('<i class="fa fa-check"></i> Authentication successful!');
-                    $("#pms_token").val(authToken);
-                    $('#pms-auth-modal').modal('hide');
+                complete: function(xhr, status) {
+                    var authToken = $.parseJSON(xhr.responseText);
+                    if (authToken) {
+                        $("#pms-token-status").html('<i class="fa fa-check"></i> Authentication successful!');
+                        $("#pms_token").val(authToken);
+                        $('#pms-auth-modal').modal('hide');
+                    } else {
+                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Invalid username or password.');
+                    }
                 }
             });
         } else {
-            $("#pms-token-status").html("You must enter both fields.");
+            $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Username and password required.');
         }
     });
 

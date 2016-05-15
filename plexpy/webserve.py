@@ -2738,17 +2738,35 @@ class WebInterface(object):
         return
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def get_pms_token(self):
+    @addtoapi()
+    def get_pms_token(self, username=None, password=None, **kwargs):
+        """ Get the user's Plex token used for PlexPy.
 
-        token = plextv.PlexTV()
+            ```
+            Required parameters:
+                username (str):     The Plex.tv username
+                password (str):     The Plex.tv password
+
+            Optional parameters:
+                None
+
+            Returns:
+                string:             The Plex token used for PlexPy
+            ```
+        """
+        if not username and not password:
+            return None
+
+        token = plextv.PlexTV(username=username, password=password)
         result = token.get_token()
 
         if result:
-            return result
+            return result['auth_token']
         else:
             logger.warn(u"Unable to retrieve Plex.tv token.")
-            return False
+            return None
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2759,8 +2777,6 @@ class WebInterface(object):
 
             ```
             Required parameters:
-                None
-
                 hostname (str):     'localhost' or '192.160.0.10'
                 port (int):         32400
 
