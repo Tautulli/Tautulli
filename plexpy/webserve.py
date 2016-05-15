@@ -2890,7 +2890,7 @@ class WebInterface(object):
         if rating_key and not img:
             img = '/library/metadata/%s/thumb/1337' % rating_key
 
-        img_string = img.rsplit('/', 1)[0]
+        img_string = img.rsplit('/', 1)[0] if '/library/metadata' in img else img
         img_string += '%s%s' % (width, height)
         fp = hashlib.md5(img_string).hexdigest()
         fp += '.jpg'  # we want to be able to preview the thumbs
