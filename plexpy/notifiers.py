@@ -65,7 +65,8 @@ AGENT_IDS = {"Growl": 0,
              "Slack": 14,
              "Scripts": 15,
              "Facebook": 16,
-             "Browser": 17}
+             "Browser": 17,
+             "Join": 18}
 
 
 def available_notification_agents():
@@ -374,6 +375,24 @@ def available_notification_agents():
                'on_extup': plexpy.CONFIG.BROWSER_ON_EXTUP,
                'on_intup': plexpy.CONFIG.BROWSER_ON_INTUP,
                'on_pmsupdate': plexpy.CONFIG.BROWSER_ON_PMSUPDATE
+               },
+              {'name': 'Join',
+               'id': AGENT_IDS['Join'],
+               'config_prefix': 'join',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.JOIN_ENABLED),
+               'on_play': plexpy.CONFIG.JOIN_ON_PLAY,
+               'on_stop': plexpy.CONFIG.JOIN_ON_STOP,
+               'on_pause': plexpy.CONFIG.JOIN_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.JOIN_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.JOIN_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.JOIN_ON_WATCHED,
+               'on_created': plexpy.CONFIG.JOIN_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.JOIN_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.JOIN_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.JOIN_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.JOIN_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.JOIN_ON_PMSUPDATE
                }
               ]
 
@@ -460,6 +479,9 @@ def get_notification_agent_config(agent_id):
         elif agent_id == 17:
             browser = Browser()
             return browser.return_config_options()
+        elif agent_id == 18:
+            join = JOIN()
+            return join.return_config_options()
         else:
             return []
     else:
@@ -524,6 +546,9 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
         elif agent_id == 17:
             browser = Browser()
             return browser.notify(subject=subject, message=body)
+        elif agent_id == 18:
+            join = JOIN()
+            return join.notify(message=body, subject=subject)
         else:
             logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
@@ -953,8 +978,6 @@ class PUSHBULLET(object):
         if not message or not subject:
             return
 
-        http_handler = HTTPSConnection("api.pushbullet.com")
-
         data = {'type': "note",
                 'title': subject.encode("utf-8"),
                 'body': message.encode("utf-8")}
@@ -965,10 +988,11 @@ class PUSHBULLET(object):
         elif self.channel_tag:
             data['channel_tag'] = self.channel_tag
 
+        http_handler = HTTPSConnection("api.pushbullet.com")
         http_handler.request("POST",
                              "/v2/pushes",
                              headers={'Content-type': "application/json",
-                             'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")},
+                             'Authorization': 'Basic %s' % base64.b64encode(self.apikey + ":")},
                              body=json.dumps(data))
 
         response = http_handler.getresponse()
@@ -996,11 +1020,11 @@ class PUSHBULLET(object):
         self.notify('Main Screen Activate', 'Test Message')
 
     def get_devices(self):
-        if plexpy.CONFIG.PUSHBULLET_APIKEY:
+        if self.apikey:
             http_handler = HTTPSConnection("api.pushbullet.com")
             http_handler.request("GET", "/v2/devices",
                                  headers={'Content-type': "application/json",
-                                 'Authorization': 'Basic %s' % base64.b64encode(plexpy.CONFIG.PUSHBULLET_APIKEY + ":")})
+                                 'Authorization': 'Basic %s' % base64.b64encode(self.apikey + ":")})
 
             response = http_handler.getresponse()
             request_status = response.status
@@ -2427,6 +2451,7 @@ class FacebookNotifier(object):
 
         return config_option
 
+
 class Browser(object):
 
     def __init__(self):
@@ -2481,6 +2506,115 @@ class Browser(object):
                           'description': 'Set the number of seconds for the notification to remain visible. \
                                           Set 0 to disable auto hiding. (Note: Some browsers have a maximum time limit.)',
                           'input_type': 'number'
+                          }
+                         ]
+
+        return config_option        return config_option
+
+
+class JOIN(object):
+
+    def __init__(self):
+        self.apikey = plexpy.CONFIG.JOIN_APIKEY
+        self.deviceid = plexpy.CONFIG.JOIN_DEVICEID
+
+    def conf(self, options):
+        return cherrypy.config['config'].get('PUSHBULLET', options)
+
+    def notify(self, message, subject):
+        if not message or not subject:
+            return
+
+        deviceid_key = 'deviceId%s' % ('s' if len(self.deviceid.split(',')) > 1 else '')
+
+        data = {'apikey': self.apikey,
+                deviceid_key: self.deviceid,
+                'title': subject.encode("utf-8"),
+                'text': message.encode("utf-8")}
+
+        http_handler = HTTPSConnection("joinjoaomgcd.appspot.com")
+        http_handler.request("POST",
+                             "/_ah/api/messaging/v1/sendPush?%s" % urlencode(data))
+
+        response = http_handler.getresponse()
+        request_status = response.status
+        # logger.debug(u"PushBullet response status: %r" % request_status)
+        # logger.debug(u"PushBullet response headers: %r" % response.getheaders())
+        # logger.debug(u"PushBullet response body: %r" % response.read())
+
+        if request_status == 200:
+            data = json.loads(response.read())
+            if data.get('success'):
+                logger.info(u"PlexPy Notifiers :: Join notification sent.")
+                return True
+            else:
+                error_msg = data.get('errorMessage')
+                logger.info(u"PlexPy Notifiers :: Join notification failed: %s" % error_msg)
+                return False
+        elif request_status >= 400 and request_status < 500:
+            logger.warn(u"PlexPy Notifiers :: Join notification failed: [%s] %s" % (request_status, response.reason))
+            return False
+        else:
+            logger.warn(u"PlexPy Notifiers :: Join notification failed.")
+            return False
+
+    def test(self, apikey, deviceid):
+
+        self.enabled = True
+        self.apikey = apikey
+        self.deviceid = deviceid
+
+        self.notify('Main Screen Activate', 'Test Message')
+
+    def get_devices(self):
+        if self.apikey:
+            http_handler = HTTPSConnection("joinjoaomgcd.appspot.com")
+            http_handler.request("GET",
+                                 "/_ah/api/registration/v1/listDevices?%s" % urlencode({'apikey': self.apikey}))
+
+            response = http_handler.getresponse()
+            request_status = response.status
+
+            if request_status == 200:
+                data = json.loads(response.read())
+                if data.get('success'):
+                    devices = data.get('records', [])
+                    devices = {d['deviceId']: d['deviceName'] for d in devices}
+                    devices.update({'': ''})
+                    return devices
+                else:
+                    error_msg = data.get('errorMessage')
+                    logger.info(u"PlexPy Notifiers :: Unable to retrieve Join devices list: %s" % error_msg)
+                    return {'': ''}
+            elif request_status >= 400 and request_status < 500:
+                logger.warn(u"PlexPy Notifiers :: Unable to retrieve Join devices list: %s" % response.reason)
+                return {'': ''}
+            else:
+                logger.warn(u"PlexPy Notifiers :: Unable to retrieve Join devices list.")
+                return {'': ''}
+
+        else:
+            return {'': ''}
+
+    def return_config_options(self):
+        devices = '<br>'.join(['%s: %s' % (v, k) for k, v in self.get_devices().iteritems() if k])
+
+        config_option = [{'label': 'Join API Key',
+                          'value': self.apikey,
+                          'name': 'join_apikey',
+                          'description': 'Your Join API key. Required for group notifications.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Device ID(s) or Group ID',
+                          'value': self.deviceid,
+                          'name': 'join_deviceid',
+                          'description': 'Set your Join device ID or group ID. ' \
+                              'Separate multiple devices with commas (,).',
+                          'input_type': 'text',
+                          },
+                         {'label': 'Your Devices IDs',
+                          'description': devices,
+                          'input_type': 'help'
                           }
                          ]
 
