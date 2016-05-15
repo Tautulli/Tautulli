@@ -91,7 +91,7 @@
                     </table>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="tabs-5">
-                    <table class="display" id="login_log_table" width="100%">
+                    <table class="display login_log_table" id="login_log_table" width="100%">
                         <thead>
                             <tr>
                                 <th align="left" id="timestamp">Timestamp</th>
@@ -105,6 +105,8 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                </div>
+                <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
                 </div>
             </div>
         </div>
@@ -133,7 +135,7 @@
 <script src="${http_root}js/tables/logs.js"></script>
 <script src="${http_root}js/tables/plex_logs.js"></script>
 <script src="${http_root}js/tables/notification_logs.js"></script>
-<script src="${http_root}js/tables/login_table.js"></script>
+<script src="${http_root}js/tables/login_logs.js"></script>
 <script>
 
         $(document).ready(function() {
@@ -175,8 +177,8 @@
         }
 
         function loadLoginLogs() {
-            login_table_options.pageLength = 50;
-            login_table_options.ajax = {
+            login_log_table_options.pageLength = 50;
+            login_log_table_options.ajax = {
                 url: "get_user_logins",
                 data: function (d) {
                     return {
@@ -184,7 +186,7 @@
                     };
                 }
             }
-            login_log_table = $('#login_log_table').DataTable(login_table_options);
+            login_log_table = $('#login_log_table').DataTable(login_log_table_options);
         }
 
         $("#plexpy-logs-btn").click(function () {

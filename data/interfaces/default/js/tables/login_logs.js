@@ -1,4 +1,4 @@
-login_table_options = {
+login_log_table_options = {
     "destroy": true,
     "language": {
         "search": "Search: ",
@@ -101,9 +101,9 @@ login_table_options = {
     }
 }
 
-$('.login_table').on('click', '> tbody > tr > td.modal-control-ip', function () {
+$('.login_log_table').on('click', '> tbody > tr > td.modal-control-ip', function () {
     var tr = $(this).closest('tr');
-    var row = login_table.row(tr);
+    var row = login_log_table.row(tr);
     var rowData = row.data();
 
     function getUserLocation(ip_address) {

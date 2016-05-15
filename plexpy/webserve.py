@@ -2009,9 +2009,9 @@ class WebInterface(object):
         with open(os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)) as f:
             for l in f.readlines():
                 try:
-                    temp_loglevel_and_time = l.split('- ')
-                    loglvl = temp_loglevel_and_time[1].split(' :')[0].strip()
-                    msg = l.split(' : ')[1].replace('\n', '')
+                    temp_loglevel_and_time = l.split(' - ', 1)
+                    loglvl = temp_loglevel_and_time[1].split(' ::', 1)[0].strip()
+                    msg = l.split(' : ', 1)[1].replace('\n', '')
                     fa([temp_loglevel_and_time[0], loglvl, msg])
                 except IndexError:
                     # Add traceback message to previous msg.
