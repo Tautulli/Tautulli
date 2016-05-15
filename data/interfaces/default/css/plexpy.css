@@ -1168,7 +1168,11 @@ a:hover .dashboard-recent-media-cover {
     color: #999;
 }
 .summary-content-wrapper {
-    background-image: linear-gradient(rgba(0,0,0,.4),rgba(19,19,19,.4) 50%,rgba(26,26,26,.4));
+    background: rgba(0,0,0,.4);
+    background: -webkit-linear-gradient(top, rgba(0,0,0,.4), rgba(10,10,10,.4));
+    background: -o-linear-gradient(bottom, rgba(0,0,0,.4), rgba(10,10,10,.4));
+    background: -moz-linear-gradient(bottom, rgba(0,0,0,.4), rgba(10,10,10,.4));
+    background: linear-gradient(to bottom, rgba(0,0,0,.4), rgba(10,10,10,.4));
     background-clip: content-box;
     min-height: calc(100% - 200px);
     position: inherit;
