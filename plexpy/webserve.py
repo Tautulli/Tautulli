@@ -933,7 +933,7 @@ class WebInterface(object):
                           "rating_key": 153037,
                           "thumb": "/library/metadata/153036/thumb/1462175062",
                           "transcode_decision": "transcode",
-                          "user_id": 328871,
+                          "user_id": 133788,
                           "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar",
                           "year": 2016
                           },
@@ -1108,7 +1108,7 @@ class WebInterface(object):
 
             ```
             Required parameters:
-                user_id (str):              The id of the Plex user
+                user_id (str):                  The id of the Plex user
 
             Optional parameters:
                 order_column (str):             "last_seen", "ip_address", "platform", "player",
@@ -1139,7 +1139,7 @@ class WebInterface(object):
                           "rating_key": 153037,
                           "thumb": "/library/metadata/153036/thumb/1462175062",
                           "transcode_decision": "transcode",
-                          "user_id": 328871,
+                          "user_id": 133788,
                           "year": 2016
                           },
                          {...},
@@ -1168,13 +1168,51 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
+    @addtoapi()
     def get_user_logins(self, user_id=None, **kwargs):
-        """ Get the data on PlexPy user login table. """
+        """ Get the data on PlexPy user login table. 
+
+            ```
+            Required parameters:
+                user_id (str):                  The id of the Plex user
+
+            Optional parameters:
+                order_column (str):             "date", "time", "ip_address", "host", "os", "browser"
+                order_dir (str):                "desc" or "asc"
+                start (int):                    Row to start from, 0
+                length (int):                   Number of items to return, 25
+                search (str):                   A string to search for, "xxx.xxx.xxx.xxx"
+
+            Returns:
+                json:
+                    {"draw": 1,
+                     "recordsTotal": 2344,
+                     "recordsFiltered": 10,
+                     "data":
+                        [{"browser": "Safari 7.0.3", 
+                          "date": 1462591869, 
+                          "friendly_name": "Jon Snow", 
+                          "host": "http://plexpy.castleblack.com", 
+                          "ip_address": "xxx.xxx.xxx.xxx", 
+                          "os": "Mac OS X", 
+                          "time": 1462591869, 
+                          "user": "LordCommanderSnow", 
+                          "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A", 
+                          "user_group": "guest", 
+                          "user_id": 133788
+                          },
+                         {...},
+                         {...}
+                         ]
+                     }
+            ```
+        """
         # Check if datatables json_data was received.
         # If not, then build the minimal amount of json data for a query
         if not kwargs.get('json_data'):
             # TODO: Find some one way to automatically get the columns
-            dt_columns = [("time", True, False),
+            dt_columns = [("date", True, False),
+                          ("time", True, False),
                           ("ip_address", True, True),
                           ("host", True, True),
                           ("os", True, True),
@@ -3635,7 +3673,7 @@ class WebInterface(object):
                       "is_home_user": "1",
                       "is_restricted": "0",
                       "thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
-                      "user_id": "328871",
+                      "user_id": "133788",
                       "username": "Jon Snow"
                       },
                      {...},
@@ -3685,7 +3723,7 @@ class WebInterface(object):
                       "sync_id": "11617019",
                       "title": "Deadpool",
                       "total_size": "0",
-                      "user_id": "328871",
+                      "user_id": "696969",
                       "username": "DrukenDwarfMan",
                       "video_quality": "60"
                       },

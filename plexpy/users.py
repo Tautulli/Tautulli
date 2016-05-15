@@ -714,7 +714,8 @@ class Users(object):
                    'user_login.ip_address',
                    'user_login.host',
                    'user_login.user_agent',
-                   'user_login.timestamp',
+                   'user_login.timestamp AS date',
+                   'user_login.timestamp AS time',
                    'users.friendly_name'
                    ]
 
@@ -745,7 +746,8 @@ class Users(object):
                    'user_agent': item['user_agent'],
                    'os': os,
                    'browser': browser,
-                   'timestamp': item['timestamp'],
+                   'date': item['date'],
+                   'time': item['time'],
                    'friendly_name': item['friendly_name']
                    }
 

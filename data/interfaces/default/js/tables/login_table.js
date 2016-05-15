@@ -20,7 +20,7 @@ login_table_options = {
     "columnDefs": [
         {
             "targets": [0],
-            "data": "timestamp",
+            "data": "date",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     date = moment(cellData, "X").format(date_format);
@@ -35,7 +35,7 @@ login_table_options = {
         },
         {
             "targets": [1],
-            "data": "timestamp",
+            "data": "time",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     time = moment(cellData, "X").format(time_format);
