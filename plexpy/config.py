@@ -464,6 +464,7 @@ _CONFIG_DEFINITIONS = {
     'TWITTER_ACCESS_TOKEN_SECRET': (str, 'Twitter', ''),
     'TWITTER_CONSUMER_KEY': (str, 'Twitter', ''),
     'TWITTER_CONSUMER_SECRET': (str, 'Twitter', ''),
+    'TWITTER_INCL_POSTER': (int, 'Twitter', 1),
     'TWITTER_INCL_SUBJECT': (int, 'Twitter', 1),
     'TWITTER_ON_PLAY': (int, 'Twitter', 0),
     'TWITTER_ON_STOP': (int, 'Twitter', 0),

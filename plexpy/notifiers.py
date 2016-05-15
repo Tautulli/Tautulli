@@ -38,8 +38,8 @@ from urlparse import parse_qsl
 from pynma import pynma
 import gntp.notifier
 import oauth2 as oauth
-import pythontwitter as twitter
-import pythonfacebook as facebook
+import twitter
+import facebook
 
 import plexpy
 import database
@@ -526,8 +526,8 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
             email = Email()
             return email.notify(subject=subject, message=body)
         elif agent_id == 11:
-            tweet = TwitterNotifier()
-            return tweet.notify(subject=subject, message=body)
+            twitter = TwitterNotifier()
+            return twitter.notify(subject=subject, message=body, **kwargs)
         elif agent_id == 12:
             iftttClient = IFTTT()
             return iftttClient.notify(subject=subject, message=body, action=notify_action)
@@ -1257,16 +1257,22 @@ class TwitterNotifier(object):
         self.access_token_secret = plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET
         self.consumer_key = plexpy.CONFIG.TWITTER_CONSUMER_KEY
         self.consumer_secret = plexpy.CONFIG.TWITTER_CONSUMER_SECRET
+        self.incl_poster = plexpy.CONFIG.TWITTER_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.TWITTER_INCL_SUBJECT
 
-    def notify(self, subject, message):
+    def notify(self, subject, message, **kwargs):
         if not subject or not message:
             return
+
+        poster_url = ''
+        if self.incl_poster and 'metadata' in kwargs:
+            metadata = kwargs['metadata']
+            poster_url = metadata.get('poster_url','')
+
+        if self.incl_subject:
+            self._send_tweet(subject + ': ' + message, attachment=poster_url)
         else:
-            if self.incl_subject:
-                self._send_tweet(subject + ': ' + message)
-            else:
-                self._send_tweet(message)
+            self._send_tweet(message, attachment=poster_url)
 
     def test_notify(self):
         return self._send_tweet("This is a test notification from PlexPy at " + helpers.now())
@@ -1324,7 +1330,7 @@ class TwitterNotifier(object):
             plexpy.CONFIG.write()
             return True
 
-    def _send_tweet(self, message=None):
+    def _send_tweet(self, message=None, attachment=None):
         consumer_key = self.consumer_key
         consumer_secret = self.consumer_secret
         access_token = self.access_token
@@ -1335,7 +1341,7 @@ class TwitterNotifier(object):
         api = twitter.Api(consumer_key, consumer_secret, access_token, access_token_secret)
 
         try:
-            api.PostUpdate(message)
+            api.PostUpdate(message, media=attachment)
             logger.info(u"PlexPy Notifiers :: Twitter notification sent.")
             return True
         except Exception as e:
@@ -1375,6 +1381,12 @@ class TwitterNotifier(object):
                           'name': 'twitter_access_token_secret',
                           'description': 'Your Twitter access token secret.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.incl_poster,
+                          'name': 'twitter_incl_poster',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
                           },
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
@@ -2331,11 +2343,89 @@ class FacebookNotifier(object):
     def notify(self, subject, message, **kwargs):
         if not subject or not message:
             return
-        else:
-            if self.incl_subject:
-                self._post_facebook(subject + ': ' + message, **kwargs)
+
+        attachment = {}
+
+        if self.incl_poster and 'metadata' in kwargs:
+            metadata = kwargs['metadata']
+            poster_url = metadata.get('poster_url','')
+            poster_link = ''
+            caption = ''
+
+            # Use default posters if no poster_url
+            if not poster_url:
+                if metadata['media_type'] in ['artist', 'track']:
+                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
+                else:
+                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
+
+            if metadata['media_type'] == 'movie':
+                title = '%s (%s)' % (metadata['title'], metadata['year'])
+                subtitle = metadata['summary']
+                if metadata.get('imdb_url',''):
+                    poster_link = metadata.get('imdb_url', '')
+                    caption = 'View on IMDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'show':
+                title = '%s (%s)' % (metadata['title'], metadata['year'])
+                subtitle = metadata['summary']
+                if metadata.get('thetvdb_url',''):
+                    poster_link = metadata.get('thetvdb_url', '')
+                    caption = 'View on TheTVDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'episode':
+                title = '%s - %s (S%s %s E%s)' % (metadata['grandparent_title'],
+                                                    metadata['title'],
+                                                    metadata['parent_media_index'],
+                                                    '\xc2\xb7'.decode('utf8'),
+                                                    metadata['media_index'])
+                subtitle = metadata['summary']
+                if metadata.get('thetvdb_url',''):
+                    poster_link = metadata.get('thetvdb_url', '')
+                    caption = 'View on TheTVDB'
+                elif metadata.get('themoviedb_url',''):
+                    poster_link = metadata.get('themoviedb_url', '')
+                    caption = 'View on The Movie Database'
+
+            elif metadata['media_type'] == 'artist':
+                title = metadata['title']
+                subtitle = metadata['summary']
+                if metadata.get('lastfm_url',''):
+                    poster_link = metadata.get('lastfm_url', '')
+                    caption = 'View on Last.fm'
+
+            elif metadata['media_type'] == 'track':
+                title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
+                subtitle = metadata['parent_title']
+                if metadata.get('lastfm_url',''):
+                    poster_link = metadata.get('lastfm_url', '')
+                    caption = 'View on Last.fm'
+
+            # Build Facebook post attachment
+            if self.incl_pmslink:
+                caption = 'View on Plex Web'
+                attachment['link'] = metadata['plex_url']
+                attachment['caption'] = caption
+            elif poster_link:
+                attachment['link'] = poster_link
+                attachment['caption'] = caption
             else:
-                self._post_facebook(message, **kwargs)
+                attachment['link'] = poster_url
+
+            attachment['picture'] = poster_url
+            attachment['name'] = title
+            attachment['description'] = subtitle
+
+        if self.incl_subject:
+            self._post_facebook(subject + ': ' + message, attachment=attachment)
+        else:
+            self._post_facebook(message, attachment=attachment)
 
     def test_notify(self):
         return self._post_facebook(u"PlexPy Notifiers :: This is a test notification from PlexPy at " + helpers.now())
@@ -2371,87 +2461,9 @@ class FacebookNotifier(object):
 
         return True
 
-    def _post_facebook(self, message=None, **kwargs):
+    def _post_facebook(self, message=None, attachment=None):
         if self.group_id:
             api = facebook.GraphAPI(access_token=self.access_token, version='2.5')
-
-            attachment = {}
-
-            if self.incl_poster and 'metadata' in kwargs:
-                metadata = kwargs['metadata']
-                poster_url = metadata.get('poster_url','')
-                poster_link = ''
-                caption = ''
-
-                # Use default posters if no poster_url
-                if not poster_url:
-                    if metadata['media_type'] in ['artist', 'track']:
-                        poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
-                    else:
-                        poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
-
-                if metadata['media_type'] == 'movie':
-                    title = '%s (%s)' % (metadata['title'], metadata['year'])
-                    subtitle = metadata['summary']
-                    if metadata.get('imdb_url',''):
-                        poster_link = metadata.get('imdb_url', '')
-                        caption = 'View on IMDB'
-                    elif metadata.get('themoviedb_url',''):
-                        poster_link = metadata.get('themoviedb_url', '')
-                        caption = 'View on The Movie Database'
-
-                elif metadata['media_type'] == 'show':
-                    title = '%s (%s)' % (metadata['title'], metadata['year'])
-                    subtitle = metadata['summary']
-                    if metadata.get('thetvdb_url',''):
-                        poster_link = metadata.get('thetvdb_url', '')
-                        caption = 'View on TheTVDB'
-                    elif metadata.get('themoviedb_url',''):
-                        poster_link = metadata.get('themoviedb_url', '')
-                        caption = 'View on The Movie Database'
-
-                elif metadata['media_type'] == 'episode':
-                    title = '%s - %s (S%s %s E%s)' % (metadata['grandparent_title'],
-                                                        metadata['title'],
-                                                        metadata['parent_media_index'],
-                                                        '\xc2\xb7'.decode('utf8'),
-                                                        metadata['media_index'])
-                    subtitle = metadata['summary']
-                    if metadata.get('thetvdb_url',''):
-                        poster_link = metadata.get('thetvdb_url', '')
-                        caption = 'View on TheTVDB'
-                    elif metadata.get('themoviedb_url',''):
-                        poster_link = metadata.get('themoviedb_url', '')
-                        caption = 'View on The Movie Database'
-
-                elif metadata['media_type'] == 'artist':
-                    title = metadata['title']
-                    subtitle = metadata['summary']
-                    if metadata.get('lastfm_url',''):
-                        poster_link = metadata.get('lastfm_url', '')
-                        caption = 'View on Last.fm'
-
-                elif metadata['media_type'] == 'track':
-                    title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
-                    subtitle = metadata['parent_title']
-                    if metadata.get('lastfm_url',''):
-                        poster_link = metadata.get('lastfm_url', '')
-                        caption = 'View on Last.fm'
-
-                # Build Facebook post attachment
-                if self.incl_pmslink:
-                    caption = 'View on Plex Web'
-                    attachment['link'] = metadata['plex_url']
-                    attachment['caption'] = caption
-                elif poster_link:
-                    attachment['link'] = poster_link
-                    attachment['caption'] = caption
-                else:
-                    attachment['link'] = poster_url
-
-                attachment['picture'] = poster_url
-                attachment['name'] = title
-                attachment['description'] = subtitle
 
             try:
                 api.put_wall_post(profile_id=self.group_id, message=message, attachment=attachment)
