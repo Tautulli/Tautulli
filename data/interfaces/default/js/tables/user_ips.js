@@ -13,7 +13,7 @@ user_ip_table_options = {
     "pagingType": "full_numbers",
     "processing": false,
     "serverSide": true,
-    "pageLength": 10,
+    "pageLength": 25,
     "order": [ 0, 'desc'],
     "autoWidth": false,
     "scrollX": true,

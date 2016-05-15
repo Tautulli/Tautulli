@@ -706,17 +706,19 @@ class Users(object):
 
         data_tables = datatables.DataTables()
 
-        custom_where = [['user_id', user_id]]
+        if session.get_session_user_id():
+            custom_where = [['user_id', session.get_session_user_id()]]
+        else:
+            custom_where = [['user_id', user_id]] if user_id else []
 
         columns = ['user_login.user_id',
-                   'user_login.user',
                    'user_login.user_group',
                    'user_login.ip_address',
                    'user_login.host',
                    'user_login.user_agent',
-                   'user_login.timestamp AS date',
-                   'user_login.timestamp AS time',
-                   'users.friendly_name'
+                   'user_login.timestamp',
+                   '(CASE WHEN users.friendly_name IS NULL THEN user_login.user ELSE users.friendly_name END) \
+                    AS friendly_name'
                    ]
 
         try:
@@ -739,15 +741,13 @@ class Users(object):
             (os, browser) = httpagentparser.simple_detect(item['user_agent'])
 
             row = {'user_id': item['user_id'],
-                   'user': item['user'],
                    'user_group': item['user_group'],
                    'ip_address': item['ip_address'],
                    'host': item['host'],
                    'user_agent': item['user_agent'],
                    'os': os,
                    'browser': browser,
-                   'date': item['date'],
-                   'time': item['time'],
+                   'timestamp': item['timestamp'],
                    'friendly_name': item['friendly_name']
                    }
 
@@ -760,3 +760,15 @@ class Users(object):
                 }
 
         return dict
+
+    def delete_login_log(self):
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            logger.info(u"PlexPy Users :: Clearing login logs from database.")
+            monitor_db.action('DELETE FROM user_login')
+            monitor_db.action('VACUUM')
+            return True
+        except Exception as e:
+            logger.warn(u"PlexPy Users :: Unable to execute database query for delete_login_log: %s." % e)
+            return False

@@ -1190,12 +1190,11 @@ class WebInterface(object):
                      "recordsFiltered": 10,
                      "data":
                         [{"browser": "Safari 7.0.3", 
-                          "date": 1462591869, 
                           "friendly_name": "Jon Snow", 
                           "host": "http://plexpy.castleblack.com", 
                           "ip_address": "xxx.xxx.xxx.xxx", 
                           "os": "Mac OS X", 
-                          "time": 1462591869, 
+                          "timestamp": 1462591869, 
                           "user": "LordCommanderSnow", 
                           "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A", 
                           "user_group": "guest", 
@@ -1211,13 +1210,12 @@ class WebInterface(object):
         # If not, then build the minimal amount of json data for a query
         if not kwargs.get('json_data'):
             # TODO: Find some one way to automatically get the columns
-            dt_columns = [("date", True, False),
-                          ("time", True, False),
+            dt_columns = [("timestamp", True, False),
                           ("ip_address", True, True),
                           ("host", True, True),
                           ("os", True, True),
                           ("browser", True, True)]
-            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "time")
+            kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "timestamp")
 
         user_data = users.Users()
         history = user_data.get_datatables_user_login(user_id=user_id, kwargs=kwargs)
@@ -2147,7 +2145,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_notification_log(self, **kwargs):
-        """ Delete the notification logs.
+        """ Delete the PlexPy notification logs.
 
             ```
             Required paramters:
@@ -2164,6 +2162,31 @@ class WebInterface(object):
         result = data_factory.delete_notification_log()
         res = 'success' if result else 'error'
         msg = 'Cleared notification logs.' if result else 'Failed to clear notification logs.'
+
+        return {'result': res, 'message': msg}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_login_log(self, **kwargs):
+        """ Delete the PlexPy login logs.
+
+            ```
+            Required paramters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        user_data = users.Users()
+        result = user_data.delete_login_log()
+        res = 'success' if result else 'error'
+        msg = 'Cleared login logs.' if result else 'Failed to clear login logs.'
 
         return {'result': res, 'message': msg}
 

@@ -14,7 +14,7 @@ libraries_list_table_options = {
     "destroy": true,
     "processing": false,
     "serverSide": true,
-    "pageLength": 10,
+    "pageLength": 25,
     "order": [ 2, 'asc'],
     "stateSave": true,
     "pagingType": "full_numbers",

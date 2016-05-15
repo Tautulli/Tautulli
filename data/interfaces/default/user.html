@@ -290,8 +290,9 @@ DOCUMENTATION :: END
                                         <table class="display login_table" id="login_table-UID-${data['user_id']}" width="100%">
                                             <thead>
                                                 <tr>
-                                                    <th align="left" id="date">Date</th>
-                                                    <th align="left" id="time">Time</th>
+                                                    <th align="left" id="timestamp">Timestamp</th>
+                                                    <th align="left" id="friendly_name">User</th>
+                                                    <th align="left" id="user_group">User Group</th>
                                                     <th align="left" id="ip_address">IP Address</th>
                                                     <th align="left" id="host">Host</th>
                                                     <th align="left" id="os">Operating System</th>
@@ -478,6 +479,7 @@ DOCUMENTATION :: END
                 }
             }
             login_table = $('#login_table-UID-${data["user_id"]}').DataTable(login_table_options);
+            login_table.columns([1, 2]).visible(false);
 
             var colvis_login = new $.fn.dataTable.ColVis( login_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' } );
             $( colvis_login.button() ).appendTo('#button-bar-login');

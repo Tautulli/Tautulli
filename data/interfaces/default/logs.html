@@ -24,6 +24,7 @@
             <button class="btn btn-dark" id="download-plexpylog"><i class="fa fa-download"></i> Download log</button>
             <button class="btn btn-dark" id="clear-logs"><i class="fa fa-trash-o"></i> Clear logs</button>
             <button class="btn btn-dark" id="clear-notify-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear logs</button>
+            <button class="btn btn-dark" id="clear-login-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear logs</button>
         </div>
     </div>
     <div class='table-card-back'>
@@ -33,15 +34,16 @@
                 <li role="presentation"><a id="plex-logs-btn" href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Plex Media Server Logs</a></li>
                 <li role="presentation"><a id="plex-scanner-logs-btn" href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Plex Media Scanner Logs</a></li>
                 <li role="presentation"><a id="notification-logs-btn" href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Notification Logs</a></li>
+                <li role="presentation"><a id="login-logs-btn" href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Login Logs</a></li>
             </ul>
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="tabs-1">
                     <table class="display" id="log_table" width="100%">
                         <thead>
                         <tr>
-                            <th class="min-tablet" align='left' id="timestamp">Timestamp</th>
-                            <th class="desktop" align='left' id="level">Level</th>
-                            <th class="all" align='left' id="message">Message</th>
+                            <th class="min-tablet" align="left" id="timestamp">Timestamp</th>
+                            <th class="desktop" align="left" id="level">Level</th>
+                            <th class="all" align="left" id="message">Message</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -52,9 +54,9 @@
                     <table class="display" id="plex_log_table" width="100%">
                         <thead>
                         <tr>
-                            <th align='left' id="plex_timestamp">Timestamp</th>
-                            <th align='left' id="plex_level">Level</th>
-                            <th align='left' id="plex_message">Message</th>
+                            <th align="left" id="plex_timestamp">Timestamp</th>
+                            <th align="left" id="plex_level">Level</th>
+                            <th align="left" id="plex_message">Message</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -65,9 +67,9 @@
                     <table class="display" id="plex_scanner_log_table" width="100%">
                         <thead>
                             <tr>
-                                <th align='left' id="plex_scanner_timestamp">Timestamp</th>
-                                <th align='left' id="plex_scanner_level">Level</th>
-                                <th align='left' id="plex_scanner_message">Message</th>
+                                <th align="left" id="plex_scanner_timestamp">Timestamp</th>
+                                <th align="left" id="plex_scanner_level">Level</th>
+                                <th align="left" id="plex_scanner_message">Message</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -77,12 +79,28 @@
                     <table class="display" id="notification_log_table" width="100%">
                         <thead>
                             <tr>
-                                <th align='left' id="notification_timestamp">Timestamp</th>
-                                <th align='left' id="notification_agent_name">Agent</th>
-                                <th align='left' id="notification_action">Action</th>
-                                <th align='left' id="notification_poster_url">Subject Text</th>
-                                <th align='left' id="notification_poster_url">Body Text</th>
-                                <th align='left' id="notification_poster_url">Script Args</th>
+                                <th align="left" id="notification_timestamp">Timestamp</th>
+                                <th align="left" id="notification_agent_name">Agent</th>
+                                <th align="left" id="notification_action">Action</th>
+                                <th align="left" id="notification_poster_url">Subject Text</th>
+                                <th align="left" id="notification_poster_url">Body Text</th>
+                                <th align="left" id="notification_poster_url">Script Args</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="tabs-5">
+                    <table class="display" id="login_log_table" width="100%">
+                        <thead>
+                            <tr>
+                                <th align="left" id="timestamp">Timestamp</th>
+                                <th align="left" id="friendly_name">User</th>
+                                <th align="left" id="user_group">User Group</th>
+                                <th align="left" id="ip_address">IP Address</th>
+                                <th align="left" id="host">Host</th>
+                                <th align="left" id="os">Operating System</th>
+                                <th align="left" id="browser">Browser</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -115,38 +133,38 @@
 <script src="${http_root}js/tables/logs.js"></script>
 <script src="${http_root}js/tables/plex_logs.js"></script>
 <script src="${http_root}js/tables/notification_logs.js"></script>
+<script src="${http_root}js/tables/login_table.js"></script>
 <script>
 
         $(document).ready(function() {
-            LoadPlexPyLogs();
+            loadPlexPyLogs();
             clearSearchButton('log_table', log_table);
         });
 
-        function LoadPlexPyLogs() {
+        function loadPlexPyLogs() {
             log_table_options.ajax = {
                 url: "getLog"
             }
             log_table = $('#log_table').DataTable(log_table_options);
         }
 
-        function LoadPlexLogs() {
+        function loadPlexLogs() {
             plex_log_table_options.ajax = {
                 url: "get_plex_log?log_type=server"
             }
             plex_log_table = $('#plex_log_table').DataTable(plex_log_table_options);
         }
 
-        function LoadPlexScannerLogs() {
+        function loadPlexScannerLogs() {
             plex_log_table_options.ajax = {
                 url: "get_plex_log?log_type=scanner"
             }
             plex_scanner_log_table = $('#plex_scanner_log_table').DataTable(plex_log_table_options);
         }
 
-        function LoadNotificationLogs() {
+        function loadNotificationLogs() {
             notification_log_table_options.ajax = {
                 url: "get_notification_log",
-                type: 'post',
                 data: function (d) {
                     return {
                         json_data: JSON.stringify(d)
@@ -156,11 +174,25 @@
             notification_log_table = $('#notification_log_table').DataTable(notification_log_table_options);
         }
 
+        function loadLoginLogs() {
+            login_table_options.pageLength = 50;
+            login_table_options.ajax = {
+                url: "get_user_logins",
+                data: function (d) {
+                    return {
+                        json_data: JSON.stringify(d)
+                    };
+                }
+            }
+            login_log_table = $('#login_log_table').DataTable(login_table_options);
+        }
+
         $("#plexpy-logs-btn").click(function () {
             $("#clear-logs").show();
             $("#download-plexpylog").show()
             $("#clear-notify-logs").hide();
-            LoadPlexPyLogs();
+            $("#clear-login-logs").hide();
+            loadPlexPyLogs();
             clearSearchButton('log_table', log_table);
         });
 
@@ -168,7 +200,8 @@
             $("#clear-logs").hide();
             $("#download-plexpylog").hide()
             $("#clear-notify-logs").hide();
-            LoadPlexLogs();
+            $("#clear-login-logs").hide();
+            loadPlexLogs();
             clearSearchButton('plex_log_table', plex_log_table);
         });
 
@@ -176,7 +209,8 @@
             $("#clear-logs").hide();
             $("#download-plexpylog").hide()
             $("#clear-notify-logs").hide();
-            LoadPlexScannerLogs();
+            $("#clear-login-logs").hide();
+            loadPlexScannerLogs();
             clearSearchButton('plex_scanner_log_table', plex_scanner_log_table);
         });
 
@@ -184,8 +218,18 @@
             $("#clear-logs").hide();
             $("#download-plexpylog").hide()
             $("#clear-notify-logs").show();
-            LoadNotificationLogs();
+            $("#clear-login-logs").hide();
+            loadNotificationLogs();
             clearSearchButton('notification_log_table', notification_log_table);
+        });
+
+        $("#login-logs-btn").click(function () {
+            $("#clear-logs").hide();
+            $("#download-plexpylog").hide()
+            $("#clear-notify-logs").hide();
+            $("#clear-login-logs").show();
+            loadLoginLogs();
+            clearSearchButton('login_log_table', notification_log_table);
         });
 
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -239,6 +283,27 @@
             });
         });
 
+        $("#clear-login-logs").click(function () {
+            $("#confirm-message").text("Are you sure you want to clear the PlexPy login logs?");
+            $('#confirm-modal').modal();
+            $('#confirm-modal').one('click', '#confirm-button', function () {
+                $.ajax({
+                    url: 'delete_login_log',
+                    type: 'POST',
+                    complete: function (xhr, status) {
+                        result = $.parseJSON(xhr.responseText);
+                        msg = result.message;
+                        if (result.result == 'success') {
+                            showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                        } else {
+                            showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+                        }
+                        login_log_table.draw();
+                    }
+                });
+            });
+        });
+
         var timer;
         function setRefresh()
         {
@@ -260,6 +325,8 @@
                             plex_scanner_log_table.ajax.reload();
                         } else if ($("#tabs-4").hasClass("active")) {
                             notification_log_table.ajax.reload();
+                        } else if ($("#tabs-5").hasClass("active")) {
+                            login_log_table.ajax.reload();
                         }
                     }, 1000*refreshrate.value);
                 }

@@ -13,18 +13,17 @@ login_table_options = {
     "pagingType": "full_numbers",
     "processing": false,
     "serverSide": true,
-    "pageLength": 10,
+    "pageLength": 25,
     "order": [0, 'desc'],
     "autoWidth": false,
     "scrollX": true,
     "columnDefs": [
         {
             "targets": [0],
-            "data": "date",
+            "data": "timestamp",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    date = moment(cellData, "X").format(date_format);
-                    $(td).html(date);
+                    $(td).html(moment(cellData, "X").format('YYYY-MM-DD HH:mm:ss'));
                 } else {
                     $(td).html(cellData);
                 }
@@ -35,21 +34,18 @@ login_table_options = {
         },
         {
             "targets": [1],
-            "data": "time",
-            "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
-                    time = moment(cellData, "X").format(time_format);
-                    $(td).html(time);
-                } else {
-                    $(td).html(cellData);
-                }
-            },
-            "searchable": false,
+            "data": "friendly_name",
             "width": "10%",
             "className": "no-wrap"
         },
         {
             "targets": [2],
+            "data": "user_group",
+            "width": "10%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [3],
             "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
@@ -67,23 +63,23 @@ login_table_options = {
                     $(td).html('n/a');
                 }
             },
-            "width": "20%",
+            "width": "10%",
             "className": "no-wrap modal-control-ip"
         },
         {
-            "targets": [3],
+            "targets": [4],
             "data": "host",
             "width": "20%",
             "className": "no-wrap"
         },
         {
-            "targets": [4],
+            "targets": [5],
             "data": "os",
             "width": "20%",
             "className": "no-wrap"
         },
         {
-            "targets": [5],
+            "targets": [6],
             "data": "browser",
             "width": "20%",
             "className": "no-wrap"
