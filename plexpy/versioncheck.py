@@ -252,7 +252,7 @@ def read_changelog():
 
     try:
         logfile = open(changelog_file, "r")
-    except IOError, e:
+    except IOError as e:
         logger.error('PlexPy Version Checker :: Unable to open changelog file. %s' % e)
         return '<h4>Unable to open changelog file</h4>'
 
@@ -267,9 +267,15 @@ def read_changelog():
                 output += '<h4>' + line[3:] + '</h4>'
             elif line[:2] == '* ' and previous_line.strip() == '':
                 output += '<ul><li>' + line[2:] + '</li>'
+            elif line[:2] == '* ' and previous_line[:4] == '  * ':
+                output += '</ul><li>' + line[2:] + '</li>'
             elif line[:2] == '* ':
                 output += '<li>' + line[2:] + '</li>'
-            elif line.strip() == '' and previous_line[:2] == '* ':
+            elif line[:4] == '  * ' and previous_line[:2] == '* ':
+                output += '<ul><li>' + line[4:] + '</li>'
+            elif line[:4] == '  * ':
+                output += '<li>' + line[4:] + '</li>'
+            elif line.strip() == '' and (previous_line[:2] == '* ' or previous_line[:4] == '  * '):
                 output += '</ul></br>'
             else:
                 output += line + '</br>'
