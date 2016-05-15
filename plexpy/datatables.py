@@ -15,7 +15,6 @@
 
 import re
 
-import plexpy
 import database
 import helpers
 import logger

@@ -15,7 +15,6 @@
 
 import base64
 import datetime
-import fnmatch
 from functools import wraps
 import hashlib
 import imghdr
@@ -25,7 +24,6 @@ import math
 from operator import itemgetter
 import os
 import re
-import shutil
 import socket
 import sys
 import time
@@ -35,7 +33,6 @@ from xml.dom import minidom
 import xmltodict
 
 import plexpy
-import common
 import logger
 from plexpy.api2 import API2
 
@@ -457,7 +454,7 @@ def parse_xml(unparsed=None):
         try:
             xml_parse = minidom.parseString(unparsed)
             return xml_parse
-        except Exception, e:
+        except Exception as e:
             logger.warn("Error parsing XML. %s" % e)
             return []
         except:

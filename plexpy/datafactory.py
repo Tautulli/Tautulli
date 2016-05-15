@@ -13,8 +13,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import datetime
-
 import plexpy
 import common
 import database
@@ -1215,7 +1213,7 @@ class DataFactory(object):
                     'grandparent_thumb = ?, art = ?, media_type = ?, year = ?, originally_available_at = ?, ' \
                     'added_at = ?, updated_at = ?, last_viewed_at = ?, content_rating = ?, summary = ?, ' \
                     'tagline = ?, rating = ?, duration = ?, guid = ?, directors = ?, writers = ?, actors = ?, ' \
-                    'genres = ?, studio = ? ' \
+                    'genres = ?, studio = ?, labels = ? ' \
                     'WHERE rating_key = ?'
 
             args = [metadata['rating_key'], metadata['parent_rating_key'], metadata['grandparent_rating_key'],
@@ -1225,7 +1223,7 @@ class DataFactory(object):
                     metadata['year'], metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
                     metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['tagline'], 
                     metadata['rating'], metadata['duration'], metadata['guid'], directors, writers, actors, genres,
-                    metadata['studio'],
+                    metadata['studio'], labels,
                     old_rating_key]
 
             monitor_db.action(query=query, args=args)

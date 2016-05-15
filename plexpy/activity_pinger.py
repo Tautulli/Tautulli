@@ -24,7 +24,6 @@ import libraries
 import logger
 import notification_handler
 import notifiers
-import plextv
 import pmsconnect
 
 

@@ -17,7 +17,6 @@ import json
 import os
 
 import plexpy
-import activity_pinger
 import common
 import database
 import datatables
@@ -140,7 +139,7 @@ def update_labels():
 
                     if library_children:
                         children_list = library_children['childern_list']
-                        rating_key_list = [child['rating_key'] for child in children_list]
+                        # rating_key_list = [child['rating_key'] for child in children_list]
 
                         for rating_key in [child['rating_key'] for child in children_list]:
                             if key_mappings.get(rating_key):
@@ -606,7 +605,7 @@ class Libraries(object):
                           'keep_history': keep_history}
             try:
                 monitor_db.upsert('library_sections', value_dict, key_dict)
-            except:
+            except Exception as e:
                 logger.warn(u"PlexPy Libraries :: Unable to execute database query for set_config: %s." % e)
 
     def get_details(self, section_id=None):

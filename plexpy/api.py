@@ -27,6 +27,7 @@ import cherrypy
 import xmltodict
 
 import plexpy
+import database
 import datafactory
 import graphs
 import logger
@@ -161,8 +162,8 @@ class Api(object):
 
     def _dic_from_query(self, query):
 
-        myDB = database.DBConnection()
-        rows = myDB.select(query)
+        db = database.MonitorDatabase()
+        rows = db.select(query)
 
         rows_as_dic = []
 

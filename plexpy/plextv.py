@@ -17,8 +17,6 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
-import json
-import xmltodict
 from xml.dom import minidom
 
 import plexpy

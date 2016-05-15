@@ -32,6 +32,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
 import activity_pinger
+import config
+import database
 import logger
 import plextv
 import pmsconnect
@@ -132,7 +134,7 @@ def initialize(config_file):
             try:
                 os.makedirs(CONFIG.BACKUP_DIR)
             except OSError as e:
-                logger.error("Could not create backup dir '%s': %s" % (BACKUP_DIR, e))
+                logger.error("Could not create backup dir '%s': %s" % (CONFIG.BACKUP_DIR, e))
 
         if not CONFIG.CACHE_DIR:
             CONFIG.CACHE_DIR = os.path.join(DATA_DIR, 'cache')
@@ -140,7 +142,7 @@ def initialize(config_file):
             try:
                 os.makedirs(CONFIG.CACHE_DIR)
             except OSError as e:
-                logger.error("Could not create cache dir '%s': %s" % (CACHE_DIR, e))
+                logger.error("Could not create cache dir '%s': %s" % (CONFIG.CACHE_DIR, e))
 
         # Initialize the database
         logger.info('Checking to see if the database has all tables....')

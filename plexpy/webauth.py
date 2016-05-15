@@ -31,7 +31,6 @@ import plextv
 from plexpy.database import MonitorDatabase
 from plexpy.users import Users
 from plexpy.plextv import PlexTV
-from plexpy.pmsconnect import PmsConnect
 
 
 SESSION_KEY = '_cp_username'

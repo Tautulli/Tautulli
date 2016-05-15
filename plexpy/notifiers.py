@@ -22,7 +22,6 @@ from email.mime.text import MIMEText
 import email.utils
 from httplib import HTTPSConnection
 import os
-import re
 import requests
 import shlex
 import smtplib
@@ -31,7 +30,7 @@ import time
 import urllib
 from urllib import urlencode
 import urllib2
-from urlparse import parse_qsl, urlparse
+from urlparse import urlparse
 
 import gntp.notifier
 import facebook
@@ -933,7 +932,7 @@ class NMA(object):
 
         response = p.push(title, event, message, priority=self.priority, batch_mode=batch)
 
-        if not response[api][u'code'] == u'200':
+        if not response[self.apikey][u'code'] == u'200':
             logger.warn(u"PlexPy Notifiers :: NotifyMyAndroid notification failed.")
             return False
         else:
