@@ -66,7 +66,7 @@ def user_login(username=None, password=None):
             # Register the new user / update the access tokens.
             monitor_db = MonitorDatabase()
             try:
-                logger.debug(u"PlexPy Users :: Regestering tokens for user '%s' in the database." % username)
+                logger.debug(u"PlexPy WebAuth :: Regestering tokens for user '%s' in the database." % username)
                 result = monitor_db.action('UPDATE users SET user_token = ?, server_token = ? WHERE user_id = ?',
                                             [user_token, server_token, user_id])
 
@@ -76,16 +76,16 @@ def user_login(username=None, password=None):
                     # Successful login
                     return True
                 else:
-                    logger.warn(u"PlexPy Users :: Unable to register user '%s' in database." % username)
+                    logger.warn(u"PlexPy WebAuth :: Unable to register user '%s' in database." % username)
                     return None
             except Exception as e:
-                logger.warn(u"PlexPy Users :: Unable to register user '%s' in database: %s." % (username, e))
+                logger.warn(u"PlexPy WebAuth :: Unable to register user '%s' in database: %s." % (username, e))
                 return None
         else:
-            logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv server token for user '%s'." % username)
+            logger.warn(u"PlexPy WebAuth :: Unable to retrieve Plex.tv server token for user '%s'." % username)
             return None
     else:
-        logger.warn(u"PlexPy Users :: Unable to retrieve Plex.tv user token for user '%s'." % username)
+        logger.warn(u"PlexPy WebAuth :: Unable to retrieve Plex.tv user token for user '%s'." % username)
         return None
 
     return None
@@ -192,11 +192,11 @@ class AuthController(object):
                                host=host,
                                user_agent=user_agent)
 
-        logger.debug(u"%s user '%s' logged into PlexPy." % (user_group.capitalize(), username))
+        logger.debug(u"PlexPy WebAuth :: %s user '%s' logged into PlexPy." % (user_group.capitalize(), username))
     
     def on_logout(self, username, user_group):
         """Called on logout"""
-        logger.debug(u"%s User '%s' logged out of PlexPy." % (user_group.capitalize(), username))
+        logger.debug(u"PlexPy WebAuth :: %s User '%s' logged out of PlexPy." % (user_group.capitalize(), username))
     
     def get_loginform(self, username="", msg=""):
         from plexpy.webserve import serve_template
@@ -240,10 +240,10 @@ class AuthController(object):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         elif admin_login == '1':
-            logger.debug(u"Invalid admin login attempt from '%s'." % username)
+            logger.debug(u"PlexPy WebAuth :: Invalid admin login attempt from '%s'." % username)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
         else:
-            logger.debug(u"Invalid login attempt from '%s'." % username)
+            logger.debug(u"PlexPy WebAuth :: Invalid login attempt from '%s'." % username)
             return self.get_loginform(username, u"Incorrect username/email or password.")
     
     @cherrypy.expose

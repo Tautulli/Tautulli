@@ -36,11 +36,11 @@ def initialize(options):
         if plexpy.CONFIG.HTTPS_CREATE_CERT and \
             (not (https_cert and os.path.exists(https_cert)) or not (https_key and os.path.exists(https_key))):
             if not create_https_certificates(https_cert, https_key):
-                logger.warn("Unable to create certificate and key. Disabling HTTPS")
+                logger.warn(u"PlexPy WebStart :: Unable to create certificate and key. Disabling HTTPS")
                 enable_https = False
 
         if not (os.path.exists(https_cert) and os.path.exists(https_key)):
-            logger.warn("Disabled HTTPS because of missing certificate and key.")
+            logger.warn(u"PlexPy WebStart :: Disabled HTTPS because of missing certificate and key.")
             enable_https = False
 
     options_dict = {
@@ -65,7 +65,7 @@ def initialize(options):
         protocol = "http"
 
     if options['http_password']:
-        logger.info("Web server authentication is enabled, username is '%s'", options['http_username'])
+        logger.info(u"PlexPy WebStart :: Web server authentication is enabled, username is '%s'", options['http_username'])
         options_dict['tools.sessions.on'] = auth_enabled = session_enabled = True
         cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
     else:
@@ -207,7 +207,7 @@ def initialize(options):
     cherrypy.tree.mount(WebInterface(), options['http_root'], config=conf)
 
     try:
-        logger.info("Starting PlexPy web server on %s://%s:%d%s", protocol,
+        logger.info(u"PlexPy WebStart :: Starting PlexPy web server on %s://%s:%d%s", protocol,
                     options['http_host'], options['http_port'], options['http_root'])
         cherrypy.process.servers.check_port(str(options['http_host']), options['http_port'])
         if not plexpy.DEV:
