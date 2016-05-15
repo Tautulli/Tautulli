@@ -61,19 +61,18 @@ DOCUMENTATION :: END
                                 % endif
                             </div>
                             <div class="user-info-nav">
-                                <ul class="">
+                                <ul class="user-info-nav">
                                     <li class="active"><a href="#profile" data-toggle="tab">Profile</a></li>
-                                    <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
                                     <li><a id="history-tab-btn" href="#userHistory" data-toggle="tab">History</a></li>
                                     <li><a id="sync-tab-btn" href="#userSyncItems" data-toggle="tab">Synced Items</a></li>
+                                    <li><a id="ip-tab-btn" href="#userAddresses" data-toggle="tab">IP Addresses</a></li>
                                     <li><a id="login-tab-btn" href="#userLogins" data-toggle="tab">PlexPy Logins</a></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div id="edit-user-modal" class="modal fade" tabindex="-1" role="dialog"
-                        aria-labelledby="edit-user-modal">
+                <div id="edit-user-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="edit-user-modal">
                 </div>
                 <div class="tab-content">
                     <div class="tab-pane active" id="profile">
@@ -132,37 +131,6 @@ DOCUMENTATION :: END
                                             <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
                                             <br>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tab-pane" id="userAddresses">
-                        <div class="container-fluid">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="table-card-header">
-                                        <div class="header-bar">
-                                            <span>
-                                                <i class="fa fa-map-marker"></i> IP Addresses for <strong>
-                                                    <span class="set-username">${data['friendly_name']}</span>
-                                                </strong>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="table-card-back">
-                                        <table class="display user_ip_table" id="user_ip_table-UID-${data['user_id']}" width="100%">
-                                            <thead>
-                                                <tr>
-                                                    <th align="left">Last Seen</th>
-                                                    <th align="left">IP Address</th>
-                                                    <th align="left">Last Platform</th>
-                                                    <th align="left">Last Player</th>
-                                                    <th align="left">Last Played</th>
-                                                    <th align="left">Play Count</th>
-                                                </tr>
-                                            </thead>
-                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -265,6 +233,37 @@ DOCUMENTATION :: END
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="userAddresses">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table-card-header">
+                                        <div class="header-bar">
+                                            <span>
+                                                <i class="fa fa-map-marker"></i> IP Addresses for <strong>
+                                                    <span class="set-username">${data['friendly_name']}</span>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="table-card-back">
+                                        <table class="display user_ip_table" id="user_ip_table-UID-${data['user_id']}" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th align="left">Last Seen</th>
+                                                    <th align="left">IP Address</th>
+                                                    <th align="left">Last Platform</th>
+                                                    <th align="left">Last Player</th>
+                                                    <th align="left">Last Played</th>
+                                                    <th align="left">Play Count</th>
+                                                </tr>
+                                            </thead>
                                         </table>
                                     </div>
                                 </div>
@@ -486,6 +485,10 @@ DOCUMENTATION :: END
             clearSearchButton('login_table-UID-${data["user_id"]}', login_table);
         });
 
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+        });
+
         % if _session['user_group'] == 'admin':
         // Load edit user modal
         $("#toggle-edit-user-modal").click(function() {
@@ -594,11 +597,6 @@ DOCUMENTATION :: END
             } else {
                 $("#recently-watched-page-right").removeClass("disabled");
             }
-        });
-
-        $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
-            $(".dataTables_scrollHeadInner").css("width","100%");
-            $("table.display").css("width","100%");
         });
     });
 </script>

@@ -291,7 +291,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % if data['media_type'] == 'show':
-                <div class='col-md-12'>
+                <div class="col-md-12">
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Season List for <strong>${data['title']}</strong></span>
@@ -302,7 +302,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % elif data['media_type'] == 'season':
-                <div class='col-md-12'>
+                <div class="col-md-12">
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Episode List for <strong>${data['title']}</strong></span>
@@ -313,7 +313,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % elif data['media_type'] == 'artist':
-                <div class='col-md-12'>
+                <div class="col-md-12">
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Album List for <strong>${data['title']}</strong></span>
@@ -324,7 +324,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % elif data['media_type'] == 'album':
-                <div class='col-md-12'>
+                <div class="col-md-12">
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Track List for <strong>${data['title']}</strong></span>
@@ -335,7 +335,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % endif
-                <div class='col-md-12'>
+                <div class="col-md-12">
                     <div class='table-card-header'>
                         <div class="header-bar">
                             <span>Watch History for <strong>${data['title']}</strong></span>
@@ -424,7 +424,6 @@ DOCUMENTATION :: END
 </%def>
 
 <%def name="javascriptIncludes()">
-<script src="${http_root}js/jquery.rateit.min.js"></script>
 <script src="${http_root}js/jquery.dataTables.min.js"></script>
 <script src="${http_root}js/dataTables.colVis.js"></script>
 <script src="${http_root}js/dataTables.bootstrap.min.js"></script>
@@ -433,7 +432,6 @@ DOCUMENTATION :: END
 
 % if data:
 <script src="${http_root}js/tables/history_table.js"></script>
-<!-- Need to find a place to put this -->
 % if data['media_type'] == 'show' or data['media_type'] == 'artist':
 <script>
     function get_history() {

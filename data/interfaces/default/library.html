@@ -405,6 +405,10 @@ DOCUMENTATION :: END
             loadHistoryTable();
         });
 
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+        });
+
         % if _session['user_group'] == 'admin':
         function loadMediaInfoTable() {
             // Build media info table
@@ -601,11 +605,6 @@ DOCUMENTATION :: END
             } else {
                 $("#recently-added-page-right").removeClass("disabled");
             }
-        });
-
-        $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
-            $(".dataTables_scrollHeadInner").css("width","100%");
-            $("table.display").css("width","100%");
         });
     });
 </script>

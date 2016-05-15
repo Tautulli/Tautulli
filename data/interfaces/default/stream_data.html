@@ -54,7 +54,7 @@ DOCUMENTATION :: END
             <div class="container-fluid">
                 <div class="row">
                     <h4><strong>Stream Details</strong></h4>
-                    <div class="col-md-4">
+                    <div class="col-sm-4">
                         <h5>Media</h5>
                         <ul class="list-unstyled">
                             <li>Container: <strong>${data['transcode_container'] if data['transcode_container'] else data['container']}</strong></li>
@@ -64,7 +64,7 @@ DOCUMENTATION :: END
                         </ul>
                     </div>
                     % if data['media_type'] != 'track':
-                    <div class="col-md-4">
+                    <div class="col-sm-4">
                         <h5>Video</h5>
                         <ul class="list-unstyled">
                             <li>Stream: <strong>${data['transcode_video_dec']}</strong></li>
@@ -80,7 +80,7 @@ DOCUMENTATION :: END
                         </ul>
                     </div>
                     % endif
-                    <div class="col-md-4">
+                    <div class="col-sm-4">
                         <h5>Audio</h5>
                         <ul class="list-unstyled">
                             <li>Stream: <strong>${data['transcode_audio_dec']}</strong></li>
@@ -96,7 +96,7 @@ DOCUMENTATION :: END
                 </div>
                 <div class="row">
                     <h4><strong>Source Details</strong></h4>
-                    <div class="col-md-4">
+                    <div class="col-sm-4">
                         <h5>Media</h5>
                         <ul class="list-unstyled">
                             <li>Container: <strong>${data['container']}</strong></li>
@@ -107,7 +107,7 @@ DOCUMENTATION :: END
                         </ul>
                     </div>
                     % if data['media_type'] != 'track':
-                    <div class="col-md-4">
+                    <div class="col-sm-4">
                         <h5>Video</h5>
                         <ul class="list-unstyled">
                             <li>Width: <strong>${data['width']}</strong></li>
@@ -118,7 +118,7 @@ DOCUMENTATION :: END
                         </ul>
                     </div>
                     % endif
-                    <div class="col-md-4">
+                    <div class="col-sm-4">
                         <h5>Audio</h5>
                         <ul class="list-unstyled">
                             <li>Codec: <strong>${data['audio_codec']}</strong></li>

@@ -188,6 +188,10 @@
             clearSearchButton('notification_log_table', notification_log_table);
         });
 
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+        });
+
         $("#clear-logs").click(function () {
             $("#confirm-message").text("Are you sure you want to clear the PlexPy logs?");
             $('#confirm-modal').modal();

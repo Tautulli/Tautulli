@@ -1,6 +1,6 @@
 var plex_log_table_options = {
     "destroy": true,
-    "serverSide": true,
+    "serverSide": false,
     "processing": false,
     "pagingType": "full_numbers",
     "order": [ 0, 'desc'],

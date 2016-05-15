@@ -1049,7 +1049,7 @@ a:hover .dashboard-recent-media-cover {
     background-attachment: scroll;
     background-size: cover;
     opacity: 0;
-    position: absolute;
+    position: fixed;
     top: 0;
     bottom: 0;
     width: 100%;
@@ -1071,10 +1071,11 @@ a:hover .dashboard-recent-media-cover {
     left: 0;
     overflow-x: hidden;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 .summary-container .table-card-header,
 .summary-container .table-card-back {
-    opacity: 0.90;
+    background: rgba(40,40,40, 0.9);
 }
 .summary-navbar {
     background-color: rgba(255,255,255,.03);
@@ -2654,11 +2655,16 @@ table.display tr.shown + tr table[id^='media_info_child'] > tr > td:hover a,
 table.display tr.shown + tr table[id^='media_info_child'] tr.shown + tr table[id^='media_info_child'] td:hover a {
     color: #cc7b19;
 }
-table.display tr.shown + tr .pagination > .disabled > a {
+table.display tr.shown + tr .pagination > .disabled > a,
+table.display tr.shown + tr .pagination > .disabled > a:hover {
     color: #444444;
 }
 table.display tr.shown + tr .pagination > li > a:hover {
     color: #e9a049;
+}
+table.display tr.odd td,
+table.display tr.even td {
+    padding: 5px 10px !important;
 }
 table[id^='history_child'] {
     margin-top: 0;
@@ -2667,16 +2673,31 @@ table[id^='history_child'] {
 table[id^='media_info_child'] {
     margin-top: 0;
 }
-table[id^='history_child'] thead th,
-table[id^='media_info_child'] thead th {
+div[id^='history_child'] thead th,
+div[id^='media_info_child'] thead th {
     line-height: 0;
     height: 0 !important;
     overflow: hidden;
 }
-table[id^='media_info_child'] table[id^='media_info_child'] thead th {
+div[id^='history_child'] div.row,
+div[id^='media_info_child'] div.row {
+    margin: 0;
+}
+div[id^='history_child'] div.col-sm-12,
+div[id^='media_info_child'] div.col-sm-12 {
+    padding: 0;
+}
+div[id^='history_child'] div.dataTables_scrollBody,
+div[id^='media_info_child'] div.dataTables_scrollBody {
+    overflow: hidden !important;
+}
+div[id^='media_info_child'] div[id^='media_info_child'] div.dataTables_scrollHead thead th {
     line-height: 25px;
     height: 35px !important;
     overflow: hidden;
+}
+.dataTables_scrollBody {
+    -webkit-overflow-scrolling: touch;
 }
 #search_form {
     width: 300px;
