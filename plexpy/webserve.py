@@ -2631,25 +2631,6 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def twitterStep1(self):
-        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
-        tweet = notifiers.TwitterNotifier()
-        return tweet._get_authorization()
-
-    @cherrypy.expose
-    @requireAuth(member_of("admin"))
-    def twitterStep2(self, key):
-        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
-        tweet = notifiers.TwitterNotifier()
-        result = tweet._get_credentials(key)
-        # logger.info(u"result: " + str(result))
-        if result:
-            return "Key verification successful"
-        else:
-            return "Unable to verify key"
-
-    @cherrypy.expose
-    @requireAuth(member_of("admin"))
     def facebookStep1(self):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
         facebook = notifiers.FacebookNotifier()

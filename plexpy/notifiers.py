@@ -13,7 +13,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from urlparse import urlparse
 import base64
 import bleach
 import json
@@ -29,17 +28,15 @@ import shlex
 import smtplib
 import subprocess
 import time
-
-from urllib import urlencode
 import urllib
+from urllib import urlencode
 import urllib2
-from urlparse import parse_qsl
+from urlparse import parse_qsl, urlparse
 
-from pynma import pynma
 import gntp.notifier
-import oauth2 as oauth
-import twitter
 import facebook
+import twitter
+import pynma
 
 import plexpy
 import database
@@ -678,11 +675,11 @@ class PROWL(object):
 
         http_handler = HTTPSConnection("api.prowlapp.com")
 
-        data = {'apikey': plexpy.CONFIG.PROWL_KEYS,
+        data = {'apikey': self.keys,
                 'application': 'PlexPy',
                 'event': event.encode("utf-8"),
                 'description': message.encode("utf-8"),
-                'priority': plexpy.CONFIG.PROWL_PRIORITY}
+                'priority': self.priority}
 
         http_handler.request("POST",
                              "/publicapi/add",
@@ -907,16 +904,14 @@ class Plex(object):
 class NMA(object):
 
     def __init__(self):
-        self.api = plexpy.CONFIG.NMA_APIKEY
-        self.nma_priority = plexpy.CONFIG.NMA_PRIORITY
+        self.apikey = plexpy.CONFIG.NMA_APIKEY
+        self.priority = plexpy.CONFIG.NMA_PRIORITY
 
     def notify(self, subject=None, message=None):
         if not subject or not message:
             return
 
         title = 'PlexPy'
-        api = plexpy.CONFIG.NMA_APIKEY
-        nma_priority = plexpy.CONFIG.NMA_PRIORITY
 
         # logger.debug(u"NMA title: " + title)
         # logger.debug(u"NMA API: " + api)
@@ -930,13 +925,13 @@ class NMA(object):
         batch = False
 
         p = pynma.PyNMA()
-        keys = api.split(',')
+        keys = self.apikey.split(',')
         p.addkey(keys)
 
         if len(keys) > 1:
             batch = True
 
-        response = p.push(title, event, message, priority=nma_priority, batch_mode=batch)
+        response = p.push(title, event, message, priority=self.priority, batch_mode=batch)
 
         if not response[api][u'code'] == u'200':
             logger.warn(u"PlexPy Notifiers :: NotifyMyAndroid notification failed.")
@@ -947,13 +942,13 @@ class NMA(object):
 
     def return_config_options(self):
         config_option = [{'label': 'NotifyMyAndroid API Key',
-                          'value': plexpy.CONFIG.NMA_APIKEY,
+                          'value': self.apikey,
                           'name': 'nma_apikey',
                           'description': 'Your NotifyMyAndroid API key. Separate multiple api keys with commas.',
                           'input_type': 'text'
                           },
                          {'label': 'Priority',
-                          'value': plexpy.CONFIG.NMA_PRIORITY,
+                          'value': self.priority,
                           'name': 'nma_priority',
                           'description': 'Set the priority.',
                           'input_type': 'select',
@@ -1074,21 +1069,19 @@ class PUSHBULLET(object):
 class PUSHALOT(object):
 
     def __init__(self):
-        self.api_key = plexpy.CONFIG.PUSHALOT_APIKEY
+        self.apikey = plexpy.CONFIG.PUSHALOT_APIKEY
 
     def notify(self, message, event):
         if not message or not event:
             return
 
-        pushalot_authorizationtoken = plexpy.CONFIG.PUSHALOT_APIKEY
-
         # logger.debug(u"Pushalot event: " + event)
         # logger.debug(u"Pushalot message: " + message)
-        # logger.debug(u"Pushalot api: " + pushalot_authorizationtoken)
+        # logger.debug(u"Pushalot api: " + self.api_key)
 
         http_handler = HTTPSConnection("pushalot.com")
 
-        data = {'AuthorizationToken': pushalot_authorizationtoken,
+        data = {'AuthorizationToken': self.apikey,
                 'Title': event.encode('utf-8'),
                 'Body': message.encode("utf-8")}
 
@@ -1115,7 +1108,7 @@ class PUSHALOT(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Pushalot API Key',
-                          'value': plexpy.CONFIG.PUSHALOT_APIKEY,
+                          'value': self.apikey,
                           'name': 'pushalot_apikey',
                           'description': 'Your Pushalot API key.',
                           'input_type': 'text'
@@ -1129,11 +1122,11 @@ class PUSHOVER(object):
 
     def __init__(self):
         self.enabled = plexpy.CONFIG.PUSHOVER_ENABLED
-        self.application_token = plexpy.CONFIG.PUSHOVER_APITOKEN
+        self.apitoken = plexpy.CONFIG.PUSHOVER_APITOKEN
         self.keys = plexpy.CONFIG.PUSHOVER_KEYS
+        self.html_support = plexpy.CONFIG.PUSHOVER_HTML_SUPPORT
         self.priority = plexpy.CONFIG.PUSHOVER_PRIORITY
         self.sound = plexpy.CONFIG.PUSHOVER_SOUND
-        self.html_support = plexpy.CONFIG.PUSHOVER_HTML_SUPPORT
 
     def conf(self, options):
         return cherrypy.config['config'].get('Pushover', options)
@@ -1144,13 +1137,13 @@ class PUSHOVER(object):
 
         http_handler = HTTPSConnection("api.pushover.net")
 
-        data = {'token': self.application_token,
-                'user': plexpy.CONFIG.PUSHOVER_KEYS,
+        data = {'token': self.apitoken,
+                'user': self.keys,
                 'title': event.encode("utf-8"),
                 'message': message.encode("utf-8"),
-                'sound': plexpy.CONFIG.PUSHOVER_SOUND,
-                'html': plexpy.CONFIG.PUSHOVER_HTML_SUPPORT,
-                'priority': plexpy.CONFIG.PUSHOVER_PRIORITY}
+                'sound': self.sound,
+                'html': self.html_support,
+                'priority': self.priority}
 
         http_handler.request("POST",
                              "/1/messages.json",
@@ -1186,9 +1179,9 @@ class PUSHOVER(object):
         self.notify('Main Screen Activate', 'Test Message')
 
     def get_sounds(self):
-        if plexpy.CONFIG.PUSHOVER_APITOKEN:
+        if self.apitoken:
             http_handler = HTTPSConnection("api.pushover.net")
-            http_handler.request("GET", "/1/sounds.json?token=" + self.application_token)
+            http_handler.request("GET", "/1/sounds.json?token=" + self.apitoken)
             response = http_handler.getresponse()
             request_status = response.status
 
@@ -1209,7 +1202,7 @@ class PUSHOVER(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Pushover API Token',
-                          'value': plexpy.CONFIG.PUSHOVER_APITOKEN,
+                          'value': self.apitoken,
                           'name': 'pushover_apitoken',
                           'description': 'Your Pushover API token.',
                           'input_type': 'text'
@@ -1276,59 +1269,6 @@ class TwitterNotifier(object):
 
     def test_notify(self):
         return self._send_tweet("This is a test notification from PlexPy at " + helpers.now())
-
-    def _get_authorization(self):
-
-        oauth_consumer = oauth.Consumer(key=self.consumer_key, secret=self.consumer_secret)
-        oauth_client = oauth.Client(oauth_consumer)
-
-        logger.info("PlexPy Notifiers :: Requesting temp token from Twitter")
-
-        resp, content = oauth_client.request(self.REQUEST_TOKEN_URL, 'GET')
-
-        if resp['status'] != '200':
-            logger.warn("PlexPy Notifiers :: Invalid respond from Twitter requesting temp token: %s" % resp['status'])
-        else:
-            request_token = dict(parse_qsl(content))
-
-            plexpy.CONFIG.TWITTER_ACCESS_TOKEN = request_token['oauth_token']
-            plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET = request_token['oauth_token_secret']
-
-            return self.AUTHORIZATION_URL + "?oauth_token=" + request_token['oauth_token']
-
-    def _get_credentials(self, key):
-        request_token = {}
-
-        request_token['oauth_token'] = plexpy.CONFIG.TWITTER_ACCESS_TOKEN
-        request_token['oauth_token_secret'] = plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET
-        request_token['oauth_callback_confirmed'] = 'true'
-
-        token = oauth.Token(request_token['oauth_token'], request_token['oauth_token_secret'])
-        token.set_verifier(key)
-
-        # logger.debug(u"Generating and signing request for an access token using key " + key)
-
-        oauth_consumer = oauth.Consumer(key=self.consumer_key, secret=self.consumer_secret)
-        # logger.debug(u"oauth_consumer: " + str(oauth_consumer))
-        oauth_client = oauth.Client(oauth_consumer, token)
-        # logger.debug(u"oauth_client: " + str(oauth_client))
-        resp, content = oauth_client.request(self.ACCESS_TOKEN_URL, method='POST', body='oauth_verifier=%s' % key)
-        # logger.debug(u"resp, content: " + str(resp) + ',' + str(content))
-
-        access_token = dict(parse_qsl(content))
-        # logger.debug(u"access_token: " + str(access_token))
-
-        # logger.debug(u"resp[status] = " + str(resp['status']))
-        if resp['status'] != '200':
-            logger.error(u"PlexPy Notifiers :: The request for a Twitter token did not succeed: " + str(resp['status']), logger.ERROR)
-            return False
-        else:
-            # logger.info(u"PlexPy Notifiers :: Your Twitter Access Token key: %s" % access_token['oauth_token'])
-            # logger.info(u"PlexPy Notifiers :: Access Token secret: %s" % access_token['oauth_token_secret'])
-            plexpy.CONFIG.TWITTER_ACCESS_TOKEN = access_token['oauth_token']
-            plexpy.CONFIG.TWITTER_ACCESS_TOKEN_SECRET = access_token['oauth_token_secret']
-            plexpy.CONFIG.write()
-            return True
 
     def _send_tweet(self, message=None, attachment=None):
         consumer_key = self.consumer_key
@@ -1402,6 +1342,8 @@ class TwitterNotifier(object):
 class OSX_NOTIFY(object):
 
     def __init__(self):
+        self.app = plexpy.CONFIG.OSX_NOTIFY_APP
+
         try:
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
@@ -1472,7 +1414,7 @@ class OSX_NOTIFY(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Register Notify App',
-                          'value': plexpy.CONFIG.OSX_NOTIFY_APP,
+                          'value': self.app,
                           'name': 'osx_notify_app',
                           'description': 'Enter the path/application name to be registered with the '
                                          'Notification Center, default is /Applications/PlexPy.',
@@ -1496,10 +1438,10 @@ class BOXCAR(object):
 
         try:
             data = urllib.urlencode({
-                'user_credentials': plexpy.CONFIG.BOXCAR_TOKEN,
+                'user_credentials': self.token,
                 'notification[title]': title.encode('utf-8'),
                 'notification[long_message]': message.encode('utf-8'),
-                'notification[sound]': plexpy.CONFIG.BOXCAR_SOUND
+                'notification[sound]': self.sound
                 })
 
             req = urllib2.Request(self.url)
@@ -1548,7 +1490,7 @@ class BOXCAR(object):
 
     def return_config_options(self):
         config_option = [{'label': 'Boxcar Access Token',
-                          'value': plexpy.CONFIG.BOXCAR_TOKEN,
+                          'value': self.token,
                           'name': 'boxcar_token',
                           'description': 'Your Boxcar access token.',
                           'input_type': 'text'
@@ -2063,6 +2005,7 @@ class Scripts(object):
 
     def __init__(self, **kwargs):
         self.script_exts = ('.bat', '.cmd', '.exe', '.php', '.pl', '.ps1', '.py', '.pyw', '.rb', '.sh')
+        self.script_folder = plexpy.CONFIG.SCRIPTS_FOLDER
 
     def conf(self, options):
         return cherrypy.config['config'].get('Scripts', options)
@@ -2076,7 +2019,7 @@ class Scripts(object):
         return
 
     def list_scripts(self):
-        scriptdir = plexpy.CONFIG.SCRIPTS_FOLDER
+        scriptdir = self.script_folder
         scripts = {'': ''}
 
         if scriptdir and not os.path.exists(scriptdir):
@@ -2106,7 +2049,7 @@ class Scripts(object):
         if script_args is None:
             script_args = []
 
-        if not plexpy.CONFIG.SCRIPTS_FOLDER:
+        if not self.script_folder:
             return
 
         # Make sure we use the correct script..
@@ -2234,7 +2177,7 @@ class Scripts(object):
                           'input_type': 'help'
                           },
                          {'label': 'Script Folder',
-                          'value': plexpy.CONFIG.SCRIPTS_FOLDER,
+                          'value': self.script_folder,
                           'name': 'scripts_folder',
                           'description': 'Add your script folder.',
                           'input_type': 'text',

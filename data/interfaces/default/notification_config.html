@@ -152,24 +152,6 @@
         return false;
     });
 
-    function disableTwitterVerify() {
-        if ($('#twitter_key').val() != '') { $('#twitterStep2').prop('disabled', false); }
-        else { $('#twitterStep2').prop('disabled', true); }
-    }
-    disableTwitterVerify();
-    $('#twitter_key').on('change', function () {
-        disableTwitterVerify()
-    });
-
-    $('#twitterStep1').click(function () {
-        $.get('twitterStep1', function (data) {window.open(data); })
-        .done(function () { showMsg('<i class="fa fa-check"></i> Confirm Authorization. Check pop-up blocker if no response.', false, true, 3000); });
-    });
-    $('#twitterStep2').click(function () {
-        var twitter_key = $('#twitter_key').val();
-        $.get('twitterStep2', { 'key': twitter_key }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
-    });
-
     function disableFacebookRequest() {
         if ($('#facebook_app_id').val() != '' && $('#facebook_app_secret').val() != '') { $('#facebookStep1').prop('disabled', false); }
         else { $('#facebookStep1').prop('disabled', true); }
