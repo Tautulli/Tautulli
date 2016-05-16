@@ -36,7 +36,7 @@ from plexpy.plextv import PlexTV
 SESSION_KEY = '_cp_username'
 
 def user_login(username=None, password=None):
-    if not username and not password:
+    if not username or not password:
         return None
 
     # Try to login to Plex.tv to check if the user has a vaild account
@@ -211,7 +211,7 @@ class AuthController(object):
         if not cherrypy.config.get('tools.sessions.on'):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-        if username is None or password is None:
+        if not username and not password:
             return self.get_loginform()
         
         (vaild_login, user_group) = check_credentials(username, password, admin_login)
