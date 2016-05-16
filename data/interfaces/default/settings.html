@@ -2234,7 +2234,6 @@ $(document).ready(function() {
     $( ".pms-settings" ).change(function() {
         serverChanged = true;
         $("#pms_identifier").val("");
-        $("#pms-verify-status").html("");
         $("#server_changed").prop('checked', true);
         verifyServer();
     });
@@ -2287,6 +2286,7 @@ $(document).ready(function() {
     }
 
     $('#verify_server_button').on('click', function(){
+        $("#pms_identifier").val("");
         verifyServer();
     });
 
