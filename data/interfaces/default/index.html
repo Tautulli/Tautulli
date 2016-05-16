@@ -150,6 +150,7 @@
                             bif_poster.animate({ opacity: 0 }, { duration: 1000, queue: false });
                             bif_poster.after($('<div id="bif-' + key + '"class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img='
                                 + s.bif_thumb + '&width=500&height=280&fallback=art);"></div>').fadeIn(1000, function () { bif_poster.remove() }));
+                            blurArtwork(key);
                         }
 
                         // if transcoding, update the transcode state
@@ -210,14 +211,18 @@
         getCurrentActivity();
     }, 15000);
 
+    function blurArtwork(session_key) {
+        var filterVal = $('#stream-' + session_key).is(':visible') ? 'blur(5px)' : '';
+        $($('#poster-' + session_key).find('.dashboard-activity-poster-face, .dashboard-activity-cover-face'))
+        .css('filter', filterVal).css('webkitFilter', filterVal).css('mozFilter', filterVal).css('oFilter', filterVal).css('msFilter', filterVal);
+    }
+
     // Show/Hide activity info
     $('#currentActivity').on('click', '.btn-activity-info', function (e) {
         e.preventDefault();
         $($(this).attr('data-target')).toggle();
-        var id = $(this).closest('.dashboard-instance').data('id');
-        var filterVal = $('#stream-' + id).is(':visible') ? 'blur(5px)' : '';
-        $($(this).closest('.dashboard-activity-poster').find('.dashboard-activity-poster-face, .dashboard-activity-cover-face'))
-        .css('filter',filterVal).css('webkitFilter',filterVal).css('mozFilter',filterVal).css('oFilter',filterVal).css('msFilter',filterVal);
+        var key = $(this).data('id');
+        blurArtwork(key);
     });
 
     // Add hover class to dashboard-instance
