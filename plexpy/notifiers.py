@@ -2633,6 +2633,8 @@ class JOIN(object):
 
     def return_config_options(self):
         devices = '<br>'.join(['%s: %s' % (v, k) for k, v in self.get_devices().iteritems() if k])
+        if not devices:
+            devices = 'Enter your Join API key to load your device list.'
 
         config_option = [{'label': 'Join API Key',
                           'value': self.apikey,
