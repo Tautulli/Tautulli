@@ -786,12 +786,13 @@ class XBMC(object):
                     raise Exception
                 else:
                     logger.info(u"PlexPy Notifiers :: XBMC notification sent.")
-                    return True
 
             except Exception:
-                logger.warn(u"PlexPy Notifiers :: XBMC notification filed.")
+                logger.warn(u"PlexPy Notifiers :: XBMC notification failed.")
                 return False
 
+        return True
+        
     def return_config_options(self):
         config_option = [{'label': 'XBMC Host:Port',
                           'value': self.hosts,
@@ -870,11 +871,12 @@ class Plex(object):
                     raise Exception
                 else:
                     logger.info(u"PlexPy Notifiers :: Plex Home Theater notification sent.")
-                    return True
 
             except Exception:
-                logger.warn(u"PlexPy Notifiers :: Plex Home Theater notification filed.")
+                logger.warn(u"PlexPy Notifiers :: Plex Home Theater notification failed.")
                 return False
+                
+        return True
 
     def return_config_options(self):
         config_option = [{'label': 'Plex Home Theater Host:Port',
