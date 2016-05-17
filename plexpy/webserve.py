@@ -82,9 +82,9 @@ class WebInterface(object):
     @requireAuth()
     def index(self):
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
-            raise cherrypy.HTTPRedirect("home")
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
         else:
-            raise cherrypy.HTTPRedirect("welcome")
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "welcome")
 
 
     ##### Welcome #####
@@ -118,7 +118,7 @@ class WebInterface(object):
         # The setup wizard just refreshes the page on submit so we must redirect to home if config set.
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
             plexpy.initialize_scheduler()
-            raise cherrypy.HTTPRedirect("home")
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
         else:
             return serve_template(templatename="welcome.html", title="Welcome", config=config)
 
@@ -2215,7 +2215,7 @@ class WebInterface(object):
                           log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
         logger.info(u"Verbose toggled, set to %s", plexpy.VERBOSE)
         logger.debug(u"If you read this message, debug logging is available")
-        raise cherrypy.HTTPRedirect("logs")
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "logs")
 
     @cherrypy.expose
     @requireAuth()
@@ -2857,7 +2857,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def checkGithub(self):
         versioncheck.checkGithub()
-        raise cherrypy.HTTPRedirect("home")
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))

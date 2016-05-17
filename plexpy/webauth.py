@@ -119,7 +119,7 @@ def check_auth(*args, **kwargs):
                 if not condition():
                     raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
         else:
-            raise cherrypy.HTTPRedirect("auth/logout")
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/logout")
     
 def requireAuth(*conditions):
     """A decorator that appends conditions to the auth.require config
@@ -204,7 +204,7 @@ class AuthController(object):
     
     @cherrypy.expose
     def index(self):
-        raise cherrypy.HTTPRedirect("login")
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")
 
     @cherrypy.expose
     def login(self, username=None, password=None, remember_me='0', admin_login='0'):
@@ -257,4 +257,4 @@ class AuthController(object):
         if _session and _session['user']:
             cherrypy.request.login = None
             self.on_logout(_session['user'], _session['user_group'])
-        raise cherrypy.HTTPRedirect("login")
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")
