@@ -219,26 +219,30 @@ class ActivityProcessor(object):
                 args = [session['user_id']]
 
                 result = self.db.select(query=query, args=args)
-                
-                new_session = {'id': result[0]['id'],
-                               'rating_key': result[0]['rating_key'],
-                               'view_offset': result[0]['view_offset'],
-                               'user_id': result[0]['user_id'],
-                               'reference_id': result[0]['reference_id']}
 
-                if len(result) == 1:
-                    prev_session = None
-                else:
+                new_session = prev_session = last_id = None
+                if len(result) > 1:
+                    new_session = {'id': result[0]['id'],
+                                   'rating_key': result[0]['rating_key'],
+                                   'view_offset': result[0]['view_offset'],
+                                   'user_id': result[0]['user_id'],
+                                   'reference_id': result[0]['reference_id']}
+
                     prev_session = {'id': result[1]['id'],
                                     'rating_key': result[1]['rating_key'],
                                     'view_offset': result[1]['view_offset'],
                                     'user_id': result[1]['user_id'],
                                     'reference_id': result[1]['reference_id']}
+                else:
+                    # Get the last insert row id
+                    result = self.db.select(query='SELECT last_insert_rowid() AS last_id')
+                    last_id = result[0]['last_id'] if result else None
 
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
                 # If rating_key is the same in the previous session, then set the reference_id to the previous row, else set the reference_id to the new id
-                if (prev_session is not None) and (prev_session['rating_key'] == new_session['rating_key'] \
-                    and prev_session['view_offset'] <= new_session['view_offset']):
+                if  prev_session == new_session == None:
+                    args = [last_id, last_id]
+                elif prev_session['rating_key'] == new_session['rating_key'] and prev_session['view_offset'] <= new_session['view_offset']:
                     args = [prev_session['reference_id'], new_session['id']]
                 else:
                     args = [new_session['id'], new_session['id']]
