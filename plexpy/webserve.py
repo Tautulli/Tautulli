@@ -3618,13 +3618,13 @@ class WebInterface(object):
         pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
         result = pms_connect.get_current_activity()
 
-        data_factory = datafactory.DataFactory()
-        for session in result['sessions']:
-            if not session['ip_address']:
-                ip_address = data_factory.get_session_ip(session['session_key'])
-                session['ip_address'] = ip_address
-
         if result:
+            data_factory = datafactory.DataFactory()
+            for session in result['sessions']:
+                if not session['ip_address']:
+                    ip_address = data_factory.get_session_ip(session['session_key'])
+                    session['ip_address'] = ip_address
+
             return result
         else:
             logger.warn(u"Unable to retrieve data for get_activity.")

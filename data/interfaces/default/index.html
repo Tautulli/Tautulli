@@ -107,6 +107,11 @@
                 $('#dashboard-checking-activity').remove();
 
                 var current_activity = $.parseJSON(xhr.responseText);
+                if (!(current_activity)) {
+                    $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.</div>');
+                    return
+                }
+
                 var stream_count = parseInt(current_activity.stream_count);
                 var sessions = current_activity.sessions;
 
