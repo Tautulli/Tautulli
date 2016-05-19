@@ -59,7 +59,7 @@ DOCUMENTATION :: END
                         <ul class="list-unstyled">
                             <li>Container: <strong>${data['transcode_container'] if data['transcode_container'] else data['container']}</strong></li>
                             % if data['media_type'] != 'track':
-                            <li>Resolution: <strong>${data['video_resolution'] + 'p'  if data['video_resolution'] != 'sd' else data['video_resolution']}</strong></li>
+                            <li>Resolution: <strong>${data['transcode_height'] if data['transcode_height'] else data['height']}p</strong></li>
                             % endif
                         </ul>
                     </div>
@@ -101,7 +101,7 @@ DOCUMENTATION :: END
                         <ul class="list-unstyled">
                             <li>Container: <strong>${data['container']}</strong></li>
                             % if data['media_type'] != 'track':
-                            <li>Resolution: <strong>${data['height']}p</strong></li>
+                            <li>Resolution: <strong>${data['video_resolution'] + 'p'  if data['video_resolution'] != 'sd' else data['video_resolution']}</strong></li>
                             % endif
                             <li>Bitrate: <strong>${data['bitrate']} kbps</strong></li>
                         </ul>
