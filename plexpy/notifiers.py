@@ -2634,7 +2634,8 @@ class JOIN(object):
             return {'': ''}
 
     def return_config_options(self):
-        devices = '<br>'.join(['%s: %s' % (v, k) for k, v in self.get_devices().iteritems() if k])
+        devices = '<br>'.join(['%s: <span class="inline-pre">%s</span>'
+                               % (v, k) for k, v in self.get_devices().iteritems() if k])
         if not devices:
             devices = 'Enter your Join API key to load your device list.'
 

@@ -2955,3 +2955,13 @@ a.no-highlight:hover {
     min-width: 150px;
     max-width: 250px;
 }
+.inline-pre {
+    font-family: monospace;
+    margin: 0 2px;
+    padding: 2px 5px;
+    font-size: 13px;
+    color: #fff;
+    background-color: #555;
+    border: 0px solid #444;
+    border-radius: 3px;
+}
