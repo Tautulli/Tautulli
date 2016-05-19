@@ -1170,7 +1170,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi()
     def get_user_logins(self, user_id=None, **kwargs):
-        """ Get the data on PlexPy user login table. 
+        """ Get the data on PlexPy user login table.
 
             ```
             Required parameters:
@@ -1189,15 +1189,15 @@ class WebInterface(object):
                      "recordsTotal": 2344,
                      "recordsFiltered": 10,
                      "data":
-                        [{"browser": "Safari 7.0.3", 
-                          "friendly_name": "Jon Snow", 
-                          "host": "http://plexpy.castleblack.com", 
-                          "ip_address": "xxx.xxx.xxx.xxx", 
-                          "os": "Mac OS X", 
-                          "timestamp": 1462591869, 
-                          "user": "LordCommanderSnow", 
-                          "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A", 
-                          "user_group": "guest", 
+                        [{"browser": "Safari 7.0.3",
+                          "friendly_name": "Jon Snow",
+                          "host": "http://plexpy.castleblack.com",
+                          "ip_address": "xxx.xxx.xxx.xxx",
+                          "os": "Mac OS X",
+                          "timestamp": 1462591869,
+                          "user": "LordCommanderSnow",
+                          "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A",
+                          "user_group": "guest",
                           "user_id": 133788
                           },
                          {...},
@@ -1987,24 +1987,14 @@ class WebInterface(object):
     def getLog(self, start=0, length=100, **kwargs):
         start = int(start)
         length = int(length)
-        search_value = ""
-        search_regex = ""
-        order_column = 0
-        order_dir = "desc"
-
-        if 'order[0][dir]' in kwargs:
-            order_dir = kwargs.get('order[0][dir]', "desc")
-
-        if 'order[0][column]' in kwargs:
-            order_column = kwargs.get('order[0][column]', "0")
-
-        if 'search[value]' in kwargs:
-            search_value = kwargs.get('search[value]', "")
-
-        if 'search[regex]' in kwargs:
-            search_regex = kwargs.get('search[regex]', "")
+        order_dir = kwargs.get('order[0][dir]', "desc")
+        order_column = kwargs.get('order[0][column]', "0")
+        search_value = kwargs.get('search[value]', "")
+        search_regex = kwargs.get('search[regex]', "") # Remove?
+        sortcolumn = 0
 
         filt = []
+        filtered = []
         fa = filt.append
         with open(os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)) as f:
             for l in f.readlines():
@@ -2017,22 +2007,24 @@ class WebInterface(object):
                     # Add traceback message to previous msg.
                     tl = (len(filt) - 1)
                     n = len(l) - len(l.lstrip(' '))
-                    l = '&nbsp;' * (2*n) + l[n:]
+                    l = '&nbsp;' * (2 * n) + l[n:]
                     filt[tl][2] += '<br>' + l
                     continue
 
-        filtered = []
         if search_value == '':
             filtered = filt
         else:
             filtered = [row for row in filt for column in row if search_value.lower() in column.lower()]
 
-        sortcolumn = 0
         if order_column == '1':
             sortcolumn = 2
         elif order_column == '2':
             sortcolumn = 1
-        filtered.sort(key=lambda x: x[sortcolumn], reverse=order_dir == "desc")
+
+        filtered.sort(key=lambda x: x[sortcolumn])
+
+        if order_dir == 'desc':
+            filtered = filtered[::-1]
 
         rows = filtered[start:(start + length)]
 
