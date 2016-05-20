@@ -434,6 +434,13 @@
                         </div>
                         <div class="checkbox">
                             <label>
+                                <input type="checkbox" name="http_proxy http-settings" id="http_proxy" value="1" ${config['http_proxy']}> Enable HTTP Proxy
+                            </label>
+                            <p class="help-block">Respect the X-Forwarded-Proto header. Used for reverse proxies with SSL.</p>
+                        </div>
+                        <br />
+                        <div class="checkbox">
+                            <label>
                                 <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}> Launch Browser on Startup
                             </label>
                             <p class="help-block">Launch browser pointed to PlexPy on startup.</p>
