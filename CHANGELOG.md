@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.4.1 (2016-05-20)
+
+* New: HTTP Proxy checkbox in the settings. Enable this if using an SSL enabled reverse proxy in front of PlexPy.
+* Fix: Check for blank username/password on login.
+* Fix: Persist current activity artwork blur across refreshes when transcoding details are visible.
+* Fix: Send notifications to multiple XBMC/Plex Home Theater devices.
+* Fix: Reset PMS identifier when clicking verify server button in settings.
+* Fix: Crash when trying to group current activity session in database.
+* Fix: Check current activity returns sessions when refreshing.
+* Fix: Logs sorted out of order.
+* Fix: Resolution reported incorrectly in the stream info modal.
+* Fix: PlexPy crashing when hashing password in the config file.
+* Fix: CherryPy doubling the port number when accessing PlexPy locally with http_proxy enabled.
+* Change: Sort by most recent for ties in watch statistics.
+* Change: Refresh Join devices when changing the API key.
+* Change: Format the Join device IDs.
+* Change: Join notifications now sent with Python Requests module.
+* Change: Add paging for recently added in the API.
+
+
 ## v1.4.0 (2016-05-15)
 
 * New: An HTML form login page with sessions support.
