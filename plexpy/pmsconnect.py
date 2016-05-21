@@ -179,7 +179,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_recently_added(self, count='0', output_format=''):
+    def get_recently_added(self, start='0', count='0', output_format=''):
         """
         Return list of recently added items.
 
@@ -188,7 +188,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count
+        uri = '/library/recentlyAdded?X-Plex-Container-Start=%s&X-Plex-Container-Size=%s' % (start, count)
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -196,7 +196,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_library_recently_added(self, section_id='', count='0', output_format=''):
+    def get_library_recently_added(self, section_id='', start='0', count='0', output_format=''):
         """
         Return list of recently added items.
 
@@ -205,7 +205,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/library/sections/' + section_id + '/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=' + count
+        uri = '/library/sections/%s/recentlyAdded?X-Plex-Container-Start=%s&X-Plex-Container-Size=%s' % (section_id, start, count)
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -458,7 +458,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_recently_added_details(self, section_id='', count='0'):
+    def get_recently_added_details(self, section_id='', start='0', count='0'):
         """
         Return processed and validated list of recently added items.
 
@@ -467,9 +467,9 @@ class PmsConnect(object):
         Output: array
         """
         if section_id:
-            recent = self.get_library_recently_added(section_id, count, output_format='xml')
+            recent = self.get_library_recently_added(section_id, start, count, output_format='xml')
         else:
-            recent = self.get_recently_added(count, output_format='xml')
+            recent = self.get_recently_added(start, count, output_format='xml')
 
         try:
             xml_head = recent.getElementsByTagName('MediaContainer')

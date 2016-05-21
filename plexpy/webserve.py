@@ -3329,7 +3329,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_recently_added")
-    def get_recently_added_details(self, count='0', section_id='', **kwargs):
+    def get_recently_added_details(self, start='0', count='0', section_id='', **kwargs):
         """ Get all items that where recelty added to plex.
 
             ```
@@ -3337,6 +3337,7 @@ class WebInterface(object):
                 count (str):        Number of items to return
 
             Optional parameters:
+                start (str):        The item number to start at
                 section_id (str):   The id of the Plex library section
 
             Returns:
@@ -3366,7 +3367,7 @@ class WebInterface(object):
             ```
         """
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_recently_added_details(count=count, section_id=section_id)
+        result = pms_connect.get_recently_added_details(start=start, count=count, section_id=section_id)
 
         if result:
             return result
