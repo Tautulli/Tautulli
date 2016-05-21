@@ -1061,6 +1061,7 @@ Required parameters:
     count (str):        Number of items to return
 
 Optional parameters:
+    start (str):        The item number to start at
     section_id (str):   The id of the Plex library section
 
 Returns:
@@ -1357,7 +1358,7 @@ Returns:
 
 
 ### get_user_logins
-Get the data on PlexPy user login table. 
+Get the data on PlexPy user login table.
 
 ```
 Required parameters:
@@ -1376,15 +1377,15 @@ Returns:
          "recordsTotal": 2344,
          "recordsFiltered": 10,
          "data":
-            [{"browser": "Safari 7.0.3", 
-              "friendly_name": "Jon Snow", 
-              "host": "http://plexpy.castleblack.com", 
-              "ip_address": "xxx.xxx.xxx.xxx", 
-              "os": "Mac OS X", 
-              "timestamp": 1462591869, 
-              "user": "LordCommanderSnow", 
-              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A", 
-              "user_group": "guest", 
+            [{"browser": "Safari 7.0.3",
+              "friendly_name": "Jon Snow",
+              "host": "http://plexpy.castleblack.com",
+              "ip_address": "xxx.xxx.xxx.xxx",
+              "os": "Mac OS X",
+              "timestamp": 1462591869,
+              "user": "LordCommanderSnow",
+              "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A",
+              "user_group": "guest",
               "user_id": 133788
               },
              {...},

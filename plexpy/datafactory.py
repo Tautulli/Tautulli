@@ -198,7 +198,7 @@ class DataFactory(object):
                 top_tv = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.media_type, t.content_rating, t.labels, ' \
+                            't.media_type, t.content_rating, t.labels, t.started, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -210,7 +210,7 @@ class DataFactory(object):
                             '       AND session_history.media_type = "episode" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
-                            'ORDER BY %s DESC ' \
+                            'ORDER BY %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
@@ -246,7 +246,7 @@ class DataFactory(object):
                 popular_tv = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.media_type, t.content_rating, t.labels, ' \
+                            't.media_type, t.content_rating, t.labels, t.started, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -259,7 +259,7 @@ class DataFactory(object):
                             '       AND session_history.media_type = "episode" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
-                            'ORDER BY users_watched DESC, %s DESC ' \
+                            'ORDER BY users_watched DESC, %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
@@ -293,7 +293,7 @@ class DataFactory(object):
                 top_movies = []
                 try:
                     query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.section_id, ' \
-                            't.media_type, t.content_rating, t.labels, ' \
+                            't.media_type, t.content_rating, t.labels, t.started, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -305,7 +305,7 @@ class DataFactory(object):
                             '       AND session_history.media_type = "movie" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.full_title ' \
-                            'ORDER BY %s DESC ' \
+                            'ORDER BY %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
@@ -341,7 +341,7 @@ class DataFactory(object):
                 popular_movies = []
                 try:
                     query = 'SELECT t.id, t.full_title, t.rating_key, t.thumb, t.section_id, ' \
-                            't.media_type, t.content_rating, t.labels, ' \
+                            't.media_type, t.content_rating, t.labels, t.started, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -354,7 +354,7 @@ class DataFactory(object):
                             '       AND session_history.media_type = "movie" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.full_title ' \
-                            'ORDER BY users_watched DESC, %s DESC ' \
+                            'ORDER BY users_watched DESC, %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
@@ -388,7 +388,7 @@ class DataFactory(object):
                 top_music = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.media_type, t.content_rating, t.labels, ' \
+                            't.media_type, t.content_rating, t.labels, t.started, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -400,7 +400,7 @@ class DataFactory(object):
                             '       AND session_history.media_type = "track" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
-                            'ORDER BY %s DESC ' \
+                            'ORDER BY %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
@@ -436,7 +436,7 @@ class DataFactory(object):
                 popular_music = []
                 try:
                     query = 'SELECT t.id, t.grandparent_title, t.grandparent_rating_key, t.grandparent_thumb, t.section_id, ' \
-                            't.media_type, t.content_rating, t.labels, ' \
+                            't.media_type, t.content_rating, t.labels, t.started, ' \
                             'COUNT(DISTINCT t.user_id) AS users_watched, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) as total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -449,7 +449,7 @@ class DataFactory(object):
                             '       AND session_history.media_type = "track" ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.grandparent_title ' \
-                            'ORDER BY users_watched DESC, %s DESC ' \
+                            'ORDER BY users_watched DESC, %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
@@ -482,7 +482,7 @@ class DataFactory(object):
             elif stat == 'top_users':
                 top_users = []
                 try:
-                    query = 'SELECT t.user, t.user_id, t.user_thumb, t.custom_thumb, ' \
+                    query = 'SELECT t.user, t.user_id, t.user_thumb, t.custom_thumb, t.started, ' \
                             '(CASE WHEN t.friendly_name IS NULL THEN t.username ELSE t.friendly_name END) ' \
                             '   AS friendly_name, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
@@ -496,7 +496,7 @@ class DataFactory(object):
                             '       >= datetime("now", "-%s days", "localtime") ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.user_id ' \
-                            'ORDER BY %s DESC ' \
+                            'ORDER BY %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
@@ -536,7 +536,7 @@ class DataFactory(object):
                 top_platform = []
 
                 try:
-                    query = 'SELECT t.platform, ' \
+                    query = 'SELECT t.platform, t.started, ' \
                             'MAX(t.started) AS last_watch, COUNT(t.id) AS total_plays, SUM(t.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
                             '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
@@ -547,7 +547,7 @@ class DataFactory(object):
                             '       >= datetime("now", "-%s days", "localtime") ' \
                             '   GROUP BY %s) AS t ' \
                             'GROUP BY t.platform ' \
-                            'ORDER BY %s DESC ' \
+                            'ORDER BY %s DESC, started DESC ' \
                             'LIMIT %s ' % (time_range, group_by, sort_type, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:

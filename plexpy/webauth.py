@@ -36,7 +36,7 @@ from plexpy.plextv import PlexTV
 SESSION_KEY = '_cp_username'
 
 def user_login(username=None, password=None):
-    if not username and not password:
+    if not username or not password:
         return None
 
     # Try to login to Plex.tv to check if the user has a vaild account
@@ -119,7 +119,7 @@ def check_auth(*args, **kwargs):
                 if not condition():
                     raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
         else:
-            raise cherrypy.HTTPRedirect("auth/logout")
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/logout")
     
 def requireAuth(*conditions):
     """A decorator that appends conditions to the auth.require config
@@ -204,14 +204,14 @@ class AuthController(object):
     
     @cherrypy.expose
     def index(self):
-        raise cherrypy.HTTPRedirect("login")
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")
 
     @cherrypy.expose
     def login(self, username=None, password=None, remember_me='0', admin_login='0'):
         if not cherrypy.config.get('tools.sessions.on'):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-        if username is None or password is None:
+        if not username and not password:
             return self.get_loginform()
         
         (vaild_login, user_group) = check_credentials(username, password, admin_login)
@@ -257,4 +257,4 @@ class AuthController(object):
         if _session and _session['user']:
             cherrypy.request.login = None
             self.on_logout(_session['user'], _session['user_group'])
-        raise cherrypy.HTTPRedirect("login")
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login")

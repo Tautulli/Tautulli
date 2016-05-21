@@ -32,7 +32,7 @@ HASH_FUNCTION = 'sha256'  # Must be in hashlib.
 # Linear to the hashing time. Adjust to be high but take a reasonable
 # amount of time on your server. Measure with:
 # python -m timeit -s 'import passwords as p' 'p.make_hash("something")'
-COST_FACTOR = 29000
+COST_FACTOR = 10000
 
 
 def make_hash(password):

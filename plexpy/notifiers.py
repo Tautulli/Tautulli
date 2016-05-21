@@ -786,12 +786,13 @@ class XBMC(object):
                     raise Exception
                 else:
                     logger.info(u"PlexPy Notifiers :: XBMC notification sent.")
-                    return True
 
             except Exception:
-                logger.warn(u"PlexPy Notifiers :: XBMC notification filed.")
+                logger.warn(u"PlexPy Notifiers :: XBMC notification failed.")
                 return False
 
+        return True
+        
     def return_config_options(self):
         config_option = [{'label': 'XBMC Host:Port',
                           'value': self.hosts,
@@ -870,11 +871,12 @@ class Plex(object):
                     raise Exception
                 else:
                     logger.info(u"PlexPy Notifiers :: Plex Home Theater notification sent.")
-                    return True
 
             except Exception:
-                logger.warn(u"PlexPy Notifiers :: Plex Home Theater notification filed.")
+                logger.warn(u"PlexPy Notifiers :: Plex Home Theater notification failed.")
                 return False
+                
+        return True
 
     def return_config_options(self):
         config_option = [{'label': 'Plex Home Theater Host:Port',
@@ -2567,18 +2569,12 @@ class JOIN(object):
                 'title': subject.encode("utf-8"),
                 'text': message.encode("utf-8")}
 
-        http_handler = HTTPSConnection("joinjoaomgcd.appspot.com")
-        http_handler.request("POST",
-                             "/_ah/api/messaging/v1/sendPush?%s" % urlencode(data))
-
-        response = http_handler.getresponse()
-        request_status = response.status
-        # logger.debug(u"PushBullet response status: %r" % request_status)
-        # logger.debug(u"PushBullet response headers: %r" % response.getheaders())
-        # logger.debug(u"PushBullet response body: %r" % response.read())
+        response = requests.post('https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush',
+                                 params=data)
+        request_status = response.status_code
 
         if request_status == 200:
-            data = json.loads(response.read())
+            data = json.loads(response.text)
             if data.get('success'):
                 logger.info(u"PlexPy Notifiers :: Join notification sent.")
                 return True
@@ -2632,7 +2628,10 @@ class JOIN(object):
             return {'': ''}
 
     def return_config_options(self):
-        devices = '<br>'.join(['%s: %s' % (v, k) for k, v in self.get_devices().iteritems() if k])
+        devices = '<br>'.join(['%s: <span class="inline-pre">%s</span>'
+                               % (v, k) for k, v in self.get_devices().iteritems() if k])
+        if not devices:
+            devices = 'Enter your Join API key to load your device list.'
 
         config_option = [{'label': 'Join API Key',
                           'value': self.apikey,

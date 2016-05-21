@@ -195,7 +195,7 @@ def proxy(base=None, local='X-Forwarded-Host', remote='X-Forwarded-For',
     if not base:
         base = request.headers.get('Host', '127.0.0.1')
         port = request.local.port
-        if port != 80:
+        if port != 80 and not base.endswith(':%s' % port):
             base += ':%s' % port
 
     if base.find("://") == -1:

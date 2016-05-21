@@ -217,7 +217,7 @@
         }
     }
 
-    $('#pushbullet_apikey, #pushover_apitoken, #scripts_folder').on('change', function () {
+    $('#pushbullet_apikey, #pushover_apitoken, #scripts_folder, #join_apikey').on('change', function () {
         // Reload modal to update certain fields
         doAjaxCall('set_notification_config', $(this), 'tabs', true, reloadModal);
         return false;

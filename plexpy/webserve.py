@@ -82,9 +82,9 @@ class WebInterface(object):
     @requireAuth()
     def index(self):
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
-            raise cherrypy.HTTPRedirect("home")
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
         else:
-            raise cherrypy.HTTPRedirect("welcome")
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "welcome")
 
 
     ##### Welcome #####
@@ -118,7 +118,7 @@ class WebInterface(object):
         # The setup wizard just refreshes the page on submit so we must redirect to home if config set.
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
             plexpy.initialize_scheduler()
-            raise cherrypy.HTTPRedirect("home")
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
         else:
             return serve_template(templatename="welcome.html", title="Welcome", config=config)
 
@@ -1170,7 +1170,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi()
     def get_user_logins(self, user_id=None, **kwargs):
-        """ Get the data on PlexPy user login table. 
+        """ Get the data on PlexPy user login table.
 
             ```
             Required parameters:
@@ -1189,15 +1189,15 @@ class WebInterface(object):
                      "recordsTotal": 2344,
                      "recordsFiltered": 10,
                      "data":
-                        [{"browser": "Safari 7.0.3", 
-                          "friendly_name": "Jon Snow", 
-                          "host": "http://plexpy.castleblack.com", 
-                          "ip_address": "xxx.xxx.xxx.xxx", 
-                          "os": "Mac OS X", 
-                          "timestamp": 1462591869, 
-                          "user": "LordCommanderSnow", 
-                          "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A", 
-                          "user_group": "guest", 
+                        [{"browser": "Safari 7.0.3",
+                          "friendly_name": "Jon Snow",
+                          "host": "http://plexpy.castleblack.com",
+                          "ip_address": "xxx.xxx.xxx.xxx",
+                          "os": "Mac OS X",
+                          "timestamp": 1462591869,
+                          "user": "LordCommanderSnow",
+                          "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A",
+                          "user_group": "guest",
                           "user_id": 133788
                           },
                          {...},
@@ -1987,24 +1987,14 @@ class WebInterface(object):
     def getLog(self, start=0, length=100, **kwargs):
         start = int(start)
         length = int(length)
-        search_value = ""
-        search_regex = ""
-        order_column = 0
-        order_dir = "desc"
-
-        if 'order[0][dir]' in kwargs:
-            order_dir = kwargs.get('order[0][dir]', "desc")
-
-        if 'order[0][column]' in kwargs:
-            order_column = kwargs.get('order[0][column]', "0")
-
-        if 'search[value]' in kwargs:
-            search_value = kwargs.get('search[value]', "")
-
-        if 'search[regex]' in kwargs:
-            search_regex = kwargs.get('search[regex]', "")
+        order_dir = kwargs.get('order[0][dir]', "desc")
+        order_column = kwargs.get('order[0][column]', "0")
+        search_value = kwargs.get('search[value]', "")
+        search_regex = kwargs.get('search[regex]', "") # Remove?
+        sortcolumn = 0
 
         filt = []
+        filtered = []
         fa = filt.append
         with open(os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)) as f:
             for l in f.readlines():
@@ -2017,22 +2007,24 @@ class WebInterface(object):
                     # Add traceback message to previous msg.
                     tl = (len(filt) - 1)
                     n = len(l) - len(l.lstrip(' '))
-                    l = '&nbsp;' * (2*n) + l[n:]
+                    l = '&nbsp;' * (2 * n) + l[n:]
                     filt[tl][2] += '<br>' + l
                     continue
 
-        filtered = []
         if search_value == '':
             filtered = filt
         else:
             filtered = [row for row in filt for column in row if search_value.lower() in column.lower()]
 
-        sortcolumn = 0
         if order_column == '1':
             sortcolumn = 2
         elif order_column == '2':
             sortcolumn = 1
-        filtered.sort(key=lambda x: x[sortcolumn], reverse=order_dir == "desc")
+
+        filtered.sort(key=lambda x: x[sortcolumn])
+
+        if order_dir == 'desc':
+            filtered = filtered[::-1]
 
         rows = filtered[start:(start + length)]
 
@@ -2215,7 +2207,7 @@ class WebInterface(object):
                           log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
         logger.info(u"Verbose toggled, set to %s", plexpy.VERBOSE)
         logger.debug(u"If you read this message, debug logging is available")
-        raise cherrypy.HTTPRedirect("logs")
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "logs")
 
     @cherrypy.expose
     @requireAuth()
@@ -2262,6 +2254,7 @@ class WebInterface(object):
             "http_port": plexpy.CONFIG.HTTP_PORT,
             "http_password": http_password,
             "http_root": plexpy.CONFIG.HTTP_ROOT,
+            "http_proxy": checked(plexpy.CONFIG.HTTP_PROXY),
             "launch_browser": checked(plexpy.CONFIG.LAUNCH_BROWSER),
             "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),
             "https_create_cert": checked(plexpy.CONFIG.HTTPS_CREATE_CERT),
@@ -2374,7 +2367,7 @@ class WebInterface(object):
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_recently_added_grandparent",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
-            "allow_guest_access", "cache_images"
+            "allow_guest_access", "cache_images", "http_proxy"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -2857,7 +2850,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def checkGithub(self):
         versioncheck.checkGithub()
-        raise cherrypy.HTTPRedirect("home")
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3336,7 +3329,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_recently_added")
-    def get_recently_added_details(self, count='0', section_id='', **kwargs):
+    def get_recently_added_details(self, start='0', count='0', section_id='', **kwargs):
         """ Get all items that where recelty added to plex.
 
             ```
@@ -3344,6 +3337,7 @@ class WebInterface(object):
                 count (str):        Number of items to return
 
             Optional parameters:
+                start (str):        The item number to start at
                 section_id (str):   The id of the Plex library section
 
             Returns:
@@ -3373,7 +3367,7 @@ class WebInterface(object):
             ```
         """
         pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_recently_added_details(count=count, section_id=section_id)
+        result = pms_connect.get_recently_added_details(start=start, count=count, section_id=section_id)
 
         if result:
             return result
@@ -3618,13 +3612,13 @@ class WebInterface(object):
         pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
         result = pms_connect.get_current_activity()
 
-        data_factory = datafactory.DataFactory()
-        for session in result['sessions']:
-            if not session['ip_address']:
-                ip_address = data_factory.get_session_ip(session['session_key'])
-                session['ip_address'] = ip_address
-
         if result:
+            data_factory = datafactory.DataFactory()
+            for session in result['sessions']:
+                if not session['ip_address']:
+                    ip_address = data_factory.get_session_ip(session['session_key'])
+                    session['ip_address'] = ip_address
+
             return result
         else:
             logger.warn(u"Unable to retrieve data for get_activity.")
