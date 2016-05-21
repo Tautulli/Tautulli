@@ -2569,18 +2569,12 @@ class JOIN(object):
                 'title': subject.encode("utf-8"),
                 'text': message.encode("utf-8")}
 
-        http_handler = HTTPSConnection("joinjoaomgcd.appspot.com")
-        http_handler.request("POST",
-                             "/_ah/api/messaging/v1/sendPush?%s" % urlencode(data))
-
-        response = http_handler.getresponse()
-        request_status = response.status
-        # logger.debug(u"PushBullet response status: %r" % request_status)
-        # logger.debug(u"PushBullet response headers: %r" % response.getheaders())
-        # logger.debug(u"PushBullet response body: %r" % response.read())
+        response = requests.post('https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush',
+                                 params=data)
+        request_status = response.status_code
 
         if request_status == 200:
-            data = json.loads(response.read())
+            data = json.loads(response.text)
             if data.get('success'):
                 logger.info(u"PlexPy Notifiers :: Join notification sent.")
                 return True
