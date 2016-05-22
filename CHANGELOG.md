@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.2 (2016-05-22)
+
+* New: Option to use HTTP basic authentication instead of the HTML login form.
+* Fix: Unable to save settings when enabling the HTTP proxy setting.
+* Change: Match the PMS port when retrieving the PMS url.
+
+
 ## v1.4.1 (2016-05-20)
 
 * New: HTTP Proxy checkbox in the settings. Enable this if using an SSL enabled reverse proxy in front of PlexPy.
