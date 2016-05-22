@@ -74,7 +74,7 @@ def initialize(options):
             basic_auth_enabled = False
             cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
     else:
-        auth_enabled = session_enabled = False
+        auth_enabled = session_enabled = basic_auth_enabled = False
 
     if not options['http_root'] or options['http_root'] == '/':
         plexpy.HTTP_ROOT = options['http_root'] = '/'

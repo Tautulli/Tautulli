@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.3 (2016-05-22)
+
+* Fix: PlexPy not starting without any authentication method.
+
+
 ## v1.4.2 (2016-05-22)
 
 * New: Option to use HTTP basic authentication instead of the HTML login form.
