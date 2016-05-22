@@ -2247,6 +2247,7 @@ class WebInterface(object):
 
         config = {
             "allow_guest_access": checked(plexpy.CONFIG.ALLOW_GUEST_ACCESS),
+            "http_basic_auth": checked(plexpy.CONFIG.HTTP_BASIC_AUTH),
             "http_hash_password": checked(plexpy.CONFIG.HTTP_HASH_PASSWORD),
             "http_hashed_password": plexpy.CONFIG.HTTP_HASHED_PASSWORD,
             "http_host": plexpy.CONFIG.HTTP_HOST,
@@ -2367,7 +2368,7 @@ class WebInterface(object):
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_recently_added_grandparent",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
-            "allow_guest_access", "cache_images", "http_proxy"
+            "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:

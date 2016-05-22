@@ -1,10 +1,10 @@
 <!---
 Reporting Issues:
-  * To ensure that a develpoer has enough information to work with please include all of the information below.
+  * To ensure that a developer has enough information to work with please include all of the information below.
     Please provide as much detail as possible. Screenshots can be very useful to see the problem.
   * Use proper markdown syntax to structure your post (i.e. code/log in code blocks).
     See: https://help.github.com/articles/basic-writing-and-formatting-syntax/
-  * Iclude a link to your **FULL** log file that has the error(not just a few lines!).
+  * Include a link to your **FULL** log file that has the error(not just a few lines!).
     Please use [Gist](http://gist.github.com) or [Pastebin](http://pastebin.com/).
 
 Feature Requests:

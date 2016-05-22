@@ -66,8 +66,13 @@ def initialize(options):
 
     if options['http_password']:
         logger.info(u"PlexPy WebStart :: Web server authentication is enabled, username is '%s'", options['http_username'])
-        options_dict['tools.sessions.on'] = auth_enabled = session_enabled = True
-        cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
+        if options['http_basic_auth']:
+            auth_enabled = session_enabled = False
+            basic_auth_enabled = True
+        else:
+            options_dict['tools.sessions.on'] = auth_enabled = session_enabled = True
+            basic_auth_enabled = False
+            cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth)
     else:
         auth_enabled = session_enabled = False
 
@@ -88,7 +93,14 @@ def initialize(options):
                                       'application/javascript'],
             'tools.auth.on': auth_enabled,
             'tools.sessions.on': session_enabled,
-            'tools.sessions.timeout': 30 * 24 * 60  # 30 days
+            'tools.sessions.timeout': 30 * 24 * 60,  # 30 days
+            'tools.auth_basic.on': basic_auth_enabled,
+            'tools.auth_basic.realm': 'PlexPy web server',
+            'tools.auth_basic.checkpassword': cherrypy.lib.auth_basic.checkpassword_dict({
+                options['http_username']: options['http_password']})
+        },
+        '/api': {
+            'tools.auth_basic.on': False
         },
         '/interfaces': {
             'tools.staticdir.on': True,
@@ -199,7 +211,7 @@ def initialize(options):
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.auth.on': False,
             'tools.sessions.on': False
-        },
+        }
     }
 
     # Prevent time-outs
