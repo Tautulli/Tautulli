@@ -214,6 +214,7 @@ def main():
         'https_key': plexpy.CONFIG.HTTPS_KEY,
         'http_username': plexpy.CONFIG.HTTP_USERNAME,
         'http_password': plexpy.CONFIG.HTTP_PASSWORD,
+        'http_basic_auth': plexpy.CONFIG.HTTP_BASIC_AUTH
     }
     webstart.initialize(web_config)
 

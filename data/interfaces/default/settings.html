@@ -528,10 +528,17 @@
                             <label>
                                 <input type="checkbox" name="http_hash_password" id="http_hash_password" value="1" ${config['http_hash_password']} data-parsley-trigger="change"> Hash Password in the Config File
                             </label>
+                            <span id="hashPasswordCheck" style="color: #eb8600; padding-left: 10px;"></span>
                             <p class="help-block">Store a hashed password in the config file.<br />Warning: Your password cannot be recovered if forgotten!</p>
                         </div>
                         <input type="text" id="http_hashed_password" name="http_hashed_password" value="${config['http_hashed_password']}" style="display: none;" data-parsley-trigger="change" data-parsley-type="integer" data-parsley-range="[0, 1]" 
                                data-parsley-errors-container="#http_hash_password_error" data-parsley-error-message="Cannot un-hash password, please set a new password." data-parsley-no-focus required>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="auth-settings" name="http_basic_auth" id="http_basic_auth" value="1" ${config['http_basic_auth']} data-parsley-trigger="change"> Use Basic Authentication
+                            </label>
+                            <p class="help-block">Use basic HTTP authentication instead of the HTML login form.</p>
+                        </div>
 
 
                         <div class="padded-header">
@@ -566,7 +573,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <p class="help-block">Current API key: <strong><br/>${config['api_key']}</strong></p>
+                            <p class="help-block">Current API key: <strong> ${config['api_key']}</strong></p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
@@ -2570,7 +2577,11 @@ $(document).ready(function() {
     });
 
     function allowGuestAccessCheck () {
-        if ($('#http_username').val() == '' || $('#http_password').val() == '') {
+        if ($("#http_basic_auth").is(":checked")) {
+            $("#allow_guest_access").attr("disabled", true);
+            $("#allow_guest_access").attr("checked", false);
+            $("#allowGuestCheck").html("Guest access cannot be enabled with basic authentication.");
+        } else if ($('#http_username').val() == '' || $('#http_password').val() == '') {
             $("#allow_guest_access").attr("disabled", true);
             $("#allow_guest_access").attr("checked", false);
             $("#allowGuestCheck").html("You must set an admin password above to allow guest access.");
@@ -2581,18 +2592,30 @@ $(document).ready(function() {
     }
     allowGuestAccessCheck();
 
-    $('#http_username, #http_password').change(function () {
+    $('#http_username, #http_password, #http_basic_auth').change(function () {
         allowGuestAccessCheck();
     });
 
-
-    $("#http_hash_password").click(function(){
+    function hashPasswordCheck () {
+        if ($("#http_basic_auth").is(":checked")) {
+            $("#http_hash_password").attr("checked", false);
+            $("#http_hash_password").attr("disabled", true);
+            $("#hashPasswordCheck").html("Password cannot be hashed with basic authentication.");
+        } else {
+            $("#http_hash_password").attr("disabled", false);
+            $("#hashPasswordCheck").html("");
+        }
         if (!($("#http_hash_password").is(":checked")) && $("#http_hashed_password").val() == "1" && $("#http_password").val() == "    ") {
             $("#http_hashed_password").val(-1);
         } else if ($("#http_hash_password").is(":checked") && $("#http_hashed_password").val() == "-1" && $("#http_password").val() == "    ") {
             $("#http_hashed_password").val(1);
             $("#http_hash_password_error").html("");
         }
+    }
+    hashPasswordCheck();
+
+    $('#http_password, #http_hash_password, #http_basic_auth').change(function () {
+        hashPasswordCheck();
     });
 
     $('#http_password').change(function () {
