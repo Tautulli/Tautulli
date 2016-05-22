@@ -108,7 +108,8 @@ def get_real_pms_url():
 
             if connections:
                 # Get connection with matching address, otherwise return first connection
-                conn = next((c for c in connections if c['address'] == plexpy.CONFIG.PMS_IP), connections[0])
+                conn = next((c for c in connections if c['address'] == plexpy.CONFIG.PMS_IP
+                             and c['port'] == plexpy.CONFIG.PMS_PORT), connections[0])
                 plexpy.CONFIG.__setattr__('PMS_URL', conn['uri'])
                 plexpy.CONFIG.write()
                 logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
