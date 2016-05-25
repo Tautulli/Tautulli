@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.4.4 (2016-05-24)
+
+* Fix: Image queries crashing the PMS when playing clips from channels.
+* Fix: Plexivity import if IP address is missing.
+* Fix: Tooltips shown behind the datatable headers.
+* Fix: Current activity instances rendered in a random order causing them to jump around.
+
+
 ## v1.4.3 (2016-05-22)
 
 * Fix: PlexPy not starting without any authentication method.
