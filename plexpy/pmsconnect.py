@@ -1021,6 +1021,8 @@ class PmsConnect(object):
                     session_output = self.get_session_each(session_type, session_)
                     session_list.append(session_output)
 
+        session_list = sorted(session_list, key=lambda k: k['session_key'])
+         
         output = {'stream_count': helpers.get_xml_attr(xml_head[0], 'size'),
                   'sessions': session.mask_session_info(session_list)
                   }
