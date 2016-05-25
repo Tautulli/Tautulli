@@ -132,8 +132,8 @@ history_table_modal_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.transcode-tooltip').tooltip();
-        $('.media-type-tooltip').tooltip();
+        $('.transcode-tooltip').tooltip({ container: 'body' });
+        $('.media-type-tooltip').tooltip({ container: 'body' });
         $('.thumb-tooltip').popover({
             html: true,
             container: '#history-modal',

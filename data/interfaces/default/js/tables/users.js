@@ -220,13 +220,14 @@ users_list_table_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.purge-tooltip').tooltip();
-        $('.edit-tooltip').tooltip();
-        $('.transcode-tooltip').tooltip();
-        $('.media-type-tooltip').tooltip();
-        $('.watched-tooltip').tooltip();
+        $('.purge-tooltip').tooltip({ container: 'body' });
+        $('.edit-tooltip').tooltip({ container: 'body' });
+        $('.transcode-tooltip').tooltip({ container: 'body' });
+        $('.media-type-tooltip').tooltip({ container: 'body' });
+        $('.watched-tooltip').tooltip({ container: 'body' });
         $('.thumb-tooltip').popover({
             html: true,
+            container: 'body',
             trigger: 'hover',
             placement: 'right',
             template: '<div class="popover history-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',

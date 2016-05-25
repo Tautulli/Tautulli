@@ -448,10 +448,10 @@ function childTableOptions(rowData) {
 
         // Create the tooltips.
         $('.expand-history-tooltip').tooltip({ container: 'body' });
-        $('.external-ip-tooltip').tooltip();
-        $('.transcode-tooltip').tooltip();
-        $('.media-type-tooltip').tooltip();
-        $('.watched-tooltip').tooltip();
+        $('.external-ip-tooltip').tooltip({ container: 'body' });
+        $('.transcode-tooltip').tooltip({ container: 'body' });
+        $('.media-type-tooltip').tooltip({ container: 'body' });
+        $('.watched-tooltip').tooltip({ container: 'body' });
         $('.thumb-tooltip').popover({
             html: true,
             container: 'body',
