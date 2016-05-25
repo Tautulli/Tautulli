@@ -14,7 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import threading
-import urllib2
+import urllib
 from urlparse import urlparse
 
 import plexpy
@@ -387,7 +387,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/search?query=' + urllib2.quote(query.encode('utf8')) + track
+        uri = '/search?query=' + urllib.quote(query.encode('utf8')) + track
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -1902,10 +1902,12 @@ class PmsConnect(object):
         """
 
         if img:
-            uri = '/photo/:/transcode?url=http://127.0.0.1:32400%s' % img
+            params = {'url': plexpy.CONFIG.PMS_URL + img}
             if width.isdigit() and height.isdigit():
-                uri += '&width=%s&height=%s' % (width, height)
+                params['width'] = width
+                params['height'] = height
 
+            uri = '/photo/:/transcode?%s' % urllib.urlencode(params)
             result = self.request_handler.make_request(uri=uri,
                                                        proto=self.protocol,
                                                        request_type='GET',
