@@ -100,6 +100,7 @@ def extract_plexivity_xml(xml=None):
                 video_resolution = helpers.get_xml_attr(c, 'videoResolution')
                 width = helpers.get_xml_attr(c, 'width')
 
+        ip_address = ''
         machine_id = ''
         platform = ''
         player = ''

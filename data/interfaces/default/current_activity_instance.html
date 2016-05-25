@@ -61,6 +61,8 @@ DOCUMENTATION :: END
 
 % if data is not None:
 <%
+    from urllib import quote
+
     from plexpy import helpers
     data['indexes'] = helpers.cast_to_int(data['indexes'])
 %>
@@ -90,9 +92,11 @@ DOCUMENTATION :: END
                     <div class="dashboard-activity-poster-face" style="background-image: url(${data['thumb']});"></div>
                     % else:
                     % if data['art']:
-                    <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art);"></div>
+                    <!--Hacky solution to escape the image url until I come up with something better-->
+                    <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['art'])}&width=500&height=280&fallback=art);"></div>
                     % else:
-                    <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=art);"></div>
+                    <!--Hacky solution to escape the image url until I come up with something better-->
+                    <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['thumb'])}&width=500&height=280&fallback=art);"></div>
                     % endif
                     % endif
                     % elif data['media_type'] == 'photo':
