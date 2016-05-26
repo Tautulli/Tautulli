@@ -108,7 +108,7 @@ def extract_plexivity_xml(xml=None):
         if a.getElementsByTagName('Player'):
             player_elem = a.getElementsByTagName('Player')
             for d in player_elem:
-                ip_address = helpers.get_xml_attr(d, 'address')
+                ip_address = helpers.get_xml_attr(d, 'address').split('::ffff:')[-1]
                 machine_id = helpers.get_xml_attr(d, 'machineIdentifier')
                 platform = helpers.get_xml_attr(d, 'platform')
                 player = helpers.get_xml_attr(d, 'title')
