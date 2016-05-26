@@ -44,7 +44,11 @@ def refresh_users():
             if user_tokens and user_tokens['server_token']:
                 pms_connect = pmsconnect.PmsConnect(token=user_tokens['server_token'])
                 library_details = pms_connect.get_server_children()
-                shared_libraries = ';'.join(d['section_id'] for d in library_details['libraries_list'])
+
+                if library_details:
+                    shared_libraries = ';'.join(d['section_id'] for d in library_details['libraries_list'])
+                else:
+                    shared_libraries = ''
 
             control_value_dict = {"user_id": item['user_id']}
             new_value_dict = {"username": item['username'],
@@ -109,7 +113,7 @@ def get_real_pms_url():
             if connections:
                 # Get connection with matching address, otherwise return first connection
                 conn = next((c for c in connections if c['address'] == plexpy.CONFIG.PMS_IP
-                             and c['port'] == plexpy.CONFIG.PMS_PORT), connections[0])
+                             and c['port'] == str(plexpy.CONFIG.PMS_PORT)), connections[0])
                 plexpy.CONFIG.__setattr__('PMS_URL', conn['uri'])
                 plexpy.CONFIG.write()
                 logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
