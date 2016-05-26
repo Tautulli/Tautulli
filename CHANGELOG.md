@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.4.5 (2016-05-25)
+
+* Fix: PlexPy unable to start if failed to get shared libraries for a user.
+* Fix: Matching port number when retrieving the PMS url.
+* Fix: Extract mapped IPv4 address in Plexivity import.
+* Change: Revert back to internal url when retrieving PMS images.
+
+
 ## v1.4.4 (2016-05-24)
 
 * Fix: Image queries crashing the PMS when playing clips from channels.
