@@ -1904,7 +1904,7 @@ class PmsConnect(object):
         """
 
         if img:
-            params = {'url': plexpy.CONFIG.PMS_URL + img}
+            params = {'url': 'http://127.0.0.1:32400%s' % img}
             if width.isdigit() and height.isdigit():
                 params['width'] = width
                 params['height'] = height
