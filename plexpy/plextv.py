@@ -44,7 +44,11 @@ def refresh_users():
             if user_tokens and user_tokens['server_token']:
                 pms_connect = pmsconnect.PmsConnect(token=user_tokens['server_token'])
                 library_details = pms_connect.get_server_children()
-                shared_libraries = ';'.join(d['section_id'] for d in library_details['libraries_list'])
+
+                if library_details:
+                    shared_libraries = ';'.join(d['section_id'] for d in library_details['libraries_list'])
+                else:
+                    shared_libraries = ''
 
             control_value_dict = {"user_id": item['user_id']}
             new_value_dict = {"username": item['username'],
