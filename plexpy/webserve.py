@@ -1047,7 +1047,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_user_watch_time_stats(self, user=None, user_id=None, **kwargs):
+    def user_watch_time_stats(self, user=None, user_id=None, **kwargs):
         if not allow_session_user(user_id):
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
@@ -1060,12 +1060,12 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
         else:
-            logger.warn(u"Unable to retrieve data for get_user_watch_time_stats.")
+            logger.warn(u"Unable to retrieve data for user_watch_time_stats.")
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
     @requireAuth()
-    def get_user_player_stats(self, user=None, user_id=None, **kwargs):
+    def user_player_stats(self, user=None, user_id=None, **kwargs):
         if not allow_session_user(user_id):
             return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
 
@@ -1078,7 +1078,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_player_stats.html", data=result, title="Player Stats")
         else:
-            logger.warn(u"Unable to retrieve data for get_user_player_stats.")
+            logger.warn(u"Unable to retrieve data for user_player_stats.")
             return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
@@ -1221,6 +1221,134 @@ class WebInterface(object):
         history = user_data.get_datatables_user_login(user_id=user_id, kwargs=kwargs)
 
         return history
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_user(self, user_id=None, **kwargs):
+        """ Get a user's details.
+
+            ```
+            Required parameters:
+                user_id (str):          The id of the Plex user
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"allow_guest": 1,
+                     "deleted_user": 0,
+                     "do_notify": 1,
+                     "email": "Jon.Snow.1337@CastleBlack.com",
+                     "friendly_name": "Jon Snow",
+                     "is_allow_sync": 1,
+                     "is_home_user": 1,
+                     "is_restricted": 0,
+                     "keep_history": 1,
+                     "shared_libraries": ["10", "1", "4", "5", "15", "20", "2"], 
+                     "user_id": 133788,
+                     "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
+                     "username": "LordCommanderSnow"
+                     }
+            ```
+        """
+        user_data = users.Users()
+        if user_id:
+            user_details = user_data.get_details(user_id=user_id)
+            if user_details:
+                return user_details
+            else:
+                logger.warn(u"Unable to retrieve data for get_user.")
+        else:
+            logger.warn(u"User details requested but no user_id received.")
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_user_watch_time_stats(self, user_id=None, **kwargs):
+        """ Get a user's watch time statistics.
+
+            ```
+            Required parameters:
+                user_id (str):          The id of the Plex user
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    [{"query_days": 1,
+                      "total_plays": 0,
+                      "total_time": 0
+                      },
+                     {"query_days": 7,
+                      "total_plays": 3,
+                      "total_time": 15694
+                      },
+                     {"query_days": 30,
+                      "total_plays": 35,
+                      "total_time": 63054
+                      },
+                     {"query_days": 0,
+                      "total_plays": 508,
+                      "total_time": 1183080
+                      }
+                     ]
+            ```
+        """
+        user_data = users.Users()
+        if user_id:
+            result = user_data.get_watch_time_stats(user_id=user_id)
+            if result:
+                return result
+            else:
+                logger.warn(u"Unable to retrieve data for get_user_watch_time_stats.")
+        else:
+            logger.warn(u"User watch time stats requested but no user_id received.")
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_user_player_stats(self, user_id=None, **kwargs):
+        """ Get a user's player statistics.
+
+            ```
+            Required parameters:
+                user_id (str):          The id of the Plex user
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    [{"platform_type": "Chrome",
+                      "player_name": "Plex Web (Chrome)",
+                      "result_id": 1,
+                      "total_plays": 170
+                      },
+                     {"platform_type": "Chromecast",
+                      "player_name": "Chromecast",
+                      "result_id": 2,
+                      "total_plays": 42
+                      },
+                     {...},
+                     {...}
+                     ]
+            ```
+        """
+        user_data = users.Users()
+        if user_id:
+            result = user_data.get_player_stats(user_id=user_id)
+            if result:
+                return result
+            else:
+                logger.warn(u"Unable to retrieve data for get_user_player_stats.")
+        else:
+            logger.warn(u"User watch time stats requested but no user_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

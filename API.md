@@ -1311,6 +1311,35 @@ Returns:
 ```
 
 
+### get_user
+Get a user's details.
+
+```
+Required parameters:
+    user_id (str):          The id of the Plex user
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"allow_guest": 1,
+         "deleted_user": 0,
+         "do_notify": 1,
+         "email": "Jon.Snow.1337@CastleBlack.com",
+         "friendly_name": "Jon Snow",
+         "is_allow_sync": 1,
+         "is_home_user": 1,
+         "is_restricted": 0,
+         "keep_history": 1,
+         "shared_libraries": ["10", "1", "4", "5", "15", "20", "2"], 
+         "user_id": 133788,
+         "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
+         "username": "LordCommanderSnow"
+         }
+```
+
+
 ### get_user_ips
 Get the data on PlexPy users IP table.
 
@@ -1412,6 +1441,66 @@ Returns:
          {"friendly_name": "Tyrion Lannister", "user_id": 696969},
          {...},
         ]
+```
+
+
+### get_user_player_stats
+Get a user's player statistics.
+
+```
+Required parameters:
+    user_id (str):          The id of the Plex user
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        [{"platform_type": "Chrome",
+          "player_name": "Plex Web (Chrome)",
+          "result_id": 1,
+          "total_plays": 170
+          },
+         {"platform_type": "Chromecast",
+          "player_name": "Chromecast",
+          "result_id": 2,
+          "total_plays": 42
+          },
+         {...},
+         {...}
+         ]
+```
+
+
+### get_user_watch_time_stats
+Get a user's watch time statistics.
+
+```
+Required parameters:
+    user_id (str):          The id of the Plex user
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        [{"query_days": 1,
+          "total_plays": 0,
+          "total_time": 0
+          },
+         {"query_days": 7,
+          "total_plays": 3,
+          "total_time": 15694
+          },
+         {"query_days": 30,
+          "total_plays": 35,
+          "total_time": 63054
+          },
+         {"query_days": 0,
+          "total_plays": 508,
+          "total_time": 1183080
+          }
+         ]
 ```
 
 
