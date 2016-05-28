@@ -477,9 +477,9 @@ class WebInterface(object):
             "get_file_sizes_hold": plexpy.CONFIG.GET_FILE_SIZES_HOLD
         }
 
-        library_data = libraries.Libraries()
         if section_id:
             try:
+                library_data = libraries.Libraries()
                 library_details = library_data.get_details(section_id=section_id)
             except:
                 logger.warn(u"Unable to retrieve library details for section_id %s " % section_id)
@@ -493,8 +493,8 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def edit_library_dialog(self, section_id=None, **kwargs):
-        library_data = libraries.Libraries()
         if section_id:
+            library_data = libraries.Libraries()
             result = library_data.get_details(section_id=section_id)
             status_message = ''
         else:
@@ -528,9 +528,9 @@ class WebInterface(object):
         do_notify_created = kwargs.get('do_notify_created', 0)
         keep_history = kwargs.get('keep_history', 0)
 
-        library_data = libraries.Libraries()
         if section_id:
             try:
+                library_data = libraries.Libraries()
                 library_data.set_config(section_id=section_id,
                                         custom_thumb=custom_thumb,
                                         do_notify=do_notify,
@@ -543,7 +543,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_library_watch_time_stats(self, section_id=None, **kwargs):
+    def library_watch_time_stats(self, section_id=None, **kwargs):
         if not allow_session_library(section_id):
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
@@ -556,12 +556,12 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
         else:
-            logger.warn(u"Unable to retrieve data for get_library_watch_time_stats.")
+            logger.warn(u"Unable to retrieve data for library_watch_time_stats.")
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
     @requireAuth()
-    def get_library_user_stats(self, section_id=None, **kwargs):
+    def library_user_stats(self, section_id=None, **kwargs):
         if not allow_session_library(section_id):
             return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
 
@@ -574,12 +574,12 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
         else:
-            logger.warn(u"Unable to retrieve data for get_library_user_stats.")
+            logger.warn(u"Unable to retrieve data for library_user_stats.")
             return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
     @requireAuth()
-    def get_library_recently_watched(self, section_id=None, limit='10', **kwargs):
+    def library_recently_watched(self, section_id=None, limit='10', **kwargs):
         if not allow_session_library(section_id):
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
 
@@ -592,12 +592,12 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="user_recently_watched.html", data=result, title="Recently Watched")
         else:
-            logger.warn(u"Unable to retrieve data for get_library_recently_watched.")
+            logger.warn(u"Unable to retrieve data for library_recently_watched.")
             return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
 
     @cherrypy.expose
     @requireAuth()
-    def get_library_recently_added(self, section_id=None, limit='10', **kwargs):
+    def library_recently_added(self, section_id=None, limit='10', **kwargs):
         if not allow_session_library(section_id):
             return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
 
@@ -610,7 +610,7 @@ class WebInterface(object):
         if result:
             return serve_template(templatename="library_recently_added.html", data=result['recently_added'], title="Recently Added")
         else:
-            logger.warn(u"Unable to retrieve data for get_library_recently_added.")
+            logger.warn(u"Unable to retrieve data for library_recently_added.")
             return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
 
     @cherrypy.expose
@@ -732,6 +732,132 @@ class WebInterface(object):
             result = False
 
         return {'success': result}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_library(self, section_id=None, **kwargs):
+        """ Get a library's details.
+
+            ```
+            Required parameters:
+                section_id (str):               The id of the Plex library section
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"child_count": null, 
+                     "count": 887, 
+                     "do_notify": 1, 
+                     "do_notify_created": 1, 
+                     "keep_history": 1, 
+                     "library_art": "/:/resources/movie-fanart.jpg", 
+                     "library_thumb": "/:/resources/movie.png", 
+                     "parent_count": null, 
+                     "section_id": 1, 
+                     "section_name": "Movies", 
+                     "section_type": "movie"
+                     }
+            ```
+        """
+        if section_id:
+            library_data = libraries.Libraries()
+            library_details = library_data.get_details(section_id=section_id)
+            if library_details:
+                return library_details
+            else:
+                logger.warn(u"Unable to retrieve data for get_library.")
+        else:
+            logger.warn(u"Library details requested but no section_id received.")
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_library_watch_time_stats(self, section_id=None, **kwargs):
+        """ Get a library's watch time statistics.
+
+            ```
+            Required parameters:
+                section_id (str):               The id of the Plex library section
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    [{"query_days": 1,
+                      "total_plays": 0,
+                      "total_time": 0
+                      },
+                     {"query_days": 7,
+                      "total_plays": 3,
+                      "total_time": 15694
+                      },
+                     {"query_days": 30,
+                      "total_plays": 35,
+                      "total_time": 63054
+                      },
+                     {"query_days": 0,
+                      "total_plays": 508,
+                      "total_time": 1183080
+                      }
+                     ]
+            ```
+        """
+        if section_id:
+            library_data = libraries.Libraries()
+            result = library_data.get_watch_time_stats(section_id=section_id)
+            if result:
+                return result
+            else:
+                logger.warn(u"Unable to retrieve data for get_library_watch_time_stats.")
+        else:
+            logger.warn(u"Library watch time stats requested but no section_id received.")
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_library_user_stats(self, section_id=None, **kwargs):
+        """ Get a library's user statistics.
+
+            ```
+            Required parameters:
+                section_id (str):               The id of the Plex library section
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    [{"friendly_name": "Jon Snow",
+                      "total_plays": 170,
+                      "user_id": 133788,
+                      "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar"
+                      },
+                     {"platform_type": "DanyKhaleesi69",
+                      "total_plays": 42,
+                      "user_id": 8008135,
+                      "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar"
+                      },
+                     {...},
+                     {...}
+                     ]
+            ```
+        """
+        if section_id:
+            library_data = libraries.Libraries()
+            result = library_data.get_user_stats(section_id=section_id)
+            if result:
+                return result
+            else:
+                logger.warn(u"Unable to retrieve data for get_library_user_stats.")
+        else:
+            logger.warn(u"Library user stats requested but no section_id received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -977,9 +1103,9 @@ class WebInterface(object):
         if not allow_session_user(user_id):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-        user_data = users.Users()
         if user_id:
             try:
+                user_data = users.Users()
                 user_details = user_data.get_details(user_id=user_id)
             except:
                 logger.warn(u"Unable to retrieve user details for user_id %s " % user_id)
@@ -993,8 +1119,8 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def edit_user_dialog(self, user=None, user_id=None, **kwargs):
-        user_data = users.Users()
         if user_id:
+            user_data = users.Users()
             result = user_data.get_details(user_id=user_id)
             status_message = ''
         else:
@@ -1030,9 +1156,9 @@ class WebInterface(object):
         keep_history = kwargs.get('keep_history', 0)
         allow_guest = kwargs.get('allow_guest', 0)
 
-        user_data = users.Users()
         if user_id:
             try:
+                user_data = users.Users()
                 user_data.set_config(user_id=user_id,
                                      friendly_name=friendly_name,
                                      custom_thumb=custom_thumb,
@@ -1254,8 +1380,8 @@ class WebInterface(object):
                      }
             ```
         """
-        user_data = users.Users()
         if user_id:
+            user_data = users.Users()
             user_details = user_data.get_details(user_id=user_id)
             if user_details:
                 return user_details
@@ -1299,8 +1425,8 @@ class WebInterface(object):
                      ]
             ```
         """
-        user_data = users.Users()
         if user_id:
+            user_data = users.Users()
             result = user_data.get_watch_time_stats(user_id=user_id)
             if result:
                 return result
@@ -1340,8 +1466,8 @@ class WebInterface(object):
                      ]
             ```
         """
-        user_data = users.Users()
         if user_id:
+            user_data = users.Users()
             result = user_data.get_player_stats(user_id=user_id)
             if result:
                 return result
@@ -1368,9 +1494,8 @@ class WebInterface(object):
                 None
             ```
         """
-        user_data = users.Users()
-
         if user_id:
+            user_data = users.Users()
             delete_row = user_data.delete_all_history(user_id=user_id)
             if delete_row:
                 return {'message': delete_row}
@@ -1395,11 +1520,9 @@ class WebInterface(object):
                 None
             ```
         """
-        user_data = users.Users()
-
         if user_id:
+            user_data = users.Users()
             delete_row = user_data.delete(user_id=user_id)
-
             if delete_row:
                 return {'message': delete_row}
         else:
@@ -1424,16 +1547,14 @@ class WebInterface(object):
                 None
             ```
         """
-        user_data = users.Users()
-
         if user_id:
+            user_data = users.Users()
             delete_row = user_data.undelete(user_id=user_id)
-
             if delete_row:
                 return {'message': delete_row}
         elif username:
+            user_data = users.Users()
             delete_row = user_data.undelete(username=username)
-
             if delete_row:
                 return {'message': delete_row}
         else:

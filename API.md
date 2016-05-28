@@ -543,6 +543,33 @@ Returns:
 ```
 
 
+### get_library
+Get a library's details.
+
+```
+Required parameters:
+    section_id (str):               The id of the Plex library section
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"child_count": null, 
+         "count": 887, 
+         "do_notify": 1, 
+         "do_notify_created": 1, 
+         "keep_history": 1, 
+         "library_art": "/:/resources/movie-fanart.jpg", 
+         "library_thumb": "/:/resources/movie.png", 
+         "parent_count": null, 
+         "section_id": 1, 
+         "section_name": "Movies", 
+         "section_type": "movie"
+         }
+```
+
+
 ### get_library_media_info
 Get the data on the PlexPy media info tables.
 
@@ -615,6 +642,66 @@ Returns:
          {"section_id": 7, "section_name": "Music"},
          {"section_id": 2, "section_name": "TV Shows"},
          {...}
+         ]
+```
+
+
+### get_library_user_stats
+Get a library's user statistics.
+
+```
+Required parameters:
+    section_id (str):               The id of the Plex library section
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        [{"friendly_name": "Jon Snow",
+          "total_plays": 170,
+          "user_id": 133788,
+          "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar"
+          },
+         {"platform_type": "DanyKhaleesi69",
+          "total_plays": 42,
+          "user_id": 8008135,
+          "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar"
+          },
+         {...},
+         {...}
+         ]
+```
+
+
+### get_library_watch_time_stats
+Get a library's watch time statistics.
+
+```
+Required parameters:
+    section_id (str):               The id of the Plex library section
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        [{"query_days": 1,
+          "total_plays": 0,
+          "total_time": 0
+          },
+         {"query_days": 7,
+          "total_plays": 3,
+          "total_time": 15694
+          },
+         {"query_days": 30,
+          "total_plays": 35,
+          "total_time": 63054
+          },
+         {"query_days": 0,
+          "total_plays": 508,
+          "total_time": 1183080
+          }
          ]
 ```
 

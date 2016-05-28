@@ -362,7 +362,7 @@ DOCUMENTATION :: END
 
         // Populate watch time stats
         $.ajax({
-            url: 'get_library_watch_time_stats',
+            url: 'library_watch_time_stats',
             async: true,
             data: { section_id: section_id },
             complete: function(xhr, status) {
@@ -372,7 +372,7 @@ DOCUMENTATION :: END
 
         // Populate user stats
         $.ajax({
-            url: 'get_library_user_stats',
+            url: 'library_user_stats',
             async: true,
             data: { section_id: section_id },
             complete: function(xhr, status) {
@@ -498,7 +498,7 @@ DOCUMENTATION :: END
         function recentlyWatched() {
             // Populate recently watched
             $.ajax({
-                url: 'get_library_recently_watched',
+                url: 'library_recently_watched',
                 async: true,
                 data: {
                     section_id: section_id,
@@ -514,7 +514,7 @@ DOCUMENTATION :: END
         function recentlyAdded() {
             // Populate recently added
             $.ajax({
-                url: 'get_library_recently_added',
+                url: 'library_recently_added',
                 async: true,
                 data: {
                     section_id: section_id,
