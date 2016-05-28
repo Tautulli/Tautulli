@@ -121,13 +121,15 @@ class PmsConnect(object):
             if session.get_session_user_id():
                 user_data = users.Users()
                 user_tokens = user_data.get_tokens(user_id=session.get_session_user_id())
-                token = user_tokens['server_token']
+                self.token = user_tokens['server_token']
             else:
-                token = plexpy.CONFIG.PMS_TOKEN
+                self.token = plexpy.CONFIG.PMS_TOKEN
+        else:
+            self.token = token
 
         self.request_handler = http_handler.HTTPHandler(host=hostname,
                                                         port=port,
-                                                        token=token)
+                                                        token=self.token)
 
     def get_sessions(self, output_format=''):
         """
@@ -1904,7 +1906,7 @@ class PmsConnect(object):
         """
 
         if img:
-            params = {'url': 'http://127.0.0.1:32400%s' % img}
+            params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}
             if width.isdigit() and height.isdigit():
                 params['width'] = width
                 params['height'] = height

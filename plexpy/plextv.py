@@ -147,13 +147,15 @@ class PlexTV(object):
             if session.get_session_user_id():
                 user_data = users.Users()
                 user_tokens = user_data.get_tokens(user_id=session.get_session_user_id())
-                token = user_tokens['server_token']
+                self.token = user_tokens['server_token']
             else:
-                token = plexpy.CONFIG.PMS_TOKEN
+                self.token = plexpy.CONFIG.PMS_TOKEN
+        else:
+            self.token = token
 
         self.request_handler = http_handler.HTTPHandler(host='plex.tv',
                                                         port=443,
-                                                        token=token,
+                                                        token=self.token,
                                                         ssl_verify=self.ssl_verify)
 
     def get_plex_auth(self, output_format='raw'):
