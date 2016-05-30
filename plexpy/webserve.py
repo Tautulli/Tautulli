@@ -2287,7 +2287,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_plex_log(self, window=1000, **kwargs):
+    def get_plex_log(self, **kwargs):
         """ Get the PMS logs.
 
             ```
@@ -2309,6 +2309,7 @@ class WebInterface(object):
                      ]
             ```
         """
+        window = int(kwargs.get('window', plexpy.CONFIG.PMS_LOGS_LINE_CAP))
         log_lines = []
         log_type = kwargs.get('log_type', 'server')
 
