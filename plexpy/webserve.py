@@ -749,16 +749,16 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    {"child_count": null, 
-                     "count": 887, 
-                     "do_notify": 1, 
-                     "do_notify_created": 1, 
-                     "keep_history": 1, 
-                     "library_art": "/:/resources/movie-fanart.jpg", 
-                     "library_thumb": "/:/resources/movie.png", 
-                     "parent_count": null, 
-                     "section_id": 1, 
-                     "section_name": "Movies", 
+                    {"child_count": null,
+                     "count": 887,
+                     "do_notify": 1,
+                     "do_notify_created": 1,
+                     "keep_history": 1,
+                     "library_art": "/:/resources/movie-fanart.jpg",
+                     "library_thumb": "/:/resources/movie.png",
+                     "parent_count": null,
+                     "section_id": 1,
+                     "section_name": "Movies",
                      "section_type": "movie"
                      }
             ```
@@ -1373,7 +1373,7 @@ class WebInterface(object):
                      "is_home_user": 1,
                      "is_restricted": 0,
                      "keep_history": 1,
-                     "shared_libraries": ["10", "1", "4", "5", "15", "20", "2"], 
+                     "shared_libraries": ["10", "1", "4", "5", "15", "20", "2"],
                      "user_id": 133788,
                      "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
                      "username": "LordCommanderSnow"
@@ -3200,7 +3200,9 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def pms_image_proxy(self, img='', rating_key=None, width='0', height='0', fallback=None, **kwargs):
+    def pms_image_proxy(self, img='', rating_key=None, width='0', height='0',
+                        fallback=None, refresh=False, **kwargs):
+
         """ Gets an image from the PMS and saves it to the image cache directory. """
 
         if not img and not rating_key:
@@ -3221,8 +3223,9 @@ class WebInterface(object):
             os.mkdir(c_dir)
 
         try:
-            if 'indexes' in img:
+            if not plexpy.CONFIG.CACHE_IMAGES or refresh or 'indexes' in img:
                 raise NotFound
+
             return serve_file(path=ffp, content_type='image/jpeg')
 
         except NotFound:
