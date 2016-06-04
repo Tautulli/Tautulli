@@ -400,3 +400,26 @@ window.onerror = function (message, file, line) {
     };
     $.post("log_js_errors", e, function (data) { });
 };
+
+$('*').on('click', '.refresh_pms_image', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    var background_div = $(this).parent().siblings(['style*=pms_image_proxy']).first();
+    var pms_proxy_url = background_div.css('background-image');
+    pms_proxy_url = /^url\((['"]?)(.*)\1\)$/.exec(pms_proxy_url);
+    pms_proxy_url = pms_proxy_url ? pms_proxy_url[2] : ""; // If matched, retrieve url, otherwise ""
+
+    if (pms_proxy_url.indexOf('pms_image_proxy') == -1) {
+        console.log('PMS image proxy url not found.');
+    } else {
+        if (pms_proxy_url.indexOf('refresh=true') > -1) {
+            pms_proxy_url = pms_proxy_url.replace("&refresh=true", "");
+            console.log(pms_proxy_url)
+            background_div.css('background-image', 'url(' + pms_proxy_url + ')');
+            background_div.css('background-image', 'url(' + pms_proxy_url + '&refresh=true)');
+        } else {
+            background_div.css('background-image', 'url(' + pms_proxy_url + '&refresh=true)');
+        }
+    }
+});

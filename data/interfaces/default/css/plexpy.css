@@ -1184,6 +1184,7 @@ a:hover .dashboard-recent-media-cover {
     margin: 0 40px 0 25px;
     height: 100px;
     overflow: visible;
+    position: relative;
 }
 .summary-poster-face {
     background-position: center;
@@ -1922,6 +1923,7 @@ a .library-user-instance-box:hover {
 .home-platforms-instance-poster {
     margin-left: 0px;
     position: absolute;
+    overflow: hidden;
 }
 .home-platforms-instance-poster .home-platforms-poster-face {
     background-position: center;
@@ -2079,6 +2081,7 @@ a .library-user-instance-box:hover {
 .home-platforms-instance-list-poster {
     position: absolute;
     left: 20px;
+    overflow: hidden;
 }
 .home-platforms-instance-list-poster .home-platforms-list-poster-face {
     background-position: center;
@@ -2964,4 +2967,41 @@ a.no-highlight:hover {
     background-color: #555;
     border: 0px solid #444;
     border-radius: 3px;
+}
+.overlay-refresh-image {
+    opacity: 0;
+    color: #000;
+    font-size: 16px;
+    float: left;
+    position: absolute;
+    top: 0px;
+    right: 10px;
+    z-index: 1;
+    transition: all .1s cubic-bezier(.4,0,1,1);
+    -webkit-transition: all .1s cubic-bezier(.4,0,1,1);
+    -moz-transition: all .1s cubic-bezier(.4,0,1,1);
+    -o-transition: all .1s cubic-bezier(.4,0,1,1);
+    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+}
+.overlay-refresh-image.left {
+    left: 10px;
+}
+.overlay-refresh-image.info-art {
+    color: #999;
+    top: 15px;
+    right: 25px;
+    opacity: 1;
+    text-shadow: none;
+    cursor: pointer;
+}
+.overlay-refresh-image.info-art:hover {
+    color: #fff;
+    text-shadow: none;
+}
+a:hover .overlay-refresh-image {
+    opacity: .25;
+    top: 8px;
+}
+a:hover .overlay-refresh-image:hover {
+    opacity: .9;
 }

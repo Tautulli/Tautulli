@@ -3209,6 +3209,8 @@ class WebInterface(object):
             logger.error('No image input received.')
             return
 
+        refresh = True if refresh == 'true' else False
+
         if rating_key and not img:
             img = '/library/metadata/%s/thumb/1337' % rating_key
 
@@ -3245,7 +3247,7 @@ class WebInterface(object):
                     raise Exception(u'PMS image request failed')
 
             except Exception as e:
-                logger.exception(u'Failed to get image %s, falling back to %s.' % (img, fallback))
+                logger.warn(u'Failed to get image %s, falling back to %s.' % (img, fallback))
                 fbi = None
                 if fallback == 'poster':
                     fbi = common.DEFAULT_POSTER_THUMB
