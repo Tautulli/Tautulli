@@ -14,7 +14,7 @@
 #           default. Do not sets it as empty or it will run
 #           as root.
 # plexpy_dir:   Directory where PlexPy lives.
-#           Default: /usr/local/plexpy
+#           Default: /usr/local/share/plexpy
 # plexpy_chdir:  Change to this directory before running PlexPy.
 #     Default is same as plexpy_dir.
 # plexpy_pid:  The name of the pidfile to create.
@@ -30,7 +30,7 @@ load_rc_config ${name}
 
 : ${plexpy_enable:="NO"}
 : ${plexpy_user:="_sabnzbd"}
-: ${plexpy_dir:="/usr/local/plexpy"}
+: ${plexpy_dir:="/usr/local/share/plexpy"}
 : ${plexpy_chdir:="${plexpy_dir}"}
 : ${plexpy_pid:="${plexpy_dir}/plexpy.pid"}
 : ${plexpy_flags:=""}
