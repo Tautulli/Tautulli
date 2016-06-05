@@ -21,6 +21,18 @@
             <span><i class="fa fa-list-alt"></i> Logs</span>
         </div>
         <div class="button-bar">
+            <div class="btn-group" id="filter-logs" style="display: none; ">
+              <label>
+                <select name="log-filter" id="log-filter" class="btn" style="color: inherit;">
+                    <option value="">All log levels</option>
+                    <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                    <option value="DEBUG">Debug</option>
+                    <option value="INFO">Info</option>
+                    <option value="WARN">Warning</option>
+                    <option value="ERROR">Error</option>
+                </select>
+              </label>
+            </div>
             <button class="btn btn-dark" id="download-plexpylog"><i class="fa fa-download"></i> Download log</button>
             <button class="btn btn-dark" id="clear-logs"><i class="fa fa-trash-o"></i> Clear logs</button>
             <button class="btn btn-dark" id="clear-notify-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear logs</button>
@@ -143,6 +155,34 @@
             clearSearchButton('log_table', log_table);
         });
 
+        var log_levels = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
+
+        function bindLogLevelFilter() {
+          clearLogLevelFilter();
+          var log_level_column = this.api().column(1);
+          var select = $('#log-filter');
+          select.on('change', function() {
+              var val = $.fn.dataTable.util.escapeRegex(
+                  $(this).val()
+              );
+              var search_string = '';
+              var levelIndex = log_levels.indexOf(val);
+              if (levelIndex >= 0) {
+                  search_string = '^' + log_levels
+                    .slice(levelIndex)
+                    .join('|') + '$';
+              }
+
+              log_level_column
+                  .search(search_string, true, false )
+                  .draw();
+          }).change();
+        }
+
+        function clearLogLevelFilter() {
+          $('#log-filter').off('change');
+        }
+
         function loadPlexPyLogs() {
             log_table_options.ajax = {
                 url: "getLog"
@@ -154,6 +194,7 @@
             plex_log_table_options.ajax = {
                 url: "get_plex_log?log_type=server"
             }
+            plex_log_table_options.initComplete = bindLogLevelFilter;
             plex_log_table = $('#plex_log_table').DataTable(plex_log_table_options);
         }
 
@@ -161,6 +202,7 @@
             plex_log_table_options.ajax = {
                 url: "get_plex_log?log_type=scanner"
             }
+            plex_log_table_options.initComplete = bindLogLevelFilter;
             plex_scanner_log_table = $('#plex_scanner_log_table').DataTable(plex_log_table_options);
         }
 
@@ -190,6 +232,7 @@
         }
 
         $("#plexpy-logs-btn").click(function () {
+            $("#filter-logs").hide();
             $("#clear-logs").show();
             $("#download-plexpylog").show()
             $("#clear-notify-logs").hide();
@@ -199,6 +242,7 @@
         });
 
         $("#plex-logs-btn").click(function () {
+            $("#filter-logs").show();
             $("#clear-logs").hide();
             $("#download-plexpylog").hide()
             $("#clear-notify-logs").hide();
@@ -208,6 +252,7 @@
         });
 
         $("#plex-scanner-logs-btn").click(function () {
+            $("#filter-logs").show();
             $("#clear-logs").hide();
             $("#download-plexpylog").hide()
             $("#clear-notify-logs").hide();
@@ -217,6 +262,7 @@
         });
 
         $("#notification-logs-btn").click(function () {
+            $("#filter-logs").hide();
             $("#clear-logs").hide();
             $("#download-plexpylog").hide()
             $("#clear-notify-logs").show();
@@ -226,6 +272,7 @@
         });
 
         $("#login-logs-btn").click(function () {
+            $("#filter-logs").hide();
             $("#clear-logs").hide();
             $("#download-plexpylog").hide()
             $("#clear-notify-logs").hide();
