@@ -165,6 +165,7 @@
 
         $(document).ready(function() {
             loadPlexPyLogs(selected_log_level);
+            clearSearchButton('log_table', log_table);
         });
 
         var log_levels = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
@@ -207,7 +208,6 @@
                 }
             }
             log_table = $('#log_table').DataTable(log_table_options);
-            clearSearchButton('log_table', log_table);
 
             $('#plexpy-log-level-filter').on('change', function () {
                 selected_log_level = $(this).val() || null;
