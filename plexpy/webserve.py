@@ -3283,6 +3283,30 @@ class WebInterface(object):
         return serve_download(os.path.join(plexpy.CONFIG.LOG_DIR, log_file), name=log_file)
 
     @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def download_plex_log(self, **kwargs):
+        """ Download the Plex log file. """
+        log_type = kwargs.get('log_type', 'server')
+
+        log_file = ""
+        if plexpy.CONFIG.PMS_LOGS_FOLDER:
+            if log_type == "server":
+                log_file = 'Plex Media Server.log'
+                log_file_path = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, log_file)
+            elif log_type == "scanner":
+                log_file = 'Plex Media Scanner.log'
+                log_file_path = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, log_file)
+        else:
+            return "Plex log folder not set in the settings."
+
+
+        if log_file and os.path.isfile(log_file_path):
+            return serve_download(log_file_path, name=log_file)
+        else:
+            return "Plex %s log file not found." % log_type
+
+    @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
