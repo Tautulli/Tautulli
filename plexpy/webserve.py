@@ -34,6 +34,7 @@ import config
 import database
 import datafactory
 import graphs
+import helpers
 import http_handler
 import libraries
 import log_reader
@@ -2233,13 +2234,15 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def getLog(self, start=0, length=100, **kwargs):
-        start = int(start)
-        length = int(length)
-        order_dir = kwargs.get('order[0][dir]', "desc")
-        order_column = kwargs.get('order[0][column]', "0")
-        search_value = kwargs.get('search[value]', "")
-        search_regex = kwargs.get('search[regex]', "") # Remove?
+    def getLog(self, **kwargs):
+        json_data = helpers.process_json_kwargs(json_kwargs=kwargs.get('json_data'))
+        log_level = kwargs.get('log_level', "")
+
+        start = json_data['start']
+        length = json_data['length']
+        order_column = json_data['order'][0]['column']
+        order_dir = json_data['order'][0]['dir']
+        search_value = json_data['search']['value']
         sortcolumn = 0
 
         filt = []
@@ -2250,7 +2253,7 @@ class WebInterface(object):
                 try:
                     temp_loglevel_and_time = l.split(' - ', 1)
                     loglvl = temp_loglevel_and_time[1].split(' ::', 1)[0].strip()
-                    msg = l.split(' : ', 1)[1].replace('\n', '')
+                    msg = unicode(l.split(' : ', 1)[1].replace('\n', ''), 'utf-8')
                     fa([temp_loglevel_and_time[0], loglvl, msg])
                 except IndexError:
                     # Add traceback message to previous msg.
@@ -2260,10 +2263,15 @@ class WebInterface(object):
                     filt[tl][2] += '<br>' + l
                     continue
 
-        if search_value == '':
-            filtered = filt
+        log_levels = ['DEBUG', 'INFO', 'WARN', 'ERROR']
+        if log_level in log_levels:
+            log_levels = log_levels[log_levels.index(log_level)::]
+            filtered = [row for row in filt if row[1] in log_levels]
         else:
-            filtered = [row for row in filt for column in row if search_value.lower() in column.lower()]
+            filtered = filt
+
+        if search_value:
+            filtered = [row for row in filtered for column in row if search_value.lower() in column.lower()]
 
         if order_column == '1':
             sortcolumn = 2
