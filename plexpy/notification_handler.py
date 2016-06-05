@@ -727,11 +727,16 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
                         'track_num': metadata['media_index'].zfill(1),
                         'track_num00': metadata['media_index'].zfill(2),
                         'year': metadata['year'],
-                        'release_date': arrow.get(metadata['originally_available_at']).format(date_format),
-                        'air_date': arrow.get(metadata['originally_available_at']).format(date_format),
-                        'added_date': arrow.get(metadata['added_at']).format(date_format),
-                        'updated_date': arrow.get(metadata['updated_at']).format(date_format),
-                        'last_viewed_date': arrow.get(metadata['last_viewed_at']).format(date_format),
+                        'release_date': arrow.get(metadata['originally_available_at']).format(date_format)
+                            if metadata['originally_available_at'] else '',
+                        'air_date': arrow.get(metadata['originally_available_at']).format(date_format)
+                            if metadata['originally_available_at'] else '',
+                        'added_date': arrow.get(metadata['added_at']).format(date_format)
+                            if metadata['added_at'] else '',
+                        'updated_date': arrow.get(metadata['updated_at']).format(date_format)
+                            if metadata['updated_at'] else '',
+                        'last_viewed_date': arrow.get(metadata['last_viewed_at']).format(date_format)
+                            if metadata['last_viewed_at'] else '',
                         'studio': metadata['studio'],
                         'content_rating': metadata['content_rating'],
                         'directors': ', '.join(metadata['directors']),
