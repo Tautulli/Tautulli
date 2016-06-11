@@ -383,7 +383,7 @@ DOCUMENTATION :: END
 
         // Populate watch time stats
         $.ajax({
-            url: 'get_user_watch_time_stats',
+            url: 'user_watch_time_stats',
             async: true,
             data: { user_id: user_id, user: username },
             complete: function(xhr, status) {
@@ -393,7 +393,7 @@ DOCUMENTATION :: END
 
         // Populate platform stats
         $.ajax({
-            url: 'get_user_player_stats',
+            url: 'user_player_stats',
             async: true,
             data: { user_id: user_id, user: username },
             complete: function(xhr, status) {

@@ -48,9 +48,10 @@ class ActivityHandler(object):
         pms_connect = pmsconnect.PmsConnect()
         session_list = pms_connect.get_current_activity()
 
-        for session in session_list['sessions']:
-            if int(session['session_key']) == self.get_session_key():
-                return session
+        if session_list:
+            for session in session_list['sessions']:
+                if int(session['session_key']) == self.get_session_key():
+                    return session
 
         return None
 

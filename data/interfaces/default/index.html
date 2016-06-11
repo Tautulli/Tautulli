@@ -103,10 +103,20 @@
             type: 'GET',
             cache: false,
             async: true,
+            error: function (xhr, status, error) {
+                console.log(status + ': ' + error);
+            },
             complete: function (xhr, status) {
                 $('#dashboard-checking-activity').remove();
 
-                var current_activity = $.parseJSON(xhr.responseText);
+                var current_activity;
+                try {
+                    current_activity = $.parseJSON(xhr.responseText);
+                } catch (e) {
+                    console.log(status + ': ' + e);
+                    current_activity = null;
+                }
+
                 if (!(current_activity)) {
                     $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.</div>');
                     return

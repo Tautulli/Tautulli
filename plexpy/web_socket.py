@@ -86,7 +86,7 @@ def run():
 
             # successfully received data, reset reconnects counter
             reconnects = 0
-        except websocket.WebSocketConnectionClosedException:
+        except (websocket.WebSocketConnectionClosedException, Exception):
             if reconnects <= 15:
                 reconnects += 1
 
@@ -94,7 +94,7 @@ def run():
                 if reconnects > 1:
                     time.sleep(5)
 
-                logger.warn(u"PlexPy WebSocket :: Connection has closed, reconnecting...")
+                logger.warn(u"PlexPy WebSocket :: Connection has closed, reconnection attempt %s." % reconnects)
                 try:
                     ws = create_connection(uri, header=header)
                 except IOError as e:

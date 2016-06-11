@@ -543,6 +543,33 @@ Returns:
 ```
 
 
+### get_library
+Get a library's details.
+
+```
+Required parameters:
+    section_id (str):               The id of the Plex library section
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"child_count": null, 
+         "count": 887, 
+         "do_notify": 1, 
+         "do_notify_created": 1, 
+         "keep_history": 1, 
+         "library_art": "/:/resources/movie-fanart.jpg", 
+         "library_thumb": "/:/resources/movie.png", 
+         "parent_count": null, 
+         "section_id": 1, 
+         "section_name": "Movies", 
+         "section_type": "movie"
+         }
+```
+
+
 ### get_library_media_info
 Get the data on the PlexPy media info tables.
 
@@ -615,6 +642,66 @@ Returns:
          {"section_id": 7, "section_name": "Music"},
          {"section_id": 2, "section_name": "TV Shows"},
          {...}
+         ]
+```
+
+
+### get_library_user_stats
+Get a library's user statistics.
+
+```
+Required parameters:
+    section_id (str):               The id of the Plex library section
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        [{"friendly_name": "Jon Snow",
+          "total_plays": 170,
+          "user_id": 133788,
+          "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar"
+          },
+         {"platform_type": "DanyKhaleesi69",
+          "total_plays": 42,
+          "user_id": 8008135,
+          "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar"
+          },
+         {...},
+         {...}
+         ]
+```
+
+
+### get_library_watch_time_stats
+Get a library's watch time statistics.
+
+```
+Required parameters:
+    section_id (str):               The id of the Plex library section
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        [{"query_days": 1,
+          "total_plays": 0,
+          "total_time": 0
+          },
+         {"query_days": 7,
+          "total_plays": 3,
+          "total_time": 15694
+          },
+         {"query_days": 30,
+          "total_plays": 35,
+          "total_time": 63054
+          },
+         {"query_days": 0,
+          "total_plays": 508,
+          "total_time": 1183080
+          }
          ]
 ```
 
@@ -1311,6 +1398,35 @@ Returns:
 ```
 
 
+### get_user
+Get a user's details.
+
+```
+Required parameters:
+    user_id (str):          The id of the Plex user
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"allow_guest": 1,
+         "deleted_user": 0,
+         "do_notify": 1,
+         "email": "Jon.Snow.1337@CastleBlack.com",
+         "friendly_name": "Jon Snow",
+         "is_allow_sync": 1,
+         "is_home_user": 1,
+         "is_restricted": 0,
+         "keep_history": 1,
+         "shared_libraries": ["10", "1", "4", "5", "15", "20", "2"], 
+         "user_id": 133788,
+         "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
+         "username": "LordCommanderSnow"
+         }
+```
+
+
 ### get_user_ips
 Get the data on PlexPy users IP table.
 
@@ -1412,6 +1528,66 @@ Returns:
          {"friendly_name": "Tyrion Lannister", "user_id": 696969},
          {...},
         ]
+```
+
+
+### get_user_player_stats
+Get a user's player statistics.
+
+```
+Required parameters:
+    user_id (str):          The id of the Plex user
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        [{"platform_type": "Chrome",
+          "player_name": "Plex Web (Chrome)",
+          "result_id": 1,
+          "total_plays": 170
+          },
+         {"platform_type": "Chromecast",
+          "player_name": "Chromecast",
+          "result_id": 2,
+          "total_plays": 42
+          },
+         {...},
+         {...}
+         ]
+```
+
+
+### get_user_watch_time_stats
+Get a user's watch time statistics.
+
+```
+Required parameters:
+    user_id (str):          The id of the Plex user
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        [{"query_days": 1,
+          "total_plays": 0,
+          "total_time": 0
+          },
+         {"query_days": 7,
+          "total_plays": 3,
+          "total_time": 15694
+          },
+         {"query_days": 30,
+          "total_plays": 35,
+          "total_time": 63054
+          },
+         {"query_days": 0,
+          "total_plays": 508,
+          "total_time": 1183080
+          }
+         ]
 ```
 
 
@@ -1520,6 +1696,24 @@ Send a notification using PlexPy.
 ```
 Required parameters:
     agent_id(str):          The id of the notification agent to use
+                                9    # Boxcar2
+                                17   # Browser
+                                10   # Email
+                                16   # Facebook
+                                0    # Growl
+                                12   # IFTTT
+                                18   # Join
+                                4    # NotifyMyAndroid
+                                3    # Plex Home Theater
+                                1    # Prowl
+                                5    # Pushalot
+                                6    # Pushbullet
+                                7    # Pushover
+                                15   # Scripts
+                                14   # Slack
+                                13   # Telegram
+                                11   # Twitter
+                                2    # XBMC
     subject(str):           The subject of the message
     body(str):              The body of the message
 

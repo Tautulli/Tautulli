@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.4.6 (2016-06-11)
+
+* New: Added User and Library statistics to the API.
+* New: Ability to refresh individual poster images without clearing the entire cache. (Thanks @Hellowlol)
+* New: Added {added_date}, {updated_date}, and {last_viewed_date} to metadata notification options.
+* New: Log level filter for Plex logs. (Thanks @sanderploegsma)
+* New: Log level filter for PlexPy logs.
+* New: Button to download Plex logs directly from the web interface.
+* New: Advanced setting in the config file to change the number of Plex log lines retrieved.
+* Fix: FreeBSD and FreeNAS init scripts to reflect the path in the installation guide. (Thanks @nortron)
+* Fix: Monitoring crashing when failed to retrieve current activity.
+
+
 ## v1.4.5 (2016-05-25)
 
 * Fix: PlexPy unable to start if failed to get shared libraries for a user.

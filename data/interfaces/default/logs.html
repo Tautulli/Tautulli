@@ -21,7 +21,33 @@
             <span><i class="fa fa-list-alt"></i> Logs</span>
         </div>
         <div class="button-bar">
-            <button class="btn btn-dark" id="download-plexpylog"><i class="fa fa-download"></i> Download log</button>
+            <div class="btn-group" id="plexpy-log-levels">
+                <label>
+                    <select name="plexpy-log-level-filter" id="plexpy-log-level-filter" class="btn" style="color: inherit;">
+                        <option value="">All log levels</option>
+                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                        <option value="DEBUG">Debug</option>
+                        <option value="INFO">Info</option>
+                        <option value="WARN">Warning</option>
+                        <option value="ERROR">Error</option>
+                    </select>
+                </label>
+            </div>
+            <div class="btn-group" id="plex-log-levels" style="display: none;">
+                <label>
+                    <select name="plex-log-level-filter" id="plex-log-level-filter" class="btn" style="color: inherit;">
+                        <option value="">All log levels</option>
+                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                        <option value="DEBUG">Debug</option>
+                        <option value="INFO">Info</option>
+                        <option value="WARN">Warning</option>
+                        <option value="ERROR">Error</option>
+                    </select>
+                </label>
+            </div>
+            <button class="btn btn-dark" id="download-plexpylog"><i class="fa fa-download"></i> Download logs</button>
+            <button class="btn btn-dark" id="download-plexserverlog" style="display: none;"><i class="fa fa-download"></i> Download logs</button>
+            <button class="btn btn-dark" id="download-plexscannerlog" style="display: none;"><i class="fa fa-download"></i> Download logs</button>
             <button class="btn btn-dark" id="clear-logs"><i class="fa fa-trash-o"></i> Clear logs</button>
             <button class="btn btn-dark" id="clear-notify-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear logs</button>
             <button class="btn btn-dark" id="clear-login-logs" style="display: none;"><i class="fa fa-trash-o"></i> Clear logs</button>
@@ -40,27 +66,25 @@
                 <div role="tabpanel" class="tab-pane active" id="tabs-1">
                     <table class="display" id="log_table" width="100%">
                         <thead>
-                        <tr>
-                            <th class="min-tablet" align="left" id="timestamp">Timestamp</th>
-                            <th class="desktop" align="left" id="level">Level</th>
-                            <th class="all" align="left" id="message">Message</th>
-                        </tr>
+                            <tr>
+                                <th class="min-tablet" align="left" id="timestamp">Timestamp</th>
+                                <th class="desktop" align="left" id="level">Level</th>
+                                <th class="all" align="left" id="message">Message</th>
+                            </tr>
                         </thead>
-                        <tbody>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="tabs-2">
                     <table class="display" id="plex_log_table" width="100%">
                         <thead>
-                        <tr>
-                            <th align="left" id="plex_timestamp">Timestamp</th>
-                            <th align="left" id="plex_level">Level</th>
-                            <th align="left" id="plex_message">Message</th>
-                        </tr>
+                            <tr>
+                                <th align="left" id="plex_timestamp">Timestamp</th>
+                                <th align="left" id="plex_level">Level</th>
+                                <th align="left" id="plex_message">Message</th>
+                            </tr>
                         </thead>
-                        <tbody>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="tabs-3">
@@ -114,7 +138,8 @@
 </div>
 
 <br>
-<div align="center">Refresh rate:
+<div align="center">
+    Refresh rate:
     <select id="refreshrate" onchange="setRefresh()">
         <option value="0" selected="selected">No Refresh</option>
         <option value="5">5 Seconds</option>
@@ -139,21 +164,62 @@
 <script>
 
         $(document).ready(function() {
-            loadPlexPyLogs();
+            loadPlexPyLogs(selected_log_level);
             clearSearchButton('log_table', log_table);
         });
 
-        function loadPlexPyLogs() {
+        var log_levels = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
+
+        function bindLogLevelFilter() {
+            clearLogLevelFilter();
+            var log_level_column = this.api().column(1);
+            var select = $('#plex-log-level-filter');
+            select.on('change', function () {
+                var val = $.fn.dataTable.util.escapeRegex(
+                    $(this).val()
+                );
+                var search_string = '';
+                var levelIndex = log_levels.indexOf(val);
+                if (levelIndex >= 0) {
+                    search_string = '^' + log_levels
+                      .slice(levelIndex)
+                      .join('|') + '$';
+                }
+                log_level_column
+                    .search(search_string, true, false)
+                    .draw();
+            }).change();
+        }
+
+        function clearLogLevelFilter() {
+            $('#plex-log-level-filter').off('change');
+        }
+
+        var selected_log_level = null;
+        function loadPlexPyLogs(selected_log_level) {
             log_table_options.ajax = {
-                url: "getLog"
+                url: "getLog",
+                type: 'post',
+                data: function (d) {
+                    return {
+                        json_data: JSON.stringify(d),
+                        log_level: selected_log_level
+                    };
+                }
             }
             log_table = $('#log_table').DataTable(log_table_options);
+
+            $('#plexpy-log-level-filter').on('change', function () {
+                selected_log_level = $(this).val() || null;
+                log_table.draw();
+            });
         }
 
         function loadPlexLogs() {
             plex_log_table_options.ajax = {
                 url: "get_plex_log?log_type=server"
             }
+            plex_log_table_options.initComplete = bindLogLevelFilter;
             plex_log_table = $('#plex_log_table').DataTable(plex_log_table_options);
         }
 
@@ -161,6 +227,7 @@
             plex_log_table_options.ajax = {
                 url: "get_plex_log?log_type=scanner"
             }
+            plex_log_table_options.initComplete = bindLogLevelFilter;
             plex_scanner_log_table = $('#plex_scanner_log_table').DataTable(plex_log_table_options);
         }
 
@@ -190,17 +257,25 @@
         }
 
         $("#plexpy-logs-btn").click(function () {
+            $("#plexpy-log-levels").show();
+            $("#plex-log-levels").hide();
             $("#clear-logs").show();
             $("#download-plexpylog").show()
+            $("#download-plexserverlog").hide()
+            $("#download-plexscannerlog").hide()
             $("#clear-notify-logs").hide();
             $("#clear-login-logs").hide();
-            loadPlexPyLogs();
+            loadPlexPyLogs(selected_log_level);
             clearSearchButton('log_table', log_table);
         });
 
         $("#plex-logs-btn").click(function () {
+            $("#plexpy-log-levels").hide();
+            $("#plex-log-levels").show();
             $("#clear-logs").hide();
             $("#download-plexpylog").hide()
+            $("#download-plexserverlog").show()
+            $("#download-plexscannerlog").hide()
             $("#clear-notify-logs").hide();
             $("#clear-login-logs").hide();
             loadPlexLogs();
@@ -208,8 +283,12 @@
         });
 
         $("#plex-scanner-logs-btn").click(function () {
+            $("#plexpy-log-levels").hide();
+            $("#plex-log-levels").show();
             $("#clear-logs").hide();
             $("#download-plexpylog").hide()
+            $("#download-plexserverlog").hide()
+            $("#download-plexscannerlog").show()
             $("#clear-notify-logs").hide();
             $("#clear-login-logs").hide();
             loadPlexScannerLogs();
@@ -217,8 +296,12 @@
         });
 
         $("#notification-logs-btn").click(function () {
+            $("#plexpy-log-levels").hide();
+            $("#plex-log-levels").hide();
             $("#clear-logs").hide();
             $("#download-plexpylog").hide()
+            $("#download-plexserverlog").hide()
+            $("#download-plexscannerlog").hide()
             $("#clear-notify-logs").show();
             $("#clear-login-logs").hide();
             loadNotificationLogs();
@@ -226,8 +309,12 @@
         });
 
         $("#login-logs-btn").click(function () {
+            $("#plexpy-log-levels").hide();
+            $("#plex-log-levels").hide();
             $("#clear-logs").hide();
             $("#download-plexpylog").hide()
+            $("#download-plexserverlog").hide()
+            $("#download-plexscannerlog").hide()
             $("#clear-notify-logs").hide();
             $("#clear-login-logs").show();
             loadLoginLogs();
@@ -263,6 +350,13 @@
             window.location.href = "download_log";
         });
 
+        $("#download-plexserverlog").click(function () {
+            window.location.href = "download_plex_log?log_type=server";
+        });
+
+        $("#download-plexscannerlog").click(function () {
+            window.location.href = "download_plex_log?log_type=scanner";
+        });
 
         $("#clear-notify-logs").click(function () {
             $("#confirm-message").text("Are you sure you want to clear the PlexPy notification logs?");
