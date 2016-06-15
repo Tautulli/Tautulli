@@ -463,7 +463,8 @@ class Graphs(object):
             if y_axis == 'plays':
                 query = 'SELECT ' \
                         'users.user_id, users.username, ' \
-                        '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) AS friendly_name,' \
+                        '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
+                        ' THEN users.username ELSE users.friendly_name END) AS friendly_name,' \
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count, ' \
@@ -479,7 +480,8 @@ class Graphs(object):
             else:
                 query = 'SELECT ' \
                         'users.user_id, users.username, ' \
-                        '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) AS friendly_name,' \
+                        '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
+                        ' THEN users.username ELSE users.friendly_name END) AS friendly_name,' \
                         'SUM(CASE WHEN media_type = "episode" AND stopped > 0 THEN (stopped - started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "movie" AND stopped > 0 THEN (stopped - started) ' \
@@ -904,7 +906,8 @@ class Graphs(object):
             if y_axis == 'plays':
                 query = 'SELECT ' \
                         'users.user_id, users.username, ' \
-                        '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
+                        '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
+                        ' THEN users.username ELSE users.friendly_name END) AS friendly_name,' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'THEN 1 ELSE 0 END) AS dp_count, ' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "copy" ' \
@@ -925,7 +928,8 @@ class Graphs(object):
             else:
                 query = 'SELECT ' \
                         'users.user_id, users.username, ' \
-                        '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
+                        '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
+                        ' THEN users.username ELSE users.friendly_name END) AS friendly_name,' \
                         'SUM(CASE WHEN session_history_media_info.transcode_decision = "direct play" ' \
                         'AND session_history.stopped > 0 THEN (session_history.stopped - session_history.started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS dp_count, ' \

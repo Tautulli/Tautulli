@@ -69,8 +69,8 @@ class DataFactory(object):
                    'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter',
                    'session_history.user_id',
                    'session_history.user',
-                   '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) \
-                    AS friendly_name',
+                   '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
+                    THEN users.username ELSE users.friendly_name END) AS friendly_name',
                    'platform',
                    'player',
                    'ip_address',
