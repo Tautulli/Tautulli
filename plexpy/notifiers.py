@@ -2425,13 +2425,14 @@ class FacebookNotifier(object):
         config_option = [{'label': 'Instructions',
                           'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank"> \
                                           Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>\
-                                          Step 2: Go to <strong>Settings > Advanced</strong> and fill in \
-                                          <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (e.g. http://localhost:8181).<br>\
-                                          Step 3: Go to <strong>App Review</strong> and toggle public to <strong>Yes</strong>.<br>\
-                                          Step 4: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
-                                          Step 5: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
-                                          Step 6: Click the <strong>Request Authorization</strong> button below.<br>\
-                                          Step 7: Fill in your <strong>Group ID</strong> below.',
+                                          Step 2: Click <strong>Add Product</strong> on the left, then <strong>Get Started</strong> \
+                                          for <strong>Facebook Login</strong>.<br>\
+                                          Step 3: Fill in <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (e.g. http://localhost:8181).<br>\
+                                          Step 4: Click <strong>App Review</strong> on the left and toggle "make public" to <strong>Yes</strong>.<br>\
+                                          Step 5: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
+                                          Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
+                                          Step 7: Click the <strong>Request Authorization</strong> button below.<br>\
+                                          Step 8: Fill in your <strong>Group ID</strong> below.',
                           'input_type': 'help'
                           },
                          {'label': 'PlexPy URL',
