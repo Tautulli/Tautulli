@@ -269,7 +269,7 @@ class WebInterface(object):
                 else:
                     if s['video_decision'] == 'transcode' or s['audio_decision'] == 'transcode':
                         data['transcode'] += 1
-                    elif s['video_decision'] == 'direct copy' or s['audio_decision'] == 'copy play':
+                    elif s['video_decision'] == 'copy' or s['audio_decision'] == 'copy':
                         data['direct_stream'] += 1
                     else:
                         data['direct_play'] += 1
