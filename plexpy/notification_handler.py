@@ -624,7 +624,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     else:
         thumb = None
 
-    if thumb:
+    if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS and thumb:
         # Try to retrieve a poster_url from the database
         data_factory = datafactory.DataFactory()
         poster_url = data_factory.get_poster_url(rating_key=poster_key)
