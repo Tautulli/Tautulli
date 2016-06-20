@@ -4202,7 +4202,7 @@ class WebInterface(object):
                       'Can you hurry up. My horse is getting tired.',
                       'What killed the dinosaurs? The Ice Age!',
                       'That\'s for sleeping with my wife!',
-                      'Remember when I said I’d kill you last... I lied!',
+                      'Remember when I said I\'d kill you last... I lied!',
                       'You want to be a farmer? Here\'s a couple of acres',
                       'Now, this is the plan. Get your ass to Mars.',
                       'I just had a terrible thought... What if this is a dream?'
