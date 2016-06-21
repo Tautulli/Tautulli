@@ -135,79 +135,39 @@ DOCUMENTATION :: END
                                     % endif
                                 </span>
                             </div>
-                            % if data['media_type'] == 'track':
-                            % if data['audio_decision'] == 'direct play':
-                            Stream &nbsp;<strong>Direct Play</strong>
-                            % elif data['audio_decision'] == 'copy':
-                            Stream &nbsp;<strong>Direct Stream</strong>
-                            % else:
-                            Stream &nbsp;<strong>
-                                Transcoding
-                                <span id="transcode-state-${data['session_key']}">
-                                    (Speed: ${data['transcode_speed']})
+                            <span id="transcode-state-${data['session_key']}">
+                                % if data['video_decision'] == 'transcode' or data['audio_decision'] == 'transcode':
+                                Stream &nbsp;<strong>Transcode (Speed: ${data['transcode_speed']})
                                     % if data['throttled'] == '1':
                                     (Throttled)
                                     % endif
-                                </span>
-                            </strong>
-                            % endif
-                            <br />
-                            % if data['audio_decision'] == 'direct play':
-                            Audio &nbsp;<strong>Direct Play (${data['audio_codec']}) (${data['audio_channels']}ch)</strong>
-                            % elif data['audio_decision'] == 'copy':
-                            Audio &nbsp;<strong>Direct Stream (${data['transcode_audio_codec']}) (${data['transcode_audio_channels']}ch)</strong>
-                            % elif data['audio_decision'] == 'transcode':
-                            Audio &nbsp;<strong>Transcode (${data['transcode_audio_codec']}) (${data['transcode_audio_channels']}ch)</strong>
-                            % endif
-                            % elif data['media_type'] == 'episode' or data['media_type'] == 'movie' or data['media_type'] == 'clip':
-                            % if data['video_decision'] == 'direct play' and data['audio_decision'] == 'direct play':
-                            Stream &nbsp;<strong>Direct Play</strong>
-                            % elif data['video_decision'] == 'copy' and data['audio_decision'] == 'copy':
-                            Stream &nbsp;<strong>Direct Stream</strong>
-                            % else:
-                            Stream &nbsp;<strong>
-                                Transcoding
-                                <span id="transcode-state-${data['session_key']}">
-                                    (Speed: ${data['transcode_speed']})
-                                    % if data['throttled'] == '1':
-                                    (Throttled)
+                                    </strong>
+                                % elif data['video_decision'] == 'copy' or data['audio_decision'] == 'copy':
+                                Stream &nbsp;<strong>Direct Stream</strong>
+                                % else:
+                                Stream &nbsp;<strong>Direct Play</strong>
+                                % endif
+                                <br />
+                                % if data['video_decision'] and data['media_type'] != 'photo':
+                                    % if data['video_decision'] == 'transcode':
+                                    Video &nbsp;<strong>Transcode (${data['transcode_video_codec']}) (${data['transcode_width']}x${data['transcode_height']})</strong>
+                                    % elif data['video_decision'] == 'copy':
+                                    Video &nbsp;<strong>Direct Stream (${data['transcode_video_codec']}) (${data['width']}x${data['height']})</strong>
+                                    % else:
+                                    Video &nbsp;<strong>Direct Play (${data['video_codec']}) (${data['width']}x${data['height']})</strong>
                                     % endif
-                                </span>
-                            </strong>
-                            % endif
-                            <br />
-                            % if data['video_decision'] == 'direct play':
-                            Video &nbsp;<strong>Direct Play (${data['video_codec']}) (${data['width']}x${data['height']})</strong>
-                            % elif data['video_decision'] == 'copy':
-                            Video &nbsp;<strong>Direct Stream (${data['transcode_video_codec']}) (${data['width']}x${data['height']})</strong>
-                            % elif data['video_decision'] == 'transcode':
-                            Video &nbsp;<strong>Transcode (${data['transcode_video_codec']}) (${data['transcode_width']}x${data['transcode_height']})</strong>
-                            % endif
-                            <br />
-                            % if data['audio_decision'] == 'direct play':
-                            Audio &nbsp;<strong>Direct Play (${data['audio_codec']}) (${data['audio_channels']}ch)</strong>
-                            % elif data['audio_decision'] == 'copy':
-                            Audio &nbsp;<strong>Direct Stream (${data['transcode_audio_codec']}) (${data['transcode_audio_channels']}ch)</strong>
-                            % elif data['audio_decision'] == 'transcode':
-                            Audio &nbsp;<strong>Transcode (${data['transcode_audio_codec']}) (${data['transcode_audio_channels']}ch)</strong>
-                            % endif
-                            % elif data['media_type'] == 'photo':
-                            % if data['video_decision'] == 'direct play':
-                            Stream &nbsp;<strong>Direct Play</strong>
-                            % elif data['video_decision'] == 'copy':
-                            Stream &nbsp;<strong>Direct Stream</strong>
-                            % else:
-                            Stream &nbsp;<strong>
-                                <span id="transcode-state-${data['session_key']}">
-                                    (Speed: ${data['transcode_speed']})
-                                    % if data['throttled'] == '1':
-                                    (Throttled)
+                                <br />
+                                % endif
+                                % if data['audio_decision']:
+                                    % if data['audio_decision'] == 'transcode':
+                                    Audio &nbsp;<strong>Transcode (${data['transcode_audio_codec']}) (${data['transcode_audio_channels']}ch)</strong>
+                                    % elif data['audio_decision'] == 'copy':
+                                    Audio &nbsp;<strong>Direct Stream (${data['transcode_audio_codec']}) (${data['transcode_audio_channels']}ch)</strong>
+                                    % else:
+                                    Audio &nbsp;<strong>Direct Play (${data['audio_codec']}) (${data['audio_channels']}ch)</strong>
                                     % endif
-                                </span>
-                            </strong>
-                            % endif
-                            % endif
-                            <br>
+                                % endif
+                            </span>
                         </div>
                     </div>
                     % if data['media_type'] != 'photo':
