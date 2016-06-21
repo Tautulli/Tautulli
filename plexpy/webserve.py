@@ -3217,7 +3217,9 @@ class WebInterface(object):
             logger.error('No image input received.')
             return
 
-        refresh = True if refresh == 'true' else False
+        if refresh:
+            mo = member_of('admin')
+            refresh = True if mo() else False
 
         if rating_key and not img:
             img = '/library/metadata/%s/thumb/1337' % rating_key
