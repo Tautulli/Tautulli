@@ -106,7 +106,9 @@ DOCUMENTATION :: END
             % else:
             <div class="dashboard-activity-poster-face" style="background-image: url(${a['art']});"></div>
             % endif
+            % if _session['user_group'] == 'admin':
             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+            % endif
             <div class="dashboard-activity-button-info">
                 <button type="button" class="btn btn-activity-info btn-lg" data-target="#stream-${a['session_key']}">
                     <i class="fa fa-info-circle"></i>

@@ -103,7 +103,9 @@ DOCUMENTATION :: END
                 % if top_stat['rows'][0]['grandparent_thumb']:
                 <div class="home-platforms-instance-poster">
                     <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
+                    % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
                 % else:
                 <div class="home-platforms-instance-poster">
@@ -150,7 +152,9 @@ DOCUMENTATION :: END
                                 % if top_stat['rows'][loop.index]['grandparent_thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
+                                    % if _session['user_group'] == 'admin':
                                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                                    % endif
                                 </div>
                                 % else:
                                 <div class="home-platforms-instance-list-poster">
@@ -201,7 +205,9 @@ DOCUMENTATION :: END
                 % if top_stat['rows'][0]['grandparent_thumb'] != '':
                 <div class="home-platforms-instance-poster">
                     <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
+                    % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
                 % else:
                 <div class="home-platforms-instance-poster">
@@ -244,7 +250,9 @@ DOCUMENTATION :: END
                                 % if top_stat['rows'][loop.index]['grandparent_thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=450&fallback=poster);"></div>
+                                    % if _session['user_group'] == 'admin':
                                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                                    % endif
                                 </div>
                                 % else:
                                 <div class="home-platforms-instance-list-poster">
@@ -299,7 +307,9 @@ DOCUMENTATION :: END
                 % if top_stat['rows'][0]['thumb']:
                 <div class="home-platforms-instance-poster">
                     <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=450&fallback=poster);"></div>
+                    % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
                 % else:
                 <div class="home-platforms-instance-poster">
@@ -346,7 +356,9 @@ DOCUMENTATION :: END
                                 % if top_stat['rows'][loop.index]['thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['thumb']}&width=300&height=450&fallback=poster);"></div>
+                                    % if _session['user_group'] == 'admin':
                                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                                    % endif
                                 </div>
                                 % else:
                                 <div class="home-platforms-instance-list-poster">
@@ -397,7 +409,9 @@ DOCUMENTATION :: END
                 % if top_stat['rows'][0]['thumb']:
                 <div class="home-platforms-instance-poster">
                     <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=450&fallback=poster);"></div>
+                    % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
                 % else:
                 <div class="home-platforms-instance-poster">
@@ -440,7 +454,9 @@ DOCUMENTATION :: END
                                 % if top_stat['rows'][loop.index]['thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['thumb']}&width=300&height=450&fallback=poster);"></div>
+                                    % if _session['user_group'] == 'admin':
                                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                                    % endif
                                 </div>
                                 % else:
                                 <div class="home-platforms-instance-list-poster">
@@ -495,7 +511,9 @@ DOCUMENTATION :: END
                 % if top_stat['rows'][0]['grandparent_thumb']:
                 <div class="home-platforms-instance-poster">
                     <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
+                    % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
                 % else:
                 <div class="home-platforms-instance-poster">
@@ -542,7 +560,9 @@ DOCUMENTATION :: END
                                 % if top_stat['rows'][loop.index]['grandparent_thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
+                                    % if _session['user_group'] == 'admin':
                                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                                    % endif
                                 </div>
                                 % else:
                                 <div class="home-platforms-instance-list-poster">
@@ -593,7 +613,9 @@ DOCUMENTATION :: END
                 % if top_stat['rows'][0]['grandparent_thumb'] != '':
                 <div class="home-platforms-instance-poster">
                     <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
+                    % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
                 % else:
                 <div class="home-platforms-instance-poster">
@@ -636,7 +658,9 @@ DOCUMENTATION :: END
                                 % if top_stat['rows'][loop.index]['grandparent_thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
+                                    % if _session['user_group'] == 'admin':
                                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                                    % endif
                                 </div>
                                 % else:
                                 <div class="home-platforms-instance-list-poster">
@@ -859,7 +883,9 @@ DOCUMENTATION :: END
                 % if top_stat['rows'][0]['thumb']:
                 <div class="home-platforms-instance-poster">
                     <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['thumb']}&width=300&height=450&fallback=poster);"></div>
+                    % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
                 % else:
                 <div class="home-platforms-instance-poster">
@@ -916,7 +942,9 @@ DOCUMENTATION :: END
                                 % if top_stat['rows'][loop.index]['thumb']:
                                 <div class="home-platforms-instance-list-poster">
                                     <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['thumb']}&width=300&height=450&fallback=poster);"></div>
+                                    % if _session['user_group'] == 'admin':
                                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                                    % endif
                                 </div>
                                 % else:
                                 <div class="home-platforms-instance-list-poster">
