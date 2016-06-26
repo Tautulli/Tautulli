@@ -961,8 +961,7 @@ def build_server_notify_text(notify_action=None, agent_id=None):
 
     update_status = {}
     if notify_action == 'pmsupdate':
-        pms_connect = pmsconnect.PmsConnect()
-        update_status = pms_connect.get_update_staus()
+        update_status = plex_tv.get_plex_downloads()
 
     if server_times:
         updated_at = server_times['updated_at']
@@ -995,7 +994,16 @@ def build_server_notify_text(notify_action=None, agent_id=None):
                         # Update parameters
                         'update_version': update_status.get('version',''),
                         'update_url': update_status.get('download_url',''),
-                        'update_changelog': update_status.get('changelog','')}
+                        'update_release_date': arrow.get(update_status.get('release_date','')).format(date_format)
+                            if update_status.get('release_date','') else '',
+                        'update_channel': 'Plex Pass' if plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass' else 'Public',
+                        'update_platform': update_status.get('platform',''),
+                        'update_distro': update_status.get('distro',''),
+                        'update_distro_build': update_status.get('build',''),
+                        'update_requirements': update_status.get('requirements',''),
+                        'update_extra_info': update_status.get('extra_info',''),
+                        'update_changelog_added': update_status.get('changelog_added',''),
+                        'update_changelog_fixed': update_status.get('changelog_fixed','')}
 
     # Default text
     subject_text = 'PlexPy (%s)' % server_name
