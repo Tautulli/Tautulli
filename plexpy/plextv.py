@@ -17,6 +17,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
+import json
 from xml.dom import minidom
 
 import plexpy
@@ -95,14 +96,20 @@ def get_real_pms_url():
 
     fallback_url = 'http://' + plexpy.CONFIG.PMS_IP + ':' + str(plexpy.CONFIG.PMS_PORT)
 
-    if plexpy.CONFIG.PMS_SSL:
-        result = PlexTV().get_server_urls(include_https=True)
-    else:
-        result = PlexTV().get_server_urls(include_https=False)
+    plex_tv = PlexTV()
+    result = plex_tv.get_server_urls(include_https=plexpy.CONFIG.PMS_SSL)
+    plexpass = plex_tv.get_plexpass_status()
+
+    connections = []
+    if result:
+        plexpy.CONFIG.__setattr__('PMS_VERSION', result['version'])
+        plexpy.CONFIG.__setattr__('PMS_PLATFORM', result['platform'])
+        plexpy.CONFIG.__setattr__('PMS_PLEXPASS', plexpass)
+        connections = result['connections']
 
     # Only need to retrieve PMS_URL if using SSL
     if plexpy.CONFIG.PMS_SSL:
-        if result:
+        if connections:
             if plexpy.CONFIG.PMS_IS_REMOTE:
                 # Get all remote connections
                 connections = [c for c in result if c['local'] == '0' and 'plex.direct' in c['uri']]
@@ -266,6 +273,18 @@ class PlexTV(object):
             uri = '/api/resources?includeHttps=1'
         else:
             uri = '/api/resources'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    def get_plextv_downloads(self, plexpass=False, output_format=''):
+        if plexpass:
+            uri = '/api/downloads/1.json?channel=plexpass'
+        else:
+            uri = '/api/downloads/1.json'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -454,7 +473,7 @@ class PlexTV(object):
             server_id = plexpy.CONFIG.PMS_IDENTIFIER
         else:
             logger.error(u"PlexPy PlexTV :: Unable to retrieve server identity.")
-            return []
+            return {}
 
         plextv_resources = self.get_plextv_resources(include_https=include_https)
 
@@ -462,21 +481,25 @@ class PlexTV(object):
             xml_parse = minidom.parseString(plextv_resources)
         except Exception as e:
             logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls: %s" % e)
-            return []
+            return {}
         except:
             logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls.")
-            return []
+            return {}
 
         try:
             xml_head = xml_parse.getElementsByTagName('Device')
         except Exception as e:
             logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls: %s." % e)
-            return []
+            return {}
 
         # Function to get all connections for a device
         def get_connections(device):
             conn = []
             connections = device.getElementsByTagName('Connection')
+
+            server = {"platform": helpers.get_xml_attr(device, 'platform'),
+                      "version": helpers.get_xml_attr(device, 'productVersion')
+                      }
 
             for c in connections:
                 server_details = {"protocol": helpers.get_xml_attr(c, 'protocol'),
@@ -487,18 +510,19 @@ class PlexTV(object):
                                   }
                 conn.append(server_details)
 
-            return conn
+            server['connections'] = conn
+            return server
 
-        server_urls = []
+        server = {}
 
         # Try to match the device
         for a in xml_head:
             if helpers.get_xml_attr(a, 'clientIdentifier') == server_id:
-                server_urls = get_connections(a)
+                server = get_connections(a)
                 break
                     
         # Else no device match found
-        if not server_urls:
+        if not server:
             # Try to match the PMS_IP and PMS_PORT
             for a in xml_head:
                 if helpers.get_xml_attr(a, 'provides') == 'server':
@@ -511,16 +535,16 @@ class PlexTV(object):
                             plexpy.CONFIG.PMS_IDENTIFIER = helpers.get_xml_attr(a, 'clientIdentifier')
                             plexpy.CONFIG.write()
     
-                            logger.info(u"PlexPy PlexTV :: PMS identifier changed from %s to %s." % \
-                                        (server_id, plexpy.CONFIG.PMS_IDENTIFIER))
+                            logger.info(u"PlexPy PlexTV :: PMS identifier changed from %s to %s."
+                                        % (server_id, plexpy.CONFIG.PMS_IDENTIFIER))
     
-                            server_urls = get_connections(a)
+                            server = get_connections(a)
                             break
 
-                    if server_urls:
+                    if server.get('connections'):
                         break
 
-        return server_urls
+        return server
 
     def get_server_times(self):
         servers = self.get_plextv_server_list(output_format='xml')
@@ -589,3 +613,71 @@ class PlexTV(object):
                             clean_servers.append(server)
 
         return clean_servers
+
+    def get_plex_downloads(self):
+        logger.debug(u"PlexPy PlexTV :: Plex update channel is %s." % plexpy.CONFIG.PMS_UPDATE_CHANNEL)
+        plex_downloads = self.get_plextv_downloads(plexpass=(plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass'))
+
+        try:
+            available_downloads = json.loads(plex_downloads)
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Unable to load JSON for get_plex_updates.")
+            return {}
+
+        # Get the updates for the platform
+        platform_downloads = available_downloads.get('computer').get(plexpy.CONFIG.PMS_PLATFORM) or \
+            available_downloads.get('nas').get(plexpy.CONFIG.PMS_PLATFORM)
+
+        if not platform_downloads:
+            logger.error(u"PlexPy PlexTV :: Unable to retrieve Plex updates: Could not match server platform: %s."
+                         % plexpy.CONFIG.PMS_PLATFORM)
+            return {}
+
+        v_old = plexpy.CONFIG.PMS_VERSION.split('-')[0].split('.')
+        v_new = platform_downloads.get('version', '').split('-')[0].split('.')
+
+        # Compare versions
+        if v_new[0] > v_old[0] or \
+            v_new[0] == v_old[0] and v_new[1] > v_old[1] or \
+            v_new[0] == v_old[0] and v_new[1] == v_old[1] and v_new[2] > v_old[2] or \
+            v_new[0] == v_old[0] and v_new[1] == v_old[1] and v_new[2] == v_old[2] and v_new[3] > v_old[3]:
+            update_available = True
+        else:
+            update_available = False
+
+        # Get proper download
+        releases = platform_downloads.get('releases', [])
+        release = next((r for r in releases if r['build'] == plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD), releases[0])
+
+        download_info = {'update_available': update_available,
+                         'platform': platform_downloads.get('name'),
+                         'release_date': platform_downloads.get('release_date'),
+                         'version': platform_downloads.get('version'),
+                         'requirements': platform_downloads.get('requirements'),
+                         'extra_info': platform_downloads.get('extra_info'),
+                         'changelog_added': platform_downloads.get('items_added'),
+                         'changelog_fixed': platform_downloads.get('items_fixed'),
+                         'label': release.get('label'),
+                         'distro': release.get('distro'),
+                         'distro_build': release.get('build'),
+                         'download_url': release.get('url'),
+                         }
+
+        return download_info
+
+    def get_plexpass_status(self):
+        account_data = self.get_plextv_user_details(output_format='xml')
+
+        try:
+            subscription = account_data.getElementsByTagName('subscription')
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_plexpass_status: %s." % e)
+            return False
+
+        if subscription and helpers.get_xml_attr(subscription[0], 'active') == '1':
+            return True
+        else:
+            logger.debug(u"PlexPy PlexTV :: Plex Pass subscription not found.")
+            plexpy.CONFIG.__setattr__('PMS_PLEXPASS', 0)
+            plexpy.CONFIG.write()
+            return False

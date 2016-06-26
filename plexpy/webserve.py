@@ -2606,7 +2606,8 @@ class WebInterface(object):
             "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES),
             "git_token": plexpy.CONFIG.GIT_TOKEN,
             "imgur_client_id": plexpy.CONFIG.IMGUR_CLIENT_ID,
-            "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES)
+            "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES),
+            "pms_version": plexpy.CONFIG.PMS_VERSION,
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)
@@ -2768,6 +2769,18 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def get_scheduler_table(self, **kwargs):
         return serve_template(templatename="scheduler_table.html")
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def get_server_update_params(self):
+        plex_tv = plextv.PlexTV()
+        plexpass = plex_tv.get_plexpass_status()
+        return {'plexpass': plexpass,
+                'pms_platform': plexpy.CONFIG.PMS_PLATFORM,
+                'pms_update_channel': plexpy.CONFIG.PMS_UPDATE_CHANNEL,
+                'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

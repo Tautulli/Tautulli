@@ -581,15 +581,31 @@
                     <div role="tabpanel" class="tab-pane" id="tabs-5">
 
                         <div class="padded-header">
-                            <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">unknown</span></small></h3>
+                            <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
                         </div>
                         <p class="help-block">If you're using websocket monitoring, any server changes require a restart of PlexPy.</p>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
                             </label>
-                            <p class="help-block">Enable to have PlexPy check if updates are available for the Plex Media Server.<br />
-                                Note: The Plex updater is broken on certain Plex Pass version of Plex Media Server. PlexPy will automatically disable checking for Plex updates if one of these versions is found.</p>
+                            <p class="help-block">Enable to have PlexPy check if updates are available for the Plex Media Server.</p>
+                        </div>
+                        <div id="pms_update_options">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <label for="pms_update_channel">Update Channel</label>
+                                        <select class="form-control" id="pms_update_channel" name="pms_update_channel">
+                                            <option value="public">Public</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="pms_update_distro_build">Release</label>
+                                        <select class="form-control" id="pms_update_distro_build" name="pms_update_distro_build">
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -2115,6 +2131,7 @@ $(document).ready(function() {
         }
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0)
         getSchedulerTable();
+        loadUpdateDistros();
         settingsChanged = false;
     }
 
@@ -2145,7 +2162,8 @@ $(document).ready(function() {
     initConfigCheckbox('#https_create_cert');
     initConfigCheckbox('#check_github');
     initConfigCheckbox('#notify_upload_posters');
-
+    initConfigCheckbox('#monitor_pms_updates');
+    
     $("#menu_link_shutdown").click(function() {
         $("#confirm-message").text("Are you sure you want to shutdown PlexPy?");
         $('#confirm-modal').modal();
@@ -2348,6 +2366,7 @@ $(document).ready(function() {
                     } else {
                         $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Invalid username or password.');
                     }
+                    loadUpdateDistros();
                 }
             });
         } else {
@@ -2406,33 +2425,26 @@ $(document).ready(function() {
     pms_logs = false;
 
     // Checks to see if PMS server version is >= 0.9.14 with automaatically logged IP addresses
-    $.ajax({
-        url: 'get_server_identity',
-        async: true,
-        success: function(data) {
-            if (data.version){ $("#pms_version").text(data.version); }
-            var version = (data.version ? data.version.split('.') : null);
-            if (version && parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
-                $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
-                $("#ip_logging_enable").attr("disabled", true);
-                $("#ip_logging_enable").attr("checked", true);
-                pms_version = true;
+    var version = "${config['pms_version']}".split('.');
+    if (version && parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
+        $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
+        $("#ip_logging_enable").attr("disabled", true);
+        $("#ip_logging_enable").attr("checked", true);
+        pms_version = true;
+        checkLogsPath();
+    } else {
+        // Check to see if debug logs are enabled on the PMS.
+        $.ajax({
+            url: 'get_server_pref',
+            data: { pref: 'logDebug' },
+            async: true,
+            success: function(data) {
+                pms_logs_debug = (data == 'true' ? true : false);
+                // Check to see if our logs folder is set before allowing IP logging to be enabled.
                 checkLogsPath();
-            } else {
-                // Check to see if debug logs are enabled on the PMS.
-                $.ajax({
-                    url: 'get_server_pref',
-                    data: { pref: 'logDebug' },
-                    async: true,
-                    success: function(data) {
-                        pms_logs_debug = (data == 'true' ? true : false);
-                        // Check to see if our logs folder is set before allowing IP logging to be enabled.
-                        checkLogsPath();
-                    }
-                });
             }
-        }
-    });
+        });
+    }
 
     $("#pms_logs_folder").change(function() {
         checkLogsPath();
@@ -2642,6 +2654,47 @@ $(document).ready(function() {
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0);
         $("#http_hash_password_error").html("");
     });
+
+    // Load PMS downloads
+    function loadUpdateDistros(distro_build) {
+        var update_params_ajax = $.getJSON('get_server_update_params', function (data) { return data; });
+
+        $.when(update_params_ajax).done(function() {
+            var update_params = update_params_ajax.responseJSON;
+
+            var plexpass = update_params.plexpass;
+            var platform = update_params.pms_platform;
+            var update_channel = update_params.pms_update_channel;
+            var update_distro_build = update_params.pms_update_distro_build;
+
+            $("#pms_update_channel option[value='plexpass']").remove();
+            if (plexpass) {
+                var selected = (update_channel == 'plexpass') ? true : false;
+                $('#pms_update_channel')
+                    .append($('<option></option>')
+                    .text('Plex Pass')
+                    .val('plexpass')
+                    .prop('selected', selected));
+            }
+
+            $.getJSON('https://plex.tv/api/downloads/1.json?channel=' + update_channel, function (downloads) {
+                platform_downloads = downloads.computer[platform] || downloads.nas[platform];
+                if (platform_downloads) {
+                    $("#pms_update_distro_build option").remove();
+                    $.each(platform_downloads.releases, function (index, item) {
+                        var label = (platform_downloads.releases.length == 1) ? platform_downloads.name : platform_downloads.name + ' - ' + item.label;
+                        var selected = (item.build == update_distro_build) ? true : false;
+                        $('#pms_update_distro_build')
+                            .append($('<option></option>')
+                            .text(label)
+                            .val(item.build)
+                            .prop('selected', selected));
+                    })
+                }
+            });
+        });
+    }
+    loadUpdateDistros();
 });
 </script>
 </%def>

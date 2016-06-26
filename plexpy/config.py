@@ -55,6 +55,11 @@ _CONFIG_DEFINITIONS = {
     'PMS_USE_BIF': (int, 'PMS', 0),
     'PMS_UUID': (str, 'PMS', ''),
     'PMS_TIMEOUT': (int, 'Advanced', 15),
+    'PMS_PLEXPASS': (int, 'PMS', 0),
+    'PMS_PLATFORM': (str, 'PMS', ''),
+    'PMS_VERSION': (str, 'PMS', ''),
+    'PMS_UPDATE_CHANNEL': (str, 'PMS', 'public'),
+    'PMS_UPDATE_DISTRO_BUILD': (str, 'PMS', ''),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
     'ANON_REDIRECT': (str, 'General', 'http://dereferer.org/?'),
     'API_ENABLED': (int, 'General', 0),
@@ -720,3 +725,7 @@ class Config(object):
                 home_sections.remove('library_stats')
                 self.HOME_SECTIONS = home_sections
             self.CONFIG_VERSION = '5'
+
+        if self.CONFIG_VERSION == '5':
+            self.MONITOR_PMS_UPDATES = 0
+            self.CONFIG_VERSION = '6'
