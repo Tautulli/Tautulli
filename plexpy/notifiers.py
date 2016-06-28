@@ -2555,6 +2555,7 @@ class JOIN(object):
     def __init__(self):
         self.apikey = plexpy.CONFIG.JOIN_APIKEY
         self.deviceid = plexpy.CONFIG.JOIN_DEVICEID
+        self.incl_subject = plexpy.CONFIG.JOIN_INCL_SUBJECT
 
     def conf(self, options):
         return cherrypy.config['config'].get('PUSHBULLET', options)
@@ -2567,8 +2568,10 @@ class JOIN(object):
 
         data = {'apikey': self.apikey,
                 deviceid_key: self.deviceid,
-                'title': subject.encode("utf-8"),
                 'text': message.encode("utf-8")}
+
+        if self.incl_subject:
+            data['title'] = subject.encode("utf-8")
 
         response = requests.post('https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush',
                                  params=data)
@@ -2650,6 +2653,12 @@ class JOIN(object):
                          {'label': 'Your Devices IDs',
                           'description': devices,
                           'input_type': 'help'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'join_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 

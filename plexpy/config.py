@@ -222,6 +222,7 @@ _CONFIG_DEFINITIONS = {
     'JOIN_APIKEY': (str, 'Join', ''),
     'JOIN_DEVICEID': (str, 'Join', ''),
     'JOIN_ENABLED': (int, 'Join', 0),
+    'JOIN_INCL_SUBJECT': (int, 'Join', 1),
     'JOIN_ON_PLAY': (int, 'Join', 0),
     'JOIN_ON_STOP': (int, 'Join', 0),
     'JOIN_ON_PAUSE': (int, 'Join', 0),
