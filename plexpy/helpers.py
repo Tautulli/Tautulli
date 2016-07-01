@@ -525,7 +525,7 @@ def install_geoip_db():
     md5_checksum = ''
 
     temp_gz = os.path.join(plexpy.CONFIG.CACHE_DIR, geolite2_gz)
-    geolite2_db = os.path.join(plexpy.DATA_DIR, geolite2_db)
+    geolite2_db = plexpy.CONFIG.GEOIP_DB or os.path.join(plexpy.DATA_DIR, geolite2_db)
 
     # Retrieve the GeoLite2 gzip file
     logger.debug(u"PlexPy Helpers :: Downloading GeoLite2 gzip file from MaxMind...")
