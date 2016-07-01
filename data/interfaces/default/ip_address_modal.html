@@ -19,16 +19,19 @@
             </div>
             <div class="col-sm-6">
                 <ul class="list-unstyled">
+                    <li>Continent: <strong><span id="continent"></span></strong></li>
                     <li>Country: <strong><span id="country"></span></strong></li>
                     <li>Region: <strong><span id="region"></span></strong></li>
                     <li>City: <strong><span id="city"></span></strong></li>
+                    <li>Postal Cide: <strong><span id="postal_code"></span></strong></li>
                 </ul>
             </div>
             <div class="col-sm-6">
                 <ul class="list-unstyled">
                     <li>Timezone: <strong><span id="timezone"></span></strong></li>
-                    <li>Latitude: <strong><span id="lat"></span></strong></li>
-                    <li>Longitude: <strong><span id="lon"></span></strong></li>
+                    <li>Latitude: <strong><span id="latitude"></span></strong></li>
+                    <li>Longitude: <strong><span id="longitude"></span></strong></li>
+                    <li>Accuracy Radius: <strong><span id="accuracy"></span></strong></li>
                 </ul>
             </div>
         </div>
@@ -55,12 +58,15 @@
                 if ('error' in data) {
                     $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> ' + data.error + '<br /><br />').show();
                 } else {
+                    $('#continent').html(data.continent);
                     $('#country').html(data.country);
-                    $('#city').html(data.city);
                     $('#region').html(data.region);
+                    $('#city').html(data.city);
+                    $('#postal_code').html(data.postal_code);
                     $('#timezone').html(data.timezone);
-                    $('#lat').html(data.latitude);
-                    $('#lon').html(data.longitude);
+                    $('#latitude').html(data.latitude);
+                    $('#longitude').html(data.longitude);
+                    $('#accuracy').html(data.accuracy + ' km');
                 }
             }
         });

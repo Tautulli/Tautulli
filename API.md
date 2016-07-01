@@ -334,12 +334,15 @@ Optional parameters:
 
 Returns:
     json:
-        {"country": "United States",
+        {"continent": "North America",
+         "country": "United States",
          "region": "California",
          "city": "Mountain View",
+         "postal_code": "94035",
          "timezone": "America/Los_Angeles",
          "latitude": 37.386,
-         "longitude": -122.0838
+         "longitude": -122.0838,
+         "accuracy": 1000
          }
     json:
         {"error": "The address 127.0.0.1 is not in the database."

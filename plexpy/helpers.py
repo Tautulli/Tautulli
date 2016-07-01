@@ -601,12 +601,15 @@ def geoip_lookup(ip_address):
     except Exception as e:
         return 'Error: %s' % e
 
-    geo_info = {'country': geo.country.name,
+    geo_info = {'continent': geo.continent.name,
+                'country': geo.country.name,
                 'region': geo.subdivisions.most_specific.name,
                 'city': geo.city.name,
+                'postal_code': geo.postal.code,
                 'timezone': geo.location.time_zone,
                 'latitude': geo.location.latitude,
-                'longitude': geo.location.longitude
+                'longitude': geo.location.longitude,
+                'accuracy': geo.location.accuracy_radius
                 }
 
     return geo_info
