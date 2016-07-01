@@ -2067,6 +2067,8 @@
                 $("#plexpy-configuration-table").html(xhr.responseText);
                 if ("${kwargs.get('install_geoip')}" == 'true') {
                     $('#install_geoip_db').removeClass('no-highlight').css('color','#e9a049');
+                } else if ("${kwargs.get('reinstall_geoip')}" == 'true') {
+                    $('#reinstall_geoip_db').removeClass('no-highlight').css('color','#e9a049');
                 }
             }
         });

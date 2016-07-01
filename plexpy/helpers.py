@@ -593,9 +593,11 @@ def geoip_lookup(ip_address):
         return 'Missing GeoLite2 database. Please reinstall from the ' \
             '<a href="settings?install_geoip=true">Settings</a> page.'
     except ValueError as e:
-        return 'Unable to read GeoLite2 database: %s' % e
+        return 'Unable to read GeoLite2 database. Please reinstall from the ' \
+            '<a href="settings?reinstall_geoip=true">Settings</a> page.'
     except maxminddb.InvalidDatabaseError as e:
-        return 'Invalid GeoLite2 database.'
+        return 'Invalid GeoLite2 database. Please reinstall from the ' \
+            '<a href="settings?reinstall_geoip=true">Settings</a> page.'
     except geoip2.errors.AddressNotFoundError as e:
         return '%s' % e
     except Exception as e:

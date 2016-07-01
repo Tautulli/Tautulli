@@ -102,7 +102,8 @@ DOCUMENTATION :: END
     $(document).ready(function () {
         $("#install_geoip_db, #reinstall_geoip_db").click(function () {
             var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +
-                'The database uses ~65MB in your PlexPy directory.';
+                'The database is used to lookup IP address geolocation info.<br/>' +
+                'The database uses <strong>~65MB</strong> in your PlexPy directory.';
             var url = 'install_geoip_db';
             confirmAjaxCall(url, msg, 'Installing GeoLite2 database.', getConfigurationTable);
         });
