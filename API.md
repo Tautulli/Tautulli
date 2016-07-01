@@ -1722,6 +1722,10 @@ Returns:
 ```
 
 
+### install_geoip_db
+Downloads and installs the GeoLite2 database
+
+
 ### notify
 Send a notification using PlexPy.
 
@@ -1842,6 +1846,10 @@ Optional parameters:
 Returns:
     None
 ```
+
+
+### uninstall_geoip_db
+Uninstalls the GeoLite2 database
 
 
 ### update

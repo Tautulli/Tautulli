@@ -577,6 +577,19 @@ def install_geoip_db():
 
     return True
 
+def uninstall_geoip_db():
+    logger.debug(u"PlexPy Helpers :: Uninstalling the GeoLite2 database...")
+    try:
+        os.remove(plexpy.CONFIG.GEOIP_DB)
+        plexpy.CONFIG.__setattr__('GEOIP_DB', '')
+        plexpy.CONFIG.write()
+    except Exception as e:
+        logger.error(u"PlexPy Helpers :: Failed to uninstall the GeoLite2 database: %s" % e)
+        return False
+
+    logger.debug(u"PlexPy Helpers :: GeoLite2 database uninstalled successfully.")
+    return True
+
 def geoip_lookup(ip_address):
     if not plexpy.CONFIG.GEOIP_DB:
         return 'GeoLite2 database not installed. Please install from the ' \

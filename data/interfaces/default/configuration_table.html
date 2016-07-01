@@ -52,7 +52,7 @@ DOCUMENTATION :: END
         <tr>
             <td>GeoLite2 Database:</td>
             % if plexpy.CONFIG.GEOIP_DB:
-            <td>${plexpy.CONFIG.GEOIP_DB} | <a class="no-highlight" href="#" id="reinstall_geoip_db">Reinstall / Update</a></td>
+            <td>${plexpy.CONFIG.GEOIP_DB} | <a class="no-highlight" href="#" id="reinstall_geoip_db">Reinstall / Update</a> | <a class="no-highlight" href="#" id="uninstall_geoip_db">Uninstall</a></td>
             % else:
             <td><a class="no-highlight" href="#" id="install_geoip_db">Click here to install the GeoLite2 database.</a></td>
             % endif
@@ -106,6 +106,13 @@ DOCUMENTATION :: END
                 'The database uses <strong>~65MB</strong> in your PlexPy directory.';
             var url = 'install_geoip_db';
             confirmAjaxCall(url, msg, 'Installing GeoLite2 database.', getConfigurationTable);
+        });
+
+        $("#uninstall_geoip_db").click(function () {
+            var msg = 'Are you sure you want to uninstall the GeoLite2 database?<br /><br />' +
+                'You will not be able to lookup IP address geolocation info.';
+            var url = 'uninstall_geoip_db';
+            confirmAjaxCall(url, msg, 'Uninstalling GeoLite2 database.', getConfigurationTable);
         });
     });
 </script>

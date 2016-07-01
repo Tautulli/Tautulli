@@ -2802,15 +2802,30 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    @addtoapi()
     def install_geoip_db(self):
-        """ Downloads and installs the GeoIP database """
+        """ Downloads and installs the GeoLite2 database """
 
         result = helpers.install_geoip_db()
 
         if result:
-            return {'result': 'success', 'message': 'GeoIP database installed successful.'}
+            return {'result': 'success', 'message': 'GeoLite2 database installed successful.'}
         else:
-            return {'result': 'error', 'message': 'GeoIP database install failed.'}
+            return {'result': 'error', 'message': 'GeoLite2 database install failed.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def uninstall_geoip_db(self):
+        """ Uninstalls the GeoLite2 database """
+
+        result = helpers.uninstall_geoip_db()
+
+        if result:
+            return {'result': 'success', 'message': 'GeoLite2 database uninstalled successfully.'}
+        else:
+            return {'result': 'error', 'message': 'GeoLite2 database uninstall failed.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
