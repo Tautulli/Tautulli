@@ -169,6 +169,10 @@ Return the api docs formatted with markdown.
 Download the PlexPy log file.
 
 
+### download_plex_log
+Download the Plex log file.
+
+
 ### edit_library
 Update a library section on PlexPy.
 
@@ -314,6 +318,31 @@ Returns:
     json:
         {"date_format": "YYYY-MM-DD",
          "time_format": "HH:mm",
+         }
+```
+
+
+### get_geoip_lookup
+Get the geolocation info for an IP address. The GeoLite2 database must be installed.
+
+```
+Required parameters:
+    ip_address
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"country": "United States",
+         "region": "California",
+         "city": "Mountain View",
+         "timezone": "America/Los_Angeles",
+         "latitude": 37.386,
+         "longitude": -122.0838
+         }
+    json:
+        {"error": "The address 127.0.0.1 is not in the database."
          }
 ```
 
@@ -555,16 +584,16 @@ Optional parameters:
 
 Returns:
     json:
-        {"child_count": null, 
-         "count": 887, 
-         "do_notify": 1, 
-         "do_notify_created": 1, 
-         "keep_history": 1, 
-         "library_art": "/:/resources/movie-fanart.jpg", 
-         "library_thumb": "/:/resources/movie.png", 
-         "parent_count": null, 
-         "section_id": 1, 
-         "section_name": "Movies", 
+        {"child_count": null,
+         "count": 887,
+         "do_notify": 1,
+         "do_notify_created": 1,
+         "keep_history": 1,
+         "library_art": "/:/resources/movie-fanart.jpg",
+         "library_thumb": "/:/resources/movie.png",
+         "parent_count": null,
+         "section_id": 1,
+         "section_name": "Movies",
          "section_type": "movie"
          }
 ```
@@ -1419,7 +1448,7 @@ Returns:
          "is_home_user": 1,
          "is_restricted": 0,
          "keep_history": 1,
-         "shared_libraries": ["10", "1", "4", "5", "15", "20", "2"], 
+         "shared_libraries": ["10", "1", "4", "5", "15", "20", "2"],
          "user_id": 133788,
          "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
          "username": "LordCommanderSnow"

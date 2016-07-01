@@ -4265,7 +4265,31 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
+    @addtoapi()
     def get_geoip_lookup(self, ip_address='', **kwargs):
+        """ Get the geolocation info for an IP address. The GeoLite2 database must be installed.
+
+            ```
+            Required parameters:
+                ip_address
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"country": "United States",
+                     "region": "California",
+                     "city": "Mountain View",
+                     "timezone": "America/Los_Angeles",
+                     "latitude": 37.386,
+                     "longitude": -122.0838
+                     }
+                json:
+                    {"error": "The address 127.0.0.1 is not in the database."
+                     }
+            ```
+        """
         geo_info = helpers.geoip_lookup(ip_address)
         if isinstance(geo_info, basestring):
             return {'error': geo_info}
