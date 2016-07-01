@@ -16,11 +16,14 @@
 import base64
 import datetime
 from functools import wraps
+import geoip2.database, geoip2.errors
+import gzip
 import hashlib
 import imghdr
 from IPy import IP
 import json
 import math
+import maxminddb
 from operator import itemgetter
 import os
 import re
@@ -513,6 +516,98 @@ def get_ip(host):
             logger.error(u"IP Checker :: Bad IP or hostname provided.")
 
     return ip_address
+
+def install_geoip_db():
+    maxmind_url = 'http://geolite.maxmind.com/download/geoip/database/'
+    geolite2_gz = 'GeoLite2-City.mmdb.gz'
+    geolite2_md5 = 'GeoLite2-City.md5'
+    geolite2_db = geolite2_gz[:-3]
+    md5_checksum = ''
+
+    temp_gz = os.path.join(plexpy.CONFIG.CACHE_DIR, geolite2_gz)
+    geolite2_db = os.path.join(plexpy.DATA_DIR, geolite2_db)
+
+    # Retrieve the GeoLite2 gzip file
+    logger.debug(u"PlexPy Helpers :: Downloading GeoLite2 gzip file from MaxMind...")
+    try:
+        maxmind = urllib.URLopener()
+        maxmind.retrieve(maxmind_url + geolite2_gz, temp_gz)
+        md5_checksum = urllib2.urlopen(maxmind_url + geolite2_md5).read()
+    except Exception as e:
+        logger.error(u"PlexPy Helpers :: Failed to download GeoLite2 gzip file from MaxMind: %s" % e)
+        return False
+
+    # Extract the GeoLite2 database file
+    logger.debug(u"PlexPy Helpers :: Extracting GeoLite2 database...")
+    try:
+        with gzip.open(temp_gz, 'rb') as gz:
+            with open(geolite2_db, 'wb') as db:
+                db.write(gz.read())
+    except Exception as e:
+        logger.error(u"PlexPy Helpers :: Failed to extract the GeoLite2 database: %s" % e)
+        return False
+
+    # Check MD5 hash for GeoLite2 database file
+    logger.debug(u"PlexPy Helpers :: Checking MD5 checksum for GeoLite2 database...")
+    try:
+        hash_md5 = hashlib.md5()
+        with open(geolite2_db, 'rb') as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        md5_hash = hash_md5.hexdigest()
+
+        if md5_hash != md5_checksum:
+            logger.error(u"PlexPy Helpers :: MD5 checksum doesn't match for GeoLite2 database. "
+                         "Checksum: %s, file hash: %s" % (md5_checksum, md5_hash))
+            return False
+    except Exception as e:
+        logger.error(u"PlexPy Helpers :: Failed to generate MD5 checksum for GeoLite2 database: %s" % e)
+        return False
+
+    # Delete temportary GeoLite2 gzip file
+    logger.debug(u"PlexPy Helpers :: Deleting temporary GeoLite2 gzip file...")
+    try:
+        os.remove(temp_gz)
+    except Exception as e:
+        logger.warn(u"PlexPy Helpers :: Failed to remove temporary GeoLite2 gzip file: %s" % e)
+
+    logger.debug(u"PlexPy Helpers :: GeoLite2 database installed successfully.")
+    plexpy.CONFIG.__setattr__('GEOIP_DB', geolite2_db)
+    plexpy.CONFIG.write()
+
+    return True
+
+def geoip_lookup(ip_address):
+    if not plexpy.CONFIG.GEOIP_DB:
+        return 'GeoLite2 database not installed. Please install from the Settings page.'
+
+    if not ip_address:
+        return 'No IP address provided.'
+
+    try:
+        reader = geoip2.database.Reader(plexpy.CONFIG.GEOIP_DB)
+        geo = reader.city(ip_address)
+        reader.close()
+    except IOError as e:
+        return 'Missing GeoLite2 database. Please reinstall from the Settings page.'
+    except ValueError as e:
+        return 'Unable to read GeoLite2 database: %s' % e
+    except maxminddb.InvalidDatabaseError as e:
+        return 'Invalid GeoLite2 database.'
+    except geoip2.errors.AddressNotFoundError as e:
+        return '%s' % e
+    except Exception as e:
+        return 'Error: %s' % e
+
+    geo_info = {'country': geo.country.name,
+                'region': geo.subdivisions.most_specific.name,
+                'city': geo.city.name,
+                'timezone': geo.location.time_zone,
+                'latitude': geo.location.latitude,
+                'longitude': geo.location.longitude
+                }
+
+    return geo_info
 
 # Taken from SickRage
 def anon_url(*url):

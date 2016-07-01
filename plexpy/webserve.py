@@ -2608,6 +2608,7 @@ class WebInterface(object):
             "imgur_client_id": plexpy.CONFIG.IMGUR_CLIENT_ID,
             "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES),
             "pms_version": plexpy.CONFIG.PMS_VERSION,
+            "geoip_db": plexpy.CONFIG.GEOIP_DB
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config)
@@ -2794,6 +2795,19 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Database backup successful.'}
         else:
             return {'result': 'error', 'message': 'Database backup failed.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def install_geoip_db(self):
+        """ Downloads and installs the GeoIP database """
+
+        result = helpers.install_geoip_db()
+
+        if result:
+            return {'result': 'success', 'message': 'GeoIP database installed successful.'}
+        else:
+            return {'result': 'error', 'message': 'GeoIP database install failed.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -4244,3 +4258,12 @@ class WebInterface(object):
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_update_staus()
         return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    def get_geoip_lookup(self, ip_address='', **kwargs):
+        geo_info = helpers.geoip_lookup(ip_address)
+        if isinstance(geo_info, basestring):
+            return {'error': geo_info}
+        return geo_info

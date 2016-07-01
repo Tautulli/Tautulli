@@ -3,37 +3,38 @@
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
             <h4 class="modal-title" id="myModalLabel">
-                % if data:
                 <strong><span id="modal_header_ip_address">
-                    <i class="fa fa-spin fa-refresh"></i>&nbspLoading Details...
+                    % if data:
+                    <i class="fa fa-map-marker"></i> IP Address: ${data}
+                    % else:
+                    <i class="fa fa-exclamation-circle"></i> Invalid IP Address
+                    % endif
                 </span></strong>
-                % else:
-                <i class="fa fa-exclamation-circle"></i>&nbspInvalid IP Address</span></strong>
-                % endif
             </h4>
         </div>
         <div class="modal-body" id="modal-text">
-            <div class="col-sm-6">
+            <div id="ip_error" style="display: none; text-align: center;"></div>
+            <div class="col-sm-12">
                 <h4><strong>Location Details</strong></h4>
+            </div>
+            <div class="col-sm-6">
                 <ul class="list-unstyled">
                     <li>Country: <strong><span id="country"></span></strong></li>
                     <li>Region: <strong><span id="region"></span></strong></li>
                     <li>City: <strong><span id="city"></span></strong></li>
+                </ul>
+            </div>
+            <div class="col-sm-6">
+                <ul class="list-unstyled">
                     <li>Timezone: <strong><span id="timezone"></span></strong></li>
                     <li>Latitude: <strong><span id="lat"></span></strong></li>
                     <li>Longitude: <strong><span id="lon"></span></strong></li>
                 </ul>
             </div>
-            <div class="col-sm-6">
-                <h4><strong>Connection Details</strong></h4>
-                <ul class="list-unstyled">
-                    <li>Organization: <strong><span id="organization"></span></strong></li>
-                </ul>
-            </div>
         </div>
         <div class="modal-footer">
             <% from plexpy.helpers import anon_url %>
-            <span class="text-muted">Telize service written by <a href="${anon_url('https://github.com/fcambus/telize')}" target="_blank">Frederic Cambus</a>.</span>
+            <span class="text-muted">GeoLite2 data created by <a href="${anon_url('http://www.maxmind.com')}" target="_blank">MaxMind</a>.</span>
         </div>
     </div>
 </div>
@@ -42,25 +43,26 @@
 <script>
     function getUserLocation(ip_address) {
         $.ajax({
-            url: 'https://telize.myhtpc.co.za/geoip/' + ip_address,
-            cache: true,
-            async: true,
+            url: 'get_geoip_lookup',
             type: 'GET',
-            dataType: 'json',
-            error: function(){
-                $('#modal_header_ip_address').html("Request failed. Server may be too busy.");
+            data: { ip_address: ip_address },
+            cache: true,
+            async: true,            
+            error: function () {
+                $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> Request failed.<br /><br />').show();
             },
-            success: function(data) {
-                $('#modal_header_ip_address').html('<i class="fa fa-map-marker"></i> IP Address: ' + ip_address);
-                $('#country').html(data.country);
-                $('#city').html(data.city);
-                $('#region').html(data.region);
-                $('#timezone').html(data.timezone);
-                $('#lat').html(data.latitude);
-                $('#lon').html(data.longitude);
-                $('#organization').html(data.organization);
-            },
-            timeout: 5000
+            success: function (data) {
+                if ('error' in data) {
+                    $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> ' + data.error + '<br /><br />').show();
+                } else {
+                    $('#country').html(data.country);
+                    $('#city').html(data.city);
+                    $('#region').html(data.region);
+                    $('#timezone').html(data.timezone);
+                    $('#lat').html(data.latitude);
+                    $('#lon').html(data.longitude);
+                }
+            }
         });
     }
     getUserLocation('${data}');

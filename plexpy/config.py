@@ -154,6 +154,7 @@ _CONFIG_DEFINITIONS = {
     'FACEBOOK_ON_PMSUPDATE': (int, 'Facebook', 0),
     'FIRST_RUN_COMPLETE': (int, 'General', 0),
     'FREEZE_DB': (int, 'General', 0),
+    'GEOIP_DB': (str, 'General', ''),
     'GET_FILE_SIZES': (int, 'General', 0),
     'GET_FILE_SIZES_HOLD': (dict, 'General', {'section_ids': [], 'rating_keys': []}),
     'GIT_BRANCH': (str, 'General', 'master'),

@@ -94,6 +94,14 @@
                                     <td>Cache Directory:</td>
                                     <td>${config['cache_dir']}</td>
                                 </tr>
+                                <tr>
+                                    <td>GeoLite2 Database:</td>
+                                    % if config['geoip_db']:
+                                    <td>${config['geoip_db']} | <a class="no-highlight" href="#" id="install_geoip_db">Reinstall / Update</a></td>
+                                    % else:
+                                    <td><a class="no-highlight" href="#" id="install_geoip_db">Click here to install the database.</a></td>
+                                    % endif
+                                </tr>
                                 % if plexpy.ARGS:
                                 <tr>
                                     <td>Arguments:</td>
@@ -2236,10 +2244,13 @@ $(document).ready(function() {
     }
     getSchedulerTable();
 
-    function confirmAjaxCall (url, msg) {
-        $("#confirm-message").text(msg);
+    function confirmAjaxCall (url, msg, loader) {
+        $("#confirm-message").html(msg);
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
+            if (loader) {
+                showMsg(loader, true, false)
+            }
             $.ajax({
                 url: url,
                 type: 'POST',
@@ -2286,6 +2297,12 @@ $(document).ready(function() {
         confirmAjaxCall(url, msg);
     });
 
+    $("#install_geoip_db").click(function () {
+        var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +
+            'The database uses ~65MB in your PlexPy directory.';
+        var url = 'install_geoip_db';
+        confirmAjaxCall(url, msg, 'Installing GeoLite2 database.');
+    });
 
     $('#api_key').click(function(){ $('#api_key').select() });
     $("#generate_api").click(function() {
