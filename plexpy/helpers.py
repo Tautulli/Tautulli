@@ -579,7 +579,8 @@ def install_geoip_db():
 
 def geoip_lookup(ip_address):
     if not plexpy.CONFIG.GEOIP_DB:
-        return 'GeoLite2 database not installed. Please install from the Settings page.'
+        return 'GeoLite2 database not installed. Please install from the ' \
+            '<a href="settings?install_geoip=true">Settings</a> page.'
 
     if not ip_address:
         return 'No IP address provided.'
@@ -589,7 +590,8 @@ def geoip_lookup(ip_address):
         geo = reader.city(ip_address)
         reader.close()
     except IOError as e:
-        return 'Missing GeoLite2 database. Please reinstall from the Settings page.'
+        return 'Missing GeoLite2 database. Please reinstall from the ' \
+            '<a href="settings?install_geoip=true">Settings</a> page.'
     except ValueError as e:
         return 'Unable to read GeoLite2 database: %s' % e
     except maxminddb.InvalidDatabaseError as e:
