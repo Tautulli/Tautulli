@@ -2491,7 +2491,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def settings(self):
+    def settings(self, **kwargs):
         interface_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/')
         interface_list = [name for name in os.listdir(interface_dir) if
                           os.path.isdir(os.path.join(interface_dir, name))]
@@ -2607,11 +2607,10 @@ class WebInterface(object):
             "git_token": plexpy.CONFIG.GIT_TOKEN,
             "imgur_client_id": plexpy.CONFIG.IMGUR_CLIENT_ID,
             "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES),
-            "pms_version": plexpy.CONFIG.PMS_VERSION,
-            "geoip_db": plexpy.CONFIG.GEOIP_DB
+            "pms_version": plexpy.CONFIG.PMS_VERSION
         }
 
-        return serve_template(templatename="settings.html", title="Settings", config=config)
+        return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2768,9 +2767,13 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
+    def get_configuration_table(self, **kwargs):
+        return serve_template(templatename="configuration_table.html")
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
     def get_scheduler_table(self, **kwargs):
         return serve_template(templatename="scheduler_table.html")
-
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

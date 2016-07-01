@@ -54,6 +54,32 @@ function showMsg(msg, loader, timeout, ms, error) {
     }
 }
 
+function confirmAjaxCall(url, msg, loader_msg, callback) {
+    $("#confirm-message").html(msg);
+    $('#confirm-modal').modal();
+    $('#confirm-modal').one('click', '#confirm-button', function () {
+        if (loader_msg) {
+            showMsg(loader_msg, true, false)
+        }
+        $.ajax({
+            url: url,
+            type: 'POST',
+            complete: function (xhr, status) {
+                result = $.parseJSON(xhr.responseText);
+                msg = result.message;
+                if (result.result == 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                } else {
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+                }
+                if (typeof callback === "function") {
+                    callback();
+                }
+            }
+        });
+    });
+}
+
 function doAjaxCall(url, elem, reload, form, callback) {
     // Set Message
     feedback = $("#ajaxMsg");

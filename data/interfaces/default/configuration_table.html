@@ -1,0 +1,110 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           configuration_table.html
+Version:            0.1
+
+DOCUMENTATION :: END
+</%doc>
+
+<%!
+    import os
+    import sys
+    import plexpy
+    from plexpy import common, logger
+    from plexpy.helpers import anon_url
+%>
+
+<table class="config-info-table small-muted">
+    <tbody>
+        % if plexpy.CURRENT_VERSION:
+        <tr>
+            <td>Git Branch:</td>
+            <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/tree/%s' % plexpy.CONFIG.GIT_BRANCH)}">${plexpy.CONFIG.GIT_BRANCH}</a></td>
+        </tr>
+        <tr>
+            <td>Git Commit Hash:</td>
+            <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/commit/%s' % plexpy.CURRENT_VERSION)}">${plexpy.CURRENT_VERSION}</a></td>
+        </tr>
+        % endif
+        <tr>
+            <td>Configuration File:</td>
+            <td>${plexpy.CONFIG_FILE}</td>
+        </tr>
+        <tr>
+            <td>Database File:</td>
+            <td>${plexpy.DB_FILE}</td>
+        </tr>
+        <tr>
+            <td>Log File:</td>
+            <td><a class="no-highlight" href="logFile" target="_blank">${os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)}</a></td>
+        </tr>
+        <tr>
+            <td>Backup Directory:</td>
+            <td>${plexpy.CONFIG.BACKUP_DIR}</td>
+        </tr>
+        <tr>
+            <td>Cache Directory:</td>
+            <td>${plexpy.CONFIG.CACHE_DIR}</td>
+        </tr>
+        <tr>
+            <td>GeoLite2 Database:</td>
+            % if plexpy.CONFIG.GEOIP_DB:
+            <td>${plexpy.CONFIG.GEOIP_DB} | <a class="no-highlight" href="#" id="reinstall_geoip_db">Reinstall / Update</a></td>
+            % else:
+            <td><a class="no-highlight" href="#" id="install_geoip_db">Click here to install the GeoLite2 database.</a></td>
+            % endif
+        </tr>
+        % if plexpy.ARGS:
+        <tr>
+            <td>Arguments:</td>
+            <td>${plexpy.ARGS}</td>
+        </tr>
+        % endif
+        <tr>
+            <td>Platform:</td>
+            <td>${common.PLATFORM} ${common.PLATFORM_VERSION}</td>
+        </tr>
+        <tr>
+            <td>Python Version:</td>
+            <td>${sys.version}</td>
+        </tr>
+        <tr>
+            <td class="top-line">Plex Forums:</td>
+            <td class="top-line"><a class="no-highlight" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program</a></td>
+        </tr>
+        <tr>
+            <td>Source:</td>
+            <td><a id="source-link" class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}" target="_blank">https://github.com/drzoidberg33/plexpy</a></td>
+        </tr>
+        <tr>
+            <td>Wiki:</td>
+            <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/wiki')}" target="_blank">https://github.com/drzoidberg33/plexpy/wiki</a></td>
+        </tr>
+        <tr>
+            <td>Issues:</td>
+            <td><a class="no-highlight guidelines-modal-link" href="${anon_url('https://github.com/drzoidberg33/plexpy/issues')}" data-id="issue">https://github.com/drzoidberg33/plexpy/issues</a></td>
+        </tr>
+        <tr>
+            <td>Feature Requests:</td>
+            <td><a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/drzoidberg33/plexpy')}" data-id="feature request">http://feathub.com/drzoidberg33/plexpy</a></td>
+        </tr>
+        <tr>
+            <td>Gitter Chat:</td>
+            <td><a class="no-highlight" href="${anon_url('https://gitter.im/drzoidberg33/plexpy')}" target="_blank">https://gitter.im/drzoidberg33/plexpy</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+    $(document).ready(function () {
+        $("#install_geoip_db, #reinstall_geoip_db").click(function () {
+            var msg = 'Are you sure you want to install the GeoLite2 database?<br /><br />' +
+                'The database uses ~65MB in your PlexPy directory.';
+            var url = 'install_geoip_db';
+            confirmAjaxCall(url, msg, 'Installing GeoLite2 database.', getConfigurationTable);
+        });
+    });
+</script>

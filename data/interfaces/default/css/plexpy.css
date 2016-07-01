@@ -3005,3 +3005,6 @@ a:hover .overlay-refresh-image {
 a:hover .overlay-refresh-image:hover {
     opacity: .9;
 }
+#ip_error a {
+    color: #e9a049;
+}
