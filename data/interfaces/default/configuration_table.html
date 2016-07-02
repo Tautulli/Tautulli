@@ -115,5 +115,15 @@ DOCUMENTATION :: END
             var url = 'uninstall_geoip_db';
             confirmAjaxCall(url, msg, 'Uninstalling GeoLite2 database.', getConfigurationTable);
         });
+
+        $('.guidelines-modal-link').on('click', function (e) {
+            e.preventDefault();
+            $('#guidelines-link').attr('href', $('#source-link').attr('href'));
+            $('#guidelines-type').text($(this).data('id'))
+            $('#guidelines-modal').modal();
+            $('#guidelines-continue').attr('href', $(this).attr('href')).on('click', function () {
+                $('#guidelines-modal').modal('hide');
+            });
+        });
     });
 </script>
