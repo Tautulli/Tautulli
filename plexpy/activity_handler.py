@@ -55,23 +55,36 @@ class ActivityHandler(object):
 
         return None
 
-    def update_db_session(self):
+    def update_db_session(self, session=None):
         # Update our session temp table values
         monitor_proc = activity_processor.ActivityProcessor()
-        monitor_proc.write_session(session=self.get_live_session(), notify=False)
+        monitor_proc.write_session(session=session, notify=False)
 
     def on_start(self):
         if self.is_valid_session() and self.get_live_session():
             logger.debug(u"PlexPy ActivityHandler :: Session %s has started." % str(self.get_session_key()))
 
+            session = self.get_live_session()
+
             # Check if any notification agents have notifications enabled
             if any(d['on_play'] for d in notifiers.available_notification_agents()):
                 # Fire off notifications
                 threading.Thread(target=notification_handler.notify,
-                                 kwargs=dict(stream_data=self.get_live_session(), notify_action='play')).start()
+                                 kwargs=dict(stream_data=session, notify_action='play')).start()
 
             # Write the new session to our temp session table
-            self.update_db_session()
+            self.update_db_session(session=session)
+
+            # Check if any notification agents have notifications enabled
+            if any(d['on_concurrent'] for d in notifiers.available_notification_agents()):
+                # Check if any concurrent streams by the user
+                ip = True if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP else None
+                ap = activity_processor.ActivityProcessor()
+                user_sessions = ap.get_session_by_user_id(user_id=session['user_id'], ip_address=ip)
+                if len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD:
+                    # Push any notifications - Push it on it's own thread so we don't hold up our db actions
+                    threading.Thread(target=notification_handler.notify,
+                                        kwargs=dict(stream_data=session, notify_action='concurrent')).start()
 
     def on_stop(self, force_stop=False):
         if self.is_valid_session():

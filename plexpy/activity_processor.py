@@ -106,6 +106,16 @@ class ActivityProcessor(object):
                         ip_address = {'ip_address': ip_address}
                         self.db.upsert('sessions', ip_address, keys)
 
+                # Check if any notification agents have notifications enabled
+                if notify and any(d['on_concurrent'] for d in notifiers.available_notification_agents()):
+                    # Check if any concurrent streams by the user
+                    ip = True if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP else None
+                    user_sessions = self.get_session_by_user_id(user_id=session['user_id'], ip_address=ip)
+                    if len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD:
+                        # Push any notifications - Push it on it's own thread so we don't hold up our db actions
+                        threading.Thread(target=notification_handler.notify,
+                                         kwargs=dict(stream_data=values, notify_action='concurrent')).start()
+
                 return True
 
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
@@ -470,3 +480,13 @@ class ActivityProcessor(object):
                 return last_time['buffer_last_triggered']
 
             return None
+
+    def get_session_by_user_id(self, user_id=None, ip_address=None):
+        sessions = []
+        if str(user_id).isdigit():
+            ip = 'GROUP BY ip_address' if ip_address else ''
+            sessions = self.db.select('SELECT * '
+                                      'FROM sessions '
+                                      'WHERE user_id = ? %s' % ip,
+                                      [user_id])
+        return sessions

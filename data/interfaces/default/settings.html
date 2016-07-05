@@ -302,7 +302,7 @@
                                 </div>
                                 <div id="home_stats_count_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Specify the number of items to show in the top lists for the watch statistics on the home page. Max is 10 items, default is 5 items, 0 to disable.</p>
+                            <p class="help-block">Specify the number of items to show in the top lists for the watch statistics on the home page. Maximum 10 items, default 5 items, 0 to disable.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -740,7 +740,7 @@
                                 </div>
                                 <div id="monitoring_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Min 30 seconds, recommended 60 seconds.</p>
+                            <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Minimum 30 seconds, recommended 60 seconds.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -882,6 +882,22 @@
                             </label>
                             <p class="help-block">Disable to prevent consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_concurrent_by_ip" id="notify_concurrent_by_ip" value="1" ${config['notify_concurrent_by_ip']}> User Concurrent Streams Notifications by IP Address
+                            </label>
+                            <p class="help-block">Enable to only get notified of concurrent streams by a single user from different IP addresses.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="notify_concurrent_threshold">User Concurrent Stream Threshold</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_concurrent_threshold" name="notify_concurrent_threshold" value="${config['notify_concurrent_threshold']}" data-parsley-min="2" data-parsley-trigger="change" data-parsley-errors-container="#notify_concurrent_threshold_error" required>
+                                </div>
+                                <div id="notify_concurrent_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The number of concurrent streams by a single user for PlexPy to trigger a notification. Minimum 2.</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Recently Added Notifications</h3>
@@ -1021,6 +1037,23 @@
                                         <div class="form-group">
                                             <label for="notify_on_buffer_body_text">Message Body</label>
                                             <textarea class="form-control" id="notify_on_buffer_body_text" name="notify_on_buffer_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_buffer_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-arrow-circle-o-right fa-fw"></i>&nbsp;User Concurrent Streams<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_concurrent_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_concurrent_subject_text" name="notify_on_concurrent_subject_text" value="${config['notify_on_concurrent_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_buffer_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_concurrent_body_text" name="notify_on_concurrent_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_concurrent_body_text']}</textarea>
                                             <p class="help-block">Set a custom body.</p>
                                         </div>
                                     </li>
@@ -1561,6 +1594,10 @@
                                 <tr>
                                     <td><strong>{streams}</strong></td>
                                     <td>The number of concurrent streams.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{user_streams}</strong></td>
+                                    <td>The number of concurrent streams by the person streaming.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{user}</strong></td>

@@ -59,6 +59,13 @@
                         </div>
                         <div class="checkbox">
                             <label>
+                                <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_concurrent" ${helpers.checked(data['on_concurrent'])} class="toggle-switches">
+                                Notify on user concurrent stream
+                            </label>
+                            <p class="help-block">Trigger notification when a user has concurrent streams.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
                                 <input type="checkbox" data-size="small" data-id="${data['id']}" data-config-name="${data['config_prefix']}_on_created" ${helpers.checked(data['on_created'])} class="toggle-switches">
                                 Notify on recently added
                             </label>

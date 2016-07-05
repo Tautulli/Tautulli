@@ -182,6 +182,26 @@ def notify(stream_data=None, notify_action=None):
                                          notify_strings=notify_strings,
                                          metadata=metadata)
 
+                elif agent['on_concurrent'] and notify_action == 'concurrent':
+                    # Build and send notification
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
+                    notifiers.send_notification(agent_id=agent['id'],
+                                                subject=notify_strings[0],
+                                                body=notify_strings[1],
+                                                script_args=notify_strings[2],
+                                                notify_action=notify_action,
+                                                metadata=metadata)
+
+                    # Set the notification state in the db
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
+
         elif (stream_data['media_type'] == 'track' and plexpy.CONFIG.MUSIC_NOTIFY_ENABLE):
 
             for agent in notifiers.available_notification_agents():
@@ -485,7 +505,10 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     pms_connect = pmsconnect.PmsConnect()
     metadata_list = pms_connect.get_metadata_details(rating_key=rating_key)
 
-    stream_count = pms_connect.get_current_activity().get('stream_count', '')
+    current_activity = pms_connect.get_current_activity()
+    sessions = current_activity.get('sessions', [])
+    stream_count = current_activity.get('stream_count', '')
+    user_stream_count = sum(1 for d in sessions if d['user_id'] == session['user_id'])
 
     if metadata_list:
         metadata = metadata_list['metadata']
@@ -525,6 +548,8 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT), agent_id)
         on_created_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT), agent_id)
         on_created_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT), agent_id)
+        on_concurrent_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CONCURRENT_SUBJECT_TEXT), agent_id)
+        on_concurrent_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CONCURRENT_BODY_TEXT), agent_id)
         script_args_text = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT), agent_id)
     else:
         on_start_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT, agent_id)
@@ -541,6 +566,8 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         on_watched_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT, agent_id)
         on_created_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT, agent_id)
         on_created_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT, agent_id)
+        on_concurrent_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_CONCURRENT_SUBJECT_TEXT, agent_id)
+        on_concurrent_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_CONCURRENT_BODY_TEXT, agent_id)
         script_args_text = strip_tag(plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT, agent_id)
 
     # Create a title
@@ -676,6 +703,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
                         'timestamp': arrow.now().format(time_format),
                         # Stream parameters
                         'streams': stream_count,
+                        'user_streams': user_stream_count,
                         'user': session.get('friendly_name',''),
                         'username': session.get('user',''),
                         'platform': session.get('platform',''),
@@ -935,6 +963,29 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
 
             try:
                 body_text = unicode(on_created_body).format(**available_params)
+            except LookupError as e:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text, script_args], metadata
+        else:
+            return [subject_text, body_text, script_args], metadata
+    elif notify_action == 'concurrent':
+        # Default body text
+        body_text = '%s has %s concurrent streams.' % (session['friendly_name'],
+                                                         user_stream_count)
+
+        if on_concurrent_subject and on_concurrent_body:
+            try:
+                subject_text = unicode(on_concurrent_subject).format(**available_params)
+            except LookupError as e:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_concurrent_body).format(**available_params)
             except LookupError as e:
                 logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
             except:
