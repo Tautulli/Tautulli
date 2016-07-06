@@ -2108,6 +2108,9 @@ class Scripts(object):
         elif notify_action == 'pmsupdate':
             script = plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE_SCRIPT
 
+        elif notify_action == 'concurrent':
+            script = plexpy.CONFIG.SCRIPTS_ON_CONCURRENT_SCRIPT
+
         else:
             # For manual scripts
             script = kwargs.get('script', '')
@@ -2282,6 +2285,13 @@ class Scripts(object):
                           'value': plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE_SCRIPT,
                           'name': 'scripts_on_pmsupdate_script',
                           'description': 'Choose the script for Plex update available.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'User Concurrent Streams',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_CONCURRENT_SCRIPT,
+                          'name': 'scripts_on_concurrent_script',
+                          'description': 'Choose the script for user concurrent streams.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           }
