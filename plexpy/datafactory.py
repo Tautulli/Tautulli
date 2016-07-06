@@ -1307,3 +1307,18 @@ class DataFactory(object):
         except Exception as e:
             logger.warn(u"PlexPy DataFactory :: Unable to execute database query for delete_notification_log: %s." % e)
             return False
+
+    def get_user_devices(self, user_id=''):
+        monitor_db = database.MonitorDatabase()
+
+        if user_id:
+            try:
+                query = 'SELECT machine_id FROM session_history WHERE user_id = ? GROUP BY machine_id'
+                result = monitor_db.select(query=query, args=[user_id])
+            except Exception as e:
+                logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_user_devices: %s." % e)
+                return []
+        else:
+            return []
+
+        return [d['machine_id'] for d in result]

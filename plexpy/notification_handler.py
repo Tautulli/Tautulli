@@ -202,6 +202,26 @@ def notify(stream_data=None, notify_action=None):
                                      notify_strings=notify_strings,
                                      metadata=metadata)
 
+                elif agent['on_newdevice'] and notify_action == 'newdevice':
+                    # Build and send notification
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
+                    notifiers.send_notification(agent_id=agent['id'],
+                                                subject=notify_strings[0],
+                                                body=notify_strings[1],
+                                                script_args=notify_strings[2],
+                                                notify_action=notify_action,
+                                                metadata=metadata)
+
+                    # Set the notification state in the db
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
+
         elif (stream_data['media_type'] == 'track' and plexpy.CONFIG.MUSIC_NOTIFY_ENABLE):
 
             for agent in notifiers.available_notification_agents():
@@ -306,6 +326,26 @@ def notify(stream_data=None, notify_action=None):
                                      metadata=metadata)
 
                 elif agent['on_concurrent'] and notify_action == 'concurrent':
+                    # Build and send notification
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
+                    notifiers.send_notification(agent_id=agent['id'],
+                                                subject=notify_strings[0],
+                                                body=notify_strings[1],
+                                                script_args=notify_strings[2],
+                                                notify_action=notify_action,
+                                                metadata=metadata)
+
+                    # Set the notification state in the db
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
+
+                elif agent['on_newdevice'] and notify_action == 'newdevice':
                     # Build and send notification
                     notify_strings, metadata = build_notify_text(session=stream_data,
                                                                  notify_action=notify_action,
@@ -570,6 +610,8 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         on_created_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT), agent_id)
         on_concurrent_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CONCURRENT_SUBJECT_TEXT), agent_id)
         on_concurrent_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CONCURRENT_BODY_TEXT), agent_id)
+        on_newdevice_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT), agent_id)
+        on_newdevice_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_BODY_TEXT), agent_id)
         script_args_text = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT), agent_id)
     else:
         on_start_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT, agent_id)
@@ -588,6 +630,8 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         on_created_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT, agent_id)
         on_concurrent_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_CONCURRENT_SUBJECT_TEXT, agent_id)
         on_concurrent_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_CONCURRENT_BODY_TEXT, agent_id)
+        on_newdevice_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT, agent_id)
+        on_newdevice_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_BODY_TEXT, agent_id)
         script_args_text = strip_tag(plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT, agent_id)
 
     # Create a title
@@ -1014,6 +1058,29 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
             return [subject_text, body_text, script_args], metadata
         else:
             return [subject_text, body_text, script_args], metadata
+    elif notify_action == 'newdevice':
+        # Default body text
+        body_text = '%s is streaming from a new device: %s.' % (session['friendly_name'],
+                                                                session['player'])
+
+        if on_newdevice_subject and on_newdevice_body:
+            try:
+                subject_text = unicode(on_newdevice_subject).format(**available_params)
+            except LookupError as e:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
+
+            try:
+                body_text = unicode(on_newdevice_body).format(**available_params)
+            except LookupError as e:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
+            except:
+                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
+
+            return [subject_text, body_text, script_args], metadata
+        else:
+            return [subject_text, body_text, script_args], metadata
     else:
         return [None, None, None], None
 
@@ -1225,10 +1292,10 @@ def strip_tag(data, agent_id=None):
     elif agent_id == 13:
         # Allow tags b, i, code, pre, a[href] for Telegram
         whitelist = {'b': [],
-                      'i': [],
-                      'code': [],
-                      'pre': [],
-                      'a': ['href']}
+                     'i': [],
+                     'code': [],
+                     'pre': [],
+                     'a': ['href']}
         return bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
     else:

@@ -18,6 +18,7 @@ import time
 
 import plexpy
 import activity_processor
+import datafactory
 import helpers
 import logger
 import notification_handler
@@ -84,7 +85,17 @@ class ActivityHandler(object):
                 if len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD:
                     # Push any notifications - Push it on it's own thread so we don't hold up our db actions
                     threading.Thread(target=notification_handler.notify,
-                                        kwargs=dict(stream_data=session, notify_action='concurrent')).start()
+                                     kwargs=dict(stream_data=session, notify_action='concurrent')).start()
+
+            # Check if any notification agents have notifications enabled
+            if any(d['on_newdevice'] for d in notifiers.available_notification_agents()):
+                # Check if any concurrent streams by the user
+                data_factory = datafactory.DataFactory()
+                user_devices = data_factory.get_user_devices(user_id=session['user_id'])
+                if session['machine_id'] not in user_devices:
+                    # Push any notifications - Push it on it's own thread so we don't hold up our db actions
+                    threading.Thread(target=notification_handler.notify,
+                                     kwargs=dict(stream_data=session, notify_action='newdevice')).start()
 
     def on_stop(self, force_stop=False):
         if self.is_valid_session():

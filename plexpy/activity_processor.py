@@ -19,6 +19,7 @@ import re
 
 import plexpy
 import database
+import datafactory
 import libraries
 import log_reader
 import logger
@@ -115,6 +116,16 @@ class ActivityProcessor(object):
                         # Push any notifications - Push it on it's own thread so we don't hold up our db actions
                         threading.Thread(target=notification_handler.notify,
                                          kwargs=dict(stream_data=values, notify_action='concurrent')).start()
+
+                # Check if any notification agents have notifications enabled
+                if notify and any(d['on_newdevice'] for d in notifiers.available_notification_agents()):
+                    # Check if any concurrent streams by the user
+                    data_factory = datafactory.DataFactory()
+                    user_devices = data_factory.get_user_devices(user_id=session['user_id'])
+                    if session['machine_id'] not in user_devices:
+                        # Push any notifications - Push it on it's own thread so we don't hold up our db actions
+                        threading.Thread(target=notification_handler.notify,
+                                         kwargs=dict(stream_data=values, notify_action='newdevice')).start()
 
                 return True
 

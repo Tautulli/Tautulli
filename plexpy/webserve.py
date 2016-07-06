@@ -2598,6 +2598,8 @@ class WebInterface(object):
             "notify_on_pmsupdate_body_text": plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_BODY_TEXT,
             "notify_on_concurrent_subject_text": plexpy.CONFIG.NOTIFY_ON_CONCURRENT_SUBJECT_TEXT,
             "notify_on_concurrent_body_text": plexpy.CONFIG.NOTIFY_ON_CONCURRENT_BODY_TEXT,
+            "notify_on_newdevice_subject_text": plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT,
+            "notify_on_newdevice_body_text": plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_BODY_TEXT,
             "notify_scripts_args_text": plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT,
             "home_sections": json.dumps(plexpy.CONFIG.HOME_SECTIONS),
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
