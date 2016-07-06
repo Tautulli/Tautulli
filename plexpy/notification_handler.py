@@ -305,6 +305,26 @@ def notify(stream_data=None, notify_action=None):
                                      notify_strings=notify_strings,
                                      metadata=metadata)
 
+                elif agent['on_concurrent'] and notify_action == 'concurrent':
+                    # Build and send notification
+                    notify_strings, metadata = build_notify_text(session=stream_data,
+                                                                 notify_action=notify_action,
+                                                                 agent_id=agent['id'])
+
+                    notifiers.send_notification(agent_id=agent['id'],
+                                                subject=notify_strings[0],
+                                                body=notify_strings[1],
+                                                script_args=notify_strings[2],
+                                                notify_action=notify_action,
+                                                metadata=metadata)
+
+                    # Set the notification state in the db
+                    set_notify_state(session=stream_data,
+                                     notify_action=notify_action,
+                                     agent_info=agent,
+                                     notify_strings=notify_strings,
+                                     metadata=metadata)
+
         elif stream_data['media_type'] == 'clip':
             pass
         else:
