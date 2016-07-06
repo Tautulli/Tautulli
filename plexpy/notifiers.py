@@ -429,7 +429,8 @@ def available_notification_agents():
                        'on_intdown': plexpy.CONFIG.OSX_NOTIFY_ON_INTDOWN,
                        'on_extup': plexpy.CONFIG.OSX_NOTIFY_ON_EXTUP,
                        'on_intup': plexpy.CONFIG.OSX_NOTIFY_ON_INTUP,
-                       'on_pmsupdate': plexpy.CONFIG.OSX_NOTIFY_ON_PMSUPDATE
+                       'on_pmsupdate': plexpy.CONFIG.OSX_NOTIFY_ON_PMSUPDATE,
+                       'on_concurrent': plexpy.CONFIG.OSX_NOTIFY_ON_CONCURRENT
                        })
 
     return agents
