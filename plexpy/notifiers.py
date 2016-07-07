@@ -62,7 +62,8 @@ AGENT_IDS = {"Growl": 0,
              "Scripts": 15,
              "Facebook": 16,
              "Browser": 17,
-             "Join": 18}
+             "Join": 18,
+             "Hipchat": 19}
 
 
 def available_notification_agents():
@@ -389,7 +390,25 @@ def available_notification_agents():
                'on_extup': plexpy.CONFIG.JOIN_ON_EXTUP,
                'on_intup': plexpy.CONFIG.JOIN_ON_INTUP,
                'on_pmsupdate': plexpy.CONFIG.JOIN_ON_PMSUPDATE
-               }
+               },
+              {'name': 'Hipchat',
+               'id': AGENT_IDS['Hipchat'],
+               'config_prefix': 'hipchat',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.HIPCHAT_ENABLED),
+               'on_play': plexpy.CONFIG.HIPCHAT_ON_PLAY,
+               'on_stop': plexpy.CONFIG.HIPCHAT_ON_STOP,
+               'on_pause': plexpy.CONFIG.HIPCHAT_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.HIPCHAT_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.HIPCHAT_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.HIPCHAT_ON_WATCHED,
+               'on_created': plexpy.CONFIG.HIPCHAT_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.HIPCHAT_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.HIPCHAT_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.HIPCHAT_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.HIPCHAT_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.HIPCHAT_ON_PMSUPDATE
+               },
               ]
 
     # OSX Notifications should only be visible if it can be used
@@ -478,6 +497,9 @@ def get_notification_agent_config(agent_id):
         elif agent_id == 18:
             join = JOIN()
             return join.return_config_options()
+        elif agent_id == 19:
+            hipchat = HIPCHAT()
+            return hipchat.return_config_options()
         else:
             return []
     else:
@@ -545,6 +567,9 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
         elif agent_id == 18:
             join = JOIN()
             return join.notify(message=body, subject=subject)
+        elif agent_id == 19:
+            hipchat = HIPCHAT()
+            return hipchat.notify(message=body, subject=subject)
         else:
             logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
@@ -2650,6 +2675,74 @@ class JOIN(object):
                           'description': devices,
                           'input_type': 'help'
                           }
+                         ]
+
+        return config_option
+
+class HIPCHAT(object):
+
+    def __init__(self):
+        self.apiurl = plexpy.CONFIG.HIPCHAT_URL
+        self.color = plexpy.CONFIG.HIPCHAT_COLOR
+
+    def notify(self, message, subject):
+        if not message or not subject:
+            return
+        
+        text = '(plex) ' + subject.encode('utf-8') + ': ' + message.encode('utf-8')
+
+        data = {'color': self.color,
+                'message': text,
+                'notify': 'false',
+                'message_format': 'text'}
+
+        hiphost = urlparse(self.apiurl).hostname
+        hippath = urlparse(self.apiurl).path
+        hipquery = urlparse(self.apiurl).query
+        hipfullq = hippath + '?' + hipquery
+
+        http_handler = HTTPSConnection(hiphost)
+        http_handler.request("POST",
+                             "%s" % (hipfullq),
+                             headers={'Content-type': "application/json"},
+                             body=json.dumps(data))
+        response = http_handler.getresponse()
+        request_status = response.status
+
+        if request_status == 200 or request_status == 204:
+            logger.info(u"PlexPy Notifiers :: Hipchat notification sent.")
+            return True
+        elif request_status >= 400 and request_status < 500:
+            logger.warn(u"PlexPy Notifiers :: Hipchat notification failed: [%s] %s" % (request_status, response.reason))
+            return False
+        else:
+            logger.warn(u"PlexPy Notifiers :: Hipchat notification failed.")
+            return False
+
+    def test(self, apiurl, color):
+
+        self.enabled = True
+        self.apiurl = apiurl
+        self.color = color
+
+        return self.notify('PlexPy', 'Test Message')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Hipchat Custom Integrations Full URL',
+                          'value': self.apiurl,
+                          'name': 'hipchat_url',
+                          'description': 'Your Hipchat integration URL. You can get a key from'
+                                         ' <a href="' + helpers.anon_url('https://www.hipchat.com/addons/') + '" target="_blank">here</a>.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Hipchat Color',
+                          'value': self.color,
+                          'name': 'hipchat_color',
+                          'description': 'Color for the message to show up in your room. You'
+                                         ' may use any valid Hipchat message color value.',
+                          'input_type': 'text'
+                          }
+
                          ]
 
         return config_option

@@ -1701,6 +1701,7 @@ Required parameters:
                                 10   # Email
                                 16   # Facebook
                                 0    # Growl
+                                19   # Hipchat
                                 12   # IFTTT
                                 18   # Join
                                 4    # NotifyMyAndroid
