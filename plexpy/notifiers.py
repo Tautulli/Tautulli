@@ -2755,7 +2755,7 @@ class HIPCHAT(object):
         self.apiurl = plexpy.CONFIG.HIPCHAT_URL
         self.color = plexpy.CONFIG.HIPCHAT_COLOR
         self.incl_subject = plexpy.CONFIG.HIPCHAT_INCL_SUBJECT
-        self.incl_emoticon = plexpy.CONFIG.HIPCHAT_INCL_EMOTICON
+        self.emoticon = plexpy.CONFIG.HIPCHAT_EMOTICON
 
     def notify(self, message, subject):
         if not message or not subject:
@@ -2766,8 +2766,8 @@ class HIPCHAT(object):
         else:
             text = message.encode('utf-8')
 
-        if self.incl_emoticon:
-            text = self.incl_emoticon + ' ' + text
+        if self.emoticon:
+            text = self.emoticon + ' ' + text
 
         data = {'color': self.color,
                 'message': text,
@@ -2797,11 +2797,13 @@ class HIPCHAT(object):
             logger.warn(u"PlexPy Notifiers :: Hipchat notification failed.")
             return False
 
-    def test(self, apiurl, color):
+    def test(self, apiurl, color, hipchat_emoticon, hipchat_incl_subject):
 
         self.enabled = True
         self.apiurl = apiurl
         self.color = color
+        self.emoticon = hipchat_emoticon
+        self.incl_subject = hipchat_incl_subject
 
         return self.notify('PlexPy', 'Test Message')
 
@@ -2816,13 +2818,13 @@ class HIPCHAT(object):
                          {'label': 'Hipchat Color',
                           'value': self.color,
                           'name': 'hipchat_color',
-                          'description': 'Color for the message to show up in your room. You'
-                                         ' may use any valid Hipchat message color value.',
-                          'input_type': 'text'
+                          'description': 'Background color for the message.',
+                          'input_type': 'select',
+                          'select_options': {'yellow': 'yellow', 'green': 'green', 'red': 'red', 'purple': 'purple', 'gray': 'gray', 'random': 'random'}
                           },
                          {'label': 'Hipchat emoticon',
-                          'value': self.incl_emoticon,
-                          'name': 'hipchat_incl_emoticon',
+                          'value': self.emoticon,
+                          'name': 'hipchat_emoticon',
                           'description': 'Include an emoticon tag at the beginning of all notifications. Leave blank for none.'
                                          '  Use a stock emoticon or create a custom emoticon'
                                          ' <a href="' + helpers.anon_url('https://www.hipchat.com/emoticons/') + '" target="_blank">here</a>.',
