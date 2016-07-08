@@ -2820,10 +2820,10 @@ class HIPCHAT(object):
                                          ' may use any valid Hipchat message color value.',
                           'input_type': 'text'
                           },
-                         {'label': 'Prefix emoticon',
+                         {'label': 'Hipchat emoticon',
                           'value': self.incl_emoticon,
                           'name': 'hipchat_incl_emoticon',
-                          'description': 'Include an emoticon tag at the beginning of all notifications.'
+                          'description': 'Include an emoticon tag at the beginning of all notifications. Leave blank for none.'
                                          '  Use a stock emoticon or create a custom emoticon'
                                          ' <a href="' + helpers.anon_url('https://www.hipchat.com/emoticons/') + '" target="_blank">here</a>.',
                           'input_type': 'text'
