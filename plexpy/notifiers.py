@@ -2769,10 +2769,12 @@ class HIPCHAT(object):
         if self.emoticon:
             text = self.emoticon + ' ' + text
 
-        data = {'color': self.color,
-                'message': text,
+        data = {'message': text,
                 'notify': 'false',
                 'message_format': 'text'}
+
+        if self.color:
+            data['color'] = self.color
 
         hiphost = urlparse(self.apiurl).hostname
         hippath = urlparse(self.apiurl).path

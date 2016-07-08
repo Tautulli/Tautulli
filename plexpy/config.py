@@ -213,7 +213,7 @@ _CONFIG_DEFINITIONS = {
     'HTTP_ROOT': (str, 'General', ''),
     'HTTP_USERNAME': (str, 'General', ''),
     'HIPCHAT_URL': (str, 'Hipchat', ''),
-    'HIPCHAT_COLOR': (str, 'Hipchat', 'green'),
+    'HIPCHAT_COLOR': (str, 'Hipchat', ''),
     'HIPCHAT_INCL_SUBJECT': (int, 'Hipchat', 1),
     'HIPCHAT_EMOTICON': (str, 'Hipchat', ''),
     'HIPCHAT_ENABLED': (int, 'Hipchat', 0),
