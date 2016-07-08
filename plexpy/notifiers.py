@@ -2754,12 +2754,20 @@ class HIPCHAT(object):
     def __init__(self):
         self.apiurl = plexpy.CONFIG.HIPCHAT_URL
         self.color = plexpy.CONFIG.HIPCHAT_COLOR
+        self.incl_subject = plexpy.CONFIG.HIPCHAT_INCL_SUBJECT
+        self.incl_emoticon = plexpy.CONFIG.HIPCHAT_INCL_EMOTICON
 
     def notify(self, message, subject):
         if not message or not subject:
             return
         
-        text = '(plex) ' + subject.encode('utf-8') + ': ' + message.encode('utf-8')
+        if self.incl_subject:
+            text = subject.encode('utf-8') + ': ' + message.encode('utf-8')
+        else:
+            text = message.encode('utf-8')
+
+        if self.incl_emoticon:
+            text = '(plex) ' + text
 
         data = {'color': self.color,
                 'message': text,
@@ -2811,8 +2819,20 @@ class HIPCHAT(object):
                           'description': 'Color for the message to show up in your room. You'
                                          ' may use any valid Hipchat message color value.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'hipchat_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include (plex) emoticon',
+                          'value': self.incl_emoticon,
+                          'name': 'hipchat_incl_emoticon',
+                          'description': 'Include (plex) emoticon tag at the beginning of all notifications.'
+                                         '  Create a custom emoticon <a href="' + helpers.anon_url('https://www.hipchat.com/emoticons/') + '" target="_blank">here</a>.',
+                          'input_type': 'checkbox'
                           }
-
                          ]
 
         return config_option
