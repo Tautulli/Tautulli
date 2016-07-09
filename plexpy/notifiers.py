@@ -2813,7 +2813,7 @@ class HIPCHAT(object):
         config_option = [{'label': 'Hipchat Custom Integrations Full URL',
                           'value': self.apiurl,
                           'name': 'hipchat_url',
-                          'description': 'Your Hipchat integration URL. You can get a key from'
+                          'description': 'Your Hipchat BYO integration URL. You can get a key from'
                                          ' <a href="' + helpers.anon_url('https://www.hipchat.com/addons/') + '" target="_blank">here</a>.',
                           'input_type': 'text'
                           },
@@ -2822,13 +2822,20 @@ class HIPCHAT(object):
                           'name': 'hipchat_color',
                           'description': 'Background color for the message.',
                           'input_type': 'select',
-                          'select_options': {'yellow': 'yellow', 'green': 'green', 'red': 'red', 'purple': 'purple', 'gray': 'gray', 'random': 'random'}
+                          'select_options': {'': '',
+                                             'gray': 'gray',
+                                             'green': 'green',
+                                             'purple': 'purple',
+                                             'random': 'random',
+                                             'red': 'red',
+                                             'yellow': 'yellow'
+                                             }
                           },
-                         {'label': 'Hipchat emoticon',
+                         {'label': 'Hipchat Emoticon',
                           'value': self.emoticon,
                           'name': 'hipchat_emoticon',
-                          'description': 'Include an emoticon tag at the beginning of all notifications. Leave blank for none.'
-                                         '  Use a stock emoticon or create a custom emoticon'
+                          'description': 'Include an emoticon tag at the beginning of all notifications (e.g. (taco)). Leave blank for none.'
+                                         ' Use a stock emoticon or create a custom emoticon'
                                          ' <a href="' + helpers.anon_url('https://www.hipchat.com/emoticons/') + '" target="_blank">here</a>.',
                           'input_type': 'text'
                           },
