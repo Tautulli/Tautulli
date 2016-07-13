@@ -1,4 +1,4 @@
-﻿#  This file is part of PlexPy.
+#  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -654,6 +654,7 @@ class PrettyMetadata(object):
         return self.caption
 
     def get_title(self, divider = ''):
+        self.title = None
         if self.metadata['media_type'] == 'movie':
             self.title = '%s (%s)' % (self.metadata['title'], self.metadata['year'])
         elif self.metadata['media_type'] == 'show':
@@ -668,14 +669,14 @@ class PrettyMetadata(object):
                                                 self.metadata['parent_media_index'],
                                                 divider,
                                                 self.metadata['media_index'])
-        return self.title
+        return self.title.encode("utf-8")
 
     def get_subtitle(self):
         if self.metadata['media_type'] == 'track':
             self.subtitle = self.metadata['parent_title']
         else:
             self.subtitle = self.metadata['summary']
-        return self.subtitle
+        return self.subtitle.encode("utf-8")
 
     def get_plex_url(self):
         self.plex_url = self.metadata['plex_url']
@@ -1990,7 +1991,7 @@ class SLACK(object):
             plex_url = pretty_metadata.get_plex_url()
             poster_link = pretty_metadata.get_poster_link()
             caption = pretty_metadata.get_caption()
-            title = pretty_metadata.get_title('-')
+            title = pretty_metadata.get_title()
 
             # Build Slack post attachment
             attachment = {}
@@ -2753,15 +2754,45 @@ class HIPCHAT(object):
             poster_url = pretty_metadata.get_poster_url()
             poster_link = pretty_metadata.get_poster_link()
             caption = pretty_metadata.get_caption()
-            title = pretty_metadata.get_title('-')
+            title = pretty_metadata.get_title()
             subtitle = pretty_metadata.get_subtitle()
-			message = ( '{0}<br>'
-                        '<table cellspacing="0"><tbody><tr>'
-                        '<td><img style="display: block; margin-left: 2px;" height="160" src="{1}"></img></td>'
-                        '<td><b>{2}</b><br>{3}</td></tr></tbody></table>').format(text,poster_url,title,subtitle)
+            plex_url = pretty_metadata.get_plex_url()
 
-            data['message'] = message
-            data['message_format'] = 'html'
+            card = {'title': title,
+                    'format': 'medium',
+                    'style': 'application',
+                    'id': '41c354f0-69a5-4251-a61c-c6a8daf8e2f6'}
+            description = {'format': 'text',
+                           'value': subtitle}
+            card['description'] = description
+            thumbnail = {'url': poster_url}
+            card['thumbnail'] = thumbnail
+            attributes = []
+
+            if self.incl_pmslink:
+                pms_values = {'label': 'View on Plex Web',
+                              'url': plex_url}
+                plex_web = {'value': pms_values}
+                attributes.append(plex_web)
+
+            if poster_link:
+                card['url'] = poster_link
+                info_values = {'label': caption,
+                               'url': poster_link}
+                content_info_web = {'value': info_values}
+                attributes.append(content_info_web)
+
+            if len(attributes):
+                card['attributes'] = attributes
+
+            act_icon = {'url': poster_url}
+            activity = {'html': text,
+                        'icon': act_icon}
+            card['activity'] = activity
+
+            data['message'] = text
+            data['card'] = card
+
         else:
             data['message'] = text
             data['message_format'] = 'text'
