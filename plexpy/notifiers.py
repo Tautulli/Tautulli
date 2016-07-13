@@ -653,17 +653,17 @@ class PrettyMetadata(object):
             self.caption = 'View on Last.fm'
         return self.caption
 
-    def get_title(self, divider = ''):
+    def get_title(self, divider = '-'):
         self.title = None
-        if self.metadata['media_type'] == 'movie':
+        if self.media_type == 'movie':
             self.title = '%s (%s)' % (self.metadata['title'], self.metadata['year'])
-        elif self.metadata['media_type'] == 'show':
+        elif self.media_type == 'show':
             self.title = '%s (%s)' % (self.metadata['title'], self.metadata['year'])
-        elif self.metadata['media_type'] == 'artist':
+        elif self.media_type == 'artist':
             self.title = self.metadata['title']
-        elif self.metadata['media_type'] == 'track':
+        elif self.media_type == 'track':
             self.title = '%s - %s' % (self.metadata['grandparent_title'], self.metadata['title'])
-        elif self.metadata['media_type'] == 'episode':
+        elif self.media_type == 'episode':
             self.title = '%s - %s (S%s %s E%s)' % (self.metadata['grandparent_title'],
                                                 self.metadata['title'],
                                                 self.metadata['parent_media_index'],
@@ -672,7 +672,7 @@ class PrettyMetadata(object):
         return self.title.encode("utf-8")
 
     def get_subtitle(self):
-        if self.metadata['media_type'] == 'track':
+        if self.media_type == 'track':
             self.subtitle = self.metadata['parent_title']
         else:
             self.subtitle = self.metadata['summary']
