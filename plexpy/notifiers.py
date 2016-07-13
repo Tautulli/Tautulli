@@ -31,6 +31,7 @@ import urllib
 from urllib import urlencode
 import urllib2
 from urlparse import urlparse
+import uuid
 
 import gntp.notifier
 import facebook
@@ -2761,7 +2762,7 @@ class HIPCHAT(object):
             card = {'title': title,
                     'format': 'medium',
                     'style': 'application',
-                    'id': '41c354f0-69a5-4251-a61c-c6a8daf8e2f6'}
+                    'id': uuid.uuid4().hex}
             description = {'format': 'text',
                            'value': subtitle}
             card['description'] = description
