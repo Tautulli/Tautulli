@@ -568,7 +568,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
     current_activity = pms_connect.get_current_activity()
     sessions = current_activity.get('sessions', [])
     stream_count = current_activity.get('stream_count', '')
-    user_stream_count = sum(1 for d in sessions if d['user_id'] == session['user_id'])
+    user_stream_count = sum(1 for d in sessions if d['user_id'] == session['user_id']) if session else ''
 
     if metadata_list:
         metadata = metadata_list['metadata']
