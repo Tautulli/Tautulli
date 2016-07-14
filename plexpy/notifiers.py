@@ -1,4 +1,4 @@
-#  This file is part of PlexPy.
+﻿#  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -1396,7 +1396,7 @@ class TwitterNotifier(object):
             poster_url = metadata.get('poster_url','')
 
         if self.incl_subject:
-            self._send_tweet(subject + ': ' + message, attachment=poster_url)
+            self._send_tweet(subject + '\r\n' + message, attachment=poster_url)
         else:
             self._send_tweet(message, attachment=poster_url)
 
@@ -1853,7 +1853,7 @@ class TELEGRAM(object):
         data = {'chat_id': self.chat_id}
 
         if self.incl_subject:
-            text = event.encode('utf-8') + ': ' + message.encode('utf-8')
+            text = event.encode('utf-8') + '\r\n' + message.encode('utf-8')
         else:
             text = message.encode('utf-8')
 
@@ -1972,7 +1972,7 @@ class SLACK(object):
             return
 
         if self.incl_subject:
-            text = event.encode('utf-8') + ': ' + message.encode("utf-8")
+            text = event.encode('utf-8') + '\r\n' + message.encode("utf-8")
         else:
             text = message.encode("utf-8")
 
@@ -2422,7 +2422,7 @@ class FacebookNotifier(object):
             attachment['description'] = subtitle
 
         if self.incl_subject:
-            self._post_facebook(subject + ': ' + message, attachment=attachment)
+            self._post_facebook(subject + '\r\n' + message, attachment=attachment)
         else:
             self._post_facebook(message, attachment=attachment)
 
