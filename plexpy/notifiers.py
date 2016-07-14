@@ -2010,11 +2010,12 @@ class SLACK(object):
 
             data['attachments'] = [attachment]
 
-        url = urlparse(self.slack_hook).path
+        slackhost = urlparse(self.slack_hook).hostname
+        slackpath = urlparse(self.slack_hook).path
 
-        http_handler = HTTPSConnection("hooks.slack.com")
+        http_handler = HTTPSConnection(slackhost)
         http_handler.request("POST",
-                                url,
+                                slackpath,
                                 headers={'Content-type': "application/x-www-form-urlencoded"},
                                 body=json.dumps(data))
 
@@ -2798,7 +2799,7 @@ class HIPCHAT(object):
 
         http_handler = HTTPSConnection(hiphost)
         http_handler.request("POST",
-                             "%s" % (hipfullq),
+                             hipfullq,
                              headers={'Content-type': "application/json"},
                              body=json.dumps(data))
         response = http_handler.getresponse()
