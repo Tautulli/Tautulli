@@ -215,6 +215,8 @@ _CONFIG_DEFINITIONS = {
     'HIPCHAT_URL': (str, 'Hipchat', ''),
     'HIPCHAT_COLOR': (str, 'Hipchat', ''),
     'HIPCHAT_INCL_SUBJECT': (int, 'Hipchat', 1),
+    'HIPCHAT_INCL_PMSLINK': (int, 'Hipchat', 0),
+    'HIPCHAT_INCL_POSTER': (int, 'Hipchat', 0),
     'HIPCHAT_EMOTICON': (str, 'Hipchat', ''),
     'HIPCHAT_ENABLED': (int, 'Hipchat', 0),
     'HIPCHAT_ON_PLAY': (int, 'Hipchat', 0),
