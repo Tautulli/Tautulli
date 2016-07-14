@@ -2725,9 +2725,8 @@ class HIPCHAT(object):
         self.apiurl = plexpy.CONFIG.HIPCHAT_URL
         self.color = plexpy.CONFIG.HIPCHAT_COLOR
         self.emoticon = plexpy.CONFIG.HIPCHAT_EMOTICON
-        self.from_subject = plexpy.CONFIG.HIPCHAT_FROM_SUBJECT
-        self.incl_pmslink = plexpy.CONFIG.FACEBOOK_INCL_PMSLINK
-        self.incl_poster = plexpy.CONFIG.FACEBOOK_INCL_POSTER
+        self.incl_pmslink = plexpy.CONFIG.HIPCHAT_INCL_PMSLINK
+        self.incl_poster = plexpy.CONFIG.HIPCHAT_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.HIPCHAT_INCL_SUBJECT
 
     def notify(self, message, subject, **kwargs):
@@ -2739,16 +2738,10 @@ class HIPCHAT(object):
         text = message.encode('utf-8')
 
         if self.incl_subject:
-            text = subject.encode('utf-8') + ': ' + text
-
-        if self.emoticon:
-            text = self.emoticon + ' ' + text
+            data['from'] = subject.encode('utf-8')
 
         if self.color:
             data['color'] = self.color
-
-        if self.from_subject:
-            data['from'] = subject.encode('utf-8')
 
         if self.incl_poster and 'metadata' in kwargs:
             pretty_metadata = PrettyMetadata(kwargs['metadata'])
@@ -2795,6 +2788,8 @@ class HIPCHAT(object):
             data['card'] = card
 
         else:
+            if self.emoticon:
+                text = self.emoticon + ' ' + text
             data['message'] = text
             data['message_format'] = 'text'
 
@@ -2854,16 +2849,10 @@ class HIPCHAT(object):
                          {'label': 'Hipchat Emoticon',
                           'value': self.emoticon,
                           'name': 'hipchat_emoticon',
-                          'description': 'Include an emoticon tag at the beginning of all notifications (e.g. (taco)). Leave blank for none.'
+                          'description': 'Include an emoticon tag at the beginning of text notifications (e.g. (taco)). Leave blank for none.'
                                          ' Use a stock emoticon or create a custom emoticon'
                                          ' <a href="' + helpers.anon_url('https://www.hipchat.com/emoticons/') + '" target="_blank">here</a>.',
                           'input_type': 'text'
-                          },
-                         {'label': 'Include Subject as "From"',
-                          'value': self.from_subject,
-                          'name': 'hipchat_from_subject',
-                          'description': 'Include the subject line in the Hipchat "From" field, which appears on the top line above the message.',
-                          'input_type': 'checkbox'
                           },
                          {'label': 'Include Poster',
                           'value': self.incl_poster,
@@ -2880,7 +2869,7 @@ class HIPCHAT(object):
                          {'label': 'Include Subject Line',
                           'value': self.incl_subject,
                           'name': 'hipchat_incl_subject',
-                          'description': 'Include the subject line with the notifications.',
+                          'description': 'Includes the subject with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
