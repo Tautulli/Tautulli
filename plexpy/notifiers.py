@@ -1993,20 +1993,26 @@ class SLACK(object):
             poster_link = pretty_metadata.get_poster_link()
             caption = pretty_metadata.get_caption()
             title = pretty_metadata.get_title()
+            subtitle = pretty_metadata.get_subtitle()
 
             # Build Slack post attachment
-            attachment = {}
-            if self.incl_pmslink:
-                caption = 'View on Plex Web'
-                attachment['title_link'] = plex_url
-                attachment['text'] = caption
-            elif poster_link:
-                attachment['title_link'] = poster_link
-                attachment['text'] = caption
+            attachment = {'fallback': 'Image for %s' % title,
+                          'title': title,
+                          'text': subtitle,
+                          'image_url': poster_url,
+                          'thumb_url': poster_url
+                          }
 
-            attachment['fallback'] = 'Image for %s' % title
-            attachment['title'] = title
-            attachment['image_url'] = poster_url
+            fields = []
+            if poster_link:
+                attachment['title_link'] = poster_link
+                fields.append({'value': '<%s|%s>' % (poster_link, caption),
+                               'short': True})
+            if self.incl_pmslink:
+                fields.append({'value': '<%s|%s>' % (plex_url, 'View on Plex Web'),
+                               'short': True})
+            if fields:
+                attachment['fields'] = fields
 
             data['attachments'] = [attachment]
 
@@ -2398,7 +2404,7 @@ class FacebookNotifier(object):
         attachment = {}
 
         if self.incl_poster and 'metadata' in kwargs:
-        	# Grab formatted metadata
+            # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['metadata'])
             poster_url = pretty_metadata.get_poster_url()
             plex_url = pretty_metadata.get_plex_url()
@@ -2409,9 +2415,8 @@ class FacebookNotifier(object):
 
             # Build Facebook post attachment
             if self.incl_pmslink:
-                caption = 'View on Plex Web'
                 attachment['link'] = plex_url
-                attachment['caption'] = caption
+                attachment['caption'] = 'View on Plex Web'
             elif poster_link:
                 attachment['link'] = poster_link
                 attachment['caption'] = caption
@@ -2756,34 +2761,24 @@ class HIPCHAT(object):
             card = {'title': title,
                     'format': 'medium',
                     'style': 'application',
-                    'id': uuid.uuid4().hex}
-            description = {'format': 'text',
-                           'value': subtitle}
-            card['description'] = description
-            thumbnail = {'url': poster_url}
-            card['thumbnail'] = thumbnail
+                    'id': uuid.uuid4().hex,
+                    'activity': {'html': text,
+                                 'icon': {'url': poster_url}},
+                    'description': {'format': 'text',
+                                    'value': subtitle},
+                    'thumbnail': {'url': poster_url}
+                    }
+
             attributes = []
-
-            if self.incl_pmslink:
-                pms_values = {'label': 'View on Plex Web',
-                              'url': plex_url}
-                plex_web = {'value': pms_values}
-                attributes.append(plex_web)
-
             if poster_link:
                 card['url'] = poster_link
-                info_values = {'label': caption,
-                               'url': poster_link}
-                content_info_web = {'value': info_values}
-                attributes.append(content_info_web)
-
-            if len(attributes):
+                attributes.append({'value': {'label': caption,
+                                             'url': poster_link}})
+            if self.incl_pmslink:
+                attributes.append({'value': {'label': 'View on Plex Web',
+                                             'url': plex_url}})
+            if attributes:
                 card['attributes'] = attributes
-
-            act_icon = {'url': poster_url}
-            activity = {'html': text,
-                        'icon': act_icon}
-            card['activity'] = activity
 
             data['message'] = text
             data['card'] = card
