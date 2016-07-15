@@ -753,8 +753,9 @@ class Libraries(object):
 
         try:
             if str(section_id).isdigit():
-                query = 'SELECT (CASE WHEN users.friendly_name IS NULL THEN users.username ' \
-                        'ELSE users.friendly_name END) AS friendly_name, users.user_id, users.thumb, COUNT(user) AS user_count ' \
+                query = 'SELECT (CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
+                        'THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
+                        'users.user_id, users.thumb, COUNT(user) AS user_count ' \
                         'FROM session_history ' \
                         'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                         'JOIN users ON users.user_id = session_history.user_id ' \

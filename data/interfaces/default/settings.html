@@ -4,7 +4,7 @@
     import sys
 
     import plexpy
-    from plexpy import common, logger, notifiers, versioncheck
+    from plexpy import common, notifiers, versioncheck
     from plexpy.helpers import anon_url
 
     available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
@@ -62,78 +62,10 @@
                         <div class="padded-header">
                             <h3>PlexPy Configuration</h3>
                         </div>
-                        <table class="config-info-table small-muted">
-                            <tbody>
-                                % if plexpy.CURRENT_VERSION:
-                                <tr>
-                                    <td>Git Branch:</td>
-                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/tree/%s' % plexpy.CONFIG.GIT_BRANCH)}">${plexpy.CONFIG.GIT_BRANCH}</a></td>
-                                </tr>
-                                <tr>
-                                    <td>Git Commit Hash:</td>
-                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/commit/%s' % plexpy.CURRENT_VERSION)}">${plexpy.CURRENT_VERSION}</a></td>
-                                </tr>
-                                % endif
-                                <tr>
-                                    <td>Configuration File:</td>
-                                    <td>${plexpy.CONFIG_FILE}</td>
-                                </tr>
-                                <tr>
-                                    <td>Database File:</td>
-                                    <td>${plexpy.DB_FILE}</td>
-                                </tr>
-                                <tr>
-                                    <td>Log File:</td>
-                                    <td><a class="no-highlight" href="logFile" target="_blank">${os.path.join(config['log_dir'], logger.FILENAME)}</a></td>
-                                </tr>
-                                <tr>
-                                    <td>Backup Directory:</td>
-                                    <td>${config['backup_dir']}</td>
-                                </tr>
-                                <tr>
-                                    <td>Cache Directory:</td>
-                                    <td>${config['cache_dir']}</td>
-                                </tr>
-                                % if plexpy.ARGS:
-                                <tr>
-                                    <td>Arguments:</td>
-                                    <td>${plexpy.ARGS}</td>
-                                </tr>
-                                % endif
-                                <tr>
-                                    <td>Platform:</td>
-                                    <td>${common.PLATFORM} ${common.PLATFORM_VERSION}</td>
-                                </tr>
-                                <tr>
-                                    <td>Python Version:</td>
-                                    <td>${sys.version}</td>
-                                </tr>
-                                <tr>
-                                    <td class="top-line">Plex Forums:</td>
-                                    <td class="top-line"><a class="no-highlight" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program</a></td>
-                                </tr>
-                                <tr>
-                                    <td>Source:</td>
-                                    <td><a id="source-link" class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}" target="_blank">https://github.com/drzoidberg33/plexpy</a></td>
-                                </tr>
-                                <tr>
-                                    <td>Wiki:</td>
-                                    <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/wiki')}" target="_blank">https://github.com/drzoidberg33/plexpy/wiki</a></td>
-                                </tr>
-                                <tr>
-                                    <td>Issues:</td>
-                                    <td><a class="no-highlight guidelines-modal-link" href="${anon_url('https://github.com/drzoidberg33/plexpy/issues')}" data-id="issue">https://github.com/drzoidberg33/plexpy/issues</a></td>
-                                </tr>
-                                <tr>
-                                    <td>Feature Requests:</td>
-                                    <td><a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/drzoidberg33/plexpy')}" data-id="feature request">http://feathub.com/drzoidberg33/plexpy</a></td>
-                                </tr>
-                                <tr>
-                                    <td>Gitter Chat:</td>
-                                    <td><a class="no-highlight" href="${anon_url('https://gitter.im/drzoidberg33/plexpy')}" target="_blank">https://gitter.im/drzoidberg33/plexpy</a></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div id="plexpy-configuration-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading configuration table...</div>
+                            <br>
+                        </div>
                         <div class="padded-header">
                             <h3>PlexPy Scheduled Tasks</h3>
                         </div>
@@ -370,7 +302,7 @@
                                 </div>
                                 <div id="home_stats_count_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Specify the number of items to show in the top lists for the watch statistics on the home page. Max is 10 items, default is 5 items, 0 to disable.</p>
+                            <p class="help-block">Specify the number of items to show in the top lists for the watch statistics on the home page. Maximum 10 items, default 5 items, 0 to disable.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -581,15 +513,31 @@
                     <div role="tabpanel" class="tab-pane" id="tabs-5">
 
                         <div class="padded-header">
-                            <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">unknown</span></small></h3>
+                            <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
                         </div>
                         <p class="help-block">If you're using websocket monitoring, any server changes require a restart of PlexPy.</p>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="monitor_pms_updates" name="monitor_pms_updates" value="1" ${config['monitor_pms_updates']}> Monitor Plex Updates
                             </label>
-                            <p class="help-block">Enable to have PlexPy check if updates are available for the Plex Media Server.<br />
-                                Note: The Plex updater is broken on certain Plex Pass version of Plex Media Server. PlexPy will automatically disable checking for Plex updates if one of these versions is found.</p>
+                            <p class="help-block">Enable to have PlexPy check if updates are available for the Plex Media Server.</p>
+                        </div>
+                        <div id="pms_update_options">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <label for="pms_update_channel">Update Channel</label>
+                                        <select class="form-control" id="pms_update_channel" name="pms_update_channel">
+                                            <option value="public">Public</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="pms_update_distro_build">Release</label>
+                                        <select class="form-control" id="pms_update_distro_build" name="pms_update_distro_build">
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -792,7 +740,7 @@
                                 </div>
                                 <div id="monitoring_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Min 30 seconds, recommended 60 seconds.</p>
+                            <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Minimum 30 seconds, recommended 60 seconds.</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -933,6 +881,22 @@
                                 <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Consecutive Notifications
                             </label>
                             <p class="help-block">Disable to prevent consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_concurrent_by_ip" id="notify_concurrent_by_ip" value="1" ${config['notify_concurrent_by_ip']}> User Concurrent Streams Notifications by IP Address
+                            </label>
+                            <p class="help-block">Enable to only get notified of concurrent streams by a single user from different IP addresses.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="notify_concurrent_threshold">User Concurrent Stream Threshold</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_concurrent_threshold" name="notify_concurrent_threshold" value="${config['notify_concurrent_threshold']}" data-parsley-min="2" data-parsley-trigger="change" data-parsley-errors-container="#notify_concurrent_threshold_error" required>
+                                </div>
+                                <div id="notify_concurrent_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The number of concurrent streams by a single user for PlexPy to trigger a notification. Minimum 2.</p>
                         </div>
 
                         <div class="padded-header">
@@ -1078,6 +1042,40 @@
                                     </li>
                                 </ul>
                             </li>
+                            <li>
+                                <div class="link"><i class="fa fa-arrow-circle-o-right fa-fw"></i>&nbsp;User Concurrent Streams<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_concurrent_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_concurrent_subject_text" name="notify_on_concurrent_subject_text" value="${config['notify_on_concurrent_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_buffer_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_concurrent_body_text" name="notify_on_concurrent_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_concurrent_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="link"><i class="fa fa-desktop fa-fw"></i>&nbsp;User New Device<i class="fa fa-chevron-down"></i></div>
+                                <ul class="submenu">
+                                    <li>
+                                        <div class="form-group">
+                                            <label for="notify_on_newdevice_subject_text">Subject Line</label>
+                                            <input class="form-control" type="text" id="notify_on_newdevice_subject_text" name="notify_on_newdevice_subject_text" value="${config['notify_on_newdevice_subject_text']}" data-parsley-trigger="change" required>
+                                            <p class="help-block">Set a custom subject line.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notify_on_buffer_body_text">Message Body</label>
+                                            <textarea class="form-control" id="notify_on_newdevice_body_text" name="notify_on_newdevice_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_newdevice_body_text']}</textarea>
+                                            <p class="help-block">Set a custom body.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
                         </ul>
                         <ul id="accordion-timeline" class="accordion list-unstyled">
                             <li>
@@ -1217,11 +1215,7 @@
                                     % else:
                                     <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
                                     % endif
-                                    % if agent['id'] == 17:
-                                    ${agent['name']} <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
-                                    % else:
                                     ${agent['name']}
-                                    % endif
                                     % if agent['has_config']:
                                     <a href="javascript:void(0)" rel="tooltip" data-target="#notification-config-modal" data-placement="top" title data-title="Open configuration" data-id="${agent['id']}" class="toggle-notification-config-modal toggle-right" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
                                     % endif
@@ -1615,6 +1609,10 @@
                                     <td>The number of concurrent streams.</td>
                                 </tr>
                                 <tr>
+                                    <td><strong>{user_streams}</strong></td>
+                                    <td>The number of concurrent streams by the person streaming.</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{user}</strong></td>
                                     <td>The friendly name of the person streaming.</td>
                                 </tr>
@@ -1968,8 +1966,40 @@
                                     <td>The available update download URL.</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>{update_changelog}</strong></td>
-                                    <td>The changelog for the available update.</td>
+                                    <td><strong>{update_release_date}</strong></td>
+                                    <td>The release date of the update version.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_channel}</strong></td>
+                                    <td>The update channel. <span class="small-muted">(Public or Plex Pass)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_platform}</strong></td>
+                                    <td>The platform of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_distro}</strong></td>
+                                    <td>The distro of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_distro_build}</strong></td>
+                                    <td>The distro build of your Plex Server.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_requirements}</strong></td>
+                                    <td>The requirements for the available update.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_extra_info}</strong></td>
+                                    <td>Any extra info for the available update.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_changelog_added}</strong></td>
+                                    <td>The added changelog for the available update.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{update_changelog_fixed}</strong></td>
+                                    <td>The fixed changelog for the available update.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -2078,6 +2108,33 @@
 <script src="${http_root}js/Sortable.min.js"></script>
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script>
+    function getConfigurationTable() {
+        $.ajax({
+            url: 'get_configuration_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-configuration-table").html(xhr.responseText);
+                if ("${kwargs.get('install_geoip')}" == 'true') {
+                    $('#install_geoip_db').removeClass('no-highlight').css('color','#e9a049');
+                } else if ("${kwargs.get('reinstall_geoip')}" == 'true') {
+                    $('#reinstall_geoip_db').removeClass('no-highlight').css('color','#e9a049');
+                }
+            }
+        });
+    }
+
+    function getSchedulerTable() {
+        $.ajax({
+            url: 'get_scheduler_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-scheduler-table").html(xhr.responseText);
+            }
+        });
+    }
+
 $(document).ready(function() {
 
     // Javascript to enable link to tab
@@ -2114,7 +2171,9 @@ $(document).ready(function() {
           $('#restart-modal').modal('show');
         }
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0)
+        getConfigurationTable();
         getSchedulerTable();
+        loadUpdateDistros();
         settingsChanged = false;
     }
 
@@ -2145,7 +2204,8 @@ $(document).ready(function() {
     initConfigCheckbox('#https_create_cert');
     initConfigCheckbox('#check_github');
     initConfigCheckbox('#notify_upload_posters');
-
+    initConfigCheckbox('#monitor_pms_updates');
+    
     $("#menu_link_shutdown").click(function() {
         $("#confirm-message").text("Are you sure you want to shutdown PlexPy?");
         $('#confirm-modal').modal();
@@ -2174,37 +2234,8 @@ $(document).ready(function() {
         window.location.href = "restart";
     });
 
-    function getSchedulerTable() {
-        $.ajax({
-            url: 'get_scheduler_table',
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#plexpy-scheduler-table").html(xhr.responseText);
-            }
-        });
-    }
+    getConfigurationTable();
     getSchedulerTable();
-
-    function confirmAjaxCall (url, msg) {
-        $("#confirm-message").text(msg);
-        $('#confirm-modal').modal();
-        $('#confirm-modal').one('click', '#confirm-button', function () {
-            $.ajax({
-                url: url,
-                type: 'POST',
-                complete: function (xhr, status) {
-                    result = $.parseJSON(xhr.responseText);
-                    msg = result.message;
-                    if (result.result == 'success') {
-                        showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
-                    } else {
-                        showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
-                    }
-                }
-            });
-        });
-    }
 
     $("#backup_config").click(function () {
         var msg = 'Are you sure you want to create a backup of the PlexPy config?';
@@ -2235,7 +2266,6 @@ $(document).ready(function() {
         var url = 'delete_logs';
         confirmAjaxCall(url, msg);
     });
-
 
     $('#api_key').click(function(){ $('#api_key').select() });
     $("#generate_api").click(function() {
@@ -2348,6 +2378,7 @@ $(document).ready(function() {
                     } else {
                         $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Invalid username or password.');
                     }
+                    loadUpdateDistros();
                 }
             });
         } else {
@@ -2406,33 +2437,26 @@ $(document).ready(function() {
     pms_logs = false;
 
     // Checks to see if PMS server version is >= 0.9.14 with automaatically logged IP addresses
-    $.ajax({
-        url: 'get_server_identity',
-        async: true,
-        success: function(data) {
-            if (data.version){ $("#pms_version").text(data.version); }
-            var version = (data.version ? data.version.split('.') : null);
-            if (version && parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
-                $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
-                $("#ip_logging_enable").attr("disabled", true);
-                $("#ip_logging_enable").attr("checked", true);
-                pms_version = true;
+    var version = "${config['pms_version']}".split('.');
+    if (version && parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
+        $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
+        $("#ip_logging_enable").attr("disabled", true);
+        $("#ip_logging_enable").attr("checked", true);
+        pms_version = true;
+        checkLogsPath();
+    } else {
+        // Check to see if debug logs are enabled on the PMS.
+        $.ajax({
+            url: 'get_server_pref',
+            data: { pref: 'logDebug' },
+            async: true,
+            success: function(data) {
+                pms_logs_debug = (data == 'true' ? true : false);
+                // Check to see if our logs folder is set before allowing IP logging to be enabled.
                 checkLogsPath();
-            } else {
-                // Check to see if debug logs are enabled on the PMS.
-                $.ajax({
-                    url: 'get_server_pref',
-                    data: { pref: 'logDebug' },
-                    async: true,
-                    success: function(data) {
-                        pms_logs_debug = (data == 'true' ? true : false);
-                        // Check to see if our logs folder is set before allowing IP logging to be enabled.
-                        checkLogsPath();
-                    }
-                });
             }
-        }
-    });
+        });
+    }
 
     $("#pms_logs_folder").change(function() {
         checkLogsPath();
@@ -2586,16 +2610,6 @@ $(document).ready(function() {
         $('#notify_recently_added_grandparent_note').css('color', c);
     });
 
-    $('.guidelines-modal-link').on('click', function (e) {
-        e.preventDefault();
-        $('#guidelines-link').attr('href', $('#source-link').attr('href'));
-        $('#guidelines-type').text($(this).data('id'))
-        $('#guidelines-modal').modal();
-        $('#guidelines-continue').attr('href', $(this).attr('href')).on('click', function () {
-            $('#guidelines-modal').modal('hide');
-        });
-    });
-
     function allowGuestAccessCheck () {
         if ($("#http_basic_auth").is(":checked")) {
             $("#allow_guest_access").attr("disabled", true);
@@ -2642,6 +2656,47 @@ $(document).ready(function() {
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0);
         $("#http_hash_password_error").html("");
     });
+
+    // Load PMS downloads
+    function loadUpdateDistros(distro_build) {
+        var update_params_ajax = $.getJSON('get_server_update_params', function (data) { return data; });
+
+        $.when(update_params_ajax).done(function() {
+            var update_params = update_params_ajax.responseJSON;
+
+            var plexpass = update_params.plexpass;
+            var platform = update_params.pms_platform;
+            var update_channel = update_params.pms_update_channel;
+            var update_distro_build = update_params.pms_update_distro_build;
+
+            $("#pms_update_channel option[value='plexpass']").remove();
+            if (plexpass) {
+                var selected = (update_channel == 'plexpass') ? true : false;
+                $('#pms_update_channel')
+                    .append($('<option></option>')
+                    .text('Plex Pass')
+                    .val('plexpass')
+                    .prop('selected', selected));
+            }
+
+            $.getJSON('https://plex.tv/api/downloads/1.json?channel=' + update_channel, function (downloads) {
+                platform_downloads = downloads.computer[platform] || downloads.nas[platform];
+                if (platform_downloads) {
+                    $("#pms_update_distro_build option").remove();
+                    $.each(platform_downloads.releases, function (index, item) {
+                        var label = (platform_downloads.releases.length == 1) ? platform_downloads.name : platform_downloads.name + ' - ' + item.label;
+                        var selected = (item.build == update_distro_build) ? true : false;
+                        $('#pms_update_distro_build')
+                            .append($('<option></option>')
+                            .text(label)
+                            .val(item.build)
+                            .prop('selected', selected));
+                    })
+                }
+            });
+        });
+    }
+    loadUpdateDistros();
 });
 </script>
 </%def>

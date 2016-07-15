@@ -269,7 +269,7 @@ class WebInterface(object):
                 else:
                     if s['video_decision'] == 'transcode' or s['audio_decision'] == 'transcode':
                         data['transcode'] += 1
-                    elif s['video_decision'] == 'direct copy' or s['audio_decision'] == 'copy play':
+                    elif s['video_decision'] == 'copy' or s['audio_decision'] == 'copy':
                         data['direct_stream'] += 1
                     else:
                         data['direct_play'] += 1
@@ -2491,7 +2491,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def settings(self):
+    def settings(self, **kwargs):
         interface_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/')
         interface_list = [name for name in os.listdir(interface_dir) if
                           os.path.isdir(os.path.join(interface_dir, name))]
@@ -2569,6 +2569,8 @@ class WebInterface(object):
             "notify_recently_added": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED),
             "notify_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT),
             "notify_recently_added_delay": plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY,
+            "notify_concurrent_by_ip": plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP,
+            "notify_concurrent_threshold": plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
             "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
             "notify_on_start_subject_text": plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT,
             "notify_on_start_body_text": plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT,
@@ -2594,6 +2596,10 @@ class WebInterface(object):
             "notify_on_intup_body_text": plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT,
             "notify_on_pmsupdate_subject_text": plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT,
             "notify_on_pmsupdate_body_text": plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_BODY_TEXT,
+            "notify_on_concurrent_subject_text": plexpy.CONFIG.NOTIFY_ON_CONCURRENT_SUBJECT_TEXT,
+            "notify_on_concurrent_body_text": plexpy.CONFIG.NOTIFY_ON_CONCURRENT_BODY_TEXT,
+            "notify_on_newdevice_subject_text": plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT,
+            "notify_on_newdevice_body_text": plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_BODY_TEXT,
             "notify_scripts_args_text": plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT,
             "home_sections": json.dumps(plexpy.CONFIG.HOME_SECTIONS),
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
@@ -2606,10 +2612,11 @@ class WebInterface(object):
             "group_history_tables": checked(plexpy.CONFIG.GROUP_HISTORY_TABLES),
             "git_token": plexpy.CONFIG.GIT_TOKEN,
             "imgur_client_id": plexpy.CONFIG.IMGUR_CLIENT_ID,
-            "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES)
+            "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES),
+            "pms_version": plexpy.CONFIG.PMS_VERSION
         }
 
-        return serve_template(templatename="settings.html", title="Settings", config=config)
+        return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2766,8 +2773,24 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
+    def get_configuration_table(self, **kwargs):
+        return serve_template(templatename="configuration_table.html")
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
     def get_scheduler_table(self, **kwargs):
         return serve_template(templatename="scheduler_table.html")
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def get_server_update_params(self):
+        plex_tv = plextv.PlexTV()
+        plexpass = plex_tv.get_plexpass_status()
+        return {'plexpass': plexpass,
+                'pms_platform': plexpy.CONFIG.PMS_PLATFORM,
+                'pms_update_channel': plexpy.CONFIG.PMS_UPDATE_CHANNEL,
+                'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2781,6 +2804,34 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Database backup successful.'}
         else:
             return {'result': 'error', 'message': 'Database backup failed.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def install_geoip_db(self):
+        """ Downloads and installs the GeoLite2 database """
+
+        result = helpers.install_geoip_db()
+
+        if result:
+            return {'result': 'success', 'message': 'GeoLite2 database installed successful.'}
+        else:
+            return {'result': 'error', 'message': 'GeoLite2 database install failed.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def uninstall_geoip_db(self):
+        """ Uninstalls the GeoLite2 database """
+
+        result = helpers.uninstall_geoip_db()
+
+        if result:
+            return {'result': 'success', 'message': 'GeoLite2 database uninstalled successfully.'}
+        else:
+            return {'result': 'error', 'message': 'GeoLite2 database uninstall failed.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -2833,6 +2884,7 @@ class WebInterface(object):
                                             10   # Email
                                             16   # Facebook
                                             0    # Growl
+                                            19   # Hipchat
                                             12   # IFTTT
                                             18   # Join
                                             4    # NotifyMyAndroid
@@ -3217,7 +3269,9 @@ class WebInterface(object):
             logger.error('No image input received.')
             return
 
-        refresh = True if refresh == 'true' else False
+        if refresh:
+            mo = member_of('admin')
+            refresh = True if mo() else False
 
         if rating_key and not img:
             img = '/library/metadata/%s/thumb/1337' % rating_key
@@ -4202,7 +4256,7 @@ class WebInterface(object):
                       'Can you hurry up. My horse is getting tired.',
                       'What killed the dinosaurs? The Ice Age!',
                       'That\'s for sleeping with my wife!',
-                      'Remember when I said I’d kill you last... I lied!',
+                      'Remember when I said I\'d kill you last... I lied!',
                       'You want to be a farmer? Here\'s a couple of acres',
                       'Now, this is the plan. Get your ass to Mars.',
                       'I just had a terrible thought... What if this is a dream?'
@@ -4229,3 +4283,39 @@ class WebInterface(object):
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_update_staus()
         return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    @addtoapi()
+    def get_geoip_lookup(self, ip_address='', **kwargs):
+        """ Get the geolocation info for an IP address. The GeoLite2 database must be installed.
+
+            ```
+            Required parameters:
+                ip_address
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"continent": "North America",
+                     "country": "United States",
+                     "region": "California",
+                     "city": "Mountain View",
+                     "postal_code": "94035",
+                     "timezone": "America/Los_Angeles",
+                     "latitude": 37.386,
+                     "longitude": -122.0838,
+                     "accuracy": 1000
+                     }
+                json:
+                    {"error": "The address 127.0.0.1 is not in the database."
+                     }
+            ```
+        """
+        geo_info = helpers.geoip_lookup(ip_address)
+        if isinstance(geo_info, basestring):
+            return {'error': geo_info}
+        return geo_info

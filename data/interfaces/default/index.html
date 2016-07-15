@@ -169,10 +169,34 @@
                         }
 
                         // if transcoding, update the transcode state
+                        var ts = '';
                         if (s.video_decision == 'transcode' || s.audio_decision == 'transcode') {
                             var throttled = (s.throttled == '1') ? ' (Throttled)' : '';
-                            $('#transcode-state-' + key).html('(Speed: ' + s.transcode_speed + ')' + throttled);
+                            ts += 'Stream &nbsp;<strong>Transcode (Speed: ' + s.transcode_speed + ')' + throttled + '</strong><br>';
+                        } else if (s.video_decision == 'copy' || s.audio_decision == 'copy') {
+                            ts += 'Stream &nbsp;<strong>Direct Stream</strong><br>';
+                        } else {
+                            ts += 'Stream &nbsp;<strong>Direct Play</strong><br>';
                         }
+                        if (s.video_decision != '' && s.media_type != 'photo') {
+                            if (s.video_decision == 'transcode') {
+                                ts += 'Video &nbsp;<strong>Transcode (' + s.transcode_video_codec + ') (' + s.transcode_width + 'x' + s.transcode_height + ')</strong><br>';
+                            } else if (s.video_decision == 'copy') {
+                                ts += 'Video &nbsp;<strong>Direct Stream (' + s.transcode_video_codec + ') (' + s.width + 'x' + s.height + ')</strong><br>';
+                            } else {
+                                ts += 'Video &nbsp;<strong>Direct Play (' + s.video_codec + ') (' + s.width + 'x' + s.height + ')</strong><br>';
+                            }
+                        }
+                        if (s.audio_decision != '') {
+                            if (s.audio_decision == 'transcode') {
+                                ts += 'Audio &nbsp;<strong>Transcode (' + s.transcode_audio_codec + ') (' + s.transcode_audio_channels + 'ch)</strong>';
+                            } else if (s.audio_decision == 'copy') {
+                                ts += 'Audio &nbsp;<strong>Direct Stream (' + s.transcode_audio_codec + ') (' + s.transcode_audio_channels + 'ch)</strong>';
+                            } else {
+                                ts += 'Audio &nbsp;<strong>Direct Play (' + s.audio_codec + ') (' + s.audio_channels + 'ch)</strong>';
+                            }
+                        }
+                        $('#transcode-state-' + key).html(ts);
 
                         // update the stream progress times
                         $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));

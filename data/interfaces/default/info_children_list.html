@@ -51,7 +51,9 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
             </a>
             % elif data['children_type'] == 'episode':
@@ -64,7 +66,9 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                     </div>
+                    % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
             </a>
             <div class="item-children-instance-text-wrapper episode-item">
@@ -76,7 +80,9 @@ DOCUMENTATION :: END
             <a href="info?rating_key=${child['rating_key']}" title="${child['title']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face album-poster" style="background-image: url(pms_image_proxy?img=${child['thumb']}&width=300&height=300&fallback=cover);"></div>
+                    % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
                 </div>
             </a>
             <div class="item-children-instance-text-wrapper album-item">

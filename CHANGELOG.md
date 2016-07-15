@@ -1,5 +1,30 @@
 # Changelog
 
+## v1.4.7 (2016-07-14)
+
+* New: Use MaxMind GeoLite2 for IP address lookup.
+  * Note: The GeoLite2 database must be installed from the settings page.
+* New: Check for Plex updates using plex.tv downloads instead of the server API.
+  * Note: Check for Plex updates has been disabled and must be re-enabled in the settings.
+* New: More notification options for Plex updates.
+* New: Notifications for concurrent streams by a single user.
+* New: Notifications for user streaming from a new device.
+* New: HipChat notification agent. (Thanks @aboron)
+* Fix: Username showing as blank when friendly name is blank.
+* Fix: Direct stream count wrong in the current activity header.
+* Fix: Current activity reporting direct stream when reducing the stream quality switches to transcoding.
+* Fix: Apostophe in an Arnold quote causing the shutdown/restart page to crash.
+* Fix: Disable refreshing posters in guest mode.
+* Fix: PlexWatch/Plexivity import unable to select the "grouped" database table.
+* Change: Updated Facebook notification instructions.
+* Change: Subject line optional for Join notifications.
+* Change: Line break between subject and body text instead of a colon for Facebook, Slack, Twitter, and Telegram.
+* Change: Allow Mattermost notifications using the Slack config.
+* Change: Better formatting for Slack poster notifications.
+* Change: Telegram only notifies once instead of twice when posters are enabled.
+* Change: Host Open Sans font locally instead of querying Google Fonts.
+
+
 ## v1.4.6 (2016-06-11)
 
 * New: Added User and Library statistics to the API.

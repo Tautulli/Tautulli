@@ -181,8 +181,8 @@ class Users(object):
                    'session_history_media_info.transcode_decision',
                    'session_history.user',
                    'session_history.user_id as custom_user_id',
-                   '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE \
-                    users.friendly_name END) AS friendly_name'
+                   '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
+                    THEN users.username ELSE users.friendly_name END) AS friendly_name'
                    ]
 
         try:
@@ -717,8 +717,8 @@ class Users(object):
                    'user_login.host',
                    'user_login.user_agent',
                    'user_login.timestamp',
-                   '(CASE WHEN users.friendly_name IS NULL THEN user_login.user ELSE users.friendly_name END) \
-                    AS friendly_name'
+                   '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
+                    THEN users.username ELSE users.friendly_name END) AS friendly_name'
                    ]
 
         try:

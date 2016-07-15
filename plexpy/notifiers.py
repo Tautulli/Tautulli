@@ -31,6 +31,7 @@ import urllib
 from urllib import urlencode
 import urllib2
 from urlparse import urlparse
+import uuid
 
 import gntp.notifier
 import facebook
@@ -62,7 +63,8 @@ AGENT_IDS = {"Growl": 0,
              "Scripts": 15,
              "Facebook": 16,
              "Browser": 17,
-             "Join": 18}
+             "Join": 18,
+             "Hipchat": 19}
 
 
 def available_notification_agents():
@@ -82,7 +84,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.GROWL_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.GROWL_ON_EXTUP,
                'on_intup': plexpy.CONFIG.GROWL_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.GROWL_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.GROWL_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.GROWL_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.GROWL_ON_NEWDEVICE
                },
               {'name': 'Prowl',
                'id': AGENT_IDS['Prowl'],
@@ -100,7 +104,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.PROWL_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PROWL_ON_EXTUP,
                'on_intup': plexpy.CONFIG.PROWL_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.PROWL_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.PROWL_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.PROWL_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.PROWL_ON_NEWDEVICE
                },
               {'name': 'XBMC',
                'id': AGENT_IDS['XBMC'],
@@ -118,7 +124,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.XBMC_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.XBMC_ON_EXTUP,
                'on_intup': plexpy.CONFIG.XBMC_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.XBMC_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.XBMC_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.XBMC_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.XBMC_ON_NEWDEVICE
                },
               {'name': 'Plex Home Theater',
                'id': AGENT_IDS['Plex'],
@@ -136,7 +144,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.PLEX_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PLEX_ON_EXTUP,
                'on_intup': plexpy.CONFIG.PLEX_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.PLEX_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.PLEX_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.PLEX_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.PLEX_ON_NEWDEVICE
                },
               {'name': 'NotifyMyAndroid',
                'id': AGENT_IDS['NMA'],
@@ -154,7 +164,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.NMA_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.NMA_ON_EXTUP,
                'on_intup': plexpy.CONFIG.NMA_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.NMA_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.NMA_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.NMA_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.NMA_ON_NEWDEVICE
                },
               {'name': 'Pushalot',
                'id': AGENT_IDS['Pushalot'],
@@ -172,7 +184,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.PUSHALOT_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PUSHALOT_ON_EXTUP,
                'on_intup': plexpy.CONFIG.PUSHALOT_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.PUSHALOT_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.PUSHALOT_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.PUSHALOT_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.PUSHALOT_ON_NEWDEVICE
                },
               {'name': 'Pushbullet',
                'id': AGENT_IDS['Pushbullet'],
@@ -190,7 +204,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.PUSHBULLET_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PUSHBULLET_ON_EXTUP,
                'on_intup': plexpy.CONFIG.PUSHBULLET_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.PUSHBULLET_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.PUSHBULLET_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.PUSHBULLET_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.PUSHBULLET_ON_NEWDEVICE
                },
               {'name': 'Pushover',
                'id': AGENT_IDS['Pushover'],
@@ -208,7 +224,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.PUSHOVER_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.PUSHOVER_ON_EXTUP,
                'on_intup': plexpy.CONFIG.PUSHOVER_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.PUSHOVER_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.PUSHOVER_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.PUSHOVER_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.PUSHOVER_ON_NEWDEVICE
                },
               {'name': 'Boxcar2',
                'id': AGENT_IDS['Boxcar2'],
@@ -226,7 +244,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.BOXCAR_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.BOXCAR_ON_EXTUP,
                'on_intup': plexpy.CONFIG.BOXCAR_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.BOXCAR_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.BOXCAR_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.BOXCAR_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.BOXCAR_ON_NEWDEVICE
                },
               {'name': 'E-mail',
                'id': AGENT_IDS['Email'],
@@ -244,7 +264,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.EMAIL_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.EMAIL_ON_EXTUP,
                'on_intup': plexpy.CONFIG.EMAIL_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.EMAIL_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.EMAIL_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.EMAIL_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.EMAIL_ON_NEWDEVICE
                },
               {'name': 'Twitter',
                'id': AGENT_IDS['Twitter'],
@@ -262,7 +284,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.TWITTER_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.TWITTER_ON_EXTUP,
                'on_intup': plexpy.CONFIG.TWITTER_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.TWITTER_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.TWITTER_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.TWITTER_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.TWITTER_ON_NEWDEVICE
                },
               {'name': 'IFTTT',
                'id': AGENT_IDS['IFTTT'],
@@ -280,7 +304,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.IFTTT_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.IFTTT_ON_EXTUP,
                'on_intup': plexpy.CONFIG.IFTTT_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.IFTTT_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.IFTTT_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.IFTTT_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.IFTTT_ON_NEWDEVICE
                },
               {'name': 'Telegram',
                'id': AGENT_IDS['Telegram'],
@@ -298,7 +324,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.TELEGRAM_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.TELEGRAM_ON_EXTUP,
                'on_intup': plexpy.CONFIG.TELEGRAM_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.TELEGRAM_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.TELEGRAM_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.TELEGRAM_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.TELEGRAM_ON_NEWDEVICE
                },
               {'name': 'Slack',
                'id': AGENT_IDS['Slack'],
@@ -316,7 +344,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.SLACK_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.SLACK_ON_EXTUP,
                'on_intup': plexpy.CONFIG.SLACK_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.SLACK_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.SLACK_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.SLACK_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.SLACK_ON_NEWDEVICE
                },
               {'name': 'Scripts',
                'id': AGENT_IDS['Scripts'],
@@ -334,7 +364,9 @@ def available_notification_agents():
                'on_extup': plexpy.CONFIG.SCRIPTS_ON_EXTUP,
                'on_intdown': plexpy.CONFIG.SCRIPTS_ON_INTDOWN,
                'on_intup': plexpy.CONFIG.SCRIPTS_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.SCRIPTS_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.SCRIPTS_ON_NEWDEVICE
               },
               {'name': 'Facebook',
                'id': AGENT_IDS['Facebook'],
@@ -352,7 +384,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.FACEBOOK_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.FACEBOOK_ON_EXTUP,
                'on_intup': plexpy.CONFIG.FACEBOOK_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.FACEBOOK_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.FACEBOOK_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.FACEBOOK_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.FACEBOOK_ON_NEWDEVICE
               },
               {'name': 'Browser',
                'id': AGENT_IDS['Browser'],
@@ -370,7 +404,9 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.BROWSER_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.BROWSER_ON_EXTUP,
                'on_intup': plexpy.CONFIG.BROWSER_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.BROWSER_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.BROWSER_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.BROWSER_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.BROWSER_ON_NEWDEVICE
                },
               {'name': 'Join',
                'id': AGENT_IDS['Join'],
@@ -388,7 +424,29 @@ def available_notification_agents():
                'on_intdown': plexpy.CONFIG.JOIN_ON_INTDOWN,
                'on_extup': plexpy.CONFIG.JOIN_ON_EXTUP,
                'on_intup': plexpy.CONFIG.JOIN_ON_INTUP,
-               'on_pmsupdate': plexpy.CONFIG.JOIN_ON_PMSUPDATE
+               'on_pmsupdate': plexpy.CONFIG.JOIN_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.JOIN_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.JOIN_ON_NEWDEVICE
+               },
+              {'name': 'Hipchat',
+               'id': AGENT_IDS['Hipchat'],
+               'config_prefix': 'hipchat',
+               'has_config': True,
+               'state': checked(plexpy.CONFIG.HIPCHAT_ENABLED),
+               'on_play': plexpy.CONFIG.HIPCHAT_ON_PLAY,
+               'on_stop': plexpy.CONFIG.HIPCHAT_ON_STOP,
+               'on_pause': plexpy.CONFIG.HIPCHAT_ON_PAUSE,
+               'on_resume': plexpy.CONFIG.HIPCHAT_ON_RESUME,
+               'on_buffer': plexpy.CONFIG.HIPCHAT_ON_BUFFER,
+               'on_watched': plexpy.CONFIG.HIPCHAT_ON_WATCHED,
+               'on_created': plexpy.CONFIG.HIPCHAT_ON_CREATED,
+               'on_extdown': plexpy.CONFIG.HIPCHAT_ON_EXTDOWN,
+               'on_intdown': plexpy.CONFIG.HIPCHAT_ON_INTDOWN,
+               'on_extup': plexpy.CONFIG.HIPCHAT_ON_EXTUP,
+               'on_intup': plexpy.CONFIG.HIPCHAT_ON_INTUP,
+               'on_pmsupdate': plexpy.CONFIG.HIPCHAT_ON_PMSUPDATE,
+               'on_concurrent': plexpy.CONFIG.HIPCHAT_ON_CONCURRENT,
+               'on_newdevice': plexpy.CONFIG.HIPCHAT_ON_NEWDEVICE
                }
               ]
 
@@ -411,7 +469,9 @@ def available_notification_agents():
                        'on_intdown': plexpy.CONFIG.OSX_NOTIFY_ON_INTDOWN,
                        'on_extup': plexpy.CONFIG.OSX_NOTIFY_ON_EXTUP,
                        'on_intup': plexpy.CONFIG.OSX_NOTIFY_ON_INTUP,
-                       'on_pmsupdate': plexpy.CONFIG.OSX_NOTIFY_ON_PMSUPDATE
+                       'on_pmsupdate': plexpy.CONFIG.OSX_NOTIFY_ON_PMSUPDATE,
+                       'on_concurrent': plexpy.CONFIG.OSX_NOTIFY_ON_CONCURRENT,
+                       'on_newdevice': plexpy.CONFIG.OSX_NOTIFY_ON_NEWDEVICE
                        })
 
     return agents
@@ -478,6 +538,9 @@ def get_notification_agent_config(agent_id):
         elif agent_id == 18:
             join = JOIN()
             return join.return_config_options()
+        elif agent_id == 19:
+            hipchat = HIPCHAT()
+            return hipchat.return_config_options()
         else:
             return []
     else:
@@ -545,11 +608,80 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
         elif agent_id == 18:
             join = JOIN()
             return join.notify(message=body, subject=subject)
+        elif agent_id == 19:
+            hipchat = HIPCHAT()
+            return hipchat.notify(message=body, subject=subject, **kwargs)
         else:
             logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
         logger.debug(u"PlexPy Notifiers :: Notification requested but no agent id received.")
 
+class PrettyMetadata(object):
+    def __init__(self, metadata):
+    	self.metadata = metadata
+    	self.media_type = metadata['media_type']
+
+    def get_poster_url(self):
+        self.poster_url = self.metadata.get('poster_url','')
+        if not self.poster_url:
+            if self.metadata['media_type'] in ['artist', 'track']:
+                self.poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
+            else:
+                self.poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
+        return self.poster_url
+
+    def get_poster_link(self):
+        self.poster_link = ''
+        if self.metadata.get('thetvdb_url',''):
+            self.poster_link = self.metadata.get('thetvdb_url', '')
+        elif self.metadata.get('themoviedb_url',''):
+            self.poster_link = self.metadata.get('themoviedb_url', '')
+        elif self.metadata.get('imdb_url',''):
+            self.poster_link = self.metadata.get('imdb_url', '')
+        elif self.metadata.get('lastfm_url',''):
+            self.poster_link = self.metadata.get('lastfm_url', '')
+        return self.poster_link
+
+    def get_caption(self):
+        self.caption = ''
+        if self.metadata.get('thetvdb_url',''):
+            self.caption = 'View on TheTVDB'
+        elif self.metadata.get('themoviedb_url',''):
+            self.caption = 'View on The Movie Database'
+        elif self.metadata.get('imdb_url',''):
+            self.caption = 'View on IMDB'
+        elif self.metadata.get('lastfm_url',''):
+            self.caption = 'View on Last.fm'
+        return self.caption
+
+    def get_title(self, divider = '-'):
+        self.title = None
+        if self.media_type == 'movie':
+            self.title = '%s (%s)' % (self.metadata['title'], self.metadata['year'])
+        elif self.media_type == 'show':
+            self.title = '%s (%s)' % (self.metadata['title'], self.metadata['year'])
+        elif self.media_type == 'artist':
+            self.title = self.metadata['title']
+        elif self.media_type == 'track':
+            self.title = '%s - %s' % (self.metadata['grandparent_title'], self.metadata['title'])
+        elif self.media_type == 'episode':
+            self.title = '%s - %s (S%s %s E%s)' % (self.metadata['grandparent_title'],
+                                                self.metadata['title'],
+                                                self.metadata['parent_media_index'],
+                                                divider,
+                                                self.metadata['media_index'])
+        return self.title.encode("utf-8")
+
+    def get_subtitle(self):
+        if self.media_type == 'track':
+            self.subtitle = self.metadata['parent_title']
+        else:
+            self.subtitle = self.metadata['summary']
+        return self.subtitle.encode("utf-8")
+
+    def get_plex_url(self):
+        self.plex_url = self.metadata['plex_url']
+        return self.plex_url
 
 class GROWL(object):
     """
@@ -1264,7 +1396,7 @@ class TwitterNotifier(object):
             poster_url = metadata.get('poster_url','')
 
         if self.incl_subject:
-            self._send_tweet(subject + ': ' + message, attachment=poster_url)
+            self._send_tweet(subject + '\r\n' + message, attachment=poster_url)
         else:
             self._send_tweet(message, attachment=poster_url)
 
@@ -1721,18 +1853,21 @@ class TELEGRAM(object):
         data = {'chat_id': self.chat_id}
 
         if self.incl_subject:
-            text = event.encode('utf-8') + ': ' + message.encode('utf-8')
+            text = event.encode('utf-8') + '\r\n' + message.encode('utf-8')
         else:
             text = message.encode('utf-8')
 
         if self.incl_poster and 'metadata' in kwargs:
+            poster_data = {'chat_id': self.chat_id,
+                           'disable_notification': True}
+
             metadata = kwargs['metadata']
             poster_url = metadata.get('poster_url','')
 
             if poster_url:
                 files = {'photo': (poster_url, urllib.urlopen(poster_url).read())}
                 response = requests.post('https://api.telegram.org/bot%s/%s' % (self.bot_token, 'sendPhoto'),
-                                         data=data,
+                                         data=poster_data,
                                          files=files)
                 request_status = response.status_code
                 request_content = json.loads(response.text)
@@ -1840,7 +1975,7 @@ class SLACK(object):
             return
 
         if self.incl_subject:
-            text = event.encode('utf-8') + ': ' + message.encode("utf-8")
+            text = event.encode('utf-8') + '\r\n' + message.encode("utf-8")
         else:
             text = message.encode("utf-8")
 
@@ -1854,81 +1989,42 @@ class SLACK(object):
                 data['icon_url'] = self.icon_emoji
 
         if self.incl_poster and 'metadata' in kwargs:
-            attachment = {}
-            metadata = kwargs['metadata']
-            poster_url = metadata.get('poster_url','')
-            poster_link = ''
-            caption = ''
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['metadata'])
+            poster_url = pretty_metadata.get_poster_url()
+            plex_url = pretty_metadata.get_plex_url()
+            poster_link = pretty_metadata.get_poster_link()
+            caption = pretty_metadata.get_caption()
+            title = pretty_metadata.get_title()
+            subtitle = pretty_metadata.get_subtitle()
 
-            # Use default posters if no poster_url
-            if not poster_url:
-                if metadata['media_type'] in ['artist', 'track']:
-                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
-                else:
-                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
+            # Build Slack post attachment
+            attachment = {'fallback': 'Image for %s' % title,
+                          'title': title,
+                          'text': subtitle,
+                          'image_url': poster_url,
+                          'thumb_url': poster_url
+                          }
 
-            if metadata['media_type'] == 'movie':
-                title = '%s (%s)' % (metadata['title'], metadata['year'])
-                if metadata.get('imdb_url',''):
-                    poster_link = metadata.get('imdb_url', '')
-                    caption = 'View on IMDB'
-                elif metadata.get('themoviedb_url',''):
-                    poster_link = metadata.get('themoviedb_url', '')
-                    caption = 'View on The Movie Database'
-
-            elif metadata['media_type'] == 'show':
-                title = '%s (%s)' % (metadata['title'], metadata['year'])
-                if metadata.get('thetvdb_url',''):
-                    poster_link = metadata.get('thetvdb_url', '')
-                    caption = 'View on TheTVDB'
-                elif metadata.get('themoviedb_url',''):
-                    poster_link = metadata.get('themoviedb_url', '')
-                    caption = 'View on The Movie Database'
-
-            elif metadata['media_type'] == 'episode':
-                title = '%s - %s (S%s - E%s)' % (metadata['grandparent_title'],
-                                                    metadata['title'],
-                                                    metadata['parent_media_index'],
-                                                    metadata['media_index'])
-                if metadata.get('thetvdb_url',''):
-                    poster_link = metadata.get('thetvdb_url', '')
-                    caption = 'View on TheTVDB'
-                elif metadata.get('themoviedb_url',''):
-                    poster_link = metadata.get('themoviedb_url', '')
-                    caption = 'View on The Movie Database'
-
-            elif metadata['media_type'] == 'artist':
-                title = metadata['title']
-                if metadata.get('lastfm_url',''):
-                    poster_link = metadata.get('lastfm_url', '')
-                    caption = 'View on Last.fm'
-
-            elif metadata['media_type'] == 'track':
-                title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
-                if metadata.get('lastfm_url',''):
-                    poster_link = metadata.get('lastfm_url', '')
-                    caption = 'View on Last.fm'
-
-            # Build Facebook post attachment
-            if self.incl_pmslink:
-                caption = 'View on Plex Web'
-                attachment['title_link'] = metadata['plex_url']
-                attachment['text'] = caption
-            elif poster_link:
+            fields = []
+            if poster_link:
                 attachment['title_link'] = poster_link
-                attachment['text'] = caption
-
-            attachment['fallback'] = 'Image for %s' % title
-            attachment['title'] = title
-            attachment['image_url'] = poster_url
+                fields.append({'value': '<%s|%s>' % (poster_link, caption),
+                               'short': True})
+            if self.incl_pmslink:
+                fields.append({'value': '<%s|%s>' % (plex_url, 'View on Plex Web'),
+                               'short': True})
+            if fields:
+                attachment['fields'] = fields
 
             data['attachments'] = [attachment]
 
-        url = urlparse(self.slack_hook).path
+        slackhost = urlparse(self.slack_hook).hostname
+        slackpath = urlparse(self.slack_hook).path
 
-        http_handler = HTTPSConnection("hooks.slack.com")
+        http_handler = HTTPSConnection(slackhost)
         http_handler.request("POST",
-                                url,
+                                slackpath,
                                 headers={'Content-type': "application/x-www-form-urlencoded"},
                                 body=json.dumps(data))
 
@@ -2089,6 +2185,12 @@ class Scripts(object):
 
         elif notify_action == 'pmsupdate':
             script = plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE_SCRIPT
+
+        elif notify_action == 'concurrent':
+            script = plexpy.CONFIG.SCRIPTS_ON_CONCURRENT_SCRIPT
+
+        elif notify_action == 'newdevice':
+            script = plexpy.CONFIG.SCRIPTS_ON_NEWDEVICE_SCRIPT
 
         else:
             # For manual scripts
@@ -2266,6 +2368,20 @@ class Scripts(object):
                           'description': 'Choose the script for Plex update available.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
+                          },
+                         {'label': 'User Concurrent Streams',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_CONCURRENT_SCRIPT,
+                          'name': 'scripts_on_concurrent_script',
+                          'description': 'Choose the script for user concurrent streams.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
+                          },
+                         {'label': 'User New Device',
+                          'value': plexpy.CONFIG.SCRIPTS_ON_NEWDEVICE_SCRIPT,
+                          'name': 'scripts_on_newdevice_script',
+                          'description': 'Choose the script for user new device.',
+                          'input_type': 'select',
+                          'select_options': self.list_scripts()
                           }
                          ]
 
@@ -2291,71 +2407,19 @@ class FacebookNotifier(object):
         attachment = {}
 
         if self.incl_poster and 'metadata' in kwargs:
-            metadata = kwargs['metadata']
-            poster_url = metadata.get('poster_url','')
-            poster_link = ''
-            caption = ''
-
-            # Use default posters if no poster_url
-            if not poster_url:
-                if metadata['media_type'] in ['artist', 'track']:
-                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
-                else:
-                    poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
-
-            if metadata['media_type'] == 'movie':
-                title = '%s (%s)' % (metadata['title'], metadata['year'])
-                subtitle = metadata['summary']
-                if metadata.get('imdb_url',''):
-                    poster_link = metadata.get('imdb_url', '')
-                    caption = 'View on IMDB'
-                elif metadata.get('themoviedb_url',''):
-                    poster_link = metadata.get('themoviedb_url', '')
-                    caption = 'View on The Movie Database'
-
-            elif metadata['media_type'] == 'show':
-                title = '%s (%s)' % (metadata['title'], metadata['year'])
-                subtitle = metadata['summary']
-                if metadata.get('thetvdb_url',''):
-                    poster_link = metadata.get('thetvdb_url', '')
-                    caption = 'View on TheTVDB'
-                elif metadata.get('themoviedb_url',''):
-                    poster_link = metadata.get('themoviedb_url', '')
-                    caption = 'View on The Movie Database'
-
-            elif metadata['media_type'] == 'episode':
-                title = '%s - %s (S%s %s E%s)' % (metadata['grandparent_title'],
-                                                    metadata['title'],
-                                                    metadata['parent_media_index'],
-                                                    '\xc2\xb7'.decode('utf8'),
-                                                    metadata['media_index'])
-                subtitle = metadata['summary']
-                if metadata.get('thetvdb_url',''):
-                    poster_link = metadata.get('thetvdb_url', '')
-                    caption = 'View on TheTVDB'
-                elif metadata.get('themoviedb_url',''):
-                    poster_link = metadata.get('themoviedb_url', '')
-                    caption = 'View on The Movie Database'
-
-            elif metadata['media_type'] == 'artist':
-                title = metadata['title']
-                subtitle = metadata['summary']
-                if metadata.get('lastfm_url',''):
-                    poster_link = metadata.get('lastfm_url', '')
-                    caption = 'View on Last.fm'
-
-            elif metadata['media_type'] == 'track':
-                title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
-                subtitle = metadata['parent_title']
-                if metadata.get('lastfm_url',''):
-                    poster_link = metadata.get('lastfm_url', '')
-                    caption = 'View on Last.fm'
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['metadata'])
+            poster_url = pretty_metadata.get_poster_url()
+            plex_url = pretty_metadata.get_plex_url()
+            poster_link = pretty_metadata.get_poster_link()
+            caption = pretty_metadata.get_caption()
+            title = pretty_metadata.get_title('\xc2\xb7'.decode('utf8'))
+            subtitle = pretty_metadata.get_subtitle()
 
             # Build Facebook post attachment
             if self.incl_pmslink:
-                caption = 'View on Plex Web'
-                attachment['link'] = metadata['plex_url']
-                attachment['caption'] = caption
+                attachment['link'] = plex_url
+                attachment['caption'] = 'View on Plex Web'
             elif poster_link:
                 attachment['link'] = poster_link
                 attachment['caption'] = caption
@@ -2367,7 +2431,7 @@ class FacebookNotifier(object):
             attachment['description'] = subtitle
 
         if self.incl_subject:
-            self._post_facebook(subject + ': ' + message, attachment=attachment)
+            self._post_facebook(subject + '\r\n' + message, attachment=attachment)
         else:
             self._post_facebook(message, attachment=attachment)
 
@@ -2425,13 +2489,14 @@ class FacebookNotifier(object):
         config_option = [{'label': 'Instructions',
                           'description': 'Step 1: Visit <a href="' + helpers.anon_url('https://developers.facebook.com/apps') + '" target="_blank"> \
                                           Facebook Developers</a> to add a new app using <strong>basic setup</strong>.<br>\
-                                          Step 2: Go to <strong>Settings > Advanced</strong> and fill in \
-                                          <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (e.g. http://localhost:8181).<br>\
-                                          Step 3: Go to <strong>App Review</strong> and toggle public to <strong>Yes</strong>.<br>\
-                                          Step 4: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
-                                          Step 5: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
-                                          Step 6: Click the <strong>Request Authorization</strong> button below.<br>\
-                                          Step 7: Fill in your <strong>Group ID</strong> below.',
+                                          Step 2: Click <strong>Add Product</strong> on the left, then <strong>Get Started</strong> \
+                                          for <strong>Facebook Login</strong>.<br>\
+                                          Step 3: Fill in <strong>Valid OAuth redirect URIs</strong> with your PlexPy URL (e.g. http://localhost:8181).<br>\
+                                          Step 4: Click <strong>App Review</strong> on the left and toggle "make public" to <strong>Yes</strong>.<br>\
+                                          Step 5: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
+                                          Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
+                                          Step 7: Click the <strong>Request Authorization</strong> button below.<br>\
+                                          Step 8: Fill in your <strong>Group ID</strong> below.',
                           'input_type': 'help'
                           },
                          {'label': 'PlexPy URL',
@@ -2554,6 +2619,7 @@ class JOIN(object):
     def __init__(self):
         self.apikey = plexpy.CONFIG.JOIN_APIKEY
         self.deviceid = plexpy.CONFIG.JOIN_DEVICEID
+        self.incl_subject = plexpy.CONFIG.JOIN_INCL_SUBJECT
 
     def conf(self, options):
         return cherrypy.config['config'].get('PUSHBULLET', options)
@@ -2566,8 +2632,10 @@ class JOIN(object):
 
         data = {'apikey': self.apikey,
                 deviceid_key: self.deviceid,
-                'title': subject.encode("utf-8"),
                 'text': message.encode("utf-8")}
+
+        if self.incl_subject:
+            data['title'] = subject.encode("utf-8")
 
         response = requests.post('https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush',
                                  params=data)
@@ -2649,6 +2717,159 @@ class JOIN(object):
                          {'label': 'Your Devices IDs',
                           'description': devices,
                           'input_type': 'help'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'join_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+
+class HIPCHAT(object):
+
+    def __init__(self):
+        self.apiurl = plexpy.CONFIG.HIPCHAT_URL
+        self.color = plexpy.CONFIG.HIPCHAT_COLOR
+        self.emoticon = plexpy.CONFIG.HIPCHAT_EMOTICON
+        self.incl_pmslink = plexpy.CONFIG.HIPCHAT_INCL_PMSLINK
+        self.incl_poster = plexpy.CONFIG.HIPCHAT_INCL_POSTER
+        self.incl_subject = plexpy.CONFIG.HIPCHAT_INCL_SUBJECT
+
+    def notify(self, message, subject, **kwargs):
+        if not message or not subject:
+            return
+
+        data = {'notify': 'false'}
+
+        text = message.encode('utf-8')
+
+        if self.incl_subject:
+            data['from'] = subject.encode('utf-8')
+
+        if self.color:
+            data['color'] = self.color
+
+        if self.incl_poster and 'metadata' in kwargs:
+            pretty_metadata = PrettyMetadata(kwargs['metadata'])
+            poster_url = pretty_metadata.get_poster_url()
+            poster_link = pretty_metadata.get_poster_link()
+            caption = pretty_metadata.get_caption()
+            title = pretty_metadata.get_title()
+            subtitle = pretty_metadata.get_subtitle()
+            plex_url = pretty_metadata.get_plex_url()
+
+            card = {'title': title,
+                    'format': 'medium',
+                    'style': 'application',
+                    'id': uuid.uuid4().hex,
+                    'activity': {'html': text,
+                                 'icon': {'url': poster_url}},
+                    'description': {'format': 'text',
+                                    'value': subtitle},
+                    'thumbnail': {'url': poster_url}
+                    }
+
+            attributes = []
+            if poster_link:
+                card['url'] = poster_link
+                attributes.append({'value': {'label': caption,
+                                             'url': poster_link}})
+            if self.incl_pmslink:
+                attributes.append({'value': {'label': 'View on Plex Web',
+                                             'url': plex_url}})
+            if attributes:
+                card['attributes'] = attributes
+
+            data['message'] = text
+            data['card'] = card
+
+        else:
+            if self.emoticon:
+                text = self.emoticon + ' ' + text
+            data['message'] = text
+            data['message_format'] = 'text'
+
+        hiphost = urlparse(self.apiurl).hostname
+        hipfullq = urlparse(self.apiurl).path + '?' + urlparse(self.apiurl).query
+
+        http_handler = HTTPSConnection(hiphost)
+        http_handler.request("POST",
+                             hipfullq,
+                             headers={'Content-type': "application/json"},
+                             body=json.dumps(data))
+        response = http_handler.getresponse()
+        request_status = response.status
+
+        if request_status == 200 or request_status == 204:
+            logger.info(u"PlexPy Notifiers :: Hipchat notification sent.")
+            return True
+        elif request_status >= 400 and request_status < 500:
+            logger.warn(u"PlexPy Notifiers :: Hipchat notification failed: [%s] %s" % (request_status, response.reason))
+            return False
+        else:
+            logger.warn(u"PlexPy Notifiers :: Hipchat notification failed.")
+            return False
+
+    def test(self, apiurl, color, hipchat_emoticon, hipchat_incl_subject):
+
+        self.enabled = True
+        self.apiurl = apiurl
+        self.color = color
+        self.emoticon = hipchat_emoticon
+        self.incl_subject = hipchat_incl_subject
+
+        return self.notify('PlexPy', 'Test Message')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Hipchat Custom Integrations Full URL',
+                          'value': self.apiurl,
+                          'name': 'hipchat_url',
+                          'description': 'Your Hipchat BYO integration URL. You can get a key from'
+                                         ' <a href="' + helpers.anon_url('https://www.hipchat.com/addons/') + '" target="_blank">here</a>.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Hipchat Color',
+                          'value': self.color,
+                          'name': 'hipchat_color',
+                          'description': 'Background color for the message.',
+                          'input_type': 'select',
+                          'select_options': {'': '',
+                                             'gray': 'gray',
+                                             'green': 'green',
+                                             'purple': 'purple',
+                                             'random': 'random',
+                                             'red': 'red',
+                                             'yellow': 'yellow'
+                                             }
+                          },
+                         {'label': 'Hipchat Emoticon',
+                          'value': self.emoticon,
+                          'name': 'hipchat_emoticon',
+                          'description': 'Include an emoticon tag at the beginning of text notifications (e.g. (taco)). Leave blank for none.'
+                                         ' Use a stock emoticon or create a custom emoticon'
+                                         ' <a href="' + helpers.anon_url('https://www.hipchat.com/emoticons/') + '" target="_blank">here</a>.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Include Poster',
+                          'value': self.incl_poster,
+                          'name': 'hipchat_incl_poster',
+                          'description': 'Include a poster in the notifications.<br>This will change the notification type to HTML and emoticons will no longer work.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Link to Plex Web',
+                          'value': self.incl_pmslink,
+                          'name': 'hipchat_incl_pmslink',
+                          'description': 'Include a link to the media in Plex Web with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'hipchat_incl_subject',
+                          'description': 'Includes the subject with the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 

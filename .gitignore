@@ -15,6 +15,7 @@
 version.lock
 logs/*
 cache/*
+*.mmdb
 
 # HTTPS Cert/Key #
 ##################

@@ -69,8 +69,8 @@ class DataFactory(object):
                    'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter',
                    'session_history.user_id',
                    'session_history.user',
-                   '(CASE WHEN users.friendly_name IS NULL THEN users.username ELSE users.friendly_name END) \
-                    AS friendly_name',
+                   '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
+                    THEN users.username ELSE users.friendly_name END) AS friendly_name',
                    'platform',
                    'player',
                    'ip_address',
@@ -1307,3 +1307,18 @@ class DataFactory(object):
         except Exception as e:
             logger.warn(u"PlexPy DataFactory :: Unable to execute database query for delete_notification_log: %s." % e)
             return False
+
+    def get_user_devices(self, user_id=''):
+        monitor_db = database.MonitorDatabase()
+
+        if user_id:
+            try:
+                query = 'SELECT machine_id FROM session_history WHERE user_id = ? GROUP BY machine_id'
+                result = monitor_db.select(query=query, args=[user_id])
+            except Exception as e:
+                logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_user_devices: %s." % e)
+                return []
+        else:
+            return []
+
+        return [d['machine_id'] for d in result]
