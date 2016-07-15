@@ -1858,13 +1858,16 @@ class TELEGRAM(object):
             text = message.encode('utf-8')
 
         if self.incl_poster and 'metadata' in kwargs:
+            poster_data = {'chat_id': self.chat_id,
+                           'disable_notification': True}
+
             metadata = kwargs['metadata']
             poster_url = metadata.get('poster_url','')
 
             if poster_url:
                 files = {'photo': (poster_url, urllib.urlopen(poster_url).read())}
                 response = requests.post('https://api.telegram.org/bot%s/%s' % (self.bot_token, 'sendPhoto'),
-                                         data=data,
+                                         data=poster_data,
                                          files=files)
                 request_status = response.status_code
                 request_content = json.loads(response.text)
