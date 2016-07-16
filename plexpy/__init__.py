@@ -332,19 +332,16 @@ def initialize_scheduler():
                              hours=0, minutes=0, seconds=seconds)
 
         # Refresh the users list
-        if CONFIG.REFRESH_USERS_INTERVAL:
-            hours = CONFIG.REFRESH_USERS_INTERVAL
-        else:
-            hours = 0
-
+        user_refresh_hours = CONFIG.REFRESH_USERS_INTERVAL or 0
+        library_refresh_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL or 0
 
         if CONFIG.PMS_TOKEN:
             schedule_job(plextv.refresh_users, 'Refresh users list',
-                         hours=hours, minutes=0, seconds=0)
+                         hours=user_refresh_hours, minutes=0, seconds=0)
 
         if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
-                         hours=hours, minutes=0, seconds=0)
+                         hours=library_refresh_hours, minutes=0, seconds=0)
 
         schedule_job(database.make_backup, 'Backup PlexPy database', hours=6, minutes=0, seconds=0, args=(True, True))
         schedule_job(config.make_backup, 'Backup PlexPy config', hours=6, minutes=0, seconds=0, args=(True, True))
