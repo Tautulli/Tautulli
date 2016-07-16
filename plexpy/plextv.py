@@ -633,32 +633,23 @@ class PlexTV(object):
                          % plexpy.CONFIG.PMS_PLATFORM)
             return {}
 
-        v_old = plexpy.CONFIG.PMS_VERSION.split('-')[0].split('.')
-        v_new = platform_downloads.get('version', '').split('-')[0].split('.')
+        v_old = helpers.cast_to_int("".join(v.zfill(4) for v in plexpy.CONFIG.PMS_VERSION.split('-')[0].split('.')[:4]))
+        v_new = helpers.cast_to_int("".join(v.zfill(4) for v in platform_downloads.get('version', '').split('-')[0].split('.')[:4]))
 
-        if len(v_old) < 4:
+        if not v_old:
             logger.error(u"PlexPy PlexTV :: Unable to retrieve Plex updates: Invalid current server version: %s."
                          % plexpy.CONFIG.PMS_VERSION)
             return {}
-        if len(v_new) < 4:
+        if not v_new:
             logger.error(u"PlexPy PlexTV :: Unable to retrieve Plex updates: Invalid new server version: %s."
                          % platform_downloads.get('version'))
             return {}
-
-        # Compare versions
-        if v_new[0] > v_old[0] or \
-            v_new[0] == v_old[0] and v_new[1] > v_old[1] or \
-            v_new[0] == v_old[0] and v_new[1] == v_old[1] and v_new[2] > v_old[2] or \
-            v_new[0] == v_old[0] and v_new[1] == v_old[1] and v_new[2] == v_old[2] and v_new[3] > v_old[3]:
-            update_available = True
-        else:
-            update_available = False
 
         # Get proper download
         releases = platform_downloads.get('releases', [{}])
         release = next((r for r in releases if r['build'] == plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD), releases[0])
 
-        download_info = {'update_available': update_available,
+        download_info = {'update_available': v_new > v_old,
                          'platform': platform_downloads.get('name'),
                          'release_date': platform_downloads.get('release_date'),
                          'version': platform_downloads.get('version'),
