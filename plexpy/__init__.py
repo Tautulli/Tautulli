@@ -283,21 +283,13 @@ def initialize_scheduler():
         start_jobs = not len(SCHED.get_jobs())
 
         # Update check
-        if CONFIG.CHECK_GITHUB_INTERVAL and CONFIG.CHECK_GITHUB:
-            minutes = CONFIG.CHECK_GITHUB_INTERVAL
-        else:
-            minutes = 0
-        schedule_job(versioncheck.checkGithub, 'Check GitHub for updates', hours=0, minutes=minutes)
+        github_minutes = CONFIG.CHECK_GITHUB_INTERVAL if CONFIG.CHECK_GITHUB_INTERVAL and CONFIG.CHECK_GITHUB else 0
 
-        # Start checking for new sessions at set interval
-        if CONFIG.MONITORING_INTERVAL:
-            # Our interval should never be less than 30 seconds
-            if CONFIG.MONITORING_INTERVAL > 30:
-                seconds = CONFIG.MONITORING_INTERVAL
-            else:
-                seconds = 30
-        else:
-            seconds = 0
+        schedule_job(versioncheck.checkGithub, 'Check GitHub for updates',
+                     hours=0, minutes=github_minutes, seconds=0)
+
+        # Our interval should never be less than 30 seconds
+        monitor_seconds = CONFIG.MONITORING_INTERVAL if CONFIG.MONITORING_INTERVAL >= 30 else 30
 
         if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
@@ -305,45 +297,31 @@ def initialize_scheduler():
             schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
                          hours=12, minutes=0, seconds=0)
 
-            if CONFIG.NOTIFY_RECENTLY_ADDED:
-                schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-                             hours=0, minutes=0, seconds=seconds)
-            else:
-                schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-                             hours=0, minutes=0, seconds=0)
-
-            if CONFIG.MONITOR_PMS_UPDATES:
-                schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
-                             hours=12, minutes=0, seconds=0)
-            else:
-                schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
-                             hours=0, minutes=0, seconds=0)
-
-            if CONFIG.MONITOR_REMOTE_ACCESS:
-                schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
-                             hours=0, minutes=0, seconds=seconds)
-            else:
-                schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
-                             hours=0, minutes=0, seconds=0)
+            schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
+                         hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
+            schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
+                         hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.MONITOR_REMOTE_ACCESS))
+            schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
+                         hours=12 * bool(CONFIG.MONITOR_PMS_UPDATES), minutes=0, seconds=0)
 
             # If we're not using websockets then fall back to polling
             if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:
                 schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
-                             hours=0, minutes=0, seconds=seconds)
+                             hours=0, minutes=0, seconds=monitor_seconds)
 
         # Refresh the users list and libraries list
-        user_refresh_hours = CONFIG.REFRESH_USERS_INTERVAL or 12
-        library_refresh_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL or 12
+        user_hours = CONFIG.REFRESH_USERS_INTERVAL if 1 <= CONFIG.REFRESH_USERS_INTERVAL <= 24 else 12
+        library_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL if 1 <= CONFIG.REFRESH_LIBRARIES_INTERVAL <= 24 else 12
 
         if CONFIG.PMS_TOKEN:
             schedule_job(plextv.refresh_users, 'Refresh users list',
-                         hours=user_refresh_hours, minutes=0, seconds=0)
+                         hours=user_hours, minutes=0, seconds=0)
 
         if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
-                         hours=library_refresh_hours, minutes=0, seconds=0)
+                         hours=library_hours, minutes=0, seconds=0)
 
-        backup_hours = CONFIG.BACKUP_INTERVAL or 6
+        backup_hours = CONFIG.BACKUP_INTERVAL if 1 <= CONFIG.BACKUP_INTERVAL <= 24 else 6
 
         schedule_job(database.make_backup, 'Backup PlexPy database',
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
