@@ -2438,7 +2438,7 @@ $(document).ready(function() {
 
     // Checks to see if PMS server version is >= 0.9.14 with automaatically logged IP addresses
     var version = "${config['pms_version']}".split('.');
-    if (version && parseInt(version[0]) >= 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14) {
+    if (version && (parseInt(version[0]) >= 0 || parseInt(version[0]) == 0 && parseInt(version[1]) >= 9 && parseInt(version[2]) >= 14)) {
         $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
         $("#ip_logging_enable").attr("disabled", true);
         $("#ip_logging_enable").attr("checked", true);
