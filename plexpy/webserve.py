@@ -2570,7 +2570,7 @@ class WebInterface(object):
             "notify_recently_added": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED),
             "notify_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT),
             "notify_recently_added_delay": plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY,
-            "notify_concurrent_by_ip": plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP,
+            "notify_concurrent_by_ip": checked(plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP),
             "notify_concurrent_threshold": plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
             "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
             "notify_on_start_subject_text": plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT,
@@ -2634,7 +2634,7 @@ class WebInterface(object):
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_recently_added_grandparent",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
-            "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth"
+            "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
