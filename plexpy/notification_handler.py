@@ -1249,7 +1249,7 @@ def build_server_notify_text(notify_action=None, agent_id=None):
 
     elif notify_action == 'pmsupdate':
         # Default body text
-        body_text = 'An update is available for the Plex Media Server (version {update_version}).'
+        body_text = 'An update is available for the Plex Media Server (version %s).' % available_params['update_version']
 
         if on_pmsupdate_subject and on_pmsupdate_body:
             try:

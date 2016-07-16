@@ -110,8 +110,8 @@ class ActivityProcessor(object):
                 # Check if any notification agents have notifications enabled
                 if notify and any(d['on_concurrent'] for d in notifiers.available_notification_agents()):
                     # Check if any concurrent streams by the user
-                    ip = True if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP else None
-                    user_sessions = self.get_session_by_user_id(user_id=session['user_id'], ip_address=ip)
+                    user_sessions = self.get_session_by_user_id(user_id=session['user_id'],
+                                                                ip_address=plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP)
                     if len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD:
                         # Push any notifications - Push it on it's own thread so we don't hold up our db actions
                         threading.Thread(target=notification_handler.notify,

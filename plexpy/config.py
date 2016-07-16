@@ -101,6 +101,7 @@ _CONFIG_DEFINITIONS = {
     'BUFFER_THRESHOLD': (int, 'Monitoring', 3),
     'BUFFER_WAIT': (int, 'Monitoring', 900),
     'BACKUP_DIR': (str, 'General', ''),
+    'BACKUP_INTERVAL': (int, 'General', 6),
     'CACHE_DIR': (str, 'General', ''),
     'CACHE_IMAGES': (int, 'General', 1),
     'CACHE_SIZEMB': (int, 'Advanced', 32),

@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.4.8 (2016-07-16)
+
+* New: Setting to specify PlexPy backup interval.
+* Fix: User Concurrent Streams Notifications by IP Address checkbox not working.
+* Fix: Substitute {update_version} in fallback PMS update notification text.
+* Fix: Check version for automatic IP logging setting.
+* Fix: Use library refresh interval.
+
+
 ## v1.4.7 (2016-07-14)
 
 * New: Use MaxMind GeoLite2 for IP address lookup.
