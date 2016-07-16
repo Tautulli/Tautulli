@@ -2527,6 +2527,7 @@ class WebInterface(object):
             "update_db_interval": plexpy.CONFIG.UPDATE_DB_INTERVAL,
             "freeze_db": checked(plexpy.CONFIG.FREEZE_DB),
             "backup_dir": plexpy.CONFIG.BACKUP_DIR,
+            "backup_interval": plexpy.CONFIG.BACKUP_INTERVAL,
             "cache_dir": plexpy.CONFIG.CACHE_DIR,
             "log_dir": plexpy.CONFIG.LOG_DIR,
             "log_blacklist": checked(plexpy.CONFIG.LOG_BLACKLIST),

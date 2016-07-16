@@ -331,9 +331,9 @@ def initialize_scheduler():
                 schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
                              hours=0, minutes=0, seconds=seconds)
 
-        # Refresh the users list
-        user_refresh_hours = CONFIG.REFRESH_USERS_INTERVAL or 0
-        library_refresh_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL or 0
+        # Refresh the users list and libraries list
+        user_refresh_hours = CONFIG.REFRESH_USERS_INTERVAL or 12
+        library_refresh_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL or 12
 
         if CONFIG.PMS_TOKEN:
             schedule_job(plextv.refresh_users, 'Refresh users list',
@@ -343,8 +343,12 @@ def initialize_scheduler():
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
                          hours=library_refresh_hours, minutes=0, seconds=0)
 
-        schedule_job(database.make_backup, 'Backup PlexPy database', hours=6, minutes=0, seconds=0, args=(True, True))
-        schedule_job(config.make_backup, 'Backup PlexPy config', hours=6, minutes=0, seconds=0, args=(True, True))
+        backup_hours = CONFIG.BACKUP_INTERVAL or 6
+
+        schedule_job(database.make_backup, 'Backup PlexPy database',
+                     hours=backup_hours, minutes=0, seconds=0, args=(True, True))
+        schedule_job(config.make_backup, 'Backup PlexPy config',
+                     hours=backup_hours, minutes=0, seconds=0, args=(True, True))
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
