@@ -2024,9 +2024,9 @@ class SLACK(object):
 
         http_handler = HTTPSConnection(slackhost)
         http_handler.request("POST",
-                                slackpath,
-                                headers={'Content-type': "application/x-www-form-urlencoded"},
-                                body=json.dumps(data))
+                             slackpath,
+                             headers={'Content-type': "application/json"},
+                             body=json.dumps(data))
 
         response = http_handler.getresponse()
         request_status = response.status
