@@ -1839,6 +1839,7 @@ class TELEGRAM(object):
         self.enabled = plexpy.CONFIG.TELEGRAM_ENABLED
         self.bot_token = plexpy.CONFIG.TELEGRAM_BOT_TOKEN
         self.chat_id = plexpy.CONFIG.TELEGRAM_CHAT_ID
+        self.disable_web_preview = plexpy.CONFIG.TELEGRAM_DISABLE_WEB_PREVIEW
         self.html_support = plexpy.CONFIG.TELEGRAM_HTML_SUPPORT
         self.incl_poster = plexpy.CONFIG.TELEGRAM_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.TELEGRAM_INCL_SUBJECT
@@ -1880,8 +1881,12 @@ class TELEGRAM(object):
                     logger.warn(u"PlexPy Notifiers :: Telegram poster failed.")
 
         data['text'] = text
+
         if self.html_support:
             data['parse_mode'] = 'HTML'
+
+        if self.disable_web_preview:
+            data['disable_web_page_preview'] = True
 
         http_handler = HTTPSConnection("api.telegram.org")
         http_handler.request('POST',
@@ -1945,7 +1950,13 @@ class TELEGRAM(object):
                          {'label': 'Enable HTML Support',
                           'value': self.html_support,
                           'name': 'telegram_html_support',
-                          'description': 'Style your messages using these HTML tags: b, i, a[href], code, pre',
+                          'description': 'Style your messages using these HTML tags: b, i, a[href], code, pre.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Disable Web Page Previews',
+                          'value': self.disable_web_preview,
+                          'name': 'telegram_disable_web_preview',
+                          'description': 'Disables automatic link previews for links in the message',
                           'input_type': 'checkbox'
                           }
                          ]

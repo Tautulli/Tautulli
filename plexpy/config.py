@@ -510,6 +510,7 @@ _CONFIG_DEFINITIONS = {
     'TELEGRAM_BOT_TOKEN': (str, 'Telegram', ''),
     'TELEGRAM_ENABLED': (int, 'Telegram', 0),
     'TELEGRAM_CHAT_ID': (str, 'Telegram', ''),
+    'TELEGRAM_DISABLE_WEB_PREVIEW': (int, 'Telegram', 0),
     'TELEGRAM_HTML_SUPPORT': (int, 'Telegram', 1),
     'TELEGRAM_INCL_POSTER': (int, 'Telegram', 0),
     'TELEGRAM_INCL_SUBJECT': (int, 'Telegram', 1),
