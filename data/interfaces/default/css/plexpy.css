@@ -598,6 +598,7 @@ a .users-poster-face:hover {
 }
 .dashboard-instance.hover .bar { 
 	height: 14px; 
+    max-width: 100%;
 	transform-origin: top;
     transition: all .2s ease;
 	border-radius: 0px 0px 3px 3px;
@@ -608,6 +609,7 @@ a .users-poster-face:hover {
 }
 .dashboard-instance.hover .bufferbar { 
 	height: 14px; 
+    max-width: 100%;
 	transform-origin: top;
     transition: all .2s ease;
 	border-radius: 0px 0px 3px 3px;
@@ -836,6 +838,7 @@ a .users-poster-face:hover {
     background-color: #444;
     position: absolute;
     height: 6px;
+    max-width: 100%;
     overflow: hidden;
 }
 .dashboard-activity-progress .bar {
@@ -853,6 +856,7 @@ a .users-poster-face:hover {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffbb450', endColorstr='#fff89406', GradientType=0);
     position: absolute;
     height: 6px;
+    max-width: 100%;
     overflow: hidden;
 }
 .dashboard-activity-metadata-wrapper {
