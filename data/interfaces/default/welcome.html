@@ -428,7 +428,7 @@
                 complete: function (xhr, status) {
                     var authToken = $.parseJSON(xhr.responseText);
                     if (authToken) {
-                        $("#pms-token-status").html('<i class="fa fa-check"></i> Authentation successful!');
+                        $("#pms-token-status").html('<i class="fa fa-check"></i> Authentication successful!');
                         $('#pms-token-status').fadeIn('fast');
                         $("#pms_token").val(authToken);
                         authenticated = true;
