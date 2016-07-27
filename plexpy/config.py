@@ -59,6 +59,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_PLATFORM': (str, 'PMS', ''),
     'PMS_VERSION': (str, 'PMS', ''),
     'PMS_UPDATE_CHANNEL': (str, 'PMS', 'public'),
+    'PMS_UPDATE_DISTRO': (str, 'PMS', ''),
     'PMS_UPDATE_DISTRO_BUILD': (str, 'PMS', ''),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
     'ANON_REDIRECT': (str, 'General', 'http://dereferer.org/?'),

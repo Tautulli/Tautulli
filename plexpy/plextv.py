@@ -650,7 +650,8 @@ class PlexTV(object):
 
         # Get proper download
         releases = platform_downloads.get('releases', [{}])
-        release = next((r for r in releases if r['build'] == plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD), releases[0])
+        release = next((r for r in releases if r['distro'] == plexpy.CONFIG.PMS_UPDATE_DISTRO and 
+                        r['build'] == plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD), releases[0])
 
         download_info = {'update_available': v_new > v_old,
                          'platform': platform_downloads.get('name'),

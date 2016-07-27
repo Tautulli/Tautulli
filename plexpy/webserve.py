@@ -2791,6 +2791,7 @@ class WebInterface(object):
         return {'plexpass': plexpass,
                 'pms_platform': plexpy.CONFIG.PMS_PLATFORM,
                 'pms_update_channel': plexpy.CONFIG.PMS_UPDATE_CHANNEL,
+                'pms_update_distro': plexpy.CONFIG.PMS_UPDATE_DISTRO,
                 'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD}
 
     @cherrypy.expose
