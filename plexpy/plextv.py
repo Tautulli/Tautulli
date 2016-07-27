@@ -615,6 +615,9 @@ class PlexTV(object):
         return clean_servers
 
     def get_plex_downloads(self):
+        logger.debug(u"PlexPy PlexTV :: Updating current server version.")
+        pmsconnect.PmsConnect().set_server_version()
+
         logger.debug(u"PlexPy PlexTV :: Plex update channel is %s." % plexpy.CONFIG.PMS_UPDATE_CHANNEL)
         plex_downloads = self.get_plextv_downloads(plexpass=(plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass'))
 

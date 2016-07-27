@@ -2190,3 +2190,10 @@ class PmsConnect(object):
                                     }
 
         return updater_info
+
+    def set_server_version(self):
+        identity = self.get_server_identity()
+        version = identity.get('version', plexpy.CONFIG.PMS_VERSION)
+
+        plexpy.CONFIG.__setattr__('PMS_VERSION', version)
+        plexpy.CONFIG.write()
