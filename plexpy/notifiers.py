@@ -1396,9 +1396,9 @@ class TwitterNotifier(object):
             poster_url = metadata.get('poster_url','')
 
         if self.incl_subject:
-            self._send_tweet(subject + '\r\n' + message, attachment=poster_url)
+            return self._send_tweet(subject + '\r\n' + message, attachment=poster_url)
         else:
-            self._send_tweet(message, attachment=poster_url)
+            return self._send_tweet(message, attachment=poster_url)
 
     def test_notify(self):
         return self._send_tweet("This is a test notification from PlexPy at " + helpers.now())
@@ -2442,9 +2442,9 @@ class FacebookNotifier(object):
             attachment['description'] = subtitle
 
         if self.incl_subject:
-            self._post_facebook(subject + '\r\n' + message, attachment=attachment)
+            return self._post_facebook(subject + '\r\n' + message, attachment=attachment)
         else:
-            self._post_facebook(message, attachment=attachment)
+            return self._post_facebook(message, attachment=attachment)
 
     def test_notify(self):
         return self._post_facebook(u"PlexPy Notifiers :: This is a test notification from PlexPy at " + helpers.now())
