@@ -20,6 +20,8 @@ import geoip2.database, geoip2.errors
 import gzip
 import hashlib
 import imghdr
+from ipwhois import IPWhois
+from ipwhois.utils import get_countries
 from IPy import IP
 import json
 import math
@@ -616,6 +618,17 @@ def geoip_lookup(ip_address):
     except Exception as e:
         return 'Error: %s' % e
 
+    nets = []
+    try:
+        whois = IPWhois(ip_address).lookup_whois()
+        countries = get_countries()
+        nets = whois['nets']
+        for net in nets:
+            net['country'] = countries[net['country']]
+            net['postal_code'] = net['postal_code'].replace('-', ' ')
+    except Exception as e:
+        logger.warn(u"PlexPy Helpers :: %s." % e)
+
     geo_info = {'continent': geo.continent.name,
                 'country': geo.country.name,
                 'region': geo.subdivisions.most_specific.name,
@@ -624,7 +637,8 @@ def geoip_lookup(ip_address):
                 'timezone': geo.location.time_zone,
                 'latitude': geo.location.latitude,
                 'longitude': geo.location.longitude,
-                'accuracy': geo.location.accuracy_radius
+                'accuracy': geo.location.accuracy_radius,
+                'nets': nets
                 }
 
     return geo_info

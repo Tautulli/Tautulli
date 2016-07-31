@@ -4310,7 +4310,18 @@ class WebInterface(object):
                      "timezone": "America/Los_Angeles",
                      "latitude": 37.386,
                      "longitude": -122.0838,
-                     "accuracy": 1000
+                     "accuracy": 1000,
+                     "net": [{"description": "Google Inc.",
+                              "address": "1600 Amphitheatre Parkway",
+                              "city": "Mountain View",
+                              "state": "CA",
+                              "postal_code": "94043",
+                              "country": "United States",
+                              ...
+                              },
+                              {...}
+                             ]
+                         
                      }
                 json:
                     {"error": "The address 127.0.0.1 is not in the database."

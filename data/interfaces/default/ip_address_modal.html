@@ -34,6 +34,15 @@
                     <li>Accuracy Radius: <strong><span id="accuracy"></span></strong></li>
                 </ul>
             </div>
+            <div class="col-sm-12">
+                <h4><strong>Connection Details</strong></h4>
+            </div>
+            <div class="col-sm-6" id="isp_instance">
+                <ul class="list-unstyled">
+                    <li>ISP: <strong><span id="isp"></span></strong></li>
+                    <li>Address: <strong><span id="isp_address"></span></strong></li>
+                </ul>
+            </div>
         </div>
         <div class="modal-footer">
             <% from plexpy.helpers import anon_url %>
@@ -67,6 +76,26 @@
                     $('#latitude').html(data.latitude);
                     $('#longitude').html(data.longitude);
                     $('#accuracy').html(data.accuracy + ' km');
+
+                    var nets = data.nets;
+                    if (!(nets.length)) {
+                        $('#isp').html('Not Found')
+                        $('#isp_address').html('Not Found')
+                    } else {
+                        $('#isp_instance').remove();
+                        $.each(nets, function (index, net) {
+                            $('#modal-text').append('<div class="col-sm-6"> \
+                            <ul class="list-unstyled"> \
+                                <li>ISP: <strong>' + net.description + '</strong></li> \
+                                <li><span style="float: left;">Address:&nbsp;</span> \
+                                    <span style="float: left;"><strong>' + net.address + '</strong><br /> \
+                                    <strong>' + net.city + ", " + net.state + "&nbsp;&nbsp;" + net.postal_code + '</strong><br /> \
+                                    <strong>' + net.country + '</strong></span> \
+                                </li> \
+                            </ul> \
+                        </div>')
+                        });
+                    }
                 }
             }
         });
