@@ -4327,7 +4327,7 @@ class WebInterface(object):
     @requireAuth()
     @addtoapi()
     def get_whois_lookup(self, ip_address='', **kwargs):
-        """ Get the ISP info for an IP address.
+        """ Get the connection info for an IP address.
 
             ```
             Required parameters:
@@ -4338,22 +4338,23 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [{"description": "Google Inc.",
-                      "address": "1600 Amphitheatre Parkway",
-                      "city": "Mountain View",
-                      "state": "CA",
-                      "postal_code": "94043",
-                      "country": "United States",
-                      ...
-                      },
-                      {...}
-                     ]
+                    {"host": "google-public-dns-a.google.com",
+                     "nets": [{"description": "Google Inc.",
+                               "address": "1600 Amphitheatre Parkway",
+                               "city": "Mountain View",
+                               "state": "CA",
+                               "postal_code": "94043",
+                               "country": "United States",
+                               ...
+                               },
+                               {...}
+                              ]
                 json:
-                    {"error": "The address 127.0.0.1 is not in the database."
+                    {"host": "Not available",
+                     "nets": [],
+                     "error": "IPv4 address 127.0.0.1 is already defined as Loopback via RFC 1122, Section 3.2.1.3."
                      }
             ```
         """
         whois_info = helpers.whois_lookup(ip_address)
-        if isinstance(whois_info, basestring):
-            return {'error': whois_info}
         return whois_info

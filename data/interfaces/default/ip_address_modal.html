@@ -38,9 +38,14 @@
                 <h4><strong>Connection Details</strong><span id="isp_loading" style="padding-left: 5px;"><i class="fa fa-refresh fa-spin"></i></span></h4>
             </div>
             <div id="isp_error" class="col-sm-12 text-muted"></div>
+            <div class="col-sm-12">
+                <ul class="list-unstyled">
+                    <li>Host: <strong><span id="isp_host"></span></strong></li>
+                </ul>
+            </div>
             <div class="col-sm-6" id="isp_instance">
                 <ul class="list-unstyled">
-                    <li>ISP: <strong><span id="isp"></span></strong></li>
+                    <li>ISP: <strong><span id="isp_name"></span></strong></li>
                     <li>Address: <strong><span id="isp_address"></span></strong></li>
                 </ul>
             </div>
@@ -99,13 +104,12 @@
                 $('#isp_error').html('<i class="fa fa-exclamation-circle"></i> Internal request failed.').show();
             },
             success: function (data) {
+                $('#isp_host').html(data.host);
                 if ('error' in data) {
                     $('#isp_error').html('<i class="fa fa-exclamation-circle"></i> ' + data.error).show();
-                } else if (!(data.length)) {
-                    $('#isp_error').html('<i class="fa fa-exclamation-circle"></i> Connection details not found.').show();
-                } else {
+                } else if (data.nets.length) {
                     $('#isp_instance').remove();
-                    $.each(data, function (index, net) {
+                    $.each(data.nets, function (index, net) {
                         var s = '';
                         if (net.city || net.state || net.postal_code) {
                             s = (net.city && net.state) ? net.city + ', ' + net.state : net.city || net.state || '';
@@ -113,15 +117,17 @@
                         }
                         s = (s) ? '<strong>' + s + '</strong><br />' : s;
                         $('#modal-text').append('<div class="col-sm-6"> \
-                        <ul class="list-unstyled"> \
-                            <li>ISP: <strong>' + net.description + '</strong></li> \
-                            <li><span style="float: left;">Address:&nbsp;</span> \
-                                <span style="float: left;"><strong>' + net.address + '</strong><br />' + s +
-                                '<strong>' + net.country + '</strong></span> \
-                            </li> \
-                        </ul> \
-                    </div>')
+                            <ul class="list-unstyled"> \
+                                <li>ISP: <strong>' + net.description + '</strong></li> \
+                                <li><span style="float: left;">Address:&nbsp;</span> \
+                                    <span style="float: left;"><strong>' + net.address + '</strong><br />' + s +
+                                        '<strong>' + net.country + '</strong></span> \
+                                </li> \
+                            </ul> \
+                        </div>')
                     });
+                } else {
+                    $('#isp_name, #isp_address').html("Not available");
                 }
             }
         });

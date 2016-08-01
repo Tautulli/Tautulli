@@ -632,6 +632,7 @@ def geoip_lookup(ip_address):
 def whois_lookup(ip_address):
 
     nets = []
+    err = None
     try:
         whois = ipwhois.IPWhois(ip_address).lookup_whois(retry_count=0)
         countries = ipwhois.utils.get_countries()
@@ -641,15 +642,28 @@ def whois_lookup(ip_address):
             if net['postal_code']:
                  net['postal_code'] = net['postal_code'].replace('-', ' ')
     except ValueError as e:
-        return 'Invalid IP address provided: %s.' % ip_address
+        err = 'Invalid IP address provided: %s.' % ip_address
     except ipwhois.exceptions.IPDefinedError as e:
-        return '%s' % e
+        err = '%s' % e
     except ipwhois.exceptions.ASNRegistryError as e:
-        return '%s' % e
+        err = '%s' % e
     except Exception as e:
-        return 'Error: %s' % e
+        err = 'Error: %s' % e
 
-    return nets
+    host = ''
+    try:
+        host = ipwhois.Net(ip_address).get_host(retry_count=0)[0]
+    except Exception as e:
+        host = 'Not available'
+
+    whois_info = {"host": host,
+                  "nets": nets
+                  }
+
+    if err:
+        whois_info['error'] = err
+
+    return whois_info
 
 # Taken from SickRage
 def anon_url(*url):
