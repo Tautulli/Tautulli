@@ -20,8 +20,7 @@ import geoip2.database, geoip2.errors
 import gzip
 import hashlib
 import imghdr
-from ipwhois import IPWhois
-from ipwhois.utils import get_countries
+import ipwhois, ipwhois.exceptions, ipwhois.utils
 from IPy import IP
 import json
 import math
@@ -604,12 +603,11 @@ def geoip_lookup(ip_address):
         reader = geoip2.database.Reader(plexpy.CONFIG.GEOIP_DB)
         geo = reader.city(ip_address)
         reader.close()
+    except ValueError as e:
+        return 'Invalid IP address provided: %s.' % ip_address
     except IOError as e:
         return 'Missing GeoLite2 database. Please reinstall from the ' \
             '<a href="settings?install_geoip=true">Settings</a> page.'
-    except ValueError as e:
-        return 'Unable to read GeoLite2 database. Please reinstall from the ' \
-            '<a href="settings?reinstall_geoip=true">Settings</a> page.'
     except maxminddb.InvalidDatabaseError as e:
         return 'Invalid GeoLite2 database. Please reinstall from the ' \
             '<a href="settings?reinstall_geoip=true">Settings</a> page.'
@@ -617,17 +615,6 @@ def geoip_lookup(ip_address):
         return '%s' % e
     except Exception as e:
         return 'Error: %s' % e
-
-    nets = []
-    try:
-        whois = IPWhois(ip_address).lookup_whois()
-        countries = get_countries()
-        nets = whois['nets']
-        for net in nets:
-            net['country'] = countries[net['country']]
-            net['postal_code'] = net['postal_code'].replace('-', ' ')
-    except Exception as e:
-        logger.warn(u"PlexPy Helpers :: %s." % e)
 
     geo_info = {'continent': geo.continent.name,
                 'country': geo.country.name,
@@ -637,11 +624,32 @@ def geoip_lookup(ip_address):
                 'timezone': geo.location.time_zone,
                 'latitude': geo.location.latitude,
                 'longitude': geo.location.longitude,
-                'accuracy': geo.location.accuracy_radius,
-                'nets': nets
+                'accuracy': geo.location.accuracy_radius
                 }
 
     return geo_info
+
+def whois_lookup(ip_address):
+
+    nets = []
+    try:
+        whois = ipwhois.IPWhois(ip_address).lookup_whois(retry_count=0)
+        countries = ipwhois.utils.get_countries()
+        nets = whois['nets']
+        for net in nets:
+            net['country'] = countries[net['country']]
+            if net['postal_code']:
+                 net['postal_code'] = net['postal_code'].replace('-', ' ')
+    except ValueError as e:
+        return 'Invalid IP address provided: %s.' % ip_address
+    except ipwhois.exceptions.IPDefinedError as e:
+        return '%s' % e
+    except ipwhois.exceptions.ASNRegistryError as e:
+        return '%s' % e
+    except Exception as e:
+        return 'Error: %s' % e
+
+    return nets
 
 # Taken from SickRage
 def anon_url(*url):

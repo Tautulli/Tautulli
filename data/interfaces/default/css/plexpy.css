@@ -3009,8 +3009,10 @@ a:hover .overlay-refresh-image {
 a:hover .overlay-refresh-image:hover {
     opacity: .9;
 }
-#ip_error {
+#ip_error, #isp_error {
     color: #aaa;
     display: none;
     text-align: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }

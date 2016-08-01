@@ -4310,18 +4310,7 @@ class WebInterface(object):
                      "timezone": "America/Los_Angeles",
                      "latitude": 37.386,
                      "longitude": -122.0838,
-                     "accuracy": 1000,
-                     "net": [{"description": "Google Inc.",
-                              "address": "1600 Amphitheatre Parkway",
-                              "city": "Mountain View",
-                              "state": "CA",
-                              "postal_code": "94043",
-                              "country": "United States",
-                              ...
-                              },
-                              {...}
-                             ]
-                         
+                     "accuracy": 1000
                      }
                 json:
                     {"error": "The address 127.0.0.1 is not in the database."
@@ -4332,3 +4321,39 @@ class WebInterface(object):
         if isinstance(geo_info, basestring):
             return {'error': geo_info}
         return geo_info
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    @addtoapi()
+    def get_whois_lookup(self, ip_address='', **kwargs):
+        """ Get the ISP info for an IP address.
+
+            ```
+            Required parameters:
+                ip_address
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    [{"description": "Google Inc.",
+                      "address": "1600 Amphitheatre Parkway",
+                      "city": "Mountain View",
+                      "state": "CA",
+                      "postal_code": "94043",
+                      "country": "United States",
+                      ...
+                      },
+                      {...}
+                     ]
+                json:
+                    {"error": "The address 127.0.0.1 is not in the database."
+                     }
+            ```
+        """
+        whois_info = helpers.whois_lookup(ip_address)
+        if isinstance(whois_info, basestring):
+            return {'error': whois_info}
+        return whois_info

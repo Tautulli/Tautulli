@@ -342,18 +342,7 @@ Returns:
          "timezone": "America/Los_Angeles",
          "latitude": 37.386,
          "longitude": -122.0838,
-         "accuracy": 1000,
-         "net": [{"description": "Google Inc.",
-                  "address": "1600 Amphitheatre Parkway",
-                  "city": "Mountain View",
-                  "state": "CA",
-                  "postal_code": "94043",
-                  "country": "United States",
-                  ...
-                  },
-                  {...}
-                 ]
-             
+         "accuracy": 1000
          }
     json:
         {"error": "The address 127.0.0.1 is not in the database."
@@ -1712,6 +1701,34 @@ Returns:
              {...},
              {...}
              ]
+         }
+```
+
+
+### get_whois_lookup
+Get the ISP info for an IP address.
+
+```
+Required parameters:
+    ip_address
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        [{"description": "Google Inc.",
+          "address": "1600 Amphitheatre Parkway",
+          "city": "Mountain View",
+          "state": "CA",
+          "postal_code": "94043",
+          "country": "United States",
+          ...
+          },
+          {...}
+         ]
+    json:
+        {"error": "The address 127.0.0.1 is not in the database."
          }
 ```
 
