@@ -2,11 +2,13 @@
 
 [![Join the chat at https://gitter.im/drzoidberg33/plexpy](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/drzoidberg33/plexpy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-A python based web application for monitoring, analytics and notifications for Plex Media Server (www.plex.tv).
+A python based web application for monitoring, analytics and notifications for [Plex Media Server](https://plex.tv).
 
 This project is based on code from [Headphones](https://github.com/rembo10/headphones) and [PlexWatchWeb](https://github.com/ecleese/plexWatchWeb).
 
-* PlexPy [forum thread](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program)
+* [Plex forum thread](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program)
+* [Gitter chat](https://gitter.im/drzoidberg33/plexpy)
+* [Discord server](https://discord.gg/011TFFWSuNFI02EKr) | [PlexPy Discord server](https://discord.gg/36ggawe)
 
 ## Features
 
@@ -24,6 +26,12 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 * Beautiful content information pages.
 * Full sync list data on all users syncing items from your library.
 * And many more!!
+
+## Preview
+
+* [Full preview gallery on Imgur](https://imgur.com/a/RwQPM)
+
+![PlexPy Homepage](https://i.imgur.com/0D0uFJg.jpg)
 
 ## Installation and Support
 
