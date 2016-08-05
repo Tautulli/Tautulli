@@ -1702,10 +1702,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_stream_data(self, row_id=None, user=None, **kwargs):
+    def get_stream_data(self, row_id=None, session_key=None, user=None, **kwargs):
 
         data_factory = datafactory.DataFactory()
-        stream_data = data_factory.get_stream_details(row_id)
+        stream_data = data_factory.get_stream_details(row_id, session_key)
 
         return serve_template(templatename="stream_data.html", title="Stream Data", data=stream_data, user=user)
 

@@ -30,9 +30,13 @@ class DataTables(object):
 
     def ssp_query(self,
                   table_name=None,
+                  table_name_union=None,
                   columns=[],
+                  columns_union=[],
                   custom_where=[],
+                  custom_where_union=[],
                   group_by=[],
+                  group_by_union=[],
                   join_types=[],
                   join_tables=[],
                   join_evals=[],
@@ -46,10 +50,12 @@ class DataTables(object):
         parameters = {}
         args = []
         group = ''
+        group_u = ''
         order = ''
         where = ''
         join = ''
         c_where = ''
+        c_where_u = ''
 
         # Fetch all our parameters
         if kwargs.get('json_data'):
@@ -61,6 +67,7 @@ class DataTables(object):
 
         dt_columns = parameters['columns']
         extracted_columns = self.extract_columns(columns=columns)
+        extracted_columns_union = self.extract_columns(columns=columns_union)
 
         # Build grouping
         if group_by:
@@ -109,6 +116,48 @@ class DataTables(object):
 
             if c_where:
                 c_where = 'WHERE ' + c_where.rstrip(' AND ')
+
+        # Build grouping union parameters
+        if group_by_union:
+            for g in group_by_union:
+                group_u += g + ', '
+            if group_u:
+                group_u = 'GROUP BY ' + group_u.rstrip(', ')
+        else:
+            group_u = ''
+
+       # Build custom where union parameters
+        if custom_where_union:
+            for w in custom_where_union:
+                if isinstance(w[1], (list, tuple)) and len(w[1]):
+                    c_where_u += '('
+                    for w_ in w[1]:
+                        if w_ == None:
+                            c_where_u += w[0] + ' IS NULL OR '
+                        else:
+                            c_where_u += w[0] + ' = ? OR '
+                            args.append(w_)
+                    c_where_u = c_where_u.rstrip(' OR ') + ') AND '
+                else:
+                    if w[1] == None:
+                        c_where_u += w[0] + ' IS NULL AND '
+                    else:
+                        c_where_u += w[0] + ' = ? AND '
+                        args.append(w[1])
+
+            if c_where_u:
+                c_where_u = 'WHERE ' + c_where_u.rstrip(' AND ')
+        else:
+            c_where_u = ''
+
+        # Build union parameters
+        if table_name_union:
+            union = 'UNION SELECT %s FROM %s %s %s' % (extracted_columns_union['column_string'],
+                                                       table_name_union,
+                                                       c_where_u,
+                                                       group_u)
+        else:
+            union = ''
 
         # Build ordering
         for o in parameters['order']:
@@ -163,27 +212,30 @@ class DataTables(object):
         # Build our queries
         if grouping:
             if c_where == '':
-                query = 'SELECT * FROM (SELECT %s FROM %s %s %s) %s %s' \
-                        % (extracted_columns['column_string'], table_name, join, group,
+                query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s) %s %s' \
+                        % (extracted_columns['column_string'], table_name, join, group, union,
                            where, order)
             else:
-                query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s) %s %s' \
-                        % (extracted_columns['column_string'], table_name, join, c_where, group,
+                query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s %s) %s %s' \
+                        % (extracted_columns['column_string'], table_name, join, c_where, group, union,
                            where, order)
         else:
             if c_where == '':
-                query = 'SELECT %s FROM %s %s %s %s' \
-                        % (extracted_columns['column_string'], table_name, join, where,
-                           order)
+                query = 'SELECT * FROM (SELECT %s FROM %s %s %s) %s %s' \
+                        % (extracted_columns['column_string'], table_name, join, union, 
+                           where, order)
             else:
-                query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s) %s' \
-                        % (extracted_columns['column_string'], table_name, join, where,
-                           order, c_where)
+                query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s) %s %s' \
+                        % (extracted_columns['column_string'], table_name, join, c_where, union,
+                           where, order)
 
         # logger.debug(u"Query: %s" % query)
 
         # Execute the query
         filtered = self.ssp_db.select(query, args=args)
+
+        # Remove NULL rows
+        filtered = [row for row in filtered if not all(v is None for v in row.values())]
 
         # Build grand totals
         totalcount = self.ssp_db.select('SELECT COUNT(id) as total_count from %s' % table_name)[0]['total_count']
