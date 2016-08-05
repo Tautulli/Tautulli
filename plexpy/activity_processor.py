@@ -48,6 +48,13 @@ class ActivityProcessor(object):
                       'title': session['title'],
                       'parent_title': session['parent_title'],
                       'grandparent_title': session['grandparent_title'],
+                      'full_title': session['full_title'],
+                      'media_index': session['media_index'],
+                      'parent_media_index': session['parent_media_index'],
+                      'thumb': session['thumb'],
+                      'parent_thumb': session['parent_thumb'],
+                      'grandparent_thumb': session['grandparent_thumb'],
+                      'year': session['year'],
                       'friendly_name': session['friendly_name'],
                       #'ip_address': session['ip_address'],
                       'player': session['player'],
@@ -58,6 +65,7 @@ class ActivityProcessor(object):
                       'duration': session['duration'],
                       'video_decision': session['video_decision'],
                       'audio_decision': session['audio_decision'],
+                      'transcode_decision': session['transcode_decision'],
                       'width': session['width'],
                       'height': session['height'],
                       'container': session['container'],
@@ -275,14 +283,6 @@ class ActivityProcessor(object):
 
                 # Write the session_history_media_info table
 
-                # Generate a combined transcode decision value
-                if session['video_decision'] == 'transcode' or session['audio_decision'] == 'transcode':
-                    transcode_decision = 'transcode'
-                elif session['video_decision'] == 'copy' or session['audio_decision'] == 'copy':
-                    transcode_decision = 'copy'
-                else:
-                    transcode_decision = 'direct play'
-
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history_media_info table...")
                 query = 'INSERT INTO session_history_media_info (id, rating_key, video_decision, audio_decision, ' \
                         'duration, width, height, container, video_codec, audio_codec, bitrate, video_resolution, ' \
@@ -298,7 +298,7 @@ class ActivityProcessor(object):
                         session['audio_channels'], session['transcode_protocol'], session['transcode_container'],
                         session['transcode_video_codec'], session['transcode_audio_codec'],
                         session['transcode_audio_channels'], session['transcode_width'], session['transcode_height'],
-                        transcode_decision]
+                        session['transcode_decision']]
 
                 # logger.debug(u"PlexPy ActivityProcessor :: Writing session_history_media_info transaction...")
                 self.db.action(query=query, args=args)
@@ -310,14 +310,6 @@ class ActivityProcessor(object):
                 genres = ";".join(metadata['genres'])
                 labels = ";".join(metadata['labels'])
 
-                # Build media item title
-                if session['media_type'] == 'episode' or session['media_type'] == 'track':
-                    full_title = '%s - %s' % (metadata['grandparent_title'], metadata['title'])
-                elif session['media_type'] == 'movie':
-                    full_title = metadata['title']
-                else:
-                    full_title = metadata['title']
-
                 # logger.debug(u"PlexPy ActivityProcessor :: Attempting to write to session_history_metadata table...")
                 query = 'INSERT INTO session_history_metadata (id, rating_key, parent_rating_key, ' \
                         'grandparent_rating_key, title, parent_title, grandparent_title, full_title, media_index, ' \
@@ -328,7 +320,7 @@ class ActivityProcessor(object):
                         '?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
                 args = [session['rating_key'], session['parent_rating_key'], session['grandparent_rating_key'],
-                        session['title'], session['parent_title'], session['grandparent_title'], full_title,
+                        session['title'], session['parent_title'], session['grandparent_title'], session['full_title'],
                         metadata['media_index'], metadata['parent_media_index'], metadata['section_id'], metadata['thumb'],
                         metadata['parent_thumb'], metadata['grandparent_thumb'], metadata['art'], session['media_type'],
                         metadata['year'], metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
