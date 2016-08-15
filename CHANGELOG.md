@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.10 (2016-08-15)
+
+* Fix: Missing python ipaddress module preventing PlexPy from starting.
+
+
 ## v1.4.9 (2016-08-14)
 
 * New: Option to include current activity in the history tables.
