@@ -192,6 +192,7 @@ _CONFIG_DEFINITIONS = {
     'GROWL_ON_PMSUPDATE': (int, 'Growl', 0),
     'GROWL_ON_CONCURRENT': (int, 'Growl', 0),
     'GROWL_ON_NEWDEVICE': (int, 'Growl', 0),
+    'HISTORY_TABLE_ACTIVITY': (int, 'General', 1),
     'HOME_SECTIONS': (list, 'General', ['current_activity','watch_stats','library_stats','recently_added']),
     'HOME_LIBRARY_CARDS': (list, 'General', ['first_run']),
     'HOME_STATS_LENGTH': (int, 'General', 30),

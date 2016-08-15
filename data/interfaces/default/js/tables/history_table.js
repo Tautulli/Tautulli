@@ -319,6 +319,9 @@ history_table_options = {
             history_table.row(row).child(childTableFormat(rowData)).show();
         }
 
+        if (rowData['state'] !== null) {
+            $(row).addClass('current-activity-row');
+        }
     }
 }
 
