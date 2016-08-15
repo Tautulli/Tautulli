@@ -57,11 +57,7 @@ class DataFactory(object):
             if not added:
                 custom_where.append(['session_history.user_id', session.get_session_user_id()])
 
-        # Very hacky way to match the custom where parameters for the unioned table
-        custom_where_union = [[c[0].split('.')[-1], c[1]] for c in custom_where]
-
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
-        group_by_union = ['session_key']
 
         columns = [
             'session_history.reference_id',
@@ -101,46 +97,57 @@ class DataFactory(object):
             'NULL AS session_key'
             ]
 
-        columns_union = [
-            'NULL AS reference_id',
-            'NULL AS id',
-            'started AS date',
-            'started',
-            'stopped',
-            'strftime("%s", "now") - started - \
-            SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration',
-            'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter',
-            'user_id',
-            'user',
-            '(CASE WHEN friendly_name IS NULL OR TRIM(friendly_name) = "" \
-             THEN user ELSE friendly_name END) AS friendly_name',
-            'platform',
-            'player',
-            'ip_address',
-            'media_type',
-            'rating_key',
-            'parent_rating_key',
-            'grandparent_rating_key',
-            'full_title',
-            'parent_title',
-            'year',
-            'media_index',
-            'parent_media_index',
-            'thumb',
-            'parent_thumb',
-            'grandparent_thumb',
-            'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
-             (CASE WHEN (duration IS NULL OR duration = "") \
-             THEN 1.0 ELSE duration * 1.0 END) * 100) AS percent_complete',
-            'transcode_decision',
-            'NULL AS group_count',
-            'NULL AS group_ids',
-            'state',
-            'session_key'
-            ]
+        if plexpy.CONFIG.HISTORY_TABLE_ACTIVITY:
+            table_name_union = 'sessions'
+            # Very hacky way to match the custom where parameters for the unioned table
+            custom_where_union = [[c[0].split('.')[-1], c[1]] for c in custom_where]
+            group_by_union = ['session_key']
+
+            columns_union = [
+                'NULL AS reference_id',
+                'NULL AS id',
+                'started AS date',
+                'started',
+                'stopped',
+                'strftime("%s", "now") - started - \
+                SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration',
+                'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter',
+                'user_id',
+                'user',
+                '(CASE WHEN friendly_name IS NULL OR TRIM(friendly_name) = "" \
+                 THEN user ELSE friendly_name END) AS friendly_name',
+                'platform',
+                'player',
+                'ip_address',
+                'media_type',
+                'rating_key',
+                'parent_rating_key',
+                'grandparent_rating_key',
+                'full_title',
+                'parent_title',
+                'year',
+                'media_index',
+                'parent_media_index',
+                'thumb',
+                'parent_thumb',
+                'grandparent_thumb',
+                'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
+                 (CASE WHEN (duration IS NULL OR duration = "") \
+                 THEN 1.0 ELSE duration * 1.0 END) * 100) AS percent_complete',
+                'transcode_decision',
+                'NULL AS group_count',
+                'NULL AS group_ids',
+                'state',
+                'session_key'
+                ]
+
+        else:
+            table_name_union = None
+            custom_where_union = group_by_union = columns_union = []
+
         try:
             query = data_tables.ssp_query(table_name='session_history',
-                                          table_name_union='sessions',
+                                          table_name_union=table_name_union,
                                           columns=columns,
                                           columns_union=columns_union,
                                           custom_where=custom_where,

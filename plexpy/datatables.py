@@ -46,17 +46,6 @@ class DataTables(object):
             logger.error('PlexPy DataTables :: No table name received.')
             return None
 
-        # Set default variable values
-        parameters = {}
-        args = []
-        group = ''
-        group_u = ''
-        order = ''
-        where = ''
-        join = ''
-        c_where = ''
-        c_where_u = ''
-
         # Fetch all our parameters
         if kwargs.get('json_data'):
             parameters = helpers.process_json_kwargs(json_kwargs=kwargs.get('json_data'))
@@ -65,93 +54,27 @@ class DataTables(object):
                          'named json_data.')
             return None
 
-        dt_columns = parameters['columns']
         extracted_columns = self.extract_columns(columns=columns)
-        extracted_columns_union = self.extract_columns(columns=columns_union)
+        join = self.build_join(join_types, join_tables, join_evals)
+        group = self.build_grouping(group_by)
+        c_where, cw_args = self.build_custom_where(custom_where)
+        order = self.build_order(parameters['order'],
+                                 extracted_columns['column_named'],
+                                 parameters['columns'])
+        where, w_args = self.build_where(parameters['search']['value'],
+                                         extracted_columns['column_named'],
+                                         parameters['columns'])
 
-        # Build grouping
-        if group_by:
-            for g in group_by:
-                group += g + ', '
-            if group:
-                grouping = True
-                group = 'GROUP BY ' + group.rstrip(', ')
-        else:
-            grouping = False
-
-        # Build join parameters
-        if join_types:
-            counter = 0
-            for join_type in join_types:
-                if join_type.upper() == 'LEFT OUTER JOIN':
-                    join_item = 'LEFT OUTER JOIN %s ON %s = %s ' % \
-                                (join_tables[counter], join_evals[counter][0], join_evals[counter][1])
-                elif join_type.upper() == 'JOIN' or join_type.upper() == 'INNER JOIN':
-                    join_item = 'JOIN %s ON %s = %s ' % \
-                                (join_tables[counter], join_evals[counter][0], join_evals[counter][1])
-                else:
-                    join_item = ''
-
-                counter += 1
-                join += join_item
-
-        # Build custom where parameters
-        if custom_where:
-            for w in custom_where:
-                if isinstance(w[1], (list, tuple)) and len(w[1]):
-                    c_where += '('
-                    for w_ in w[1]:
-                        if w_ == None:
-                            c_where += w[0] + ' IS NULL OR '
-                        else:
-                            c_where += w[0] + ' = ? OR '
-                            args.append(w_)
-                    c_where = c_where.rstrip(' OR ') + ') AND '
-                else:
-                    if w[1] == None:
-                        c_where += w[0] + ' IS NULL AND '
-                    else:
-                        c_where += w[0] + ' = ? AND '
-                        args.append(w[1])
-
-            if c_where:
-                c_where = 'WHERE ' + c_where.rstrip(' AND ')
-
-        # Build grouping union parameters
-        if group_by_union:
-            for g in group_by_union:
-                group_u += g + ', '
-            if group_u:
-                group_u = 'GROUP BY ' + group_u.rstrip(', ')
-        else:
-            group_u = ''
-
-       # Build custom where union parameters
-        if custom_where_union:
-            for w in custom_where_union:
-                if isinstance(w[1], (list, tuple)) and len(w[1]):
-                    c_where_u += '('
-                    for w_ in w[1]:
-                        if w_ == None:
-                            c_where_u += w[0] + ' IS NULL OR '
-                        else:
-                            c_where_u += w[0] + ' = ? OR '
-                            args.append(w_)
-                    c_where_u = c_where_u.rstrip(' OR ') + ') AND '
-                else:
-                    if w[1] == None:
-                        c_where_u += w[0] + ' IS NULL AND '
-                    else:
-                        c_where_u += w[0] + ' = ? AND '
-                        args.append(w[1])
-
-            if c_where_u:
-                c_where_u = 'WHERE ' + c_where_u.rstrip(' AND ')
-        else:
-            c_where_u = ''
+        args = cw_args + w_args
 
         # Build union parameters
         if table_name_union:
+            extracted_columns_union = self.extract_columns(columns=columns_union)
+            group_u = self.build_grouping(group_by_union)
+            c_where_u, cwu_args = self.build_custom_where(custom_where_union)
+
+            args += cwu_args
+
             union = 'UNION SELECT %s FROM %s %s %s' % (extracted_columns_union['column_string'],
                                                        table_name_union,
                                                        c_where_u,
@@ -159,75 +82,10 @@ class DataTables(object):
         else:
             union = ''
 
-        # Build ordering
-        for o in parameters['order']:
-            sort_order = ' COLLATE NOCASE'
-            if o['dir'] == 'desc':
-                sort_order = ' COLLATE NOCASE DESC'
-            # We first see if a name was sent though for the column sort.
-            if dt_columns[int(o['column'])]['data']:
-                # We have a name, now check if it's a valid column name for our query
-                # so we don't just inject a random value
-                if any(d.lower() == dt_columns[int(o['column'])]['data'].lower()
-                       for d in extracted_columns['column_named']):
-                    order += dt_columns[int(o['column'])]['data'] + '%s' % sort_order
-                else:
-                    # if we receive a bogus name, rather not sort at all.
-                    pass
-            # If no name exists for the column, just use the column index to sort
-            else:
-                order += extracted_columns['column_named'][int(o['column'])]
 
-            order += ', '
-
-        order = order.rstrip(', ')
-        if order:
-            order = 'ORDER BY ' + order
-
-        # Build where parameters
-        if parameters['search']['value']:
-            counter = 0
-            for s in parameters['columns']:
-                if s['searchable']:
-                    # We first see if a name was sent though for the column search.
-                    if s['data']:
-                        # We have a name, now check if it's a valid column name for our query
-                        # so we don't just inject a random value
-                        if any(d.lower() == s['data'].lower() for d in extracted_columns['column_named']):
-                            where += s['data'] + ' LIKE ? OR '
-                            args.append('%' + parameters['search']['value'] + '%')
-                        else:
-                            # if we receive a bogus name, rather not search at all.
-                            pass
-                    # If no name exists for the column, just use the column index to search
-                    else:
-                        where += extracted_columns['column_named'][counter] + ' LIKE ? OR '
-                        args.append('%' + parameters['search']['value'] + '%')
-
-                counter += 1
-
-            if where:
-                where = 'WHERE ' + where.rstrip(' OR ')
-
-        # Build our queries
-        if grouping:
-            if c_where == '':
-                query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s) %s %s' \
-                        % (extracted_columns['column_string'], table_name, join, group, union,
-                           where, order)
-            else:
-                query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s %s) %s %s' \
-                        % (extracted_columns['column_string'], table_name, join, c_where, group, union,
-                           where, order)
-        else:
-            if c_where == '':
-                query = 'SELECT * FROM (SELECT %s FROM %s %s %s) %s %s' \
-                        % (extracted_columns['column_string'], table_name, join, union, 
-                           where, order)
-            else:
-                query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s) %s %s' \
-                        % (extracted_columns['column_string'], table_name, join, c_where, union,
-                           where, order)
+        # Build the query
+        query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s %s) %s %s' \
+                % (extracted_columns['column_string'], table_name, join, c_where, group, union, where, order)
 
         # logger.debug(u"Query: %s" % query)
 
@@ -256,6 +114,110 @@ class DataTables(object):
                   'totalCount': totalcount}
 
         return output
+
+    def build_grouping(self, group_by=[]):
+        # Build grouping
+        group = ''
+
+        for g in group_by:
+            group += g + ', '
+        if group:
+            group = 'GROUP BY ' + group.rstrip(', ')
+
+        return group
+
+    def build_join(self, join_types=[], join_tables=[], join_evals=[]):
+        # Build join parameters
+        join = ''
+
+        for i, join_type in enumerate(join_types):
+            if join_type.upper() == 'LEFT OUTER JOIN':
+                join += 'LEFT OUTER JOIN %s ON %s = %s ' % (join_tables[i], join_evals[i][0], join_evals[i][1])
+            elif join_type.upper() == 'JOIN' or join_type.upper() == 'INNER JOIN':
+                join += 'JOIN %s ON %s = %s ' % (join_tables[i], join_evals[i][0], join_evals[i][1])
+
+        return join
+
+    def build_custom_where(self, custom_where=[]):
+        # Build custom where parameters
+        c_where = ''
+        args = []
+
+        for w in custom_where:
+            if isinstance(w[1], (list, tuple)) and len(w[1]):
+                c_where += '('
+                for w_ in w[1]:
+                    if w_ == None:
+                        c_where += w[0] + ' IS NULL OR '
+                    else:
+                        c_where += w[0] + ' = ? OR '
+                        args.append(w_)
+                c_where = c_where.rstrip(' OR ') + ') AND '
+            else:
+                if w[1] == None:
+                    c_where += w[0] + ' IS NULL AND '
+                else:
+                    c_where += w[0] + ' = ? AND '
+                    args.append(w[1])
+
+        if c_where:
+            c_where = 'WHERE ' + c_where.rstrip(' AND ')
+
+        return c_where, args
+
+    def build_order(self, order_param=[], columns=[], dt_columns=[]):
+        # Build ordering
+        order = ''
+
+        for o in order_param:
+            sort_order = ' COLLATE NOCASE'
+            if o['dir'] == 'desc':
+                sort_order += ' DESC'
+            # We first see if a name was sent though for the column sort.
+            if dt_columns[int(o['column'])]['data']:
+                # We have a name, now check if it's a valid column name for our query
+                # so we don't just inject a random value
+                if any(d.lower() == dt_columns[int(o['column'])]['data'].lower()
+                       for d in columns):
+                    order += dt_columns[int(o['column'])]['data'] + '%s, ' % sort_order
+                else:
+                    # if we receive a bogus name, rather not sort at all.
+                    pass
+            # If no name exists for the column, just use the column index to sort
+            else:
+                order += columns[int(o['column'])] + ', '
+
+        if order:
+            order = 'ORDER BY ' + order.rstrip(', ')
+
+        return order
+
+    def build_where(self, search_param='', columns=[], dt_columns=[]):
+        # Build where parameters
+        where = ''
+        args = []
+
+        if search_param:
+            for i, s in enumerate(dt_columns):
+                if s['searchable']:
+                    # We first see if a name was sent though for the column search.
+                    if s['data']:
+                        # We have a name, now check if it's a valid column name for our query
+                        # so we don't just inject a random value
+                        if any(d.lower() == s['data'].lower() for d in columns):
+                            where += s['data'] + ' LIKE ? OR '
+                            args.append('%' + search_param + '%')
+                        else:
+                            # if we receive a bogus name, rather not search at all.
+                            pass
+                    # If no name exists for the column, just use the column index to search
+                    else:
+                        where += columns[i] + ' LIKE ? OR '
+                        args.append('%' + search_param + '%')
+            if where:
+                where = 'WHERE ' + where.rstrip(' OR ')
+        
+        return where, args
 
     # This method extracts column data from our column list
     # The first parameter is required, the match_columns parameter is optional and will cause the function to
