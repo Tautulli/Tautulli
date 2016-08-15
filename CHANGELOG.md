@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.4.9 (2016-08-14)
+
+* New: Option to include current activity in the history tables.
+* New: ISP lookup info in the IP address modal.
+* New: Option to disable web page previews for Telegram notifications.
+* Fix: Send correct JSON header for Slack/Mattermost notifications.
+* Fix: Twitter and Facebook test notifications incorrectly showing as "failed".
+* Fix: Current activity progress bars extending past 100%.
+* Fix: Typo in the setup wizard. (Thanks @wopian)
+* Fix: Update PMS server version before checking for a new update.
+* Change: Compare distro and build when checking for server updates.
+* Change: Nicer y-axis intervals when viewing "Play Duration" graphs.
+
+
 ## v1.4.8 (2016-07-16)
 
 * New: Setting to specify PlexPy backup interval.
