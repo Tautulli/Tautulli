@@ -20,6 +20,7 @@ import geoip2.database, geoip2.errors
 import gzip
 import hashlib
 import imghdr
+import ipwhois, ipwhois.exceptions, ipwhois.utils
 from IPy import IP
 import json
 import math
@@ -602,12 +603,11 @@ def geoip_lookup(ip_address):
         reader = geoip2.database.Reader(plexpy.CONFIG.GEOIP_DB)
         geo = reader.city(ip_address)
         reader.close()
+    except ValueError as e:
+        return 'Invalid IP address provided: %s.' % ip_address
     except IOError as e:
         return 'Missing GeoLite2 database. Please reinstall from the ' \
             '<a href="settings?install_geoip=true">Settings</a> page.'
-    except ValueError as e:
-        return 'Unable to read GeoLite2 database. Please reinstall from the ' \
-            '<a href="settings?reinstall_geoip=true">Settings</a> page.'
     except maxminddb.InvalidDatabaseError as e:
         return 'Invalid GeoLite2 database. Please reinstall from the ' \
             '<a href="settings?reinstall_geoip=true">Settings</a> page.'
@@ -628,6 +628,42 @@ def geoip_lookup(ip_address):
                 }
 
     return geo_info
+
+def whois_lookup(ip_address):
+
+    nets = []
+    err = None
+    try:
+        whois = ipwhois.IPWhois(ip_address).lookup_whois(retry_count=0)
+        countries = ipwhois.utils.get_countries()
+        nets = whois['nets']
+        for net in nets:
+            net['country'] = countries[net['country']]
+            if net['postal_code']:
+                 net['postal_code'] = net['postal_code'].replace('-', ' ')
+    except ValueError as e:
+        err = 'Invalid IP address provided: %s.' % ip_address
+    except ipwhois.exceptions.IPDefinedError as e:
+        err = '%s' % e
+    except ipwhois.exceptions.ASNRegistryError as e:
+        err = '%s' % e
+    except Exception as e:
+        err = 'Error: %s' % e
+
+    host = ''
+    try:
+        host = ipwhois.Net(ip_address).get_host(retry_count=0)[0]
+    except Exception as e:
+        host = 'Not available'
+
+    whois_info = {"host": host,
+                  "nets": nets
+                  }
+
+    if err:
+        whois_info['error'] = err
+
+    return whois_info
 
 # Taken from SickRage
 def anon_url(*url):

@@ -386,9 +386,11 @@ def dbcheck():
         'transcode_key TEXT, rating_key INTEGER, section_id INTEGER, media_type TEXT, started INTEGER, stopped INTEGER, '
         'paused_counter INTEGER DEFAULT 0, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, '
         'ip_address TEXT, machine_id TEXT, player TEXT, platform TEXT, title TEXT, parent_title TEXT, '
-        'grandparent_title TEXT, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+        'grandparent_title TEXT, full_title TEXT, media_index INTEGER, parent_media_index INTEGER, '
+        'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, year INTEGER, '
+        'parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
         'view_offset INTEGER DEFAULT 0, duration INTEGER, video_decision TEXT, audio_decision TEXT, '
-        'width INTEGER, height INTEGER, container TEXT, video_codec TEXT, audio_codec TEXT, '
+        'transcode_decision TEXT, width INTEGER, height INTEGER, container TEXT, video_codec TEXT, audio_codec TEXT, '
         'bitrate INTEGER, video_resolution TEXT, video_framerate TEXT, aspect_ratio TEXT, '
         'audio_channels INTEGER, transcode_protocol TEXT, transcode_container TEXT, '
         'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
@@ -641,6 +643,36 @@ def dbcheck():
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN write_attempts INTEGER DEFAULT 0'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT transcode_decision FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN transcode_decision TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN full_title TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN media_index INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN parent_media_index INTEGER'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN thumb TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN parent_thumb TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN grandparent_thumb TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN year INTEGER'
         )
 
     # Upgrade session_history table from earlier versions

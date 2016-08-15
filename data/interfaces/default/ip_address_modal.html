@@ -13,10 +13,10 @@
             </h4>
         </div>
         <div class="modal-body" id="modal-text">
-            <div id="ip_error" class="text-muted"></div>
             <div class="col-sm-12">
-                <h4><strong>Location Details</strong></h4>
+                <h4><strong>Location Details</strong><span id="ip_loading" style="padding-left: 5px;"><i class="fa fa-refresh fa-spin"></i></span></h4>
             </div>
+            <div id="ip_error" class="col-sm-12 text-muted"></div>
             <div class="col-sm-6">
                 <ul class="list-unstyled">
                     <li>Continent: <strong><span id="continent"></span></strong></li>
@@ -32,6 +32,21 @@
                     <li>Latitude: <strong><span id="latitude"></span></strong></li>
                     <li>Longitude: <strong><span id="longitude"></span></strong></li>
                     <li>Accuracy Radius: <strong><span id="accuracy"></span></strong></li>
+                </ul>
+            </div>
+            <div class="col-sm-12">
+                <h4><strong>Connection Details</strong><span id="isp_loading" style="padding-left: 5px;"><i class="fa fa-refresh fa-spin"></i></span></h4>
+            </div>
+            <div id="isp_error" class="col-sm-12 text-muted"></div>
+            <div class="col-sm-12">
+                <ul class="list-unstyled">
+                    <li>Host: <strong><span id="isp_host"></span></strong></li>
+                </ul>
+            </div>
+            <div class="col-sm-6" id="isp_instance">
+                <ul class="list-unstyled">
+                    <li>ISP: <strong><span id="isp_name"></span></strong></li>
+                    <li>Address: <strong><span id="isp_address"></span></strong></li>
                 </ul>
             </div>
         </div>
@@ -50,13 +65,16 @@
             type: 'GET',
             data: { ip_address: ip_address },
             cache: true,
-            async: true,            
+            async: true,
+            complete: function () {
+                $('#ip_loading').remove();
+            },
             error: function () {
-                $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> Request failed.<br /><br />').show();
+                $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> Internal request failed.').show();
             },
             success: function (data) {
                 if ('error' in data) {
-                    $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> ' + data.error + '<br /><br />').show();
+                    $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> ' + data.error).show();
                 } else {
                     $('#continent').html(data.continent);
                     $('#country').html(data.country);
@@ -71,6 +89,51 @@
             }
         });
     }
+
+    function getUserConnection(ip_address) {
+        $.ajax({
+            url: 'get_whois_lookup',
+            type: 'GET',
+            data: { ip_address: ip_address },
+            cache: true,
+            async: true,
+            complete: function () {
+                $('#isp_loading').remove();
+            },
+            error: function () {
+                $('#isp_error').html('<i class="fa fa-exclamation-circle"></i> Internal request failed.').show();
+            },
+            success: function (data) {
+                $('#isp_host').html(data.host);
+                if ('error' in data) {
+                    $('#isp_error').html('<i class="fa fa-exclamation-circle"></i> ' + data.error).show();
+                } else if (data.nets.length) {
+                    $('#isp_instance').remove();
+                    $.each(data.nets, function (index, net) {
+                        var s = '';
+                        if (net.city || net.state || net.postal_code) {
+                            s = (net.city && net.state) ? net.city + ', ' + net.state : net.city || net.state || '';
+                            s = (s && net.postal_code) ? s + '&nbsp;&nbsp;' + net.postal_code : s || net.postal_code || '';
+                        }
+                        s = (s) ? '<strong>' + s + '</strong><br />' : s;
+                        $('#modal-text').append('<div class="col-sm-6"> \
+                            <ul class="list-unstyled"> \
+                                <li>ISP: <strong>' + net.description + '</strong></li> \
+                                <li><span style="float: left;">Address:&nbsp;</span> \
+                                    <span style="float: left;"><strong>' + net.address + '</strong><br />' + s +
+                                        '<strong>' + net.country + '</strong></span> \
+                                </li> \
+                            </ul> \
+                        </div>')
+                    });
+                } else {
+                    $('#isp_name, #isp_address').html("Not available");
+                }
+            }
+        });
+    }
+
     getUserLocation('${data}');
+    getUserConnection('${data}');
 </script>
 % endif

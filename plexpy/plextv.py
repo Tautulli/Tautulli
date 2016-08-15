@@ -615,6 +615,9 @@ class PlexTV(object):
         return clean_servers
 
     def get_plex_downloads(self):
+        logger.debug(u"PlexPy PlexTV :: Retrieving current server version.")
+        pmsconnect.PmsConnect().set_server_version()
+
         logger.debug(u"PlexPy PlexTV :: Plex update channel is %s." % plexpy.CONFIG.PMS_UPDATE_CHANNEL)
         plex_downloads = self.get_plextv_downloads(plexpass=(plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass'))
 
@@ -647,7 +650,8 @@ class PlexTV(object):
 
         # Get proper download
         releases = platform_downloads.get('releases', [{}])
-        release = next((r for r in releases if r['build'] == plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD), releases[0])
+        release = next((r for r in releases if r['distro'] == plexpy.CONFIG.PMS_UPDATE_DISTRO and 
+                        r['build'] == plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD), releases[0])
 
         download_info = {'update_available': v_new > v_old,
                          'platform': platform_downloads.get('name'),

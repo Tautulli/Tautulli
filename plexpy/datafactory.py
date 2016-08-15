@@ -59,45 +59,101 @@ class DataFactory(object):
 
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
-        columns = ['session_history.reference_id',
-                   'session_history.id',
-                   'started AS date',
-                   'MIN(started) AS started',
-                   'MAX(stopped) AS stopped',
-                   'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - \
-                    SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration',
-                   'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter',
-                   'session_history.user_id',
-                   'session_history.user',
-                   '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
-                    THEN users.username ELSE users.friendly_name END) AS friendly_name',
-                   'platform',
-                   'player',
-                   'ip_address',
-                   'session_history.media_type',
-                   'session_history_metadata.rating_key',
-                   'session_history_metadata.parent_rating_key',
-                   'session_history_metadata.grandparent_rating_key',
-                   'session_history_metadata.full_title',
-                   'session_history_metadata.parent_title',
-                   'session_history_metadata.year',
-                   'session_history_metadata.media_index',
-                   'session_history_metadata.parent_media_index',
-                   'session_history_metadata.thumb',
-                   'session_history_metadata.parent_thumb',
-                   'session_history_metadata.grandparent_thumb',
-                   'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
-                    (CASE WHEN (session_history_metadata.duration IS NULL OR session_history_metadata.duration = "") \
-                    THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
-                   'session_history_media_info.transcode_decision',
-                   'COUNT(*) AS group_count',
-                   'GROUP_CONCAT(session_history.id) AS group_ids'
-                   ]
+        columns = [
+            'session_history.reference_id',
+            'session_history.id',
+            'started AS date',
+            'MIN(started) AS started',
+            'MAX(stopped) AS stopped',
+            'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - \
+             SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration',
+            'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter',
+            'session_history.user_id',
+            'session_history.user',
+            '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
+             THEN users.username ELSE users.friendly_name END) AS friendly_name',
+            'platform',
+            'player',
+            'ip_address',
+            'session_history.media_type',
+            'session_history_metadata.rating_key',
+            'session_history_metadata.parent_rating_key',
+            'session_history_metadata.grandparent_rating_key',
+            'session_history_metadata.full_title',
+            'session_history_metadata.parent_title',
+            'session_history_metadata.year',
+            'session_history_metadata.media_index',
+            'session_history_metadata.parent_media_index',
+            'session_history_metadata.thumb',
+            'session_history_metadata.parent_thumb',
+            'session_history_metadata.grandparent_thumb',
+            'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
+             (CASE WHEN (session_history_metadata.duration IS NULL OR session_history_metadata.duration = "") \
+             THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
+            'session_history_media_info.transcode_decision',
+            'COUNT(*) AS group_count',
+            'GROUP_CONCAT(session_history.id) AS group_ids',
+            'NULL AS state',
+            'NULL AS session_key'
+            ]
+
+        if plexpy.CONFIG.HISTORY_TABLE_ACTIVITY:
+            table_name_union = 'sessions'
+            # Very hacky way to match the custom where parameters for the unioned table
+            custom_where_union = [[c[0].split('.')[-1], c[1]] for c in custom_where]
+            group_by_union = ['session_key']
+
+            columns_union = [
+                'NULL AS reference_id',
+                'NULL AS id',
+                'started AS date',
+                'started',
+                'stopped',
+                'strftime("%s", "now") - started - \
+                SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration',
+                'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter',
+                'user_id',
+                'user',
+                '(CASE WHEN friendly_name IS NULL OR TRIM(friendly_name) = "" \
+                 THEN user ELSE friendly_name END) AS friendly_name',
+                'platform',
+                'player',
+                'ip_address',
+                'media_type',
+                'rating_key',
+                'parent_rating_key',
+                'grandparent_rating_key',
+                'full_title',
+                'parent_title',
+                'year',
+                'media_index',
+                'parent_media_index',
+                'thumb',
+                'parent_thumb',
+                'grandparent_thumb',
+                'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
+                 (CASE WHEN (duration IS NULL OR duration = "") \
+                 THEN 1.0 ELSE duration * 1.0 END) * 100) AS percent_complete',
+                'transcode_decision',
+                'NULL AS group_count',
+                'NULL AS group_ids',
+                'state',
+                'session_key'
+                ]
+
+        else:
+            table_name_union = None
+            custom_where_union = group_by_union = columns_union = []
+
         try:
             query = data_tables.ssp_query(table_name='session_history',
+                                          table_name_union=table_name_union,
                                           columns=columns,
+                                          columns_union=columns_union,
                                           custom_where=custom_where,
+                                          custom_where_union=custom_where_union,
                                           group_by=group_by,
+                                          group_by_union=group_by_union,
                                           join_types=['LEFT OUTER JOIN',
                                                       'JOIN',
                                                       'JOIN'],
@@ -170,7 +226,9 @@ class DataFactory(object):
                    'percent_complete': int(round(item['percent_complete'])),
                    'watched_status': watched_status,
                    'group_count': item['group_count'],
-                   'group_ids': item['group_ids']
+                   'group_ids': item['group_ids'],
+                   'state': item['state'],
+                   'session_key': item['session_key']
                    }
 
             rows.append(row)
@@ -756,12 +814,13 @@ class DataFactory(object):
 
         return library_stats
 
-    def get_stream_details(self, row_id=None):
+    def get_stream_details(self, row_id=None, session_key=None):
         monitor_db = database.MonitorDatabase()
 
         user_cond = ''
+        table = 'session_history' if row_id else 'sessions'
         if session.get_session_user_id():
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+            user_cond = 'AND %s.user_id = %s ' % (table, session.get_session_user_id())
 
         if row_id:
             query = 'SELECT container, bitrate, video_resolution, width, height, aspect_ratio, video_framerate, ' \
@@ -773,6 +832,14 @@ class DataFactory(object):
                     'JOIN session_history_metadata ON session_history_media_info.id = session_history_metadata.id ' \
                     'WHERE session_history_media_info.id = ? %s' % user_cond
             result = monitor_db.select(query, args=[row_id])
+        elif session_key:
+            query = 'SELECT container, bitrate, video_resolution, width, height, aspect_ratio, video_framerate, ' \
+                    'video_codec, audio_codec, audio_channels, video_decision, transcode_video_codec, transcode_height, ' \
+                    'transcode_width, audio_decision, transcode_audio_codec, transcode_audio_channels, transcode_container, ' \
+                    'media_type, title, grandparent_title ' \
+                    'FROM sessions ' \
+                    'WHERE session_key = ? %s' % user_cond
+            result = monitor_db.select(query, args=[session_key])
         else:
             return None
 

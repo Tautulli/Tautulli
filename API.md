@@ -1705,6 +1705,37 @@ Returns:
 ```
 
 
+### get_whois_lookup
+Get the connection info for an IP address.
+
+```
+Required parameters:
+    ip_address
+
+Optional parameters:
+    None
+
+Returns:
+    json:
+        {"host": "google-public-dns-a.google.com",
+         "nets": [{"description": "Google Inc.",
+                   "address": "1600 Amphitheatre Parkway",
+                   "city": "Mountain View",
+                   "state": "CA",
+                   "postal_code": "94043",
+                   "country": "United States",
+                   ...
+                   },
+                   {...}
+                  ]
+    json:
+        {"host": "Not available",
+         "nets": [],
+         "error": "IPv4 address 127.0.0.1 is already defined as Loopback via RFC 1122, Section 3.2.1.3."
+         }
+```
+
+
 ### import_database
 Import a PlexWatch or Plexivity database into PlexPy.
 

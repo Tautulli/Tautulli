@@ -45,6 +45,12 @@ class ActivityHandler(object):
 
         return None
 
+    def get_rating_key(self):
+        if self.is_valid_session():
+            return int(self.timeline['ratingKey'])
+
+        return None
+
     def get_live_session(self):
         pms_connect = pmsconnect.PmsConnect()
         session_list = pms_connect.get_current_activity()
@@ -63,7 +69,8 @@ class ActivityHandler(object):
 
     def on_start(self):
         if self.is_valid_session() and self.get_live_session():
-            logger.debug(u"PlexPy ActivityHandler :: Session %s has started." % str(self.get_session_key()))
+            logger.debug(u"PlexPy ActivityHandler :: Session %s has started with ratingKey %s."
+                         % (str(self.get_session_key()), str(self.get_rating_key())))
 
             session = self.get_live_session()
 
@@ -127,7 +134,8 @@ class ActivityHandler(object):
             monitor_proc.write_session_history(session=db_session)
 
             # Remove the session from our temp session table
-            logger.debug(u"PlexPy ActivityHandler :: Removing session %s from session queue" % str(self.get_session_key()))
+            logger.debug(u"PlexPy ActivityHandler :: Removing sessionKey %s ratingKey %s from session queue"
+                         % (str(self.get_session_key()), str(self.get_rating_key())))
             ap.delete_session(session_key=self.get_session_key())
 
     def on_pause(self):

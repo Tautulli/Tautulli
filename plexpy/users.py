@@ -707,9 +707,9 @@ class Users(object):
         data_tables = datatables.DataTables()
 
         if session.get_session_user_id():
-            custom_where = [['user_id', session.get_session_user_id()]]
+            custom_where = [['user_login.user_id', session.get_session_user_id()]]
         else:
-            custom_where = [['user_id', user_id]] if user_id else []
+            custom_where = [['user_login.user_id', user_id]] if user_id else []
 
         columns = ['user_login.user_id',
                    'user_login.user_group',

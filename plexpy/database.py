@@ -146,7 +146,7 @@ class MonitorDatabase(object):
                     break
 
                 except sqlite3.OperationalError as e:
-                    if "unable to open database file" in e.message or "database is locked" in e.message:
+                    if "unable to open database file" in e or "database is locked" in e:
                         logger.warn(u"PlexPy Database :: Database Error: %s", e)
                         attempts += 1
                         time.sleep(1)

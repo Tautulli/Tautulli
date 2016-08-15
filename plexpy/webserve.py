@@ -1702,10 +1702,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_stream_data(self, row_id=None, user=None, **kwargs):
+    def get_stream_data(self, row_id=None, session_key=None, user=None, **kwargs):
 
         data_factory = datafactory.DataFactory()
-        stream_data = data_factory.get_stream_details(row_id)
+        stream_data = data_factory.get_stream_details(row_id, session_key)
 
         return serve_template(templatename="stream_data.html", title="Stream Data", data=stream_data, user=user)
 
@@ -2505,6 +2505,7 @@ class WebInterface(object):
 
         config = {
             "allow_guest_access": checked(plexpy.CONFIG.ALLOW_GUEST_ACCESS),
+            "history_table_activity": checked(plexpy.CONFIG.HISTORY_TABLE_ACTIVITY),
             "http_basic_auth": checked(plexpy.CONFIG.HTTP_BASIC_AUTH),
             "http_hash_password": checked(plexpy.CONFIG.HTTP_HASH_PASSWORD),
             "http_hashed_password": plexpy.CONFIG.HTTP_HASHED_PASSWORD,
@@ -2634,7 +2635,8 @@ class WebInterface(object):
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_recently_added_grandparent",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
-            "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip"
+            "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
+            "history_table_activity"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
@@ -2791,6 +2793,7 @@ class WebInterface(object):
         return {'plexpass': plexpass,
                 'pms_platform': plexpy.CONFIG.PMS_PLATFORM,
                 'pms_update_channel': plexpy.CONFIG.PMS_UPDATE_CHANNEL,
+                'pms_update_distro': plexpy.CONFIG.PMS_UPDATE_DISTRO,
                 'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD}
 
     @cherrypy.expose
@@ -4320,3 +4323,40 @@ class WebInterface(object):
         if isinstance(geo_info, basestring):
             return {'error': geo_info}
         return geo_info
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    @addtoapi()
+    def get_whois_lookup(self, ip_address='', **kwargs):
+        """ Get the connection info for an IP address.
+
+            ```
+            Required parameters:
+                ip_address
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"host": "google-public-dns-a.google.com",
+                     "nets": [{"description": "Google Inc.",
+                               "address": "1600 Amphitheatre Parkway",
+                               "city": "Mountain View",
+                               "state": "CA",
+                               "postal_code": "94043",
+                               "country": "United States",
+                               ...
+                               },
+                               {...}
+                              ]
+                json:
+                    {"host": "Not available",
+                     "nets": [],
+                     "error": "IPv4 address 127.0.0.1 is already defined as Loopback via RFC 1122, Section 3.2.1.3."
+                     }
+            ```
+        """
+        whois_info = helpers.whois_lookup(ip_address)
+        return whois_info

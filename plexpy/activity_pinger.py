@@ -230,7 +230,8 @@ def check_active_sessions(ws_request=False):
                 new_session = monitor_process.write_session(session)
 
                 if new_session:
-                    logger.debug(u"PlexPy Monitor :: Session %s has started." % session['session_key'])
+                    logger.debug(u"PlexPy Monitor :: Session %s has started with ratingKey %s."
+                                 % (session['session_key'], session['rating_key']))
 
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")

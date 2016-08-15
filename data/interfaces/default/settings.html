@@ -123,6 +123,12 @@
                             </label>
                             <p class="help-block">Group successive play history by the same user as a single entry in the tables and watch statistics.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="history_table_activity" name="history_table_activity" value="1" ${config['history_table_activity']}> Current Activity in History Tables
+                            </label>
+                            <p class="help-block">Include current activity in the history tables. Statistics will not be counted until the stream has ended.</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Backup</h3>
@@ -549,6 +555,7 @@
                                         <label for="pms_update_distro_build">Release</label>
                                         <select class="form-control" id="pms_update_distro_build" name="pms_update_distro_build">
                                         </select>
+                                        <input type="hidden" class="form-control" id="pms_update_distro" name="pms_update_distro">
                                     </div>
                                 </div>
                             </div>
@@ -2681,6 +2688,7 @@ $(document).ready(function() {
             var plexpass = update_params.plexpass;
             var platform = update_params.pms_platform;
             var update_channel = update_params.pms_update_channel;
+            var update_distro = update_params.pms_update_distro;
             var update_distro_build = update_params.pms_update_distro_build;
 
             $("#pms_update_channel option[value='plexpass']").remove();
@@ -2699,18 +2707,26 @@ $(document).ready(function() {
                     $("#pms_update_distro_build option").remove();
                     $.each(platform_downloads.releases, function (index, item) {
                         var label = (platform_downloads.releases.length == 1) ? platform_downloads.name : platform_downloads.name + ' - ' + item.label;
-                        var selected = (item.build == update_distro_build) ? true : false;
+                        var selected = (item.distro == update_distro && item.build == update_distro_build) ? true : false;
                         $('#pms_update_distro_build')
                             .append($('<option></option>')
                             .text(label)
                             .val(item.build)
+                            .attr('data-distro', item.distro)
                             .prop('selected', selected));
                     })
+                    $('#pms_update_distro').val($("#pms_update_distro_build option:selected").data('distro'))
                 }
             });
         });
     }
     loadUpdateDistros();
+
+
+    $('#pms_update_distro_build').change(function () {
+        var distro = $("option:selected", this).data('distro')
+        $('#pms_update_distro').val(distro)
+    });
 });
 </script>
 </%def>

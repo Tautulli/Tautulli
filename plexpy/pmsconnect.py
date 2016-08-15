@@ -1075,6 +1075,9 @@ class PmsConnect(object):
                 transcode_container = ''
                 transcode_protocol = ''
 
+            # Generate a combined transcode decision value
+            transcode_decision = audio_decision
+
             user_details = user_data.get_details(
                 user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
 
@@ -1109,6 +1112,8 @@ class PmsConnect(object):
                               'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                               'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                               'title': helpers.get_xml_attr(session, 'title'),
+                              'full_title': '%s - %s' % (helpers.get_xml_attr(session, 'grandparentTitle'),
+                                                         helpers.get_xml_attr(session, 'title')),
                               'year': helpers.get_xml_attr(session, 'year'),
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                               'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
@@ -1131,6 +1136,7 @@ class PmsConnect(object):
                               'video_resolution': '',
                               'video_framerate': '',
                               'aspect_ratio': '',
+                              'transcode_decision': transcode_decision,
                               'transcode_audio_channels': transcode_audio_channels,
                               'transcode_audio_codec': transcode_audio_codec,
                               'transcode_video_codec': '',
@@ -1190,6 +1196,14 @@ class PmsConnect(object):
                 transcode_container = ''
                 transcode_protocol = ''
 
+            # Generate a combined transcode decision value
+            if video_decision == 'transcode' or audio_decision == 'transcode':
+                transcode_decision = 'transcode'
+            elif video_decision == 'copy' or audio_decision == 'copy':
+                transcode_decision = 'copy'
+            else:
+                transcode_decision = 'direct play'
+
             if media_info.getElementsByTagName('Part'):
                 indexes = helpers.get_xml_attr(media_info.getElementsByTagName('Part')[0], 'indexes')
                 part_id = helpers.get_xml_attr(media_info.getElementsByTagName('Part')[0], 'id')
@@ -1241,6 +1255,8 @@ class PmsConnect(object):
                                   'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                                   'title': helpers.get_xml_attr(session, 'title'),
+                                  'full_title': '%s - %s' % (helpers.get_xml_attr(session, 'grandparentTitle'),
+                                                             helpers.get_xml_attr(session, 'title')),
                                   'year': helpers.get_xml_attr(session, 'year'),
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
@@ -1263,6 +1279,7 @@ class PmsConnect(object):
                                   'video_resolution': video_resolution,
                                   'video_framerate': video_framerate,
                                   'aspect_ratio': aspect_ratio,
+                                  'transcode_decision': transcode_decision,
                                   'transcode_audio_channels': transcode_audio_channels,
                                   'transcode_audio_codec': transcode_audio_codec,
                                   'transcode_video_codec': transcode_video_codec,
@@ -1302,6 +1319,7 @@ class PmsConnect(object):
                                   'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                                   'title': helpers.get_xml_attr(session, 'title'),
+                                  'full_title': helpers.get_xml_attr(session, 'title'),
                                   'year': helpers.get_xml_attr(session, 'year'),
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
@@ -1324,6 +1342,7 @@ class PmsConnect(object):
                                   'video_resolution': video_resolution,
                                   'video_framerate': video_framerate,
                                   'aspect_ratio': aspect_ratio,
+                                  'transcode_decision': transcode_decision,
                                   'transcode_audio_channels': transcode_audio_channels,
                                   'transcode_audio_codec': transcode_audio_codec,
                                   'transcode_video_codec': transcode_video_codec,
@@ -1363,6 +1382,7 @@ class PmsConnect(object):
                                   'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                                   'title': helpers.get_xml_attr(session, 'title'),
+                                  'full_title': helpers.get_xml_attr(session, 'title'),
                                   'year': helpers.get_xml_attr(session, 'year'),
                                   'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                   'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
@@ -1385,6 +1405,7 @@ class PmsConnect(object):
                                   'video_resolution': video_resolution,
                                   'video_framerate': video_framerate,
                                   'aspect_ratio': aspect_ratio,
+                                  'transcode_decision': transcode_decision,
                                   'transcode_audio_channels': transcode_audio_channels,
                                   'transcode_audio_codec': transcode_audio_codec,
                                   'transcode_video_codec': transcode_video_codec,
@@ -1430,6 +1451,9 @@ class PmsConnect(object):
                 transcode_container = ''
                 transcode_protocol = ''
 
+            # Generate a combined transcode decision value
+            transcode_decision = video_decision
+
             user_details = user_data.get_details(
                 user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
 
@@ -1464,6 +1488,8 @@ class PmsConnect(object):
                               'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                               'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                               'title': helpers.get_xml_attr(session, 'title'),
+                              'full_title': '%s - %s' % (helpers.get_xml_attr(session, 'grandparentTitle'),
+                                                         helpers.get_xml_attr(session, 'title')),
                               'year': helpers.get_xml_attr(session, 'year'),
                               'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                               'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
@@ -1486,6 +1512,7 @@ class PmsConnect(object):
                               'video_resolution': '',
                               'video_framerate': '',
                               'aspect_ratio': aspect_ratio,
+                              'transcode_decision': transcode_decision,
                               'transcode_audio_channels': '',
                               'transcode_audio_codec': '',
                               'transcode_video_codec': transcode_video_codec,
@@ -2190,3 +2217,10 @@ class PmsConnect(object):
                                     }
 
         return updater_info
+
+    def set_server_version(self):
+        identity = self.get_server_identity()
+        version = identity.get('version', plexpy.CONFIG.PMS_VERSION)
+
+        plexpy.CONFIG.__setattr__('PMS_VERSION', version)
+        plexpy.CONFIG.write()

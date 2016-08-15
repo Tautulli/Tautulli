@@ -1396,9 +1396,9 @@ class TwitterNotifier(object):
             poster_url = metadata.get('poster_url','')
 
         if self.incl_subject:
-            self._send_tweet(subject + '\r\n' + message, attachment=poster_url)
+            return self._send_tweet(subject + '\r\n' + message, attachment=poster_url)
         else:
-            self._send_tweet(message, attachment=poster_url)
+            return self._send_tweet(message, attachment=poster_url)
 
     def test_notify(self):
         return self._send_tweet("This is a test notification from PlexPy at " + helpers.now())
@@ -1839,6 +1839,7 @@ class TELEGRAM(object):
         self.enabled = plexpy.CONFIG.TELEGRAM_ENABLED
         self.bot_token = plexpy.CONFIG.TELEGRAM_BOT_TOKEN
         self.chat_id = plexpy.CONFIG.TELEGRAM_CHAT_ID
+        self.disable_web_preview = plexpy.CONFIG.TELEGRAM_DISABLE_WEB_PREVIEW
         self.html_support = plexpy.CONFIG.TELEGRAM_HTML_SUPPORT
         self.incl_poster = plexpy.CONFIG.TELEGRAM_INCL_POSTER
         self.incl_subject = plexpy.CONFIG.TELEGRAM_INCL_SUBJECT
@@ -1880,8 +1881,12 @@ class TELEGRAM(object):
                     logger.warn(u"PlexPy Notifiers :: Telegram poster failed.")
 
         data['text'] = text
+
         if self.html_support:
             data['parse_mode'] = 'HTML'
+
+        if self.disable_web_preview:
+            data['disable_web_page_preview'] = True
 
         http_handler = HTTPSConnection("api.telegram.org")
         http_handler.request('POST',
@@ -1945,7 +1950,13 @@ class TELEGRAM(object):
                          {'label': 'Enable HTML Support',
                           'value': self.html_support,
                           'name': 'telegram_html_support',
-                          'description': 'Style your messages using these HTML tags: b, i, a[href], code, pre',
+                          'description': 'Style your messages using these HTML tags: b, i, a[href], code, pre.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Disable Web Page Previews',
+                          'value': self.disable_web_preview,
+                          'name': 'telegram_disable_web_preview',
+                          'description': 'Disables automatic link previews for links in the message',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -2024,9 +2035,9 @@ class SLACK(object):
 
         http_handler = HTTPSConnection(slackhost)
         http_handler.request("POST",
-                                slackpath,
-                                headers={'Content-type': "application/x-www-form-urlencoded"},
-                                body=json.dumps(data))
+                             slackpath,
+                             headers={'Content-type': "application/json"},
+                             body=json.dumps(data))
 
         response = http_handler.getresponse()
         request_status = response.status
@@ -2431,9 +2442,9 @@ class FacebookNotifier(object):
             attachment['description'] = subtitle
 
         if self.incl_subject:
-            self._post_facebook(subject + '\r\n' + message, attachment=attachment)
+            return self._post_facebook(subject + '\r\n' + message, attachment=attachment)
         else:
-            self._post_facebook(message, attachment=attachment)
+            return self._post_facebook(message, attachment=attachment)
 
     def test_notify(self):
         return self._post_facebook(u"PlexPy Notifiers :: This is a test notification from PlexPy at " + helpers.now())
