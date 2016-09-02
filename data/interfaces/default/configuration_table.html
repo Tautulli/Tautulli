@@ -72,31 +72,66 @@ DOCUMENTATION :: END
             <td>${sys.version}</td>
         </tr>
         <tr>
-            <td class="top-line">Plex Forums:</td>
-            <td class="top-line"><a class="no-highlight" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program</a></td>
+            <td class="top-line">Resources:</td>
+            <td class="top-line">
+                <a id="source-link" class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}" target="_blank">GitHub Source</a> | 
+                <a class="no-highlight guidelines-modal-link" href="${anon_url('https://github.com/drzoidberg33/plexpy/issues')}" data-id="issue">GitHub Issues</a> |
+                <a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/drzoidberg33/plexpy')}" data-id="feature request">FeatHub Feature Requests</a> | 
+                <a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/wiki')}" target="_blank">PlexPy Wiki</a> |
+                <a id="faq-source-link" class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/wiki/Frequently-Asked-Questions-(FAQ)')}" target="_blank">PlexPy FAQ</a>
+            </td>
         </tr>
         <tr>
-            <td>Source:</td>
-            <td><a id="source-link" class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy')}" target="_blank">https://github.com/drzoidberg33/plexpy</a></td>
-        </tr>
-        <tr>
-            <td>Wiki:</td>
-            <td><a class="no-highlight" href="${anon_url('https://github.com/drzoidberg33/plexpy/wiki')}" target="_blank">https://github.com/drzoidberg33/plexpy/wiki</a></td>
-        </tr>
-        <tr>
-            <td>Issues:</td>
-            <td><a class="no-highlight guidelines-modal-link" href="${anon_url('https://github.com/drzoidberg33/plexpy/issues')}" data-id="issue">https://github.com/drzoidberg33/plexpy/issues</a></td>
-        </tr>
-        <tr>
-            <td>Feature Requests:</td>
-            <td><a class="no-highlight guidelines-modal-link" href="${anon_url('http://feathub.com/drzoidberg33/plexpy')}" data-id="feature request">http://feathub.com/drzoidberg33/plexpy</a></td>
-        </tr>
-        <tr>
-            <td>Gitter Chat:</td>
-            <td><a class="no-highlight" href="${anon_url('https://gitter.im/drzoidberg33/plexpy')}" target="_blank">https://gitter.im/drzoidberg33/plexpy</a></td>
+            <td>Support:</td>
+            <td>
+                <a class="no-highlight support-modal-link" href="${anon_url('https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program')}" target="_blank">Plex Forums</a> |
+                <a class="no-highlight support-modal-link" href="${anon_url('https://gitter.im/drzoidberg33/plexpy')}" target="_blank">PlexPy Gitter Chat</a> | 
+                <a id="best-support-link" class="no-highlight support-modal-link" href="${anon_url('https://discord.gg/011TFFWSuNFI02EKr')}" target="_blank">/r/Plex Discord Server</a> | 
+                <a class="no-highlight support-modal-link" href="${anon_url('https://discord.gg/36ggawe')}" target="_blank">PlexPy Discord Server</a>
+            </td>
         </tr>
     </tbody>
 </table>
+
+<div id="guidelines-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="guidelines-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Guidelines</h4>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                    <strong>Please read the <a href="#" target="_blank" id="guidelines-link">guidelines</a> in the README document <br />before submitting a new <span id="guidelines-type"></span>!</strong>
+                    <br /><br />
+                    Your post may be removed for failure to follow the guidelines.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" target="_blank" id="guidelines-continue" class="btn btn-bright">Continue</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="support-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="support-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Support</h4>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                    <strong>Please read the <a href="#" target="_blank" id="faq-link">FAQ</a> before asking for help!</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" target="_blank" id="support-continue" class="btn btn-bright">Continue</a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     $(document).ready(function () {
@@ -123,6 +158,14 @@ DOCUMENTATION :: END
             $('#guidelines-modal').modal();
             $('#guidelines-continue').attr('href', $(this).attr('href')).on('click', function () {
                 $('#guidelines-modal').modal('hide');
+            });
+        });
+        $('.support-modal-link').on('click', function (e) {
+            e.preventDefault();
+            $('#faq-link').attr('href', $('#faq-source-link').attr('href'));
+            $('#support-modal').modal();
+            $('#support-continue').attr('href', $(this).attr('href')).on('click', function () {
+                $('#support-modal').modal('hide');
             });
         });
     });
