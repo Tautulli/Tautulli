@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.11 (2016-09-02)
+
+* Fix: PlexWatch and Plexivity import errors.
+* Fix: Searching in history datatables.
+* Fix: Notifications not sending for Local user.
+
+
 ## v1.4.10 (2016-08-15)
 
 * Fix: Missing python ipaddress module preventing PlexPy from starting.
