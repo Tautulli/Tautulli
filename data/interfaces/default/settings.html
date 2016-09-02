@@ -2679,7 +2679,7 @@ $(document).ready(function() {
     });
 
     // Load PMS downloads
-    function loadUpdateDistros(distro_build) {
+    function loadUpdateDistros() {
         var update_params_ajax = $.getJSON('get_server_update_params', function (data) { return data; });
 
         $.when(update_params_ajax).done(function() {
