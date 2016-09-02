@@ -8,7 +8,7 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 
 * [Plex forum thread](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program)
 * [Gitter chat](https://gitter.im/drzoidberg33/plexpy)
-* [Discord server](https://discord.gg/011TFFWSuNFI02EKr) | [PlexPy Discord server](https://discord.gg/36ggawe)
+* [/r/Plex Discord server](https://discord.gg/011TFFWSuNFI02EKr) | [PlexPy Discord server](https://discord.gg/36ggawe)
 
 ## Features
 

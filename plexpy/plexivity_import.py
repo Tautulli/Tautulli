@@ -136,6 +136,14 @@ def extract_plexivity_xml(xml=None):
                 video_decision = helpers.get_xml_attr(e, 'videoDecision')
                 transcode_width = helpers.get_xml_attr(e, 'width')
 
+        # Generate a combined transcode decision value
+        if video_decision == 'transcode' or audio_decision == 'transcode':
+            transcode_decision = 'transcode'
+        elif video_decision == 'copy' or audio_decision == 'copy':
+            transcode_decision = 'copy'
+        else:
+            transcode_decision = 'direct play'
+
         user_id = None
 
         if a.getElementsByTagName('User'):
@@ -215,6 +223,7 @@ def extract_plexivity_xml(xml=None):
                   'transcode_video_codec': transcode_video_codec,
                   'video_decision': video_decision,
                   'transcode_width': transcode_width,
+                  'transcode_decision': transcode_decision,
                   'user_id': user_id,
                   'writers': writers,
                   'actors': actors,
@@ -339,6 +348,7 @@ def import_from_plexivity(database=None, table_name=None, import_ignore_interval
                            'title': row['title'],
                            'parent_title': extracted_xml['parent_title'],
                            'grandparent_title': row['grandparent_title'],
+                           'full_title': row['full_title'],
                            'user_id': user_id,
                            'user': row['user'],
                            'ip_address': row['ip_address'] if row['ip_address'] else extracted_xml['ip_address'],
@@ -352,6 +362,7 @@ def import_from_plexivity(database=None, table_name=None, import_ignore_interval
                            'view_offset': extracted_xml['view_offset'],
                            'video_decision': extracted_xml['video_decision'],
                            'audio_decision': extracted_xml['audio_decision'],
+                           'transcode_decision': extracted_xml['transcode_decision'],
                            'duration': extracted_xml['duration'],
                            'width': extracted_xml['width'],
                            'height': extracted_xml['height'],

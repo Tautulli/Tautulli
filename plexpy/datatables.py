@@ -65,23 +65,20 @@ class DataTables(object):
                                          extracted_columns['column_named'],
                                          parameters['columns'])
 
-        args = cw_args + w_args
-
         # Build union parameters
         if table_name_union:
             extracted_columns_union = self.extract_columns(columns=columns_union)
             group_u = self.build_grouping(group_by_union)
             c_where_u, cwu_args = self.build_custom_where(custom_where_union)
-
-            args += cwu_args
-
             union = 'UNION SELECT %s FROM %s %s %s' % (extracted_columns_union['column_string'],
                                                        table_name_union,
                                                        c_where_u,
                                                        group_u)
         else:
             union = ''
+            cwu_args = []
 
+        args = cw_args + cwu_args + w_args
 
         # Build the query
         query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s %s) %s %s' \

@@ -616,6 +616,7 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
     else:
         logger.debug(u"PlexPy Notifiers :: Notification requested but no agent id received.")
 
+
 class PrettyMetadata(object):
     def __init__(self, metadata):
     	self.metadata = metadata
@@ -682,6 +683,7 @@ class PrettyMetadata(object):
     def get_plex_url(self):
         self.plex_url = self.metadata['plex_url']
         return self.plex_url
+
 
 class GROWL(object):
     """
@@ -2114,6 +2116,21 @@ class Scripts(object):
     def __init__(self, **kwargs):
         self.script_exts = ('.bat', '.cmd', '.exe', '.php', '.pl', '.ps1', '.py', '.pyw', '.rb', '.sh')
         self.script_folder = plexpy.CONFIG.SCRIPTS_FOLDER
+        self.scripts = {'play': plexpy.CONFIG.SCRIPTS_ON_PLAY_SCRIPT,
+                        'stop': plexpy.CONFIG.SCRIPTS_ON_STOP_SCRIPT,
+                        'pause': plexpy.CONFIG.SCRIPTS_ON_PAUSE_SCRIPT,
+                        'resume': plexpy.CONFIG.SCRIPTS_ON_RESUME_SCRIPT,
+                        'watched': plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT,
+                        'buffer': plexpy.CONFIG.SCRIPTS_ON_BUFFER_SCRIPT,
+                        'created': plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT,
+                        'intdown': plexpy.CONFIG.SCRIPTS_ON_INTDOWN_SCRIPT,
+                        'intup': plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT,
+                        'extdown': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT,
+                        'extup': plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT,
+                        'pmsupdate': plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE_SCRIPT,
+                        'concurrent': plexpy.CONFIG.SCRIPTS_ON_CONCURRENT_SCRIPT,
+                        'newdevice': plexpy.CONFIG.SCRIPTS_ON_NEWDEVICE_SCRIPT
+                        }
 
     def conf(self, options):
         return cherrypy.config['config'].get('Scripts', options)
@@ -2160,52 +2177,7 @@ class Scripts(object):
         if not self.script_folder:
             return
 
-        # Make sure we use the correct script..
-        if notify_action == 'play':
-            script = plexpy.CONFIG.SCRIPTS_ON_PLAY_SCRIPT
-
-        elif notify_action == 'stop':
-            script = plexpy.CONFIG.SCRIPTS_ON_STOP_SCRIPT
-
-        elif notify_action == 'pause':
-            script = plexpy.CONFIG.SCRIPTS_ON_PAUSE_SCRIPT
-
-        elif notify_action == 'resume':
-            script = plexpy.CONFIG.SCRIPTS_ON_RESUME_SCRIPT
-
-        elif notify_action == 'watched':
-            script = plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT
-
-        elif notify_action == 'buffer':
-            script = plexpy.CONFIG.SCRIPTS_ON_BUFFER_SCRIPT
-
-        elif notify_action == 'created':
-            script = plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT
-
-        elif notify_action == 'intdown':
-            script = plexpy.CONFIG.SCRIPTS_ON_INTDOWN_SCRIPT
-
-        elif notify_action == 'intup':
-            script = plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT
-
-        elif notify_action == 'extdown':
-            script = plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT
-
-        elif notify_action == 'extup':
-            script = plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT
-
-        elif notify_action == 'pmsupdate':
-            script = plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE_SCRIPT
-
-        elif notify_action == 'concurrent':
-            script = plexpy.CONFIG.SCRIPTS_ON_CONCURRENT_SCRIPT
-
-        elif notify_action == 'newdevice':
-            script = plexpy.CONFIG.SCRIPTS_ON_NEWDEVICE_SCRIPT
-
-        else:
-            # For manual scripts
-            script = kwargs.get('script', '')
+        script = self.scripts.get(notify_action, kwargs.get('script', ''))
 
         # Don't try to run the script if the action does not have one
         if notify_action and not script:
@@ -2297,98 +2269,98 @@ class Scripts(object):
                           'input_type': 'text',
                           },
                          {'label': 'Playback Start',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_PLAY_SCRIPT,
+                          'value': self.scripts['play'],
                           'name': 'scripts_on_play_script',
                           'description': 'Choose the script for on play.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Playback Stop',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_STOP_SCRIPT,
+                          'value': self.scripts['stop'],
                           'name': 'scripts_on_stop_script',
                           'description': 'Choose the script for on stop.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Playback Pause',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_PAUSE_SCRIPT,
+                          'value': self.scripts['pause'],
                           'name': 'scripts_on_pause_script',
                           'description': 'Choose the script for on pause.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Playback Resume',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_RESUME_SCRIPT,
+                          'value': self.scripts['resume'],
                           'name': 'scripts_on_resume_script',
                           'description': 'Choose the script for on resume.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Watched',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_WATCHED_SCRIPT,
+                          'value': self.scripts['watched'],
                           'name': 'scripts_on_watched_script',
                           'description': 'Choose the script for on watched.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Buffer Warnings',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_BUFFER_SCRIPT,
+                          'value': self.scripts['buffer'],
                           'name': 'scripts_on_buffer_script',
                           'description': 'Choose the script for buffer warnings.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Recently Added',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_CREATED_SCRIPT,
+                          'value': self.scripts['created'],
                           'name': 'scripts_on_created_script',
                           'description': 'Choose the script for recently added.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Plex Server Down',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_INTDOWN_SCRIPT,
+                          'value': self.scripts['intdown'],
                           'name': 'scripts_on_intdown_script',
                           'description': 'Choose the script for Plex server down.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Plex Server Back Up',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_INTUP_SCRIPT,
+                          'value': self.scripts['intup'],
                           'name': 'scripts_on_intup_script',
                           'description': 'Choose the script for Plex server back up.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Plex Remote Access Down',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_EXTDOWN_SCRIPT,
+                          'value': self.scripts['extdown'],
                           'name': 'scripts_on_extdown_script',
                           'description': 'Choose the script for Plex remote access down.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Plex Remote Access Back Up',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_EXTUP_SCRIPT,
+                          'value': self.scripts['extup'],
                           'name': 'scripts_on_extup_script',
                           'description': 'Choose the script for Plex remote access back up.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'Plex Update Available',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_PMSUPDATE_SCRIPT,
+                          'value': self.scripts['pmsupdate'],
                           'name': 'scripts_on_pmsupdate_script',
                           'description': 'Choose the script for Plex update available.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'User Concurrent Streams',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_CONCURRENT_SCRIPT,
+                          'value': self.scripts['concurrent'],
                           'name': 'scripts_on_concurrent_script',
                           'description': 'Choose the script for user concurrent streams.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
                          {'label': 'User New Device',
-                          'value': plexpy.CONFIG.SCRIPTS_ON_NEWDEVICE_SCRIPT,
+                          'value': self.scripts['newdevice'],
                           'name': 'scripts_on_newdevice_script',
                           'description': 'Choose the script for user new device.',
                           'input_type': 'select',

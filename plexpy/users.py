@@ -279,7 +279,7 @@ class Users(object):
                           'shared_libraries': ()
                           }
 
-        if not user_id and not user and not email:
+        if user_id is None and not user and not email:
             return default_return
 
         def get_user_details(user_id=user_id, user=user, email=email):
