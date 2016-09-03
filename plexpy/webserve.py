@@ -2791,7 +2791,8 @@ class WebInterface(object):
         plex_tv = plextv.PlexTV()
         plexpass = plex_tv.get_plexpass_status()
         return {'plexpass': plexpass,
-                'pms_platform': plexpy.CONFIG.PMS_PLATFORM,
+                'pms_platform': common.PMS_PLATFORM_NAME_OVERRIDES.get(
+                    plexpy.CONFIG.PMS_PLATFORM, plexpy.CONFIG.PMS_PLATFORM),
                 'pms_update_channel': plexpy.CONFIG.PMS_UPDATE_CHANNEL,
                 'pms_update_distro': plexpy.CONFIG.PMS_UPDATE_DISTRO,
                 'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD}
