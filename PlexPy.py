@@ -118,13 +118,23 @@ def main():
 
     if args.pidfile:
         plexpy.PIDFILE = str(args.pidfile)
-
-        # If the pidfile already exists, plexpy may still be running, so
-        # exit
         if os.path.exists(plexpy.PIDFILE):
-            raise SystemExit("PID file '%s' already exists. Exiting." %
-                             plexpy.PIDFILE)
-
+            try:
+                with open(plexpy.PIDFILE, 'r') as fp:
+                    pid = int(fp.read())
+                os.kill(pid, 0)
+            except IOError as e:
+                raise SystemExit("Unable to read PID file: %s", e)
+            except OSError:
+                logger.warn("PID file '%s' already exists, but PID %d is " \
+                            "not running. Ignoring PID file." %
+                            (plexpy.PIDFILE, pid))
+            else:
+                # The pidfile exists and points to a live PID. plexpy may
+                # still be running, so exit.
+                raise SystemExit("PID file '%s' already exists. Exiting." %
+                                 plexpy.PIDFILE)
+        
         # The pidfile is only useful in daemon mode, make sure we can write the
         # file properly
         if plexpy.DAEMON:
