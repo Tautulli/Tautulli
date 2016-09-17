@@ -1929,10 +1929,25 @@ a .library-user-instance-box:hover {
     position: absolute;
     overflow: hidden;
 }
+.home-platforms-instance-cover {
+    margin-left: 0px;
+    position: absolute;
+    top: 20px;
+    overflow: hidden;
+}
 .home-platforms-instance-poster .home-platforms-poster-face {
     background-position: center;
     background-size: cover;
     height: 120px;
+    width: 80px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+}
+.home-platforms-instance-cover .home-platforms-cover-face {
+    background-position: center;
+    background-size: cover;
+    height: 80px;
     width: 80px;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
@@ -2087,10 +2102,25 @@ a .library-user-instance-box:hover {
     left: 20px;
     overflow: hidden;
 }
+.home-platforms-instance-list-cover {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    overflow: hidden;
+}
 .home-platforms-instance-list-poster .home-platforms-list-poster-face {
     background-position: center;
     background-size: cover;
     height: 60px;
+    width: 40px;
+    -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+    box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+}
+.home-platforms-instance-list-cover .home-platforms-list-cover-face {
+    background-position: center;
+    background-size: cover;
+    height: 40px;
     width: 40px;
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
@@ -2154,7 +2184,9 @@ a .home-platforms-instance-oval:hover,
 a .home-platforms-instance-list-box:hover,
 a .home-platforms-instance-list-oval:hover,
 a .home-platforms-poster-face:hover,
-a .home-platforms-list-poster-face:hover
+a .home-platforms-cover-face:hover,
+a .home-platforms-list-poster-face:hover,
+a .home-platforms-list-cover-face:hover
  {
     -webkit-box-shadow: inset 0 0 0 2px #e9a049;
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
