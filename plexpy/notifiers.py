@@ -626,9 +626,9 @@ class PrettyMetadata(object):
         self.poster_url = self.metadata.get('poster_url','')
         if not self.poster_url:
             if self.metadata['media_type'] in ['artist', 'track']:
-                self.poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/cover.png'
+                self.poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/cover.png' % plexpy.CONFIG.GIT_USER
             else:
-                self.poster_url = 'https://raw.githubusercontent.com/drzoidberg33/plexpy/master/data/interfaces/default/images/poster.png'
+                self.poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/poster.png' % plexpy.CONFIG.GIT_USER
         return self.poster_url
 
     def get_poster_link(self):
