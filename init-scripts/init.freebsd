@@ -49,23 +49,33 @@ fi
 
 verify_plexpy_pid() {
     # Make sure the pid corresponds to the PlexPy process.
-    pid=`cat ${plexpy_pid} 2>/dev/null`
-    ps -p ${pid} | grep -q "python ${plexpy_dir}/PlexPy.py"
-    return $?
+    if [ -f ${plexpy_pid} ]; then
+      pid=`cat ${plexpy_pid} 2>/dev/null`
+      ps -p ${pid} | grep -q "python2 ${plexpy_dir}/PlexPy.py"
+      return $?
+    else
+      return 0
+    fi
 }
 
-# Try to stop PlexPy cleanly by calling shutdown over http.
+# Try to stop PlexPy cleanly by sending SIGTERM
 plexpy_stop() {
     echo "Stopping $name"
     verify_plexpy_pid
     if [ -n "${pid}" ]; then
+      kill ${pid}
       wait_for_pids ${pid}
-      echo "Stopped"
+      echo "Stopped."
     fi
 }
 
 plexpy_status() {
-    verify_plexpy_pid && echo "$name is running as ${pid}" || echo "$name is not running"
+    verify_plexpy_pid
+    if [ -n "${pid}" ]; then
+      echo "$name is running as ${pid}."
+    else
+      echo "$name is not running."
+    fi
 }
 
 run_rc_command "$1"
