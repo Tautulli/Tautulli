@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.4.12 (2016-09-18)
+
+* Fix: PMS update check not working for MacOSX.
+* Fix: Square covers for music stats on homepage.
+* Fix: Card width on the homepage for iPhone 6/7 Plus. (Thanks @XusBadia)
+* Fix: Check for running PID when starting PlexPy. (Thanks @spolyack)
+* Fix: FreeBSD service script not stopping PlexPy properly.
+* Fix: Some web UI cleanup.
+* Change: GitHub repostitory moved.
+
+
 ## v1.4.11 (2016-09-02)
 
 * Fix: PlexWatch and Plexivity import errors.
