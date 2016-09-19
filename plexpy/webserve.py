@@ -81,7 +81,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def index(self):
+    def index(self, **kwargs):
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
         else:
@@ -168,7 +168,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def home(self):
+    def home(self, **kwargs):
         config = {
             "home_sections": plexpy.CONFIG.HOME_SECTIONS,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
@@ -329,7 +329,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def delete_temp_sessions(self):
+    def delete_temp_sessions(self, **kwargs):
 
         result = database.delete_sessions()
 
@@ -343,7 +343,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def libraries(self):
+    def libraries(self, **kwargs):
         config = {
             "update_section_ids": plexpy.CONFIG.UPDATE_SECTION_IDS
         }
@@ -469,7 +469,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def library(self, section_id=None):
+    def library(self, section_id=None, **kwargs):
         if not allow_session_library(section_id):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
@@ -708,7 +708,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def get_media_info_file_sizes(self, section_id=None, rating_key=None):
+    def get_media_info_file_sizes(self, section_id=None, rating_key=None, **kwargs):
         get_file_sizes_hold = plexpy.CONFIG.GET_FILE_SIZES_HOLD
         section_ids = set(get_file_sizes_hold['section_ids'])
         rating_keys = set(get_file_sizes_hold['rating_keys'])
@@ -999,7 +999,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def delete_duplicate_libraries(self):
+    def delete_duplicate_libraries(self, **kwargs):
         library_data = libraries.Libraries()
 
         result = library_data.delete_duplicate_libraries()
@@ -1013,7 +1013,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def users(self):
+    def users(self, **kwargs):
         return serve_template(templatename="users.html", title="Users")
 
     @cherrypy.expose
@@ -1100,7 +1100,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def user(self, user_id=None):
+    def user(self, user_id=None, **kwargs):
         if not allow_session_user(user_id):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
@@ -1566,7 +1566,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def history(self):
+    def history(self, **kwargs):
         return serve_template(templatename="history.html", title="History")
 
     @cherrypy.expose
@@ -1740,7 +1740,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def graphs(self):
+    def graphs(self, **kwargs):
 
         config = {
             "graph_type": plexpy.CONFIG.GRAPH_TYPE,
@@ -1753,7 +1753,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def set_graph_config(self, graph_type=None, graph_days=None, graph_tab=None):
+    def set_graph_config(self, graph_type=None, graph_days=None, graph_tab=None, **kwargs):
         if graph_type:
             plexpy.CONFIG.__setattr__('GRAPH_TYPE', graph_type)
             plexpy.CONFIG.write()
@@ -2203,7 +2203,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def sync(self):
+    def sync(self, **kwargs):
         return serve_template(templatename="sync.html", title="Synced Items")
 
     @cherrypy.expose
@@ -2229,7 +2229,7 @@ class WebInterface(object):
     ##### Logs #####
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def logs(self):
+    def logs(self, **kwargs):
         return serve_template(templatename="logs.html", title="Log")
 
     @cherrypy.expose
@@ -2443,7 +2443,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def delete_logs(self):
+    def delete_logs(self, **kwargs):
         log_file = logger.FILENAME
         try:
             open(os.path.join(plexpy.CONFIG.LOG_DIR, log_file), 'w').close()
@@ -2459,7 +2459,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def toggleVerbose(self):
+    def toggleVerbose(self, **kwargs):
         plexpy.VERBOSE = not plexpy.VERBOSE
         logger.initLogger(console=not plexpy.QUIET,
                           log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
@@ -2469,7 +2469,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def log_js_errors(self, page, message, file, line):
+    def log_js_errors(self, page, message, file, line, **kwargs):
         """ Logs javascript errors from the web interface. """
         logger.error(u"WebUI :: /%s : %s. (%s:%s)" % (page.rpartition('/')[-1],
                                                       message,
@@ -2479,7 +2479,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def logFile(self):
+    def logFile(self, **kwargs):
         try:
             with open(os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME), 'r') as f:
                 return '<pre>%s</pre>' % f.read()
@@ -2764,7 +2764,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def backup_config(self):
+    def backup_config(self, **kwargs):
         """ Creates a manual backup of the plexpy.db file """
 
         result = config.make_backup()
@@ -2787,11 +2787,12 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def get_server_update_params(self):
+    def get_server_update_params(self, **kwargs):
         plex_tv = plextv.PlexTV()
         plexpass = plex_tv.get_plexpass_status()
         return {'plexpass': plexpass,
-                'pms_platform': plexpy.CONFIG.PMS_PLATFORM,
+                'pms_platform': common.PMS_PLATFORM_NAME_OVERRIDES.get(
+                    plexpy.CONFIG.PMS_PLATFORM, plexpy.CONFIG.PMS_PLATFORM),
                 'pms_update_channel': plexpy.CONFIG.PMS_UPDATE_CHANNEL,
                 'pms_update_distro': plexpy.CONFIG.PMS_UPDATE_DISTRO,
                 'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD}
@@ -2799,7 +2800,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def backup_db(self):
+    def backup_db(self, **kwargs):
         """ Creates a manual backup of the plexpy.db file """
 
         result = database.make_backup()
@@ -2813,7 +2814,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def install_geoip_db(self):
+    def install_geoip_db(self, **kwargs):
         """ Downloads and installs the GeoLite2 database """
 
         result = helpers.install_geoip_db()
@@ -2827,7 +2828,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def uninstall_geoip_db(self):
+    def uninstall_geoip_db(self, **kwargs):
         """ Uninstalls the GeoLite2 database """
 
         result = helpers.uninstall_geoip_db()
@@ -2957,14 +2958,14 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def facebookStep1(self):
+    def facebookStep1(self, **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
         facebook = notifiers.FacebookNotifier()
         return facebook._get_authorization()
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def facebookStep2(self, code):
+    def facebookStep2(self, code, **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
         facebook = notifiers.FacebookNotifier()
         result = facebook._get_credentials(code)
@@ -2976,7 +2977,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def osxnotifyregister(self, app):
+    def osxnotifyregister(self, app, **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
         from osxnotify import registerapp as osxnotify
 
@@ -3174,20 +3175,20 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def generateAPI(self):
+    def generateAPI(self, **kwargs):
         apikey = hashlib.sha224(str(random.getrandbits(256))).hexdigest()[0:32]
         logger.info(u"New API key generated.")
         return apikey
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def checkGithub(self):
+    def checkGithub(self, **kwargs):
         versioncheck.checkGithub()
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def do_state_change(self, signal, title, timer):
+    def do_state_change(self, signal, title, timer, **kwargs):
         message = title
         quote = self.random_arnold_quotes()
         plexpy.SIGNAL = signal
@@ -3197,17 +3198,17 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def shutdown(self):
+    def shutdown(self, **kwargs):
         return self.do_state_change('shutdown', 'Shutting Down', 15)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def restart(self):
+    def restart(self, **kwargs):
         return self.do_state_change('restart', 'Restarting', 30)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def update(self):
+    def update(self, **kwargs):
         return self.do_state_change('update', 'Updating', 120)
 
 
@@ -3330,7 +3331,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def download_log(self):
+    def download_log(self, **kwargs):
         """ Download the PlexPy log file. """
         log_file = logger.FILENAME
         try:
@@ -3368,7 +3369,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_image_cache(self):
+    def delete_image_cache(self, **kwargs):
         """ Delete and recreate the image cache directory. """
         return self.delete_cache(folder='images')
 
@@ -3376,7 +3377,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def delete_cache(self, folder=''):
+    def delete_cache(self, folder='', **kwargs):
         """ Delete and recreate the cache directory. """
         cache_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, folder)
         result = 'success'
@@ -3403,7 +3404,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def delete_poster_url(self, poster_url=''):
+    def delete_poster_url(self, poster_url='', **kwargs):
 
         if poster_url:
             data_factory = datafactory.DataFactory()
@@ -3421,7 +3422,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def search(self, query=''):
+    def search(self, query='', **kwargs):
         return serve_template(templatename="search.html", title="Search", query=query)
 
     @cherrypy.expose
@@ -4283,7 +4284,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def check_pms_updater(self):
+    def check_pms_updater(self, **kwargs):
         pms_connect = pmsconnect.PmsConnect()
         result = pms_connect.get_update_staus()
         return result

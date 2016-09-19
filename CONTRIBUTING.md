@@ -9,14 +9,14 @@ In case you read this because you are posting an issue, please take a minute and
 - Turning your device off and on again.
 - Analyzing your logs, you just might find the solution yourself!
 - Using the **search** function to see if this issue has already been reported/solved.
-- Checking the [Wiki](https://github.com/drzoidberg33/plexpy/wiki) for 
-[ [Installation] ](https://github.com/drzoidberg33/plexpy/wiki/Installation) and 
-[ [FAQs] ](https://github.com/drzoidberg33/plexpy/wiki/Frequently-Asked-Questions-(FAQ)).
-- For basic questions try asking on [Gitter](https://gitter.im/drzoidberg33/plexpy) or the [Plex Forums](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program) first before opening an issue.
+- Checking the [Wiki](https://github.com/JonnyWong16/plexpy/wiki) for 
+[ [Installation] ](https://github.com/JonnyWong16/plexpy/wiki/Installation) and 
+[ [FAQs] ](https://github.com/JonnyWong16/plexpy/wiki/Frequently-Asked-Questions-(FAQ)).
+- For basic questions try asking on [Gitter](https://gitter.im/plexpy/general) or the [Plex Forums](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program) first before opening an issue.
 
 ##### If nothing has worked:
 
-1. Open a new issue on the GitHub [issue tracker](http://github.com/drzoidberg33/plexpy/issues).
+1. Open a new issue on the GitHub [issue tracker](http://github.com/JonnyWong16/plexpy/issues).
 2. Provide a clear title to easily help identify your problem.
 3. Use proper [markdown syntax](https://help.github.com/articles/github-flavored-markdown) to structure your post (i.e. code/log in code blocks).
 4. Make sure you provide the following information:

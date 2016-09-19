@@ -509,21 +509,21 @@ DOCUMENTATION :: END
             % if top_stat['rows'][0]['rating_key']:
             <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                 % if top_stat['rows'][0]['grandparent_thumb']:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
+                <div class="home-platforms-instance-cover">
+                    <div class="home-platforms-cover-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=300&fallback=cover);"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
                 </div>
                 % else:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                <div class="home-platforms-instance-cover">
+                    <div class="home-platforms-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
                 </div>
                 % endif
             </a>
             % else:
-            <div class="home-platforms-instance-poster">
-                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+            <div class="home-platforms-instance-cover">
+                <div class="home-platforms-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
             </div>
             % endif
             % if len(top_stat['rows']) > 1:
@@ -558,21 +558,21 @@ DOCUMENTATION :: END
                             % if top_stat['rows'][loop.index]['rating_key']:
                             <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                 % if top_stat['rows'][loop.index]['grandparent_thumb']:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
+                                <div class="home-platforms-instance-list-cover">
+                                    <div class="home-platforms-list-cover-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=cover);"></div>
                                     % if _session['user_group'] == 'admin':
                                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                                     % endif
                                 </div>
                                 % else:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                                <div class="home-platforms-instance-list-cover">
+                                    <div class="home-platforms-list-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
                                 </div>
                                 % endif
                             </a>
                             % else:
-                            <div class="home-platforms-instance-list-poster">
-                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                            <div class="home-platforms-instance-list-cover">
+                                <div class="home-platforms-list-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
                             </div>
                             % endif
                             <div class="home-platforms-instance-list-number">
@@ -611,21 +611,21 @@ DOCUMENTATION :: END
             % if top_stat['rows'][0]['rating_key']:
             <a href="info?rating_key=${top_stat['rows'][0]['rating_key']}" title="${top_stat['rows'][0]['title']}">
                 % if top_stat['rows'][0]['grandparent_thumb'] != '':
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
+                <div class="home-platforms-instance-cover">
+                    <div class="home-platforms-cover-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][0]['grandparent_thumb']}&width=300&height=300&fallback=cover);"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
                 </div>
                 % else:
-                <div class="home-platforms-instance-poster">
-                    <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                <div class="home-platforms-instance-cover">
+                    <div class="home-platforms-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
                 </div>
                 % endif
             </a>
             % else:
-            <div class="home-platforms-instance-poster">
-                <div class="home-platforms-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+            <div class="home-platforms-instance-cover">
+                <div class="home-platforms-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
             </div>
             % endif
             % if len(top_stat['rows']) > 1:
@@ -656,21 +656,21 @@ DOCUMENTATION :: END
                             % if top_stat['rows'][loop.index]['rating_key']:
                             <a href="info?rating_key=${top_stat['rows'][loop.index]['rating_key']}" title="${top_stat['rows'][loop.index]['title']}">
                                 % if top_stat['rows'][loop.index]['grandparent_thumb']:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=poster);"></div>
+                                <div class="home-platforms-instance-list-cover">
+                                    <div class="home-platforms-list-cover-face" style="background-image: url(pms_image_proxy?img=${top_stat['rows'][loop.index]['grandparent_thumb']}&width=300&height=300&fallback=cover);"></div>
                                     % if _session['user_group'] == 'admin':
                                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                                     % endif
                                 </div>
                                 % else:
-                                <div class="home-platforms-instance-list-poster">
-                                    <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                                <div class="home-platforms-instance-list-cover">
+                                    <div class="home-platforms-list-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
                                 </div>
                                 % endif
                             </a>
                             % else:
-                            <div class="home-platforms-instance-list-poster">
-                                <div class="home-platforms-list-poster-face" style="background-image: url(${http_root}images/poster.png);"></div>
+                            <div class="home-platforms-instance-list-cover">
+                                <div class="home-platforms-list-cover-face" style="background-image: url(${http_root}images/cover.png);"></div>
                             </div>
                             % endif
                             <div class="home-platforms-instance-list-number">

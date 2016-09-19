@@ -170,7 +170,7 @@ _CONFIG_DEFINITIONS = {
     'GIT_BRANCH': (str, 'General', 'master'),
     'GIT_PATH': (str, 'General', ''),
     'GIT_TOKEN': (str, 'General', ''),
-    'GIT_USER': (str, 'General', 'drzoidberg33'),
+    'GIT_USER': (str, 'General', 'JonnyWong16'),
     'GRAPH_TYPE': (str, 'General', 'plays'),
     'GRAPH_DAYS': (int, 'General', 30),
     'GRAPH_TAB': (str, 'General', 'tabs-1'),
@@ -802,3 +802,8 @@ class Config(object):
         if self.CONFIG_VERSION == '5':
             self.MONITOR_PMS_UPDATES = 0
             self.CONFIG_VERSION = '6'
+
+        if self.CONFIG_VERSION == '6':
+            if self.GIT_USER.lower() == 'drzoidberg33':
+                self.GIT_USER = 'JonnyWong16'
+            self.CONFIG_VERSION = '7'

@@ -1264,7 +1264,7 @@
                     <table class="notification-params time-options">
                         <thead>
                             <tr>
-                                <th>
+                                <th colspan="3">
                                     Year
                                 </th>
                             </tr>
@@ -1285,7 +1285,7 @@
                     <table class="notification-params time-options">
                         <thead>
                             <tr>
-                                <th>
+                                <th colspan="3">
                                     Month
                                 </th>
                             </tr>
@@ -1316,7 +1316,7 @@
                     <table class="notification-params time-options">
                         <thead>
                             <tr>
-                                <th>
+                                <th colspan="3">
                                     Day of the Year
                                 </th>
                             </tr>
@@ -1337,7 +1337,7 @@
                     <table class="notification-params time-options">
                         <thead>
                             <tr>
-                                <th>
+                                <th colspan="3">
                                     Day of the Month
                                 </th>
                             </tr>
@@ -1363,7 +1363,7 @@
                     <table class="notification-params time-options">
                         <thead>
                             <tr>
-                                <th>
+                                <th colspan="3">
                                     Day of the Week
                                 </th>
                             </tr>
@@ -1389,7 +1389,7 @@
                     <table class="notification-params time-options">
                         <thead>
                             <tr>
-                                <th>
+                                <th colspan="3">
                                     Hour
                                 </th>
                             </tr>
@@ -1420,7 +1420,7 @@
                     <table class="notification-params time-options">
                         <thead>
                             <tr>
-                                <th>
+                                <th colspan="3">
                                     Minute
                                 </th>
                             </tr>
@@ -1441,7 +1441,7 @@
                     <table class="notification-params time-options">
                         <thead>
                             <tr>
-                                <th>
+                                <th colspan="3">
                                     Second
                                 </th>
                             </tr>
@@ -1462,7 +1462,7 @@
                     <table class="notification-params time-options">
                         <thead>
                             <tr>
-                                <th>
+                                <th colspan="3">
                                     AM / PM
                                 </th>
                             </tr>
@@ -1483,7 +1483,7 @@
                     <table class="notification-params time-options">
                         <thead>
                             <tr>
-                                <th>
+                                <th colspan="3">
                                     Timezone
                                 </th>
                             </tr>
@@ -1504,7 +1504,7 @@
                     <table class="notification-params time-options">
                         <thead>
                             <tr>
-                                <th>
+                                <th colspan="3">
                                     Timestamp
                                 </th>
                             </tr>
@@ -1574,7 +1574,7 @@
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
                             class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Notification String Substitutions</h4>
+                    <h4 class="modal-title">Notification Parameters</h4>
                 </div>
                 <div class="modal-body">
                     <div>
@@ -1584,7 +1584,7 @@
                         <table class="notification-params">
                             <thead>
                                 <tr>
-                                    <th>
+                                    <th colspan="2">
                                         Global
                                     </th>
                                 </tr>
@@ -1619,7 +1619,7 @@
                         <table class="notification-params">
                             <thead>
                                 <tr>
-                                    <th>
+                                    <th colspan="2">
                                         Stream Details
                                     </th>
                                 </tr>
@@ -1778,7 +1778,7 @@
                         <table class="notification-params">
                             <thead>
                                 <tr>
-                                    <th>
+                                    <th colspan="2">
                                         Metadata Details
                                     </th>
                                 </tr>
@@ -1915,12 +1915,12 @@
                                 <tr>
                                     <td><strong>{imdb_id}</strong></td>
                                     <td>The IMDB ID for the movie. <span class="small-muted">(e.g. tt2488496)</span>
-                                    <p class="small-muted">(PMS agent must be Freebase)</p></td>
+                                    <p class="small-muted">(PMS agent must be Plex Movie)</p></td>
                                 </tr>
                                 <tr>
                                     <td><strong>{imdb_url}</strong></td>
                                     <td>The IMDB URL for the movie.
-                                    <p class="small-muted">(PMS agent must be Freebase)</p></td>
+                                    <p class="small-muted">(PMS agent must be Plex Movie)</p></td>
                                 </tr>
                                 <tr>
                                     <td><strong>{thetvdb_id}</strong></td>
@@ -1972,7 +1972,7 @@
                         <table class="notification-params">
                             <thead>
                                 <tr>
-                                    <th>
+                                    <th colspan="2">
                                         Plex Update Available
                                     </th>
                                 </tr>
@@ -2039,27 +2039,27 @@
                 </div>
                 <div class="modal-body">
                     <div>
-                        <div class="wellheader">
-                            <h4>Movie Tag <strong>&lt;movie&gt;&lt;/movie&gt;</strong></h4>
-                        </div>
                         <div>
-                            <p class="help-block">All text inside a <strong>movie</strong> tag will only be sent when the media item being played back is a movie.</p>
+                            <h4>Movie Tag</h4>
+                        </div>
+                        <div style="padding-bottom: 10px;">
+                            <p class="help-block">All text inside <span class="inline-pre">&lt;movie&gt;&lt;/movie&gt;</span> tags will only be sent when the media item is a movie.</p>
                             <p><strong style="color: #fff;">Example:</strong></p>
                             <pre>{user} has started playing {title} &lt;movie&gt;({year})&lt;/movie&gt;</pre>
                         </div>
-                        <div class="wellheader">
-                            <h4>TV Tag <strong>&lt;tv&gt;&lt;/tv&gt;</strong></h4>
-                        </div>
                         <div>
-                            <p class="help-block">All text inside a <strong>tv</strong> tag will only be sent when the media item being played back is an episode.</p>
+                            <h4>TV Tag</h4>
+                        </div>
+                        <div style="padding-bottom: 10px;">
+                            <p class="help-block">All text inside <span class="inline-pre">&lt;tv&gt;&lt;/tv&gt;</span> tags will only be sent when the media item is an episode.</p>
                             <p><strong style="color: #fff;">Example:</strong></p>
                             <pre>{user} has started playing {title} &lt;tv&gt;(S{season_num}E{episode_num})&lt;/tv&gt;</pre>
                         </div>
-                        <div class="wellheader">
-                            <h4>Music Tag <strong>&lt;music&gt;&lt;/music&gt;</strong></h4>
+                        <div>
+                            <h4>Music Tag</h4>
                         </div>
                         <div>
-                            <p class="help-block">All text inside a <strong>music</strong> tag will only be sent when the media item being played back is a music track.</p>
+                            <p class="help-block">All text inside <span class="inline-pre">&lt;music&gt;&lt;/music&gt;</span> tags will only be sent when the media item is a track.</p>
                             <p><strong style="color: #fff;">Example:</strong></p>
                             <pre>{user} has started playing {title} &lt;music&gt;(Track {track_num})&lt;/music&gt;</pre>
                         </div>
@@ -2101,26 +2101,6 @@
             </div>
         </div>
     </div>
-    <div id="guidelines-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="guidelines-modal">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Guidelines</h4>
-                </div>
-                <div class="modal-body">
-                    <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-                        <strong>Please read the <a href="#" target="_blank" id="guidelines-link">guidelines</a> in the README document <br />before submitting a new <span id="guidelines-type"></span>!</strong>
-                        <br /><br />
-                        Your post may be removed for failure to follow the guidelines.
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <a href="#" target="_blank" id="guidelines-continue" class="btn btn-bright">Continue</a>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 </%def>
 
@@ -2140,6 +2120,11 @@
                     $('#install_geoip_db').removeClass('no-highlight').css('color','#e9a049');
                 } else if ("${kwargs.get('reinstall_geoip')}" == 'true') {
                     $('#reinstall_geoip_db').removeClass('no-highlight').css('color','#e9a049');
+                }
+                if ("${kwargs.get('support')}" == 'true') {
+                    $('.support-modal-link').removeClass('no-highlight').css('color','#e9a049');
+                    $('#best-support-link').prepend('<span data-toggle="tooltip" title="Most Active"><i class="fa fa-star"></i></span>&nbsp;')
+                    $('#best-support-link span').tooltip({ container: 'body' });
                 }
             }
         });

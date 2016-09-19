@@ -58,7 +58,7 @@ verify_plexpy_pid() {
     fi
 }
 
-# Try to stop PlexPy cleanly by calling shutdown over http.
+# Try to stop PlexPy cleanly by sending SIGTERM
 plexpy_stop() {
     echo "Stopping $name."
     verify_plexpy_pid

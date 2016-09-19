@@ -1,13 +1,13 @@
 # PlexPy
 
-[![Join the chat at https://gitter.im/drzoidberg33/plexpy](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/drzoidberg33/plexpy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/plexpy/general](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/plexpy/general?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 A python based web application for monitoring, analytics and notifications for [Plex Media Server](https://plex.tv).
 
 This project is based on code from [Headphones](https://github.com/rembo10/headphones) and [PlexWatchWeb](https://github.com/ecleese/plexWatchWeb).
 
 * [Plex forum thread](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program)
-* [Gitter chat](https://gitter.im/drzoidberg33/plexpy)
+* [Gitter chat](https://gitter.im/plexpy/general)
 * [/r/Plex Discord server](https://discord.gg/011TFFWSuNFI02EKr) | [PlexPy Discord server](https://discord.gg/36ggawe)
 
 ## Features
@@ -35,8 +35,8 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 
 ## Installation and Support
 
-* [Installation Guides](https://github.com/drzoidberg33/plexpy/wiki/Installation) shows you how to install PlexPy.
-* [FAQs](https://github.com/drzoidberg33/plexpy/wiki/Frequently-Asked-Questions-(FAQ)) in the wiki can help you with common problems.
+* [Installation Guides](https://github.com/JonnyWong16/plexpy/wiki/Installation) shows you how to install PlexPy.
+* [FAQs](https://github.com/JonnyWong16/plexpy/wiki/Frequently-Asked-Questions-(FAQ)) in the wiki can help you with common problems.
 
 **Support** the project by implementing new features, solving support tickets and provide bug fixes.
 
@@ -48,14 +48,14 @@ This project is based on code from [Headphones](https://github.com/rembo10/headp
 - Turning your device off and on again.
 - Analyzing your logs, you just might find the solution yourself!
 - Using the **search** function to see if this issue has already been reported/solved.
-- Checking the [Wiki](https://github.com/drzoidberg33/plexpy/wiki) for 
-[ [Installation] ](https://github.com/drzoidberg33/plexpy/wiki/Installation) and 
-[ [FAQs] ](https://github.com/drzoidberg33/plexpy/wiki/Frequently-Asked-Questions-(FAQ)).
-- For basic questions try asking on [Gitter](https://gitter.im/drzoidberg33/plexpy) or the [Plex Forums](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program) first before opening an issue.
+- Checking the [Wiki](https://github.com/JonnyWong16/plexpy/wiki) for 
+[ [Installation] ](https://github.com/JonnyWong16/plexpy/wiki/Installation) and 
+[ [FAQs] ](https://github.com/JonnyWong16/plexpy/wiki/Frequently-Asked-Questions-(FAQ)).
+- For basic questions try asking on [Gitter](https://gitter.im/plexpy/general) or the [Plex Forums](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program) first before opening an issue.
 
 ##### If nothing has worked:
 
-1. Open a new issue on the GitHub [issue tracker](http://github.com/drzoidberg33/plexpy/issues).
+1. Open a new issue on the GitHub [issue tracker](http://github.com/JonnyWong16/plexpy/issues).
 2. Provide a clear title to easily help identify your problem.
 3. Use proper [markdown syntax](https://help.github.com/articles/github-flavored-markdown) to structure your post (i.e. code/log in code blocks).
 4. Make sure you provide the following information:

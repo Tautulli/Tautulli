@@ -21,6 +21,7 @@ import json
 from xml.dom import minidom
 
 import plexpy
+import common
 import database
 import helpers
 import http_handler
@@ -628,12 +629,13 @@ class PlexTV(object):
             return {}
 
         # Get the updates for the platform
-        platform_downloads = available_downloads.get('computer').get(plexpy.CONFIG.PMS_PLATFORM) or \
-            available_downloads.get('nas').get(plexpy.CONFIG.PMS_PLATFORM)
+        pms_platform = common.PMS_PLATFORM_NAME_OVERRIDES.get(plexpy.CONFIG.PMS_PLATFORM, plexpy.CONFIG.PMS_PLATFORM)
+        platform_downloads = available_downloads.get('computer').get(pms_platform) or \
+            available_downloads.get('nas').get(pms_platform)
 
         if not platform_downloads:
             logger.error(u"PlexPy PlexTV :: Unable to retrieve Plex updates: Could not match server platform: %s."
-                         % plexpy.CONFIG.PMS_PLATFORM)
+                         % pms_platform)
             return {}
 
         v_old = helpers.cast_to_int("".join(v.zfill(4) for v in plexpy.CONFIG.PMS_VERSION.split('-')[0].split('.')[:4]))
