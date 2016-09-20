@@ -8,7 +8,7 @@ Reporting Issues:
     Please use [Gist](http://gist.github.com) or [Pastebin](http://pastebin.com/).
 
 Feature Requests:
-  * Feature requests are handled on FeatHub: http://feathub.com/drzoidberg33/plexpy
+  * Feature requests are handled on FeatHub: http://feathub.com/JonnyWong16/plexpy
   * Do not post them on the GitHub issues tracker.
 -->
 
