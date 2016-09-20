@@ -15,13 +15,13 @@ from pytz.tzinfo import memorized_datetime, memorized_timedelta
 
 def _byte_string(s):
     """Cast a string or byte string to an ASCII byte string."""
-    return s.encode('US-ASCII')
+    return s.encode('ASCII')
 
 _NULL = _byte_string('\0')
 
 def _std_string(s):
     """Cast a string or byte string to an ASCII string."""
-    return str(s.decode('US-ASCII'))
+    return str(s.decode('ASCII'))
 
 def build_tzinfo(zone, fp):
     head_fmt = '>4s c 15x 6l'
@@ -66,7 +66,7 @@ def build_tzinfo(zone, fp):
         i += 3
 
     # Now build the timezone object
-    if len(transitions) == 0:
+    if len(ttinfo) ==1 or len(transitions) == 0:
         ttinfo[0][0], ttinfo[0][2]
         cls = type(zone, (StaticTzInfo,), dict(
             zone=zone,

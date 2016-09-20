@@ -8,9 +8,9 @@ See the datetime section of the Python Library Reference for information
 on how to use these modules.
 '''
 
-# The Olson database is updated several times a year.
-OLSON_VERSION = '2014j'
-VERSION = '2014.10'  # Switching to pip compatible version numbering.
+# The IANA (nee Olson) database is updated several times a year.
+OLSON_VERSION = '2016f'
+VERSION = '2016.6.1'  # Switching to pip compatible version numbering.
 __version__ = VERSION
 
 OLSEN_VERSION = OLSON_VERSION # Old releases had this misspelling
@@ -24,11 +24,6 @@ __all__ = [
     ]
 
 import sys, datetime, os.path, gettext
-
-try:
-    from pkg_resources import resource_stream
-except ImportError:
-    resource_stream = None
 
 from pytz.exceptions import AmbiguousTimeError
 from pytz.exceptions import InvalidTimeError
@@ -57,7 +52,7 @@ except NameError: # Python 3.x
             ...
         UnicodeEncodeError: ...
         """
-        s.encode('US-ASCII') # Raise an exception if not ASCII
+        s.encode('ASCII') # Raise an exception if not ASCII
         return s # But return the original string - not a byte string.
 
 else: # Python 2.x
@@ -73,7 +68,7 @@ else: # Python 2.x
             ...
         UnicodeEncodeError: ...
         """
-        return s.encode('US-ASCII')
+        return s.encode('ASCII')
 
 
 def open_resource(name):
@@ -88,11 +83,17 @@ def open_resource(name):
             raise ValueError('Bad path segment: %r' % part)
     filename = os.path.join(os.path.dirname(__file__),
                             'zoneinfo', *name_parts)
-    if not os.path.exists(filename) and resource_stream is not None:
+    if not os.path.exists(filename):
         # http://bugs.launchpad.net/bugs/383171 - we avoid using this
         # unless absolutely necessary to help when a broken version of
         # pkg_resources is installed.
-        return resource_stream(__name__, 'zoneinfo/' + name)
+        try:
+            from pkg_resources import resource_stream
+        except ImportError:
+            resource_stream = None
+
+        if resource_stream is not None:
+            return resource_stream(__name__, 'zoneinfo/' + name)
     return open(filename, 'rb')
 
 
@@ -110,7 +111,7 @@ def resource_exists(name):
 # module, as well as the Zope3 i18n package. Perhaps we should just provide
 # the POT file and translations, and leave it up to callers to make use
 # of them.
-# 
+#
 # t = gettext.translation(
 #         'pytz', os.path.join(os.path.dirname(__file__), 'locales'),
 #         fallback=True
@@ -123,7 +124,7 @@ def resource_exists(name):
 _tzinfo_cache = {}
 
 def timezone(zone):
-    r''' Return a datetime.tzinfo implementation for the given timezone 
+    r''' Return a datetime.tzinfo implementation for the given timezone
 
     >>> from datetime import datetime, timedelta
     >>> utc = timezone('UTC')
@@ -241,13 +242,13 @@ class UTC(datetime.tzinfo):
         return "UTC"
 
 
-UTC = utc = UTC() # UTC is a singleton
+UTC = utc = UTC()  # UTC is a singleton
 
 
 def _UTC():
     """Factory function for utc unpickling.
 
-    Makes sure that unpickling a utc instance always returns the same 
+    Makes sure that unpickling a utc instance always returns the same
     module global.
 
     These examples belong in the UTC class above, but it is obscured; or in
@@ -329,7 +330,7 @@ class _CountryTimezoneDict(LazyDict):
         zone_tab = open_resource('zone.tab')
         try:
             for line in zone_tab:
-                line = line.decode('US-ASCII')
+                line = line.decode('UTF-8')
                 if line.startswith('#'):
                     continue
                 code, coordinates, zone = line.split(None, 4)[:3]
@@ -357,7 +358,7 @@ class _CountryNameDict(LazyDict):
         zone_tab = open_resource('iso3166.tab')
         try:
             for line in zone_tab.readlines():
-                line = line.decode('US-ASCII')
+                line = line.decode('UTF-8')
                 if line.startswith('#'):
                     continue
                 code, name = line.split(None, 1)
@@ -404,9 +405,11 @@ class _FixedOffset(datetime.tzinfo):
 
     def normalize(self, dt, is_dst=False):
         '''Correct the timezone information on the given datetime'''
+        if dt.tzinfo is self:
+            return dt
         if dt.tzinfo is None:
             raise ValueError('Naive time - no tzinfo set')
-        return dt.replace(tzinfo=self)
+        return dt.astimezone(self)
 
 
 def FixedOffset(offset, _tzinfos = {}):
@@ -599,6 +602,7 @@ all_timezones = \
  'America/Eirunepe',
  'America/El_Salvador',
  'America/Ensenada',
+ 'America/Fort_Nelson',
  'America/Fort_Wayne',
  'America/Fortaleza',
  'America/Glace_Bay',
@@ -731,6 +735,7 @@ all_timezones = \
  'Asia/Bahrain',
  'Asia/Baku',
  'Asia/Bangkok',
+ 'Asia/Barnaul',
  'Asia/Beirut',
  'Asia/Bishkek',
  'Asia/Brunei',
@@ -802,6 +807,7 @@ all_timezones = \
  'Asia/Thimbu',
  'Asia/Thimphu',
  'Asia/Tokyo',
+ 'Asia/Tomsk',
  'Asia/Ujung_Pandang',
  'Asia/Ulaanbaatar',
  'Asia/Ulan_Bator',
@@ -907,6 +913,7 @@ all_timezones = \
  'Etc/Zulu',
  'Europe/Amsterdam',
  'Europe/Andorra',
+ 'Europe/Astrakhan',
  'Europe/Athens',
  'Europe/Belfast',
  'Europe/Belgrade',
@@ -927,6 +934,7 @@ all_timezones = \
  'Europe/Jersey',
  'Europe/Kaliningrad',
  'Europe/Kiev',
+ 'Europe/Kirov',
  'Europe/Lisbon',
  'Europe/Ljubljana',
  'Europe/London',
@@ -954,6 +962,7 @@ all_timezones = \
  'Europe/Tallinn',
  'Europe/Tirane',
  'Europe/Tiraspol',
+ 'Europe/Ulyanovsk',
  'Europe/Uzhgorod',
  'Europe/Vaduz',
  'Europe/Vatican',
@@ -1177,6 +1186,7 @@ common_timezones = \
  'America/Edmonton',
  'America/Eirunepe',
  'America/El_Salvador',
+ 'America/Fort_Nelson',
  'America/Fortaleza',
  'America/Glace_Bay',
  'America/Godthab',
@@ -1224,7 +1234,6 @@ common_timezones = \
  'America/Moncton',
  'America/Monterrey',
  'America/Montevideo',
- 'America/Montreal',
  'America/Montserrat',
  'America/Nassau',
  'America/New_York',
@@ -1249,7 +1258,6 @@ common_timezones = \
  'America/Regina',
  'America/Resolute',
  'America/Rio_Branco',
- 'America/Santa_Isabel',
  'America/Santarem',
  'America/Santiago',
  'America/Santo_Domingo',
@@ -1297,6 +1305,7 @@ common_timezones = \
  'Asia/Bahrain',
  'Asia/Baku',
  'Asia/Bangkok',
+ 'Asia/Barnaul',
  'Asia/Beirut',
  'Asia/Bishkek',
  'Asia/Brunei',
@@ -1356,6 +1365,7 @@ common_timezones = \
  'Asia/Tehran',
  'Asia/Thimphu',
  'Asia/Tokyo',
+ 'Asia/Tomsk',
  'Asia/Ulaanbaatar',
  'Asia/Urumqi',
  'Asia/Ust-Nera',
@@ -1394,6 +1404,7 @@ common_timezones = \
  'Canada/Pacific',
  'Europe/Amsterdam',
  'Europe/Andorra',
+ 'Europe/Astrakhan',
  'Europe/Athens',
  'Europe/Belgrade',
  'Europe/Berlin',
@@ -1413,6 +1424,7 @@ common_timezones = \
  'Europe/Jersey',
  'Europe/Kaliningrad',
  'Europe/Kiev',
+ 'Europe/Kirov',
  'Europe/Lisbon',
  'Europe/Ljubljana',
  'Europe/London',
@@ -1438,6 +1450,7 @@ common_timezones = \
  'Europe/Stockholm',
  'Europe/Tallinn',
  'Europe/Tirane',
+ 'Europe/Ulyanovsk',
  'Europe/Uzhgorod',
  'Europe/Vaduz',
  'Europe/Vatican',
