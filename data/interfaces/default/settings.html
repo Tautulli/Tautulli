@@ -4,7 +4,7 @@
     import sys
 
     import plexpy
-    from plexpy import common, notifiers, versioncheck
+    from plexpy import common, notifiers
     from plexpy.helpers import anon_url
 
     available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
@@ -56,7 +56,7 @@
                     <div role="tabpanel" class="tab-pane active" id="tabs-0">
                         % if common.VERSION_NUMBER:
                         <div class="padded-header">
-                            <h3>Version ${common.VERSION_NUMBER} <small><a href="#changelog-modal" data-toggle="modal"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
+                            <h3>Version ${common.VERSION_NUMBER} <small><a id="changelog-modal-link" href="#"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
                         </div>
                         % endif
                         <div class="padded-header">
@@ -2105,9 +2105,9 @@
                     <h4 class="modal-title">Changelog</h4>
                 </div>
                 <div class="modal-body">
-                    ${versioncheck.read_changelog() | n}
                 </div>
                 <div class="modal-footer">
+                    <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
                 </div>
             </div>
         </div>
@@ -2269,6 +2269,19 @@ $(document).ready(function() {
 
     getConfigurationTable();
     getSchedulerTable();
+
+    $('#changelog-modal-link').on('click', function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: 'get_changelog',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#changelog-modal .modal-body").html(xhr.responseText);
+                $('#changelog-modal').modal();
+            }
+        });
+    });
 
     $("#backup_config").click(function () {
         var msg = 'Are you sure you want to create a backup of the PlexPy config?';

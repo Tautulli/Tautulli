@@ -67,6 +67,23 @@
     % endif
     % endfor
 </div>
+% if _session['user_group'] == 'admin' and config['update_show_changelog']:
+<div id="changelog-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Changelog</h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
+            </div>
+        </div>
+    </div>
+</div>
+% endif
 </%def>
 
 <%def name="javascriptIncludes()">
@@ -407,6 +424,23 @@
             $("#recently-added-page-right").addClass("disabled").blur();
         } else {
             $("#recently-added-page-right").removeClass("disabled");
+        }
+    });
+</script>
+% endif
+% if _session['user_group'] == 'admin' and config['update_show_changelog']:
+<script>
+    $.ajax({
+        url: 'get_changelog',
+        data: {
+            latest_only: true, 
+            update_shown: true
+        },
+        cache: false,
+        async: true,
+        complete: function (xhr, status) {
+            $("#changelog-modal .modal-body").html(xhr.responseText);
+            $('#changelog-modal').modal();
         }
     });
 </script>
