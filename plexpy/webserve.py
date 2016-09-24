@@ -175,7 +175,8 @@ class WebInterface(object):
             "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
             "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
-            "pms_name": plexpy.CONFIG.PMS_NAME
+            "pms_name": plexpy.CONFIG.PMS_NAME,
+            "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG
         }
         return serve_template(templatename="index.html", title="Home", config=config)
 
@@ -3228,8 +3229,20 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def update(self, **kwargs):
+        # Show changelog after updating
+        plexpy.CONFIG.__setattr__('UPDATE_SHOW_CHANGELOG', 1)
+        plexpy.CONFIG.write()
         return self.do_state_change('update', 'Updating', 120)
 
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def get_changelog(self, latest_only=False, update_shown=False, **kwargs):
+        latest_only = True if latest_only == 'true' else False
+        # Set update changelog shown status
+        if update_shown == 'true':
+            plexpy.CONFIG.__setattr__('UPDATE_SHOW_CHANGELOG', 0)
+            plexpy.CONFIG.write()
+        return versioncheck.read_changelog(latest_only=latest_only)
 
     ##### Info #####
 

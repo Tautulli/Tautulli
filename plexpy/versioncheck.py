@@ -246,7 +246,7 @@ def update():
             )
             return
 
-def read_changelog():
+def read_changelog(latest_only=False):
 
     changelog_file = os.path.join(plexpy.PROG_DIR, 'CHANGELOG.md')
 
@@ -260,11 +260,20 @@ def read_changelog():
         output = ''
         lines = logfile.readlines()
         previous_line = ''
+        latest_version_found = False
+
         for line in lines:
             if line[:2] == '# ':
-                output += '<h3>' + line[2:] + '</h3>'
+                #output += '<h3>' + line[2:] + '</h3>'
+                pass
             elif line[:3] == '## ':
-                output += '<h4>' + line[3:] + '</h4>'
+                if latest_version_found:
+                    break
+                elif latest_only:
+                    output += '<h4>PlexPy ' + line[3:] + '</h4>'
+                    latest_version_found = True
+                else:
+                    output += '<h4>' + line[3:] + '</h4>'
             elif line[:2] == '* ' and previous_line.strip() == '':
                 output += '<ul><li>' + line[2:] + '</li>'
             elif line[:2] == '* ' and previous_line[:4] == '  * ':
