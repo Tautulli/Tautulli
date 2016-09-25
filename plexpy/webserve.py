@@ -2263,7 +2263,7 @@ class WebInterface(object):
                     filt[tl][2] += '<br>' + l
                     continue
 
-        log_levels = ['DEBUG', 'INFO', 'WARN', 'ERROR']
+        log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
         if log_level in log_levels:
             log_levels = log_levels[log_levels.index(log_level)::]
             filtered = [row for row in filt if row[1] in log_levels]
