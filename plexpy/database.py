@@ -48,10 +48,10 @@ def delete_sessions():
     try:
         monitor_db.action('DELETE FROM sessions')
         monitor_db.action('VACUUM')
-        return 'Cleared temporary sessions.'
+        return True
     except Exception as e:
         logger.warn(u"PlexPy Database :: Unable to clear temporary sessions from database: %s." % e)
-        return 'Unable to clear temporary sessions.'
+        return False
 
 def db_filename(filename=FILENAME):
     """ Returns the filepath to the db """

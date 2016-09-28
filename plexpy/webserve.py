@@ -334,9 +334,9 @@ class WebInterface(object):
         result = database.delete_sessions()
 
         if result:
-            return {'message': result}
+            return {'result': 'success', 'message': 'Temporary sessions flushed.'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'Flush sessions failed.'}
 
 
     ##### Libraries #####
