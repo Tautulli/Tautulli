@@ -772,7 +772,7 @@ Get the metadata for a media item.
 ```
 Required parameters:
     rating_key (str):       Rating key of the item
-    media_info (bool):      True or False wheter to get media info
+    media_info (bool):      True or False whether to get media info
 
 Optional parameters:
     None
@@ -1787,6 +1787,26 @@ Required parameters:
 
 Optional parameters:
     None
+
+Returns:
+    None
+```
+
+
+### pms_image_proxy
+Gets an image from the PMS and saves it to the image cache directory.
+
+```
+Required parameters:
+    img (str):              /library/metadata/153037/thumb/1462175060
+    or
+    rating_key (str):       54321
+
+Optional parameters:
+    width (str):            150
+    height (str):           255
+    fallback (str):         "poster", "cover", "art"
+    refresh (bool):         True or False whether to refresh the image cache
 
 Returns:
     None
