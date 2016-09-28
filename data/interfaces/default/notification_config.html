@@ -148,7 +148,7 @@
 
     $('#save-notification-item').click(function () {
         // Reload modal to update certain fields
-        doAjaxCall('set_notification_config', $(this), 'tabs', true, reloadModal);
+        doAjaxCall('set_notification_config', $(this), 'tabs', true, true, reloadModal);
         return false;
     });
 
@@ -176,7 +176,7 @@
     })
 
     $('#test_notifier').click(function () {
-        doAjaxCall('set_notification_config', $(this), 'tabs', true, sendTestNotification);
+        doAjaxCall('set_notification_config', $(this), 'tabs', true, false, sendTestNotification);
     });
 
     function sendTestNotification() {
@@ -219,7 +219,7 @@
 
     $('#pushbullet_apikey, #pushover_apitoken, #scripts_folder, #join_apikey').on('change', function () {
         // Reload modal to update certain fields
-        doAjaxCall('set_notification_config', $(this), 'tabs', true, reloadModal);
+        doAjaxCall('set_notification_config', $(this), 'tabs', true, false, reloadModal);
         return false;
     });
 

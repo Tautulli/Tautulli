@@ -2204,7 +2204,7 @@ $(document).ready(function() {
 
     function saveSettings() {
         if (configForm.parsley().validate()) {
-            doAjaxCall('configUpdate', $(this), 'tabs', true, postSaveChecks);
+            doAjaxCall('configUpdate', $(this), 'tabs', true, true, postSaveChecks);
             return false;
         } else {
             showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true)

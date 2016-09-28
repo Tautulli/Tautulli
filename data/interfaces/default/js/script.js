@@ -80,9 +80,9 @@ function confirmAjaxCall(url, msg, loader_msg, callback) {
     });
 }
 
-function doAjaxCall(url, elem, reload, form, callback) {
+function doAjaxCall(url, elem, reload, form, showMsg, callback) {
     // Set Message
-    feedback = $("#ajaxMsg");
+    feedback = (showMsg) ? $("#ajaxMsg") : $();
     update = $("#updatebar");
     if (update.is(":visible")) {
         var height = update.height() + 35;
