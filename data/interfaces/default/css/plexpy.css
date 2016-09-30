@@ -3059,3 +3059,6 @@ a:hover .overlay-refresh-image:hover {
 #plex-log-levels label {
     margin-bottom: 0;
 }
+#api_key.form-control[disabled] {
+    background-color: #555;
+}
