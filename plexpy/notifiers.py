@@ -2163,23 +2163,23 @@ class Scripts(object):
         return scripts
 
     def run_script(self, script):
+        def kill_script(process):
+            logger.warn(u"PlexPy Notifiers :: Script exceeded timeout limit of %d seconds. "
+                        "Script killed." % self.script_timeout)
+            process.kill()
+            self.script_killed = True
+
+        self.script_killed = False
         output = error = ''
         try:
-            def kill_script(process):
-                logger.warn(u"PlexPy Notifiers :: Script exceeded timeout limit of %d seconds. "
-                            "Script killed." % self.script_timeout)
-                process.kill()
-                self.script_killed = True
 
             process = subprocess.Popen(script,
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE,
-                                       cwd=plexpy.CONFIG.SCRIPTS_FOLDER)
+                                       cwd=self.script_folder)
 
             timer = threading.Timer(self.script_timeout, kill_script, (process,))
-            self.script_killed = False
-
             try:
                 timer.start()
                 output, error = process.communicate()
