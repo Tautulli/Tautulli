@@ -2234,7 +2234,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def getLog(self, **kwargs):
+    def get_log(self, **kwargs):
         json_data = helpers.process_json_kwargs(json_kwargs=kwargs.get('json_data'))
         log_level = kwargs.get('log_level', "")
 
