@@ -3086,14 +3086,32 @@ class WebInterface(object):
         if not username and not password:
             return None
 
-        token = plextv.PlexTV(username=username, password=password)
-        result = token.get_token()
+        plex_tv = plextv.PlexTV(username=username, password=password)
+        result = plex_tv.get_token()
 
         if result:
             return result['auth_token']
         else:
             logger.warn(u"Unable to retrieve Plex.tv token.")
             return None
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def get_plexpy_pms_token(self, username=None, password=None, force=False, **kwargs):
+        """ Fetch a new Plex.tv token for PlexPy """
+        if not username and not password:
+            return None
+
+        force = True if force == 'true' else False
+
+        plex_tv = plextv.PlexTV(username=username, password=password)
+        token = plex_tv.get_plexpy_pms_token(force=force)
+
+        if token:
+            return {'result': 'success', 'message': 'Authentication successful.', 'token': token}
+        else:
+            return {'result': 'error', 'message': 'Authentication failed.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

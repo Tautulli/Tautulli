@@ -1547,11 +1547,11 @@
                 <div class="modal-body" id="modal-text">
                     <div>
                         <p class="help-block">
-                            This will attempt to fetch your token for you. This will not work on Internet Explorer 9 or lower.
-                            PlexPy does not store your username and password.
+                            This will attempt to fetch a new Plex.tv token for you. PlexPy does not store your username and password.
+                            Note: This will not work on Internet Explorer 9 or lower.
                         </p>
                         <div class="form-group">
-                            <label for="pms_username">PMS Username</label>
+                            <label for="pms_username">Plex.tv Username</label>
                             <div class="row">
                                 <div class="col-md-6">
                                     <input type="text" class="form-control" id="pms_username" name="pms_username" size="30">
@@ -1560,7 +1560,7 @@
                             <p class="help-block">Username for Plex.tv authentication.</p>
                         </div>
                         <div class="form-group">
-                            <label for="pms_password">PMS Password</label>
+                            <label for="pms_password">Plex.tv Password</label>
                             <div class="row">
                                 <div class="col-md-6">
                                     <input type="password" class="form-control" id="pms_password" name="pms_password" size="30">
@@ -2388,21 +2388,24 @@ $(document).ready(function() {
         if ((pms_username !== '') && (pms_password !== '')) {
             $.ajax({
                 type: 'GET',
-                url: 'get_pms_token',
+                url: 'get_plexpy_pms_token',
                 data: {
                     username: pms_username,
-                    password: pms_password
+                    password: pms_password,
+                    force: true
                 },
                 cache: false,
                 async: true,
                 complete: function(xhr, status) {
-                    var authToken = $.parseJSON(xhr.responseText);
-                    if (authToken) {
-                        $("#pms-token-status").html('<i class="fa fa-check"></i> Authentication successful!');
+                    var result = $.parseJSON(xhr.responseText);
+                    var msg = result.message;
+                    if (result.result == 'success') {
+                        var authToken = result.token;
+                        $("#pms-token-status").html('<i class="fa fa-check"></i> ' + msg);
                         $("#pms_token").val(authToken);
                         $('#pms-auth-modal').modal('hide');
                     } else {
-                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Invalid username or password.');
+                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> ' + msg);
                     }
                     loadUpdateDistros();
                 }

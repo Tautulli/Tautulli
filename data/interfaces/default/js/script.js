@@ -65,8 +65,8 @@ function confirmAjaxCall(url, msg, loader_msg, callback) {
             url: url,
             type: 'POST',
             complete: function (xhr, status) {
-                result = $.parseJSON(xhr.responseText);
-                msg = result.message;
+                var result = $.parseJSON(xhr.responseText);
+                var msg = result.message;
                 if (result.result == 'success') {
                     showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
                 } else {
