@@ -730,7 +730,7 @@ class PlexTV(object):
             logger.debug(u"PlexPy PlexTV :: Plex Pass subscription not found.")
             plexpy.CONFIG.__setattr__('PMS_PLEXPASS', 0)
             plexpy.CONFIG.write()
-            return False            return False
+            return False
 
     def get_devices_list(self):
         devices = self.get_plextv_devices_list(output_format='xml')
