@@ -509,6 +509,7 @@ _CONFIG_DEFINITIONS = {
     'SCRIPTS_ON_PMSUPDATE_SCRIPT': (unicode, 'Scripts', ''),
     'SCRIPTS_ON_CONCURRENT_SCRIPT': (unicode, 'Scripts', ''),
     'SCRIPTS_ON_NEWDEVICE_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_TIMEOUT': (int, 'Scripts', 30),
     'TELEGRAM_BOT_TOKEN': (str, 'Telegram', ''),
     'TELEGRAM_ENABLED': (int, 'Telegram', 0),
     'TELEGRAM_CHAT_ID': (str, 'Telegram', ''),
