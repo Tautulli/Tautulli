@@ -2328,6 +2328,7 @@ a .home-platforms-list-cover-face:hover
     margin: 0px 0px 20px 0px;
 }
 .stacked-configs > li {
+    margin: 0;
     list-style: none;
     background-color: #282828;
     width: 100%;
@@ -2349,20 +2350,26 @@ a .home-platforms-list-cover-face:hover
     color: #eee;
     background-color: #2f2f2f;
 }
-.stacked-configs > li > span > a.toggle-right {
+.stacked-configs > li > span > a.toggle-right,
+.stacked-configs > li > span > span.toggle-right {
     float: right;
     color: #999;
     padding-left: 10px;
 }
-.stacked-configs > li > span > a.toggle-left {
+.stacked-configs > li > span > a.toggle-left,
+.stacked-configs > li > span > span.toggle-left {
     color: #444;
     padding-right: 8px;
 }
 .stacked-configs > li > span > a:hover {
     color: #eee;
 }
-.stacked-configs > li > span > a.active {
+.stacked-configs > li > span > a.active,
+.stacked-configs > li > span > span.active {
     color: #f9be03;
+}
+.stacked-configs > li.new_notification_agent {
+    cursor: pointer;
 }
 .accordion {
     width: 100%;
@@ -2382,10 +2389,13 @@ a .home-platforms-list-cover-face:hover
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
+.accordion li {
+    margin: 0;
+}
 .accordion li:last-child .link {
     border-bottom: 0;
 }
-.accordion li i {
+.accordion li i.fa {
     position: absolute;
     top: 10px;
     left: 10px;
@@ -2449,7 +2459,7 @@ a .home-platforms-list-cover-face:hover
     text-align: center;
     bottom: 10px;
     min-height: 32px;
-    width: 250px;
+    width: 400px;
     z-index: 9999;
 }
 .ajaxMsg .msg {
@@ -3066,4 +3076,35 @@ a:hover .overlay-refresh-image:hover {
 }
 #api_key.form-control[readonly]:focus {
     background-color: #fff;
+}
+#plexpy-notifiers-table .friendly_name {
+    color: #777;
+}
+#notifier-config-modal .nav-tabs {
+    margin-bottom: 10px;
+    padding-left: 15px;
+    border-bottom: 1px solid #444;
+}
+#notifier-config-modal .nav-tabs > li {
+    margin: 0 0 -1px 0;
+}
+#notifier-config-modal .nav-tabs > li > a {
+    padding: 5px 10px;
+    color: #737373;
+}
+#notifier-config-modal .nav-tabs > li > a:hover {
+    border-color: #444;
+    background: #222;
+}
+#notifier-config-modal .nav-tabs > li.active > a,
+#notifier-config-modal .nav-tabs > li.active > a:hover,
+#notifier-config-modal .nav-tabs > li.active > a:focus {
+    color: #fff;
+    background: #222;
+}
+#notifier-config-modal .nav-tabs > li.active > a,
+#notifier-config-modal .nav-tabs > li.active > a:hover,
+#notifier-config-modal .nav-tabs > li.active > a:focus {
+    border: 1px solid #444;
+    border-bottom-color: transparent;
 }

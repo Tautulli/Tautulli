@@ -1,0 +1,46 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           notifiers_table.html
+Version:            0.1
+
+DOCUMENTATION :: END
+</%doc>
+
+<ul class="stacked-configs list-unstyled">
+    % for notifier in notifiers_list:
+    <li>
+        <span>
+            <span class="toggle-left trigger-tooltip ${'active' if any(notifier['actions'].values()) else ''}" data-toggle="tooltip" data-placement="top" title="Triggers active"><i class="fa fa-lg fa-bell"></i></span>
+            ${notifier['agent_label']} <span class="friendly_name">(${notifier['friendly_name'] or notifier['id']})</span>
+            <a href="#" data-target="#notifier-config-modal" data-id="${notifier['id']}" class="toggle-notifier-config-modal toggle-right" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
+        </span>
+    </li>
+    % endfor
+    <li>
+        <span>
+            <span class="toggle-left"><i class="fa fa-lg fa-bell"></i></span> Add a new notification agent
+            <a href="#add-notifier-modal" data-toggle="modal" class="toggle-right"><i class="fa fa-lg fa-plus"></i></a>
+        </span>
+    </li>
+</ul>
+
+<script>
+    // Load notification agent config modal
+    $(".toggle-notifier-config-modal").click(function () {
+        var notifier_id = $(this).data('id');
+        $.ajax({
+            url: 'get_notifier_config_modal',
+            data: { notifier_id: notifier_id },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#notifier-config-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    $('.trigger-tooltip').tooltip();
+</script>
