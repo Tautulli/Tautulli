@@ -265,8 +265,7 @@ class ActivityProcessor(object):
                                     'reference_id': result[1]['reference_id']}
                 else:
                     # Get the last insert row id
-                    result = self.db.select(query='SELECT last_insert_rowid() AS last_id')
-                    last_id = result[0]['last_id'] if result else None
+                    last_id = self.db.last_insert_id()
 
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
                 # If rating_key is the same in the previous session, then set the reference_id to the previous row, else set the reference_id to the new id
