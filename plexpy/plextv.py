@@ -233,7 +233,6 @@ class PlexTV(object):
             logger.info(u"PlexPy PlexTV :: Updated Plex.tv token for PlexPy.")
             return token
 
-
     def get_server_token(self):
         servers = self.get_plextv_server_list(output_format='xml')
         server_token = ''
@@ -611,7 +610,7 @@ class PlexTV(object):
 
         return server_times
 
-    def discover(self):
+    def discover(self, all_servers=False):
         """ Query plex for all servers online. Returns the ones you own in a selectize format """
         servers = self.get_plextv_resources(include_https=True, output_format='xml')
         clean_servers = []
@@ -637,15 +636,16 @@ class PlexTV(object):
                         connections = d.getElementsByTagName('Connection')
 
                         for c in connections:
-                            # If this is a remote server don't show any local IPs.
-                            if helpers.get_xml_attr(d, 'publicAddressMatches') == '0' and \
-                                helpers.get_xml_attr(c, 'local') == '1':
-                                continue
+                            if not all_servers:
+                                # If this is a remote server don't show any local IPs.
+                                if helpers.get_xml_attr(d, 'publicAddressMatches') == '0' and \
+                                    helpers.get_xml_attr(c, 'local') == '1':
+                                    continue
 
-                            # If this is a local server don't show any remote IPs.
-                            if helpers.get_xml_attr(d, 'publicAddressMatches') == '1' and \
-                                helpers.get_xml_attr(c, 'local') == '0':
-                                continue
+                                # If this is a local server don't show any remote IPs.
+                                if helpers.get_xml_attr(d, 'publicAddressMatches') == '1' and \
+                                    helpers.get_xml_attr(c, 'local') == '0':
+                                    continue
 
                             server = {'httpsRequired': helpers.get_xml_attr(d, 'httpsRequired'),
                                       'clientIdentifier': helpers.get_xml_attr(d, 'clientIdentifier'),
