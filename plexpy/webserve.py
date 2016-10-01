@@ -2841,46 +2841,183 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'GeoLite2 database uninstall failed.'}
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def get_notification_agent_config(self, agent_id, **kwargs):
-        if agent_id.isdigit():
-            config = notifiers.get_notification_agent_config(agent_id=agent_id)
-            agents = notifiers.available_notification_agents()
-            for agent in agents:
-                if int(agent_id) == agent['id']:
-                    this_agent = agent
-                    break
-                else:
-                    this_agent = None
-        else:
-            return None
+    @addtoapi()
+    def get_notifiers(self, notify_action=None, **kwargs):
+        """ Get a list of configured notifiers.
 
-        checkboxes = {'email_tls': checked(plexpy.CONFIG.EMAIL_TLS)}
+            ```
+            Required parameters:
+                None
 
-        return serve_template(templatename="notification_config.html", title="Notification Configuration",
-                              agent=this_agent, data=config, checkboxes=checkboxes)
+            Optional parameters:
+                notify_action (str):        The notification action to filter out
+
+            Returns:
+                json:
+                    [{"id": 1,
+                      "agent_id": 13,
+                      "agent_name": "telegram",
+                      "agent_label": "Telegram",
+                      "friendly_name": "",
+                      "actions": {"on_play": 0,
+                                  "on_stop": 0,
+                                  ...
+                                  },
+                      }
+                     ]
+            ```
+        """
+        result = notifiers.get_notifiers(notify_action=notify_action)
+        return result
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def get_notification_agent_triggers(self, agent_id, **kwargs):
-        if agent_id.isdigit():
-            agents = notifiers.available_notification_agents()
-            for agent in agents:
-                if int(agent_id) == agent['id']:
-                    this_agent = agent
-                    break
-                else:
-                    this_agent = None
-        else:
-            return None
+    def get_notifiers_table(self, **kwargs):
+        result = notifiers.get_notifiers()
+        return serve_template(templatename="notifiers_table.html", notifiers_list=result)
 
-        return serve_template(templatename="notification_triggers_modal.html", title="Notification Triggers",
-                              data=this_agent)
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_notifier(self, notifier_id=None, **kwargs):
+        """ Remove a notifier from the database.
+
+            ```
+            Required parameters:
+                notifier_id (int):        The notifier to delete
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        result = notifiers.delete_notifier(notifier_id=notifier_id)
+        if result:
+            return {'result': 'success', 'message': 'Notifier deleted successfully.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to delete notifier.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_notifier_config(self, notifier_id=None, **kwargs):
+        """ Get the configuration for an existing notification agent.
+
+            ```
+            Required parameters:
+                notifier_id (int):        The notifier config to retrieve
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"id": 1,
+                     "agent_id": 13,
+                     "agent_name": "telegram",
+                     "agent_label": "Telegram",
+                     "friendly_name": "",
+                     "config": {"incl_poster": 0,
+                                "html_support": 1,
+                                "chat_id": "123456",
+                                "bot_token": "13456789:fio9040NNo04jLEp-4S",
+                                "incl_subject": 1,
+                                "disable_web_preview": 0
+                                },
+                     "notify_text": {"on_play": {"subject": "...",
+                                                 "body": "..."
+                                                 }
+                                     "on_stop": {"subject": "...",
+                                                 "body": "..."
+                                                 }
+                                     ...
+                                     },
+                                                 
+                     "actions": {"on_play": 0,
+                                 "on_stop": 0,
+                                 ...
+                                 }
+                     }
+            ```
+        """
+        result = notifiers.get_notifier_config(notifier_id=notifier_id)
+        return result
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def get_notifier_config_modal(self, notifier_id=None, **kwargs):
+        result = notifiers.get_notifier_config(notifier_id=notifier_id)
+        return serve_template(templatename="notifier_config.html", notifier=result)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def add_notifier_config(self, agent_id=None, **kwargs):
+        """ Add a new notification agent.
+
+            ```
+            Required parameters:
+                agent_id (int):           The notification agent to add
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        result = notifiers.add_notifier_config(agent_id=agent_id, **kwargs)
+
+        if result:
+            return {'result': 'success', 'message': 'Added notification agent.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to add notification agent.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def set_notifier_config(self, notifier_id=None, agent_id=None, **kwargs):
+        """ Configure an exisitng notificaiton agent.
+
+            ```
+            Required parameters:
+                notifier_id (int):        The notifier config to update
+                agent_id (int):           The agent of the notifier
+
+            Optional parameters:
+                Pass all the config options for the agent with the agent prefix:
+                    e.g. For Telegram: telegram_bot_token
+                                       telegram_chat_id
+                                       disable_web_preview
+                                       html_support
+                                       incl_poster
+                                       incl_subject
+                Notify actions with 'trigger_' prefix (trigger_on_play, trigger_on_stop, etc.),
+                and notify text with 'text_' prefix (text_on_play_subject, text_on_play_body, etc.) are optional.
+
+            Returns:
+                None
+            ```
+        """
+        result = notifiers.set_notifier_config(notifier_id=notifier_id, agent_id=agent_id, **kwargs)
+
+        if result:
+            return {'result': 'success', 'message': 'Added notification agent.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to add notification agent.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi("notify")
-    def send_notification(self, agent_id=None, subject='PlexPy', body='Test notification', notify_action=None, **kwargs):
+    def send_notification(self, notifier_id=None, subject='PlexPy', body='Test notification', notify_action='', **kwargs):
         """ Send a notification using PlexPy.
 
             ```
@@ -2919,33 +3056,31 @@ class WebInterface(object):
 
         test = 'test ' if notify_action == 'test' else ''
 
-        if agent_id.isdigit():
-            agents = notifiers.available_notification_agents()
-            for agent in agents:
-                if int(agent_id) == agent['id']:
-                    this_agent = agent
-                    break
-                else:
-                    this_agent = None
-
-            if this_agent:
-                logger.debug(u"Sending %s%s notification." % (test, this_agent['name']))
-                if notifiers.send_notification(this_agent['id'], subject, body, notify_action, **kwargs):
+        if notifier_id:
+            notifier = notifiers.get_notifier_config(notifier_id=notifier_id)
+            
+            if notifier:
+                logger.debug(u"Sending %s%s notification." % (test, notifier['agent_name']))
+                if notifiers.send_notification(notifier_id=notifier_id,
+                                               subject=subject,
+                                               body=body,
+                                               notify_action=notify_action,
+                                               **kwargs):
                     return "Notification sent."
                 else:
                     return "Notification failed."
             else:
-                logger.debug(u"Unable to send %snotification, invalid notification agent id %s." % (test, agent_id))
-                return "Invalid notification agent id %s." % agent_id
+                logger.debug(u"Unable to send %snotification, invalid notifier_id %s." % (test, notifier_id))
+                return "Invalid notifier id %s." % notifier_id
         else:
-            logger.debug(u"Unable to send %snotification, no notification agent id received." % test)
-            return "No notification agent id received."
+            logger.debug(u"Unable to send %snotification, no notifier_id received." % test)
+            return "No notifier id received."
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def get_browser_notifications(self, **kwargs):
-        browser = notifiers.Browser()
+        browser = notifiers.BROWSER()
         result = browser.get_notifications()
 
         if result:
@@ -2962,14 +3097,14 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def facebookStep1(self, **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
-        facebook = notifiers.FacebookNotifier()
+        facebook = notifiers.FACEBOOK()
         return facebook._get_authorization()
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def facebookStep2(self, code, **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
-        facebook = notifiers.FacebookNotifier()
+        facebook = notifiers.FACEBOOK()
         result = facebook._get_credentials(code)
         # logger.info(u"result: " + str(result))
         if result:
@@ -2985,8 +3120,8 @@ class WebInterface(object):
 
         result, msg = osxnotify.registerapp(app)
         if result:
-            osx_notify = notifiers.OSX_NOTIFY()
-            osx_notify.notify('Registered', result, 'Success :-)')
+            osx_notify = notifiers.OSX()
+            osx_notify.notify(subject='Registered', body='Success :-)', subtitle=result)
             # logger.info(u"Registered %s, to re-register a different app, delete this app first" % result)
         else:
             logger.warn(msg)

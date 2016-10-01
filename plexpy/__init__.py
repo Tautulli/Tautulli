@@ -462,6 +462,27 @@ def dbcheck():
         'timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, ip_address TEXT, host TEXT, user_agent TEXT)'
     )
 
+    # notifiers table :: This table keeps record of the notification agent settings
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS notifiers (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'agent_id INTEGER, agent_name TEXT, agent_label TEXT, friendly_name TEXT, notifier_config TEXT, '
+        'on_play INTEGER DEFAULT 0, on_stop INTEGER DEFAULT 0, on_pause INTEGER DEFAULT 0, '
+        'on_resume INTEGER DEFAULT 0, on_buffer INTEGER DEFAULT 0, on_watched INTEGER DEFAULT 0, '
+        'on_created INTEGER DEFAULT 0, on_extdown INTEGER DEFAULT 0, on_intdown INTEGER DEFAULT 0, '
+        'on_extup INTEGER DEFAULT 0, on_intup INTEGER DEFAULT 0, on_pmsupdate INTEGER DEFAULT 0, '
+        'on_concurrent INTEGER DEFAULT 0, on_newdevice INTEGER DEFAULT 0, '
+        'on_play_subject TEXT, on_stop_subject TEXT, on_pause_subject TEXT, '
+        'on_resume_subject TEXT, on_buffer_subject TEXT, on_watched_subject TEXT, '
+        'on_created_subject TEXT, on_extdown_subject TEXT, on_intdown_subject TEXT, '
+        'on_extup_subject TEXT, on_intup_subject TEXT, on_pmsupdate_subject TEXT, '
+        'on_concurrent_subject TEXT, on_newdevice_subject TEXT, '
+        'on_play_body TEXT, on_stop_body TEXT, on_pause_body TEXT, '
+        'on_resume_body TEXT, on_buffer_body TEXT, on_watched_body TEXT, '
+        'on_created_body TEXT, on_extdown_body TEXT, on_intdown_body TEXT, '
+        'on_extup_body TEXT, on_intup_body TEXT, on_pmsupdate_body TEXT, '
+        'on_concurrent_body TEXT, on_newdevice_body TEXT)'
+    )
+
     # Upgrade sessions table from earlier versions
     try:
         c_db.execute('SELECT started FROM sessions')

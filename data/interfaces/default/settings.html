@@ -7,7 +7,7 @@
     from plexpy import common, notifiers
     from plexpy.helpers import anon_url
 
-    available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
+    available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['label'])
 %>
 <%def name="headIncludes()">
 </%def>
@@ -973,274 +973,6 @@
                             <p class="help-block">Set the delay (in seconds) for recently added notifications to allow metadata to be processed. Minimum 60 seconds.</p>
                         </div>
 
-                        <div class="padded-header">
-                            <h3>Custom Notification Messages</h3>
-                        </div>
-                        <p class="help-block">
-                            You can set custom formatted text for each type of notification.
-                            <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a list of available parameters which can be used.
-                        </p>
-                        <p class="help-block">
-                            You can also add tags to exclude certain text depending on the media type.
-                            <a href="#notify-text-tags-modal" data-toggle="modal">Click here</a> to view usage information.
-                        </p>
-                        <br/>
-                        <ul id="accordion-session" class="accordion list-unstyled">
-                            <li>
-                                <div class="link"><i class="fa fa-play fa-fw"></i>&nbsp;Playback Start<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_start_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_start_subject_text" name="notify_on_start_subject_text" value="${config['notify_on_start_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_start_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_start_body_text" name="notify_on_start_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_start_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-stop fa-fw"></i>&nbsp;Playback Stop<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_stop_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_stop_subject_text" name="notify_on_stop_subject_text" value="${config['notify_on_stop_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_stop_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_stop_body_text" name="notify_on_stop_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_stop_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-pause fa-fw"></i>&nbsp;Playback Pause<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_pause_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_pause_subject_text" name="notify_on_pause_subject_text" value="${config['notify_on_pause_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_pause_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_pause_body_text" name="notify_on_pause_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_pause_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-play fa-fw"></i>&nbsp;Playback Resume<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_resume_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_resume_subject_text" name="notify_on_resume_subject_text" value="${config['notify_on_resume_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_resume_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_resume_body_text" name="notify_on_resume_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_resume_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-eye fa-fw"></i>&nbsp;Watched<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_watched_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_watched_subject_text" name="notify_on_watched_subject_text" value="${config['notify_on_watched_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_watched_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_watched_body_text" name="notify_on_watched_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_watched_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-spinner fa-fw"></i>&nbsp;Buffer Warnings<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_buffer_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_buffer_subject_text" name="notify_on_buffer_subject_text" value="${config['notify_on_buffer_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_buffer_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_buffer_body_text" name="notify_on_buffer_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_buffer_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-arrow-circle-o-right fa-fw"></i>&nbsp;User Concurrent Streams<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_concurrent_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_concurrent_subject_text" name="notify_on_concurrent_subject_text" value="${config['notify_on_concurrent_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_buffer_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_concurrent_body_text" name="notify_on_concurrent_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_concurrent_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-desktop fa-fw"></i>&nbsp;User New Device<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_newdevice_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_newdevice_subject_text" name="notify_on_newdevice_subject_text" value="${config['notify_on_newdevice_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_buffer_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_newdevice_body_text" name="notify_on_newdevice_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_newdevice_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <ul id="accordion-timeline" class="accordion list-unstyled">
-                            <li>
-                                <div class="link"><i class="fa fa-download fa-fw"></i>&nbsp;Recently Added<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_created_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_created_subject_text" name="notify_on_created_subject_text" value="${config['notify_on_created_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_created_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_created_body_text" name="notify_on_created_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_created_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Server Down<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_intdown_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_intdown_subject_text" name="notify_on_intdown_subject_text" value="${config['notify_on_intdown_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_intdown_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_intdown_body_text" name="notify_on_intdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_intdown_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Server Back Up<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_intup_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_intup_subject_text" name="notify_on_intup_subject_text" value="${config['notify_on_intup_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_intup_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_intup_body_text" name="notify_on_intup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_intup_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Down<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_extdown_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_extdown_subject_text" name="notify_on_extdown_subject_text" value="${config['notify_on_extdown_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_extdown_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_extdown_body_text" name="notify_on_extdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extdown_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Back Up<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_extup_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_extup_subject_text" name="notify_on_extup_subject_text" value="${config['notify_on_extup_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_extup_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_extup_body_text" name="notify_on_extup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extup_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-refresh fa-fw"></i>&nbsp;Plex Update Available<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_pmsupdate_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_pmsupdate_subject_text" name="notify_on_pmsupdate_subject_text" value="${config['notify_on_pmsupdate_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_extup_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_pmsupdate_body_text" name="notify_on_pmsupdate_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_pmsupdate_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <ul id="accordion-scripts" class="accordion list-unstyled">
-                            <li>
-                                <div class="link"><i class="glyphicon glyphicon-console"></i>&nbsp;Script <i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_scripts_args_text">Script Arguments</label>
-                                            <input class="form-control" type="text" id="notify_scripts_args_text" name="notify_scripts_args_text" value="${config['notify_scripts_args_text']}" data-parsley-trigger="change">
-                                            <p class="help-block">Set custom arguments passed to the scripts.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-10">
@@ -1249,27 +981,13 @@
                             <h3>Notification Agents</h3>
                         </div>
                         <p class="help-block">
-                            Toggle the desired notification options by clicking the <span class="help-bold">bell icon (<i class="fa fa-sm fa-bell"></i>)</span> and configure it by clicking the settings icon to the right.
+                            Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
                         </p>
-                        <br/>
-                        <ul class="stacked-configs list-unstyled">
-                            % for agent in available_notification_agents:
-                            <li>
-                                <span>
-                                    % if any(k[:2] == 'on' and v == 1 for k, v in agent.iteritems()):
-                                    <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left active" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
-                                    % else:
-                                    <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
-                                    % endif
-                                    ${agent['name']}
-                                    % if agent['has_config']:
-                                    <a href="javascript:void(0)" rel="tooltip" data-target="#notification-config-modal" data-placement="top" title data-title="Open configuration" data-id="${agent['id']}" class="toggle-notification-config-modal toggle-right" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
-                                    % endif
-                                </span>
-                            </li>
-                            % endfor
-                        </ul>
-
+                        <br />
+                        <div id="plexpy-notifiers-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
+                            <br>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -1591,8 +1309,35 @@
         </div>
     </div>
     <div id="app-import-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="app-import-modal"></div>
-    <div id="notification-config-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notification-config-modal"></div>
-    <div id="notification-triggers-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notification-triggers-modal"></div>
+    <div id="add-notifier-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add-notifier-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Add a Notification Agent</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <ul class="stacked-configs list-unstyled">
+                                    % for agent in available_notification_agents:
+                                    <li class="new_notification_agent" data-id="${agent['id']}">
+                                        <span>${agent['label']}</span>
+                                    </li>
+                                    % endfor
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="button" class="btn btn-bright" data-dismiss="modal" value="Cancel">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="notifier-config-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notifier-config-modal"></div>
     <div id="notify-text-sub-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notify-text-sub-modal">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -2166,6 +1911,17 @@
         });
     }
 
+    function getNotifiersTable() {
+        $.ajax({
+            url: 'get_notifiers_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-notifiers-table").html(xhr.responseText);
+            }
+        });
+    }
+
 $(document).ready(function() {
 
     // Javascript to enable link to tab
@@ -2204,6 +1960,7 @@ $(document).ready(function() {
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0)
         getConfigurationTable();
         getSchedulerTable();
+        getNotifiersTable();
         loadUpdateDistros();
         settingsChanged = false;
     }
@@ -2267,6 +2024,7 @@ $(document).ready(function() {
 
     getConfigurationTable();
     getSchedulerTable();
+    getNotifiersTable();
 
     $('#changelog-modal-link').on('click', function (e) {
         e.preventDefault();
@@ -2452,39 +2210,6 @@ $(document).ready(function() {
         });
     });
 
-    // Load notification agent config modal
-    $(".toggle-notification-config-modal").click(function() {
-        var agent_id = $(this).data('id');
-        $.ajax({
-            url: 'get_notification_agent_config',
-            data: { agent_id: agent_id },
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#notification-config-modal").html(xhr.responseText);
-            }
-        });
-    });
-
-    // Load notification triggers config modal
-    $(".toggle-notification-triggers-modal").click(function() {
-        var agent_id = $(this).data('id');
-        $.ajax({
-            url: 'get_notification_agent_triggers',
-            data: { agent_id: agent_id },
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#notification-triggers-modal").html(xhr.responseText);
-            }
-        });
-    });
-
-    $('#osxnotifyregister').click(function () {
-        var osx_notify_app = $("#osx_notify_reg").val();
-        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { showMsg("<div class='msg'><span class='fa fa-check'></span>" + data + "</div>", false, true, 3000); });
-    })
-
     pms_version = false;
     pms_logs_debug = false;
     pms_logs = false;
@@ -2546,10 +2271,6 @@ $(document).ready(function() {
             }
         }
     });
-
-    var accordion_session = new Accordion($('#accordion-session'), false);
-    var accordion_timeline = new Accordion($('#accordion-timeline'), false);
-    var accordion_scripts = new Accordion($('#accordion-scripts'), false);
 
     // Sortable home_sections
     function set_home_sections() {
@@ -2646,16 +2367,6 @@ $(document).ready(function() {
         onSort: function(elem, ui) {
             set_home_library_cards();
         }
-    });
-
-
-    // auto resizing textarea for custom notification message body
-    $('textarea[data-autoresize]').each(function() {
-        var offset = this.offsetHeight - this.clientHeight;
-        var resizeTextarea = function(el) {
-            $(el).css('height', 'auto').css('height', el.scrollHeight + offset);
-        };
-        $(this).on('focus keyup input', function() { resizeTextarea(this); }).removeAttr('data-autoresize');
     });
 
     $("#notify_recently_added_grandparent").change(function () {
@@ -2759,6 +2470,28 @@ $(document).ready(function() {
         var distro = $("option:selected", this).data('distro')
         $('#pms_update_distro').val(distro)
     });
+
+    // Add a new notification agent
+    $('.new_notification_agent').click(function () {
+        $.ajax({
+            url: 'add_notifier_config',
+            data: { agent_id: $(this).data('id') },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                result = $.parseJSON(xhr.responseText);
+                msg = result.message;
+                if (result.result == 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+                } else {
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+                }
+                $('#add-notifier-modal').modal('hide');
+                getNotifiersTable();
+            }
+        });
+    });
+
 });
 </script>
 </%def>
