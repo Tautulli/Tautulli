@@ -4339,9 +4339,8 @@ class WebInterface(object):
         if args and 'v2' in args[0]:
             return API2()._api_run(**kwargs)
         else:
-            a = Api()
-            a.checkParams(*args, **kwargs)
-            return a.fetchData()
+            return json.dumps(API2()._api_responds(result_type='error',
+                                                   msg='Please use the /api/v2 endpoint.'))
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
