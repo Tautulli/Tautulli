@@ -54,7 +54,7 @@ function showMsg(msg, loader, timeout, ms, error) {
     }
 }
 
-function confirmAjaxCall(url, msg, loader_msg, callback) {
+function confirmAjaxCall(url, msg, data, loader_msg, callback) {
     $("#confirm-message").html(msg);
     $('#confirm-modal').modal();
     $('#confirm-modal').one('click', '#confirm-button', function () {
@@ -64,6 +64,9 @@ function confirmAjaxCall(url, msg, loader_msg, callback) {
         $.ajax({
             url: url,
             type: 'POST',
+            cache: false,
+            async: true,
+            data: data,
             complete: function (xhr, status) {
                 var result = $.parseJSON(xhr.responseText);
                 var msg = result.message;

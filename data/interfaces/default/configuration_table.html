@@ -141,14 +141,14 @@ DOCUMENTATION :: END
                 'The database will be downloaded from <a href="${anon_url("https://dev.maxmind.com/geoip/geoip2/geolite2/")}" target="_blank">MaxMind</a>, <br />' +
                 'and requires <strong>100MB</strong> of free space to install in your PlexPy directory.<br />'
             var url = 'install_geoip_db';
-            confirmAjaxCall(url, msg, 'Installing GeoLite2 database.', getConfigurationTable);
+            confirmAjaxCall(url, msg, null, 'Installing GeoLite2 database.', getConfigurationTable);
         });
 
         $("#uninstall_geoip_db").click(function () {
             var msg = 'Are you sure you want to uninstall the GeoLite2 database?<br /><br />' +
                 'You will not be able to lookup IP address geolocation info.';
             var url = 'uninstall_geoip_db';
-            confirmAjaxCall(url, msg, 'Uninstalling GeoLite2 database.', getConfigurationTable);
+            confirmAjaxCall(url, msg, null, 'Uninstalling GeoLite2 database.', getConfigurationTable);
         });
 
         $('.guidelines-modal-link').on('click', function (e) {
