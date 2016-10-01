@@ -55,7 +55,7 @@ AGENT_IDS = {"growl": 0,
              "pushbullet": 6,
              "pushover": 7,
              "osx": 8,
-             "boxcar2": 9,
+             "boxcar": 9,
              "email": 10,
              "twitter": 11,
              "ifttt": 12,
@@ -102,9 +102,9 @@ def available_notification_agents():
                'name': 'pushover',
                'id': AGENT_IDS['pushover']
                },
-              {'label': 'Boxcar2',
-               'name': 'boxcar2',
-               'id': AGENT_IDS['boxcar2']
+              {'label': 'Boxcar',
+               'name': 'boxcar',
+               'id': AGENT_IDS['boxcar']
                },
               {'label': 'Email',
                'name': 'email',
@@ -312,6 +312,10 @@ def get_agent_class(agent_id=None, config=None):
         return None
 
 
+def get_notify_agents():
+    return tuple(a['name'] for a in sorted(available_notification_agents(), key=lambda k: k['label']))
+
+
 def get_notify_actions():
     return tuple(a['name'] for a in available_notification_actions())
 
@@ -413,8 +417,9 @@ def add_notifier_config(agent_id=None, **kwargs):
     monitor_db = database.MonitorDatabase()
     try:
         monitor_db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
-        logger.info(u"PlexPy Notifiers :: Added new notification agent: %s." % agent['label'])
-        return True
+        notifier_id = monitor_db.last_insert_id()
+        logger.info(u"PlexPy Notifiers :: Added new notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
+        return notifier_id
     except Exception as e:
         logger.warn(u"PlexPy Notifiers :: Unable to add notification agent: %s." % e)
         return False
@@ -460,7 +465,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     monitor_db = database.MonitorDatabase()
     try:
         monitor_db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
-        logger.info(u"PlexPy Notifiers :: Updated notification agent: %s." % agent['label'])
+        logger.info(u"PlexPy Notifiers :: Updated notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
         return True
     except Exception as e:
         logger.warn(u"PlexPy Notifiers :: Unable to update notification agent: %s." % e)
@@ -813,7 +818,7 @@ class PLEX(Notifier):
     """
     Plex Home Theater notifications
     """
-    _DEFAULT_CONFIG = {'client_hosts': '',
+    _DEFAULT_CONFIG = {'hosts': '',
                        'username': '',
                        'password': ''
                        }
@@ -845,7 +850,7 @@ class PLEX(Notifier):
         if not subject or not body:
             return
 
-        hosts = [x.strip() for x in self.config['client_hosts'].split(',')]
+        hosts = [x.strip() for x in self.config['hosts'].split(',')]
 
         display_time = "3000"  # in ms
 
@@ -876,8 +881,8 @@ class PLEX(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Plex Home Theater Host:Port',
-                          'value': self.config['client_hosts'],
-                          'name': 'plex_client_hosts',
+                          'value': self.config['hosts'],
+                          'name': 'plex_hosts',
                           'description': 'Host running Plex Home Theater (eg. http://localhost:3005). Separate multiple hosts with commas (,).',
                           'input_type': 'text'
                           },
@@ -1285,13 +1290,13 @@ class BOXCAR(Notifier):
     def return_config_options(self):
         config_option = [{'label': 'Boxcar Access Token',
                           'value': self.config['token'],
-                          'name': 'boxcar2_token',
+                          'name': 'boxcar_token',
                           'description': 'Your Boxcar access token.',
                           'input_type': 'text'
                           },
                          {'label': 'Sound',
                           'value': self.config['sound'],
-                          'name': 'boxcar2_sound',
+                          'name': 'boxcar_sound',
                           'description': 'Set the notification sound. Leave blank for the default sound.',
                           'input_type': 'select',
                           'select_options': self.get_sounds()
@@ -1535,7 +1540,7 @@ class IFTTT(Notifier):
     """
     IFTTT notifications
     """
-    _DEFAULT_CONFIG = {'apikey': '',
+    _DEFAULT_CONFIG = {'key': '',
                        'event': 'plexpy'
                        }
 
@@ -1550,7 +1555,7 @@ class IFTTT(Notifier):
 
         http_handler = HTTPSConnection("maker.ifttt.com")
         http_handler.request("POST",
-                             "/trigger/%s/with/key/%s" % (event, self.config['apikey']),
+                             "/trigger/%s/with/key/%s" % (event, self.config['key']),
                              headers={'Content-type': "application/json"},
                              body=json.dumps(data))
         response = http_handler.getresponse()
@@ -1568,8 +1573,8 @@ class IFTTT(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Ifttt Maker Channel Key',
-                          'value': self.config['apikey'],
-                          'name': 'ifttt_apikey',
+                          'value': self.config['key'],
+                          'name': 'ifttt_key',
                           'description': 'Your Ifttt  key. You can get a key from'
                                          ' <a href="' + helpers.anon_url('https://ifttt.com/maker') + '" target="_blank">here</a>.',
                           'input_type': 'text'
@@ -2337,7 +2342,7 @@ class JOIN(Notifier):
     Join notifications
     """
     _DEFAULT_CONFIG = {'apikey': '',
-                       'deviceid': '',
+                       'device_id': '',
                        'incl_subject': 1
                        }
 
@@ -2345,10 +2350,10 @@ class JOIN(Notifier):
         if not subject or not body:
             return
 
-        deviceid_key = 'deviceId%s' % ('s' if len(self.config['deviceid'].split(',')) > 1 else '')
+        deviceid_key = 'deviceId%s' % ('s' if len(self.config['device_id'].split(',')) > 1 else '')
 
         data = {'apikey': self.config['apikey'],
-                deviceid_key: self.config['deviceid'],
+                deviceid_key: self.config['device_id'],
                 'text': body.encode("utf-8")}
 
         if self.config['incl_subject']:
@@ -2418,8 +2423,8 @@ class JOIN(Notifier):
                           'refresh': True
                           },
                          {'label': 'Device ID(s) or Group ID',
-                          'value': self.config['deviceid'],
-                          'name': 'join_deviceid',
+                          'value': self.config['device_id'],
+                          'name': 'join_device_id',
                           'description': 'Set your Join device ID or group ID. ' \
                               'Separate multiple devices with commas (,).',
                           'input_type': 'text',
@@ -2443,7 +2448,7 @@ class HIPCHAT(Notifier):
     """
     Hipchat notifications
     """
-    _DEFAULT_CONFIG = {'apiurl': '',
+    _DEFAULT_CONFIG = {'api_url': '',
                        'color': '',
                        'emoticon': '',
                        'incl_pmslink': 0,
@@ -2505,8 +2510,8 @@ class HIPCHAT(Notifier):
             data['message'] = text
             data['message_format'] = 'text'
 
-        hiphost = urlparse(self.config['apiurl']).hostname
-        hipfullq = urlparse(self.config['apiurl']).path + '?' + urlparse(self.config['apiurl']).query
+        hiphost = urlparse(self.config['api_url']).hostname
+        hipfullq = urlparse(self.config['api_url']).path + '?' + urlparse(self.config['api_url']).query
 
         http_handler = HTTPSConnection(hiphost)
         http_handler.request("POST",
@@ -2528,8 +2533,8 @@ class HIPCHAT(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Hipchat Custom Integrations Full URL',
-                          'value': self.config['apiurl'],
-                          'name': 'hipchat_apiurl',
+                          'value': self.config['api_url'],
+                          'name': 'hipchat_api_url',
                           'description': 'Your Hipchat BYO integration URL. You can get a key from'
                                          ' <a href="' + helpers.anon_url('https://www.hipchat.com/addons/') + '" target="_blank">here</a>.',
                           'input_type': 'text'
@@ -2672,3 +2677,111 @@ class OSX(Notifier):
                          ]
 
         return config_option
+    
+
+def upgrade_config_to_db():
+    logger.info(u"PlexPy Notifiers :: Upgrading to new notification system...")
+
+    # Set flag first in case something fails we don't want to keep re-adding the notifiers
+    plexpy.CONFIG.__setattr__('UPDATE_NOTIFIERS_DB', 0)
+    plexpy.CONFIG.write()
+
+    # Config section names from the {new: old} config
+    section_overrides = {'xbmc': 'XBMC',
+                         'nma': 'NMA',
+                         'pushbullet': 'PushBullet',
+                         'osx': 'OSX_Notify',
+                         'ifttt': 'IFTTT'
+                         }
+
+    # Config keys from the {new: old} config
+    config_key_overrides = {'plex': {'hosts': 'client_host'},
+                            'facebook': {'access_token': 'token',
+                                         'group_id': 'group'},
+                            'join': {'device_id': 'deviceid'},
+                            'hipchat': {'api_url': 'url'},
+                            'osx': {'notify_app': 'app'},
+                            'scripts': {'script_folder': 'folder'}
+                            }
+
+    # Get Monitoring config section
+    monitoring = plexpy.CONFIG._config['Monitoring']
+    
+    # Get the new default notification subject and body text
+    defualt_subject_text = {a['name']: a['subject'] for a in available_notification_actions()}
+    defualt_body_text = {a['name']: a['body'] for a in available_notification_actions()}
+
+    # Get the old notification subject and body text
+    notify_text = {}
+    for action in get_notify_actions():
+        subject_key = 'notify_' + action + '_subject_text'
+        body_key = 'notify_' + action + '_body_text'
+        notify_text[action + '_subject'] = monitoring.get(subject_key, defualt_subject_text[action])
+        notify_text[action + '_body'] = monitoring.get(body_key, defualt_body_text[action])
+        
+    # Check through each notification agent
+    for agent in get_notify_agents():
+        agent_id = AGENT_IDS[agent]
+
+        # Get the old config section for the agent
+        agent_section = section_overrides.get(agent, agent.capitalize())
+        agent_config = plexpy.CONFIG._config[agent_section]
+        agent_config_key = agent_section.lower()
+
+        # Get all the actions for the agent
+        agent_actions = {}
+        for action in get_notify_actions():
+            a_key = agent_config_key + '_' + action
+            agent_actions[action] = helpers.cast_to_int(agent_config.get(a_key, 0))
+
+        # Check if any of the actions were enabled
+        # If so, the agent will be added to the database
+        if any(agent_actions.values()):
+            # Get the new default config for the agent
+            notifier_default_config = get_agent_class(agent_id).config
+
+            # Update the new config with the old config values
+            notifier_config = {}
+            for conf, val in notifier_default_config.iteritems():
+                c_key = agent_config_key + '_' + config_key_overrides.get(agent, {}).get(conf, conf)
+                notifier_config[agent + '_' + conf] = agent_config.get(c_key, val)
+
+            # Special handling for scripts - one script with multiple actions
+            if agent == 'scripts':
+                # Get the old script arguments
+                script_args = monitoring.get('notify_scripts_args_text', '')
+
+                # Get the old scripts for each action
+                action_scripts = {}
+                for action in get_notify_actions():
+                    s_key = agent + '_' + action + '_script'
+                    action_scripts[action] = agent_config.get(s_key, '')
+
+                # Reverse the dict to {script: [actions]}
+                script_actions = {}
+                for k, v in action_scripts.items():
+                    if v: script_actions.setdefault(v, set()).add(k)
+
+                # Add a new script notifier for each script if the action was enabled
+                for script, actions in script_actions.items():
+                    if any(agent_actions[a] for a in actions):
+                        temp_config = notifier_config
+                        temp_config.update({a: 0 for a in agent_actions.keys()})
+                        temp_config.update({a + '_subject': '' for a in agent_actions.keys()})
+                        for a in actions:
+                            if agent_actions[a]:
+                                temp_config[a] = agent_actions[a]
+                                temp_config[a + '_subject'] = script_args
+                                temp_config[agent + '_script'] = script
+
+                        # Add a new notifier and update the config
+                        notifier_id = add_notifier_config(agent_id=agent_id)
+                        set_notifier_config(notifier_id=notifier_id, agent_id=agent_id, **temp_config)
+
+            else:
+                notifier_config.update(agent_actions)
+                notifier_config.update(notify_text)
+
+                # Add a new notifier and update the config
+                notifier_id = add_notifier_config(agent_id=agent_id)
+                set_notifier_config(notifier_id=notifier_id, agent_id=agent_id, **notifier_config)
