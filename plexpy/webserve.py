@@ -2861,10 +2861,7 @@ class WebInterface(object):
                       "agent_name": "telegram",
                       "agent_label": "Telegram",
                       "friendly_name": "",
-                      "actions": {"on_play": 0,
-                                  "on_stop": 0,
-                                  ...
-                                  },
+                      "active": 1
                       }
                      ]
             ```

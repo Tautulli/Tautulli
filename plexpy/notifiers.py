@@ -323,17 +323,21 @@ def get_notify_actions():
 def get_notifiers(notifier_id=None, notify_action=None):
     notify_actions = get_notify_actions()
 
-    where_action = ''
-    if notify_action and notify_action in notify_actions:
-        where_action = 'WHERE %s = 1 ' % notify_action
+    where = where_id = where_action = ''
+    if notifier_id or notify_action:
+        where = 'WHERE '
+        if notifier_id:
+            where_id += 'notifier_id = %s' % notifier_id
+        if notify_action and notify_action in notify_actions:
+            where_action = '%s = 1' % notify_action
+        where += ' AND '.join([w for w in [where_id, where_action] if w])
 
     monitor_db = database.MonitorDatabase()
     result = monitor_db.select('SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s'
-                               % (', '.join(notify_actions), where_action))
+                               % (', '.join(notify_actions), where))
     
     for item in result:
-        item['actions'] = {k: helpers.cast_to_int(item.pop(k))
-                           for k in item.keys() if k in notify_actions}
+        item['active'] = int(any([item.pop(k) for k in item.keys() if k in notify_actions]))
 
     return sorted(result, key=lambda k: (k['agent_label'], k['id']))
 
