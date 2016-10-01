@@ -117,7 +117,7 @@ class PmsConnect(object):
         if plexpy.CONFIG.PMS_URL:
             url_parsed = urlparse(plexpy.CONFIG.PMS_URL)
             hostname = url_parsed.hostname
-            port = url_parsed.port
+            port = url_parsed.port or plexpy.CONFIG.PMS_PORT
             self.protocol = url_parsed.scheme
         else:
             hostname = plexpy.CONFIG.PMS_IP
