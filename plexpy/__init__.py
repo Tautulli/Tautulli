@@ -103,7 +103,7 @@ def initialize(config_file):
 
         if CONFIG.HTTP_PORT < 21 or CONFIG.HTTP_PORT > 65535:
             plexpy.logger.warn(
-                'HTTP_PORT out of bounds: 21 < %s < 65535', CONFIG.HTTP_PORT)
+                u"HTTP_PORT out of bounds: 21 < %s < 65535", CONFIG.HTTP_PORT)
             CONFIG.HTTP_PORT = 8181
 
         if not CONFIG.HTTPS_CERT:
@@ -134,7 +134,7 @@ def initialize(config_file):
             try:
                 os.makedirs(CONFIG.BACKUP_DIR)
             except OSError as e:
-                logger.error("Could not create backup dir '%s': %s" % (CONFIG.BACKUP_DIR, e))
+                logger.error(u"Could not create backup dir '%s': %s" % (CONFIG.BACKUP_DIR, e))
 
         if not CONFIG.CACHE_DIR:
             CONFIG.CACHE_DIR = os.path.join(DATA_DIR, 'cache')
@@ -142,10 +142,10 @@ def initialize(config_file):
             try:
                 os.makedirs(CONFIG.CACHE_DIR)
             except OSError as e:
-                logger.error("Could not create cache dir '%s': %s" % (CONFIG.CACHE_DIR, e))
+                logger.error(u"Could not create cache dir '%s': %s" % (CONFIG.CACHE_DIR, e))
 
         # Initialize the database
-        logger.info('Checking to see if the database has all tables....')
+        logger.info(u"Checking if the database upgrades are required...")
         try:
             dbcheck()
         except Exception as e:
@@ -171,7 +171,7 @@ def initialize(config_file):
                 with open(version_lock_file, "w") as fp:
                     fp.write(CURRENT_VERSION)
             except IOError as e:
-                logger.error("Unable to write current version to file '%s': %s" %
+                logger.error(u"Unable to write current version to file '%s': %s" %
                              (version_lock_file, e))
 
         # Check for new versions
@@ -179,7 +179,7 @@ def initialize(config_file):
             try:
                 LATEST_VERSION = versioncheck.checkGithub()
             except:
-                logger.exception("Unhandled exception")
+                logger.exception(u"Unhandled exception")
                 LATEST_VERSION = CURRENT_VERSION
         else:
             LATEST_VERSION = CURRENT_VERSION
@@ -207,8 +207,8 @@ def initialize(config_file):
 def daemonize():
     if threading.activeCount() != 1:
         logger.warn(
-            'There are %r active threads. Daemonizing may cause'
-            ' strange behavior.',
+            u"There are %r active threads. Daemonizing may cause"
+            " strange behavior.",
             threading.enumerate())
 
     sys.stdout.flush()
@@ -248,10 +248,10 @@ def daemonize():
     os.dup2(se.fileno(), sys.stderr.fileno())
 
     pid = os.getpid()
-    logger.info('Daemonized to PID: %d', pid)
+    logger.info(u"Daemonized to PID: %d", pid)
 
     if CREATEPID:
-        logger.info("Writing PID %d to %s", pid, PIDFILE)
+        logger.info(u"Writing PID %d to %s", pid, PIDFILE)
         with file(PIDFILE, 'w') as fp:
             fp.write("%s\n" % pid)
 
@@ -269,7 +269,7 @@ def launch_browser(host, port, root):
         try:
             webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
         except Exception as e:
-            logger.error('Could not launch browser: %s' % e)
+            logger.error(u"Could not launch browser: %s" % e)
 
 
 def initialize_scheduler():
@@ -351,15 +351,15 @@ def schedule_job(function, name, hours=0, minutes=0, seconds=0, args=None):
     if job:
         if hours == 0 and minutes == 0 and seconds == 0:
             SCHED.remove_job(name)
-            logger.info("Removed background task: %s", name)
+            logger.info(u"Removed background task: %s", name)
         elif job.trigger.interval != datetime.timedelta(hours=hours, minutes=minutes):
             SCHED.reschedule_job(name, trigger=IntervalTrigger(
                 hours=hours, minutes=minutes, seconds=seconds), args=args)
-            logger.info("Re-scheduled background task: %s", name)
+            logger.info(u"Re-scheduled background task: %s", name)
     elif hours > 0 or minutes > 0 or seconds > 0:
         SCHED.add_job(function, id=name, trigger=IntervalTrigger(
             hours=hours, minutes=minutes, seconds=seconds), args=args)
-        logger.info("Scheduled background task: %s", name)
+        logger.info(u"Scheduled background task: %s", name)
 
 
 def start():
@@ -372,7 +372,7 @@ def start():
 
 def sig_handler(signum=None, frame=None):
     if signum is not None:
-        logger.info("Signal %i caught, saving and exiting...", signum)
+        logger.info(u"Signal %i caught, saving and exiting...", signum)
         shutdown()
 
 
@@ -955,7 +955,7 @@ def dbcheck():
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
     if not result.fetchone():
-        logger.debug(u'User "Local" does not exist. Adding user.')
+        logger.debug(u"User 'Local' does not exist. Adding user.")
         c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
 
     conn_db.commit()
@@ -969,27 +969,27 @@ def shutdown(restart=False, update=False):
     CONFIG.write()
 
     if not restart and not update:
-        logger.info('PlexPy is shutting down...')
+        logger.info(u"PlexPy is shutting down...")
 
     if update:
-        logger.info('PlexPy is updating...')
+        logger.info(u"PlexPy is updating...")
         try:
             versioncheck.update()
         except Exception as e:
-            logger.warn('PlexPy failed to update: %s. Restarting.' % e)
+            logger.warn(u"PlexPy failed to update: %s. Restarting." % e)
 
     if CREATEPID:
-        logger.info('Removing pidfile %s', PIDFILE)
+        logger.info(u"Removing pidfile %s", PIDFILE)
         os.remove(PIDFILE)
 
     if restart:
-        logger.info('PlexPy is restarting...')
+        logger.info(u"PlexPy is restarting...")
         exe = sys.executable
         args = [exe, FULL_PATH]
         args += ARGS
         if '--nolaunch' not in args:
             args += ['--nolaunch']
-        logger.info('Restarting PlexPy with %s', args)
+        logger.info(u"Restarting PlexPy with %s", args)
 
         # os.execv fails with spaced names on Windows
         # https://bugs.python.org/issue19066
