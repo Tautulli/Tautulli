@@ -129,6 +129,16 @@
                             </label>
                             <p class="help-block">Include current activity in the history tables. Statistics will not be counted until the stream has ended.</p>
                         </div>
+                        <div class="form-group">
+                            <label for="notify_watched_percent">Watched Percent</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_watched_percent" name="notify_watched_percent" value="${config['notify_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" data-parsley-errors-container="#notify_watched_percent_error" required>
+                                </div>
+                                <div id="notify_watched_percent_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the percentage for a media item to be considered as watched. Minimum 50, Maximum 95.</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Backup</h3>
@@ -901,16 +911,6 @@
                             <h3>Current Activity Notifications</h3>
                         </div>
 
-                        <div class="form-group">
-                            <label for="notify_watched_percent">Watched Percent</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_watched_percent" name="notify_watched_percent" value="${config['notify_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" data-parsley-errors-container="#notify_watched_percent_error" required>
-                                </div>
-                                <div id="notify_watched_percent_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">Set the progress percentage of when a watched notification should be triggered. Minimum 50, Maximum 95.</p>
-                        </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Consecutive Notifications
