@@ -246,25 +246,6 @@
     </nav>
 </div>
 
-<div id="confirm-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">Confirm</h4>
-            </div>
-            <div class="modal-body">
-                <div id="confirm-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-button">Confirm</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 % if _session['user_group'] != 'admin':
 <div id="admin-login-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="admin-login-modal">
     <div class="modal-dialog" role="document">
@@ -310,6 +291,25 @@
 ${next.headerIncludes()}
 <div class="body-container">
     ${next.body()}
+</div>
+
+<div id="confirm-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Confirm</h4>
+            </div>
+            <div class="modal-body">
+                <div id="confirm-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-button">Confirm</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="${http_root}js/jquery-2.1.4.min.js"></script>
