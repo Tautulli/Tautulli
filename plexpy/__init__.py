@@ -149,7 +149,14 @@ def initialize(config_file):
         try:
             dbcheck()
         except Exception as e:
-            logger.error("Can't connect to the database: %s" % e)
+            logger.error(u"Can't connect to the database: %s" % e)
+
+        # Perform upgrades
+        logger.info(u"Checking if configuration upgrades are required...")
+        try:
+            upgrade()
+        except Exception as e:
+            logger.error(u"Could not perform upgrades: %s" % e)
 
         # Check if PlexPy has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
@@ -982,6 +989,9 @@ def dbcheck():
     conn_db.commit()
     c_db.close()
 
+def upgrade():
+    if CONFIG.UPDATE_NOTIFIERS_DB:
+        notifiers.upgrade_config_to_db()
 
 def shutdown(restart=False, update=False):
     cherrypy.engine.exit()

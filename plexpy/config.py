@@ -564,6 +564,7 @@ _CONFIG_DEFINITIONS = {
     'UPDATE_SECTION_IDS': (int, 'General', 1),
     'UPDATE_SHOW_CHANGELOG': (int, 'General', 1),
     'UPDATE_LABELS': (int, 'General', 1),
+    'UPDATE_NOTIFIERS_DB': (int, 'General', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'XBMC_ENABLED': (int, 'XBMC', 0),
