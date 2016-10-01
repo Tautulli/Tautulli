@@ -3077,7 +3077,8 @@ a:hover .overlay-refresh-image:hover {
 #api_key.form-control[readonly]:focus {
     background-color: #fff;
 }
-#plexpy-notifiers-table .friendly_name {
+#plexpy-notifiers-table .friendly_name,
+#notifier-config-modal span.notifier_id {
     color: #777;
 }
 #notifier-config-modal .nav-tabs {
