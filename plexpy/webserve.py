@@ -3283,9 +3283,21 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    @addtoapi()
-    def pms_image_proxy(self, img='', rating_key=None, width='0', height='0',
-                        fallback=None, refresh=False, **kwargs):
+    def pms_image_proxy(self, **kwargs):
+        """ See real_pms_image_proxy docs string"""
+
+        refresh = False
+        if kwargs.get('refresh'):
+            mo = member_of('admin')
+            refresh = True if mo() else False
+
+        kwargs['refresh'] = refresh
+
+        return self.real_pms_image_proxy(**kwargs)
+
+    @addtoapi('pms_image_proxy')
+    def real_pms_image_proxy(self, img='', rating_key=None, width='0', height='0',
+                             fallback=None, refresh=False, **kwargs):
         """ Gets an image from the PMS and saves it to the image cache directory.
 
             ```
@@ -3307,10 +3319,6 @@ class WebInterface(object):
         if not img and not rating_key:
             logger.error('No image input received.')
             return
-
-        if refresh:
-            mo = member_of('admin')
-            refresh = True if mo() else False
 
         if rating_key and not img:
             img = '/library/metadata/%s/thumb/1337' % rating_key
