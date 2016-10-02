@@ -339,7 +339,7 @@ def get_notifiers(notifier_id=None, notify_action=None):
     for item in result:
         item['active'] = int(any([item.pop(k) for k in item.keys() if k in notify_actions]))
 
-    return sorted(result, key=lambda k: (k['agent_label'], k['id']))
+    return result
 
 
 def delete_notifier(notifier_id=None):
@@ -357,7 +357,7 @@ def get_notifier_config(notifier_id=None):
     if str(notifier_id).isdigit():
         notifier_id = int(notifier_id)
     else:
-        logger.error(u"PlexPy Notifiers :: Unable to retrieve notifier config: invalid notifier_id.")
+        logger.error(u"PlexPy Notifiers :: Unable to retrieve notifier config: invalid notifier_id %s." % notifier_id)
         return None
 
     monitor_db = database.MonitorDatabase()
@@ -381,7 +381,6 @@ def get_notifier_config(notifier_id=None):
             notifier_text[k] = {'subject': result.pop(k + '_subject'),
                                 'body': result.pop(k + '_body')}
 
-    result['agent'] = notifier_agent
     result['config'] = notifier_config
     result['actions'] = notifier_actions
     result['notify_text'] = notifier_text
@@ -393,13 +392,13 @@ def add_notifier_config(agent_id=None, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
     else:
-        logger.error(u"PlexPy Notifiers :: Unable to add new notifier: invalid agent_id.")
+        logger.error(u"PlexPy Notifiers :: Unable to add new notifier: invalid agent_id %s." % agent_id)
         return False
 
     agent = next((a for a in available_notification_agents() if a['id'] == agent_id), None)
 
     if not agent:
-        logger.error(u"PlexPy Notifiers :: Unable to retrieve new notification agent: invalid agent_id.")
+        logger.error(u"PlexPy Notifiers :: Unable to retrieve new notification agent: invalid agent_id %s." % agent_id)
         return False
 
     keys = {'id': None}
@@ -433,13 +432,13 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     if str(agent_id).isdigit():
         agent_id = int(agent_id)
     else:
-        logger.error(u"PlexPy Notifiers :: Unable to set exisiting notifier: invalid agent_id.")
+        logger.error(u"PlexPy Notifiers :: Unable to set exisiting notifier: invalid agent_id %s." % agent_id)
         return False
 
     agent = next((a for a in available_notification_agents() if a['id'] == agent_id), None)
 
     if not agent:
-        logger.error(u"PlexPy Notifiers :: Unable to retrieve existing notification agent: invalid agent_id.")
+        logger.error(u"PlexPy Notifiers :: Unable to retrieve existing notification agent: invalid agent_id %s." % agent_id)
         return False
 
     notify_actions = get_notify_actions()
@@ -479,7 +478,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
 def send_notification(notifier_id=None, subject='', body='', notify_action='', **kwargs):
     notifier_config = get_notifier_config(notifier_id=notifier_id)
     if notifier_config:
-        agent = notifier_config['agent']
+        agent = get_agent_class(notifier_config['agent_id'])
         return agent.notify(subject=subject,
                             body=body,
                             action=notify_action,

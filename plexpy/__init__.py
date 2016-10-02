@@ -14,6 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from Queue import Queue
 import sqlite3
 import sys
 import subprocess
@@ -35,6 +36,7 @@ import activity_pinger
 import config
 import database
 import logger
+import notification_handler
 import plextv
 import pmsconnect
 import versioncheck
@@ -57,6 +59,8 @@ PIDFILE = None
 
 SCHED = BackgroundScheduler()
 SCHED_LOCK = threading.Lock()
+
+NOTIFY_QUEUE = Queue()
 
 INIT_LOCK = threading.Lock()
 _INITIALIZED = False
@@ -345,7 +349,6 @@ def initialize_scheduler():
                 # Debug
                 #SCHED.print_jobs()
 
-
 def schedule_job(function, name, hours=0, minutes=0, seconds=0, args=None):
     """
     Start scheduled job if starting or restarting plexpy.
@@ -374,6 +377,13 @@ def start():
 
     if _INITIALIZED:
         initialize_scheduler()
+
+        # Start background notification thread
+        if any([CONFIG.MOVIE_NOTIFY_ENABLE, CONFIG.TV_NOTIFY_ENABLE,
+                CONFIG.MUSIC_NOTIFY_ENABLE, CONFIG.NOTIFY_RECENTLY_ADDED]):
+            logger.info(u"Starting background notification handler.")
+            notification_handler.start_thread(num_threads=3)
+
         started = True
 
 
@@ -450,8 +460,8 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
         'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
-        'user_id INTEGER, user TEXT, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
-        'subject_text TEXT, body_text TEXT, script_args TEXT, poster_url TEXT)'
+        'user_id INTEGER, user TEXT, notifier_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
+        'subject_text TEXT, body_text TEXT, poster_url TEXT)'
     )
 
     # library_sections table :: This table keeps record of the servers library sections
@@ -897,6 +907,15 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE notify_log_temp RENAME TO notify_log'
+        )
+
+    # Upgrade notify_log table from earlier versions
+    try:
+        c_db.execute('SELECT notifier_id FROM notify_log')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table notify_log.")
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN notifier_id INTEGER'
         )
 
     # Upgrade library_sections table from earlier versions (remove UNIQUE constraint on section_id)
