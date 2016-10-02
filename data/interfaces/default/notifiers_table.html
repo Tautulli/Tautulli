@@ -10,7 +10,7 @@ DOCUMENTATION :: END
 </%doc>
 
 <ul class="stacked-configs list-unstyled">
-    % for notifier in notifiers_list:
+    % for notifier in sorted(notifiers_list, key=lambda k: (k['agent_label'], k['id'])):
     <li>
         <span>
             <span class="toggle-left trigger-tooltip ${'active' if notifier['active'] else ''}" data-toggle="tooltip" data-placement="top" title="Triggers active"><i class="fa fa-lg fa-bell"></i></span>

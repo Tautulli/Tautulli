@@ -22,6 +22,7 @@ import threading
 import time
 
 import plexpy
+import activity_processor
 import database
 import datafactory
 import libraries
@@ -32,8 +33,43 @@ import plextv
 import pmsconnect
 import users
 
-def notify(stream_data=None, notify_action=None):
-    if stream_data and notify_action:
+def process_queue():
+    queue = plexpy.NOTIFY_QUEUE
+    while True:
+        queue.get()
+        queue.task_done()
+
+
+def start_thread(num_threads=1):
+    for x in range(num_threads):
+        thread = threading.Thread(target=process_queue)
+        thread.daemon = True
+        thread.start()
+
+
+def add_to_notify_queue(notify_action=None, stream_data=None, timeline_data=None):
+    if not notify_action:
+        logger.debug(u"PlexPy NotificationHandler :: Notify called but no action received.")
+        return
+
+    # Check if any notification agents have notifications enabled for the action
+    notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action)
+
+    if notifiers_enabled:
+        for notifier in notifiers_enabled:
+            # Check if notification conditions are satisfied
+            conditions = notify_conditions(notifier=notifier,
+                                           notify_action=notify_action,
+                                           stream_data=stream_data,
+                                           timeline_data=timeline_data)
+            if conditions:
+                plexpy.NOTIFY_QUEUE.put(notify(notifier_id=notifier['id'],
+                                               notify_action=notify_action,
+                                               stream_data=stream_data,
+                                               timeline_data=timeline_data))
+
+def notify_conditions(notifier=None, notify_action=None, stream_data=None, timeline_data=None):
+    if stream_data:
         # Check if notifications enabled for user and library
         user_data = users.Users()
         user_details = user_data.get_details(user_id=stream_data['user_id'])
@@ -43,444 +79,87 @@ def notify(stream_data=None, notify_action=None):
 
         if not user_details['do_notify']:
             # logger.debug(u"PlexPy NotificationHandler :: Notifications for user '%s' is disabled." % user_details['username'])
-            return
+            return False
         elif not library_details['do_notify']:
             # logger.debug(u"PlexPy NotificationHandler :: Notifications for library '%s' is disabled." % library_details['section_name'])
-            return
+            return False
 
         if (stream_data['media_type'] == 'movie' and plexpy.CONFIG.MOVIE_NOTIFY_ENABLE) \
             or (stream_data['media_type'] == 'episode' and plexpy.CONFIG.TV_NOTIFY_ENABLE):
 
             progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
 
-            for agent in notifiers.available_notification_agents():
-                if agent['on_play'] and notify_action == 'play':
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
+            ap = activity_processor.ActivityProcessor()
+            user_sessions = ap.get_session_by_user_id(user_id=stream_data['user_id'],
+                                                      ip_address=plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP)
 
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
+            data_factory = datafactory.DataFactory()
+            user_devices = data_factory.get_user_devices(user_id=stream_data['user_id'])
 
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
+            conditions = \
+                {'on_stop': plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
+                 'on_resume': plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99,
+                 'on_watched': progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and \
+                     not any(d['agent_id'] == notifier['agent_id'] and d['notify_action'] == notify_action
+                             for d in get_notify_state(session=stream_data)),
+                 'on_concurrent': len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
+                 'on_newdevice': stream_data['machine_id'] not in user_devices
+                 }
 
-                elif agent['on_stop'] and notify_action == 'stop' \
-                    and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT):
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-                elif agent['on_pause'] and notify_action == 'pause' \
-                    and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-                elif agent['on_resume'] and notify_action == 'resume' \
-                    and (plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99):
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-                elif agent['on_buffer'] and notify_action == 'buffer':
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-                elif agent['on_watched'] and notify_action == 'watched':
-                    # Get the current states for notifications from our db
-                    notify_states = get_notify_state(session=stream_data)
-
-                    # If there is nothing in the notify_log for our agent id but it is enabled we should notify
-                    if not any(d['agent_id'] == agent['id'] and d['notify_action'] == notify_action for d in notify_states):
-                        # Build and send notification
-                        notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                     notify_action=notify_action,
-                                                                     agent_id=agent['id'])
-
-                        notifiers.send_notification(agent_id=agent['id'],
-                                                    subject=notify_strings[0],
-                                                    body=notify_strings[1],
-                                                    script_args=notify_strings[2],
-                                                    notify_action=notify_action,
-                                                    metadata=metadata)
-
-                        # Set the notification state in the db
-                        set_notify_state(session=stream_data,
-                                         notify_action=notify_action,
-                                         agent_info=agent,
-                                         notify_strings=notify_strings,
-                                         metadata=metadata)
-
-                elif agent['on_concurrent'] and notify_action == 'concurrent':
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-                elif agent['on_newdevice'] and notify_action == 'newdevice':
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
+            return conditions.get(notify_action, True)
 
         elif (stream_data['media_type'] == 'track' and plexpy.CONFIG.MUSIC_NOTIFY_ENABLE):
-
-            for agent in notifiers.available_notification_agents():
-                if agent['on_play'] and notify_action == 'play':
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-                elif agent['on_stop'] and notify_action == 'stop':
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-                elif agent['on_pause'] and notify_action == 'pause':
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-                elif agent['on_resume'] and notify_action == 'resume':
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-                elif agent['on_buffer'] and notify_action == 'buffer':
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-                elif agent['on_concurrent'] and notify_action == 'concurrent':
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-                elif agent['on_newdevice'] and notify_action == 'newdevice':
-                    # Build and send notification
-                    notify_strings, metadata = build_notify_text(session=stream_data,
-                                                                 notify_action=notify_action,
-                                                                 agent_id=agent['id'])
-
-                    notifiers.send_notification(agent_id=agent['id'],
-                                                subject=notify_strings[0],
-                                                body=notify_strings[1],
-                                                script_args=notify_strings[2],
-                                                notify_action=notify_action,
-                                                metadata=metadata)
-
-                    # Set the notification state in the db
-                    set_notify_state(session=stream_data,
-                                     notify_action=notify_action,
-                                     agent_info=agent,
-                                     notify_strings=notify_strings,
-                                     metadata=metadata)
-
-        elif stream_data['media_type'] == 'clip':
-            pass
+            return True
         else:
-            #logger.debug(u"PlexPy NotificationHandler :: Notify called with unsupported media type.")
-            pass
+            return False
     else:
-        logger.debug(u"PlexPy NotificationHandler :: Notify called but incomplete data received.")
+        return True
 
 
-def notify_timeline(timeline_data=None, notify_action=None):
-    if timeline_data and notify_action:
-        for agent in notifiers.available_notification_agents():
-            if agent['on_created'] and notify_action == 'created':
-                # Build and send notification
-                notify_strings, metadata = build_notify_text(timeline=timeline_data,
-                                                             notify_action=notify_action,
-                                                             agent_id=agent['id'])
+def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None):
+    notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
 
-                notifiers.send_notification(agent_id=agent['id'],
-                                            subject=notify_strings[0],
-                                            body=notify_strings[1],
-                                            script_args=notify_strings[2],
-                                            notify_action=notify_action,
-                                            metadata=metadata)
+    if not notifier_config:
+        return
 
-                # Set the notification state in the db
-                set_notify_state(session=timeline_data,
-                                 notify_action=notify_action,
-                                 agent_info=agent,
-                                 notify_strings=notify_strings,
-                                 metadata=metadata)
-
-    elif not timeline_data and notify_action:
-        for agent in notifiers.available_notification_agents():
-            if agent['on_extdown'] and notify_action == 'extdown':
-                # Build and send notification
-                notify_strings = build_server_notify_text(notify_action=notify_action,
-                                                          agent_id=agent['id'])
-
-                notifiers.send_notification(agent_id=agent['id'],
-                                            subject=notify_strings[0],
-                                            body=notify_strings[1],
-                                            script_args=notify_strings[2],
-                                            notify_action=notify_action)
-
-                # Set the notification state in the db
-                set_notify_state(notify_action=notify_action,
-                                 agent_info=agent,
-                                 notify_strings=notify_strings)
-
-            if agent['on_intdown'] and notify_action == 'intdown':
-                # Build and send notification
-                notify_strings = build_server_notify_text(notify_action=notify_action,
-                                                          agent_id=agent['id'])
-
-                notifiers.send_notification(agent_id=agent['id'],
-                                            subject=notify_strings[0],
-                                            body=notify_strings[1],
-                                            script_args=notify_strings[2],
-                                            notify_action=notify_action)
-
-                # Set the notification state in the db
-                set_notify_state(notify_action=notify_action,
-                                 agent_info=agent,
-                                 notify_strings=notify_strings)
-
-            if agent['on_extup'] and notify_action == 'extup':
-                # Build and send notification
-                notify_strings = build_server_notify_text(notify_action=notify_action,
-                                                          agent_id=agent['id'])
-
-                notifiers.send_notification(agent_id=agent['id'],
-                                            subject=notify_strings[0],
-                                            body=notify_strings[1],
-                                            script_args=notify_strings[2],
-                                            notify_action=notify_action)
-
-                # Set the notification state in the db
-                set_notify_state(notify_action=notify_action,
-                                 agent_info=agent,
-                                 notify_strings=notify_strings)
-
-            if agent['on_intup'] and notify_action == 'intup':
-                # Build and send notification
-                notify_strings = build_server_notify_text(notify_action=notify_action,
-                                                          agent_id=agent['id'])
-
-                notifiers.send_notification(agent_id=agent['id'],
-                                            subject=notify_strings[0],
-                                            body=notify_strings[1],
-                                            script_args=notify_strings[2],
-                                            notify_action=notify_action)
-
-                # Set the notification state in the db
-                set_notify_state(notify_action=notify_action,
-                                 agent_info=agent,
-                                 notify_strings=notify_strings)
-
-            if agent['on_pmsupdate'] and notify_action == 'pmsupdate':
-                # Build and send notification
-                notify_strings = build_server_notify_text(notify_action=notify_action,
-                                                          agent_id=agent['id'])
-
-                notifiers.send_notification(agent_id=agent['id'],
-                                            subject=notify_strings[0],
-                                            body=notify_strings[1],
-                                            script_args=notify_strings[2],
-                                            notify_action=notify_action)
-
-                # Set the notification state in the db
-                set_notify_state(notify_action=notify_action,
-                                 agent_info=agent,
-                                 notify_strings=notify_strings)
-
+    if stream_data or timeline_data:
+        # Build the notification parameters
+        parameters, metadata = build_media_notify_params(notify_action=notify_action,
+                                                         session=stream_data,
+                                                         timeline=timeline_data)
     else:
-        logger.debug(u"PlexPy NotificationHandler :: Notify timeline called but incomplete data received.")
+        # Build the notification parameters
+        parameters, metadata = build_server_notify_params(notify_action=notify_action)
+
+    if not parameters:
+        logger.error(u"PlexPy NotificationHandler :: Failed to build notification parameters.")
+        return
+
+    # Get the subject and body strings
+    subject_string = notifier_config['notify_text'][notify_action]['subject']
+    body_string = notifier_config['notify_text'][notify_action]['body']
+
+    # Format the subject and body strings
+    subject, body = build_notify_text(subject=subject_string,
+                                        body=body_string,
+                                        notify_action=notify_action,
+                                        parameters=parameters,
+                                        agent_id=notifier_config['agent_id'])
+
+    # Send the notification
+    notifiers.send_notification(notifier_id=notifier_config['id'],
+                                subject=subject,
+                                body=body,
+                                notify_action=notify_action,
+                                metadata=metadata)
+
+    # Set the notification state in the db
+    set_notify_state(session=stream_data,
+                     notify_action=notify_action,
+                     notifier=notifier_config,
+                     subject=subject,
+                     body=body,
+                     metadata=metadata)
 
 
 def get_notify_state(session):
@@ -502,33 +181,28 @@ def get_notify_state(session):
     return notify_states
 
 
-def set_notify_state(notify_action, agent_info, notify_strings, session=None, metadata=None):
+def set_notify_state(notify_action, notifier, subject, body, session=None, metadata=None):
 
-    if notify_action and agent_info:
+    if notify_action and notifier:
         monitor_db = database.MonitorDatabase()
 
         session = session or {}
         metadata = metadata or {}
 
-        if notify_strings[2]:
-            script_args = '[' + ', '.join(notify_strings[2]) + ']'
-        else:
-            script_args = None
-
         keys = {'timestamp': int(time.time()),
                 'session_key': session.get('session_key', None),
                 'rating_key': session.get('rating_key', None),
                 'user_id': session.get('user_id', None),
-                'agent_id': agent_info['id'],
-                'notify_action': notify_action}
+                'notifier_id': notifier['id'],
+                'agent_id': notifier['agent_id'],
+                'notify_action': notify_action.split('on_')[-1]}
 
         values = {'parent_rating_key': session.get('parent_rating_key', None),
                   'grandparent_rating_key': session.get('grandparent_rating_key', None),
                   'user': session.get('user', None),
-                  'agent_name': agent_info['name'],
-                  'subject_text': notify_strings[0],
-                  'body_text': notify_strings[1],
-                  'script_args': script_args,
+                  'agent_name': notifier['agent_name'],
+                  'subject_text': subject,
+                  'body_text': body,
                   'poster_url': metadata.get('poster_url', None)}
 
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
@@ -536,7 +210,7 @@ def set_notify_state(notify_action, agent_info, notify_strings, session=None, me
         logger.error(u"PlexPy NotificationHandler :: Unable to set notify state.")
 
 
-def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=None):
+def build_media_notify_params(notify_action=None, session=None, timeline=None):
     # Get time formats
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
@@ -574,65 +248,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
         metadata = metadata_list['metadata']
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
-        return [None, None, None], None
-
-    # Check for exclusion tags
-    if metadata['media_type'] == 'movie':
-        # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile(r'<movie>|</movie>|<tv>.*?</tv>|<music>.*?</music>', re.IGNORECASE | re.DOTALL)
-    elif metadata['media_type'] == 'show' or metadata['media_type'] == 'episode':
-        # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile(r'<movie>.*?</movie>|<tv>|</tv>|<music>.*?</music>', re.IGNORECASE | re.DOTALL)
-    elif metadata['media_type'] == 'artist' or metadata['media_type'] == 'track':
-        # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile(r'<movie>.*?</movie>|<tv>.*?</tv>|<music>|</music>', re.IGNORECASE | re.DOTALL)
-    else:
-        pattern = None
-
-    if metadata['media_type'] == 'movie' \
-        or metadata['media_type'] == 'show' or metadata['media_type'] == 'episode' \
-        or metadata['media_type'] == 'artist' or metadata['media_type'] == 'track' \
-        and pattern:
-        # Remove the unwanted tags and strip any unmatch tags too.
-        on_start_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT), agent_id)
-        on_start_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT), agent_id)
-        on_stop_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT), agent_id)
-        on_stop_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT), agent_id)
-        on_pause_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_PAUSE_SUBJECT_TEXT), agent_id)
-        on_pause_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_PAUSE_BODY_TEXT), agent_id)
-        on_resume_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_RESUME_SUBJECT_TEXT), agent_id)
-        on_resume_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_RESUME_BODY_TEXT), agent_id)
-        on_buffer_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_BUFFER_SUBJECT_TEXT), agent_id)
-        on_buffer_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT), agent_id)
-        on_watched_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT), agent_id)
-        on_watched_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT), agent_id)
-        on_created_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT), agent_id)
-        on_created_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT), agent_id)
-        on_concurrent_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CONCURRENT_SUBJECT_TEXT), agent_id)
-        on_concurrent_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_CONCURRENT_BODY_TEXT), agent_id)
-        on_newdevice_subject = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT), agent_id)
-        on_newdevice_body = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_BODY_TEXT), agent_id)
-        script_args_text = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT), agent_id)
-    else:
-        on_start_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_START_SUBJECT_TEXT, agent_id)
-        on_start_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_START_BODY_TEXT, agent_id)
-        on_stop_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_STOP_SUBJECT_TEXT, agent_id)
-        on_stop_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_STOP_BODY_TEXT, agent_id)
-        on_pause_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_PAUSE_SUBJECT_TEXT, agent_id)
-        on_pause_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_PAUSE_BODY_TEXT, agent_id)
-        on_resume_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_RESUME_SUBJECT_TEXT, agent_id)
-        on_resume_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_RESUME_BODY_TEXT, agent_id)
-        on_buffer_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_BUFFER_SUBJECT_TEXT, agent_id)
-        on_buffer_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_BUFFER_BODY_TEXT, agent_id)
-        on_watched_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_WATCHED_SUBJECT_TEXT, agent_id)
-        on_watched_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_WATCHED_BODY_TEXT, agent_id)
-        on_created_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_CREATED_SUBJECT_TEXT, agent_id)
-        on_created_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_CREATED_BODY_TEXT, agent_id)
-        on_concurrent_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_CONCURRENT_SUBJECT_TEXT, agent_id)
-        on_concurrent_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_CONCURRENT_BODY_TEXT, agent_id)
-        on_newdevice_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT, agent_id)
-        on_newdevice_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_NEWDEVICE_BODY_TEXT, agent_id)
-        script_args_text = strip_tag(plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT, agent_id)
+        return None, None
 
     # Create a title
     if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
@@ -855,237 +471,10 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
                         'grandparent_rating_key': metadata['grandparent_rating_key']
                         }
 
-    # Default subject text
-    subject_text = 'PlexPy (%s)' % server_name
-
-    # Default scripts args
-    script_args = []
-
-    if script_args_text:
-        try:
-            script_args = [unicode(arg).format(**available_params) for arg in script_args_text.split()]
-        except LookupError as e:
-            logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
-        except Exception as e:
-            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom script arguments %s. Using fallback." % e)
-
-    if notify_action == 'play':
-        # Default body text
-        body_text = '%s (%s) started playing %s' % (session['friendly_name'],
-                                                    session['player'],
-                                                    full_title)
-
-        if on_start_subject and on_start_body:
-            try:
-                subject_text = unicode(on_start_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_start_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args], metadata
-        else:
-            return [subject_text, body_text, script_args], metadata
-    elif notify_action == 'stop':
-        # Default body text
-        body_text = '%s (%s) has stopped %s' % (session['friendly_name'],
-                                                session['player'],
-                                                full_title)
-
-        if on_stop_subject and on_stop_body:
-            try:
-                subject_text = unicode(on_stop_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_stop_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args], metadata
-        else:
-            return [subject_text, body_text, script_args], metadata
-    elif notify_action == 'pause':
-        # Default body text
-        body_text = '%s (%s) has paused %s' % (session['friendly_name'],
-                                               session['player'],
-                                               full_title)
-
-        if on_pause_subject and on_pause_body:
-            try:
-                subject_text = unicode(on_pause_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_pause_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args], metadata
-        else:
-            return [subject_text, body_text, script_args], metadata
-    elif notify_action == 'resume':
-        # Default body text
-        body_text = '%s (%s) has resumed %s' % (session['friendly_name'],
-                                                session['player'],
-                                                full_title)
-
-        if on_resume_subject and on_resume_body:
-            try:
-                subject_text = unicode(on_resume_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_resume_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args], metadata
-        else:
-            return [subject_text, body_text, script_args], metadata
-    elif notify_action == 'buffer':
-        # Default body text
-        body_text = '%s (%s) is buffering %s' % (session['friendly_name'],
-                                                 session['player'],
-                                                 full_title)
-
-        if on_buffer_subject and on_buffer_body:
-            try:
-                subject_text = unicode(on_buffer_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_buffer_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args], metadata
-        else:
-            return [subject_text, body_text, script_args], metadata
-    elif notify_action == 'watched':
-        # Default body text
-        body_text = '%s (%s) has watched %s' % (session['friendly_name'],
-                                                session['player'],
-                                                full_title)
-
-        if on_watched_subject and on_watched_body:
-            try:
-                subject_text = unicode(on_watched_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_watched_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args], metadata
-        else:
-            return [subject_text, body_text, script_args], metadata
-    elif notify_action == 'created':
-        # Default body text
-        body_text = '%s was recently added to Plex.' % full_title
-
-        if on_created_subject and on_created_body:
-            try:
-                subject_text = unicode(on_created_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_created_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args], metadata
-        else:
-            return [subject_text, body_text, script_args], metadata
-    elif notify_action == 'concurrent':
-        # Default body text
-        body_text = '%s has %s concurrent streams.' % (session['friendly_name'],
-                                                         user_stream_count)
-
-        if on_concurrent_subject and on_concurrent_body:
-            try:
-                subject_text = unicode(on_concurrent_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_concurrent_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args], metadata
-        else:
-            return [subject_text, body_text, script_args], metadata
-    elif notify_action == 'newdevice':
-        # Default body text
-        body_text = '%s is streaming from a new device: %s.' % (session['friendly_name'],
-                                                                session['player'])
-
-        if on_newdevice_subject and on_newdevice_body:
-            try:
-                subject_text = unicode(on_newdevice_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_newdevice_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args], metadata
-        else:
-            return [subject_text, body_text, script_args], metadata
-    else:
-        return [None, None, None], None
+    return available_params, metadata
 
 
-def build_server_notify_text(notify_action=None, agent_id=None):
+def build_server_notify_params(notify_action=None):
     # Get time formats
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
@@ -1108,20 +497,6 @@ def build_server_notify_text(notify_action=None, agent_id=None):
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
         server_uptime = 'N/A'
 
-    pattern = re.compile(r'<movie>.*?</movie>|<tv>.*?</tv>|<music>.*?</music>', re.IGNORECASE | re.DOTALL)
-
-    on_extdown_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_EXTDOWN_SUBJECT_TEXT, agent_id)
-    on_extdown_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_EXTDOWN_BODY_TEXT, agent_id)
-    on_intdown_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_INTDOWN_SUBJECT_TEXT, agent_id)
-    on_intdown_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_INTDOWN_BODY_TEXT, agent_id)
-    on_extup_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_EXTUP_SUBJECT_TEXT, agent_id)
-    on_extup_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_EXTUP_BODY_TEXT, agent_id)
-    on_intup_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_INTUP_SUBJECT_TEXT, agent_id)
-    on_intup_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_INTUP_BODY_TEXT, agent_id)
-    on_pmsupdate_subject = strip_tag(plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT, agent_id)
-    on_pmsupdate_body = strip_tag(plexpy.CONFIG.NOTIFY_ON_PMSUPDATE_BODY_TEXT, agent_id)
-    script_args_text = strip_tag(re.sub(pattern, '', plexpy.CONFIG.NOTIFY_SCRIPTS_ARGS_TEXT), agent_id)
-
     available_params = {# Global paramaters
                         'server_name': server_name,
                         'server_uptime': server_uptime,
@@ -1143,135 +518,55 @@ def build_server_notify_text(notify_action=None, agent_id=None):
                         'update_changelog_added': update_status.get('changelog_added',''),
                         'update_changelog_fixed': update_status.get('changelog_fixed','')}
 
-    # Default text
-    subject_text = 'PlexPy (%s)' % server_name
+    return available_params, None
 
-    # Default scripts args
-    script_args = []
 
-    if script_args_text:
-        try:
-            script_args = [unicode(arg).format(**available_params) for arg in script_args_text.split()]
-        except LookupError as e:
-            logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
-        except Exception as e:
-            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom script arguments %s. Using fallback." % e)
-
-    if notify_action == 'extdown':
-        # Default body text
-        body_text = 'The Plex Media Server remote access is down.'
-
-        if on_extdown_subject and on_extdown_body:
-            try:
-                subject_text = unicode(on_extdown_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_extdown_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy Notifier :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args]
-        else:
-            return [subject_text, body_text, script_args]
-
-    elif notify_action == 'intdown':
-        # Default body text
-        body_text = 'The Plex Media Server is down.'
-
-        if on_intdown_subject and on_intdown_body:
-            try:
-                subject_text = unicode(on_intdown_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_intdown_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args]
-        else:
-            return [subject_text, body_text, script_args]
-    if notify_action == 'extup':
-        # Default body text
-        body_text = 'The Plex Media Server remote access is back up.'
-
-        if on_extup_subject and on_extup_body:
-            try:
-                subject_text = unicode(on_extup_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_extup_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args]
-        else:
-            return [subject_text, body_text, script_args]
-    elif notify_action == 'intup':
-        # Default body text
-        body_text = 'The Plex Media Server is back up.'
-
-        if on_intup_subject and on_intup_body:
-            try:
-                subject_text = unicode(on_intup_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_intup_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args]
-        else:
-            return [subject_text, body_text, script_args]
-
-    elif notify_action == 'pmsupdate':
-        # Default body text
-        body_text = 'An update is available for the Plex Media Server (version %s).' % available_params['update_version']
-
-        if on_pmsupdate_subject and on_pmsupdate_body:
-            try:
-                subject_text = unicode(on_pmsupdate_subject).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-
-            try:
-                body_text = unicode(on_pmsupdate_body).format(**available_params)
-            except LookupError as e:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-            except:
-                logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-
-            return [subject_text, body_text, script_args]
-        else:
-            return [subject_text, body_text, script_args]
-
+def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None):
+    # Check for exclusion tags
+    if parameters['media_type'] == 'movie':
+        # Regex pattern to remove the text in the tags we don't want
+        pattern = re.compile(r'<movie>|</movie>|<tv>.*?</tv>|<music>.*?</music>', re.IGNORECASE | re.DOTALL)
+    elif parameters['media_type'] == 'show' or parameters['media_type'] == 'episode':
+        # Regex pattern to remove the text in the tags we don't want
+        pattern = re.compile(r'<movie>.*?</movie>|<tv>|</tv>|<music>.*?</music>', re.IGNORECASE | re.DOTALL)
+    elif parameters['media_type'] == 'artist' or parameters['media_type'] == 'track':
+        # Regex pattern to remove the text in the tags we don't want
+        pattern = re.compile(r'<movie>.*?</movie>|<tv>.*?</tv>|<music>|</music>', re.IGNORECASE | re.DOTALL)
     else:
-        return None
+        pattern = None
+
+    if pattern:
+        # Remove the unwanted tags and strip any unmatch tags too.
+        subject = strip_tag(re.sub(pattern, '', subject), agent_id)
+        body = strip_tag(re.sub(pattern, '', body), agent_id)
+    else:
+        subject = strip_tag(subject, agent_id)
+        body = strip_tag(body, agent_id)
+
+    # Default subject and body text
+    default_action = next((a for a in notifiers.available_notification_actions() if a['name'] == notify_action), {})
+    default_subject = default_action.get('subject', '')
+    default_body = default_action.get('body', '')
+
+    try:
+        subject = unicode(subject).format(**parameters)
+    except LookupError as e:
+        logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
+        subject = unicode(default_subject).format(**parameters)
+    except:
+        logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
+        subject = unicode(default_subject).format(**parameters)
+
+    try:
+        body = unicode(body).format(**parameters)
+    except LookupError as e:
+        logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
+        subject = unicode(default_body).format(**parameters)
+    except:
+        logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
+        subject = unicode(default_body).format(**parameters)
+
+    return subject, body
 
 
 def strip_tag(data, agent_id=None):
