@@ -48,7 +48,7 @@ def check_active_sessions(ws_request=False):
             if int_ping_count >= 3:
                 logger.info(u"PlexPy Monitor :: The Plex Media Server is back up.")
 
-                plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+                plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                     notify_action='on_intup'))
 
             int_ping_count = 0
@@ -70,13 +70,13 @@ def check_active_sessions(ws_request=False):
                                 if session['state'] == 'paused':
                                     logger.debug(u"PlexPy Monitor :: Session %s has been paused." % stream['session_key'])
 
-                                    plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+                                    plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                                         stream_data=stream, notify_action='on_pause'))
 
                                 if session['state'] == 'playing' and stream['state'] == 'paused':
                                     logger.debug(u"PlexPy Monitor :: Session %s has been resumed." % stream['session_key'])
 
-                                    plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+                                    plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                                         stream_data=stream, notify_action='on_resume'))
 
                             if stream['state'] == 'paused' and not ws_request:
@@ -115,7 +115,7 @@ def check_active_sessions(ws_request=False):
                                                           'WHERE session_key = ? AND rating_key = ?',
                                                           [stream['session_key'], stream['rating_key']])
 
-                                        plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+                                        plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                                             stream_data=stream, notify_action='on_buffer'))
 
                                     else:
@@ -130,7 +130,7 @@ def check_active_sessions(ws_request=False):
                                                               'WHERE session_key = ? AND rating_key = ?',
                                                               [stream['session_key'], stream['rating_key']])
 
-                                            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+                                            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                                                 stream_data=stream, notify_action='on_buffer'))
 
                                 logger.debug(u"PlexPy Monitor :: Session %s is buffering. Count is now %s. Last triggered %s."
@@ -141,8 +141,13 @@ def check_active_sessions(ws_request=False):
                             # Check if the user has reached the offset in the media we defined as the "watched" percent
                             # Don't trigger if state is buffer as some clients push the progress to the end when
                             # buffering on start.
-                            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
-                                stream_data=stream, notify_action='on_watched'))
+                            if session['state'] != 'buffering':
+                                progress_percent = helpers.get_percent(session['view_offset'], session['duration'])
+                                notify_states = notification_handler.get_notify_state(session=session)
+                                if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT \
+                                    and not any(d['notify_action'] == 'on_watched' for d in notify_states):
+                                    plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
+                                        stream_data=stream, notify_action='on_watched'))
 
                 else:
                     # The user has stopped playing a stream
@@ -156,10 +161,14 @@ def check_active_sessions(ws_request=False):
                                               'WHERE session_key = ? AND rating_key = ?',
                                               [stream['stopped'], 'stopped', stream['session_key'], stream['rating_key']])
 
-                        plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
-                            stream_data=stream, notify_action='on_watched'))
+                        progress_percent = helpers.get_percent(stream['view_offset'], stream['duration'])
+                        notify_states = notification_handler.get_notify_state(session=stream)
+                        if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT \
+                            and not any(d['notify_action'] == 'on_watched' for d in notify_states):
+                            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
+                                stream_data=stream, notify_action='on_watched'))
 
-                        plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+                        plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                             stream_data=stream, notify_action='on_stop'))
 
                     # Write the item history on playback stop
@@ -212,7 +221,7 @@ def check_active_sessions(ws_request=False):
                         % str(int_ping_count))
 
         if int_ping_count == 3:
-            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                 notify_action='on_intdown'))
 
 
@@ -266,7 +275,7 @@ def check_recently_added():
                             if 0 < time_threshold - int(item['added_at']) <= time_interval:
                                 logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
 
-                                plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+                                plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                                     timeline_data=item, notify_action='on_created'))
                     
                     else:
@@ -285,7 +294,7 @@ def check_recently_added():
                             logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
 
                             # Check if any notification agents have notifications enabled
-                            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+                            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                                 timeline_data=item, notify_action='on_created'))
 
 
@@ -318,13 +327,13 @@ def check_server_response():
                 if ext_ping_count >= 3:
                     logger.info(u"PlexPy Monitor :: Plex remote access is back up.")
 
-                    plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+                    plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                         notify_action='on_extup'))
 
                 ext_ping_count = 0
 
         if ext_ping_count == 3:
-            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                 notify_action='on_extdown'))
 
 
@@ -342,7 +351,7 @@ def check_server_updates():
             if download_info['update_available']:
                 logger.info(u"PlexPy Monitor :: PMS update available version: %s", download_info['version'])
 
-                plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_notify_queue(
+                plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
                     notify_action='on_pmsupdate'))
 
             else:

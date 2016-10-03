@@ -381,7 +381,6 @@ def start():
         # Start background notification thread
         if any([CONFIG.MOVIE_NOTIFY_ENABLE, CONFIG.TV_NOTIFY_ENABLE,
                 CONFIG.MUSIC_NOTIFY_ENABLE, CONFIG.NOTIFY_RECENTLY_ADDED]):
-            logger.info(u"Starting background notification handler.")
             notification_handler.start_thread(num_threads=3)
 
         started = True
