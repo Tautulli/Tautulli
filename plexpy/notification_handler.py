@@ -41,13 +41,14 @@ def process_queue():
 
 
 def start_thread(num_threads=1):
+    logger.info(u"PlexPy NotificationHandler :: Starting background notification handler.")
     for x in range(num_threads):
         thread = threading.Thread(target=process_queue)
         thread.daemon = True
         thread.start()
 
 
-def add_to_notify_queue(notify_action=None, stream_data=None, timeline_data=None):
+def add_to_queue(notify_action=None, stream_data=None, timeline_data=None):
     if not notify_action:
         logger.debug(u"PlexPy NotificationHandler :: Notify called but no action received.")
         return
@@ -99,9 +100,8 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
             conditions = \
                 {'on_stop': plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
                  'on_resume': plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99,
-                 'on_watched': progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT and \
-                     not any(d['agent_id'] == notifier['agent_id'] and d['notify_action'] == notify_action
-                             for d in get_notify_state(session=stream_data)),
+                 'on_watched': not any(d['agent_id'] == notifier['agent_id'] and d['notify_action'] == notify_action
+                                       for d in get_notify_state(session=stream_data)),
                  'on_concurrent': len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
                  'on_newdevice': stream_data['machine_id'] not in user_devices
                  }
@@ -195,7 +195,7 @@ def set_notify_state(notify_action, notifier, subject, body, session=None, metad
                 'user_id': session.get('user_id', None),
                 'notifier_id': notifier['id'],
                 'agent_id': notifier['agent_id'],
-                'notify_action': notify_action.split('on_')[-1]}
+                'notify_action': notify_action}
 
         values = {'parent_rating_key': session.get('parent_rating_key', None),
                   'grandparent_rating_key': session.get('grandparent_rating_key', None),
@@ -378,7 +378,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None):
                         'server_name': server_name,
                         'server_uptime': server_uptime,
                         'server_version': server_times.get('version',''),
-                        'action': notify_action.title(),
+                        'action': notify_action.split('on_')[-1].title(),
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format),
                         # Stream parameters
@@ -501,7 +501,7 @@ def build_server_notify_params(notify_action=None):
                         'server_name': server_name,
                         'server_uptime': server_uptime,
                         'server_version': server_times.get('version',''),
-                        'action': notify_action.title(),
+                        'action': notify_action.split('on_')[-1].title(),
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format),
                         # Update parameters
