@@ -74,16 +74,13 @@ class ActivityHandler(object):
 
             session = self.get_live_session()
 
-            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
-                stream_data=session, notify_action='on_play'))
+            plexpy.NOTIFY_QUEUE.put({'stream_data': session, 'notify_action': 'on_play'})
 
             # Write the new session to our temp session table
             self.update_db_session(session=session)
 
-            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
-                stream_data=session, notify_action='on_concurrent'))
-            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
-                stream_data=session, notify_action='on_newdevice'))
+            plexpy.NOTIFY_QUEUE.put({'stream_data': session, 'notify_action': 'on_concurrent'})
+            plexpy.NOTIFY_QUEUE.put({'stream_data': session, 'notify_action': 'on_newdevice'})
 
     def on_stop(self, force_stop=False):
         if self.is_valid_session():
@@ -104,8 +101,7 @@ class ActivityHandler(object):
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
-            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
-                stream_data=db_session, notify_action='on_stop'))
+            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_stop'})
 
             # Write it to the history table
             monitor_proc = activity_processor.ActivityProcessor()
@@ -132,8 +128,7 @@ class ActivityHandler(object):
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
-            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
-                stream_data=db_session, notify_action='on_pause'))
+            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_pause'})
 
     def on_resume(self):
         if self.is_valid_session():
@@ -151,8 +146,7 @@ class ActivityHandler(object):
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
-            plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
-                stream_data=db_session, notify_action='on_resume'))
+            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_resume'})
 
     def on_buffer(self):
         if self.is_valid_session():
@@ -181,8 +175,7 @@ class ActivityHandler(object):
                 time_since_last_trigger == 0 or time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT):
                 ap.set_session_buffer_trigger_time(session_key=self.get_session_key())
 
-                plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
-                    stream_data=db_session, notify_action='on_buffer'))
+                plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_buffer'})
 
     # This function receives events from our websocket connection
     def process(self):
@@ -229,8 +222,7 @@ class ActivityHandler(object):
                     notify_states = notification_handler.get_notify_state(session=db_session)
                     if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT \
                         and not any(d['notify_action'] == 'on_watched' for d in notify_states):
-                        plexpy.NOTIFY_QUEUE.put(notification_handler.add_to_queue(
-                            stream_data=db_session, notify_action='on_watched'))
+                        plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_watched'})
 
             else:
                 # We don't have this session in our table yet, start a new one.

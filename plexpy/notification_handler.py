@@ -36,11 +36,16 @@ import users
 def process_queue():
     queue = plexpy.NOTIFY_QUEUE
     while True:
-        queue.get()
+        params = queue.get()
+        if params:
+            if 'notifier_id' in params:
+                notify(**params)
+            else:
+                add_notifier_each(**params)
         queue.task_done()
 
 
-def start_thread(num_threads=1):
+def start_threads(num_threads=1):
     logger.info(u"PlexPy NotificationHandler :: Starting background notification handler.")
     for x in range(num_threads):
         thread = threading.Thread(target=process_queue)
@@ -48,7 +53,7 @@ def start_thread(num_threads=1):
         thread.start()
 
 
-def add_to_queue(notify_action=None, stream_data=None, timeline_data=None):
+def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None):
     if not notify_action:
         logger.debug(u"PlexPy NotificationHandler :: Notify called but no action received.")
         return
@@ -64,10 +69,10 @@ def add_to_queue(notify_action=None, stream_data=None, timeline_data=None):
                                            stream_data=stream_data,
                                            timeline_data=timeline_data)
             if conditions:
-                plexpy.NOTIFY_QUEUE.put(notify(notifier_id=notifier['id'],
-                                               notify_action=notify_action,
-                                               stream_data=stream_data,
-                                               timeline_data=timeline_data))
+                plexpy.NOTIFY_QUEUE.put({'notifier_id': notifier['id'],
+                                         'notify_action': notify_action,
+                                         'stream_data': stream_data,
+                                         'timeline_data': timeline_data})
 
 def notify_conditions(notifier=None, notify_action=None, stream_data=None, timeline_data=None):
     if stream_data:
