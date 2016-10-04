@@ -4,7 +4,7 @@ var time_format = 'hh:mm a';
 $.ajax({
     url: 'get_date_formats',
     type: 'GET',
-    success: function(data) {
+    success: function (data) {
         date_format = data.date_format;
         time_format = data.time_format;
     }
@@ -16,10 +16,10 @@ media_info_table_options = {
     "destroy": true,
     "language": {
         "search": "Search: ",
-        "lengthMenu":"Show _MENU_ entries per page",
-        "info":"Showing _START_ to _END_ of _TOTAL_ library items",
-        "infoEmpty":"Showing 0 to 0 of 0 entries",
-        "infoFiltered":"<span class='hidden-md hidden-sm hidden-xs'>(filtered from _MAX_ total entries)</span>",
+        "lengthMenu": "Show _MENU_ entries per page",
+        "info": "Showing _START_ to _END_ of _TOTAL_ library items",
+        "infoEmpty": "Showing 0 to 0 of 0 entries",
+        "infoFiltered": "<span class='hidden-md hidden-sm hidden-xs'>(filtered from _MAX_ total entries)</span>",
         "emptyTable": "No data in table",
         "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
@@ -28,7 +28,7 @@ media_info_table_options = {
     "processing": false,
     "serverSide": true,
     "pageLength": 25,
-    "order": [ 1, 'asc'],
+    "order": [1, 'asc'],
     "autoWidth": false,
     "scrollX": true,
     "columnDefs": [
@@ -110,7 +110,7 @@ media_info_table_options = {
             },
             "width": "20%",
             "className": "no-wrap",
-},
+        },
         {
             "targets": [2],
             "data": "container",
@@ -194,7 +194,7 @@ media_info_table_options = {
             "data": "file_size",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
-                    $(td).html(Math.round(cellData / Math.pow(1024, 2)).toString() + ' MiB');
+                    $(td).html(humanFileSize(cellData));
                 } else {
                     if (rowData['section_type'] != 'photo' && get_file_sizes != null) {
                         get_file_sizes = true;
@@ -283,7 +283,7 @@ media_info_table_options = {
             humanFileSize(settings.json.filtered_file_size) +
             ' (filtered from ' + humanFileSize(settings.json.total_file_size) + ')</span>');
     },
-    "preDrawCallback": function(settings) {
+    "preDrawCallback": function (settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";
         showMsg(msg, false, false, 0)
     },
@@ -425,17 +425,17 @@ function childTableFormatMedia(rowData) {
             '<table id="media_info_child-' + rowData['rating_key'] + '" data-id="' + rowData['rating_key'] + '" width="100%">' +
             '<thead>' +
             '<tr>' +
-                '<th align="left" id="added_at">Added At</th>' + 
-                '<th align="left" id="title">Title</th>' + 
-                '<th align="left" id="container">Container</th>' + 
-                '<th align="left" id="bitrate">Bitrate</th>' + 
-                '<th align="left" id="video_codec">Video Codec</th>' + 
-                '<th align="left" id="video_resolution">Video Resolution</th>' + 
-                '<th align="left" id="video_resolution">Video Framerate</th>' + 
-                '<th align="left" id="audio_codec">Audio Codec</th>' + 
-                '<th align="left" id="audio_channels">Audio Channels</th>' + 
-                '<th align="left" id="file_size">File Size</th>' + 
-                '<th align="left" id="last_played">Last Played</th>' + 
+                '<th align="left" id="added_at">Added At</th>' +
+                '<th align="left" id="title">Title</th>' +
+                '<th align="left" id="container">Container</th>' +
+                '<th align="left" id="bitrate">Bitrate</th>' +
+                '<th align="left" id="video_codec">Video Codec</th>' +
+                '<th align="left" id="video_resolution">Video Resolution</th>' +
+                '<th align="left" id="video_resolution">Video Framerate</th>' +
+                '<th align="left" id="audio_codec">Audio Codec</th>' +
+                '<th align="left" id="audio_channels">Audio Channels</th>' +
+                '<th align="left" id="file_size">File Size</th>' +
+                '<th align="left" id="last_played">Last Played</th>' +
                 '<th align="left" id="total_plays">Total Plays</th>' +
             '</tr>' +
             '</thead>' +
@@ -484,21 +484,4 @@ function createChildTableMedia(row, rowData) {
             createChildTableMedia(row, rowData);
         }
     });
-}
-
-// Taken from http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable#answer-14919494
-function humanFileSize(bytes, si) {
-    var thresh = si ? 1000 : 1024;
-    if(Math.abs(bytes) < thresh) {
-        return bytes + ' B';
-    }
-    var units = si
-        ? ['kB','MB','GB','TB','PB','EB','ZB','YB']
-        : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
-    var u = -1;
-    do {
-        bytes /= thresh;
-        ++u;
-    } while(Math.abs(bytes) >= thresh && u < units.length - 1);
-    return bytes.toFixed(1)+'&nbsp;'+units[u];
 }
