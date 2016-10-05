@@ -146,10 +146,10 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
 
     # Format the subject and body strings
     subject, body = build_notify_text(subject=subject_string,
-                                        body=body_string,
-                                        notify_action=notify_action,
-                                        parameters=parameters,
-                                        agent_id=notifier_config['agent_id'])
+                                      body=body_string,
+                                      notify_action=notify_action,
+                                      parameters=parameters,
+                                      agent_id=notifier_config['agent_id'])
 
     # Send the notification
     notifiers.send_notification(notifier_id=notifier_config['id'],
@@ -528,13 +528,13 @@ def build_server_notify_params(notify_action=None):
 
 def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None):
     # Check for exclusion tags
-    if parameters['media_type'] == 'movie':
+    if parameters.get('media_type') == 'movie':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile(r'<movie>|</movie>|<tv>.*?</tv>|<music>.*?</music>', re.IGNORECASE | re.DOTALL)
-    elif parameters['media_type'] == 'show' or parameters['media_type'] == 'episode':
+    elif parameters.get('media_type') == 'show' or parameters.get('media_type') == 'episode':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile(r'<movie>.*?</movie>|<tv>|</tv>|<music>.*?</music>', re.IGNORECASE | re.DOTALL)
-    elif parameters['media_type'] == 'artist' or parameters['media_type'] == 'track':
+    elif parameters.get('media_type') == 'artist' or parameters.get('media_type') == 'track':
         # Regex pattern to remove the text in the tags we don't want
         pattern = re.compile(r'<movie>.*?</movie>|<tv>.*?</tv>|<music>|</music>', re.IGNORECASE | re.DOTALL)
     else:
