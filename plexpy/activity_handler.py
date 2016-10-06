@@ -69,10 +69,10 @@ class ActivityHandler(object):
 
     def on_start(self):
         if self.is_valid_session() and self.get_live_session():
-            logger.debug(u"PlexPy ActivityHandler :: Session %s has started with ratingKey %s."
-                         % (str(self.get_session_key()), str(self.get_rating_key())))
-
             session = self.get_live_session()
+
+            logger.debug(u"PlexPy ActivityHandler :: Session %s started by user %s with ratingKey %s."
+                         % (str(session['session_key']), str(session['user_id']), str(session['rating_key'])))
 
             plexpy.NOTIFY_QUEUE.put({'stream_data': session, 'notify_action': 'on_play'})
 
@@ -114,7 +114,7 @@ class ActivityHandler(object):
 
     def on_pause(self):
         if self.is_valid_session():
-            logger.debug(u"PlexPy ActivityHandler :: Session %s has been paused." % str(self.get_session_key()))
+            logger.debug(u"PlexPy ActivityHandler :: Session %s paused." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
             ap = activity_processor.ActivityProcessor()
@@ -132,7 +132,7 @@ class ActivityHandler(object):
 
     def on_resume(self):
         if self.is_valid_session():
-            logger.debug(u"PlexPy ActivityHandler :: Session %s has been resumed." % str(self.get_session_key()))
+            logger.debug(u"PlexPy ActivityHandler :: Session %s resumed." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
             ap = activity_processor.ActivityProcessor()

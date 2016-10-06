@@ -67,12 +67,12 @@ def check_active_sessions(ws_request=False):
                             # Here we can check the play states
                             if session['state'] != stream['state']:
                                 if session['state'] == 'paused':
-                                    logger.debug(u"PlexPy Monitor :: Session %s has been paused." % stream['session_key'])
+                                    logger.debug(u"PlexPy Monitor :: Session %s paused." % stream['session_key'])
 
                                     plexpy.NOTIFY_QUEUE.put({'stream_data': stream, 'notify_action': 'on_pause'})
 
                                 if session['state'] == 'playing' and stream['state'] == 'paused':
-                                    logger.debug(u"PlexPy Monitor :: Session %s has been resumed." % stream['session_key'])
+                                    logger.debug(u"PlexPy Monitor :: Session %s resumed." % stream['session_key'])
 
                                     plexpy.NOTIFY_QUEUE.put({'stream_data': stream, 'notify_action': 'on_resume'})
 
@@ -146,7 +146,7 @@ def check_active_sessions(ws_request=False):
                 else:
                     # The user has stopped playing a stream
                     if stream['state'] != 'stopped':
-                        logger.debug(u"PlexPy Monitor :: Session %s has stopped." % stream['session_key'])
+                        logger.debug(u"PlexPy Monitor :: Session %s stopped." % stream['session_key'])
 
                         if not stream['stopped']:
                             # Set the stream stop time
@@ -197,8 +197,8 @@ def check_active_sessions(ws_request=False):
                 new_session = monitor_process.write_session(session)
 
                 if new_session:
-                    logger.debug(u"PlexPy Monitor :: Session %s has started with ratingKey %s."
-                                 % (session['session_key'], session['rating_key']))
+                    logger.debug(u"PlexPy Monitor :: Session %s started by user %s with ratingKey %s."
+                                 % (session['session_key'], session['user_id'], session['rating_key']))
 
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
@@ -264,7 +264,7 @@ def check_recently_added():
                             library_details = library_data.get_details(section_id=item['section_id'])
 
                             if 0 < time_threshold - int(item['added_at']) <= time_interval:
-                                logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
+                                logger.debug(u"PlexPy Monitor :: Library item %s added to Plex." % str(item['rating_key']))
 
                                 plexpy.NOTIFY_QUEUE.put({'timeline_data': item, 'notify_action': 'on_created'})
                     
@@ -281,7 +281,7 @@ def check_recently_added():
                                     logger.error(u"PlexPy Monitor :: Unable to retrieve grandparent metadata for grandparent_rating_key %s" \
                                                  % str(item['rating_key']))
 
-                            logger.debug(u"PlexPy Monitor :: Library item %s has been added to Plex." % str(item['rating_key']))
+                            logger.debug(u"PlexPy Monitor :: Library item %s added to Plex." % str(item['rating_key']))
 
                             # Check if any notification agents have notifications enabled
                             plexpy.NOTIFY_QUEUE.put({'timeline_data': item, 'notify_action': 'on_created'})
