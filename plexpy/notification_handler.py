@@ -95,9 +95,13 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
 
             progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
 
-            ap = activity_processor.ActivityProcessor()
-            user_sessions = ap.get_session_by_user_id(user_id=stream_data['user_id'],
-                                                      ip_address=plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP)
+
+            pms_connect = pmsconnect.PmsConnect()
+            current_activity = pms_connect.get_current_activity()
+            sessions = current_activity.get('sessions', [])
+            user_stream_count = [d for d in sessions if d['user_id'] == stream_data['user_id']]
+            if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP:
+                user_stream_count = set(d['ip_address'] for d in user_stream_count)
 
             data_factory = datafactory.DataFactory()
             user_devices = data_factory.get_user_devices(user_id=stream_data['user_id'])
@@ -107,7 +111,7 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
                  'on_resume': plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99,
                  'on_watched': not any(d['agent_id'] == notifier['agent_id'] and d['notify_action'] == notify_action
                                        for d in get_notify_state(session=stream_data)),
-                 'on_concurrent': len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
+                 'on_concurrent': len(user_stream_count) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
                  'on_newdevice': stream_data['machine_id'] not in user_devices
                  }
 
