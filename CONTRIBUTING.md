@@ -29,13 +29,13 @@ In case you read this because you are posting an issue, please take a minute and
     - [ ] What happened?
     - [ ] What you expected?
     - [ ] How can we reproduce your issue?
-    - [ ] What are your (relevant) settings?
+    - [ ] What are your (relevant) settings?http://feathub.com/JonnyWong16/plexpy
     - [ ] Include a link to your **FULL** (not just a few lines!) log file that has the error. Please use [Gist](http://gist.github.com) or [Pastebin](http://pastebin.com/).
 5. Close your issue when it's solved! If you found the solution yourself please comment so that others benefit from it.
 
 ## Feature Requests
 
-Feature requests are handled on [FeatHub](http://feathub.com/drzoidberg33/plexpy).
+Feature requests are handled on [FeatHub](http://feathub.com/JonnyWong16/plexpy).
 
 1. Search the existing requests to see if your suggestion has already been submitted.
 2. If a similar request exists, give it a thumbs up (+1), or add additional comments to the request.
