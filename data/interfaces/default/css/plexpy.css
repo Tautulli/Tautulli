@@ -3055,3 +3055,10 @@ a:hover .overlay-refresh-image:hover {
     padding-top: 10px;
     padding-bottom: 10px;
 }
+#plexpy-log-levels label,
+#plex-log-levels label {
+    margin-bottom: 0;
+}
+#api_key.form-control[disabled] {
+    background-color: #555;
+}

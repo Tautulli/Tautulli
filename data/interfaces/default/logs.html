@@ -28,7 +28,7 @@
                         <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
                         <option value="DEBUG">Debug</option>
                         <option value="INFO">Info</option>
-                        <option value="WARN">Warning</option>
+                        <option value="WARNING">Warning</option>
                         <option value="ERROR">Error</option>
                     </select>
                 </label>
@@ -198,7 +198,7 @@
         var selected_log_level = null;
         function loadPlexPyLogs(selected_log_level) {
             log_table_options.ajax = {
-                url: "getLog",
+                url: "get_log",
                 type: 'post',
                 data: function (d) {
                     return {

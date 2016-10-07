@@ -62,6 +62,7 @@ def refresh_libraries():
         monitor_db = database.MonitorDatabase()
 
         library_keys = []
+        new_keys = []
 
         for section in library_sections:
             section_keys = {'server_id': server_id,
@@ -77,12 +78,19 @@ def refresh_libraries():
                               'child_count': section.get('child_count', None),
                               }
 
-            monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
+            result = monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
 
             library_keys.append(section['section_id'])
 
+            if result == 'insert':
+                new_keys.append(section['section_id'])
+
         if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run_wizard']:
             plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
+            plexpy.CONFIG.write()
+        else:
+            new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
+            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
             plexpy.CONFIG.write()
 
         if plexpy.CONFIG.UPDATE_SECTION_IDS == 1 or plexpy.CONFIG.UPDATE_SECTION_IDS == -1:

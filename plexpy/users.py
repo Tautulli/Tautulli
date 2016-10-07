@@ -712,6 +712,7 @@ class Users(object):
             custom_where = [['user_login.user_id', user_id]] if user_id else []
 
         columns = ['user_login.user_id',
+                   'user_login.user',
                    'user_login.user_group',
                    'user_login.ip_address',
                    'user_login.host',
@@ -748,7 +749,7 @@ class Users(object):
                    'os': os,
                    'browser': browser,
                    'timestamp': item['timestamp'],
-                   'friendly_name': item['friendly_name']
+                   'friendly_name': item['friendly_name'] or item['user']
                    }
 
             rows.append(row)

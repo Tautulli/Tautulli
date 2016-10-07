@@ -26,6 +26,7 @@ import requests
 import shlex
 import smtplib
 import subprocess
+import threading
 import time
 import urllib
 from urllib import urlencode
@@ -2116,6 +2117,7 @@ class Scripts(object):
     def __init__(self, **kwargs):
         self.script_exts = ('.bat', '.cmd', '.exe', '.php', '.pl', '.ps1', '.py', '.pyw', '.rb', '.sh')
         self.script_folder = plexpy.CONFIG.SCRIPTS_FOLDER
+        self.script_timeout = plexpy.CONFIG.SCRIPTS_TIMEOUT
         self.scripts = {'play': plexpy.CONFIG.SCRIPTS_ON_PLAY_SCRIPT,
                         'stop': plexpy.CONFIG.SCRIPTS_ON_STOP_SCRIPT,
                         'pause': plexpy.CONFIG.SCRIPTS_ON_PAUSE_SCRIPT,
@@ -2159,6 +2161,48 @@ class Scripts(object):
                     scripts[fp] = rfp
 
         return scripts
+
+    def run_script(self, script):
+        def kill_script(process):
+            logger.warn(u"PlexPy Notifiers :: Script exceeded timeout limit of %d seconds. "
+                        "Script killed." % self.script_timeout)
+            process.kill()
+            self.script_killed = True
+
+        self.script_killed = False
+        output = error = ''
+        try:
+
+            process = subprocess.Popen(script,
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE,
+                                       cwd=self.script_folder)
+
+            timer = threading.Timer(self.script_timeout, kill_script, (process,))
+            try:
+                timer.start()
+                output, error = process.communicate()
+                status = process.returncode
+            finally:
+                timer.cancel()
+
+        except OSError as e:
+            logger.error(u"PlexPy Notifiers :: Failed to run script: %s" % e)
+            return False
+
+        if error:
+            err = '\n  '.join([l for l in error.splitlines()])
+            logger.error(u"PlexPy Notifiers :: Script error: \n  %s" % err)
+            return False
+
+        if output:
+            out = '\n  '.join([l for l in output.splitlines()])
+            logger.debug(u"PlexPy Notifiers :: Script returned: \n  %s" % out)
+
+        if not self.script_killed:
+            logger.info(u"PlexPy Notifiers :: Script notification sent.")
+            return True
 
     def notify(self, subject='', message='', notify_action='', script_args=None, *args, **kwargs):
         """
@@ -2231,31 +2275,10 @@ class Scripts(object):
         script.extend(script_args)
 
         logger.debug(u"PlexPy Notifiers :: Full script is: %s" % script)
+        logger.debug(u"PlexPy Notifiers :: Executing script in a new thread.")
+        thread = threading.Thread(target=self.run_script, args=(script,)).start()
 
-        try:
-            p = subprocess.Popen(script, stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT,
-                                 cwd=plexpy.CONFIG.SCRIPTS_FOLDER)
-
-            out, error = p.communicate()
-            status = p.returncode
-
-            if out and status:
-                out = out.strip()
-                logger.debug(u"PlexPy Notifiers :: Script returned: %s" % out)
-
-            if error:
-                error = error.strip()
-                logger.error(u"PlexPy Notifiers :: Script error: %s" % error)
-                return False
-            else:
-                logger.info(u"PlexPy Notifiers :: Script notification sent.")
-                return True
-
-        except OSError as e:
-            logger.error(u"PlexPy Notifiers :: Failed to run script: %s" % e)
-            return False
+        return True
 
     def return_config_options(self):
         config_option = [{'label': 'Supported File Types',
@@ -2365,6 +2388,12 @@ class Scripts(object):
                           'description': 'Choose the script for user new device.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
+                          },
+                         {'label': 'Script Timeout',
+                          'value': self.script_timeout,
+                          'name': 'scripts_timeout',
+                          'description': 'The number of seconds to wait before killing the script.',
+                          'input_type': 'number'
                           }
                          ]
 

@@ -65,8 +65,8 @@ function confirmAjaxCall(url, msg, loader_msg, callback) {
             url: url,
             type: 'POST',
             complete: function (xhr, status) {
-                result = $.parseJSON(xhr.responseText);
-                msg = result.message;
+                var result = $.parseJSON(xhr.responseText);
+                var msg = result.message;
                 if (result.result == 'success') {
                     showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
                 } else {
@@ -80,9 +80,9 @@ function confirmAjaxCall(url, msg, loader_msg, callback) {
     });
 }
 
-function doAjaxCall(url, elem, reload, form, callback) {
+function doAjaxCall(url, elem, reload, form, showMsg, callback) {
     // Set Message
-    feedback = $("#ajaxMsg");
+    feedback = (showMsg) ? $("#ajaxMsg") : $();
     update = $("#updatebar");
     if (update.is(":visible")) {
         var height = update.height() + 35;
@@ -449,3 +449,20 @@ $('*').on('click', '.refresh_pms_image', function (e) {
         }
     }
 });
+
+// Taken from http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable#answer-14919494
+function humanFileSize(bytes, si) {
+    var thresh = si ? 1000 : 1024;
+    if (Math.abs(bytes) < thresh) {
+        return bytes + ' B';
+    }
+    var units = si
+        ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+        : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+    var u = -1;
+    do {
+        bytes /= thresh;
+        ++u;
+    } while (Math.abs(bytes) >= thresh && u < units.length - 1);
+    return bytes.toFixed(1) + '&nbsp;' + units[u];
+}

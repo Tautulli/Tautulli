@@ -334,9 +334,9 @@ class WebInterface(object):
         result = database.delete_sessions()
 
         if result:
-            return {'message': result}
+            return {'result': 'success', 'message': 'Temporary sessions flushed.'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'Flush sessions failed.'}
 
 
     ##### Libraries #####
@@ -2234,7 +2234,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def getLog(self, **kwargs):
+    def get_log(self, **kwargs):
         json_data = helpers.process_json_kwargs(json_kwargs=kwargs.get('json_data'))
         log_level = kwargs.get('log_level', "")
 
@@ -2263,7 +2263,7 @@ class WebInterface(object):
                     filt[tl][2] += '<br>' + l
                     continue
 
-        log_levels = ['DEBUG', 'INFO', 'WARN', 'ERROR']
+        log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
         if log_level in log_levels:
             log_levels = log_levels[log_levels.index(log_level)::]
             filtered = [row for row in filt if row[1] in log_levels]
@@ -3086,14 +3086,32 @@ class WebInterface(object):
         if not username and not password:
             return None
 
-        token = plextv.PlexTV(username=username, password=password)
-        result = token.get_token()
+        plex_tv = plextv.PlexTV(username=username, password=password)
+        result = plex_tv.get_token()
 
         if result:
             return result['auth_token']
         else:
             logger.warn(u"Unable to retrieve Plex.tv token.")
             return None
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def get_plexpy_pms_token(self, username=None, password=None, force=False, **kwargs):
+        """ Fetch a new Plex.tv token for PlexPy """
+        if not username and not password:
+            return None
+
+        force = True if force == 'true' else False
+
+        plex_tv = plextv.PlexTV(username=username, password=password)
+        token = plex_tv.get_plexpy_pms_token(force=force)
+
+        if token:
+            return {'result': 'success', 'message': 'Authentication successful.', 'token': token}
+        else:
+            return {'result': 'error', 'message': 'Authentication failed.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3265,18 +3283,42 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def pms_image_proxy(self, img='', rating_key=None, width='0', height='0',
-                        fallback=None, refresh=False, **kwargs):
+    def pms_image_proxy(self, **kwargs):
+        """ See real_pms_image_proxy docs string"""
 
-        """ Gets an image from the PMS and saves it to the image cache directory. """
+        refresh = False
+        if kwargs.get('refresh'):
+            mo = member_of('admin')
+            refresh = True if mo() else False
 
+        kwargs['refresh'] = refresh
+
+        return self.real_pms_image_proxy(**kwargs)
+
+    @addtoapi('pms_image_proxy')
+    def real_pms_image_proxy(self, img='', rating_key=None, width='0', height='0',
+                             fallback=None, refresh=False, **kwargs):
+        """ Gets an image from the PMS and saves it to the image cache directory.
+
+            ```
+            Required parameters:
+                img (str):              /library/metadata/153037/thumb/1462175060
+                or
+                rating_key (str):       54321
+
+            Optional parameters:
+                width (str):            150
+                height (str):           255
+                fallback (str):         "poster", "cover", "art"
+                refresh (bool):         True or False whether to refresh the image cache
+
+            Returns:
+                None
+            ```
+        """
         if not img and not rating_key:
             logger.error('No image input received.')
             return
-
-        if refresh:
-            mo = member_of('admin')
-            refresh = True if mo() else False
 
         if rating_key and not img:
             img = '/library/metadata/%s/thumb/1337' % rating_key
@@ -3623,7 +3665,7 @@ class WebInterface(object):
             ```
             Required parameters:
                 rating_key (str):       Rating key of the item
-                media_info (bool):      True or False wheter to get media info
+                media_info (bool):      True or False whether to get media info
 
             Optional parameters:
                 None

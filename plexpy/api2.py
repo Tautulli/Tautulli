@@ -458,6 +458,10 @@ General optional parameters:
         elif self._api_cmd == 'download_log':
             return
 
+        elif self._api_cmd == 'pms_image_proxy':
+            cherrypy.response.headers['Content-Type'] = 'image/jpeg'
+            return out['response']['data']
+
         if self._api_out_type == 'json':
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             try:

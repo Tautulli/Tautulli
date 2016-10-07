@@ -129,6 +129,16 @@
                             </label>
                             <p class="help-block">Include current activity in the history tables. Statistics will not be counted until the stream has ended.</p>
                         </div>
+                        <div class="form-group">
+                            <label for="notify_watched_percent">Watched Percent</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_watched_percent" name="notify_watched_percent" value="${config['notify_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" data-parsley-errors-container="#notify_watched_percent_error" required>
+                                </div>
+                                <div id="notify_watched_percent_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the percentage for a media item to be considered as watched. Minimum 50, Maximum 95.</p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Backup</h3>
@@ -518,7 +528,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="input-group">
-                                        <input class="form-control" type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20">
+                                        <input class="form-control" type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20" disabled>
                                         <span class="input-group-btn">
                                             <button class="btn btn-form" type="button" id="generate_api">Generate</button>
                                         </span>
@@ -736,6 +746,20 @@
                             </div>
                             <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
                         </div>
+                        <div class="form-group">
+                            <label>Flush Temporary Sessions</label>
+                            <p class="help-block">
+                                Attempt to fix hisotry logging by flushing out all of the temporary sessions in the database.<br />
+                                Warning: This will reset all currently active sessions. For emergeny use only when history logging is stuck!
+                            </p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="delete_temp_sessions">Flush</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Database Import Tool</h3>
@@ -887,16 +911,6 @@
                             <h3>Current Activity Notifications</h3>
                         </div>
 
-                        <div class="form-group">
-                            <label for="notify_watched_percent">Watched Percent</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_watched_percent" name="notify_watched_percent" value="${config['notify_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" data-parsley-errors-container="#notify_watched_percent_error" required>
-                                </div>
-                                <div id="notify_watched_percent_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">Set the progress percentage of when a watched notification should be triggered. Minimum 50, Maximum 95.</p>
-                        </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Consecutive Notifications
@@ -1533,11 +1547,11 @@
                 <div class="modal-body" id="modal-text">
                     <div>
                         <p class="help-block">
-                            This will attempt to fetch your token for you. This will not work on Internet Explorer 9 or lower.
-                            PlexPy does not store your username and password.
+                            This will attempt to fetch a new Plex.tv token for you. PlexPy does not store your username and password.
+                            Note: This will not work on Internet Explorer 9 or lower.
                         </p>
                         <div class="form-group">
-                            <label for="pms_username">PMS Username</label>
+                            <label for="pms_username">Plex.tv Username</label>
                             <div class="row">
                                 <div class="col-md-6">
                                     <input type="text" class="form-control" id="pms_username" name="pms_username" size="30">
@@ -1546,7 +1560,7 @@
                             <p class="help-block">Username for Plex.tv authentication.</p>
                         </div>
                         <div class="form-group">
-                            <label for="pms_password">PMS Password</label>
+                            <label for="pms_password">Plex.tv Password</label>
                             <div class="row">
                                 <div class="col-md-6">
                                     <input type="password" class="form-control" id="pms_password" name="pms_password" size="30">
@@ -2190,7 +2204,7 @@ $(document).ready(function() {
 
     function saveSettings() {
         if (configForm.parsley().validate()) {
-            doAjaxCall('configUpdate', $(this), 'tabs', true, postSaveChecks);
+            doAjaxCall('configUpdate', $(this), 'tabs', true, true, postSaveChecks);
             return false;
         } else {
             showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true)
@@ -2270,6 +2284,12 @@ $(document).ready(function() {
     $("#clear_logs").click(function () {
         var msg = 'Are you sure you want to clear the PlexPy logs?';
         var url = 'delete_logs';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#delete_temp_sessions").click(function () {
+        var msg = 'Are you sure you want to flush the temporary sessions?<br /><strong>This will reset all currently active sessions.</strong>';
+        var url = 'delete_temp_sessions';
         confirmAjaxCall(url, msg);
     });
 
@@ -2368,21 +2388,24 @@ $(document).ready(function() {
         if ((pms_username !== '') && (pms_password !== '')) {
             $.ajax({
                 type: 'GET',
-                url: 'get_pms_token',
+                url: 'get_plexpy_pms_token',
                 data: {
                     username: pms_username,
-                    password: pms_password
+                    password: pms_password,
+                    force: true
                 },
                 cache: false,
                 async: true,
                 complete: function(xhr, status) {
-                    var authToken = $.parseJSON(xhr.responseText);
-                    if (authToken) {
-                        $("#pms-token-status").html('<i class="fa fa-check"></i> Authentication successful!');
+                    var result = $.parseJSON(xhr.responseText);
+                    var msg = result.message;
+                    if (result.result == 'success') {
+                        var authToken = result.token;
+                        $("#pms-token-status").html('<i class="fa fa-check"></i> ' + msg);
                         $("#pms_token").val(authToken);
                         $('#pms-auth-modal').modal('hide');
                     } else {
-                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Invalid username or password.');
+                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> ' + msg);
                     }
                     loadUpdateDistros();
                 }

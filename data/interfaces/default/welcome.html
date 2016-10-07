@@ -418,7 +418,7 @@
         if ((pms_username !== '') && (pms_password !== '')) {
             $.ajax({
                 type: 'GET',
-                url: 'get_pms_token',
+                url: 'get_plexpy_pms_token',
                 data: {
                     username: pms_username,
                     password: pms_password
@@ -426,15 +426,17 @@
                 cache: false,
                 async: true,
                 complete: function (xhr, status) {
-                    var authToken = $.parseJSON(xhr.responseText);
-                    if (authToken) {
-                        $("#pms-token-status").html('<i class="fa fa-check"></i> Authentication successful!');
+                    var result = $.parseJSON(xhr.responseText);
+                    var msg = result.message;
+                    if (result.result == 'success') {
+                        var authToken = result.token;
+                        $("#pms-token-status").html('<i class="fa fa-check"></i> ' + msg);
                         $('#pms-token-status').fadeIn('fast');
                         $("#pms_token").val(authToken);
                         authenticated = true;
                         getServerOptions(authToken)
                     } else {
-                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Invalid username or password.');
+                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> ' + msg);
                     }
                 }
             });

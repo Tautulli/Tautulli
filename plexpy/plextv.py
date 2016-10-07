@@ -208,6 +208,32 @@ class PlexTV(object):
         else:
             return None
 
+    def get_plexpy_pms_token(self, force=False):
+        if force:
+            logger.debug(u"PlexPy PlexTV :: Forcing refresh of Plex.tv token.")
+            devices_list = self.get_devices_list()
+            device_id = next((d for d in devices_list if d['device_identifier'] == plexpy.CONFIG.PMS_UUID), {}).get('device_id', None)
+
+            if device_id:
+                logger.debug(u"PlexPy PlexTV :: Removing PlexPy from Plex.tv devices.")
+                try:
+                    self.delete_plextv_device(device_id=device_id)
+                except:
+                    logger.error(u"PlexPy PlexTV :: Failed to remove PlexPy from Plex.tv devices.")
+                    return None
+            else:
+                logger.warn(u"PlexPy PlexTV :: No existing PlexPy device found.")
+        
+        logger.info(u"PlexPy PlexTV :: Fetching a new Plex.tv token for PlexPy.")
+        user = self.get_token()
+        if user:
+            token = user['auth_token']
+            plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
+            plexpy.CONFIG.write()
+            logger.info(u"PlexPy PlexTV :: Updated Plex.tv token for PlexPy.")
+            return token
+
+
     def get_server_token(self):
         servers = self.get_plextv_server_list(output_format='xml')
         server_token = ''
@@ -244,6 +270,15 @@ class PlexTV(object):
 
     def get_plextv_user_details(self, output_format=''):
         uri = '/users/account'
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    def get_plextv_devices_list(self, output_format=''):
+        uri = '/devices.xml'
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -289,6 +324,15 @@ class PlexTV(object):
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
+    def delete_plextv_device(self, device_id='', output_format=''):
+        uri = '/devices/%s.xml' % device_id
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='DELETE',
                                                     output_format=output_format)
 
         return request
@@ -687,3 +731,31 @@ class PlexTV(object):
             plexpy.CONFIG.__setattr__('PMS_PLEXPASS', 0)
             plexpy.CONFIG.write()
             return False
+
+    def get_devices_list(self):
+        devices = self.get_plextv_devices_list(output_format='xml')
+
+        try:
+            xml_head = devices.getElementsByTagName('Device')
+        except Exception as e:
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_devices_list: %s." % e)
+            return []
+
+        devices_list = []
+        for a in xml_head:
+            device = {"device_name": helpers.get_xml_attr(a, 'name'),
+                      "product": helpers.get_xml_attr(a, 'product'),
+                      "product_version": helpers.get_xml_attr(a, 'productVersion'),
+                      "platform": helpers.get_xml_attr(a, 'platform'),
+                      "platform_version": helpers.get_xml_attr(a, 'platformVersion'),
+                      "device": helpers.get_xml_attr(a, 'device'),
+                      "model": helpers.get_xml_attr(a, 'model'),
+                      "vendor": helpers.get_xml_attr(a, 'vendor'),
+                      "provides": helpers.get_xml_attr(a, 'provides'),
+                      "device_identifier": helpers.get_xml_attr(a, 'clientIdentifier'),
+                      "device_id": helpers.get_xml_attr(a, 'id'),
+                      "token": helpers.get_xml_attr(a, 'token')
+                      }
+            devices_list.append(device)
+
+        return devices_list
