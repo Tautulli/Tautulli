@@ -26,7 +26,7 @@ import notifiers
 import pmsconnect
 
 
-RECENTLY_ADDED_WAITLIST = []
+RECENTLY_ADDED_QUEUE = {}
 
 class ActivityHandler(object):
 
@@ -258,36 +258,94 @@ class TimelineHandler(object):
 
         return None
 
-    def on_created(self):
+    def on_created(self, rating_key):
         if self.is_item():
-            logger.debug(u"PlexPy TimelineHandler :: Library item %s added to Plex." % str(self.get_rating_key()))
-            metadata = self.get_metadata()
+            logger.debug(u"PlexPy TimelineHandler :: Library item %s added to Plex." % str(rating_key))
+            pms_connect = pmsconnect.PmsConnect()
+            metadata_list = pms_connect.get_metadata_details(rating_key)
 
-            plexpy.NOTIFY_QUEUE.put({'timeline_data': metadata, 'notify_action': 'on_created'})
+            if metadata_list:
+                metadata = metadata_list['metadata']
+                plexpy.NOTIFY_QUEUE.put({'timeline_data': metadata, 'notify_action': 'on_created'})
+            else:
+                logger.error(u"PlexPy TimelineHandler :: Unable to retrieve metadata for rating_key %s" \
+                             % str(rating_key))
 
     # This function receives events from our websocket connection
     def process(self):
         if self.is_item():
+            global RECENTLY_ADDED_QUEUE
 
             rating_key = self.get_rating_key()
 
-            this_state = self.timeline['state']
-            this_type = self.timeline['type']
-            this_section = self.timeline['sectionID']
-            this_metadataState = self.timeline.get('metadataState', None)
-
             # state:    0: created media, 5: done processing metadata
-            # type:     1: movie, 2: tv show, 4: episode, 8: artist, 10: track
-            if plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
-                media_types = (1, 2, 8)
-            else:
-                media_types = (1, 4, 10)
+            # type:     1: movie, 2: tv show, 3: season, 4: episode, 8: artist, 9: album, 10: track
+            media_types = {1: 'movie',
+                           2: 'show',
+                           3: 'season',
+                           4: 'episode',
+                           8: 'artist',
+                           9: 'album',
+                           10: 'track'}
 
-            if this_state == 0 and this_type in media_types and this_section > 0 and this_metadataState == "created":
-                logger.debug(u"PlexPy TimelineHandler :: Library item %s added to recently added queue." % str(rating_key))
-                RECENTLY_ADDED_WAITLIST.append(rating_key)
+            state = self.timeline['state']
+            media_type = media_types.get(self.timeline['type'])
+            section_id = self.timeline['sectionID']
+            metadata_state = self.timeline.get('metadataState')
 
-            if this_state == 5 and this_type in media_types and this_section > 0 and rating_key in RECENTLY_ADDED_WAITLIST:
+
+            if state == 0 and media_type and section_id > 0 and metadata_state == "created":
+                if media_type == 'episode' or media_type == 'track':
+                    metadata = self.get_metadata()
+                    if metadata:
+                        grandparent_rating_key = int(metadata['grandparent_rating_key'])
+
+                        logger.debug(u"PlexPy TimelineHandler :: Library item %s (grandparent %s) added to recently added queue."
+                                     % (str(rating_key), str(grandparent_rating_key)))
+                        RECENTLY_ADDED_QUEUE[grandparent_rating_key] = RECENTLY_ADDED_QUEUE.get(grandparent_rating_key, []) + [(media_type, rating_key)]
+
+                elif media_type == 'season' or media_type == 'album':
+                    metadata = self.get_metadata()
+                    if metadata:
+                        parent_rating_key = int(metadata['parent_rating_key'])
+
+                        logger.debug(u"PlexPy TimelineHandler :: Library item %s (parent %s) added to recently added queue."
+                                     % (str(rating_key), str(parent_rating_key)))
+                        RECENTLY_ADDED_QUEUE[parent_rating_key] = RECENTLY_ADDED_QUEUE.get(parent_rating_key, []) + [(media_type, rating_key)]
+
+                else:
+                    logger.debug(u"PlexPy TimelineHandler :: Library item %s added to recently added queue." % str(rating_key))
+                    RECENTLY_ADDED_QUEUE[rating_key] = RECENTLY_ADDED_QUEUE.get(rating_key, []) + [(media_type, rating_key)]
+
+            if state == 5 and media_type and section_id > 0 and rating_key in RECENTLY_ADDED_QUEUE.keys():
                 logger.debug(u"PlexPy TimelineHandler :: Library item %s done processing metadata." % str(rating_key))
-                RECENTLY_ADDED_WAITLIST.remove(rating_key)
-                self.on_created()
+                child_keys = RECENTLY_ADDED_QUEUE.pop(rating_key)
+
+                def notify_keys(keys):
+                    for key in keys: self.on_created(key)
+
+                if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED:
+                    media_type_dict = {}
+                    for type, key in child_keys:
+                        media_type_dict[type] = media_type_dict.get(type, []) + [key]
+
+                    if len(media_type_dict.get('episode', [])) > 1:
+                        if len(media_type_dict.get('season', [])) > 1:
+                            notify_keys(media_type_dict.get('show', []))
+                        else:
+                            notify_keys(media_type_dict.get('season', media_type_dict.get('episode', [])))
+                    else:
+                        notify_keys(media_type_dict.get('episode', []))
+
+                    if len(media_type_dict.get('track', [])) > 1:
+                        if len(media_type_dict.get('album', [])) > 1:
+                            notify_keys(media_type_dict.get('artist', []))
+                        else:
+                            notify_keys(media_type_dict.get('album', media_type_dict.get('track', [])))
+                    else:
+                        notify_keys(media_type_dict.get('track', []))
+
+                    notify_keys(media_type_dict.get('movie', []))
+
+                else:
+                    notify_keys(child_keys)

@@ -312,6 +312,7 @@ _CONFIG_DEFINITIONS = {
     'NMA_ON_CONCURRENT': (int, 'NMA', 0),
     'NMA_ON_NEWDEVICE': (int, 'NMA', 0),
     'NOTIFY_CONSECUTIVE': (int, 'Monitoring', 1),
+    'NOTIFY_GROUP_RECENTLY_ADDED': (int, 'Monitoring', 1),
     'NOTIFY_UPLOAD_POSTERS': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 0),
