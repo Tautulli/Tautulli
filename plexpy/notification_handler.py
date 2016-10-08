@@ -121,8 +121,14 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
             return True
         else:
             return False
+    elif timeline_data:
+
+        conditions = \
+            {'on_created': True}
+
+        return conditions.get(notify_action, True)
     else:
-        return True
+        return False
 
 
 def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None):
@@ -163,7 +169,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                                 metadata=metadata)
 
     # Set the notification state in the db
-    set_notify_state(session=stream_data,
+    set_notify_state(session=stream_data or timeline_data,
                      notify_action=notify_action,
                      notifier=notifier_config,
                      subject=subject,
