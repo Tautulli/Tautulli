@@ -308,8 +308,6 @@ def initialize_scheduler():
             schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
                          hours=12, minutes=0, seconds=0)
 
-            schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-                         hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
             schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
                          hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.MONITOR_REMOTE_ACCESS))
             schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
@@ -319,6 +317,8 @@ def initialize_scheduler():
             if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:
                 schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
                              hours=0, minutes=0, seconds=monitor_seconds)
+                schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
+                             hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
 
         # Refresh the users list and libraries list
         user_hours = CONFIG.REFRESH_USERS_INTERVAL if 1 <= CONFIG.REFRESH_USERS_INTERVAL <= 24 else 12

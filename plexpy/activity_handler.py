@@ -26,6 +26,8 @@ import notifiers
 import pmsconnect
 
 
+RECENTLY_ADDED_WAITLIST = []
+
 class ActivityHandler(object):
 
     def __init__(self, timeline):
@@ -84,7 +86,7 @@ class ActivityHandler(object):
 
     def on_stop(self, force_stop=False):
         if self.is_valid_session():
-            logger.debug(u"PlexPy ActivityHandler :: Session %s has stopped." % str(self.get_session_key()))
+            logger.debug(u"PlexPy ActivityHandler :: Session %s stopped." % str(self.get_session_key()))
 
             # Set the session last_paused timestamp
             ap = activity_processor.ActivityProcessor()
@@ -258,23 +260,34 @@ class TimelineHandler(object):
 
     def on_created(self):
         if self.is_item():
-            logger.debug(u"PlexPy TimelineHandler :: Library item %s has been added to Plex." % str(self.get_rating_key()))
+            logger.debug(u"PlexPy TimelineHandler :: Library item %s added to Plex." % str(self.get_rating_key()))
+            metadata = self.get_metadata()
 
-            # Fire off notifications
-            threading.Thread(target=notification_handler.notify_timeline,
-                             kwargs=dict(timeline_data=self.get_metadata(), notify_action='created')).start()
+            plexpy.NOTIFY_QUEUE.put({'timeline_data': metadata, 'notify_action': 'on_created'})
 
     # This function receives events from our websocket connection
     def process(self):
         if self.is_item():
 
+            rating_key = self.get_rating_key()
+
             this_state = self.timeline['state']
             this_type = self.timeline['type']
+            this_section = self.timeline['sectionID']
             this_metadataState = self.timeline.get('metadataState', None)
-            this_mediaState = self.timeline.get('mediaState', None)
 
-            # state:    5: done processing metadata
+            # state:    0: created media, 5: done processing metadata
             # type:     1: movie, 2: tv show, 4: episode, 8: artist, 10: track
-            types = [1, 2, 4, 8, 10]
-            if this_state == 5 and this_type in types and this_metadataState == None and this_mediaState == None:
+            if plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
+                media_types = (1, 2, 8)
+            else:
+                media_types = (1, 4, 10)
+
+            if this_state == 0 and this_type in media_types and this_section > 0 and this_metadataState == "created":
+                logger.debug(u"PlexPy TimelineHandler :: Library item %s added to recently added queue." % str(rating_key))
+                RECENTLY_ADDED_WAITLIST.append(rating_key)
+
+            if this_state == 5 and this_type in media_types and this_section > 0 and rating_key in RECENTLY_ADDED_WAITLIST:
+                logger.debug(u"PlexPy TimelineHandler :: Library item %s done processing metadata." % str(rating_key))
+                RECENTLY_ADDED_WAITLIST.remove(rating_key)
                 self.on_created()

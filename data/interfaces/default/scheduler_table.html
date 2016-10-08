@@ -42,7 +42,7 @@ DOCUMENTATION :: END
             <td>${arrow.get(next_run_interval).format('HH:mm:ss')}</td>
             <td>${arrow.get(sched_job.next_run_time).format('YYYY-MM-DD HH:mm:ss')}</td>
         </tr>
-        % elif job == 'Check for active sessions' and plexpy.CONFIG.MONITORING_USE_WEBSOCKET and not plexpy.POLLING_FAILOVER:
+        % elif job in ('Check for active sessions', 'Check for recently added items') and plexpy.CONFIG.MONITORING_USE_WEBSOCKET and not plexpy.POLLING_FAILOVER:
         <tr>
             <td>${job}</td>
             <td><i class="fa fa-sm fa-fw fa-check"></i> Using Websocket</td>
