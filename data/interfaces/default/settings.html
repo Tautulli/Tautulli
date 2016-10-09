@@ -2366,11 +2366,6 @@ $(document).ready(function() {
         }
     });
 
-    $("#notify_recently_added_grandparent").change(function () {
-        var c = this.checked ? '#eb8600' : '#737373';
-        $('#notify_recently_added_grandparent_note').css('color', c);
-    });
-
     function allowGuestAccessCheck () {
         if ($("#http_basic_auth").is(":checked")) {
             $("#allow_guest_access").attr("disabled", true);
