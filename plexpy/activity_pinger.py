@@ -326,7 +326,7 @@ def check_server_updates():
             if download_info['update_available']:
                 logger.info(u"PlexPy Monitor :: PMS update available version: %s", download_info['version'])
 
-                plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_pmsupdate'})
+                plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_pmsupdate', 'pms_download_info': download_info})
 
             else:
                 logger.info(u"PlexPy Monitor :: No PMS update available.")
