@@ -2895,6 +2895,11 @@ class WebInterface(object):
                                 "incl_subject": 1,
                                 "disable_web_preview": 0
                                 },
+                     "config_options": [{...}, ...]
+                     "actions": {"on_play": 0,
+                                 "on_stop": 0,
+                                 ...
+                                 },
                      "notify_text": {"on_play": {"subject": "...",
                                                  "body": "..."
                                                  }
@@ -2902,12 +2907,7 @@ class WebInterface(object):
                                                  "body": "..."
                                                  }
                                      ...
-                                     },
-                                                 
-                     "actions": {"on_play": 0,
-                                 "on_stop": 0,
-                                 ...
-                                 }
+                                     }
                      }
             ```
         """

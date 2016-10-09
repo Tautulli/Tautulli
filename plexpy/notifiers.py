@@ -381,7 +381,8 @@ def get_notifier_config(notifier_id=None):
             notifier_text[k] = {'subject': result.pop(k + '_subject'),
                                 'body': result.pop(k + '_body')}
 
-    result['config'] = notifier_config
+    result['config'] = config
+    result['config_options'] = notifier_config
     result['actions'] = notifier_actions
     result['notify_text'] = notifier_text
 
@@ -478,7 +479,8 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
 def send_notification(notifier_id=None, subject='', body='', notify_action='', **kwargs):
     notifier_config = get_notifier_config(notifier_id=notifier_id)
     if notifier_config:
-        agent = get_agent_class(notifier_config['agent_id'])
+        agent = get_agent_class(agent_id=notifier_config['agent_id'],
+                                config=notifier_config['config'])
         return agent.notify(subject=subject,
                             body=body,
                             action=notify_action,
