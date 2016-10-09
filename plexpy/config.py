@@ -568,6 +568,8 @@ _CONFIG_DEFINITIONS = {
     'UPDATE_NOTIFIERS_DB': (int, 'General', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
+    'WEBSOCKET_CONNECTION_ATTEMPTS': (int, 'Advanced', 5),
+    'WEBSOCKET_CONNECTION_TIMEOUT': (int, 'Advanced', 5),
     'XBMC_ENABLED': (int, 'XBMC', 0),
     'XBMC_HOST': (str, 'XBMC', ''),
     'XBMC_PASSWORD': (str, 'XBMC', ''),

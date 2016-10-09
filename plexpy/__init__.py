@@ -85,6 +85,7 @@ HTTP_ROOT = None
 DEV = False
 
 WS_CONNECTED = False
+PLEX_SERVER_UP = True
 
 
 def initialize(config_file):
@@ -310,15 +311,15 @@ def initialize_scheduler():
             monitor_seconds = CONFIG.MONITORING_INTERVAL if CONFIG.MONITORING_INTERVAL >= 30 else 30
 
             #schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
-            #                hours=0, minutes=0, seconds=1)
+            #             hours=0, minutes=0, seconds=1)
             #schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-            #                hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
+            #             hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
                          hours=12, minutes=0, seconds=0)
             schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
                          hours=12, minutes=0, seconds=0)
 
-            schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
+            schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
                          hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.MONITOR_REMOTE_ACCESS))
             schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
                          hours=12 * bool(CONFIG.MONITOR_PMS_UPDATES), minutes=0, seconds=0)
@@ -329,13 +330,32 @@ def initialize_scheduler():
 
             schedule_job(plextv.refresh_users, 'Refresh users list',
                          hours=user_hours, minutes=0, seconds=0)
-
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
                          hours=library_hours, minutes=0, seconds=0)
 
         else:
-            ## Add new taks to check and reconnect websocket
-            pass
+            # Cancel all jobs
+            schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
+                         hours=0, minutes=0, seconds=0)
+            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
+                         hours=0, minutes=0, seconds=0)
+
+            schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
+                         hours=0, minutes=0, seconds=0)
+            schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
+                         hours=0, minutes=0, seconds=0)
+
+            schedule_job(plextv.refresh_users, 'Refresh users list',
+                         hours=0, minutes=0, seconds=0)
+            schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
+                         hours=0, minutes=0, seconds=0)
+
+            # Schedule job to reconnect websocket
+            response_seconds = CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS * CONFIG.WEBSOCKET_CONNECTION_TIMEOUT
+            response_seconds = 60 if response_seconds < 60 else response_seconds
+
+            schedule_job(activity_pinger.check_server_response, 'Check server response',
+                         hours=0, minutes=0, seconds=response_seconds)
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
@@ -344,8 +364,6 @@ def initialize_scheduler():
             except Exception as e:
                 logger.info(e)
 
-                # Debug
-                #SCHED.print_jobs()
 
 def schedule_job(function, name, hours=0, minutes=0, seconds=0, args=None):
     """
