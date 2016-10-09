@@ -32,7 +32,6 @@ class ActivityHandler(object):
 
     def __init__(self, timeline):
         self.timeline = timeline
-        # print timeline
 
     def is_valid_session(self):
         if 'sessionKey' in self.timeline:
@@ -235,7 +234,6 @@ class TimelineHandler(object):
 
     def __init__(self, timeline):
         self.timeline = timeline
-        #logger.debug(timeline)
 
     def is_item(self):
         if 'itemID' in self.timeline:

@@ -132,7 +132,7 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
 
         return conditions.get(notify_action, True)
     else:
-        return False
+        return True
 
 
 def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, **kwargs):
