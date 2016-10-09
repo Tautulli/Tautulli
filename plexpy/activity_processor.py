@@ -82,7 +82,8 @@ class ActivityProcessor(object):
                       'transcode_audio_codec': session['transcode_audio_codec'],
                       'transcode_audio_channels': session['transcode_audio_channels'],
                       'transcode_width': session['transcode_width'],
-                      'transcode_height': session['transcode_height']
+                      'transcode_height': session['transcode_height'],
+                      'stopped': None
                       }
 
             # Add ip_address back into values

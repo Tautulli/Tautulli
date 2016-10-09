@@ -173,11 +173,12 @@ def check_active_sessions(ws_request=False):
                     if stream['state'] != 'stopped':
                         logger.debug(u"PlexPy Monitor :: Session %s has stopped." % stream['session_key'])
 
-                        # Set the stream stop time
-                        stream['stopped'] = int(time.time())
-                        monitor_db.action('UPDATE sessions SET stopped = ?, state = ? '
-                                          'WHERE session_key = ? AND rating_key = ?',
-                                          [stream['stopped'], 'stopped', stream['session_key'], stream['rating_key']])
+                        if not stream['stopped']:
+                            # Set the stream stop time
+                            stream['stopped'] = int(time.time())
+                            monitor_db.action('UPDATE sessions SET stopped = ?, state = ? '
+                                              'WHERE session_key = ? AND rating_key = ?',
+                                              [stream['stopped'], 'stopped', stream['session_key'], stream['rating_key']])
 
                         # Check if the user has reached the offset in the media we defined as the "watched" percent
                         if stream['view_offset'] and stream['duration']:
@@ -235,6 +236,11 @@ def check_active_sessions(ws_request=False):
 
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
+
+            if int_ping_count == 0:
+                # Temporarily set the stopped time for all sessions
+                stopped_time = int(time.time())
+                monitor_db.action('UPDATE sessions SET stopped = ?', [stopped_time])
 
             int_ping_count += 1
             logger.warn(u"PlexPy Monitor :: Unable to get an internal response from the server, ping attempt %s." \
