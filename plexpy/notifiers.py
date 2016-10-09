@@ -1333,6 +1333,7 @@ class EMAIL(Notifier):
             return
 
         if self.config['html_support']:
+            body = body.replace('\n', '<br />')
             msg = MIMEMultipart('alternative')
             msg.attach(MIMEText(bleach.clean(body, strip=True), 'plain', 'utf-8'))
             msg.attach(MIMEText(body, 'html', 'utf-8'))
@@ -1837,8 +1838,7 @@ class SLACK(Notifier):
                          {'label': 'Include Link to Plex Web',
                           'value': self.config['incl_pmslink'],
                           'name': 'slack_incl_pmslink',
-                          'description': 'Include a link to the media in Plex Web with the notifications.<br>'
-                                         'If disabled, the link will go to IMDB, TVDB, TMDb, or Last.fm instead, if available.',
+                          'description': 'Include a second link to the media in Plex Web with the notifications.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Subject Line',
@@ -2482,7 +2482,7 @@ class HIPCHAT(Notifier):
                          {'label': 'Include Poster',
                           'value': self.config['incl_poster'],
                           'name': 'hipchat_incl_poster',
-                          'description': 'Include a poster in the notifications.<br>This will change the notification type to HTML and emoticons will no longer work.',
+                          'description': 'Include a poster with the notifications.<br>Note: This will change the notification type to HTML and emoticons will no longer work.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Link to Plex Web',
