@@ -575,7 +575,7 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
             return pushbullet.notify(message=body, subject=subject)
         elif agent_id == 7:
             pushover = PUSHOVER()
-            return pushover.notify(message=body, event=subject)
+            return pushover.notify(message=body, event=subject, **kwargs)
         elif agent_id == 8:
             osx_notify = OSX_NOTIFY()
             return osx_notify.notify(title=subject, text=body)
@@ -1263,11 +1263,13 @@ class PUSHOVER(object):
         self.html_support = plexpy.CONFIG.PUSHOVER_HTML_SUPPORT
         self.priority = plexpy.CONFIG.PUSHOVER_PRIORITY
         self.sound = plexpy.CONFIG.PUSHOVER_SOUND
+        self.incl_pmslink = plexpy.CONFIG.PUSHOVER_INCL_PMSLINK
+        self.incl_url = plexpy.CONFIG.PUSHOVER_INCL_URL
 
     def conf(self, options):
         return cherrypy.config['config'].get('Pushover', options)
 
-    def notify(self, message, event):
+    def notify(self, message, event, **kwargs):
         if not message or not event:
             return
 
@@ -1280,6 +1282,20 @@ class PUSHOVER(object):
                 'sound': self.sound,
                 'html': self.html_support,
                 'priority': self.priority}
+
+        if self.incl_url and 'metadata' in kwargs:
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['metadata'])
+            plex_url = pretty_metadata.get_plex_url()
+            poster_link = pretty_metadata.get_poster_link()
+            caption = pretty_metadata.get_caption()
+
+            if self.incl_pmslink:
+                data['url'] = plex_url
+                data['url_title'] = 'View on Plex Web'
+            else:
+                data['url'] = poster_link
+                data['url_title'] = caption
 
         http_handler.request("POST",
                              "/1/messages.json",
@@ -1367,6 +1383,18 @@ class PUSHOVER(object):
                           'value': self.html_support,
                           'name': 'pushover_html_support',
                           'description': 'Style your messages using these HTML tags: b, i, u, a[href], font[color]',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include supplementary URL',
+                          'value': self.incl_url,
+                          'name': 'pushover_incl_url',
+                          'description': 'Include a supplementary URL to IMDB, TVDB, TMDb, or Last.fm with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Supplementary URL to Plex Web',
+                          'value': self.incl_pmslink,
+                          'name': 'pushover_incl_pmslink',
+                          'description': 'Enable to change the supplementary URL to the media in Plex Web.',
                           'input_type': 'checkbox'
                           }
                          ]

@@ -436,6 +436,8 @@ _CONFIG_DEFINITIONS = {
     'PUSHOVER_APITOKEN': (str, 'Pushover', ''),
     'PUSHOVER_ENABLED': (int, 'Pushover', 0),
     'PUSHOVER_HTML_SUPPORT': (int, 'Pushover', 1),
+    'PUSHOVER_INCL_PMSLINK': (int, 'Pushover', 0),
+    'PUSHOVER_INCL_URL': (int, 'Pushover', 1),
     'PUSHOVER_KEYS': (str, 'Pushover', ''),
     'PUSHOVER_PRIORITY': (int, 'Pushover', 0),
     'PUSHOVER_SOUND': (str, 'Pushover', ''),
