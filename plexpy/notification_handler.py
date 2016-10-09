@@ -16,6 +16,8 @@
 
 import arrow
 import bleach
+from itertools import groupby
+from operator import itemgetter
 import os
 import re
 import threading
@@ -53,7 +55,7 @@ def start_threads(num_threads=1):
         thread.start()
 
 
-def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None):
+def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, **kwargs):
     if not notify_action:
         logger.debug(u"PlexPy NotificationHandler :: Notify called but no action received.")
         return
@@ -69,10 +71,12 @@ def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None):
                                            stream_data=stream_data,
                                            timeline_data=timeline_data)
             if conditions:
-                plexpy.NOTIFY_QUEUE.put({'notifier_id': notifier['id'],
-                                         'notify_action': notify_action,
-                                         'stream_data': stream_data,
-                                         'timeline_data': timeline_data})
+                data = {'notifier_id': notifier['id'],
+                        'notify_action': notify_action,
+                        'stream_data': stream_data,
+                        'timeline_data': timeline_data}
+                data.update(kwargs)
+                plexpy.NOTIFY_QUEUE.put(data)
 
 def notify_conditions(notifier=None, notify_action=None, stream_data=None, timeline_data=None):
     if stream_data:
@@ -131,7 +135,7 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
         return False
 
 
-def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None):
+def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, **kwargs):
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
 
     if not notifier_config:
@@ -141,7 +145,8 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
         # Build the notification parameters
         parameters, metadata = build_media_notify_params(notify_action=notify_action,
                                                          session=stream_data,
-                                                         timeline=timeline_data)
+                                                         timeline=timeline_data,
+                                                         **kwargs)
     else:
         # Build the notification parameters
         parameters, metadata = build_server_notify_params(notify_action=notify_action)
@@ -225,7 +230,7 @@ def set_notify_state(notify_action, notifier, subject, body, session=None, metad
         logger.error(u"PlexPy NotificationHandler :: Unable to set notify state.")
 
 
-def build_media_notify_params(notify_action=None, session=None, timeline=None):
+def build_media_notify_params(notify_action=None, session=None, timeline=None, **kwargs):
     # Get time formats
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
@@ -254,20 +259,31 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None):
     pms_connect = pmsconnect.PmsConnect()
     metadata_list = pms_connect.get_metadata_details(rating_key=rating_key)
 
-    current_activity = pms_connect.get_current_activity()
-    sessions = current_activity.get('sessions', [])
-    stream_count = current_activity.get('stream_count', '')
-    user_stream_count = sum(1 for d in sessions if d['user_id'] == session['user_id']) if session else ''
-
     if metadata_list:
         metadata = metadata_list['metadata']
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
         return None, None
 
+    child_metadata = grandchild_metadata = []
+    if 'child_keys' in kwargs:
+        for key in kwargs['child_keys']:
+            child_metadata.append(pms_connect.get_metadata_details(rating_key=key)['metadata'])
+    if 'grandchild_keys' in kwargs:
+        for key in kwargs['grandchild_keys']:
+            grandchild_metadata.append(pms_connect.get_metadata_details(rating_key=key)['metadata'])
+
+    current_activity = pms_connect.get_current_activity()
+    sessions = current_activity.get('sessions', [])
+    stream_count = current_activity.get('stream_count', '')
+    user_stream_count = sum(1 for d in sessions if d['user_id'] == session['user_id']) if session else ''
+
     # Create a title
     if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
         full_title = '%s - %s' % (metadata['grandparent_title'],
+                                  metadata['title'])
+    elif metadata['media_type'] == 'season' or metadata['media_type'] == 'album':
+        full_title = '%s - %s' % (metadata['parent_title'],
                                   metadata['title'])
     else:
         full_title = metadata['title']
@@ -375,19 +391,65 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None):
 
         metadata['poster_url'] = poster_url
 
-    # Fix metadata params for notify recently added grandparent
-    if notify_action == 'created' and plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
-        show_name = metadata['title']
-        episode_name = ''
-        artist_name = metadata['title']
-        album_name = ''
-        track_name = ''
-    else:
-        show_name = metadata['grandparent_title']
-        episode_name = metadata['title']
-        artist_name = metadata['grandparent_title']
-        album_name = metadata['parent_title']
-        track_name = metadata['title']
+    # Fix metadata params for grouped recently added
+    show_name = metadata['grandparent_title']
+    episode_name = metadata['title']
+    artist_name = metadata['grandparent_title']
+    album_name = metadata['parent_title']
+    track_name = metadata['title']
+    season_num = metadata['parent_media_index'].zfill(1)
+    season_num00 = metadata['parent_media_index'].zfill(2)
+    episode_num = metadata['media_index'].zfill(1)
+    episode_num00 = metadata['media_index'].zfill(2)
+    track_num = metadata['media_index'].zfill(1)
+    track_num00 = metadata['media_index'].zfill(2)
+
+    if notify_action == 'on_created' and plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED and metadata['media_type'] != 'movie':
+        if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
+            show_name = metadata['grandparent_title']
+            episode_name = metadata['title']
+            artist_name = metadata['grandparent_title']
+            album_name = metadata['parent_title']
+            track_name = metadata['title']
+            season_num = metadata['parent_media_index'].zfill(1)
+            season_num00 = metadata['parent_media_index'].zfill(2)
+            episode_num = metadata['media_index'].zfill(1)
+            episode_num00 = metadata['media_index'].zfill(2)
+            track_num = metadata['media_index'].zfill(1)
+            track_num00 = metadata['media_index'].zfill(2)
+
+        elif metadata['media_type'] == 'season' or metadata['media_type'] == 'album':
+            show_name = metadata['parent_title']
+            episode_name = ''
+            artist_name = metadata['parent_title']
+            album_name = metadata['title']
+            track_name = ''
+            season_num = metadata['media_index'].zfill(1)
+            season_num00 = metadata['media_index'].zfill(2)
+
+            num, num00 = format_group_keys([helpers.cast_to_int(d['media_index'])
+                                            for d in child_metadata if d['parent_rating_key'] == rating_key])
+            episode_num, episode_num00 = num, num00
+            track_num, track_num00 = num, num00
+
+        elif metadata['media_type'] == 'show' or metadata['media_type'] == 'artist':
+            show_name = metadata['title']
+            episode_name = ''
+            artist_name = metadata['title']
+            album_name = ''
+            track_name = ''
+
+            num, num00 = format_group_keys([helpers.cast_to_int(d['media_index'])
+                                            for d in child_metadata if d['parent_rating_key'] == rating_key])
+            season_num, season_num00 = num, num00
+
+            num, num00 = format_group_keys([helpers.cast_to_int(d['media_index'])
+                                            for d in grandchild_metadata if d['grandparent_rating_key'] == rating_key])
+            episode_num, episode_num00 = num, num00
+            track_num, track_num00 = num, num00
+
+        else:
+            pass
 
     available_params = {# Global paramaters
                         'server_name': server_name,
@@ -443,12 +505,12 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None):
                         'artist_name': artist_name,
                         'album_name': album_name,
                         'track_name': track_name,
-                        'season_num': metadata['parent_media_index'].zfill(1),
-                        'season_num00': metadata['parent_media_index'].zfill(2),
-                        'episode_num': metadata['media_index'].zfill(1),
-                        'episode_num00': metadata['media_index'].zfill(2),
-                        'track_num': metadata['media_index'].zfill(1),
-                        'track_num00': metadata['media_index'].zfill(2),
+                        'season_num': season_num,
+                        'season_num00': season_num00,
+                        'episode_num': episode_num,
+                        'episode_num00': episode_num00,
+                        'track_num': track_num,
+                        'track_num00': track_num00,
                         'year': metadata['year'],
                         'release_date': arrow.get(metadata['originally_available_at']).format(date_format)
                             if metadata['originally_available_at'] else '',
@@ -537,16 +599,27 @@ def build_server_notify_params(notify_action=None):
 
 
 def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None):
+    media_type = parameters.get('media_type')
+
+    all_tags = r'<movie>.*?</movie>|' \
+        '<show>.*?</show>|<season>.*?</season>|<episode>.*?</episode>|' \
+        '<artist>.*?</artist>|<album>.*?</album>|<track>.*?</track>'
+
     # Check for exclusion tags
-    if parameters.get('media_type') == 'movie':
-        # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile(r'<movie>|</movie>|<tv>.*?</tv>|<music>.*?</music>', re.IGNORECASE | re.DOTALL)
-    elif parameters.get('media_type') == 'show' or parameters.get('media_type') == 'episode':
-        # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile(r'<movie>.*?</movie>|<tv>|</tv>|<music>.*?</music>', re.IGNORECASE | re.DOTALL)
-    elif parameters.get('media_type') == 'artist' or parameters.get('media_type') == 'track':
-        # Regex pattern to remove the text in the tags we don't want
-        pattern = re.compile(r'<movie>.*?</movie>|<tv>.*?</tv>|<music>|</music>', re.IGNORECASE | re.DOTALL)
+    if media_type == 'movie':
+        pattern = re.compile(all_tags.replace('<movie>.*?</movie>', '<movie>|</movie>'), re.IGNORECASE | re.DOTALL)
+    elif media_type == 'show':
+        pattern = re.compile(all_tags.replace('<show>.*?</show>', '<show>|</show>'), re.IGNORECASE | re.DOTALL)
+    elif media_type == 'season':
+        pattern = re.compile(all_tags.replace('<season>.*?</season>', '<season>|</season>'), re.IGNORECASE | re.DOTALL)
+    elif media_type == 'episode':
+        pattern = re.compile(all_tags.replace('<episode>.*?</episode>', '<episode>|</episode>'), re.IGNORECASE | re.DOTALL)
+    elif media_type == 'artist':
+        pattern = re.compile(all_tags.replace('<artist>.*?</artist>', '<artist>|</artist>'), re.IGNORECASE | re.DOTALL)
+    elif media_type == 'album':
+        pattern = re.compile(all_tags.replace('<album>.*?</album>', '<album>|</album>'), re.IGNORECASE | re.DOTALL)
+    elif media_type == 'track':
+        pattern = re.compile(all_tags.replace('<track>.*?</track>', '<track>|</track>'), re.IGNORECASE | re.DOTALL)
     else:
         pattern = None
 
@@ -611,3 +684,19 @@ def strip_tag(data, agent_id=None):
     else:
         whitelist = {}
         return bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
+
+def format_group_keys(group_keys):
+    num = []
+    num00 = []
+
+    for k, g in groupby(enumerate(group_keys), lambda (i, x): i-x):
+        group = map(itemgetter(1), g)
+
+        if len(group) > 1:
+            num.append('{0}-{1}'.format(str(min(group)).zfill(1), str(max(group)).zfill(1)))
+            num00.append('{0}-{1}'.format(str(min(group)).zfill(2), str(max(group)).zfill(2)))
+        else:
+            num.append(str(group[0]).zfill(1))
+            num00.append(str(group[0]).zfill(2))
+
+    return ','.join(sorted(num)) or '0', ','.join(sorted(num00)) or '00'

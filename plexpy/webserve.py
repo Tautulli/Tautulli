@@ -2573,7 +2573,7 @@ class WebInterface(object):
             "notify_consecutive": checked(plexpy.CONFIG.NOTIFY_CONSECUTIVE),
             "notify_upload_posters": checked(plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS),
             "notify_recently_added": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED),
-            "notify_recently_added_grandparent": checked(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT),
+            "notify_group_recently_added": checked(plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED),
             "notify_recently_added_delay": plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY,
             "notify_concurrent_by_ip": checked(plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP),
             "notify_concurrent_threshold": plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
@@ -2637,7 +2637,7 @@ class WebInterface(object):
             "movie_notify_enable", "tv_notify_enable", "music_notify_enable", "monitoring_use_websocket",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
-            "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_recently_added_grandparent",
+            "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_group_recently_added",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
             "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
             "history_table_activity"
