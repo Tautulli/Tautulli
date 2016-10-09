@@ -106,14 +106,6 @@ class ActivityProcessor(object):
                 timestamp = {'started': started}
                 self.db.upsert('sessions', timestamp, keys)
 
-                # Try and grab IP address from logs (fallback if not on PMS 0.9.14 and above)
-                if not session['ip_address']:
-                    if plexpy.CONFIG.IP_LOGGING_ENABLE and plexpy.CONFIG.PMS_LOGS_FOLDER:
-                        ip_address = self.find_session_ip(rating_key=session['rating_key'],
-                                                          machine_id=session['machine_id'])
-                        ip_address = {'ip_address': ip_address}
-                        self.db.upsert('sessions', ip_address, keys)
-
                 if notify:
                     plexpy.NOTIFY_QUEUE.put({'stream_data': values, 'notify_action': 'on_concurrent'})
                     plexpy.NOTIFY_QUEUE.put({'stream_data': values, 'notify_action': 'on_newdevice'})

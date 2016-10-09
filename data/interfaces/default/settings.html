@@ -798,13 +798,10 @@
                                 </div>
                                 <div id="monitoring_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Minimum 30 seconds, recommended 60 seconds.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
-                            </label>
-                            <p class="help-block">Instead of polling the server at regular intervals let the server tell PlexPy when something happens.</p>
+                            <p class="help-block">
+                                The interval (in seconds) PlexPy will ping your Plex Server. Minimum 30 seconds, recommended 60 seconds.<br />
+                                Note: Only used for checking Plex remote access.
+                            </p>
                         </div>
 
                         <div class="padded-header">
@@ -836,20 +833,11 @@
                             </div>
                             <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
                         </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="ip_logging_enable" name="ip_logging_enable" value="1" ${config['ip_logging_enable']}> Enable IP Logging
-                            </label>
-                            <span id="debugLogCheck" style="color: #eb8600; padding-left: 10px;"></span>
-                            <p class="help-block">
-                                Enable this to attempt to log the IP address of the user.
-                            </p>
-                        </div>
 
                         <div class="padded-header">
                             <h3>Buffer Warnings</h3>
                         </div>
-                        <p class="help-block">Note: Buffer warnings only work on certain Plex clients. Android and PlexWeb do not report buffer events accurately or at all.</p>
+                        <p class="help-block">Note: Buffer warnings only work on certain Plex clients. Android and Plex Web do not report buffer events accurately or at all.</p>
                         <div class="form-group">
                             <label for="buffer_threshold">Buffer Threshold</label>
                             <div class="row">
@@ -932,7 +920,7 @@
                             <label>
                                 <input type="checkbox" name="notify_concurrent_by_ip" id="notify_concurrent_by_ip" value="1" ${config['notify_concurrent_by_ip']}> User Concurrent Streams Notifications by IP Address
                             </label>
-                            <p class="help-block">Enable to only get notified of concurrent streams by a single user from different IP addresses.</p>
+                            <p class="help-block">Enable to only send a notification of concurrent streams by a single user from different IP addresses.</p>
                         </div>
                         <div class="form-group">
                             <label for="notify_concurrent_threshold">User Concurrent Stream Threshold</label>
@@ -954,18 +942,8 @@
                                 <input type="checkbox" name="notify_group_recently_added" id="notify_group_recently_added" value="1" ${config['notify_group_recently_added']}> Group notifications for recently added TV Shows or Music
                             </label>
                             <p class="help-block">
-                                Enable to only get one TV Show/Season or Artist/Album notification for a batch of recently added Episodes or Tracks. Movies are unaffected.<br />
+                                Enable to only send one TV Show/Season or Artist/Album notification for a batch of recently added Episodes or Tracks. Movies are unaffected.<br />
                             </p>
-                        </div>
-                        <div class="form-group">
-                            <label for="notify_recently_added_delay">Notification Delay</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_recently_added_delay" name="notify_recently_added_delay" value="${config['notify_recently_added_delay']}" size="5" data-parsley-min="60" data-parsley-trigger="change" data-parsley-errors-container="#notify_recently_added_delay_error" required>
-                                </div>
-                                <div id="notify_recently_added_delay_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">Set the delay (in seconds) for recently added notifications to allow metadata to be processed. Minimum 60 seconds.</p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
@@ -1938,7 +1916,6 @@ $(document).ready(function() {
     serverChanged = false;
     authChanged = false;
     httpChanged = false;
-    monitorChanged = false;
     directoryChanged = false;
 
     // Alert if leaving the page without saving changes to settings
@@ -1951,7 +1928,7 @@ $(document).ready(function() {
 
     // Alert the user that their changes require a restart.
     function postSaveChecks() {
-        if ((serverChanged && $('#monitoring_use_websocket').is(":checked")) || authChanged || httpChanged || monitorChanged || directoryChanged) {
+        if (serverChanged || authChanged || httpChanged || directoryChanged) {
           $('#restart-modal').modal('show');
         }
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0)
@@ -2092,10 +2069,6 @@ $(document).ready(function() {
         authChanged = true;
     });
 
-    $( ".monitor-settings" ).change(function() {
-        monitorChanged = true;
-    });
-
     $( ".directory-settings" ).change(function() {
         directoryChanged = true;
     });
@@ -2210,51 +2183,6 @@ $(document).ready(function() {
     pms_version = false;
     pms_logs_debug = false;
     pms_logs = false;
-
-    // Checks to see if PMS server version is >= 0.9.14 with automaatically logged IP addresses
-    var version = parseInt($.map("${config['pms_version']}".split('-')[0].split('.').slice(0,4), function(v) { return ('0000'+v).substring(v.length); }).join(""));
-    if (version > 900140000) {
-        $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
-        $("#ip_logging_enable").attr("disabled", true);
-        $("#ip_logging_enable").attr("checked", true);
-        pms_version = true;
-        checkLogsPath();
-    } else {
-        // Check to see if debug logs are enabled on the PMS.
-        $.ajax({
-            url: 'get_server_pref',
-            data: { pref: 'logDebug' },
-            async: true,
-            success: function(data) {
-                pms_logs_debug = (data == 'true' ? true : false);
-                // Check to see if our logs folder is set before allowing IP logging to be enabled.
-                checkLogsPath();
-            }
-        });
-    }
-
-    $("#pms_logs_folder").change(function() {
-        checkLogsPath();
-    });
-
-    function checkLogsPath() {
-        pms_logs = ($("#pms_logs_folder").val() == '' ? false : true);
-        // Toggle IP logging checkbox depending on debug logs, and logs path
-        if (!(pms_version)) {
-            if (pms_logs_debug && pms_logs) {
-                $("#ip_logging_enable").attr("disabled", false);
-                $("#debugLogCheck").html("");
-            } else if (!(pms_logs_debug)) {
-                $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server')}'>Click here</a> for help.");
-                $("#ip_logging_enable").attr("disabled", true);
-                $("#ip_logging_enable").attr("checked", false);
-            } else {
-                $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Plex Media Server tab.");
-                $("#ip_logging_enable").attr("disabled", true);
-                $("#ip_logging_enable").attr("checked", false);
-            }
-        }
-    }
 
     $.ajax({
         url: 'get_server_pref',

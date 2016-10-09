@@ -189,11 +189,10 @@ def main():
     plexpy.start()
 
     # Open connection for websocket
-    if plexpy.CONFIG.MONITORING_USE_WEBSOCKET:
-        try:
-            web_socket.start_thread()
-        except:
-            logger.warn(u"Websocket :: Unable to open connection.")
+    try:
+        web_socket.start_thread()
+    except:
+        logger.warn(u"Websocket :: Unable to open connection.")
 
     # Force the http port if neccessary
     if args.port:
