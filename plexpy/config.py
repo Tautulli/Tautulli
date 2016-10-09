@@ -384,6 +384,7 @@ _CONFIG_DEFINITIONS = {
     'PLEX_ON_PMSUPDATE': (int, 'Plex', 0),
     'PLEX_ON_CONCURRENT': (int, 'Plex', 0),
     'PLEX_ON_NEWDEVICE': (int, 'Plex', 0),
+    'PLEXPY_AUTO_UPDATE': (int, 'General', 0),
     'PROWL_ENABLED': (int, 'Prowl', 0),
     'PROWL_KEYS': (str, 'Prowl', ''),
     'PROWL_PRIORITY': (int, 'Prowl', 0),

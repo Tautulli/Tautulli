@@ -120,7 +120,7 @@ def getVersion():
             return None, 'master'
 
 
-def checkGithub():
+def checkGithub(auto_update=False):
     plexpy.COMMITS_BEHIND = 0
 
     # Get the latest version available from github
@@ -163,6 +163,16 @@ def checkGithub():
 
     if plexpy.COMMITS_BEHIND > 0:
         logger.info('New version is available. You are %s commits behind' % plexpy.COMMITS_BEHIND)
+
+        url = 'https://api.github.com/repos/%s/plexpy/releases/latest' % plexpy.CONFIG.GIT_USER
+        release = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == dict)
+        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpyupdate', 'plexpy_download_info': release,
+                                    'plexpy_update_commit': plexpy.LATEST_VERSION, 'plexpy_update_behind': plexpy.COMMITS_BEHIND})
+
+        if auto_update:
+            logger.info('Running automatic update.')
+            plexpy.shutdown(restart=True, update=True)
+
     elif plexpy.COMMITS_BEHIND == 0:
         logger.info('PlexPy is up to date')
 

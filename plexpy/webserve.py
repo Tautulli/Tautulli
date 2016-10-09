@@ -2587,7 +2587,8 @@ class WebInterface(object):
             "git_token": plexpy.CONFIG.GIT_TOKEN,
             "imgur_client_id": plexpy.CONFIG.IMGUR_CLIENT_ID,
             "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES),
-            "pms_version": plexpy.CONFIG.PMS_VERSION
+            "pms_version": plexpy.CONFIG.PMS_VERSION,
+            "plexpy_auto_update": checked(plexpy.CONFIG.PLEXPY_AUTO_UPDATE)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -2608,7 +2609,7 @@ class WebInterface(object):
             "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_group_recently_added",
             "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
             "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
-            "history_table_activity"
+            "history_table_activity", "plexpy_auto_update"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:
