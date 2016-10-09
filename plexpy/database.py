@@ -79,12 +79,12 @@ def make_backup(cleanup=False, scheduler=False):
     db.connection.rollback()
 
     if cleanup:
-        # Delete all scheduled backup files except from the last 5.
+        now = time.time()
+        # Delete all scheduled backup older than BACKUP_DAYS.
         for root, dirs, files in os.walk(backup_folder):
             db_files = [os.path.join(root, f) for f in files if f.endswith('.sched.db')]
-            if len(db_files) > 5:
-                backups_sorted_on_age = sorted(db_files, key=os.path.getctime, reverse=True)
-                for file_ in backups_sorted_on_age[5:]:
+            for file_ in db_files:
+                if os.stat(file_).st_mtime < now - plexpy.CONFIG.BACKUP_DAYS * 86400:
                     try:
                         os.remove(file_)
                     except OSError as e:

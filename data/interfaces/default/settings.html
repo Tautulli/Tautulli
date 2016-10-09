@@ -153,6 +153,19 @@
                             </div>
                             <p class="help-block">The interval (in hours) PlexPy will backup the database and configuration file. Minimum 1, maximum 24, default 6.</p>
                         </div>
+                        <div class="form-group">
+                            <label for="backup_interval">Backup Days</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="backup_days" name="backup_days" value="${config['backup_days']}" size="5" data-parsley-min="1" data-parsley-trigger="change" data-parsley-errors-container="#backup_days_error" required>
+                                </div>
+                                <div id="backup_days_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                The number of days to keep scheduled backups. Minimum 1, default 3.<br />
+                                Note: Manual backups are not removed automatically.
+                            </p>
+                        </div>
 
                         <div class="padded-header">
                             <h3>Directories</h3>

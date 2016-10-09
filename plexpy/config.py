@@ -101,6 +101,7 @@ _CONFIG_DEFINITIONS = {
     'BROWSER_ON_NEWDEVICE': (int, 'Browser', 0),
     'BUFFER_THRESHOLD': (int, 'Monitoring', 3),
     'BUFFER_WAIT': (int, 'Monitoring', 900),
+    'BACKUP_DAYS': (int, 'General', 3),
     'BACKUP_DIR': (str, 'General', ''),
     'BACKUP_INTERVAL': (int, 'General', 6),
     'CACHE_DIR': (str, 'General', ''),
@@ -604,12 +605,12 @@ def make_backup(cleanup=False, scheduler=False):
     shutil.copyfile(plexpy.CONFIG_FILE, backup_file_fp)
 
     if cleanup:
+        now = time.time()
         # Delete all scheduled backup files except from the last 5.
         for root, dirs, files in os.walk(backup_folder):
-            db_files = [os.path.join(root, f) for f in files if f.endswith('.sched.ini')]
-            if len(db_files) > 5:
-                backups_sorted_on_age = sorted(db_files, key=os.path.getctime, reverse=True)
-                for file_ in backups_sorted_on_age[5:]:
+            ini_files = [os.path.join(root, f) for f in files if f.endswith('.sched.ini')]
+            for file_ in ini_files:
+                if os.stat(file_).st_mtime < now - plexpy.CONFIG.BACKUP_DAYS * 86400:
                     try:
                         os.remove(file_)
                     except OSError as e:
