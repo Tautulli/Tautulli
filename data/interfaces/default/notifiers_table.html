@@ -31,15 +31,7 @@ DOCUMENTATION :: END
     // Load notification agent config modal
     $(".toggle-notifier-config-modal").click(function () {
         var notifier_id = $(this).data('id');
-        $.ajax({
-            url: 'get_notifier_config_modal',
-            data: { notifier_id: notifier_id },
-            cache: false,
-            async: true,
-            complete: function (xhr, status) {
-                $("#notifier-config-modal").html(xhr.responseText);
-            }
-        });
+        loadNotifierConfig(notifier_id);
     });
 
     $('.trigger-tooltip').tooltip();

@@ -2941,7 +2941,7 @@ class WebInterface(object):
         result = notifiers.add_notifier_config(agent_id=agent_id, **kwargs)
 
         if result:
-            return {'result': 'success', 'message': 'Added notification agent.'}
+            return {'result': 'success', 'message': 'Added notification agent.', 'notifier_id': result}
         else:
             return {'result': 'error', 'message': 'Failed to add notification agent.'}
 
