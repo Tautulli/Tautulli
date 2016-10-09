@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.4.13 (2016-10-08)
+
+* New: Option to set the number of days to keep PlexPy backups.
+* New: Option to add a supplementary url to Pushover notifications.
+* New: Option to set a timeout duration for script notifications.
+* New: Added flush temporary sessions button to extra settings for emergency use.
+* New: Added pms_image_proxy to the API.
+* Fix: Insanely long play durations being recorded when connection to the Plex server is lost.
+* Fix: Script notification output not being sent to the logger.
+* Fix: New libraries not being added to homepage automatically.
+* Fix: Success message shown incorrectly when sending a test notification.
+* Fix: PlexPy log level filter not working.
+* Fix: Admin username not shown in login logs.
+* Fix: FeatHub link in readme document.
+* Change: Posters disabled by default for all notification agents.
+* Change: Disable manual changing of the PlexPy API key.
+* Change: Force refresh the Plex.tv token when fetching a new token.
+* Change: Script notifications run in a new thread with the timeout setting.
+* Change: Watched percent moved to general settings.
+* Change: Use human readable file sizes to the media info tables. (Thanks @logaritmisk)
+* Change: Update pytz library.
+
+
 ## v1.4.12 (2016-09-18)
 
 * Fix: PMS update check not working for MacOSX.
