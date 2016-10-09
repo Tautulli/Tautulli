@@ -301,14 +301,14 @@ def check_server_access():
                             % str(ext_ping_count))
             # Reset external ping counter
             else:
-                if ext_ping_count >= 3:
+                if ext_ping_count >= plexpy.CONFIG.REMOTE_ACCESS_PING_THRESHOLD:
                     logger.info(u"PlexPy Monitor :: Plex remote access is back up.")
 
                     plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extup'})
 
                 ext_ping_count = 0
 
-        if ext_ping_count == 3:
+        if ext_ping_count == plexpy.CONFIG.REMOTE_ACCESS_PING_THRESHOLD:
             plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extdown'})
 
 
