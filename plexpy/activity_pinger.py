@@ -268,7 +268,7 @@ def check_recently_added():
 
 
 def check_server_response():
-
+    logger.info(u"PlexPy Monitor :: Attempting to reconnect Plex server...")
     try:
         web_socket.start_thread()
     except:
