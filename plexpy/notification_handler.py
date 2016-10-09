@@ -149,7 +149,8 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                                                          **kwargs)
     else:
         # Build the notification parameters
-        parameters, metadata = build_server_notify_params(notify_action=notify_action)
+        parameters, metadata = build_server_notify_params(notify_action=notify_action,
+                                                          **kwargs)
 
     if not parameters:
         logger.error(u"PlexPy NotificationHandler :: Failed to build notification parameters.")
@@ -266,12 +267,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         return None, None
 
     child_metadata = grandchild_metadata = []
-    if 'child_keys' in kwargs:
-        for key in kwargs['child_keys']:
-            child_metadata.append(pms_connect.get_metadata_details(rating_key=key)['metadata'])
-    if 'grandchild_keys' in kwargs:
-        for key in kwargs['grandchild_keys']:
-            grandchild_metadata.append(pms_connect.get_metadata_details(rating_key=key)['metadata'])
+    for key in kwargs.pop('child_keys', []):
+        child_metadata.append(pms_connect.get_metadata_details(rating_key=key)['metadata'])
+    for key in kwargs.pop('grandchild_keys', []):
+        grandchild_metadata.append(pms_connect.get_metadata_details(rating_key=key)['metadata'])
 
     current_activity = pms_connect.get_current_activity()
     sessions = current_activity.get('sessions', [])
@@ -427,7 +426,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
             season_num = metadata['media_index'].zfill(1)
             season_num00 = metadata['media_index'].zfill(2)
 
-            num, num00 = format_group_keys([helpers.cast_to_int(d['media_index'])
+            num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
                                             for d in child_metadata if d['parent_rating_key'] == rating_key])
             episode_num, episode_num00 = num, num00
             track_num, track_num00 = num, num00
@@ -439,11 +438,11 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
             album_name = ''
             track_name = ''
 
-            num, num00 = format_group_keys([helpers.cast_to_int(d['media_index'])
+            num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
                                             for d in child_metadata if d['parent_rating_key'] == rating_key])
             season_num, season_num00 = num, num00
 
-            num, num00 = format_group_keys([helpers.cast_to_int(d['media_index'])
+            num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
                                             for d in grandchild_metadata if d['grandparent_rating_key'] == rating_key])
             episode_num, episode_num00 = num, num00
             track_num, track_num00 = num, num00
@@ -551,7 +550,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
     return available_params, metadata
 
 
-def build_server_notify_params(notify_action=None):
+def build_server_notify_params(notify_action=None, **kwargs):
     # Get time formats
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
@@ -563,9 +562,7 @@ def build_server_notify_params(notify_action=None):
     plex_tv = plextv.PlexTV()
     server_times = plex_tv.get_server_times()
 
-    update_status = {}
-    if notify_action == 'pmsupdate':
-        update_status = plex_tv.get_plex_downloads()
+    pms_download_info = kwargs.pop('pms_download_info', {})
 
     if server_times:
         updated_at = server_times['updated_at']
@@ -581,19 +578,20 @@ def build_server_notify_params(notify_action=None):
                         'action': notify_action.split('on_')[-1].title(),
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format),
-                        # Update parameters
-                        'update_version': update_status.get('version',''),
-                        'update_url': update_status.get('download_url',''),
-                        'update_release_date': arrow.get(update_status.get('release_date','')).format(date_format)
-                            if update_status.get('release_date','') else '',
+                        # Plex Media Server update parameters
+                        'update_version': pms_download_info.get('version',''),
+                        'update_url': pms_download_info.get('download_url',''),
+                        'update_release_date': arrow.get(pms_download_info.get('release_date','')).format(date_format)
+                            if pms_download_info.get('release_date','') else '',
                         'update_channel': 'Plex Pass' if plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass' else 'Public',
-                        'update_platform': update_status.get('platform',''),
-                        'update_distro': update_status.get('distro',''),
-                        'update_distro_build': update_status.get('build',''),
-                        'update_requirements': update_status.get('requirements',''),
-                        'update_extra_info': update_status.get('extra_info',''),
-                        'update_changelog_added': update_status.get('changelog_added',''),
-                        'update_changelog_fixed': update_status.get('changelog_fixed','')}
+                        'update_platform': pms_download_info.get('platform',''),
+                        'update_distro': pms_download_info.get('distro',''),
+                        'update_distro_build': pms_download_info.get('build',''),
+                        'update_requirements': pms_download_info.get('requirements',''),
+                        'update_extra_info': pms_download_info.get('extra_info',''),
+                        'update_changelog_added': pms_download_info.get('changelog_added',''),
+                        'update_changelog_fixed': pms_download_info.get('changelog_fixed',''),
+                        }
 
     return available_params, None
 
@@ -685,7 +683,8 @@ def strip_tag(data, agent_id=None):
         whitelist = {}
         return bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
-def format_group_keys(group_keys):
+
+def format_group_index(group_keys):
     num = []
     num00 = []
 
