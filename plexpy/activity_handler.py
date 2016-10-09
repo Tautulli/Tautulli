@@ -280,8 +280,8 @@ class TimelineHandler(object):
 
             rating_key = self.get_rating_key()
 
-            # state:    0: created media, 5: done processing metadata
-            # type:     1: movie, 2: tv show, 3: season, 4: episode, 8: artist, 9: album, 10: track
+            state_types = {0: 'created',
+                           5: 'processed'}
             media_types = {1: 'movie',
                            2: 'show',
                            3: 'season',
@@ -290,13 +290,13 @@ class TimelineHandler(object):
                            9: 'album',
                            10: 'track'}
 
-            state = self.timeline['state']
+            state_type = state_types.get(self.timeline['state'])
             media_type = media_types.get(self.timeline['type'])
             section_id = self.timeline['sectionID']
             metadata_state = self.timeline.get('metadataState')
 
 
-            if state == 0 and media_type and section_id > 0 and metadata_state == "created":
+            if state_type == 'created' and media_type and section_id > 0 and metadata_state == 'created':
                 if media_type == 'episode' or media_type == 'track':
                     metadata = self.get_metadata()
                     if metadata:
@@ -319,7 +319,7 @@ class TimelineHandler(object):
                     logger.debug(u"PlexPy TimelineHandler :: Library item %s added to recently added queue." % str(rating_key))
                     RECENTLY_ADDED_QUEUE[rating_key] = RECENTLY_ADDED_QUEUE.get(rating_key, []) + [(media_type, rating_key)]
 
-            if state == 5 and media_type and section_id > 0 and rating_key in RECENTLY_ADDED_QUEUE:
+            if state_type == 'processed' and media_type and section_id > 0 and metadata_state is None and rating_key in RECENTLY_ADDED_QUEUE:
                 logger.debug(u"PlexPy TimelineHandler :: Library item %s done processing metadata." % str(rating_key))
                 child_keys = RECENTLY_ADDED_QUEUE.pop(rating_key)
 
