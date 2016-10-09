@@ -14,7 +14,7 @@
                 <div class="row">
                     <ul class="nav nav-tabs list-unstyled" role="tablist">
                         <li role="presentation" class="active"><a href="#tabs-config" aria-controls="tabs-config" role="tab" data-toggle="tab">Configuration</a></li>
-                        <li role="presentation"><a href="#tabs-triggers" aria-controls="tabs-triggers" role="tab" data-toggle="tab">Triggers</a></li>
+                        <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Notification Triggers</a></li>
                         <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Notification Text</a></li>
                         <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Notifications</a></li>
                     </ul>
@@ -26,7 +26,7 @@
                                 <div class="col-md-12">
                                     <input type="hidden" id="notifier_id" name="notifier_id" value="${notifier['id']}" />
                                     <input type="hidden" id="agent_id" name="agent_id" value="${notifier['agent_id']}" />
-                                    % for item in notifier['config']:
+                                    % for item in notifier['config_options']:
                                     % if item['input_type'] == 'help':
                                     <div class="form-group">
                                         <label>${item['label']}</label>
@@ -92,12 +92,12 @@
                                                 <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${notifier['friendly_name']}" size="30">
                                             </div>
                                         </div>
-                                        <p class="help-block">Optional: enter a friendly identifier the notification agent (e.g. Recently Added)</p>
+                                        <p class="help-block">Optional: Enter a friendly identifier for the notification agent (e.g. Recently Added)</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div role="tabpanel" class="tab-pane" id="tabs-triggers">
+                        <div role="tabpanel" class="tab-pane" id="tabs-notify_triggers">
                             <div class="row">
                                 <div class="col-md-12">
                                     <p class="help-block">
@@ -178,7 +178,7 @@
                                     <div class="form-group">
                                         <label for="test_script">Script</label>
                                         <select class="form-control" id="test_script" name="test_script">
-                                            % for key, value in sorted(notifier['config'][2]['select_options'].iteritems()):
+                                            % for key, value in sorted(notifier['config_options'][2]['select_options'].iteritems()):
                                             <option value="${key}">${value}</option>
                                             % endfor
                                         </select>
@@ -323,7 +323,7 @@
         }
     }
 
-    $("${', '.join(['#' + c['name'] for c in notifier['config'] if c.get('refresh')])}").on('change', function () {
+    $("${', '.join(['#' + c['name'] for c in notifier['config_options'] if c.get('refresh')])}").on('change', function () {
         // Reload modal to update certain fields
         doAjaxCall('set_notifier_config', $(this), 'tabs', true, false, reloadModal);
         return false;
