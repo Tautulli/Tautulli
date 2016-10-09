@@ -4445,9 +4445,36 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def check_pms_updater(self, **kwargs):
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_update_staus()
+    @addtoapi()
+    def get_pms_update(self, **kwargs):
+        """ Check for updates to the Plex Media Server.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"update_available": true,
+                     "platform": "Windows",
+                     "release_date": "1473721409",
+                     "version": "1.1.4.2757-24ffd60",
+                     "requirements": "...",
+                     "extra_info": "...",
+                     "changelog_added": "...",
+                     "changelog_fixed": "...",
+                     "label": "Download",
+                     "distro": "english",
+                     "distro_build": "windows-i386",
+                     "download_url": "https://downloads.plex.tv/...",
+                     }
+            ```
+        """
+        plex_tv = plextv.PlexTV()
+        result = plex_tv.get_plex_downloads()
         return result
 
     @cherrypy.expose
