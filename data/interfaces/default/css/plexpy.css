@@ -2669,6 +2669,12 @@ a .home-platforms-list-cover-face:hover
     border-radius: 8px;
     background-clip: padding-box;
 }
+pre::-webkit-scrollbar-track {
+    background-color: rgba(255,255,255,.2);
+}
+pre::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,.15);
+}
 
 @media only screen 
   and (min-device-width: 300px) 

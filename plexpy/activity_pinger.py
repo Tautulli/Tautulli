@@ -258,7 +258,7 @@ def check_recently_added():
 
                 if metadata:
 
-                    if not plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_GRANDPARENT:
+                    if not plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED:
                         for item in metadata:
 
                             library_details = library_data.get_details(section_id=item['section_id'])

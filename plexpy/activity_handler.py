@@ -258,7 +258,7 @@ class TimelineHandler(object):
 
         return None
 
-    def on_created(self, rating_key):
+    def on_created(self, rating_key, **kwargs):
         if self.is_item():
             logger.debug(u"PlexPy TimelineHandler :: Library item %s added to Plex." % str(rating_key))
             pms_connect = pmsconnect.PmsConnect()
@@ -266,7 +266,9 @@ class TimelineHandler(object):
 
             if metadata_list:
                 metadata = metadata_list['metadata']
-                plexpy.NOTIFY_QUEUE.put({'timeline_data': metadata, 'notify_action': 'on_created'})
+                data = {'timeline_data': metadata, 'notify_action': 'on_created'}
+                data.update(kwargs)
+                plexpy.NOTIFY_QUEUE.put(data)
             else:
                 logger.error(u"PlexPy TimelineHandler :: Unable to retrieve metadata for rating_key %s" \
                              % str(rating_key))
@@ -317,12 +319,12 @@ class TimelineHandler(object):
                     logger.debug(u"PlexPy TimelineHandler :: Library item %s added to recently added queue." % str(rating_key))
                     RECENTLY_ADDED_QUEUE[rating_key] = RECENTLY_ADDED_QUEUE.get(rating_key, []) + [(media_type, rating_key)]
 
-            if state == 5 and media_type and section_id > 0 and rating_key in RECENTLY_ADDED_QUEUE.keys():
+            if state == 5 and media_type and section_id > 0 and rating_key in RECENTLY_ADDED_QUEUE:
                 logger.debug(u"PlexPy TimelineHandler :: Library item %s done processing metadata." % str(rating_key))
                 child_keys = RECENTLY_ADDED_QUEUE.pop(rating_key)
 
-                def notify_keys(keys):
-                    for key in keys: self.on_created(key)
+                def notify_keys(keys, **kwargs):
+                    for key in keys: self.on_created(key, **kwargs)
 
                 if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED:
                     media_type_dict = {}
@@ -331,21 +333,39 @@ class TimelineHandler(object):
 
                     if len(media_type_dict.get('episode', [])) > 1:
                         if len(media_type_dict.get('season', [])) > 1:
-                            notify_keys(media_type_dict.get('show', []))
+                            if media_type_dict.get('show', []):
+                                notify_keys(media_type_dict['show'],
+                                            child_keys=media_type_dict.get('season', []),
+                                            grandchild_keys=media_type_dict.get('episode', []))
+                            else:
+                                notify_keys(media_type_dict['season'],
+                                            child_keys=media_type_dict.get('episode', []))
+                        elif media_type_dict.get('season', []):
+                            notify_keys(media_type_dict['season'],
+                                        child_keys=media_type_dict.get('episode', []))
                         else:
-                            notify_keys(media_type_dict.get('season', media_type_dict.get('episode', [])))
+                            notify_keys(media_type_dict['episode'])
                     else:
                         notify_keys(media_type_dict.get('episode', []))
 
                     if len(media_type_dict.get('track', [])) > 1:
                         if len(media_type_dict.get('album', [])) > 1:
-                            notify_keys(media_type_dict.get('artist', []))
+                            if media_type_dict.get('artist', []):
+                                notify_keys(media_type_dict['artist'],
+                                            child_keys=media_type_dict.get('album', []),
+                                            grandchild_keys=media_type_dict.get('track', []))
+                            else:
+                                notify_keys(media_type_dict['album'],
+                                            child_keys=media_type_dict.get('track', []))
+                        elif media_type_dict.get('album', []):
+                            notify_keys(media_type_dict['album'],
+                                        child_keys=media_type_dict.get('track', []))
                         else:
-                            notify_keys(media_type_dict.get('album', media_type_dict.get('track', [])))
+                            notify_keys(media_type_dict['track'])
                     else:
                         notify_keys(media_type_dict.get('track', []))
 
                     notify_keys(media_type_dict.get('movie', []))
 
                 else:
-                    notify_keys(child_keys)
+                    notify_keys([key for type, key in child_keys if type in ('movie', 'episode', 'track')])

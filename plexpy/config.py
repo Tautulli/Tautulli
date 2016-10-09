@@ -776,19 +776,22 @@ class Config(object):
             self.CONFIG_VERSION = '2'
 
         if self.CONFIG_VERSION == '2':
-            self.NOTIFY_ON_START_SUBJECT_TEXT = self.NOTIFY_ON_START_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_START_BODY_TEXT = self.NOTIFY_ON_START_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_STOP_SUBJECT_TEXT = self.NOTIFY_ON_STOP_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_STOP_BODY_TEXT = self.NOTIFY_ON_STOP_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_PAUSE_SUBJECT_TEXT = self.NOTIFY_ON_PAUSE_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_PAUSE_BODY_TEXT = self.NOTIFY_ON_PAUSE_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_RESUME_SUBJECT_TEXT = self.NOTIFY_ON_RESUME_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_RESUME_BODY_TEXT = self.NOTIFY_ON_RESUME_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_BUFFER_SUBJECT_TEXT = self.NOTIFY_ON_BUFFER_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_BUFFER_BODY_TEXT = self.NOTIFY_ON_BUFFER_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = self.NOTIFY_ON_WATCHED_SUBJECT_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_ON_WATCHED_BODY_TEXT = self.NOTIFY_ON_WATCHED_BODY_TEXT.replace('{progress}','{progress_duration}')
-            self.NOTIFY_SCRIPTS_ARGS_TEXT = self.NOTIFY_SCRIPTS_ARGS_TEXT.replace('{progress}','{progress_duration}')
+            def rep(s):
+                return s.replace('{progress}','{progress_duration}')
+
+            self.NOTIFY_ON_START_SUBJECT_TEXT = rep(self.NOTIFY_ON_START_SUBJECT_TEXT)
+            self.NOTIFY_ON_START_BODY_TEXT = rep(self.NOTIFY_ON_START_BODY_TEXT)
+            self.NOTIFY_ON_STOP_SUBJECT_TEXT = rep(self.NOTIFY_ON_STOP_SUBJECT_TEXT)
+            self.NOTIFY_ON_STOP_BODY_TEXT = rep(self.NOTIFY_ON_STOP_BODY_TEXT)
+            self.NOTIFY_ON_PAUSE_SUBJECT_TEXT = rep(self.NOTIFY_ON_PAUSE_SUBJECT_TEXT)
+            self.NOTIFY_ON_PAUSE_BODY_TEXT = rep(self.NOTIFY_ON_PAUSE_BODY_TEXT)
+            self.NOTIFY_ON_RESUME_SUBJECT_TEXT = rep(self.NOTIFY_ON_RESUME_SUBJECT_TEXT)
+            self.NOTIFY_ON_RESUME_BODY_TEXT = rep(self.NOTIFY_ON_RESUME_BODY_TEXT)
+            self.NOTIFY_ON_BUFFER_SUBJECT_TEXT = rep(self.NOTIFY_ON_BUFFER_SUBJECT_TEXT)
+            self.NOTIFY_ON_BUFFER_BODY_TEXT = rep(self.NOTIFY_ON_BUFFER_BODY_TEXT)
+            self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = rep(self.NOTIFY_ON_WATCHED_SUBJECT_TEXT)
+            self.NOTIFY_ON_WATCHED_BODY_TEXT = rep(self.NOTIFY_ON_WATCHED_BODY_TEXT)
+            self.NOTIFY_SCRIPTS_ARGS_TEXT = rep(self.NOTIFY_SCRIPTS_ARGS_TEXT)
             self.CONFIG_VERSION = '3'
 
         if self.CONFIG_VERSION == '3':
@@ -814,3 +817,22 @@ class Config(object):
             if self.GIT_USER.lower() == 'drzoidberg33':
                 self.GIT_USER = 'JonnyWong16'
             self.CONFIG_VERSION = '7'
+
+        if self.CONFIG_VERSION == '7':
+            def rep(s):
+                return s.replace('<tv>','<episode>').replace('</tv>','</episode>').replace('<music>','<track>').replace('</music>','</track>')
+
+            self.NOTIFY_ON_START_SUBJECT_TEXT = rep(self.NOTIFY_ON_START_SUBJECT_TEXT)
+            self.NOTIFY_ON_START_BODY_TEXT = rep(self.NOTIFY_ON_START_BODY_TEXT)
+            self.NOTIFY_ON_STOP_SUBJECT_TEXT = rep(self.NOTIFY_ON_STOP_SUBJECT_TEXT)
+            self.NOTIFY_ON_STOP_BODY_TEXT = rep(self.NOTIFY_ON_STOP_BODY_TEXT)
+            self.NOTIFY_ON_PAUSE_SUBJECT_TEXT = rep(self.NOTIFY_ON_PAUSE_SUBJECT_TEXT)
+            self.NOTIFY_ON_PAUSE_BODY_TEXT = rep(self.NOTIFY_ON_PAUSE_BODY_TEXT)
+            self.NOTIFY_ON_RESUME_SUBJECT_TEXT = rep(self.NOTIFY_ON_RESUME_SUBJECT_TEXT)
+            self.NOTIFY_ON_RESUME_BODY_TEXT = rep(self.NOTIFY_ON_RESUME_BODY_TEXT)
+            self.NOTIFY_ON_BUFFER_SUBJECT_TEXT = rep(self.NOTIFY_ON_BUFFER_SUBJECT_TEXT)
+            self.NOTIFY_ON_BUFFER_BODY_TEXT = rep(self.NOTIFY_ON_BUFFER_BODY_TEXT)
+            self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = rep(self.NOTIFY_ON_WATCHED_SUBJECT_TEXT)
+            self.NOTIFY_ON_WATCHED_BODY_TEXT = rep(self.NOTIFY_ON_WATCHED_BODY_TEXT)
+            self.NOTIFY_SCRIPTS_ARGS_TEXT = rep(self.NOTIFY_SCRIPTS_ARGS_TEXT)
+            self.CONFIG_VERSION = '8'
