@@ -360,6 +360,9 @@ fieldset[disabled] .btn-bright.active {
     border-radius: 0 0 3px 3px;
     border-top: 1px solid #1C1C1C;
 }
+.modal.wide .modal-dialog {
+    width: 750px;
+}
 textarea,
 input[type="text"],
 input[type="password"],
