@@ -64,7 +64,7 @@ NOTIFY_QUEUE = Queue()
 
 INIT_LOCK = threading.Lock()
 _INITIALIZED = False
-started = False
+_STARTED = False
 
 DATA_DIR = None
 
@@ -80,11 +80,11 @@ COMMITS_BEHIND = None
 
 UMASK = None
 
-POLLING_FAILOVER = False
-
 HTTP_ROOT = None
 
 DEV = False
+
+WS_CONNECTED = False
 
 
 def initialize(config_file):
@@ -96,7 +96,6 @@ def initialize(config_file):
         global CURRENT_VERSION
         global LATEST_VERSION
         global UMASK
-        global POLLING_FAILOVER
         CONFIG = plexpy.config.Config(config_file)
         CONFIG_FILE = config_file
 
@@ -299,10 +298,21 @@ def initialize_scheduler():
         schedule_job(versioncheck.checkGithub, 'Check GitHub for updates',
                      hours=0, minutes=github_minutes, seconds=0)
 
-        # Our interval should never be less than 30 seconds
-        monitor_seconds = CONFIG.MONITORING_INTERVAL if CONFIG.MONITORING_INTERVAL >= 30 else 30
+        backup_hours = CONFIG.BACKUP_INTERVAL if 1 <= CONFIG.BACKUP_INTERVAL <= 24 else 6
 
-        if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
+        schedule_job(database.make_backup, 'Backup PlexPy database',
+                     hours=backup_hours, minutes=0, seconds=0, args=(True, True))
+        schedule_job(config.make_backup, 'Backup PlexPy config',
+                     hours=backup_hours, minutes=0, seconds=0, args=(True, True))
+
+        if WS_CONNECTED and CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
+            # Our interval should never be less than 30 seconds
+            monitor_seconds = CONFIG.MONITORING_INTERVAL if CONFIG.MONITORING_INTERVAL >= 30 else 30
+
+            #schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
+            #                hours=0, minutes=0, seconds=1)
+            #schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
+            #                hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
                          hours=12, minutes=0, seconds=0)
             schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
@@ -313,31 +323,19 @@ def initialize_scheduler():
             schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
                          hours=12 * bool(CONFIG.MONITOR_PMS_UPDATES), minutes=0, seconds=0)
 
-            # If we're not using websockets then fall back to polling
-            if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:
-                schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
-                             hours=0, minutes=0, seconds=monitor_seconds)
-                schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-                             hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
+            # Refresh the users list and libraries list
+            user_hours = CONFIG.REFRESH_USERS_INTERVAL if 1 <= CONFIG.REFRESH_USERS_INTERVAL <= 24 else 12
+            library_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL if 1 <= CONFIG.REFRESH_LIBRARIES_INTERVAL <= 24 else 12
 
-        # Refresh the users list and libraries list
-        user_hours = CONFIG.REFRESH_USERS_INTERVAL if 1 <= CONFIG.REFRESH_USERS_INTERVAL <= 24 else 12
-        library_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL if 1 <= CONFIG.REFRESH_LIBRARIES_INTERVAL <= 24 else 12
-
-        if CONFIG.PMS_TOKEN:
             schedule_job(plextv.refresh_users, 'Refresh users list',
                          hours=user_hours, minutes=0, seconds=0)
 
-        if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
                          hours=library_hours, minutes=0, seconds=0)
 
-        backup_hours = CONFIG.BACKUP_INTERVAL if 1 <= CONFIG.BACKUP_INTERVAL <= 24 else 6
-
-        schedule_job(database.make_backup, 'Backup PlexPy database',
-                     hours=backup_hours, minutes=0, seconds=0, args=(True, True))
-        schedule_job(config.make_backup, 'Backup PlexPy config',
-                     hours=backup_hours, minutes=0, seconds=0, args=(True, True))
+        else:
+            ## Add new taks to check and reconnect websocket
+            pass
 
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
@@ -373,17 +371,15 @@ def schedule_job(function, name, hours=0, minutes=0, seconds=0, args=None):
 
 
 def start():
-    global started
+    global _STARTED
 
     if _INITIALIZED:
-        initialize_scheduler()
-
         # Start background notification thread
         if any([CONFIG.MOVIE_NOTIFY_ENABLE, CONFIG.TV_NOTIFY_ENABLE,
                 CONFIG.MUSIC_NOTIFY_ENABLE, CONFIG.NOTIFY_RECENTLY_ADDED]):
             notification_handler.start_threads(num_threads=3)
 
-        started = True
+        _STARTED = True
 
 
 def sig_handler(signum=None, frame=None):

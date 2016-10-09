@@ -111,7 +111,7 @@ _CONFIG_DEFINITIONS = {
     'CHECK_GITHUB_INTERVAL': (int, 'General', 360),
     'CHECK_GITHUB_ON_STARTUP': (int, 'General', 1),
     'CLEANUP_FILES': (int, 'General', 0),
-    'CONFIG_VERSION': (str, 'General', '0'),
+    'CONFIG_VERSION': (int, 'Advanced', 0),
     'DO_NOT_OVERRIDE_GIT_BRANCH': (int, 'General', 0),
     'EMAIL_ENABLED': (int, 'Email', 0),
     'EMAIL_FROM_NAME': (str, 'Email', 'PlexPy'),
@@ -460,7 +460,7 @@ _CONFIG_DEFINITIONS = {
     'REFRESH_LIBRARIES_ON_STARTUP': (int, 'Monitoring', 1),
     'REFRESH_USERS_INTERVAL': (int, 'Monitoring', 12),
     'REFRESH_USERS_ON_STARTUP': (int, 'Monitoring', 1),
-    'SESSION_DB_WRITE_ATTEMPTS': (int, 'Monitoring', 5),
+    'SESSION_DB_WRITE_ATTEMPTS': (int, 'Advanced', 5),
     'SLACK_ENABLED': (int, 'Slack', 0),
     'SLACK_HOOK': (str, 'Slack', ''),
     'SLACK_CHANNEL': (str, 'Slack', ''),
@@ -750,7 +750,7 @@ class Config(object):
         """
         Upgrades config file from previous verisions and bumps up config version
         """
-        if self.CONFIG_VERSION == '0':
+        if self.CONFIG_VERSION == 0:
             # Separate out movie and tv notifications
             if self.MOVIE_NOTIFY_ENABLE == 1:
                 self.TV_NOTIFY_ENABLE = 1
@@ -758,9 +758,9 @@ class Config(object):
             if self.VIDEO_LOGGING_ENABLE == 0:
                 self.MOVIE_LOGGING_ENABLE = 0
                 self.TV_LOGGING_ENABLE = 0
-            self.CONFIG_VERSION = '1'
+            self.CONFIG_VERSION = 1
 
-        if self.CONFIG_VERSION == '1':
+        if self.CONFIG_VERSION == 1:
             # Change home_stats_cards to list
             if self.HOME_STATS_CARDS:
                 home_stats_cards = ''.join(self.HOME_STATS_CARDS).split(', ')
@@ -773,9 +773,9 @@ class Config(object):
                 if 'library_statistics' in home_library_cards:
                     home_library_cards.remove('library_statistics')
                     self.HOME_LIBRARY_CARDS = home_library_cards
-            self.CONFIG_VERSION = '2'
+            self.CONFIG_VERSION = 2
 
-        if self.CONFIG_VERSION == '2':
+        if self.CONFIG_VERSION == 2:
             def rep(s):
                 return s.replace('{progress}','{progress_duration}')
 
@@ -792,13 +792,13 @@ class Config(object):
             self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = rep(self.NOTIFY_ON_WATCHED_SUBJECT_TEXT)
             self.NOTIFY_ON_WATCHED_BODY_TEXT = rep(self.NOTIFY_ON_WATCHED_BODY_TEXT)
             self.NOTIFY_SCRIPTS_ARGS_TEXT = rep(self.NOTIFY_SCRIPTS_ARGS_TEXT)
-            self.CONFIG_VERSION = '3'
+            self.CONFIG_VERSION = 3
 
-        if self.CONFIG_VERSION == '3':
+        if self.CONFIG_VERSION == 3:
             if self.HTTP_ROOT == '/': self.HTTP_ROOT = ''
-            self.CONFIG_VERSION = '4'
+            self.CONFIG_VERSION = 4
 
-        if self.CONFIG_VERSION == '4':
+        if self.CONFIG_VERSION == 4:
             if not len(self.HOME_STATS_CARDS) and 'watch_stats' in self.HOME_SECTIONS:
                 home_sections = self.HOME_SECTIONS
                 home_sections.remove('watch_stats')
@@ -807,18 +807,18 @@ class Config(object):
                 home_sections = self.HOME_SECTIONS
                 home_sections.remove('library_stats')
                 self.HOME_SECTIONS = home_sections
-            self.CONFIG_VERSION = '5'
+            self.CONFIG_VERSION = 5
 
-        if self.CONFIG_VERSION == '5':
+        if self.CONFIG_VERSION == 5:
             self.MONITOR_PMS_UPDATES = 0
-            self.CONFIG_VERSION = '6'
+            self.CONFIG_VERSION = 6
 
-        if self.CONFIG_VERSION == '6':
+        if self.CONFIG_VERSION == 6:
             if self.GIT_USER.lower() == 'drzoidberg33':
                 self.GIT_USER = 'JonnyWong16'
-            self.CONFIG_VERSION = '7'
+            self.CONFIG_VERSION = 7
 
-        if self.CONFIG_VERSION == '7':
+        if self.CONFIG_VERSION == 7:
             def rep(s):
                 return s.replace('<tv>','<episode>').replace('</tv>','</episode>').replace('<music>','<track>').replace('</music>','</track>')
 
@@ -835,4 +835,6 @@ class Config(object):
             self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = rep(self.NOTIFY_ON_WATCHED_SUBJECT_TEXT)
             self.NOTIFY_ON_WATCHED_BODY_TEXT = rep(self.NOTIFY_ON_WATCHED_BODY_TEXT)
             self.NOTIFY_SCRIPTS_ARGS_TEXT = rep(self.NOTIFY_SCRIPTS_ARGS_TEXT)
-            self.CONFIG_VERSION = '8'
+
+            self.MONITORING_USE_WEBSOCKET = 1
+            self.CONFIG_VERSION = 8
