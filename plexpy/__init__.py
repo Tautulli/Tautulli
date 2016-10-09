@@ -333,6 +333,9 @@ def initialize_scheduler():
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
                          hours=library_hours, minutes=0, seconds=0)
 
+            schedule_job(activity_pinger.check_server_response, 'Check server response',
+                         hours=0, minutes=0, seconds=0)
+
         else:
             # Cancel all jobs
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
