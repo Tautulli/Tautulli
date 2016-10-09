@@ -66,19 +66,25 @@ def run():
     ws_reconnect = False
     reconnects = 0
 
-    # Try an open the websocket connection - if it fails after 15 retries fallback to polling
-    while not plexpy.WS_CONNECTED and reconnects <= 15:
+    # Try an open the websocket connection
+    while not plexpy.WS_CONNECTED and reconnects <= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
         try:
             logger.info(u"PlexPy WebSocket :: Opening%s websocket, connection attempt %s." % (secure, str(reconnects + 1)))
             ws = create_connection(uri, header=header)
             reconnects = 0
             logger.info(u"PlexPy WebSocket :: Ready")
             plexpy.WS_CONNECTED = True
+
+            if not plexpy.PLEX_SERVER_UP:
+                logger.info(u"PlexPy WebSocket :: The Plex Media Server is back up.")
+                plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup'})
+                plexpy.PLEX_SERVER_UP = True
+
             plexpy.initialize_scheduler()
         except IOError as e:
             logger.error(u"PlexPy WebSocket :: %s." % e)
             reconnects += 1
-            time.sleep(5)
+            time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
 
     while plexpy.WS_CONNECTED:
         try:
@@ -87,16 +93,17 @@ def run():
             # successfully received data, reset reconnects counter
             reconnects = 0
         except (websocket.WebSocketConnectionClosedException, Exception):
-            if reconnects <= 15:
+            if reconnects <= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
                 reconnects += 1
 
                 # Sleep 5 between connection attempts
                 if reconnects > 1:
-                    time.sleep(5)
+                    time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
 
                 logger.warn(u"PlexPy WebSocket :: Connection has closed, reconnection attempt %s." % reconnects)
                 try:
                     ws = create_connection(uri, header=header)
+                    logger.info(u"PlexPy WebSocket :: Ready")
                 except IOError as e:
                     logger.info(u"PlexPy WebSocket :: %s." % e)
 
@@ -113,8 +120,13 @@ def run():
             start_thread()
     
     if not plexpy.WS_CONNECTED and not ws_reconnect:
-        logger.error(u"PlexPy WebSocket :: Connection unavailable, Plex server is down.")
-        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
+        logger.error(u"PlexPy WebSocket :: Connection unavailable.")
+
+        if plexpy.PLEX_SERVER_UP:
+            logger.info(u"PlexPy WebSocket :: Unable to get an internal response from the server, Plex server is down.")
+            plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
+            plexpy.PLEX_SERVER_UP = False
+
         plexpy.initialize_scheduler()
 
     logger.debug(u"PlexPy WebSocket :: Leaving thread.")

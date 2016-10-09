@@ -26,6 +26,7 @@ import notification_handler
 import notifiers
 import plextv
 import pmsconnect
+import web_socket
 
 
 monitor_lock = threading.Lock()
@@ -42,16 +43,7 @@ def check_active_sessions(ws_request=False):
         monitor_process = activity_processor.ActivityProcessor()
         # logger.debug(u"PlexPy Monitor :: Checking for active streams.")
 
-        global int_ping_count
-
         if session_list:
-            if int_ping_count >= 3:
-                logger.info(u"PlexPy Monitor :: The Plex Media Server is back up.")
-
-                plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup'})
-
-            int_ping_count = 0
-
             media_container = session_list['sessions']
 
             # Check our temp table for what we must do with the new streams
@@ -203,18 +195,6 @@ def check_active_sessions(ws_request=False):
         else:
             logger.debug(u"PlexPy Monitor :: Unable to read session list.")
 
-            if int_ping_count == 0:
-                # Temporarily set the stopped time for all sessions
-                stopped_time = int(time.time())
-                monitor_db.action('UPDATE sessions SET stopped = ?', [stopped_time])
-
-            int_ping_count += 1
-            logger.warn(u"PlexPy Monitor :: Unable to get an internal response from the server, ping attempt %s." \
-                        % str(int_ping_count))
-
-        if int_ping_count == 3:
-            plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
-
 
 def check_recently_added():
 
@@ -288,6 +268,14 @@ def check_recently_added():
 
 
 def check_server_response():
+
+    try:
+        web_socket.start_thread()
+    except:
+        logger.warn(u"Websocket :: Unable to open connection.")
+
+
+def check_server_access():
 
     with monitor_lock:
         pms_connect = pmsconnect.PmsConnect()

@@ -275,7 +275,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
                         hours=0, minutes=0, seconds=0)
     plexpy.schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
                         hours=0, minutes=0, seconds=0)
-    plexpy.schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
+    plexpy.schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
                         hours=0, minutes=0, seconds=0)
 
     ap = activity_processor.ActivityProcessor()
