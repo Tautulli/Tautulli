@@ -256,6 +256,13 @@ def available_notification_actions():
                 'subject': 'PlexPy ({server_name})',
                 'body': 'An update is available for the Plex Media Server (version {update_version}).',
                 'icon': 'fa-refresh'
+                },
+               {'label': 'PlexPy Update Available',
+                'name': 'on_plexpyupdate',
+                'description': 'Trigger a notification when an update for the PlexPy is available.',
+                'subject': 'PlexPy ({server_name})',
+                'body': 'An update is available for PlexPy (version {plexpy_update_version}).',
+                'icon': 'fa-refresh'
                 }
                ]
 

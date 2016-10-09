@@ -23,12 +23,12 @@ import platform
 import version
 
 # Identify Our Application
-USER_AGENT = 'PlexPy/-' + version.PLEXPY_VERSION + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \
+USER_AGENT = 'PlexPy/-' + version.PLEXPY_BRANCH + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \
              ' ' + platform.release() + ')'
 
 PLATFORM = platform.system()
 PLATFORM_VERSION = platform.release()
-BRANCH = version.PLEXPY_VERSION
+BRANCH = version.PLEXPY_BRANCH
 VERSION_NUMBER = version.PLEXPY_RELEASE_VERSION
 
 DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
