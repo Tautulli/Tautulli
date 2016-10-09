@@ -24,6 +24,7 @@ import websocket
 import plexpy
 import activity_handler
 import activity_pinger
+import activity_processor
 import logger
 
 name = 'websocket'
@@ -36,6 +37,10 @@ def start_thread():
     activity_pinger.check_active_sessions(ws_request=True)
     # Start the websocket listener on it's own thread
     threading.Thread(target=run).start()
+
+
+def on_disconnect():
+    activity_processor.ActivityProcessor().set_temp_stopped()
 
 
 def reconnect():
@@ -126,6 +131,7 @@ def run():
             logger.info(u"PlexPy WebSocket :: Unable to get an internal response from the server, Plex server is down.")
             plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
             plexpy.PLEX_SERVER_UP = False
+            on_disconnect()
 
         plexpy.initialize_scheduler()
 

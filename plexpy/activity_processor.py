@@ -467,3 +467,7 @@ class ActivityProcessor(object):
                                       'WHERE user_id = ? %s' % ip,
                                       [user_id])
         return sessions
+
+    def set_temp_stopped(self):
+        stopped_time = int(time.time())
+        monitor_db.action('UPDATE sessions SET stopped = ?', [stopped_time])
