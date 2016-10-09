@@ -1897,6 +1897,18 @@
         });
     }
 
+    function loadNotifierConfig(notifier_id) {
+        $.ajax({
+            url: 'get_notifier_config_modal',
+            data: { notifier_id: notifier_id },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#notifier-config-modal").html(xhr.responseText).modal('show');
+            }
+        });
+    }
+
 $(document).ready(function() {
 
     // Javascript to enable link to tab
@@ -2401,12 +2413,13 @@ $(document).ready(function() {
             complete: function (xhr, status) {
                 result = $.parseJSON(xhr.responseText);
                 msg = result.message;
-                if (result.result == 'success') {
-                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
-                } else {
-                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
-                }
                 $('#add-notifier-modal').modal('hide');
+                if (result.result == 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
+                    loadNotifierConfig(result.notifier_id);
+                } else {
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
+                }
                 getNotifiersTable();
             }
         });
