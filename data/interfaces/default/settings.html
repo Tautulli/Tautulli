@@ -1334,6 +1334,18 @@
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td><strong>{plexpy_version}</strong></td>
+                                    <td>The current version of PlexPy.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{plexpy_branch}</strong></td>
+                                    <td>The current git branch of PlexPy.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{plexpy_commit}</strong></td>
+                                    <td>The current git commit hash of PlexPy.</td>
+                                </tr>
+                                <tr>
                                     <td><strong>{server_name}</strong></td>
                                     <td>The name of your Plex Server.</td>
                                 </tr>
@@ -1727,11 +1739,11 @@
                                 </tr>
                                 <tr>
                                     <td><strong>{update_url}</strong></td>
-                                    <td>The available update download URL.</td>
+                                    <td>The download URL for the available update.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{update_release_date}</strong></td>
-                                    <td>The release date of the update version.</td>
+                                    <td>The release date of the available update.</td>
                                 </tr>
                                 <tr>
                                     <td><strong>{update_channel}</strong></td>
@@ -1764,6 +1776,41 @@
                                 <tr>
                                     <td><strong>{update_changelog_fixed}</strong></td>
                                     <td>The fixed changelog for the available update.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="notification-params">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">
+                                        PlexPy Update Available
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>{plexpy_update_version}</strong></td>
+                                    <td>The available update version for PlexPy.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{plexpy_update_tar}</strong></td>
+                                    <td>The tar download URL for the available update.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{plexpy_update_zip}</strong></td>
+                                    <td>The zip download URL for the available update.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{plexpy_update_commit}</strong></td>
+                                    <td>The commit hash for the available update.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{plexpy_update_behind}</strong></td>
+                                    <td>The number of commits behind for the available update.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{plexpy_update_changelog}</strong></td>
+                                    <td>The changelog for the available update.</td>
                                 </tr>
                             </tbody>
                         </table>

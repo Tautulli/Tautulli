@@ -25,6 +25,7 @@ import time
 
 import plexpy
 import activity_processor
+import common
 import database
 import datafactory
 import libraries
@@ -451,6 +452,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
             pass
 
     available_params = {# Global paramaters
+                        'plexpy_version': common.VERSION_NUMBER,
+                        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
+                        'plexpy_commit': plexpy.CURRENT_VERSION,
                         'server_name': server_name,
                         'server_uptime': server_uptime,
                         'server_version': server_times.get('version',''),
@@ -563,6 +567,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
     server_times = plex_tv.get_server_times()
 
     pms_download_info = kwargs.pop('pms_download_info', {})
+    plexpy_download_info = kwargs.pop('plexpy_download_info', {})
 
     if server_times:
         updated_at = server_times['updated_at']
@@ -572,6 +577,9 @@ def build_server_notify_params(notify_action=None, **kwargs):
         server_uptime = 'N/A'
 
     available_params = {# Global paramaters
+                        'plexpy_version': common.VERSION_NUMBER,
+                        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
+                        'plexpy_commit': plexpy.CURRENT_VERSION,
                         'server_name': server_name,
                         'server_uptime': server_uptime,
                         'server_version': server_times.get('version',''),
@@ -591,6 +599,13 @@ def build_server_notify_params(notify_action=None, **kwargs):
                         'update_extra_info': pms_download_info.get('extra_info',''),
                         'update_changelog_added': pms_download_info.get('changelog_added',''),
                         'update_changelog_fixed': pms_download_info.get('changelog_fixed',''),
+                        # PlexPy update parameters
+                        'plexpy_update_version': plexpy_download_info.get('tag_name', ''),
+                        'plexpy_update_tar': plexpy_download_info.get('tarball_url', ''),
+                        'plexpy_update_zip': plexpy_download_info.get('zipball_url', ''),
+                        'plexpy_update_commit': kwargs.pop('plexpy_update_commit', ''),
+                        'plexpy_update_behind': kwargs.pop('plexpy_update_behind', ''),
+                        'plexpy_update_changelog': plexpy_download_info.get('body', '')
                         }
 
     return available_params, None
