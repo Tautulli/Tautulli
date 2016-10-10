@@ -69,7 +69,7 @@ def getVersion():
         plexpy.INSTALL_TYPE = 'win'
 
         # Don't have a way to update exe yet, but don't want to set VERSION to None
-        return 'Windows Install', 'master'
+        return 'Windows Install', 'origin', 'master'
 
     elif os.path.isdir(os.path.join(plexpy.PROG_DIR, '.git')):
 
@@ -77,30 +77,41 @@ def getVersion():
         output, err = runGit('rev-parse HEAD')
 
         if not output:
-            logger.error('Couldn\'t find latest installed version.')
+            logger.error('Could not find latest installed version.')
             cur_commit_hash = None
 
         cur_commit_hash = str(output)
 
         if not re.match('^[a-z0-9]+$', cur_commit_hash):
-            logger.error('Output doesn\'t look like a hash, not using it')
+            logger.error('Output does not look like a hash, not using it.')
             cur_commit_hash = None
 
         if plexpy.CONFIG.DO_NOT_OVERRIDE_GIT_BRANCH and plexpy.CONFIG.GIT_BRANCH:
             branch_name = plexpy.CONFIG.GIT_BRANCH
 
         else:
-            branch_name, err = runGit('rev-parse --abbrev-ref HEAD')
-            branch_name = branch_name
+            remote_branch, err = runGit('rev-parse --abbrev-ref --symbolic-full-name @{u}')
+            remote_branch = remote_branch.split('/')
+            if len(remote_branch) == 2:
+                remote_name, branch_name = remote_branch
+            else:
+                remote_name = branch_name = None
+
+            if not remote_name and plexpy.CONFIG.GIT_REMOTE:
+                logger.error('Could not retrieve remote name from git. Falling back to %s.' % plexpy.CONFIG.GIT_REMOTE)
+                remote_name = plexpy.CONFIG.GIT_REMOTE
+            if not remote_name:
+                logger.error('Could not retrieve remote name from git. Defaulting to origin.')
+                branch_name = 'origin'
 
             if not branch_name and plexpy.CONFIG.GIT_BRANCH:
-                logger.error('Could not retrieve branch name from git. Falling back to %s' % plexpy.CONFIG.GIT_BRANCH)
+                logger.error('Could not retrieve branch name from git. Falling back to %s.' % plexpy.CONFIG.GIT_BRANCH)
                 branch_name = plexpy.CONFIG.GIT_BRANCH
             if not branch_name:
-                logger.error('Could not retrieve branch name from git. Defaulting to master')
+                logger.error('Could not retrieve branch name from git. Defaulting to master.')
                 branch_name = 'master'
 
-        return cur_commit_hash, branch_name
+        return cur_commit_hash, remote_name, branch_name
 
     else:
 
@@ -109,15 +120,15 @@ def getVersion():
         version_file = os.path.join(plexpy.PROG_DIR, 'version.txt')
 
         if not os.path.isfile(version_file):
-            return None, 'master'
+            return None, 'origin', 'master'
 
         with open(version_file, 'r') as f:
             current_version = f.read().strip(' \n\r')
 
         if current_version:
-            return current_version, plexpy.CONFIG.GIT_BRANCH
+            return current_version, plexpy.CONFIG.GIT_REMOTE, plexpy.CONFIG.GIT_BRANCH
         else:
-            return None, 'master'
+            return None, 'origin', 'master'
 
 
 def checkGithub(auto_update=False):
@@ -184,17 +195,18 @@ def update():
         logger.info('Windows .exe updating not supported yet.')
 
     elif plexpy.INSTALL_TYPE == 'git':
-        output, err = runGit('pull origin ' + plexpy.CONFIG.GIT_BRANCH)
+        output, err = runGit('pull ' + plexpy.CONFIG.GIT_REMOTE + ' ' + plexpy.CONFIG.GIT_BRANCH)
 
         if not output:
-            logger.error('Couldn\'t download latest version')
+            logger.error('Unable to download latest version')
+            return
 
         for line in output.split('\n'):
 
             if 'Already up-to-date.' in line:
                 logger.info('No update available, not updating')
                 logger.info('Output: ' + str(output))
-            elif line.endswith('Aborting.'):
+            elif line.endswith(('Aborting', 'Aborting.')):
                 logger.error('Unable to update from git: ' + line)
                 logger.info('Output: ' + str(output))
 
@@ -255,6 +267,22 @@ def update():
                 e
             )
             return
+
+
+def checkout_git_branch():
+    if plexpy.INSTALL_TYPE == 'git':
+        output, err = runGit('fetch ' + plexpy.CONFIG.GIT_REMOTE)
+        output, err = runGit('checkout ' + plexpy.CONFIG.GIT_BRANCH)
+
+        if not output:
+            logger.error('Unable to change git branch.')
+            return
+
+        for line in output.split('\n'):
+            if line.endswith(('Aborting', 'Aborting.')):
+                logger.error('Unable to checkout from git: ' + line)
+                logger.info('Output: ' + str(output))
+
 
 def read_changelog(latest_only=False):
 

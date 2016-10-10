@@ -82,7 +82,7 @@
                             <label>
                                 <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
                             </label>
-                            <p class="help-block">If you have Git installed, allow periodic checks for updates.</p>
+                            <p class="help-block">Check for PlexPy updates periodically.</p>
                         </div>
                         <div id="git_update_options">
                             <div class="checkbox">
@@ -101,6 +101,44 @@
                                 <p class="help-block">Optional: Use your own GitHub API token when checking for updates.
                             </div>
                         </div>
+                        % if plexpy.INSTALL_TYPE == 'git':
+                        <div class="form-group">
+                            <label for="git_branch">Git Remote / Branch</label>
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <div class="input-group git-group">
+                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
+                                        <select class="form-control" id="git_branch" name="git_branch">
+                                            % if config['git_branch'] == 'master':
+                                            <option value="master" selected>master</option>
+                                            <option value="dev">dev</option>
+                                            % elif config['git_branch'] == 'dev':
+                                            <option value="master">master</option>
+                                            <option value="dev" selected>dev</option>
+                                            % else:
+                                            <option value="master">master</option>
+                                            <option value="dev">dev</option>
+                                            <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
+                                            % endif
+                                        </select>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="switch_git_branch">Checkout Branch</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help-block">The git tracking remote (default "origin") and branch (default "master"). Select to switch the git branch (requires restart).</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="git_path">Git Path</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">The path to your git environment variable. Leave blank for default.</p>
+                        </div>
+                        % endif
 
                         <div class="padded-header">
                             <h3>Display Settings</h3>
@@ -2033,32 +2071,32 @@ $(document).ready(function() {
     initConfigCheckbox('#notify_upload_posters');
     initConfigCheckbox('#monitor_pms_updates');
     
-    $("#menu_link_shutdown").click(function() {
-        $("#confirm-message").text("Are you sure you want to shutdown PlexPy?");
+    $('#menu_link_shutdown').click(function() {
+        $('#confirm-message').text("Are you sure you want to shutdown PlexPy?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = "shutdown";
+            window.location.href = 'shutdown';
         });
     });
 
-    $("#menu_link_restart").click(function() {
+    $('#menu_link_restart').click(function() {
         $("#confirm-message").text("Are you sure you want to restart PlexPy?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = "restart";
+            window.location.href = 'restart';
         });
     });
 
-    $("#menu_link_update_check").click(function() {
+    $('#menu_link_update_check').click(function() {
         // Allow the update bar to show again if previously dismissed.
         setCookie('updateDismiss', 'true', 0);
         $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking');
         $(this).prop('disabled', true);
-        window.location.href = "checkGithub";
+        window.location.href = 'checkGithub';
     });
 
-    $("#modal_link_restart").click(function() {
-        window.location.href = "restart";
+    $('#modal_link_restart').click(function() {
+        window.location.href = 'restart';
     });
 
     getConfigurationTable();
@@ -2112,6 +2150,26 @@ $(document).ready(function() {
         var msg = 'Are you sure you want to flush the temporary sessions?<br /><strong>This will reset all currently active sessions.</strong>';
         var url = 'delete_temp_sessions';
         confirmAjaxCall(url, msg);
+    });
+
+    $("#switch_git_branch").click(function () {
+        var current_remote = "${config['git_remote']}";
+        var current_branch = "${config['git_branch']}";
+        var new_remote = $("#git_remote").val();
+        var new_branch = $("#git_branch option:selected").val();
+
+        if (new_remote === current_remote && new_branch === current_branch) {
+            showMsg('<i class="fa fa-exclamation-circle"></i> Already on the ' + current_remote + ' ' + current_branch + ' branch.', false, true, 5000, true)
+        } else {
+            var msg = 'Are you sure you want to switch to the <strong>' + new_remote + ' ' + new_branch + '</strong> branch?' +
+                '<br />This may cause PlexPy to become unstable.<br />PlexPy will restart.';
+            $('#confirm-message').html(msg);
+            $('#confirm-modal').modal();
+            $('#confirm-modal').one('click', '#confirm-button', function () {
+                settingsChanged = false;
+                window.location.href = 'checkout_git_branch?git_remote=' + new_remote + '&git_branch=' + new_branch;
+            });
+        }
     });
 
     $('#api_key').click(function(){ $('#api_key').select() });
