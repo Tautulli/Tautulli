@@ -2164,7 +2164,7 @@ $(document).ready(function() {
             showMsg('<i class="fa fa-exclamation-circle"></i> Already on the ' + current_remote + ' ' + current_branch + ' branch.', false, true, 5000, true)
         } else {
             var msg = 'Are you sure you want to switch to the <strong>' + new_remote + ' ' + new_branch + '</strong> branch?' +
-                '<br />This may cause PlexPy to become unstable.<br />PlexPy will restart.';
+                '<br />Switching branches may cause PlexPy to become unstable.<br /><br />PlexPy will restart.';
             $('#confirm-message').html(msg);
             $('#confirm-modal').modal();
             $('#confirm-modal').one('click', '#confirm-button', function () {
