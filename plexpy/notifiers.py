@@ -1122,13 +1122,13 @@ class PUSHOVER(Notifier):
         if not subject or not body:
             return
 
-        data = {'token': self.apitoken,
-                'user': self.keys,
-                'title': event.encode("utf-8"),
-                'message': message.encode("utf-8"),
-                'sound': self.sound,
-                'html': self.html_support,
-                'priority': self.priority}
+        data = {'token': self.config['apitoken'],
+                'user': self.config['keys'],
+                'title': subject.encode("utf-8"),
+                'message': body.encode("utf-8"),
+                'sound': self.config['sound'],
+                'html': self.config['html_support'],
+                'priority': self.config['priority']}
 
         if self.config['incl_url'] and 'metadata' in kwargs:
             # Grab formatted metadata
