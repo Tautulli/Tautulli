@@ -101,44 +101,6 @@
                                 <p class="help-block">Optional: Use your own GitHub API token when checking for updates.
                             </div>
                         </div>
-                        % if plexpy.INSTALL_TYPE == 'git':
-                        <div class="form-group">
-                            <label for="git_branch">Git Remote / Branch</label>
-                            <div class="row">
-                                <div class="col-md-7">
-                                    <div class="input-group git-group">
-                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
-                                        <select class="form-control" id="git_branch" name="git_branch">
-                                            % if config['git_branch'] == 'master':
-                                            <option value="master" selected>master</option>
-                                            <option value="dev">dev</option>
-                                            % elif config['git_branch'] == 'dev':
-                                            <option value="master">master</option>
-                                            <option value="dev" selected>dev</option>
-                                            % else:
-                                            <option value="master">master</option>
-                                            <option value="dev">dev</option>
-                                            <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
-                                            % endif
-                                        </select>
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="switch_git_branch">Checkout Branch</button>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="help-block">The git tracking remote (default "origin") and branch (default "master"). Select to switch the git branch (requires restart).</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="git_path">Git Path</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
-                                </div>
-                            </div>
-                            <p class="help-block">The path to your git environment variable. Leave blank for default.</p>
-                        </div>
-                        % endif
 
                         <div class="padded-header">
                             <h3>Display Settings</h3>
@@ -689,8 +651,10 @@
                                 </div>
                                 <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br />
-                            <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
+                            <p class="help-block">
+                                Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.
+                                <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help.
+                            </p>
                         </div>
 
                         <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
@@ -794,6 +758,44 @@
                                 Note: Video preview thumbnails (BIF) are not cached.
                             </p>
                         </div>
+                        % if plexpy.INSTALL_TYPE == 'git':
+                        <div class="form-group">
+                            <label for="git_branch">Git Remote / Branch</label>
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <div class="input-group git-group">
+                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
+                                        <select class="form-control" id="git_branch" name="git_branch">
+                                            % if config['git_branch'] == 'master':
+                                            <option value="master" selected>master</option>
+                                            <option value="dev">dev</option>
+                                            % elif config['git_branch'] == 'dev':
+                                            <option value="master">master</option>
+                                            <option value="dev" selected>dev</option>
+                                            % else:
+                                            <option value="master">master</option>
+                                            <option value="dev">dev</option>
+                                            <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
+                                            % endif
+                                        </select>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="switch_git_branch">Checkout Branch</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help-block">The git tracking remote (default "origin") and branch (default "master"). Select to switch the git branch (requires restart).</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="git_path">Git Path</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">The path to your git environment variable. Leave blank for default.</p>
+                        </div>
+                        % endif
                         <div class="form-group">
                             <label for="anon_redirect">Anonymous Redirect</label>
                             <div class="row">
