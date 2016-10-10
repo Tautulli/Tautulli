@@ -768,3 +768,26 @@ def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
                     "search": {"value": kwargs.pop("search", "")}
                     }
     return json.dumps(json_data)
+
+def humanFileSize(bytes, si=False):
+    if str(bytes).isdigit():
+        bytes = int(bytes)
+    else:
+        return bytes
+
+    thresh = 1000 if si else 1024
+    if bytes < thresh:
+        return str(bytes) + ' B'
+
+    if si:
+        units = ('kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
+    else:
+        units = ('KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
+
+    u = -1
+
+    while bytes >= thresh and u < len(units):
+        bytes /= thresh
+        u += 1
+
+    return "{0:.1f} {1}".format(bytes, units[u])

@@ -872,19 +872,21 @@ class PmsConnect(object):
             return None
 
         if get_media_info:
-            item_media = metadata_main.getElementsByTagName('Media')
-            for media in item_media:
-                media_info = {'container': helpers.get_xml_attr(media, 'container'),
-                              'bitrate': helpers.get_xml_attr(media, 'bitrate'),
-                              'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
-                              'video_resolution': helpers.get_xml_attr(media, 'videoResolution'),
-                              'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
-                              'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
-                              'audio_channels': helpers.get_xml_attr(media, 'audioChannels'),
-                              'file': helpers.get_xml_attr(media.getElementsByTagName('Part')[0], 'file'),
-                              'file_size': helpers.get_xml_attr(media.getElementsByTagName('Part')[0], 'size'),
-                              }
-                metadata.update(media_info)
+            item_media = metadata_main.getElementsByTagName('Media')[0]
+            media_info = {'container': helpers.get_xml_attr(item_media, 'container'),
+                          'bitrate': helpers.get_xml_attr(item_media, 'bitrate'),
+                          'height': helpers.get_xml_attr(item_media, 'height'),
+                          'width': helpers.get_xml_attr(item_media, 'width'),
+                          'aspect_ratio': helpers.get_xml_attr(item_media, 'aspectRatio'),
+                          'video_codec': helpers.get_xml_attr(item_media, 'videoCodec'),
+                          'video_resolution': helpers.get_xml_attr(item_media, 'videoResolution'),
+                          'video_framerate': helpers.get_xml_attr(item_media, 'videoFrameRate'),
+                          'audio_codec': helpers.get_xml_attr(item_media, 'audioCodec'),
+                          'audio_channels': helpers.get_xml_attr(item_media, 'audioChannels'),
+                          'file': helpers.get_xml_attr(item_media.getElementsByTagName('Part')[0], 'file'),
+                          'file_size': helpers.get_xml_attr(item_media.getElementsByTagName('Part')[0], 'size'),
+                          }
+            metadata.update(media_info)
 
         return metadata_list
 
