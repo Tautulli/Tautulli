@@ -2393,7 +2393,9 @@ a .home-platforms-list-cover-face:hover
 .stacked-configs > li > span > span.active {
     color: #f9be03;
 }
-.stacked-configs > li.new_notification_agent {
+.stacked-configs > li.new-notification-agent,
+.stacked-configs > li.notification-agent,
+.stacked-configs > li.add-notification-agent {
     cursor: pointer;
 }
 .accordion {

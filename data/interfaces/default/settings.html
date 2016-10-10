@@ -1341,7 +1341,7 @@
                             <div class="col-md-12">
                                 <ul class="stacked-configs list-unstyled">
                                     % for agent in available_notification_agents:
-                                    <li class="new_notification_agent" data-id="${agent['id']}">
+                                    <li class="new-notification-agent" data-id="${agent['id']}">
                                         <span>${agent['label']}</span>
                                     </li>
                                     % endfor
@@ -2517,7 +2517,7 @@ $(document).ready(function() {
     });
 
     // Add a new notification agent
-    $('.new_notification_agent').click(function () {
+    $('.new-notification-agent').click(function () {
         $.ajax({
             url: 'add_notifier_config',
             data: { agent_id: $(this).data('id') },

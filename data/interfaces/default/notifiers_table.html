@@ -11,25 +11,30 @@ DOCUMENTATION :: END
 
 <ul class="stacked-configs list-unstyled">
     % for notifier in sorted(notifiers_list, key=lambda k: (k['agent_label'], k['id'])):
-    <li>
+    <li class="notification-agent" data-id="${notifier['id']}">
         <span>
             <span class="toggle-left trigger-tooltip ${'active' if notifier['active'] else ''}" data-toggle="tooltip" data-placement="top" title="Triggers ${'active' if notifier['active'] else 'inactive'}"><i class="fa fa-lg fa-bell"></i></span>
             ${notifier['agent_label']} <span class="friendly_name">(${notifier['friendly_name'] or notifier['id']})</span>
-            <a href="#" data-target="#notifier-config-modal" data-id="${notifier['id']}" class="toggle-notifier-config-modal toggle-right" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
+            <span class="toggle-right"><i class="fa fa-lg fa-cog"></i></span>
         </span>
     </li>
     % endfor
-    <li>
+    <li class="add-notification-agent">
         <span>
             <span class="toggle-left"><i class="fa fa-lg fa-bell"></i></span> Add a new notification agent
-            <a href="#add-notifier-modal" data-toggle="modal" class="toggle-right"><i class="fa fa-lg fa-plus"></i></a>
+            <span class="toggle-right"><i class="fa fa-lg fa-plus"></i></span>
         </span>
     </li>
 </ul>
 
 <script>
+    // Load add notification agent modal
+    $(".add-notification-agent").click(function () {
+        $("#add-notifier-modal").modal('show');
+    });
+
     // Load notification agent config modal
-    $(".toggle-notifier-config-modal").click(function () {
+    $(".notification-agent").click(function () {
         var notifier_id = $(this).data('id');
         loadNotifierConfig(notifier_id);
     });
