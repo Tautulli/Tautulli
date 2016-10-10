@@ -2588,7 +2588,10 @@ class WebInterface(object):
             "imgur_client_id": plexpy.CONFIG.IMGUR_CLIENT_ID,
             "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES),
             "pms_version": plexpy.CONFIG.PMS_VERSION,
-            "plexpy_auto_update": checked(plexpy.CONFIG.PLEXPY_AUTO_UPDATE)
+            "plexpy_auto_update": checked(plexpy.CONFIG.PLEXPY_AUTO_UPDATE),
+            "git_branch": plexpy.CONFIG.GIT_BRANCH,
+            "git_path": plexpy.CONFIG.GIT_PATH,
+            "git_remote": plexpy.CONFIG.GIT_REMOTE
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -3341,6 +3344,19 @@ class WebInterface(object):
         plexpy.CONFIG.__setattr__('UPDATE_SHOW_CHANGELOG', 1)
         plexpy.CONFIG.write()
         return self.do_state_change('update', 'Updating', 120)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def checkout_git_branch(self, git_remote=None, git_branch=None, **kwargs):
+        if git_branch == plexpy.CONFIG.GIT_BRANCH:
+            logger.error(u"Already on the %s branch" % git_branch)
+            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
+        
+        # Set the new git remote and branch
+        plexpy.CONFIG.__setattr__('GIT_REMOTE', git_remote)
+        plexpy.CONFIG.__setattr__('GIT_BRANCH', git_branch)
+        plexpy.CONFIG.write()
+        return self.do_state_change('checkout', 'Switching Git Branches', 120)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))

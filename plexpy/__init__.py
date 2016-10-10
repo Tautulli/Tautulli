@@ -170,7 +170,7 @@ def initialize(config_file):
 
         # Get the currently installed version. Returns None, 'win32' or the git
         # hash.
-        CURRENT_VERSION, CONFIG.GIT_BRANCH = versioncheck.getVersion()
+        CURRENT_VERSION, CONFIG.GIT_REMOTE, CONFIG.GIT_BRANCH = versioncheck.getVersion()
 
         # Write current version to a file, so we know which version did work.
         # This allowes one to restore to that version. The idea is that if we
@@ -1028,13 +1028,13 @@ def upgrade():
     if CONFIG.UPDATE_NOTIFIERS_DB:
         notifiers.upgrade_config_to_db()
 
-def shutdown(restart=False, update=False):
+def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()
     SCHED.shutdown(wait=False)
 
     CONFIG.write()
 
-    if not restart and not update:
+    if not restart and not update and not checkout:
         logger.info(u"PlexPy is shutting down...")
 
     if update:
@@ -1043,6 +1043,13 @@ def shutdown(restart=False, update=False):
             versioncheck.update()
         except Exception as e:
             logger.warn(u"PlexPy failed to update: %s. Restarting." % e)
+
+    if checkout:
+        logger.info(u"PlexPy is switching the git branch...")
+        try:
+            versioncheck.checkout_git_branch()
+        except Exception as e:
+            logger.warn(u"PlexPy failed to switch git branch: %s. Restarting." % e)
 
     if CREATEPID:
         logger.info(u"Removing pidfile %s", PIDFILE)

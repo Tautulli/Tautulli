@@ -246,6 +246,8 @@ def main():
                 plexpy.shutdown()
             elif plexpy.SIGNAL == 'restart':
                 plexpy.shutdown(restart=True)
+            elif plexpy.SIGNAL == 'checkout':
+                plexpy.shutdown(restart=True, checkout=True)
             else:
                 plexpy.shutdown(restart=True, update=True)
 

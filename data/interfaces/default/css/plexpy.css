@@ -60,6 +60,28 @@ select[multiple] option {
     -moz-border-radius: 2px;
     border-radius: 2px;
 }
+select.form-control {
+    margin: 5px 0 5px 0;
+    color: #fff;
+    border: 0px solid #444;
+    background: #555;
+    height: 32px;
+    padding: 6px 12px;
+    background-color: #555;
+    border-radius: 3px;
+    transition: background-color .3s;
+}
+select.form-control:focus {
+    outline: 0;
+    outline: thin dotted \9;
+    color: #555;
+    background-color: #fff;
+    transition: background-color .3s;
+}
+select.form-control option {
+    color: #555;
+    background-color: #fff;
+}
 img {
     -webkit-box-sizing: content-box;
     -moz-box-sizing: content-box;
@@ -3117,4 +3139,10 @@ a:hover .overlay-refresh-image:hover {
 #notifier-config-modal .nav-tabs > li.active > a:focus {
     border: 1px solid #444;
     border-bottom-color: transparent;
+}
+.git-group input.form-control {
+    width: 40%;
+}
+.git-group select.form-control {
+    width: 60%;
 }
