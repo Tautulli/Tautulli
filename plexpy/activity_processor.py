@@ -221,7 +221,7 @@ class ActivityProcessor(object):
                     logger.debug(u"PlexPy ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
                     pms_connect = pmsconnect.PmsConnect()
                     result = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
-                    if result:
+                    if result and result['metadata']:
                         metadata = result['metadata']
                     else:
                         return False
