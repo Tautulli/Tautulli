@@ -3324,7 +3324,7 @@ class WebInterface(object):
         else:
             new_http_root = '/'
 
-        return serve_template(templatename="shutdown.html", title=title,
+        return serve_template(templatename="shutdown.html", signal=signal, title=title,
                               new_http_root=new_http_root, message=message, timer=timer, quote=quote)
 
     @cherrypy.expose

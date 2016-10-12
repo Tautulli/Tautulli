@@ -35,19 +35,50 @@
         </div>
     </div>
 </%def>
-<%def name="javascriptIncludes()">
-    <script>
-        // Use p.countdown as container, pass redirect, duration, and optional message
-        $(".countdown").countdown(reloadPage, ${timer}, "");
-        $('#state-change-modal').modal({
-            keyboard: false
-        })
-        // Make modal visible
-        $('#state-change-modal').modal('show')
 
-        // Redirect to home page after countdown.
-        function reloadPage() {
-            window.location.href = "${new_http_root}index";
-        }
-    </script>
+<%def name="javascriptIncludes()">
+<script>
+    // Use p.countdown as container, pass redirect, duration, and optional message
+    $(".countdown").countdown(reloadPage, ${timer}, "");
+    $('#state-change-modal').modal({
+        keyboard: false
+    })
+    // Make modal visible
+    $('#state-change-modal').modal('show')
+
+    // Redirect to home page after countdown.
+    function reloadPage() {
+        window.location.href = "${new_http_root}index";
+    }
+
+    // Redirect to home page if page is available.
+    var checkOnline = setInterval(checkPageOffline, 1000);
+
+    function checkPageOffline() {
+        $.ajax({
+            type: 'HEAD',
+            url: 'index',
+            timeout: 1000,
+            error: function () {
+                % if signal != 'shutdown':
+                clearInterval(checkOnline);
+                setInterval(checkPageOnline, 1000);
+                % else:
+                reloadPage();
+                % endif
+            }
+        });
+    }
+    function checkPageOnline() {
+        $.ajax({
+            type: 'HEAD',
+            url: 'index',
+            timeout: 1000,
+            success: function () {
+                reloadPage();
+            }
+        });
+    }
+</script>
+
 </%def>
