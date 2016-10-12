@@ -871,7 +871,7 @@ class PmsConnect(object):
         else:
             return None
 
-        if get_media_info:
+        if get_media_info and metadata_main.getElementsByTagName('Media'):
             item_media = metadata_main.getElementsByTagName('Media')[0]
             media_info = {'container': helpers.get_xml_attr(item_media, 'container'),
                           'bitrate': helpers.get_xml_attr(item_media, 'bitrate'),
