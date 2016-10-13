@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.4.14 (2016-10-12)
+
+* Fix: History logging locking up if media is removed from Plex before PlexPy can save the session.
+* Fix: Unable to save API key in the settings.
+* Fix: Some typos in the settings. (Thanks @Leafar3456)
+* Change: Disable script timeout by setting timeout to 0 seconds.
+
+
 ## v1.4.13 (2016-10-08)
 
 * New: Option to set the number of days to keep PlexPy backups.
