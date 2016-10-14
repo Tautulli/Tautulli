@@ -3143,8 +3143,8 @@ a:hover .overlay-refresh-image:hover {
     border-bottom-color: transparent;
 }
 .git-group input.form-control {
-    width: 40%;
+    width: 50%;
 }
 .git-group select.form-control {
-    width: 60%;
+    width: 50%;
 }
