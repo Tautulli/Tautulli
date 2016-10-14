@@ -3245,14 +3245,14 @@ class WebInterface(object):
         if source == 'history':
             data_factory = datafactory.DataFactory()
             result = data_factory.get_metadata_details(rating_key=rating_key)
-            if result:
+            if result and result['metadata']:
                 metadata = result['metadata']
                 poster_url = data_factory.get_poster_url(metadata=metadata)
                 metadata['poster_url'] = poster_url
         else:
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
-            if result:
+            if result and result['metadata']:
                 metadata = result['metadata']
                 data_factory = datafactory.DataFactory()
                 poster_url = data_factory.get_poster_url(metadata=metadata)

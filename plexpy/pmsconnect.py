@@ -564,7 +564,6 @@ class PmsConnect(object):
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') != '1':
-                    metadata_list = {'metadata': None}
                     return metadata_list
 
             if a.getElementsByTagName('Directory'):
