@@ -71,6 +71,14 @@ class ActivityHandler(object):
     def on_start(self):
         if self.is_valid_session() and self.get_live_session():
             session = self.get_live_session()
+            
+            # Some DLNA clients create a new session temporarily when browsing the library
+            # Wait and get session again to make sure it is an actual session
+            if session['platform'] == 'DLNA':
+                time.sleep(1)
+                session = self.get_live_session()
+                if not session:
+                    return
 
             logger.debug(u"PlexPy ActivityHandler :: Session %s started by user %s with ratingKey %s."
                          % (str(session['session_key']), str(session['user_id']), str(session['rating_key'])))
