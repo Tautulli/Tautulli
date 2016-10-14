@@ -249,10 +249,10 @@ class TimelineHandler(object):
 
     def get_metadata(self):
         pms_connect = pmsconnect.PmsConnect()
-        metadata_list = pms_connect.get_metadata_details(self.get_rating_key())
+        metadata = pms_connect.get_metadata_details(self.get_rating_key())
 
-        if metadata_list:
-            return metadata_list['metadata']
+        if metadata:
+            return metadata
 
         return None
 
@@ -260,10 +260,9 @@ class TimelineHandler(object):
         if self.is_item():
             logger.debug(u"PlexPy TimelineHandler :: Library item %s added to Plex." % str(rating_key))
             pms_connect = pmsconnect.PmsConnect()
-            metadata_list = pms_connect.get_metadata_details(rating_key)
+            metadata = pms_connect.get_metadata_details(rating_key)
 
-            if metadata_list:
-                metadata = metadata_list['metadata']
+            if metadata:
                 data = {'timeline_data': metadata, 'notify_action': 'on_created'}
                 data.update(kwargs)
                 plexpy.NOTIFY_QUEUE.put(data)

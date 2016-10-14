@@ -221,18 +221,16 @@ def check_recently_added():
                 
                 if 0 < time_threshold - int(item['added_at']) <= time_interval:
                     if item['media_type'] == 'movie':
-                        metadata_list = pms_connect.get_metadata_details(item['rating_key'])
-                        if metadata_list:
-                            metadata = [metadata_list['metadata']]
+                        metadata = pms_connect.get_metadata_details(item['rating_key'])
+                        if metadata:
+                            metadata = [metadata]
                         else:
                             logger.error(u"PlexPy Monitor :: Unable to retrieve metadata for rating_key %s" \
                                          % str(item['rating_key']))
 
                     else:
-                        metadata_list = pms_connect.get_metadata_children_details(item['rating_key'])
-                        if metadata_list:
-                            metadata = metadata_list['metadata']
-                        else:
+                        metadata = pms_connect.get_metadata_children_details(item['rating_key'])
+                        if not metadata:
                             logger.error(u"PlexPy Monitor :: Unable to retrieve children metadata for rating_key %s" \
                                          % str(item['rating_key']))
 
@@ -253,10 +251,10 @@ def check_recently_added():
 
                         if 0 < time_threshold - int(item['added_at']) <= time_interval:
                             if item['media_type'] == 'episode' or item['media_type'] == 'track':
-                                metadata_list = pms_connect.get_metadata_details(item['grandparent_rating_key'])
+                                metadata = pms_connect.get_metadata_details(item['grandparent_rating_key'])
 
-                                if metadata_list:
-                                    item = metadata_list['metadata']
+                                if metadata:
+                                    item = metadata
                                 else:
                                     logger.error(u"PlexPy Monitor :: Unable to retrieve grandparent metadata for grandparent_rating_key %s" \
                                                  % str(item['rating_key']))

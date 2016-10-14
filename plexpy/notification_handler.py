@@ -259,19 +259,17 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         rating_key = timeline['rating_key']
 
     pms_connect = pmsconnect.PmsConnect()
-    metadata_list = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
+    metadata = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
 
-    if metadata_list:
-        metadata = metadata_list['metadata']
-    else:
+    if not metadata:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
         return None, None
 
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
-        child_metadata.append(pms_connect.get_metadata_details(rating_key=key)['metadata'])
+        child_metadata.append(pms_connect.get_metadata_details(rating_key=key))
     for key in kwargs.pop('grandchild_keys', []):
-        grandchild_metadata.append(pms_connect.get_metadata_details(rating_key=key)['metadata'])
+        grandchild_metadata.append(pms_connect.get_metadata_details(rating_key=key))
 
     current_activity = pms_connect.get_current_activity()
     sessions = current_activity.get('sessions', [])

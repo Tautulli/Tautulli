@@ -875,7 +875,8 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         if rating_key:
-            query = 'SELECT session_history_metadata.rating_key, session_history_metadata.parent_rating_key, ' \
+            query = 'SELECT session_history_metadata.id, ' \
+                    'session_history_metadata.rating_key, session_history_metadata.parent_rating_key, ' \
                     'session_history_metadata.grandparent_rating_key, session_history_metadata.title, ' \
                     'session_history_metadata.parent_title, session_history_metadata.grandparent_title, ' \
                     'session_history_metadata.full_title, library_sections.section_name, ' \
@@ -897,7 +898,9 @@ class DataFactory(object):
                     'FROM session_history_metadata ' \
                     'JOIN library_sections ON session_history_metadata.section_id = library_sections.section_id ' \
                     'JOIN session_history_media_info ON session_history_metadata.id = session_history_media_info.id ' \
-                    'WHERE session_history_metadata.rating_key = ?'
+                    'WHERE session_history_metadata.rating_key = ? ' \
+                    'ORDER BY session_history_metadata.id DESC ' \
+                    'LIMIT 1'
             result = monitor_db.select(query=query, args=[rating_key])
         else:
             result = []
@@ -953,10 +956,10 @@ class DataFactory(object):
                         }
             metadata_list.append(metadata)
 
-        metadata = session.filter_session_info(metadata_list, filter_key='section_id')
-
-        if metadata:
-            return {'metadata': session.filter_session_info(metadata_list, filter_key='section_id')[0]}
+        filtered_metadata_list = session.filter_session_info(metadata_list, filter_key='section_id')
+        
+        if filtered_metadata_list:
+            return filtered_metadata_list[0]
         else:
             return []
 
@@ -1225,10 +1228,9 @@ class DataFactory(object):
         if mapping:
             logger.info(u"PlexPy DataFactory :: Updating metadata in the database.")
             for old_key, new_key in mapping.iteritems():
-                result = pms_connect.get_metadata_details(new_key)
+                metadata = pms_connect.get_metadata_details(new_key)
 
-                if result:
-                    metadata = result['metadata']
+                if metadata:
                     if metadata['media_type'] == 'show' or metadata['media_type'] == 'artist':
                         # check grandparent_rating_key (2 tables)
                         monitor_db.action('UPDATE session_history SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?', 

@@ -560,12 +560,11 @@ class Libraries(object):
             if item['rating_key'] and not item['file_size']:
                 file_size = 0
             
-                child_metadata = pms_connect.get_metadata_children_details(rating_key=item['rating_key'],
+                metadata = pms_connect.get_metadata_children_details(rating_key=item['rating_key'],
                                                                            get_children=True,
                                                                            get_media_info=True)
-                metadata_list = child_metadata['metadata']
 
-                for child_metadata in metadata_list:
+                for child_metadata in metadata:
                     file_size += helpers.cast_to_int(child_metadata.get('file_size', 0))
 
                 item['file_size'] = file_size

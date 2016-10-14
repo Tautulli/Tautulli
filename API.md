@@ -783,55 +783,53 @@ Optional parameters:
 
 Returns:
     json:
-        {"metadata":
-            {"actors": [
-                "Kit Harington",
-                "Emilia Clarke",
-                "Isaac Hempstead-Wright",
-                "Maisie Williams",
-                "Liam Cunningham",
-             ],
-             "added_at": "1461572396",
-             "art": "/library/metadata/1219/art/1462175063",
-             "content_rating": "TV-MA",
-             "directors": [
-                "Jeremy Podeswa"
-             ],
-             "duration": "2998290",
-             "genres": [
-                "Adventure",
-                "Drama",
-                "Fantasy"
-             ],
-             "grandparent_rating_key": "1219",
-             "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
-             "grandparent_title": "Game of Thrones",
-             "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
-             "labels": [],
-             "last_viewed_at": "1462165717",
-             "library_name": "TV Shows",
-             "media_index": "1",
-             "media_type": "episode",
-             "originally_available_at": "2016-04-24",
-             "parent_media_index": "6",
-             "parent_rating_key": "153036",
-             "parent_thumb": "/library/metadata/153036/thumb/1462175062",
-             "parent_title": "",
-             "rating": "7.8",
-             "rating_key": "153037",
-             "section_id": "2",
-             "studio": "HBO",
-             "summary": "Jon Snow is dead. Daenerys meets a strong man. Cersei sees her daughter again.",
-             "tagline": "",
-             "thumb": "/library/metadata/153037/thumb/1462175060",
-             "title": "The Red Woman",
-             "updated_at": "1462175060",
-             "writers": [
-                "David Benioff",
-                "D. B. Weiss"
-             ],
-             "year": "2016"
-             }
+        {"actors": [
+            "Kit Harington",
+            "Emilia Clarke",
+            "Isaac Hempstead-Wright",
+            "Maisie Williams",
+            "Liam Cunningham",
+         ],
+         "added_at": "1461572396",
+         "art": "/library/metadata/1219/art/1462175063",
+         "content_rating": "TV-MA",
+         "directors": [
+            "Jeremy Podeswa"
+         ],
+         "duration": "2998290",
+         "genres": [
+            "Adventure",
+            "Drama",
+            "Fantasy"
+         ],
+         "grandparent_rating_key": "1219",
+         "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
+         "grandparent_title": "Game of Thrones",
+         "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
+         "labels": [],
+         "last_viewed_at": "1462165717",
+         "library_name": "TV Shows",
+         "media_index": "1",
+         "media_type": "episode",
+         "originally_available_at": "2016-04-24",
+         "parent_media_index": "6",
+         "parent_rating_key": "153036",
+         "parent_thumb": "/library/metadata/153036/thumb/1462175062",
+         "parent_title": "",
+         "rating": "7.8",
+         "rating_key": "153037",
+         "section_id": "2",
+         "studio": "HBO",
+         "summary": "Jon Snow is dead. Daenerys meets a strong man. Cersei sees her daughter again.",
+         "tagline": "",
+         "thumb": "/library/metadata/153037/thumb/1462175060",
+         "title": "The Red Woman",
+         "updated_at": "1462175060",
+         "writers": [
+            "David Benioff",
+            "D. B. Weiss"
+         ],
+         "year": "2016"
          }
 ```
 
