@@ -1091,10 +1091,10 @@ class PmsConnect(object):
             user_details = user_data.get_details(
                 user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
 
-            if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Track'):
-                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')[:-6]
-            else:
-                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
+            player = session.getElementsByTagName('Player')[0]
+            platform = helpers.get_xml_attr(player, 'platform')
+            if not platform and helpers.get_xml_attr(player, 'product') == 'DLNA':
+                platform = 'DLNA'
 
             labels = []
             if session.getElementsByTagName('Label'):
@@ -1114,11 +1114,11 @@ class PmsConnect(object):
                               'user_id': user_details['user_id'],
                               'friendly_name': user_details['friendly_name'],
                               'user_thumb': user_details['user_thumb'],
-                              'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split('::ffff:')[-1],
-                              'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
-                              'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
-                              'machine_id': machine_id,
-                              'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
+                              'ip_address': helpers.get_xml_attr(player, 'address').split('::ffff:')[-1],
+                              'player': helpers.get_xml_attr(player, 'title'),
+                              'platform': platform,
+                              'machine_id': helpers.get_xml_attr(player, 'machineIdentifier').rstrip('_Track'),
+                              'state': helpers.get_xml_attr(player, 'state'),
                               'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                               'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                               'title': helpers.get_xml_attr(session, 'title'),
@@ -1233,10 +1233,10 @@ class PmsConnect(object):
             user_details = user_data.get_details(
                 user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
 
-            if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Video'):
-                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')[:-6]
-            else:
-                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
+            player = session.getElementsByTagName('Player')[0]
+            platform = helpers.get_xml_attr(player, 'platform')
+            if not platform and helpers.get_xml_attr(player, 'product') == 'DLNA':
+                platform = 'DLNA'
 
             labels = []
             if session.getElementsByTagName('Label'):
@@ -1257,11 +1257,11 @@ class PmsConnect(object):
                                   'user_id': user_details['user_id'],
                                   'friendly_name': user_details['friendly_name'],
                                   'user_thumb': user_details['user_thumb'],
-                                  'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split('::ffff:')[-1],
-                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
-                                  'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
-                                  'machine_id': machine_id,
-                                  'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
+                                  'ip_address': helpers.get_xml_attr(player, 'address').split('::ffff:')[-1],
+                                  'player': helpers.get_xml_attr(player, 'title'),
+                                  'platform': platform,
+                                  'machine_id': helpers.get_xml_attr(player, 'machineIdentifier').rstrip('_Video'),
+                                  'state': helpers.get_xml_attr(player, 'state'),
                                   'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                                   'title': helpers.get_xml_attr(session, 'title'),
@@ -1321,11 +1321,11 @@ class PmsConnect(object):
                                   'user_id': user_details['user_id'],
                                   'friendly_name': user_details['friendly_name'],
                                   'user_thumb': user_details['user_thumb'],
-                                  'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split('::ffff:')[-1],
-                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
-                                  'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
-                                  'machine_id': machine_id,
-                                  'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
+                                  'ip_address': helpers.get_xml_attr(player, 'address').split('::ffff:')[-1],
+                                  'player': helpers.get_xml_attr(player, 'title'),
+                                  'platform': platform,
+                                  'machine_id': helpers.get_xml_attr(player, 'machineIdentifier').rstrip('_Video'),
+                                  'state': helpers.get_xml_attr(player, 'state'),
                                   'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                                   'title': helpers.get_xml_attr(session, 'title'),
@@ -1384,11 +1384,11 @@ class PmsConnect(object):
                                   'user_id': user_details['user_id'],
                                   'friendly_name': user_details['friendly_name'],
                                   'user_thumb': user_details['user_thumb'],
-                                  'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split('::ffff:')[-1],
-                                  'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
-                                  'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
-                                  'machine_id': machine_id,
-                                  'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
+                                  'ip_address': helpers.get_xml_attr(player, 'address').split('::ffff:')[-1],
+                                  'player': helpers.get_xml_attr(player, 'title'),
+                                  'platform': platform,
+                                  'machine_id': helpers.get_xml_attr(player, 'machineIdentifier').rstrip('_Video'),
+                                  'state': helpers.get_xml_attr(player, 'state'),
                                   'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                                   'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                                   'title': helpers.get_xml_attr(session, 'title'),
@@ -1467,10 +1467,10 @@ class PmsConnect(object):
             user_details = user_data.get_details(
                 user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
 
-            if helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier').endswith('_Photo'):
-                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')[:-6]
-            else:
-                machine_id = helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'machineIdentifier')
+            player = session.getElementsByTagName('Player')[0]
+            platform = helpers.get_xml_attr(player, 'platform')
+            if not platform and helpers.get_xml_attr(player, 'product') == 'DLNA':
+                platform = 'DLNA'
 
             labels = []
             if session.getElementsByTagName('Label'):
@@ -1490,11 +1490,11 @@ class PmsConnect(object):
                               'user_id': user_details['user_id'],
                               'friendly_name': user_details['friendly_name'],
                               'user_thumb': user_details['user_thumb'],
-                              'ip_address': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'address').split('::ffff:')[-1],
-                              'player': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'title'),
-                              'platform': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'platform'),
-                              'machine_id': machine_id,
-                              'state': helpers.get_xml_attr(session.getElementsByTagName('Player')[0], 'state'),
+                              'ip_address': helpers.get_xml_attr(player, 'address').split('::ffff:')[-1],
+                              'player': helpers.get_xml_attr(player, 'title'),
+                              'platform': platform,
+                              'machine_id': helpers.get_xml_attr(player, 'machineIdentifier').rstrip('_Photo'),
+                              'state': helpers.get_xml_attr(player, 'state'),
                               'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
                               'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
                               'title': helpers.get_xml_attr(session, 'title'),

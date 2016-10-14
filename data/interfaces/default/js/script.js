@@ -259,6 +259,8 @@ function getPlatformImagePath(platformName) {
         return 'images/platforms/wp.png';
     } else if (platformName.indexOf("Plex Media Player") > -1) {
         return 'images/platforms/pmp.png';
+    } else if (platformName.indexOf("DLNA") > -1) {
+        return 'images/platforms/dlna.png';
     } else {
         return 'images/platforms/default.png';
     }
