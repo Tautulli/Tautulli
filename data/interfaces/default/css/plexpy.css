@@ -2251,7 +2251,8 @@ a .home-platforms-list-cover-face:hover
     margin-right: auto;
     margin-top: 20px;
     margin-bottom: 20px;
-    width: 90%;
+    width: 100%;
+    max-width: 1750px;
     overflow: hidden;
 }
 .table-card-header {
@@ -2263,7 +2264,8 @@ a .home-platforms-list-cover-face:hover
     margin-right: auto;
     margin-top: 20px;
     margin-bottom: -20px;
-    width: 90%;
+    width: 100%;
+    max-width: 1750px;
     overflow: hidden;
 }
 .table-card-back td {
