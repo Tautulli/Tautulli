@@ -774,8 +774,8 @@ class DISCORD(Notifier):
             data['username'] = self.config['username']
         if self.config['avatar_url']:
             data['avatar_url'] = self.config['avatar_url']
-        if self.config['tts']:
-            data['tts'] = True
+        #if self.config['tts']:
+        #    data['tts'] = True
 
         if self.config['incl_poster'] and 'metadata' in kwargs:
             # Grab formatted metadata
