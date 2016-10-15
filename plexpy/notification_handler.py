@@ -187,8 +187,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                      notify_action=notify_action,
                      notifier=notifier_config,
                      subject=subject,
-                     body=body,
-                     parameters=parameters)
+                     body=body)
 
 
 def get_notify_state(session):
@@ -210,13 +209,12 @@ def get_notify_state(session):
     return notify_states
 
 
-def set_notify_state(notify_action, notifier, subject, body, session=None, parameters=None):
+def set_notify_state(notify_action, notifier, subject, body, session=None):
 
     if notify_action and notifier:
         monitor_db = database.MonitorDatabase()
 
         session = session or {}
-        parameters = parameters or {}
 
         keys = {'timestamp': int(time.time()),
                 'session_key': session.get('session_key', None),
@@ -231,8 +229,7 @@ def set_notify_state(notify_action, notifier, subject, body, session=None, param
                   'user': session.get('user', None),
                   'agent_name': notifier['agent_name'],
                   'subject_text': subject,
-                  'body_text': body,
-                  'poster_url': parameters.get('poster_url', None)}
+                  'body_text': body}
 
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
     else:
@@ -343,7 +340,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         metadata['lastfm_url'] = 'https://www.last.fm/music/' + metadata['lastfm_id']
 
     if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
-        metadata['poster_url'] = upload_poster(metadata=metadata)
+        poster_info = get_poster_info(metadata=metadata)
+        metadata.update(poster_info)
 
     # Create a title
     if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
@@ -499,6 +497,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'tagline': metadata['tagline'],
                         'rating': metadata['rating'],
                         'duration': duration,
+                        'poster_title': metadata.get('poster_title',''),
                         'poster_url': metadata.get('poster_url',''),
                         'plex_url': metadata.get('plex_url',''),
                         'imdb_id': metadata.get('imdb_id',''),
@@ -682,33 +681,31 @@ def format_group_index(group_keys):
     return ','.join(sorted(num)) or '0', ','.join(sorted(num00)) or '00'
 
 
-def upload_poster(metadata):
-    if metadata['media_type'] in ('movie', 'show', 'season', 'artist', 'album'):
-        thumb = metadata['thumb']
-        poster_key = metadata['rating_key']
-        poster_title = metadata['title']
-    elif metadata['media_type'] in ('season', 'album'):
-        thumb = metadata['thumb']
-        poster_key = metadata['rating_key']
-        poster_title = '%s - %s' % (metadata['parent_title'],
-                                    metadata['title'])
-    elif metadata['media_type'] in ('episode', 'track'):
-        thumb = metadata['parent_thumb']
-        poster_key = metadata['parent_rating_key']
-        poster_title = '%s - %s' % (metadata['grandparent_title'],
-                                    metadata['parent_title'])
-    else:
-        thumb = None
+def get_poster_info(metadata):
+    # Try to retrieve poster info from the database
+    data_factory = datafactory.DataFactory()
+    poster_info = data_factory.get_poster_info(metadata=metadata)
 
-    poster_url = ''
+    # If no previous poster info
+    if not poster_info:
+        if metadata['media_type'] in ('movie', 'show', 'artist'):
+            thumb = metadata['thumb']
+            poster_key = metadata['rating_key']
+            poster_title = metadata['title']
+        elif metadata['media_type'] in ('season', 'album'):
+            thumb = metadata['thumb']
+            poster_key = metadata['rating_key']
+            poster_title = '%s - %s' % (metadata['parent_title'],
+                                        metadata['title'])
+        elif metadata['media_type'] in ('episode', 'track'):
+            thumb = metadata['parent_thumb']
+            poster_key = metadata['parent_rating_key']
+            poster_title = '%s - %s' % (metadata['grandparent_title'],
+                                        metadata['parent_title'])
+        else:
+            thumb = None
 
-    if thumb:
-        # Try to retrieve a poster_url from the database
-        data_factory = datafactory.DataFactory()
-        poster_url = data_factory.get_poster_url(rating_key=poster_key)
-
-        # If no previous poster_url
-        if not poster_url:
+        if thumb:
             try:
                 thread_name = str(threading.current_thread().ident)
                 poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-%s' % thread_name)
@@ -725,9 +722,15 @@ def upload_poster(metadata):
                 # Upload thumb to Imgur and get link
                 poster_url = helpers.uploadToImgur(poster_file, poster_title)
 
+                # Create poster info
+                poster_info = {'poster_title': poster_title, 'poster_url': poster_url}
+
+                # Save the poster url in the database
+                data_factory.set_poster_url(rating_key=poster_key, poster_title=poster_title, poster_url=poster_url)
+
                 # Delete the cached poster
                 os.remove(poster_file)
             except Exception as e:
                 logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(rating_key), e))
 
-    return poster_url
+    return poster_info

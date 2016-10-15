@@ -3383,15 +3383,15 @@ class WebInterface(object):
             data_factory = datafactory.DataFactory()
             metadata = data_factory.get_metadata_details(rating_key=rating_key)
             if metadata:
-                poster_url = data_factory.get_poster_url(metadata=metadata)
-                metadata['poster_url'] = poster_url
+                poster_info = data_factory.get_poster_info(metadata=metadata)
+                metadata.update(poster_info)
         else:
             pms_connect = pmsconnect.PmsConnect()
             metadata = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
             if metadata:
                 data_factory = datafactory.DataFactory()
-                poster_url = data_factory.get_poster_url(metadata=metadata)
-                metadata['poster_url'] = poster_url
+                poster_info = data_factory.get_poster_info(metadata=metadata)
+                metadata.update(poster_info)
 
         if metadata:
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
@@ -3581,18 +3581,15 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def delete_poster_url(self, poster_url='', **kwargs):
+    def delete_poster_url(self, rating_key='', **kwargs):
 
-        if poster_url:
-            data_factory = datafactory.DataFactory()
-            result = data_factory.delete_poster_url(poster_url=poster_url)
-        else:
-            result = None
+        data_factory = datafactory.DataFactory()
+        result = data_factory.delete_poster_url(rating_key=rating_key)
 
         if result:
-            return {'message': result}
+            return {'result': 'success', 'message': 'Deleted Imgur poster url.'}
         else:
-            return {'message': 'no data received'}
+            return {'result': 'error', 'message': 'Failed to delete Imgur poster url.'}
 
 
     ##### Search #####

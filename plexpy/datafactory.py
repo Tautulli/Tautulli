@@ -1014,51 +1014,48 @@ class DataFactory(object):
 
         return ip_address
 
-    def get_poster_url(self, rating_key='', metadata=None):
+    def get_poster_info(self, rating_key='', metadata=None):
         monitor_db = database.MonitorDatabase()
 
-        poster_url = ''
-        poster_key = []
-
-        if rating_key:
-            where_key = 'WHERE rating_key = ? OR parent_rating_key = ? OR grandparent_rating_key = ?'
-            poster_key = [rating_key, rating_key, rating_key]
+        if str(rating_key).isdigit():
+            poster_key = rating_key
         elif metadata:
             if metadata['media_type'] in ('movie', 'show', 'artist'):
-                where_key = 'WHERE rating_key = ?'
-                poster_key = [metadata['rating_key']]
+                poster_key = metadata['rating_key']
             elif metadata['media_type'] in ('season', 'album'):
-                where_key = 'WHERE parent_rating_key = ?'
-                poster_key = [metadata['rating_key']]
+                poster_key = metadata['rating_key']
             elif metadata['media_type'] in ('episode', 'track'):
-                where_key = 'WHERE parent_rating_key = ?'
-                poster_key = [metadata['parent_rating_key']]
+                poster_key = metadata['parent_rating_key']
 
+        poster_info = {}
         if poster_key:
             try:
-                query = 'SELECT id, poster_url FROM notify_log %s ' \
-                        'ORDER BY id DESC LIMIT 1' % where_key
-                result = monitor_db.select(query, args=poster_key)
+                query = 'SELECT poster_title, poster_url FROM poster_urls ' \
+                        'WHERE rating_key = ?'
+                poster_info = monitor_db.select_single(query, args=[poster_key])
             except Exception as e:
                 logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_poster_url: %s." % e)
-                return poster_url
-        else:
-            return poster_url
 
-        for item in result:
-            poster_url = item['poster_url']
+        return poster_info
 
-        return poster_url
-
-    def delete_poster_url(self, poster_url=''):
+    def set_poster_url(self, rating_key='', poster_title='', poster_url=''):
         monitor_db = database.MonitorDatabase()
 
-        if poster_url:
-            logger.info(u"PlexPy DataFactory :: Deleting poster_url %s from the notify log database." % poster_url)
-            monitor_db.upsert('notify_log', {'poster_url': None}, {'poster_url': poster_url})
-            return 'Deleted poster_url %s.' % poster_url
-        else:
-            return 'Unable to delete poster_url.'
+        if str(rating_key).isdigit():
+            keys = {'rating_key': int(rating_key)}
+
+            values = {'poster_title': poster_title,
+                      'poster_url': poster_url}
+
+            monitor_db.upsert(table_name='poster_urls', key_dict=keys, value_dict=values)
+
+    def delete_poster_url(self, rating_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        if rating_key:
+            logger.info(u"PlexPy DataFactory :: Deleting poster_url for rating_key %s from the database." % rating_key)
+            result = monitor_db.action('DELETE FROM poster_urls WHERE rating_key = ?', [rating_key])
+            return True if result else False
 
     def get_search_query(self, rating_key=''):
         monitor_db = database.MonitorDatabase()

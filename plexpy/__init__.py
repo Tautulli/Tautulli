@@ -477,7 +477,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
         'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
         'user_id INTEGER, user TEXT, notifier_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
-        'subject_text TEXT, body_text TEXT, poster_url TEXT)'
+        'subject_text TEXT, body_text TEXT)'
     )
 
     # library_sections table :: This table keeps record of the servers library sections
@@ -514,6 +514,12 @@ def dbcheck():
         'on_created_body TEXT, on_extdown_body TEXT, on_intdown_body TEXT, '
         'on_extup_body TEXT, on_intup_body TEXT, on_pmsupdate_body TEXT, '
         'on_concurrent_body TEXT, on_newdevice_body TEXT, on_plexpyupdate_body TEXT)'
+    )
+
+    # poster_urls table :: This table keeps record of the notification poster urls
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS poster_urls (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'rating_key INTEGER, poster_title TEXT, poster_url TEXT)'
     )
 
     # Upgrade sessions table from earlier versions
