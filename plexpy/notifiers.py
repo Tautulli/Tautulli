@@ -65,7 +65,8 @@ AGENT_IDS = {'growl': 0,
              'facebook': 16,
              'browser': 17,
              'join': 18,
-             'hipchat': 19
+             'hipchat': 19,
+             'discord': 20
              }
 
 
@@ -77,6 +78,10 @@ def available_notification_agents():
               {'label': 'Browser',
                'name': 'browser',
                'id': AGENT_IDS['browser']
+               },
+              {'label': 'Discord',
+               'name': 'discord',
+               'id': AGENT_IDS['discord'],
                },
               {'label': 'Email',
                'name': 'email',
@@ -313,6 +318,8 @@ def get_agent_class(agent_id=None, config=None):
             return JOIN(config=config)
         elif agent_id == 19:
             return HIPCHAT(config=config)
+        elif agent_id == 20:
+            return DISCORD(config=config)
         else:
             return Notifier(config=config)
     else:
@@ -730,6 +737,135 @@ class BROWSER(Notifier):
                           'description': 'Set the number of seconds for the notification to remain visible. \
                                           Set 0 to disable auto hiding. (Note: Some browsers have a maximum time limit.)',
                           'input_type': 'number'
+                          }
+                         ]
+
+        return config_option
+
+
+class DISCORD(Notifier):
+    """
+    Discord Notifications
+    """
+    _DEFAULT_CONFIG = {'hook': '',
+                       'username': '',
+                       'avatar_url': '',
+                       #'tts': 0,
+                       'incl_pmslink': 0,
+                       'incl_poster': 0,
+                       'incl_subject': 1
+                       }
+
+    def notify(self, subject='', body='', action='', **kwargs):
+        if not subject or not body:
+            return
+
+        if self.config['incl_subject']:
+            text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
+        else:
+            text = body.encode("utf-8")
+
+        data = {'content': text}
+        if self.config['username']:
+            data['username'] = self.config['username']
+        if self.config['avatar_url']:
+            data['avatar_url'] = self.config['avatar_url']
+        if self.config['tts']:
+            data['tts'] = True
+
+        if self.config['incl_poster'] and 'metadata' in kwargs:
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['metadata'])
+            poster_url = pretty_metadata.get_poster_url()
+            plex_url = pretty_metadata.get_plex_url()
+            poster_link = pretty_metadata.get_poster_link()
+            caption = pretty_metadata.get_caption()
+            title = pretty_metadata.get_title()
+            subtitle = pretty_metadata.get_subtitle()
+
+            # Build Slack post attachment
+            attachment = {'title': title,
+                          'description': subtitle,
+                          'thumbnail': {'url': poster_url},
+                          }
+
+            if self.config['incl_pmslink']:
+                attachment['url'] = plex_url
+                attachment['description'] += '\r\n\r\nView on Plex Web'
+            elif poster_link:
+                attachment['url'] = poster_link
+                attachment['description'] += '\r\n\r\n' + caption
+
+            data['embeds'] = [attachment]
+
+        host = urlparse(self.config['hook']).hostname
+        path = urlparse(self.config['hook']).path
+
+        query_params = {'wait': True}
+        query_string = urllib.urlencode(query_params)
+
+        http_handler = HTTPSConnection(host)
+        http_handler.request("POST",
+                             path + '?' + query_string,
+                             headers={'Content-type': "application/json"},
+                             body=json.dumps(data))
+
+        response = http_handler.getresponse()
+        request_status = response.status
+
+        if request_status == 200:
+            logger.info(u"PlexPy Notifiers :: Discord notification sent.")
+            return True
+        elif request_status >= 400 and request_status < 500:
+            logger.warn(u"PlexPy Notifiers :: Discord notification failed: [%s] %s" % (request_status, response.reason))
+            return False
+        else:
+            logger.warn(u"PlexPy Notifiers :: Discord notification failed.")
+            return False
+
+    def return_config_options(self):
+        config_option = [{'label': 'Discord Webhook URL',
+                          'value': self.config['hook'],
+                          'name': 'discord_hook',
+                          'description': 'Your Discord incoming webhook URL.',
+                          'input_type': 'text'
+                          },
+                          {'label': 'Discord Username',
+                           'value': self.config['username'],
+                           'name': 'discord_username',
+                           'description': 'The Discord username which will be used. Leave blank for webhook integration default.',
+                           'input_type': 'text'
+                          },
+                          {'label': 'Discord Avatar',
+                           'value': self.config['avatar_url'],
+                           'description': 'The image url for the avatar which will be used. Leave blank for webhook integration default.',
+                           'name': 'discord_avatar_url',
+                           'input_type': 'text'
+                          },
+                         #{'label': 'TTS',
+                         # 'value': self.config['tts'],
+                         # 'name': 'discord_tts',
+                         # 'description': 'Send the notification using text-to-speech.',
+                         # 'input_type': 'checkbox'
+                         # },
+                         {'label': 'Include Poster Image',
+                          'value': self.config['incl_poster'],
+                          'name': 'discord_incl_poster',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Link to Plex Web',
+                          'value': self.config['incl_pmslink'],
+                          'name': 'discord_incl_pmslink',
+                          'description': 'Include a link to the media in Plex Web with the notifications.<br>'
+                                         'If disabled, the link will go to IMDB, TVDB, TMDb, or Last.fm instead, if available.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'discord_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 
