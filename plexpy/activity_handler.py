@@ -88,9 +88,6 @@ class ActivityHandler(object):
             # Write the new session to our temp session table
             self.update_db_session(session=session)
 
-            plexpy.NOTIFY_QUEUE.put({'stream_data': session, 'notify_action': 'on_concurrent'})
-            plexpy.NOTIFY_QUEUE.put({'stream_data': session, 'notify_action': 'on_newdevice'})
-
     def on_stop(self, force_stop=False):
         if self.is_valid_session():
             logger.debug(u"PlexPy ActivityHandler :: Session %s stopped." % str(self.get_session_key()))

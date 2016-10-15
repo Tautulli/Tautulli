@@ -728,7 +728,7 @@ class PmsConnect(object):
                         'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
                         'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
                         'title': helpers.get_xml_attr(metadata_main, 'title'),
-                        'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                        'parent_title': 'Season %s' % helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),

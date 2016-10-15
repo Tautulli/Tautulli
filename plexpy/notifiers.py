@@ -504,12 +504,12 @@ def send_notification(notifier_id=None, subject='', body='', notify_action='', *
 
 
 class PrettyMetadata(object):
-    def __init__(self, metadata):
-    	self.metadata = metadata
-    	self.media_type = metadata['media_type']
+    def __init__(self, parameters):
+    	self.parameters = parameters
+    	self.media_type = parameters['media_type']
 
     def get_poster_url(self):
-        self.poster_url = self.metadata.get('poster_url','')
+        self.poster_url = self.parameters['poster_url']
         if not self.poster_url:
             if self.media_type in ('artist', 'album', 'track'):
                 self.poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/cover.png' % plexpy.CONFIG.GIT_USER
@@ -519,59 +519,59 @@ class PrettyMetadata(object):
 
     def get_poster_link(self):
         self.poster_link = ''
-        if self.metadata.get('thetvdb_url',''):
-            self.poster_link = self.metadata.get('thetvdb_url', '')
-        elif self.metadata.get('themoviedb_url',''):
-            self.poster_link = self.metadata.get('themoviedb_url', '')
-        elif self.metadata.get('imdb_url',''):
-            self.poster_link = self.metadata.get('imdb_url', '')
-        elif self.metadata.get('lastfm_url',''):
-            self.poster_link = self.metadata.get('lastfm_url', '')
+        if self.parameters['thetvdb_url']:
+            self.poster_link = self.parameters['thetvdb_url']
+        elif self.parameters['themoviedb_url']:
+            self.poster_link = self.parameters['themoviedb_url']
+        elif self.parameters['imdb_url']:
+            self.poster_link = self.parameters['imdb_url']
+        elif self.parameters['lastfm_url']:
+            self.poster_link = self.parameters['lastfm_url']
         return self.poster_link
 
     def get_caption(self):
         self.caption = ''
-        if self.metadata.get('thetvdb_url',''):
+        if self.parameters['thetvdb_url']:
             self.caption = 'View on TheTVDB'
-        elif self.metadata.get('themoviedb_url',''):
+        elif self.parameters['themoviedb_url']:
             self.caption = 'View on The Movie Database'
-        elif self.metadata.get('imdb_url',''):
+        elif self.parameters['imdb_url']:
             self.caption = 'View on IMDB'
-        elif self.metadata.get('lastfm_url',''):
+        elif self.parameters['lastfm_url']:
             self.caption = 'View on Last.fm'
         return self.caption
 
     def get_title(self, divider = '-'):
         self.title = ''
         if self.media_type == 'movie':
-            self.title = '%s (%s)' % (self.metadata['title'], self.metadata['year'])
+            self.title = '%s (%s)' % (self.parameters['title'], self.parameters['year'])
         elif self.media_type == 'show':
-            self.title = '%s (%s)' % (self.metadata['title'], self.metadata['year'])
+            self.title = '%s (%s)' % (self.parameters['show_name'], self.parameters['year'])
         elif self.media_type == 'season':
-            self.title = '%s - %s' % (self.metadata['parent_title'], self.metadata['title'])
+            self.title = '%s - Season %s' % (self.parameters['show_name'], self.parameters['season_num'])
         elif self.media_type == 'episode':
-            self.title = '%s - %s (S%s %s E%s)' % (self.metadata['grandparent_title'],
-                                                   self.metadata['title'],
-                                                   self.metadata['parent_media_index'],
+            self.title = '%s - %s (S%s %s E%s)' % (self.parameters['show_name'],
+                                                   self.parameters['episode_name'],
+                                                   self.parameters['season_num'],
                                                    divider,
-                                                   self.metadata['media_index'])
+                                                   self.parameters['episode_num'])
         elif self.media_type == 'artist':
-            self.title = self.metadata['title']
+            self.title = self.parameters['artist_name']
         elif self.media_type == 'album':
-            self.title = '%s - %s' % (self.metadata['parent_title'], self.metadata['title'])
+            self.title = '%s - %s' % (self.parameters['artist_name'], self.parameters['album_name'])
         elif self.media_type == 'track':
-            self.title = '%s - %s' % (self.metadata['grandparent_title'], self.metadata['title'])
+            self.title = '%s - %s' % (self.parameters['artist_name'], self.parameters['track_name'])
         return self.title.encode("utf-8")
 
     def get_subtitle(self):
         if self.media_type == 'track':
-            self.subtitle = self.metadata['parent_title']
+            self.subtitle = self.parameters['album_name']
         else:
-            self.subtitle = self.metadata['summary']
+            self.subtitle = self.parameters['summary']
         return self.subtitle.encode("utf-8")
 
     def get_plex_url(self):
-        self.plex_url = self.metadata['plex_url']
+        self.plex_url = self.parameters['plex_url']
         return self.plex_url
 
 
@@ -777,9 +777,9 @@ class DISCORD(Notifier):
         #if self.config['tts']:
         #    data['tts'] = True
 
-        if self.config['incl_poster'] and 'metadata' in kwargs:
+        if self.config['incl_poster'] and kwargs.get('parameters'):
             # Grab formatted metadata
-            pretty_metadata = PrettyMetadata(kwargs['metadata'])
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
             poster_url = pretty_metadata.get_poster_url()
             plex_url = pretty_metadata.get_plex_url()
             poster_link = pretty_metadata.get_poster_link()
@@ -1075,9 +1075,9 @@ class FACEBOOK(Notifier):
 
         attachment = {}
 
-        if self.config['incl_poster'] and 'metadata' in kwargs:
+        if self.config['incl_poster'] and kwargs.get('parameters'):
             # Grab formatted metadata
-            pretty_metadata = PrettyMetadata(kwargs['metadata'])
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
             poster_url = pretty_metadata.get_poster_url()
             plex_url = pretty_metadata.get_plex_url()
             poster_link = pretty_metadata.get_poster_link()
@@ -2261,7 +2261,7 @@ class SCRIPTS(Notifier):
 
         # Allow overrides for shitty systems
         if prefix and script_args:
-            if script_args[0] in ['python2', 'python', 'pythonw', 'php', 'ruby', 'perl']:
+            if script_args[0] in ('python2', 'python', 'pythonw', 'php', 'ruby', 'perl'):
                 script[0] = script_args[0]
                 del script_args[0]
 
@@ -2337,9 +2337,9 @@ class SLACK(Notifier):
             else:
                 data['icon_url'] = self.config['icon_emoji']
 
-        if self.config['incl_poster'] and 'metadata' in kwargs:
+        if self.config['incl_poster'] and kwargs.get('parameters'):
             # Grab formatted metadata
-            pretty_metadata = PrettyMetadata(kwargs['metadata'])
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
             poster_url = pretty_metadata.get_poster_url()
             plex_url = pretty_metadata.get_plex_url()
             poster_link = pretty_metadata.get_poster_link()
@@ -2461,12 +2461,12 @@ class TELEGRAM(Notifier):
         else:
             text = body.encode('utf-8')
 
-        if self.config['incl_poster'] and 'metadata' in kwargs:
+        if self.config['incl_poster'] and kwargs.get('parameters'):
             poster_data = {'chat_id': self.config['chat_id'],
                            'disable_notification': True}
 
-            metadata = kwargs['metadata']
-            poster_url = metadata.get('poster_url','')
+            parameters = kwargs['parameters']
+            poster_url = parameters.get('poster_url','')
 
             if poster_url:
                 files = {'photo': (poster_url, urllib.urlopen(poster_url).read())}
@@ -2595,9 +2595,9 @@ class TWITTER(Notifier):
             return
 
         poster_url = ''
-        if self.config['incl_poster'] and 'metadata' in kwargs:
-            metadata = kwargs['metadata']
-            poster_url = metadata.get('poster_url','')
+        if self.config['incl_poster'] and kwargs.get('parameters'):
+            parameters = kwargs['parameters']
+            poster_url = parameters.get('poster_url','')
 
         if self.config['incl_subject']:
             return self._send_tweet(subject + '\r\n' + body, attachment=poster_url)

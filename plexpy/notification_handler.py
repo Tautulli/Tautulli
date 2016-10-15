@@ -36,6 +36,7 @@ import plextv
 import pmsconnect
 import users
 
+
 def process_queue():
     queue = plexpy.NOTIFY_QUEUE
     while True:
@@ -64,20 +65,51 @@ def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, 
     # Check if any notification agents have notifications enabled for the action
     notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action)
 
+    # Check on_watched for each notifier
+    if notifiers_enabled and notify_action == 'on_watched':
+        for n, notifier in enumerate(notifiers_enabled):
+            if any(d['agent_id'] == notifier['agent_id'] and d['notify_action'] == notify_action
+                   for d in get_notify_state(session=stream_data)):
+                # Already notified on_watched, remove from notifier
+                notifiers_enabled.pop(n)
+
     if notifiers_enabled:
+        # Check if notification conditions are satisfied
+        conditions = notify_conditions(notify_action=notify_action,
+                                       stream_data=stream_data,
+                                       timeline_data=timeline_data)
+
+    if notifiers_enabled and conditions:
+        if stream_data or timeline_data:
+            # Build the notification parameters
+            parameters = build_media_notify_params(notify_action=notify_action,
+                                                   session=stream_data,
+                                                   timeline=timeline_data,
+                                                   **kwargs)
+        else:
+            # Build the notification parameters
+            parameters = build_server_notify_params(notify_action=notify_action,
+                                                    **kwargs)
+
+        if not parameters:
+            logger.error(u"PlexPy NotificationHandler :: Failed to build notification parameters.")
+            return
+
+        # Add each notifier to the queue
         for notifier in notifiers_enabled:
-            # Check if notification conditions are satisfied
-            conditions = notify_conditions(notifier=notifier,
-                                           notify_action=notify_action,
-                                           stream_data=stream_data,
-                                           timeline_data=timeline_data)
-            if conditions:
-                data = {'notifier_id': notifier['id'],
-                        'notify_action': notify_action,
-                        'stream_data': stream_data,
-                        'timeline_data': timeline_data}
-                data.update(kwargs)
-                plexpy.NOTIFY_QUEUE.put(data)
+            data = {'notifier_id': notifier['id'],
+                    'notify_action': notify_action,
+                    'stream_data': stream_data,
+                    'timeline_data': timeline_data,
+                    'parameters': parameters}
+            data.update(kwargs)
+            plexpy.NOTIFY_QUEUE.put(data)
+
+    # Add on_concurrent and on_newdevice to queue if action is on_play
+    if notify_action == 'on_play':
+        plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data, 'notify_action': 'on_concurrent'})
+        plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data, 'notify_action': 'on_newdevice'})
+
 
 def notify_conditions(notifier=None, notify_action=None, stream_data=None, timeline_data=None):
     if stream_data:
@@ -100,13 +132,9 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
 
             progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
 
-
-            pms_connect = pmsconnect.PmsConnect()
-            current_activity = pms_connect.get_current_activity()
-            sessions = current_activity.get('sessions', [])
-            user_stream_count = [d for d in sessions if d['user_id'] == stream_data['user_id']]
-            if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP:
-                user_stream_count = set(d['ip_address'] for d in user_stream_count)
+            ap = activity_processor.ActivityProcessor()
+            user_sessions = ap.get_sessions(user_id=stream_data['user_id'],
+                                            ip_address=plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP)
 
             data_factory = datafactory.DataFactory()
             user_devices = data_factory.get_user_devices(user_id=stream_data['user_id'])
@@ -114,9 +142,7 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
             conditions = \
                 {'on_stop': plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
                  'on_resume': plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99,
-                 'on_watched': not any(d['agent_id'] == notifier['agent_id'] and d['notify_action'] == notify_action
-                                       for d in get_notify_state(session=stream_data)),
-                 'on_concurrent': len(user_stream_count) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
+                 'on_concurrent': len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
                  'on_newdevice': stream_data['machine_id'] not in user_devices
                  }
 
@@ -127,34 +153,15 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
         else:
             return False
     elif timeline_data:
-
-        conditions = \
-            {'on_created': True}
-
-        return conditions.get(notify_action, True)
+        return True
     else:
         return True
 
 
-def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, **kwargs):
+def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, parameters=None, **kwargs):
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
 
     if not notifier_config:
-        return
-
-    if stream_data or timeline_data:
-        # Build the notification parameters
-        parameters, metadata = build_media_notify_params(notify_action=notify_action,
-                                                         session=stream_data,
-                                                         timeline=timeline_data,
-                                                         **kwargs)
-    else:
-        # Build the notification parameters
-        parameters, metadata = build_server_notify_params(notify_action=notify_action,
-                                                          **kwargs)
-
-    if not parameters:
-        logger.error(u"PlexPy NotificationHandler :: Failed to build notification parameters.")
         return
 
     # Get the subject and body strings
@@ -173,7 +180,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                                 subject=subject,
                                 body=body,
                                 notify_action=notify_action,
-                                metadata=metadata)
+                                parameters=parameters)
 
     # Set the notification state in the db
     set_notify_state(session=stream_data or timeline_data,
@@ -181,7 +188,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                      notifier=notifier_config,
                      subject=subject,
                      body=body,
-                     metadata=metadata)
+                     parameters=parameters)
 
 
 def get_notify_state(session):
@@ -203,13 +210,13 @@ def get_notify_state(session):
     return notify_states
 
 
-def set_notify_state(notify_action, notifier, subject, body, session=None, metadata=None):
+def set_notify_state(notify_action, notifier, subject, body, session=None, parameters=None):
 
     if notify_action and notifier:
         monitor_db = database.MonitorDatabase()
 
         session = session or {}
-        metadata = metadata or {}
+        parameters = parameters or {}
 
         keys = {'timestamp': int(time.time()),
                 'session_key': session.get('session_key', None),
@@ -225,7 +232,7 @@ def set_notify_state(notify_action, notifier, subject, body, session=None, metad
                   'agent_name': notifier['agent_name'],
                   'subject_text': subject,
                   'body_text': body,
-                  'poster_url': metadata.get('poster_url', None)}
+                  'poster_url': parameters.get('poster_url', None)}
 
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
     else:
@@ -252,7 +259,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
         server_uptime = 'N/A'
 
-    # Get metadata feed for item
+    # Get metadata for the item
     if session:
         rating_key = session['rating_key']
     elif timeline:
@@ -263,7 +270,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
 
     if not metadata:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
-        return None, None
+        return None
 
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
@@ -271,24 +278,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
     for key in kwargs.pop('grandchild_keys', []):
         grandchild_metadata.append(pms_connect.get_metadata_details(rating_key=key))
 
-    current_activity = pms_connect.get_current_activity()
-    sessions = current_activity.get('sessions', [])
-    stream_count = current_activity.get('stream_count', '')
-    user_stream_count = sum(1 for d in sessions if d['user_id'] == session['user_id']) if session else ''
-
-    # Create a title
-    if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
-        full_title = '%s - %s' % (metadata['grandparent_title'],
-                                  metadata['title'])
-    elif metadata['media_type'] == 'season' or metadata['media_type'] == 'album':
-        full_title = '%s - %s' % (metadata['parent_title'],
-                                  metadata['title'])
-    else:
-        full_title = metadata['title']
+    ap = activity_processor.ActivityProcessor()
+    sessions = ap.get_sessions()
+    stream_count = len(sessions)
+    user_sessions = ap.get_sessions(user_id=session['user_id'])
+    user_stream_count = len(user_sessions)
 
     # Session values
-    if session is None:
-        session = {}
+    session = session or {}
 
     # Generate a combined transcode decision value
     if session.get('video_decision','') == 'transcode' or session.get('audio_decision','') == 'transcode':
@@ -345,49 +342,18 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         metadata['lastfm_id'] = metadata['guid'].split('lastfm://')[1].rsplit('/', 1)[0]
         metadata['lastfm_url'] = 'https://www.last.fm/music/' + metadata['lastfm_id']
 
-    if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show' or metadata['media_type'] == 'artist':
-        thumb = metadata['thumb']
-        poster_key = metadata['rating_key']
-        poster_title = metadata['title']
-    elif metadata['media_type'] == 'episode':
-        thumb = metadata['grandparent_thumb']
-        poster_key = metadata['grandparent_rating_key']
-        poster_title = metadata['grandparent_title']
-    elif metadata['media_type'] == 'track':
-        thumb = metadata['parent_thumb']
-        poster_key = metadata['parent_rating_key']
-        poster_title = metadata['parent_title']
+    if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
+        metadata['poster_url'] = upload_poster(metadata=metadata)
+
+    # Create a title
+    if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
+        full_title = '%s - %s' % (metadata['grandparent_title'],
+                                  metadata['title'])
+    elif metadata['media_type'] == 'season' or metadata['media_type'] == 'album':
+        full_title = '%s - %s' % (metadata['parent_title'],
+                                  metadata['title'])
     else:
-        thumb = None
-
-    if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS and thumb:
-        # Try to retrieve a poster_url from the database
-        data_factory = datafactory.DataFactory()
-        poster_url = data_factory.get_poster_url(rating_key=poster_key)
-
-        # If no previous poster_url
-        if not poster_url and plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
-            try:
-                thread_name = str(threading.current_thread().ident)
-                poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-%s' % thread_name)
-
-                # Retrieve the poster from Plex and cache to file
-                result = pms_connect.get_image(img=thumb)
-                if result and result[0]:
-                    with open(poster_file, 'wb') as f:
-                        f.write(result[0])
-                else:
-                    raise Exception(u'PMS image request failed')
-
-                # Upload thumb to Imgur and get link
-                poster_url = helpers.uploadToImgur(poster_file, poster_title)
-
-                # Delete the cached poster
-                os.remove(poster_file)
-            except Exception as e:
-                logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(rating_key), e))
-
-        metadata['poster_url'] = poster_url
+        full_title = metadata['title']
 
     # Fix metadata params for grouped recently added
     show_name = metadata['grandparent_title']
@@ -551,7 +517,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'grandparent_rating_key': metadata['grandparent_rating_key']
                         }
 
-    return available_params, metadata
+    return available_params
 
 
 def build_server_notify_params(notify_action=None, **kwargs):
@@ -608,7 +574,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
                         'plexpy_update_changelog': plexpy_download_info.get('body', '')
                         }
 
-    return available_params, None
+    return available_params
 
 
 def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None):
@@ -714,3 +680,54 @@ def format_group_index(group_keys):
             num00.append(str(group[0]).zfill(2))
 
     return ','.join(sorted(num)) or '0', ','.join(sorted(num00)) or '00'
+
+
+def upload_poster(metadata):
+    if metadata['media_type'] in ('movie', 'show', 'season', 'artist', 'album'):
+        thumb = metadata['thumb']
+        poster_key = metadata['rating_key']
+        poster_title = metadata['title']
+    elif metadata['media_type'] in ('season', 'album'):
+        thumb = metadata['thumb']
+        poster_key = metadata['rating_key']
+        poster_title = '%s - %s' % (metadata['parent_title'],
+                                    metadata['title'])
+    elif metadata['media_type'] in ('episode', 'track'):
+        thumb = metadata['parent_thumb']
+        poster_key = metadata['parent_rating_key']
+        poster_title = '%s - %s' % (metadata['grandparent_title'],
+                                    metadata['parent_title'])
+    else:
+        thumb = None
+
+    poster_url = ''
+
+    if thumb:
+        # Try to retrieve a poster_url from the database
+        data_factory = datafactory.DataFactory()
+        poster_url = data_factory.get_poster_url(rating_key=poster_key)
+
+        # If no previous poster_url
+        if not poster_url:
+            try:
+                thread_name = str(threading.current_thread().ident)
+                poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-%s' % thread_name)
+
+                # Retrieve the poster from Plex and cache to file
+                pms_connect = pmsconnect.PmsConnect()
+                result = pms_connect.get_image(img=thumb)
+                if result and result[0]:
+                    with open(poster_file, 'wb') as f:
+                        f.write(result[0])
+                else:
+                    raise Exception(u'PMS image request failed')
+
+                # Upload thumb to Imgur and get link
+                poster_url = helpers.uploadToImgur(poster_file, poster_title)
+
+                # Delete the cached poster
+                os.remove(poster_file)
+            except Exception as e:
+                logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(rating_key), e))
+
+    return poster_url

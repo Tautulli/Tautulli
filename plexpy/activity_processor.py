@@ -106,10 +106,6 @@ class ActivityProcessor(object):
                 timestamp = {'started': started}
                 self.db.upsert('sessions', timestamp, keys)
 
-                if notify:
-                    plexpy.NOTIFY_QUEUE.put({'stream_data': values, 'notify_action': 'on_concurrent'})
-                    plexpy.NOTIFY_QUEUE.put({'stream_data': values, 'notify_action': 'on_newdevice'})
-
                 return True
 
     def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
@@ -456,14 +452,20 @@ class ActivityProcessor(object):
 
             return None
 
-    def get_session_by_user_id(self, user_id=None, ip_address=None):
-        sessions = []
+    def get_sessions(self):
+        sessions = self.db.select('SELECT * FROM sessions')
+        return sessions
+
+    def get_sessions(self, user_id=None, ip_address=None):
+        query = 'SELECT * FROM sessions'
+        args = []
+
         if str(user_id).isdigit():
-            ip = 'GROUP BY ip_address' if ip_address else ''
-            sessions = self.db.select('SELECT * '
-                                      'FROM sessions '
-                                      'WHERE user_id = ? %s' % ip,
-                                      [user_id])
+            ip = ' GROUP BY ip_address' if ip_address else ''
+            query += ' WHERE user_id = ?' + ip
+            args.append(user_id)
+
+        sessions = self.db.select(query, args)
         return sessions
 
     def set_temp_stopped(self):

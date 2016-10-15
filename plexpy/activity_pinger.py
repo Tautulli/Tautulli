@@ -47,7 +47,7 @@ def check_active_sessions(ws_request=False):
             media_container = session_list['sessions']
 
             # Check our temp table for what we must do with the new streams
-            db_streams = monitor_db.select('SELECT * FROM sessions')
+            db_streams = monitor_process.get_sessions()
             for stream in db_streams:
                 if any(d['session_key'] == str(stream['session_key']) and d['rating_key'] == str(stream['rating_key'])
                        for d in media_container):

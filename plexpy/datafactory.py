@@ -1018,25 +1018,27 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         poster_url = ''
-        poster_key = ''
+        poster_key = []
 
         if rating_key:
-            poster_key = rating_key
+            where_key = 'WHERE rating_key = ? OR parent_rating_key = ? OR grandparent_rating_key = ?'
+            poster_key = [rating_key, rating_key, rating_key]
         elif metadata:
-            if metadata['media_type'] == 'movie' or metadata['media_type'] == 'show' or \
-                metadata['media_type'] == 'artist' or metadata['media_type'] == 'album':
-                poster_key = metadata['rating_key']
-            elif metadata['media_type'] == 'episode':
-                poster_key = metadata['grandparent_rating_key']
-            elif metadata['media_type'] == 'season' or metadata['media_type'] == 'track':
-                poster_key = metadata['parent_rating_key']
+            if metadata['media_type'] in ('movie', 'show', 'artist'):
+                where_key = 'WHERE rating_key = ?'
+                poster_key = [metadata['rating_key']]
+            elif metadata['media_type'] in ('season', 'album'):
+                where_key = 'WHERE parent_rating_key = ?'
+                poster_key = [metadata['rating_key']]
+            elif metadata['media_type'] in ('episode', 'track'):
+                where_key = 'WHERE parent_rating_key = ?'
+                poster_key = [metadata['parent_rating_key']]
 
         if poster_key:
             try:
-                query = 'SELECT id, poster_url FROM notify_log ' \
-                        'WHERE rating_key = %d OR parent_rating_key = %d OR grandparent_rating_key = %d ' \
-                        'ORDER BY id DESC LIMIT 1' % (int(poster_key), int(poster_key), int(poster_key))
-                result = monitor_db.select(query)
+                query = 'SELECT id, poster_url FROM notify_log %s ' \
+                        'ORDER BY id DESC LIMIT 1' % where_key
+                result = monitor_db.select(query, args=poster_key)
             except Exception as e:
                 logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_poster_url: %s." % e)
                 return poster_url
