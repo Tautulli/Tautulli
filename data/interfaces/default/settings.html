@@ -1347,8 +1347,9 @@
                             <div class="col-md-12">
                                 <ul class="stacked-configs list-unstyled">
                                     % for agent in available_notification_agents:
+                                    <% exp = '<span style="color: #f9be03;">[experimental]</span>' if agent['name'] == 'discord' else '' %>
                                     <li class="new-notification-agent" data-id="${agent['id']}">
-                                        <span>${agent['label']}</span>
+                                        <span>${agent['label']} ${exp | n}</span>
                                     </li>
                                     % endfor
                                 </ul>
