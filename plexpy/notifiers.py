@@ -2323,11 +2323,11 @@ class SLACK(Notifier):
             text = body.encode("utf-8")
 
         data = {'text': text}
-        if self.config['channel'] != '':
+        if self.config['channel']:
             data['channel'] = self.config['channel']
-        if self.config['username'] != '':
+        if self.config['username']:
             data['username'] = self.config['username']
-        if self.config['icon_emoji'] != '':
+        if self.config['icon_emoji']:
             if urlparse(self.config['icon_emoji']).scheme == '':
                 data['icon_emoji'] = self.config['icon_emoji']
             else:
@@ -2364,12 +2364,12 @@ class SLACK(Notifier):
 
             data['attachments'] = [attachment]
 
-        slackhost = urlparse(self.config['hook']).hostname
-        slackpath = urlparse(self.config['hook']).path
+        host = urlparse(self.config['hook']).hostname
+        path = urlparse(self.config['hook']).path
 
-        http_handler = HTTPSConnection(slackhost)
+        http_handler = HTTPSConnection(host)
         http_handler.request("POST",
-                             slackpath,
+                             path,
                              headers={'Content-type': "application/json"},
                              body=json.dumps(data))
 
@@ -2396,18 +2396,18 @@ class SLACK(Notifier):
                          {'label': 'Slack Channel',
                           'value': self.config['channel'],
                           'name': 'slack_channel',
-                          'description': 'Your Slack channel name (begin with \'#\'). Leave blank for webhook integration default.',
+                          'description': 'The Slack channel name (begins with \'#\') which will be used. Leave blank for webhook integration default.',
                           'input_type': 'text'
                           },
                           {'label': 'Slack Username',
                            'value': self.config['username'],
                            'name': 'slack_username',
-                           'description': 'The Slack username which will be shown. Leave blank for webhook integration default.',
+                           'description': 'The Slack username which will be used. Leave blank for webhook integration default.',
                            'input_type': 'text'
                           },
                           {'label': 'Slack Icon',
                            'value': self.config['icon_emoji'],
-                           'description': 'The icon you wish to show, use Slack emoji or image url. Leave blank for webhook integration default.',
+                           'description': 'The Slack emoji or image url for the icon which will be used. Leave blank for webhook integration default.',
                            'name': 'slack_icon_emoji',
                            'input_type': 'text'
                           },
