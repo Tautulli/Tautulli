@@ -511,7 +511,7 @@ class PrettyMetadata(object):
     def get_poster_url(self):
         self.poster_url = self.metadata.get('poster_url','')
         if not self.poster_url:
-            if self.metadata['media_type'] in ['artist', 'track']:
+            if self.media_type in ('artist', 'album', 'track'):
                 self.poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/cover.png' % plexpy.CONFIG.GIT_USER
             else:
                 self.poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/poster.png' % plexpy.CONFIG.GIT_USER
@@ -542,21 +542,25 @@ class PrettyMetadata(object):
         return self.caption
 
     def get_title(self, divider = '-'):
-        self.title = None
+        self.title = ''
         if self.media_type == 'movie':
             self.title = '%s (%s)' % (self.metadata['title'], self.metadata['year'])
         elif self.media_type == 'show':
             self.title = '%s (%s)' % (self.metadata['title'], self.metadata['year'])
-        elif self.media_type == 'artist':
-            self.title = self.metadata['title']
-        elif self.media_type == 'track':
-            self.title = '%s - %s' % (self.metadata['grandparent_title'], self.metadata['title'])
+        elif self.media_type == 'season':
+            self.title = '%s - %s' % (self.metadata['parent_title'], self.metadata['title'])
         elif self.media_type == 'episode':
             self.title = '%s - %s (S%s %s E%s)' % (self.metadata['grandparent_title'],
-                                                self.metadata['title'],
-                                                self.metadata['parent_media_index'],
-                                                divider,
-                                                self.metadata['media_index'])
+                                                   self.metadata['title'],
+                                                   self.metadata['parent_media_index'],
+                                                   divider,
+                                                   self.metadata['media_index'])
+        elif self.media_type == 'artist':
+            self.title = self.metadata['title']
+        elif self.media_type == 'album':
+            self.title = '%s - %s' % (self.metadata['parent_title'], self.metadata['title'])
+        elif self.media_type == 'track':
+            self.title = '%s - %s' % (self.metadata['grandparent_title'], self.metadata['title'])
         return self.title.encode("utf-8")
 
     def get_subtitle(self):
