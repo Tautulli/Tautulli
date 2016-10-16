@@ -47,7 +47,6 @@ import pmsconnect
 import users
 import versioncheck
 import web_socket
-from plexpy.api import Api
 from plexpy.api2 import API2
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json
 from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
