@@ -98,7 +98,7 @@ def get_real_pms_url():
     fallback_url = 'http://' + plexpy.CONFIG.PMS_IP + ':' + str(plexpy.CONFIG.PMS_PORT)
 
     plex_tv = PlexTV()
-    result = plex_tv.get_server_urls(include_https=plexpy.CONFIG.PMS_SSL)
+    result = plex_tv.get_server_urls()
     plexpass = plex_tv.get_plexpass_status()
 
     connections = []
@@ -337,177 +337,155 @@ class PlexTV(object):
         return request
 
     def get_full_users_list(self):
-        friends_list = self.get_plextv_friends()
-        own_account = self.get_plextv_user_details()
+        friends_list = self.get_plextv_friends(output_format='xml')
+        own_account = self.get_plextv_user_details(output_format='xml')
         users_list = []
 
         try:
-            xml_parse = minidom.parseString(own_account)
+            xml_head = own_account.getElementsByTagName('user')
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list own account: %s" % e)
-            return []
-        except:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list own account.")
-            return []
+            logger.warn(u"PlexPy PlexTV :: Unable to parse own account XML for get_full_users_list: %s." % e)
+            return {}
 
-        xml_head = xml_parse.getElementsByTagName('user')
-        if not xml_head:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list.")
-        else:
-            for a in xml_head:
-                own_details = {"user_id": helpers.get_xml_attr(a, 'id'),
-                               "username": helpers.get_xml_attr(a, 'username'),
-                               "thumb": helpers.get_xml_attr(a, 'thumb'),
-                               "email": helpers.get_xml_attr(a, 'email'),
-                               "is_home_user": helpers.get_xml_attr(a, 'home'),
-                               "is_allow_sync": None,
-                               "is_restricted": helpers.get_xml_attr(a, 'restricted'),
-                               "filter_all": helpers.get_xml_attr(a, 'filterAll'),
-                               "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
-                               "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
-                               "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
-                               "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
-                               }
+        for a in xml_head:
+            own_details = {"user_id": helpers.get_xml_attr(a, 'id'),
+                            "username": helpers.get_xml_attr(a, 'username'),
+                            "thumb": helpers.get_xml_attr(a, 'thumb'),
+                            "email": helpers.get_xml_attr(a, 'email'),
+                            "is_home_user": helpers.get_xml_attr(a, 'home'),
+                            "is_allow_sync": None,
+                            "is_restricted": helpers.get_xml_attr(a, 'restricted'),
+                            "filter_all": helpers.get_xml_attr(a, 'filterAll'),
+                            "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
+                            "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
+                            "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
+                            "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
+                            }
 
-                users_list.append(own_details)
+            users_list.append(own_details)
 
         try:
-            xml_parse = minidom.parseString(friends_list)
+            xml_head = friends_list.getElementsByTagName('User')
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list friends list: %s" % e)
-            return []
-        except:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list friends list.")
-            return []
+            logger.warn(u"PlexPy PlexTV :: Unable to parse friends list XML for get_full_users_list: %s." % e)
+            return {}
 
-        xml_head = xml_parse.getElementsByTagName('User')
-        if not xml_head:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list.")
-        else:
-            for a in xml_head:
-                friend = {"user_id": helpers.get_xml_attr(a, 'id'),
-                          "username": helpers.get_xml_attr(a, 'title'),
-                          "thumb": helpers.get_xml_attr(a, 'thumb'),
-                          "email": helpers.get_xml_attr(a, 'email'),
-                          "is_home_user": helpers.get_xml_attr(a, 'home'),
-                          "is_allow_sync": helpers.get_xml_attr(a, 'allowSync'),
-                          "is_restricted": helpers.get_xml_attr(a, 'restricted'),
-                          "filter_all": helpers.get_xml_attr(a, 'filterAll'),
-                          "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
-                          "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
-                          "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
-                          "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
-                          }
+        for a in xml_head:
+            friend = {"user_id": helpers.get_xml_attr(a, 'id'),
+                        "username": helpers.get_xml_attr(a, 'title'),
+                        "thumb": helpers.get_xml_attr(a, 'thumb'),
+                        "email": helpers.get_xml_attr(a, 'email'),
+                        "is_home_user": helpers.get_xml_attr(a, 'home'),
+                        "is_allow_sync": helpers.get_xml_attr(a, 'allowSync'),
+                        "is_restricted": helpers.get_xml_attr(a, 'restricted'),
+                        "filter_all": helpers.get_xml_attr(a, 'filterAll'),
+                        "filter_movies": helpers.get_xml_attr(a, 'filterMovies'),
+                        "filter_tv": helpers.get_xml_attr(a, 'filterTelevision'),
+                        "filter_music": helpers.get_xml_attr(a, 'filterMusic'),
+                        "filter_photos": helpers.get_xml_attr(a, 'filterPhotos')
+                        }
 
-                users_list.append(friend)
+            users_list.append(friend)
 
         return users_list
 
     def get_synced_items(self, machine_id=None, user_id=None):
-        sync_list = self.get_plextv_sync_lists(machine_id)
+        sync_list = self.get_plextv_sync_lists(machine_id, output_format='xml')
         user_data = users.Users()
 
         synced_items = []
 
         try:
-            xml_parse = minidom.parseString(sync_list)
+            xml_head = sync_list.getElementsByTagName('SyncList')
         except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items: %s" % e)
-            return []
-        except:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items.")
-            return []
+            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items: %s." % e)
+            return {}
 
-        xml_head = xml_parse.getElementsByTagName('SyncList')
+        for a in xml_head:
+            client_id = helpers.get_xml_attr(a, 'id')
+            sync_device = a.getElementsByTagName('Device')
+            for device in sync_device:
+                device_user_id = helpers.get_xml_attr(device, 'userID')
+                try:
+                    device_username = user_data.get_details(user_id=device_user_id)['username']
+                    device_friendly_name = user_data.get_details(user_id=device_user_id)['friendly_name']
+                except:
+                    device_username = ''
+                    device_friendly_name = ''
+                device_name = helpers.get_xml_attr(device, 'name')
+                device_product = helpers.get_xml_attr(device, 'product')
+                device_product_version = helpers.get_xml_attr(device, 'productVersion')
+                device_platform = helpers.get_xml_attr(device, 'platform')
+                device_platform_version = helpers.get_xml_attr(device, 'platformVersion')
+                device_type = helpers.get_xml_attr(device, 'device')
+                device_model = helpers.get_xml_attr(device, 'model')
+                device_last_seen = helpers.get_xml_attr(device, 'lastSeenAt')
 
-        if not xml_head:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items.")
-        else:
-            for a in xml_head:
-                client_id = helpers.get_xml_attr(a, 'id')
-                sync_device = a.getElementsByTagName('Device')
-                for device in sync_device:
-                    device_user_id = helpers.get_xml_attr(device, 'userID')
-                    try:
-                        device_username = user_data.get_details(user_id=device_user_id)['username']
-                        device_friendly_name = user_data.get_details(user_id=device_user_id)['friendly_name']
-                    except:
-                        device_username = ''
-                        device_friendly_name = ''
-                    device_name = helpers.get_xml_attr(device, 'name')
-                    device_product = helpers.get_xml_attr(device, 'product')
-                    device_product_version = helpers.get_xml_attr(device, 'productVersion')
-                    device_platform = helpers.get_xml_attr(device, 'platform')
-                    device_platform_version = helpers.get_xml_attr(device, 'platformVersion')
-                    device_type = helpers.get_xml_attr(device, 'device')
-                    device_model = helpers.get_xml_attr(device, 'model')
-                    device_last_seen = helpers.get_xml_attr(device, 'lastSeenAt')
+            # Filter by user_id
+            if user_id and user_id != device_user_id:
+                continue
 
-                # Filter by user_id
-                if user_id and user_id != device_user_id:
-                    continue
+            for synced in a.getElementsByTagName('SyncItems'):
+                sync_item = synced.getElementsByTagName('SyncItem')
+                for item in sync_item:
+                    sync_id = helpers.get_xml_attr(item, 'id')
+                    sync_version = helpers.get_xml_attr(item, 'version')
+                    sync_root_title = helpers.get_xml_attr(item, 'rootTitle')
+                    sync_title = helpers.get_xml_attr(item, 'title')
+                    sync_metadata_type = helpers.get_xml_attr(item, 'metadataType')
+                    sync_content_type = helpers.get_xml_attr(item, 'contentType')
 
-                for synced in a.getElementsByTagName('SyncItems'):
-                    sync_item = synced.getElementsByTagName('SyncItem')
-                    for item in sync_item:
-                        sync_id = helpers.get_xml_attr(item, 'id')
-                        sync_version = helpers.get_xml_attr(item, 'version')
-                        sync_root_title = helpers.get_xml_attr(item, 'rootTitle')
-                        sync_title = helpers.get_xml_attr(item, 'title')
-                        sync_metadata_type = helpers.get_xml_attr(item, 'metadataType')
-                        sync_content_type = helpers.get_xml_attr(item, 'contentType')
+                    for status in item.getElementsByTagName('Status'):
+                        status_failure_code = helpers.get_xml_attr(status, 'failureCode')
+                        status_failure = helpers.get_xml_attr(status, 'failure')
+                        status_state = helpers.get_xml_attr(status, 'state')
+                        status_item_count = helpers.get_xml_attr(status, 'itemsCount')
+                        status_item_complete_count = helpers.get_xml_attr(status, 'itemsCompleteCount')
+                        status_item_downloaded_count = helpers.get_xml_attr(status, 'itemsDownloadedCount')
+                        status_item_ready_count = helpers.get_xml_attr(status, 'itemsReadyCount')
+                        status_item_successful_count = helpers.get_xml_attr(status, 'itemsSuccessfulCount')
+                        status_total_size = helpers.get_xml_attr(status, 'totalSize')
+                        status_item_download_percent_complete = helpers.get_percent(
+                            status_item_downloaded_count, status_item_count)
 
-                        for status in item.getElementsByTagName('Status'):
-                            status_failure_code = helpers.get_xml_attr(status, 'failureCode')
-                            status_failure = helpers.get_xml_attr(status, 'failure')
-                            status_state = helpers.get_xml_attr(status, 'state')
-                            status_item_count = helpers.get_xml_attr(status, 'itemsCount')
-                            status_item_complete_count = helpers.get_xml_attr(status, 'itemsCompleteCount')
-                            status_item_downloaded_count = helpers.get_xml_attr(status, 'itemsDownloadedCount')
-                            status_item_ready_count = helpers.get_xml_attr(status, 'itemsReadyCount')
-                            status_item_successful_count = helpers.get_xml_attr(status, 'itemsSuccessfulCount')
-                            status_total_size = helpers.get_xml_attr(status, 'totalSize')
-                            status_item_download_percent_complete = helpers.get_percent(
-                                status_item_downloaded_count, status_item_count)
+                    for settings in item.getElementsByTagName('MediaSettings'):
+                        settings_audio_boost = helpers.get_xml_attr(settings, 'audioBoost')
+                        settings_music_bitrate = helpers.get_xml_attr(settings, 'musicBitrate')
+                        settings_photo_quality = helpers.get_xml_attr(settings, 'photoQuality')
+                        settings_photo_resolution = helpers.get_xml_attr(settings, 'photoResolution')
+                        settings_video_quality = helpers.get_xml_attr(settings, 'videoQuality')
+                        settings_video_resolution = helpers.get_xml_attr(settings, 'videoResolution')
 
-                        for settings in item.getElementsByTagName('MediaSettings'):
-                            settings_audio_boost = helpers.get_xml_attr(settings, 'audioBoost')
-                            settings_music_bitrate = helpers.get_xml_attr(settings, 'musicBitrate')
-                            settings_photo_quality = helpers.get_xml_attr(settings, 'photoQuality')
-                            settings_photo_resolution = helpers.get_xml_attr(settings, 'photoResolution')
-                            settings_video_quality = helpers.get_xml_attr(settings, 'videoQuality')
-                            settings_video_resolution = helpers.get_xml_attr(settings, 'videoResolution')
+                    for location in item.getElementsByTagName('Location'):
+                        clean_uri = helpers.get_xml_attr(location, 'uri').split('%2F')
 
-                        for location in item.getElementsByTagName('Location'):
-                            clean_uri = helpers.get_xml_attr(location, 'uri').split('%2F')
+                    rating_key = next((clean_uri[(idx + 1) % len(clean_uri)] 
+                                        for idx, item in enumerate(clean_uri) if item == 'metadata'), None)
 
-                        rating_key = next((clean_uri[(idx + 1) % len(clean_uri)] 
-                                           for idx, item in enumerate(clean_uri) if item == 'metadata'), None)
+                    sync_details = {"device_name": helpers.sanitize(device_name),
+                                    "platform": helpers.sanitize(device_platform),
+                                    "username": helpers.sanitize(device_username),
+                                    "friendly_name": helpers.sanitize(device_friendly_name),
+                                    "user_id": device_user_id,
+                                    "root_title": helpers.sanitize(sync_root_title),
+                                    "title": helpers.sanitize(sync_title),
+                                    "metadata_type": sync_metadata_type,
+                                    "content_type": sync_content_type,
+                                    "rating_key": rating_key,
+                                    "state": status_state,
+                                    "item_count": status_item_count,
+                                    "item_complete_count": status_item_complete_count,
+                                    "item_downloaded_count": status_item_downloaded_count,
+                                    "item_downloaded_percent_complete": status_item_download_percent_complete,
+                                    "music_bitrate": settings_music_bitrate,
+                                    "photo_quality": settings_photo_quality,
+                                    "video_quality": settings_video_quality,
+                                    "total_size": status_total_size,
+                                    "failure": status_failure,
+                                    "sync_id": sync_id
+                                    }
 
-                        sync_details = {"device_name": helpers.sanitize(device_name),
-                                        "platform": helpers.sanitize(device_platform),
-                                        "username": helpers.sanitize(device_username),
-                                        "friendly_name": helpers.sanitize(device_friendly_name),
-                                        "user_id": device_user_id,
-                                        "root_title": helpers.sanitize(sync_root_title),
-                                        "title": helpers.sanitize(sync_title),
-                                        "metadata_type": sync_metadata_type,
-                                        "content_type": sync_content_type,
-                                        "rating_key": rating_key,
-                                        "state": status_state,
-                                        "item_count": status_item_count,
-                                        "item_complete_count": status_item_complete_count,
-                                        "item_downloaded_count": status_item_downloaded_count,
-                                        "item_downloaded_percent_complete": status_item_download_percent_complete,
-                                        "music_bitrate": settings_music_bitrate,
-                                        "photo_quality": settings_photo_quality,
-                                        "video_quality": settings_video_quality,
-                                        "total_size": status_total_size,
-                                        "failure": status_failure,
-                                        "sync_id": sync_id
-                                        }
-
-                        synced_items.append(sync_details)
+                    synced_items.append(sync_details)
 
         return session.filter_session_info(synced_items, filter_key='user_id')
 
@@ -519,19 +497,10 @@ class PlexTV(object):
             logger.error(u"PlexPy PlexTV :: Unable to retrieve server identity.")
             return {}
 
-        plextv_resources = self.get_plextv_resources(include_https=include_https)
-
+        plextv_resources = self.get_plextv_resources(include_https=include_https,
+                                                     output_format='xml')
         try:
-            xml_parse = minidom.parseString(plextv_resources)
-        except Exception as e:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls: %s" % e)
-            return {}
-        except:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls.")
-            return {}
-
-        try:
-            xml_head = xml_parse.getElementsByTagName('Device')
+            xml_head = plextv_resources.getElementsByTagName('Device')
         except Exception as e:
             logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_server_urls: %s." % e)
             return {}
