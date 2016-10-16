@@ -31,18 +31,18 @@ notification_log_table_options = {
         },
         {
             "targets": [1],
-            "data": "agent_name",
+            "data": "notifier_id",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     $(td).html(cellData);
                 }
             },
-            "width": "7%",
+            "width": "5%",
             "className": "no-wrap"
         },
         {
             "targets": [2],
-            "data": "notify_action",
+            "data": "agent_name",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     $(td).html(cellData);
@@ -53,33 +53,34 @@ notification_log_table_options = {
         },
         {
             "targets": [3],
+            "data": "notify_action",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "5%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [4],
             "data": "subject_text",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     $(td).html(cellData);
                 }
             },
-            "width": "20%"
+            "width": "25%"
         },
         {
-            "targets": [4],
+            "targets": [5],
             "data": "body_text",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     $(td).html(cellData);
                 }
             },
-            "width": "38%"
-        },
-        {
-            "targets": [5],
-            "data": "script_args",
-            "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
-                    $(td).html(cellData);
-                }
-            },
-            "width": "20%"
+            "width": "50%"
         }
     ],
     "drawCallback": function (settings) {

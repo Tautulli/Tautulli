@@ -1305,13 +1305,12 @@ class DataFactory(object):
                    'notify_log.rating_key',
                    'notify_log.user_id',
                    'notify_log.user',
+                   'notify_log.notifier_id',
                    'notify_log.agent_id',
                    'notify_log.agent_name',
                    'notify_log.notify_action',
                    'notify_log.subject_text',
-                   'notify_log.body_text',
-                   'notify_log.script_args',
-                   'notify_log.poster_url',
+                   'notify_log.body_text'
                    ]
         try:
             query = data_tables.ssp_query(table_name='notify_log',
@@ -1345,13 +1344,12 @@ class DataFactory(object):
                    'rating_key': item['rating_key'],
                    'user_id': item['user_id'],
                    'user': item['user'],
+                   'notifier_id': item['notifier_id'],
                    'agent_id': item['agent_id'],
                    'agent_name': item['agent_name'],
                    'notify_action': item['notify_action'],
                    'subject_text': item['subject_text'],
-                   'body_text': body_text,
-                   'script_args': item['script_args'],
-                   'poster_url': item['poster_url']
+                   'body_text': body_text
                    }
 
             rows.append(row)
