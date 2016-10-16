@@ -302,74 +302,25 @@ class ActivityProcessor(object):
             # Return true when the session is successfully written to the database
             return True
 
-    def find_session_ip(self, rating_key=None, machine_id=None):
+    def get_sessions(self, user_id=None, ip_address=None):
+        query = 'SELECT * FROM sessions'
+        args = []
 
-        logger.debug(u"PlexPy ActivityProcessor :: Requesting log lines...")
-        log_lines = log_reader.get_log_tail(window=5000, parsed=False)
+        if str(user_id).isdigit():
+            ip = ' GROUP BY ip_address' if ip_address else ''
+            query += ' WHERE user_id = ?' + ip
+            args.append(user_id)
 
-        rating_key_line = 'ratingKey=' + rating_key
-        rating_key_line_2 = 'metadata%2F' + rating_key
-        machine_id_line = 'session=' + machine_id
-
-        for line in reversed(log_lines):
-            # We're good if we find a line with both machine id and rating key
-            # This is usually when there is a transcode session
-            if machine_id_line in line and (rating_key_line in line or rating_key_line_2 in line):
-                # Currently only checking for ipv4 addresses
-                ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}', line)
-                if ipv4:
-                    # The logged IP will always be the first match and we don't want localhost entries
-                    if ipv4[0] != '127.0.0.1':
-                        # check if IPv4 mapped IPv6 address (::ffff:xxx.xxx.xxx.xxx)
-                        #if '::ffff:' + ipv4[0] in line:
-                        #    logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s "
-                        #                 u"and machineIdentifier %s."
-                        #                 % ('::ffff:' + ipv4[0], rating_key, machine_id))
-                        #    return '::ffff:' + ipv4[0]
-                        #else:
-                        logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s "
-                                        u"and machineIdentifier %s."
-                                        % (ipv4[0], rating_key, machine_id))
-                        return ipv4[0]
-
-        logger.debug(u"PlexPy ActivityProcessor :: Unable to find IP address on first pass. "
-                     u"Attempting fallback check in 5 seconds...")
-
-        # Wait for the log to catch up and read in new lines
-        time.sleep(5)
-
-        logger.debug(u"PlexPy ActivityProcessor :: Requesting log lines...")
-        log_lines = log_reader.get_log_tail(window=5000, parsed=False)
-
-        for line in reversed(log_lines):
-            if 'GET /:/timeline' in line and (rating_key_line in line or rating_key_line_2 in line):
-                # Currently only checking for ipv4 addresses
-                # This method can return the wrong IP address if more than one user
-                # starts watching the same media item around the same time.
-                ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}', line)
-                if ipv4:
-                    # The logged IP will always be the first match and we don't want localhost entries
-                    if ipv4[0] != '127.0.0.1':
-                        #if '::ffff:' + ipv4[0] in line:
-                        #    logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s." %
-                        #                 ('::ffff:' + ipv4[0], rating_key))
-                        #    return '::ffff:' + ipv4[0]
-                        #else:
-                        logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s." %
-                                        (ipv4[0], rating_key))
-                        return ipv4[0]
-
-        logger.debug(u"PlexPy ActivityProcessor :: Unable to find IP address on fallback search. Not logging IP address.")
-
-        return None
+        sessions = self.db.select(query, args)
+        return sessions
 
     def get_session_by_key(self, session_key=None):
         if str(session_key).isdigit():
-            result = self.db.select('SELECT * '
-                                    'FROM sessions WHERE session_key = ? LIMIT 1', args=[session_key])
-            for session in result:
-                if session:
-                    return session
+            session = self.db.select_single('SELECT * FROM sessions '
+                                            'WHERE session_key = ? ',
+                                            args=[session_key])
+            if session:
+                return session
 
         return None
 
@@ -451,22 +402,6 @@ class ActivityProcessor(object):
                 return last_time['buffer_last_triggered']
 
             return None
-
-    def get_sessions(self):
-        sessions = self.db.select('SELECT * FROM sessions')
-        return sessions
-
-    def get_sessions(self, user_id=None, ip_address=None):
-        query = 'SELECT * FROM sessions'
-        args = []
-
-        if str(user_id).isdigit():
-            ip = ' GROUP BY ip_address' if ip_address else ''
-            query += ' WHERE user_id = ?' + ip
-            args.append(user_id)
-
-        sessions = self.db.select(query, args)
-        return sessions
 
     def set_temp_stopped(self):
         stopped_time = int(time.time())
