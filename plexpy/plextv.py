@@ -144,10 +144,11 @@ class PlexTV(object):
     Plex.tv authentication
     """
 
-    def __init__(self, username='', password='', token=None):
-        self.protocol = 'HTTPS'
+    def __init__(self, username=None, password=None, token=None):
         self.username = username
         self.password = password
+        self.urls = 'https://plex.tv'
+        self.timeout = plexpy.CONFIG.PMS_TIMEOUT
         self.ssl_verify = plexpy.CONFIG.VERIFY_SSL_CERT
 
         if not token:
@@ -161,9 +162,9 @@ class PlexTV(object):
         else:
             self.token = token
 
-        self.request_handler = http_handler.HTTPHandler(host='plex.tv',
-                                                        port=443,
+        self.request_handler = http_handler.HTTPHandler(urls=self.urls,
                                                         token=self.token,
+                                                        timeout=self.timeout,
                                                         ssl_verify=self.ssl_verify)
 
     def get_plex_auth(self, output_format='raw'):
@@ -180,7 +181,6 @@ class PlexTV(object):
                    }
         
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='POST',
                                                     headers=headers,
                                                     output_format=output_format,
@@ -261,7 +261,6 @@ class PlexTV(object):
     def get_plextv_friends(self, output_format=''):
         uri = '/api/users'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -270,7 +269,6 @@ class PlexTV(object):
     def get_plextv_user_details(self, output_format=''):
         uri = '/users/account'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -279,7 +277,6 @@ class PlexTV(object):
     def get_plextv_devices_list(self, output_format=''):
         uri = '/devices.xml'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -288,7 +285,6 @@ class PlexTV(object):
     def get_plextv_server_list(self, output_format=''):
         uri = '/pms/servers.xml'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -297,7 +293,6 @@ class PlexTV(object):
     def get_plextv_sync_lists(self, machine_id='', output_format=''):
         uri = '/servers/' + machine_id + '/sync_lists'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -309,7 +304,6 @@ class PlexTV(object):
         else:
             uri = '/api/resources'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -321,7 +315,6 @@ class PlexTV(object):
         else:
             uri = '/api/downloads/1.json'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -330,7 +323,6 @@ class PlexTV(object):
     def delete_plextv_device(self, device_id='', output_format=''):
         uri = '/devices/%s.xml' % device_id
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='DELETE',
                                                     output_format=output_format)
 

@@ -115,14 +115,11 @@ class PmsConnect(object):
 
     def __init__(self, token=None):
         if plexpy.CONFIG.PMS_URL:
-            url_parsed = urlparse(plexpy.CONFIG.PMS_URL)
-            hostname = url_parsed.hostname
-            port = url_parsed.port or plexpy.CONFIG.PMS_PORT
-            self.protocol = url_parsed.scheme
+            self.urls = plexpy.CONFIG.PMS_URL
         else:
-            hostname = plexpy.CONFIG.PMS_IP
-            port = plexpy.CONFIG.PMS_PORT
-            self.protocol = 'http'
+            self.urls = 'http://{hostname}:{port}'.format(hostname=plexpy.CONFIG.PMS_IP,
+                                                          port=plexpy.CONFIG.PMS_PORT)
+        self.timeout = plexpy.CONFIG.PMS_TIMEOUT
 
         if not token:
             # Check if we should use the admin token, or the guest server token
@@ -135,9 +132,9 @@ class PmsConnect(object):
         else:
             self.token = token
 
-        self.request_handler = http_handler.HTTPHandler(host=hostname,
-                                                        port=port,
-                                                        token=self.token)
+        self.request_handler = http_handler.HTTPHandler(urls=self.urls,
+                                                        token=self.token,
+                                                        timeout=self.timeout)
 
     def get_sessions(self, output_format=''):
         """
@@ -149,7 +146,6 @@ class PmsConnect(object):
         """
         uri = '/status/sessions'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -166,7 +162,6 @@ class PmsConnect(object):
         """
         uri = '/library/metadata/' + rating_key
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -183,7 +178,6 @@ class PmsConnect(object):
         """
         uri = '/library/metadata/' + rating_key + '/children'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -200,7 +194,6 @@ class PmsConnect(object):
         """
         uri = '/library/recentlyAdded?X-Plex-Container-Start=%s&X-Plex-Container-Size=%s' % (start, count)
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -217,7 +210,6 @@ class PmsConnect(object):
         """
         uri = '/library/sections/%s/recentlyAdded?X-Plex-Container-Start=%s&X-Plex-Container-Size=%s' % (section_id, start, count)
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -234,7 +226,6 @@ class PmsConnect(object):
         """
         uri = '/library/metadata/' + rating_key + '/children'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -251,7 +242,6 @@ class PmsConnect(object):
         """
         uri = '/library/metadata/' + rating_key + '/allLeaves'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -267,7 +257,6 @@ class PmsConnect(object):
         """
         uri = '/servers'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -283,7 +272,6 @@ class PmsConnect(object):
         """
         uri = '/:/prefs'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -299,7 +287,6 @@ class PmsConnect(object):
         """
         uri = '/identity'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -315,7 +302,6 @@ class PmsConnect(object):
         """
         uri = '/library/sections'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -334,7 +320,6 @@ class PmsConnect(object):
 
         uri = '/library/sections/' + section_id + '/' + list_type + '?X-Plex-Container-Start=0' + count + sort_type + label_key
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -350,7 +335,6 @@ class PmsConnect(object):
         """
         uri = '/library/sections/' + section_id + '/label'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -367,7 +351,6 @@ class PmsConnect(object):
         """
         uri = '/sync/items/' + sync_id
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -383,7 +366,6 @@ class PmsConnect(object):
         """
         uri = '/sync/transcodeQueue'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -399,7 +381,6 @@ class PmsConnect(object):
         """
         uri = '/search?query=' + urllib.quote(query.encode('utf8')) + track
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -415,7 +396,6 @@ class PmsConnect(object):
         """
         uri = '/myplex/account'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -431,7 +411,6 @@ class PmsConnect(object):
         """
         uri = '/myplex/refreshReachability'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='PUT')
 
         return request
@@ -446,7 +425,6 @@ class PmsConnect(object):
         """
         uri = '/updater/check?download=0'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='PUT',
                                                     output_format=output_format)
 
@@ -462,7 +440,6 @@ class PmsConnect(object):
         """
         uri = '/updater/status'
         request = self.request_handler.make_request(uri=uri,
-                                                    proto=self.protocol,
                                                     request_type='GET',
                                                     output_format=output_format)
 
@@ -1953,10 +1930,8 @@ class PmsConnect(object):
 
             uri = '/photo/:/transcode?%s' % urllib.urlencode(params)
             result = self.request_handler.make_request(uri=uri,
-                                                       proto=self.protocol,
                                                        request_type='GET',
                                                        return_type=True)
-
             if result is None:
                 return
             else:

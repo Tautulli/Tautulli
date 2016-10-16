@@ -3310,16 +3310,13 @@ class WebInterface(object):
             # Fallback to checking /identity endpoint is server is unpublished
             # Cannot set SSL settings on the PMS if unpublished so 'http' is okay
             if not identifier:
-                request_handler = http_handler.HTTPHandler(host=hostname,
-                                                           port=port,
-                                                           token=None)
+                url = 'http://{hostname}:{port}'.format(hostname=hostname, port=port)
+                request_handler = http_handler.HTTPHandler(urls=url)
+
                 uri = '/identity'
                 request = request_handler.make_request(uri=uri,
-                                                       proto='http',
                                                        request_type='GET',
-                                                       output_format='xml',
-                                                       no_token=True,
-                                                       timeout=10)
+                                                       output_format='xml')
                 if request:
                     xml_head = request.getElementsByTagName('MediaContainer')[0]
                     identifier = xml_head.getAttribute('machineIdentifier')
