@@ -627,10 +627,10 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         body = unicode(body).format(**parameters)
     except LookupError as e:
         logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-        subject = unicode(default_body).format(**parameters)
+        body = unicode(default_body).format(**parameters)
     except:
         logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-        subject = unicode(default_body).format(**parameters)
+        body = unicode(default_body).format(**parameters)
 
     return subject, body
 
