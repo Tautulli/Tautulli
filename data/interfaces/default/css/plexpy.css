@@ -3148,3 +3148,16 @@ a:hover .overlay-refresh-image:hover {
 .git-group select.form-control {
     width: 50%;
 }
+#changelog-modal .modal-body > h2 {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444;
+    font-size: 18px;
+}
+#changelog-modal .modal-body > ul {
+    padding-left: 25px;
+    margin-bottom: 30px;
+}
+#changelog-modal ul {
+    padding-left: 20px;
+}

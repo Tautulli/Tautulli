@@ -285,50 +285,58 @@ def checkout_git_branch():
 
 
 def read_changelog(latest_only=False):
-
     changelog_file = os.path.join(plexpy.PROG_DIR, 'CHANGELOG.md')
 
+    if not os.path.isfile(changelog_file):
+        return '<h4>Missing changelog file</h4>'
+
     try:
-        logfile = open(changelog_file, "r")
+        output = ''
+        prev_level = 0
+
+        latest_version_found = False
+
+        header_pattern = re.compile(r'(^#+)\s(.+)')
+        list_pattern = re.compile(r'(^[ \t]*\*\s)(.+)')
+
+        with open(changelog_file, "r") as logfile:
+            for line in logfile:
+                line_header_match = re.search(header_pattern, line)
+                line_list_match = re.search(list_pattern, line)
+
+                if line_header_match:
+                    header_level = str(len(line_header_match.group(1)))
+                    header_text = line_header_match.group(2)
+
+                    if header_text.lower() == 'changelog':
+                        continue
+
+                    if latest_version_found:
+                        break
+                    elif latest_only:
+                        latest_version_found = True
+
+                    output += '<h' + header_level + '>' + header_text + '</h' + header_level + '>'
+
+                elif line_list_match:
+                    line_level = len(line_list_match.group(1)) / 2
+                    line_text = line_list_match.group(2)
+
+                    if line_level > prev_level:
+                        output += '<ul>' * (line_level - prev_level) + '<li>' + line_text + '</li>'
+                    elif line_level < prev_level:
+                        output += '</ul>' * (prev_level - line_level) + '<li>' + line_text + '</li>'
+                    else:
+                        output += '<li>' + line_text + '</li>'
+
+                    prev_level = line_level
+
+                elif line.strip() == '' and prev_level:
+                    output += '</ul>' * (prev_level)
+                    prev_level = 0
+
+        return output
+
     except IOError as e:
         logger.error('PlexPy Version Checker :: Unable to open changelog file. %s' % e)
         return '<h4>Unable to open changelog file</h4>'
-
-    if logfile:
-        output = ''
-        lines = logfile.readlines()
-        previous_line = ''
-        latest_version_found = False
-
-        for line in lines:
-            if line[:2] == '# ':
-                #output += '<h3>' + line[2:] + '</h3>'
-                pass
-            elif line[:3] == '## ':
-                if latest_version_found:
-                    break
-                elif latest_only:
-                    output += '<h4>PlexPy ' + line[3:] + '</h4>'
-                    latest_version_found = True
-                else:
-                    output += '<h4>' + line[3:] + '</h4>'
-            elif line[:2] == '* ' and previous_line.strip() == '':
-                output += '<ul><li>' + line[2:] + '</li>'
-            elif line[:2] == '* ' and previous_line[:4] == '  * ':
-                output += '</ul><li>' + line[2:] + '</li>'
-            elif line[:2] == '* ':
-                output += '<li>' + line[2:] + '</li>'
-            elif line[:4] == '  * ' and previous_line[:2] == '* ':
-                output += '<ul><li>' + line[4:] + '</li>'
-            elif line[:4] == '  * ':
-                output += '<li>' + line[4:] + '</li>'
-            elif line.strip() == '' and (previous_line[:2] == '* ' or previous_line[:4] == '  * '):
-                output += '</ul></br>'
-            else:
-                output += line + '</br>'
-
-            previous_line = line
-
-        return output
-    else:
-        return '<h4>No changelog data</h4>'
