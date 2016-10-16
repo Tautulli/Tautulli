@@ -299,7 +299,7 @@ class TimelineHandler(object):
 
 
             if state_type == 'created' and media_type and section_id > 0 and metadata_state == 'created':
-                if media_type == 'episode' or media_type == 'track':
+                if media_type in ('episode', 'track'):
                     metadata = self.get_metadata()
                     if metadata:
                         grandparent_rating_key = int(metadata['grandparent_rating_key'])
@@ -308,7 +308,7 @@ class TimelineHandler(object):
                                      % (str(rating_key), str(grandparent_rating_key)))
                         RECENTLY_ADDED_QUEUE[grandparent_rating_key] = RECENTLY_ADDED_QUEUE.get(grandparent_rating_key, []) + [(media_type, rating_key)]
 
-                elif media_type == 'season' or media_type == 'album':
+                elif media_type in ('season', 'album'):
                     metadata = self.get_metadata()
                     if metadata:
                         parent_rating_key = int(metadata['parent_rating_key'])

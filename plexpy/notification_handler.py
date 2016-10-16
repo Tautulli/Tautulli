@@ -330,7 +330,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
             metadata['themoviedb_url'] = 'https://www.themoviedb.org/movie/' + metadata['themoviedb_id']
             metadata['trakt_url'] = 'https://trakt.tv/search/tmdb/' + metadata['themoviedb_id'] + '?id_type=movie'
 
-        elif metadata['media_type'] == 'show' or metadata['media_type'] == 'episode':
+        elif metadata['media_type'] in ('show', 'season', 'episode'):
             metadata['themoviedb_id'] = metadata['guid'].split('themoviedb://')[1].split('/')[0]
             metadata['themoviedb_url'] = 'https://www.themoviedb.org/tv/' + metadata['themoviedb_id']
             metadata['trakt_url'] = 'https://trakt.tv/search/tmdb/' + metadata['themoviedb_id'] + '?id_type=show'
@@ -344,10 +344,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         metadata.update(poster_info)
 
     # Create a title
-    if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
+    if metadata['media_type'] in ('episode', 'track'):
         full_title = '%s - %s' % (metadata['grandparent_title'],
                                   metadata['title'])
-    elif metadata['media_type'] == 'season' or metadata['media_type'] == 'album':
+    elif metadata['media_type'] in ('season', 'album'):
         full_title = '%s - %s' % (metadata['parent_title'],
                                   metadata['title'])
     else:
@@ -367,7 +367,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
     track_num00 = metadata['media_index'].zfill(2)
 
     if notify_action == 'on_created' and plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED and metadata['media_type'] != 'movie':
-        if metadata['media_type'] == 'episode' or metadata['media_type'] == 'track':
+        if metadata['media_type'] in ('episode', 'track'):
             show_name = metadata['grandparent_title']
             episode_name = metadata['title']
             artist_name = metadata['grandparent_title']
@@ -380,7 +380,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
             track_num = metadata['media_index'].zfill(1)
             track_num00 = metadata['media_index'].zfill(2)
 
-        elif metadata['media_type'] == 'season' or metadata['media_type'] == 'album':
+        elif metadata['media_type'] in ('season', 'album'):
             show_name = metadata['parent_title']
             episode_name = ''
             artist_name = metadata['parent_title']
@@ -394,7 +394,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
             episode_num, episode_num00 = num, num00
             track_num, track_num00 = num, num00
 
-        elif metadata['media_type'] == 'show' or metadata['media_type'] == 'artist':
+        elif metadata['media_type'] in ('show', 'artist'):
             show_name = metadata['title']
             episode_name = ''
             artist_name = metadata['title']
