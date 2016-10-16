@@ -3289,8 +3289,7 @@ class WebInterface(object):
 
         refresh = False
         if kwargs.get('refresh'):
-            mo = member_of('admin')
-            refresh = True if mo() else False
+            refresh = False if get_session_user_id() else True
 
         kwargs['refresh'] = refresh
 
