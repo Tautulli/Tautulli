@@ -275,14 +275,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
     for key in kwargs.pop('grandchild_keys', []):
         grandchild_metadata.append(pms_connect.get_metadata_details(rating_key=key))
 
+    # Session values
+    session = session or {}
+
     ap = activity_processor.ActivityProcessor()
     sessions = ap.get_sessions()
     stream_count = len(sessions)
-    user_sessions = ap.get_sessions(user_id=session['user_id'])
+    user_sessions = ap.get_sessions(user_id=session.get('user_id'))
     user_stream_count = len(user_sessions)
-
-    # Session values
-    session = session or {}
 
     # Generate a combined transcode decision value
     if session.get('video_decision','') == 'transcode' or session.get('audio_decision','') == 'transcode':
