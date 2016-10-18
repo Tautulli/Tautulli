@@ -2421,7 +2421,7 @@ class SLACK(Notifier):
                           },
                           {'label': 'Slack Color',
                            'value': self.config['color'],
-                           'description': 'The hex value color (begins with \'#\') for the border along the left side of the message attachment.',
+                           'description': 'The hex color value (begins with \'#\') for the border along the left side of the message attachment.',
                            'name': 'slack_color',
                            'input_type': 'text'
                           },
