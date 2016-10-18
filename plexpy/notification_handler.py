@@ -731,6 +731,6 @@ def get_poster_info(metadata):
                 # Delete the cached poster
                 os.remove(poster_file)
             except Exception as e:
-                logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(rating_key), e))
+                logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(metadata['rating_key']), e))
 
     return poster_info
