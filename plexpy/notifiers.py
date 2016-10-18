@@ -787,7 +787,7 @@ class DISCORD(Notifier):
             title = pretty_metadata.get_title()
             subtitle = pretty_metadata.get_subtitle()
 
-            # Build Slack post attachment
+            # Build Discord post attachment
             attachment = {'title': title,
                           'description': subtitle,
                           'thumbnail': {'url': poster_url},
@@ -2312,6 +2312,7 @@ class SLACK(Notifier):
                        'channel': '',
                        'username': '',
                        'icon_emoji': '',
+                       'color': '',
                        'incl_pmslink': 0,
                        'incl_poster': 0,
                        'incl_subject': 1
@@ -2327,7 +2328,7 @@ class SLACK(Notifier):
             text = body.encode("utf-8")
 
         data = {'text': text}
-        if self.config['channel']:
+        if self.config['channel'] and self.config['channel'].startswith('#'):
             data['channel'] = self.config['channel']
         if self.config['username']:
             data['username'] = self.config['username']
@@ -2354,6 +2355,9 @@ class SLACK(Notifier):
                           'image_url': poster_url,
                           'thumb_url': poster_url
                           }
+
+            if self.config['color'] and self.config['color'].startswith('#'):
+                attachment['color'] = self.config['color']
 
             fields = []
             if poster_link:
@@ -2413,6 +2417,12 @@ class SLACK(Notifier):
                            'value': self.config['icon_emoji'],
                            'description': 'The Slack emoji or image url for the icon which will be used. Leave blank for webhook integration default.',
                            'name': 'slack_icon_emoji',
+                           'input_type': 'text'
+                          },
+                          {'label': 'Slack Color',
+                           'value': self.config['color'],
+                           'description': 'The hex value color (begins with \'#\') for the border along the left side of the message attachment.',
+                           'name': 'slack_color',
                            'input_type': 'text'
                           },
                          {'label': 'Include Poster Image',
