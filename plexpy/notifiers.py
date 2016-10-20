@@ -2216,6 +2216,10 @@ class SCRIPTS(Notifier):
                   body(string, optional): Body text,
                   action(string): 'play'
         """
+        if not self.config['script_folder']:
+            logger.error(u"PlexPy Notifiers :: No script folder specified.")
+            return
+
         script_args = subject or None
         action = kwargs.get('action', '')
 
@@ -2224,9 +2228,6 @@ class SCRIPTS(Notifier):
 
         if not script_args:
             script_args = []
-
-        if not self.config['script_folder']:
-            return
 
         script = self.config.get('script', kwargs.get('script', ''))
 
