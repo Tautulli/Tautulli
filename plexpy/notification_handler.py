@@ -420,7 +420,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'server_name': server_name,
                         'server_uptime': server_uptime,
                         'server_version': server_times.get('version',''),
-                        'action': notify_action.split('on_')[-1].title(),
+                        'action': notify_action.split('on_')[-1],
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format),
                         # Stream parameters
@@ -548,7 +548,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
                         'server_name': server_name,
                         'server_uptime': server_uptime,
                         'server_version': server_times.get('version',''),
-                        'action': notify_action.split('on_')[-1].title(),
+                        'action': notify_action.split('on_')[-1],
                         'datestamp': arrow.now().format(date_format),
                         'timestamp': arrow.now().format(time_format),
                         # Plex Media Server update parameters
