@@ -490,14 +490,14 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
         return False
 
 
-def send_notification(notifier_id=None, subject='', body='', notify_action='', **kwargs):
+def send_notification(notifier_id=None, subject='', body='', action='', **kwargs):
     notifier_config = get_notifier_config(notifier_id=notifier_id)
     if notifier_config:
         agent = get_agent_class(agent_id=notifier_config['agent_id'],
                                 config=notifier_config['config'])
         return agent.notify(subject=subject,
                             body=body,
-                            action=notify_action,
+                            action=action,
                             **kwargs)
     else:
         logger.debug(u"PlexPy Notifiers :: Notification requested but no notifier_id received.")
@@ -2214,10 +2214,10 @@ class SCRIPTS(Notifier):
             Args:
                   subject(string, optional): Subject text,
                   body(string, optional): Body text,
-                  notify_action(string): 'play'
+                  action(string): 'play'
         """
         script_args = subject or None
-        action = kwargs.get('action', None)
+        action = kwargs.get('action', '')
 
         logger.debug(u"PlexPy Notifiers :: Trying to run notify script, action: %s, arguments: %s"
                      % (action, script_args))
