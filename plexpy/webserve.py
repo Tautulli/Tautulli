@@ -3451,7 +3451,7 @@ class WebInterface(object):
             ```
         """
         if not img and not rating_key:
-            logger.error('No image input received.')
+            logger.warn('No image input received.')
             return
 
         if rating_key and not img:
