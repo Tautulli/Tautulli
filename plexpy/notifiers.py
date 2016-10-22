@@ -754,7 +754,7 @@ class DISCORD(Notifier):
     _DEFAULT_CONFIG = {'hook': '',
                        'username': '',
                        'avatar_url': '',
-                       #'tts': 0,
+                       'tts': 0,
                        'incl_pmslink': 0,
                        'incl_poster': 0,
                        'incl_subject': 1
@@ -774,8 +774,8 @@ class DISCORD(Notifier):
             data['username'] = self.config['username']
         if self.config['avatar_url']:
             data['avatar_url'] = self.config['avatar_url']
-        #if self.config['tts']:
-        #    data['tts'] = True
+        if self.config['tts']:
+            data['tts'] = True
 
         if self.config['incl_poster'] and kwargs.get('parameters'):
             # Grab formatted metadata
@@ -846,12 +846,12 @@ class DISCORD(Notifier):
                            'name': 'discord_avatar_url',
                            'input_type': 'text'
                           },
-                         #{'label': 'TTS',
-                         # 'value': self.config['tts'],
-                         # 'name': 'discord_tts',
-                         # 'description': 'Send the notification using text-to-speech.',
-                         # 'input_type': 'checkbox'
-                         # },
+                         {'label': 'TTS',
+                          'value': self.config['tts'],
+                          'name': 'discord_tts',
+                          'description': 'Send the notification using text-to-speech.',
+                          'input_type': 'checkbox'
+                          },
                          {'label': 'Include Poster Image',
                           'value': self.config['incl_poster'],
                           'name': 'discord_incl_poster',
