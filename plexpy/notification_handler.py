@@ -614,6 +614,10 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     default_subject = default_action.get('subject', '')
     default_body = default_action.get('body', '')
 
+    # Use default subject and body if they are blank
+    subject = subject or default_subject
+    body = body or default_body
+
     try:
         subject = unicode(subject).format(**parameters)
     except LookupError as e:
