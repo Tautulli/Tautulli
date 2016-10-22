@@ -2540,8 +2540,8 @@ $(document).ready(function() {
             cache: false,
             async: true,
             complete: function (xhr, status) {
-                result = $.parseJSON(xhr.responseText);
-                msg = result.message;
+                var result = $.parseJSON(xhr.responseText);
+                var msg = result.message;
                 $('#add-notifier-modal').modal('hide');
                 if (result.result == 'success') {
                     showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);

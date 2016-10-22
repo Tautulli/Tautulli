@@ -1022,36 +1022,50 @@ class FACEBOOK(Notifier):
                        'incl_subject': 1
                        }
 
-    def _get_authorization(self):
-        return facebook.auth_url(app_id=self.config['app_id'],
-                                 canvas_url=self.config['redirect_uri'] + '/facebookStep2',
+    def _get_authorization(self, app_id='', app_secret='', redirect_uri=''):
+        # Temporarily store settings in the config so we can retrieve them in Facebook step 2.
+        # Assume the user won't be requesting authorization for multiple Facebook notifiers at the same time.
+        plexpy.CONFIG.FACEBOOK_APP_ID = app_id
+        plexpy.CONFIG.FACEBOOK_APP_SECRET = app_secret
+        plexpy.CONFIG.FACEBOOK_REDIRECT_URI = redirect_uri
+        plexpy.CONFIG.FACEBOOK_TOKEN = 'temp'
+
+        return facebook.auth_url(app_id=app_id,
+                                 canvas_url=redirect_uri + '/facebookStep2',
                                  perms=['user_managed_groups','publish_actions'])
 
-    def _get_credentials(self, code):
+    def _get_credentials(self, code=''):
         logger.info(u"PlexPy Notifiers :: Requesting access token from Facebook")
+
+        app_id = plexpy.CONFIG.FACEBOOK_APP_ID
+        app_secret = plexpy.CONFIG.FACEBOOK_APP_SECRET
+        redirect_uri = plexpy.CONFIG.FACEBOOK_REDIRECT_URI
 
         try:
             # Request user access token
             api = facebook.GraphAPI(version='2.5')
             response = api.get_access_token_from_code(code=code,
-                                                      redirect_uri=self.config['redirect_uri'] + '/facebookStep2',
-                                                      app_id=self.config['app_id'],
-                                                      app_secret=self.config['app_secret'])
+                                                      redirect_uri=redirect_uri + '/facebookStep2',
+                                                      app_id=app_id,
+                                                      app_secret=app_secret)
             access_token = response['access_token']
 
             # Request extended user access token
             api = facebook.GraphAPI(access_token=access_token, version='2.5')
-            response = api.extend_access_token(app_id=self.config['app_id'],
-                                               app_secret=self.config['app_secret'])
-            access_token = response['access_token']
+            response = api.extend_access_token(app_id=app_id,
+                                               app_secret=app_secret)
 
-            plexpy.CONFIG.FACEBOOK_TOKEN = access_token
-            plexpy.CONFIG.write()
+            plexpy.CONFIG.FACEBOOK_TOKEN = response['access_token']
         except Exception as e:
             logger.error(u"PlexPy Notifiers :: Error requesting Facebook access token: %s" % e)
-            return False
+            plexpy.CONFIG.FACEBOOK_TOKEN = ''
+            
+        # Clear out temporary config values
+        plexpy.CONFIG.FACEBOOK_APP_ID = ''
+        plexpy.CONFIG.FACEBOOK_APP_SECRET = ''
+        plexpy.CONFIG.FACEBOOK_REDIRECT_URI = ''
 
-        return True
+        return plexpy.CONFIG.FACEBOOK_TOKEN
 
     def _post_facebook(self, message=None, attachment=None):
         if self.config['group_id']:
@@ -1114,8 +1128,9 @@ class FACEBOOK(Notifier):
                                           Step 4: Click <strong>App Review</strong> on the left and toggle "make public" to <strong>Yes</strong>.<br>\
                                           Step 5: Fill in the <strong>PlexPy URL</strong> below with the exact same URL from Step 3.<br>\
                                           Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
-                                          Step 7: Click the <strong>Request Authorization</strong> button below.<br>\
-                                          Step 8: Fill in your <strong>Group ID</strong> below.',
+                                          Step 7: Click the <strong>Request Authorization</strong> button below to retrieve your access token.<br>\
+                                          Step 8: Fill in your <strong>Access Token</strong> below if it is not filled in automatically.<br>\
+                                          Step 9: Fill in your <strong>Group ID</strong> below.',
                           'input_type': 'help'
                           },
                          {'label': 'PlexPy URL',
@@ -1142,6 +1157,12 @@ class FACEBOOK(Notifier):
                           'name': 'facebook_facebookStep1',
                           'description': 'Request Facebook authorization. (Ensure you allow the browser pop-up).',
                           'input_type': 'button'
+                          },
+                         {'label': 'Facebook Access Token',
+                          'value': self.config['access_token'],
+                          'name': 'facebook_access_token',
+                          'description': 'Your Facebook access token. Automatically filled in after requesting authorization.',
+                          'input_type': 'text'
                           },
                          {'label': 'Facebook Group ID',
                           'value': self.config['group_id'],

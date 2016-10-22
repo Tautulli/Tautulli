@@ -3064,23 +3064,48 @@ class WebInterface(object):
             return None
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def facebookStep1(self, **kwargs):
+    def facebookStep1(self, app_id='', app_secret='', redirect_uri='', **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
-        facebook = notifiers.FACEBOOK()
-        return facebook._get_authorization()
+
+        facebook_notifier = notifiers.FACEBOOK()
+        url = facebook_notifier._get_authorization(app_id=app_id,
+                                                   app_secret=app_secret,
+                                                   redirect_uri=redirect_uri)
+
+        if url:
+            return {'result': 'success', 'msg': 'Confirm Authorization. Check pop-up blocker if no response.', 'url': url}
+        else:
+            return {'result': 'error', 'msg': 'Failed to retrieve authorization url.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def facebookStep2(self, code, **kwargs):
+    def facebookStep2(self, code='', **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+
         facebook = notifiers.FACEBOOK()
-        result = facebook._get_credentials(code)
-        # logger.info(u"result: " + str(result))
-        if result:
-            return "Key verification successful, PlexPy can send notification to Facebook. You may close this page now."
+        access_token = facebook._get_credentials(code)
+
+        if access_token:
+            return "Facebook authorization successful. PlexPy can send notification to Facebook. " \
+                "Your Facebook access token is:" \
+                "<pre>{0}</pre>You may close this page.".format(access_token)
         else:
-            return "Unable to verify key"
+            return "Failed to request authorization from Facebook. Check the PlexPy logs for details.<br />You may close this page."
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def facebook_retrieve_token(self, **kwargs):
+        if plexpy.CONFIG.FACEBOOK_TOKEN == 'temp':
+            return {'result': 'waiting'}
+        elif plexpy.CONFIG.FACEBOOK_TOKEN:
+            token = plexpy.CONFIG.FACEBOOK_TOKEN
+            plexpy.CONFIG.FACEBOOK_TOKEN = ''
+            return {'result': 'success', 'msg': 'Authorization successful.', 'access_token': token}
+        else:
+            return {'result': 'error', 'msg': 'Failed to request authorization.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
