@@ -90,6 +90,9 @@ def run():
             logger.error(u"PlexPy WebSocket :: %s." % e)
             reconnects += 1
             time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
+        except (websocket.WebSocketException, Exception) as e:
+            logger.error(u"PlexPy WebSocket :: %s." % e)
+            break
 
     while plexpy.WS_CONNECTED:
         try:
@@ -116,6 +119,9 @@ def run():
                 ws.shutdown()
                 plexpy.WS_CONNECTED = False
                 break
+        except (websocket.WebSocketException, Exception) as e:
+            logger.error(u"PlexPy WebSocket :: %s." % e)
+            break
 
         # Check if we recieved a restart notification and close websocket connection cleanly
         if ws_reconnect:
