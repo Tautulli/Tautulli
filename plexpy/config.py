@@ -594,7 +594,7 @@ _CONFIG_DEFINITIONS = {
     'XBMC_ON_NEWDEVICE': (int, 'XBMC', 0)
 }
 
-_BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID']
+_BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID', '_HOOK']
 _WHITELIST_KEYS = ['HTTPS_KEY', 'UPDATE_SECTION_IDS']
 
 
@@ -659,7 +659,7 @@ class Config(object):
                     subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
                     blacklist.append(value.strip())
 
-        logger._BLACKLIST_WORDS = blacklist
+        logger._BLACKLIST_WORDS.extend(blacklist)
 
     def _define(self, name):
         key = name.upper()

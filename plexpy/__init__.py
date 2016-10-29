@@ -37,6 +37,7 @@ import config
 import database
 import logger
 import notification_handler
+import notifiers
 import plextv
 import pmsconnect
 import versioncheck
@@ -161,6 +162,9 @@ def initialize(config_file):
             upgrade()
         except Exception as e:
             logger.error(u"Could not perform upgrades: %s" % e)
+
+        # Add notifier configs to logger blacklist
+        notifiers.blacklist_logger()
 
         # Check if PlexPy has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:

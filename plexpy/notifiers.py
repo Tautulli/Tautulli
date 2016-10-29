@@ -44,6 +44,7 @@ import database
 import helpers
 import logger
 import request
+from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 from plexpy.helpers import checked
 
 AGENT_IDS = {'growl': 0,
@@ -501,6 +502,23 @@ def send_notification(notifier_id=None, subject='', body='', action='', **kwargs
                             **kwargs)
     else:
         logger.debug(u"PlexPy Notifiers :: Notification requested but no notifier_id received.")
+
+
+def blacklist_logger():
+    monitor_db = database.MonitorDatabase()
+    notifiers = monitor_db.select('SELECT notifier_config FROM notifiers')
+
+    blacklist = []
+    blacklist_keys = [w.lstrip('_') for w in _BLACKLIST_KEYS]
+
+    for n in notifiers:
+        config = json.loads(n['notifier_config'] or '{}')
+        for key, value in config.iteritems():
+            if isinstance(value, basestring) and len(value.strip()) > 5 and \
+                key.upper() not in _WHITELIST_KEYS and any(bk in key.upper() for bk in blacklist_keys):
+                blacklist.append(value.strip())
+
+    logger._BLACKLIST_WORDS.extend(blacklist)
 
 
 class PrettyMetadata(object):
