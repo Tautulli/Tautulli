@@ -207,8 +207,8 @@ DOCUMENTATION :: END
         % endif
         <div class="dashboard-activity-progress">
             <div class="dashboard-activity-progress-bar">
-                <div id="bufferbar-${data['session_key']}" class="bufferbar" style="width: ${data['transcode_progress']}%" data-toggle="tooltip" title="Transcoder Progress">${data['transcode_progress']}%</div>
-                <div id="bar-${data['session_key']}" class="bar" style="width: ${data['progress_percent']}%" data-toggle="tooltip" title="Stream Progress">${data['progress_percent']}%</div>
+                <div id="bufferbar-${data['session_key']}" class="bufferbar" style="width: ${data['transcode_progress']}%" data-toggle="tooltip" title="Transcoder Progress ${data['transcode_progress']}%">${data['transcode_progress']}%</div>
+                <div id="bar-${data['session_key']}" class="bar" style="width: ${data['progress_percent']}%" data-toggle="tooltip" title="Stream Progress ${data['progress_percent']}%">${data['progress_percent']}%</div>
             </div>
         </div>
     </div>
