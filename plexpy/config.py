@@ -843,4 +843,6 @@ class Config(object):
             self.NOTIFY_SCRIPTS_ARGS_TEXT = rep(self.NOTIFY_SCRIPTS_ARGS_TEXT)
 
             self.MONITORING_USE_WEBSOCKET = 1
+            self.HTTP_PROXY = 1
+
             self.CONFIG_VERSION = 8
