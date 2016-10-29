@@ -277,18 +277,23 @@ class API2:
                 None
             ```
         """
-        if not plexpy.CONFIG.API_SQL or not query:
+        if not plexpy.CONFIG.API_SQL:
+            self._api_msg = 'SQL not enabled for the API.'
+            return
+
+        if not query:
+            self._api_msg = 'No SQL query provided.'
             return
 
         # allow the user to shoot them self
         # in the foot but not in the head..
-        if not len(os.listdir(plexpy.BACKUP_DIR)):
-            self.backupdb()
+        if not len(os.listdir(plexpy.CONFIG.BACKUP_DIR)):
+            self.backup_db()
         else:
             # If the backup is less then 24 h old lets make a backup
-            if any([os.path.getctime(os.path.join(plexpy.BACKUP_DIR, file_)) <
-                   (time.time() - 86400) for file_ in os.listdir(plexpy.BACKUP_DIR)]):
-                self.backupdb()
+            if any([os.path.getctime(os.path.join(plexpy.CONFIG.BACKUP_DIR, file_)) < (time.time() - 86400)
+                   and file_.endswith('.db') for file_ in os.listdir(plexpy.CONFIG.BACKUP_DIR)]):
+                self.backup_db()
 
         db = database.MonitorDatabase()
         rows = db.select(query)
@@ -323,14 +328,14 @@ class API2:
         """ Restart PlexPy. """
 
         plexpy.SIGNAL = 'restart'
-        self.msg = 'Restarting plexpy'
+        self._api_msg = 'Restarting plexpy'
         self.result_type = 'success'
 
     def update(self, **kwargs):
         """ Check for PlexPy updates on Github. """
 
         plexpy.SIGNAL = 'update'
-        self.msg = 'Updating plexpy'
+        self._api_msg = 'Updating plexpy'
         self.result_type = 'success'
 
     def refresh_libraries_list(self, **kwargs):
@@ -429,7 +434,7 @@ General optional parameters:
                     plexpy.CONFIG.API_KEY = apikey
                     plexpy.CONFIG.write()
             else:
-                self.msg = 'Authentication is enabled, please add the correct username and password to the parameters'
+                self._api_msg = 'Authentication is enabled, please add the correct username and password to the parameters'
         else:
             if plexpy.CONFIG.API_KEY:
                 self.data = plexpy.CONFIG.API_KEY
