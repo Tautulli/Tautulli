@@ -91,11 +91,7 @@ def getVersion():
 
         else:
             remote_branch, err = runGit('rev-parse --abbrev-ref --symbolic-full-name @{u}')
-            remote_branch = remote_branch.rsplit('/', 1)
-            if len(remote_branch) == 2:
-                remote_name, branch_name = remote_branch
-            else:
-                remote_name = branch_name = None
+            remote_name, branch_name = remote_branch.rsplit('/', 1) if remote_branch else (None, None)
 
             if not remote_name and plexpy.CONFIG.GIT_REMOTE:
                 logger.error('Could not retrieve remote name from git. Falling back to %s.' % plexpy.CONFIG.GIT_REMOTE)

@@ -411,6 +411,12 @@ input[type="color"],
     border-radius: 3px;
     transition: background-color .3s;
 }
+input.form-control[readonly] {
+    background-color: #555;
+}
+input.form-control[readonly]:focus {
+    background-color: #fff;
+}
 textarea.form-control {
     height: initial;
     margin: 5px 0 5px 0;
@@ -1616,34 +1622,6 @@ a:hover .item-children-poster {
     font-weight: bold;
     margin: 0;
 }
-.settings-alert {
-    float: left;
-    padding: 0;
-    margin: 5px 0;
-    border: 0;
-    position: relative;
-}
-.settings-alert ul {
-    padding: 0;
-}
-.settings-alert ul li {
-    list-style: none;
-    padding: 5px 12px 5px 35px;
-    margin: 0;
-    border: 1px solid #ebccd1;
-    border-radius: 4px;
-}
-.settings-alert ul li:before {
-    content: "\f071";
-    font-family: FontAwesome;
-    font-style: normal;
-    font-weight: normal;
-    text-decoration: inherit;
-    font-size: 18px;
-    position: absolute;
-    top: 5px;
-    left: 12px;
-}
 .user-info-wrapper {
 }
 .user-info-poster-face {
@@ -2383,7 +2361,7 @@ a .home-platforms-list-cover-face:hover
 }
 .stacked-configs > li > span > a.toggle-left,
 .stacked-configs > li > span > span.toggle-left {
-    color: #444;
+    color: #666;
     padding-right: 8px;
 }
 .stacked-configs > li > span > a:hover {
@@ -2393,6 +2371,8 @@ a .home-platforms-list-cover-face:hover
 .stacked-configs > li > span > span.active {
     color: #f9be03;
 }
+.stacked-configs > li.server-item,
+.stacked-configs > li.add-server,
 .stacked-configs > li.new-notification-agent,
 .stacked-configs > li.notification-agent,
 .stacked-configs > li.add-notification-agent {
@@ -2426,7 +2406,7 @@ a .home-platforms-list-cover-face:hover
     position: absolute;
     top: 10px;
     left: 10px;
-    color: #999;
+    color: #666;
     -webkit-transition: all 0.3s ease;
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
@@ -3104,38 +3084,50 @@ a:hover .overlay-refresh-image:hover {
 #plex-log-levels label {
     margin-bottom: 0;
 }
-#api_key.form-control[readonly] {
-    background-color: #555;
+#server-config-modal .alert-danger li {
+    color: #a94442;
 }
-#api_key.form-control[readonly]:focus {
-    background-color: #fff;
+#server-config-modal .form-control-feedback i.fa {
+    color: #F9AA03;
 }
+#plexpy-servers-table .friendly_name,
 #plexpy-notifiers-table .friendly_name,
+#server-config-modal span.server_id,
 #notifier-config-modal span.notifier_id {
     color: #777;
 }
+#server-config-modal .nav-tabs,
 #notifier-config-modal .nav-tabs {
     margin-bottom: 10px;
     padding-left: 15px;
     border-bottom: 1px solid #444;
 }
+#server-config-modal .nav-tabs > li,
 #notifier-config-modal .nav-tabs > li {
     margin: 0 0 -1px 0;
 }
+#server-config-modal .nav-tabs > li > a,
 #notifier-config-modal .nav-tabs > li > a {
     padding: 5px 10px;
     color: #737373;
 }
+#server-config-modal .nav-tabs > li > a:hover,
 #notifier-config-modal .nav-tabs > li > a:hover {
     border-color: #444;
     background: #222;
 }
+#server-config-modal .nav-tabs > li.active > a,
+#server-config-modal .nav-tabs > li.active > a:hover,
+#server-config-modal .nav-tabs > li.active > a:focus,
 #notifier-config-modal .nav-tabs > li.active > a,
 #notifier-config-modal .nav-tabs > li.active > a:hover,
 #notifier-config-modal .nav-tabs > li.active > a:focus {
     color: #fff;
     background: #222;
 }
+#server-config-modal .nav-tabs > li.active > a,
+#server-config-modal .nav-tabs > li.active > a:hover,
+#server-config-modal .nav-tabs > li.active > a:focus,
 #notifier-config-modal .nav-tabs > li.active > a,
 #notifier-config-modal .nav-tabs > li.active > a:hover,
 #notifier-config-modal .nav-tabs > li.active > a:focus {

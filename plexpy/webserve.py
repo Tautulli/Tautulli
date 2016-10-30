@@ -45,6 +45,7 @@ import plextv
 import plexivity_import
 import plexwatch_import
 import pmsconnect
+import servers
 import users
 import versioncheck
 import web_socket
@@ -2722,7 +2723,7 @@ class WebInterface(object):
 
         # Get new server URLs for SSL communications and get new server friendly name
         if server_changed:
-            plextv.get_real_pms_url()
+            servers.refresh_servers()
             pmsconnect.get_server_friendly_name()
             web_socket.reconnect()
 
@@ -2821,6 +2822,134 @@ class WebInterface(object):
         else:
             return {'result': 'error', 'message': 'GeoLite2 database uninstall failed.'}
 
+    ## ADD get_servers to API
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_servers(self, notify_action=None, **kwargs):
+        """ Get a list of configured notifiers.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                notify_action (str):        The notification action to filter out
+
+            Returns:
+                json:
+                    [{"id": 1,
+                      "agent_id": 13,
+                      "agent_name": "telegram",
+                      "agent_label": "Telegram",
+                      "friendly_name": "",
+                      "active": 1
+                      }
+                     ]
+            ```
+        """
+        result = notifiers.get_notifiers(notify_action=notify_action)
+        return result
+
+    
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def get_servers_table(self, **kwargs):
+        result = servers.get_servers()
+        return serve_template(templatename="servers_table.html", servers_list=result)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def get_server_config_modal(self, server_id=None, **kwargs):
+        result = servers.get_servers(server_id=server_id)
+        if result: result = result[0]
+        return serve_template(templatename="server_config.html", server=result)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def add_server_config(self, **kwargs):
+        """ Add a new notification agent.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        result = servers.add_server_config(**kwargs)
+
+        if result:
+            return {'result': 'success', 'message': 'Added server.', 'server_id': result}
+        else:
+            return {'result': 'error', 'message': 'Failed to add server.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def set_server_config(self, server_id=None, **kwargs):
+        """ Configure an exisitng notificaiton agent.
+
+            ```
+            Required parameters:
+                server_id (int):        The server config to update
+
+            Optional parameters:
+                Pass all the config options for the agent with the agent prefix:
+                    e.g. For Telegram: telegram_bot_token
+                                       telegram_chat_id
+                                       disable_web_preview
+                                       html_support
+                                       incl_poster
+                                       incl_subject
+                Notify actions with 'trigger_' prefix (trigger_on_play, trigger_on_stop, etc.),
+                and notify text with 'text_' prefix (text_on_play_subject, text_on_play_body, etc.) are optional.
+
+            Returns:
+                None
+            ```
+        """
+        result = servers.set_server_config(server_id=server_id, **kwargs)
+
+        if isinstance(result, basestring):
+            return {'result': 'error', 'message': result}
+        if result:
+            return {'result': 'success', 'message': 'Saved server.', 'server_id': result}
+        else:
+            return {'result': 'error', 'message': 'Failed to save server.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_server(self, server_id=None, **kwargs):
+        """ Remove a server from the database.
+
+            ```
+            Required parameters:
+                server_id (int):        The server to delete
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        result = servers.delete_server(server_id=server_id)
+        if result:
+            return {'result': 'success', 'message': 'Deleted server.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to delete server.'}
+
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
@@ -2855,30 +2984,6 @@ class WebInterface(object):
     def get_notifiers_table(self, **kwargs):
         result = notifiers.get_notifiers()
         return serve_template(templatename="notifiers_table.html", notifiers_list=result)
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def delete_notifier(self, notifier_id=None, **kwargs):
-        """ Remove a notifier from the database.
-
-            ```
-            Required parameters:
-                notifier_id (int):        The notifier to delete
-
-            Optional parameters:
-                None
-
-            Returns:
-                None
-            ```
-        """
-        result = notifiers.delete_notifier(notifier_id=notifier_id)
-        if result:
-            return {'result': 'success', 'message': 'Notifier deleted successfully.'}
-        else:
-            return {'result': 'error', 'message': 'Failed to delete notifier.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2988,9 +3093,33 @@ class WebInterface(object):
         result = notifiers.set_notifier_config(notifier_id=notifier_id, agent_id=agent_id, **kwargs)
 
         if result:
-            return {'result': 'success', 'message': 'Added notification agent.'}
+            return {'result': 'success', 'message': 'Saved notification agent.'}
         else:
-            return {'result': 'error', 'message': 'Failed to add notification agent.'}
+            return {'result': 'error', 'message': 'Failed to save notification agent.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_notifier(self, notifier_id=None, **kwargs):
+        """ Remove a notifier from the database.
+
+            ```
+            Required parameters:
+                notifier_id (int):        The notifier to delete
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        result = notifiers.delete_notifier(notifier_id=notifier_id)
+        if result:
+            return {'result': 'success', 'message': 'Deleted notification agent.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to delete notification agent.'}
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3275,6 +3404,65 @@ class WebInterface(object):
         else:
             return {'result': 'error', 'message': 'Authentication failed.'}
 
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def verify_server(self, token=None, hostname=None, port=None, ssl=0, remote=0, cloud=0, **kwargs):
+        """ Verifies that the settings is a valid Plex server.
+
+            ```
+            Required parameters:
+                token (str):        The PMS server token
+                hostname (str):     'localhost' or '192.160.0.10'
+                port (int):         32400
+
+            Optional parameters:
+                ssl (int):          0 or 1
+                remote (int):       0 or 1
+                cloud (int):       0 or 1
+
+            Returns:
+                string:             The unique PMS identifier
+            ```
+        """
+        server_identity = {}
+
+        ssl = helpers.cast_to_int(ssl)
+        remote = helpers.cast_to_int(remote)
+        cloud = helpers.cast_to_int(cloud)
+
+        if hostname and port:
+            logger.info('Attempting to retrieve server identity...')
+
+            scheme = 'https' if cloud else 'http'
+            url = '{scheme}://{hostname}:{port}'.format(scheme=scheme, hostname=hostname, port=port)
+            uri = '/identity'
+
+            request_handler = http_handler.HTTPHandler(urls=url)
+            request = request_handler.make_request(uri=uri,
+                                                   request_type='GET',
+                                                   output_format='xml')
+            if request:
+                xml_head = request.getElementsByTagName('MediaContainer')[0]
+                server_identity['pms_identifier'] = helpers.get_xml_attr(xml_head, 'machineIdentifier')
+                server_identity['pms_version'] = helpers.get_xml_attr(xml_head, 'version')
+                server_identity['pms_is_cloud'] = int(helpers.get_xml_attr(xml_head, 'cloudServer', return_bool=True))
+
+        if server_identity:
+            logger.info('Server identity retrieved.')
+            server = plextv.get_server_resources(pms_token=token,
+                                                 pms_identifier=server_identity['pms_identifier'],
+                                                 pms_ip=hostname,
+                                                 pms_port=port,
+                                                 pms_ssl=ssl,
+                                                 pms_is_remote=remote,
+                                                 pms_is_cloud=cloud)
+            server_identity.update(server)
+            return server_identity
+        else:
+            logger.warn('Unable to retrieve server identity.')
+            return None
+   
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))

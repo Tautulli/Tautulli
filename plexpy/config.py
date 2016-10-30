@@ -574,6 +574,7 @@ _CONFIG_DEFINITIONS = {
     'UPDATE_SHOW_CHANGELOG': (int, 'General', 1),
     'UPDATE_LABELS': (int, 'General', 1),
     'UPDATE_NOTIFIERS_DB': (int, 'General', 1),
+    'UPDATE_SERVERS_DB': (int, 'General', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
     'VIDEO_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'WEBSOCKET_CONNECTION_ATTEMPTS': (int, 'Advanced', 5),

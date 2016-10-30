@@ -1613,23 +1613,41 @@ class PmsConnect(object):
         """
         Return the local machine identity.
 
-        Output: dict
+        Output: str
         """
         identity = self.get_local_server_identity(output_format='xml')
 
         try:
             xml_head = identity.getElementsByTagName('MediaContainer')
         except Exception as e:
-            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_local_server_identity: %s." % e)
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_server_identity: %s." % e)
             return {}
 
-        server_identity = {}
+        server_identity = ''
         for a in xml_head:
-            server_identity = {"machine_identifier": helpers.get_xml_attr(a, 'machineIdentifier'),
-                               "version": helpers.get_xml_attr(a, 'version')
-                               }
+            server_identity = helpers.get_xml_attr(a, 'machineIdentifier')
 
         return server_identity
+
+    def get_server_version(self):
+        """
+        Return the server version.
+
+        Output: str
+        """
+        identity = self.get_local_server_identity(output_format='xml')
+
+        try:
+            xml_head = identity.getElementsByTagName('MediaContainer')
+        except Exception as e:
+            logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_server_version: %s." % e)
+            return {}
+
+        server_version = ''
+        for a in xml_head:
+            server_version = helpers.get_xml_attr(a, 'version')
+
+        return server_version
 
     def get_server_pref(self, pref=None):
         """
@@ -2207,8 +2225,28 @@ class PmsConnect(object):
         return updater_info
 
     def set_server_version(self):
-        identity = self.get_server_identity()
-        version = identity.get('version', plexpy.CONFIG.PMS_VERSION)
+        version = self.get_server_version() or plexpy.CONFIG.PMS_VERSION
 
         plexpy.CONFIG.__setattr__('PMS_VERSION', version)
         plexpy.CONFIG.write()
+
+    def get_server_friendly_name(self):
+        logger.info(u"PlexPy Pmsconnect :: Requesting name from server...")
+        server_name = self.get_server_pref(pref='FriendlyName')
+
+        # If friendly name is blank
+        if not server_name:
+            servers_info = self.get_servers_info()
+            for server in servers_info:
+                if server['machine_identifier'] == plexpy.CONFIG.PMS_IDENTIFIER:
+                    server_name = server['name']
+                    break
+
+        if server_name and server_name != plexpy.CONFIG.PMS_NAME:
+            plexpy.CONFIG.__setattr__('PMS_NAME', server_name)
+            plexpy.CONFIG.write()
+            logger.info(u"PlexPy Pmsconnect :: Server name retrieved.")
+
+        return server_name
+
+

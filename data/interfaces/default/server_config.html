@@ -1,0 +1,487 @@
+<%!
+    from plexpy import servers
+    from plexpy.helpers import anon_url, checked
+
+    available_monitoring_actions = servers.available_monitoring_actions()
+%>
+% if server:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            % if server['id']:
+            <h4 class="modal-title" id="server-config-modal-header"><span id="header_server_name">${server['pms_name']}</span> Settings <small><span class="server_id">(Server ID: ${server['id']})</span></small></h4>
+            % else:
+            <h4 class="modal-title" id="server-config-modal-header">Add a Server</h4>
+            % endif
+        </div>
+        <div class="modal-body">
+            <div class="container-fluid">
+                <div class="row">
+                    <ul class="nav nav-tabs list-unstyled" role="tablist">
+                        <li role="presentation" class="active"><a href="#tabs-config" aria-controls="tabs-config" role="tab" data-toggle="tab">Configuration</a></li>
+                        <li role="presentation"><a href="#tabs-monitoring" aria-controls="tabs-monitoring" role="tab" data-toggle="tab">Monitoring</a></li>
+                    </ul>
+                </div>
+                <form action="set_server_config" method="post" class="form" id="set_server_config" data-parsley-validate>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="tabs-config">
+                            <div class="row">
+                                <input type="hidden" id="server_id" name="server_id" value="${server['id']}" />
+                                <input type="hidden" id="pms_name" name="pms_name" value="${server['pms_name']}" />
+                                <input type="hidden" id="pms_version" name="pms_version" value="${server['pms_version']}" />
+                                <input type="hidden" id="pms_platform" name="pms_platform" value="${server['pms_platform']}" />
+                                <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${server['pms_is_cloud']}">
+                                <input type="hidden" id="pms_plexpass" name="pms_plexpass" value="${server['pms_plexpass']}">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="pms_token">Plex Server Token</label>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="pms_token" name="pms_token" value="${server['pms_token']}" data-parsley-trigger="change" data-parsley-errors-container="#pms_token_error" required>
+                                                    <span class="input-group-btn">
+                                                        <button class="btn btn-form" type="button" data-toggle="modal" data-target="#pms-auth-modal">Fetch Token</button>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div id="pms_token_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                        </div>
+                                        <p class="help-block">Required: Token for Plex.tv authentication.</p>
+                                    </div>
+                                    <% hide = 'inline' if server['pms_is_cloud'] else 'inline' %>
+                                    <div id="pms_local_settings" style="display: ${hide};">
+                                        <div class="form-group has-feedback">
+                                            <label for="pms_ip">Plex Server IP or Hostname</label>
+                                            <div class="row">
+                                                <div class="col-md-8">
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control pms-settings" id="pms_ip" name="pms_ip" value="${server['pms_ip']}" size="30" data-parsley-trigger="change" aria-describedby="server-verified" data-parsley-errors-container="#pms_ip_error" required>
+                                                        <span class="input-group-btn">
+                                                            <button class="btn btn-form" type="button" id="verify_server_button">Verify Server</button>
+                                                        </span>
+                                                    </div>
+                                                    <span class="form-control-feedback" id="pms-verify" aria-hidden="true" style="display: none; right: 110px;"></span>
+                                                </div>
+                                                <div id="pms_ip_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                            </div>
+                                            <p class="help-block">Required: IP Address or hostname for the Plex Media Server.</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="pms_port">Plex Server Port</label>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <input data-parsley-type="integer" class="form-control pms-settings" type="text" id="pms_port" name="pms_port" value="${server['pms_port']}" size="30" data-parsley-trigger="change" data-parsley-errors-container="#pms_port_error" required>
+                                                </div>
+                                                <div id="pms_port_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                            </div>
+                                            <p class="help-block">Required: Port that Plex Media Server is listening on.</p>
+                                        </div>
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" data-id="pms_ssl" class="checkboxes pms-settings" value="1" ${checked(server['pms_ssl'])}> Use SSL
+                                            </label>
+                                            <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
+                                            <input type="hidden" id="pms_ssl" name="pms_ssl" value="${server['pms_ssl']}">
+                                        </div>
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" data-id="pms_is_remote" class="checkboxes pms-settings" value="1" ${checked(server['pms_is_remote'])}> Remote Server
+                                            </label>
+                                            <p class="help-block">Check this if your Plex Server is not on the same local network as PlexPy.</p>
+                                            <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${server['pms_is_remote']}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="pms_logs_folder">Plex Logs Folder</label>
+                                            <div class="row">
+                                                <div class="col-md-8">
+                                                    <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${server['pms_logs_folder']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^[^\~\%]" data-parsley-errors-container="#pms_logs_folder_error" data-parsley-error-message="Shortcuts are not recognized.">
+                                                </div>
+                                                <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                            </div>
+                                            <p class="help-block">
+                                                Optional: Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br />
+                                                Used for the log viewer only. <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
+                                    <div class="form-group">
+                                        <label for="pms_identifier">Plex Server Identifier</label>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <input class="form-control" type="text" id="pms_identifier" name="pms_identifier" value="${server['pms_identifier']}" size="30" data-parsley-trigger="change" data-parsley-errors-container="#pms_identifier_error" readonly>
+                                            </div>
+                                            <div id="pms_identifier_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                        </div>
+                                        <p class="help-block">The unique identifier for the Plex Media Server. Retrieved automatically.</p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="pms_identifier">Plex Server URL</label>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" id="pms_url" name="pms_url" value="${server['pms_url']}" size="30" data-parsley-trigger="change" data-parsley-errors-container="#pms_url_error" readonly>
+                                                    <span class="input-group-btn">
+                                                        <button class="btn btn-form" type="button" id="test_pms_url">Test URL</button>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div id="pms_url_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                        </div>
+                                        <p class="help-block">
+                                            The server URL that PlexPy will use to communicate with the Plex server. Retrieved automatically.<br />
+                                            Clicking on "Test URL" should open up Plex Web for your server.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="tabs-monitoring">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p class="help-block" style="margin-bottom: 20px;">
+                                        Select items that PlexPy will monitor for this server.
+                                    </p>
+                                    % for action in available_monitoring_actions:
+                                    % if action['name'] == 'pms_monitor_updates':
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" data-id="${action['name']}" id="pms_monitor_updates_toggle" class="checkboxes" value="1" ${checked(server[action['name']])}> Monitor ${action['label']}
+                                        </label>
+                                        <span id="pms_monitor_updates_message" style="color: #eb8600; padding-left: 10px;"></span>
+                                        <p class="help-block">${action['description'] | n}</p>
+                                        <input type="hidden" id="${action['name']}" name="${action['name']}" value="${server[action['name']]}">
+                                    </div>
+                                    <div id="pms_update_options">
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <label for="pms_update_channel">Update Channel</label>
+                                                    <select class="form-control" id="pms_update_channel" name="pms_update_channel">
+                                                        <option value="public">Public</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="pms_update_distro_build">Release</label>
+                                                    <select class="form-control" id="pms_update_distro_build" name="pms_update_distro_build"></select>
+                                                    <input type="hidden" class="form-control" id="pms_update_distro" name="pms_update_distro">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    % else:
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" data-id="${action['name']}" id="${id}" class="checkboxes" value="1" ${checked(server[action['name']])}> Monitor ${action['label']}
+                                        </label>
+                                        <p class="help-block">${action['description'] | n}</p>
+                                        <input type="hidden" id="${action['name']}" name="${action['name']}" value="${server[action['name']]}">
+                                    </div>
+                                    % endif
+                                    % endfor
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer">
+            % if server['id']:
+            <input type="button" id="delete-server-item" class="btn btn-danger btn-edit" style="float:left;" value="Delete">
+            % endif
+            <input type="button" id="save-server-item" class="btn btn-bright" style="float:right;" value="Save">
+            <div style="float: right; margin-top: 8px; margin-right: 15px;">
+                <strong><span id="pms-verify-status"></span></strong>
+            </div>
+        </div>
+    </div>
+</div>
+% endif
+
+<script>
+    var serverForm = $("#set_server_config");
+    var server_verified = ("${server['id']}" === "0") ? false : true;
+
+    function reloadModal(server_id) {
+        $.ajax({
+            url: 'get_server_config_modal',
+            data: { server_id: server_id },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $('#server-config-modal').html(xhr.responseText);
+            }
+        });
+    }
+
+    function saveCallback(jqXHR) {
+        var server_id = '${server["id"]}';
+        if (jqXHR) {
+            var result = $.parseJSON(jqXHR.responseText);
+            msg = result.message;
+            if (result.result == 'success') {
+                if (result.server_id != server_id) {
+                    serverChanged = true;
+                    settingsChanged = true;
+                    reloadModal(result.server_id);
+                }
+                showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+            } else {
+                showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+            }
+        }
+        getServersTable();
+    }
+
+    function deleteCallback(jqXHR) {
+        $('#server-config-modal').modal('hide');
+        getServersTable();
+    }
+
+    function saveServerSettings() {
+        doAjaxCall('set_server_config', $(this), 'tabs', true, true, saveCallback);
+        return false;
+    }
+
+    function afterVerify() {
+        checkCloud();
+        loadUpdateDistros();
+    }
+
+    function checkCloud() {
+        var pms_is_cloud = ($("#pms_is_cloud").val() === "1") ? 1 : 0;
+        if (server_verified && pms_is_cloud) {
+            $('#pms_monitor_updates_toggle').prop('checked', false).prop('disabled', true);
+            $('#pms_monitor_updates_message').html('Unavailable for cloud servers.');
+        } else {
+            $('#pms_monitor_updates_toggle').prop('disabled', false);
+            $('#pms_monitor_updates_message').html('');
+        }
+    }
+    checkCloud();
+
+    $('#delete-server-item').click(function () {
+        var msg = 'Are you sure you want to delete the <strong>${server["pms_name"]}</strong> server?';
+        var url = 'delete_server';
+        confirmAjaxCall(url, msg, { server_id: '${server["id"]}' }, null, deleteCallback);
+    });
+
+    $('#save-server-item').click(function () {
+        if (serverForm.parsley().validate()) {
+            if (!(server_verified)) {
+                verifyServer(saveServerSettings);
+            }
+            else {
+                saveServerSettings()
+            }
+        } else {
+            showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true)
+        }
+    });
+
+    $('.pms-settings').change(function() {
+        $("#pms_identifier").val("");
+        $("#pms_url").val("");
+        $("#pms-verify-status").html('')
+        $('#pms-verify').fadeOut('fast');
+        server_verified = false;
+    });
+
+    $('#verify_server_button').on('click', function(){
+        verifyServer();
+    });
+
+    // Plex.tv auth token fetch
+    $("#fetch-pms-auth-token").click(function () {
+        $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i> Fetching token... Please wait.');
+        var pms_username = $("#pms_username").val().trim();
+        var pms_password = $("#pms_password").val().trim();
+        var force_token = $("#force_token").is(':checked') ? true : false;
+        if ((pms_username !== '') && (pms_password !== '')) {
+            $.ajax({
+                type: 'GET',
+                url: 'get_plexpy_pms_token',
+                data: {
+                    username: pms_username,
+                    password: pms_password,
+                    force: force_token
+                },
+                cache: false,
+                async: true,
+                complete: function (xhr, status) {
+                    var result = $.parseJSON(xhr.responseText);
+                    var msg = result.message;
+                    if (result.result == 'success') {
+                        var authToken = result.token;
+                        $("#pms-token-status").html('<i class="fa fa-check"></i> ' + msg);
+                        $("#pms_token").val(authToken);
+                        $('#pms-auth-modal').modal('hide');
+                    } else {
+                        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> ' + msg);
+                    }
+                    loadUpdateDistros();
+                }
+            });
+        } else {
+            $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Username and password required.');
+        }
+    });
+
+    $('#pms-auth-modal').on('hidden.bs.modal', function () {
+        $("#pms_username").val("")
+        $("#pms_password").val("")
+        $("#force_token").attr('checked', false);
+        $("#pms-token-status").html("");
+    });
+
+    // Verify server
+    function verifyServer(_callback) {
+        server_verified = false;
+        $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Verifying server... Please Wait.')
+
+        var pms_token = $("#pms_token").val().trim();
+        var pms_ip = $("#pms_ip").val().trim();
+        var pms_port = $("#pms_port").val().trim();
+        var pms_ssl = ($("#pms_ssl").val() === "1") ? 1 : 0;
+        var pms_is_remote = ($("#pms_is_remote").val() === "1") ? 1 : 0;
+        var pms_is_cloud = ($("#pms_is_cloud").val() === "1") ? 1 : 0;
+        if ((pms_token !== '') && (pms_ip !== '') && (pms_port !== '')) {
+            $("#pms-verify").html('<i class="fa fa-refresh fa-spin"></i>');
+            $('#pms-verify').fadeIn('fast');
+            $.ajax({
+                url: 'verify_server',
+                data: {
+                    token: pms_token,
+                    hostname: pms_ip,
+                    port: pms_port,
+                    ssl: pms_ssl,
+                    remote: pms_is_remote,
+                    cloud: pms_is_cloud
+                },
+                cache: true,
+                async: true,
+                timeout: 10000,
+                error: function(jqXHR, textStatus, errorThrown) {
+                    $("#pms-verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+                    $("#pms-ip-group").addClass("has-error");
+                },
+                success: function (jqXHR) {
+                    var server_identity = jqXHR;
+                    if (server_identity) {
+                        $("#pms_identifier").val(server_identity.pms_identifier);
+                        $("#pms_name").val(server_identity.pms_name);
+                        $("#pms_version").val(server_identity.pms_version);
+                        $("#pms_platform").val(server_identity.pms_platform);
+                        $("#pms_is_cloud").val(server_identity.pms_is_cloud);
+                        $("#pms_plexpass").val(server_identity.pms_plexpass);
+                        $("#pms_url").val(server_identity.pms_url);
+
+                        $("#pms-verify").html('<i class="fa fa-check"></i>');
+                        $('#pms-verify').fadeIn('fast');
+                        $("#pms-verify-status").html('<i class="fa fa-check"></i> Server verified.')
+
+                        server_verified = true;
+                    } else {
+                        $("#pms-verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+                        $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Could not verify your server.')
+                    }
+
+                    afterVerify();
+
+                    if (typeof _callback === "function") {
+                        _callback();
+                    }
+                }
+            });
+        } else {
+            $("#pms-verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+            if (pms_token === '') {
+                $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Plex server token required.');
+            } else if (pms_ip === '') {
+                $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Plex server IP or hostname required.');
+            } else if (pms_port === '') {
+                $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Plex server port required.');
+            }
+        }
+    }
+
+    $("#test_pms_url").click(function () {
+        var pms_url = $("#pms_url").val();
+        if (pms_url) { window.open(pms_url + "/web/index.html"); }
+    });
+
+    $.ajax({
+        url: 'get_server_pref',
+        data: { pref: 'PublishServerOnPlexOnlineKey' },
+        async: true,
+        success: function (data) {
+            if (data !== 'true') {
+                $("#remoteAccessCheck").html("Remote access must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/200484543-Enabling-Remote-Access-for-a-Server')}'>Click here</a> for help.");
+                $("#monitor_remote_access").attr("disabled", true);
+                $("#monitor_remote_access").attr("checked", false);
+            }
+        }
+    });
+
+    initConfigCheckbox('#pms_monitor_updates_toggle');
+
+    // Load PMS downloads
+    function loadUpdateDistros() {
+        var plexpass = ($("#pms_plexpass").val() === "1") ? 1 : 0;
+        var platform = $("#pms_platform").val();
+        var update_channel = "${server['pms_update_channel']}";
+        var update_distro = "${server['pms_update_distro']}";
+        var update_distro_build = "${server['pms_update_distro_build']}";
+
+        // Override for MacOSX --> Mac
+        platform = (platform === 'MacOSX') ? 'Mac' : platform;
+
+        $("#pms_update_channel option[value='plexpass']").remove();
+        if (plexpass) {
+            var selected = (update_channel == 'plexpass') ? true : false;
+            $('#pms_update_channel')
+                .append($('<option></option>')
+                .text('Plex Pass')
+                .val('plexpass')
+                .prop('selected', selected));
+        }
+
+        $.getJSON('https://plex.tv/api/downloads/1.json?channel=' + update_channel, function (downloads) {
+            platform_downloads = downloads.computer[platform] || downloads.nas[platform];
+            if (platform_downloads) {
+                $("#pms_update_distro_build option").remove();
+                $.each(platform_downloads.releases, function (index, item) {
+                    var label = (platform_downloads.releases.length == 1) ? platform_downloads.name : platform_downloads.name + ' - ' + item.label;
+                    var selected = (item.distro == update_distro && item.build == update_distro_build) ? true : false;
+                    $('#pms_update_distro_build')
+                        .append($('<option></option>')
+                        .text(label)
+                        .val(item.build)
+                        .attr('data-distro', item.distro)
+                        .prop('selected', selected));
+                })
+                $('#pms_update_distro').val($("#pms_update_distro_build option:selected").data('distro'))
+            }
+        });
+    }
+    loadUpdateDistros();
+
+    $('#pms_update_distro_build').change(function () {
+        var distro = $("option:selected", this).data('distro')
+        $('#pms_update_distro').val(distro)
+    });
+
+    // Never send checkbox values directly, always substitute value in hidden input.
+    $('.checkboxes').click(function () {
+        var configToggle = $(this).data('id');
+        if ($(this).is(':checked')) {
+            $('#' + configToggle).val(1);
+        } else {
+            $('#' + configToggle).val(0);
+        }
+    });
+
+</script>

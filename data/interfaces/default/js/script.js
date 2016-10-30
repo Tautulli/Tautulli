@@ -186,7 +186,7 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
             // Remove loaders and stuff, ajax request is complete!
             loader.remove();
             if (typeof callback === "function") {
-                callback();
+                callback(jqXHR);
             }
         }
     });

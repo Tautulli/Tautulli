@@ -1,0 +1,43 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           servers_table.html
+Version:            0.1
+
+DOCUMENTATION :: END
+</%doc>
+
+<ul class="stacked-configs list-unstyled">
+    % for server in sorted(servers_list, key=lambda k: (k['pms_name'], k['id'])):
+    <li class="server-item" data-id="${server['id']}">
+        <span>
+            % if server['pms_is_cloud']:
+            <span class="toggle-left online-tooltip ${'active' if server['pms_presence'] else ''}" data-toggle="tooltip" data-placement="top" title="Server ${'online' if server['pms_presence'] else 'offline'}"><i class="fa fa-lg fa-cloud"></i></span>
+            ${server['pms_name']} &nbsp;<span class="friendly_name">(${server['pms_platform']} - Version ${server['pms_version']})</span>
+            % else:
+            <span class="toggle-left online-tooltip ${'active' if server['pms_presence'] else ''}" data-toggle="tooltip" data-placement="top" title="Server ${'online' if server['pms_presence'] else 'offline'}"><i class="fa fa-lg fa-server"></i></span>
+            ${server['pms_name']} &nbsp;<span class="friendly_name">(${server['pms_ip']}:${server['pms_port']} - Version ${server['pms_version']})</span>
+            % endif
+            <span class="toggle-right"><i class="fa fa-lg fa-cog"></i></span>
+        </span>
+    </li>
+    % endfor
+    <li class="add-server" data-id="0">
+        <span>
+            <span class="toggle-left"><i class="fa fa-lg fa-server"></i></span> Add a new server
+            <span class="toggle-right"><i class="fa fa-lg fa-plus"></i></span>
+        </span>
+    </li>
+</ul>
+
+<script>
+    // Load notification agent config modal
+    $(".add-server, .server-item").click(function () {
+        var server_id = $(this).data('id');
+        loadServerConfig(server_id);
+    });
+
+    $('.online-tooltip').tooltip();
+</script>

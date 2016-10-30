@@ -87,6 +87,59 @@ def refresh_users():
         logger.warn(u"PlexPy PlexTV :: Unable to refresh users list.")
         return False
 
+def get_server_resources(pms_token=None, pms_identifier='', pms_ip='', pms_port=32400, pms_ssl=0, pms_is_remote=0, pms_is_cloud=0, **kwargs):
+    logger.info(u"PlexPy PlexTV :: Requesting resources for server...")
+
+    scheme = 'https' if pms_is_cloud else 'http'
+    server = {'pms_name': 'Unknown',
+              'pms_version': 'Unknown',
+              'pms_platform': 'Unknown',
+              'pms_url': None,
+              }
+
+    fallback_url = '{scheme}://{hostname}:{port}'.format(scheme=scheme, hostname=pms_ip, port=pms_port)
+
+    plex_tv = PlexTV(token=pms_token)
+    result = plex_tv.get_server_connections(pms_identifier=pms_identifier,
+                                            pms_ip=pms_ip,
+                                            pms_port=pms_port)
+    if result:
+        connections = result.pop('connections', [])
+        server.update(result)
+    else:
+        connections = []
+
+    plexpass = plex_tv.get_plexpass_status()
+    server['pms_plexpass'] = int(plexpass)
+
+    # Only need to retrieve PMS_URL if using SSL
+    if pms_ssl:
+        if connections:
+            if pms_is_remote:
+                # Get all remote connections
+                conns = [c for c in connections if c['local'] == '0' and ('plex.direct' in c['uri'] or 'plex.service' in c['uri'])]
+            else:
+                # Get all local connections
+                conns = [c for c in connections if c['local'] == '1' and ('plex.direct' in c['uri'] or 'plex.service' in c['uri'])]
+
+            if conns:
+                # Get connection with matching address, otherwise return first connection
+                conn = next((c for c in conns if c['address'] == pms_ip
+                             and c['port'] == str(pms_port)), conns[0])
+                server['pms_url'] = conn['uri']
+                logger.info(u"PlexPy PlexTV :: Server URL retrieved.")
+
+        # get_server_urls() failed or PMS_URL not found, fallback url doesn't use SSL
+        if not server['pms_url']:
+            server['pms_url'] = fallback_url
+            logger.warn(u"PlexPy PlexTV :: Unable to retrieve server URLs. Using user-defined value without SSL.")
+
+    # Not using SSL, remote has no effect
+    else:
+        server['pms_url'] = fallback_url
+        logger.info(u"PlexPy PlexTV :: Using user-defined URL.")
+
+    return server
 
 def get_real_pms_url():
     logger.info(u"PlexPy PlexTV :: Requesting URLs for server...")
@@ -98,7 +151,7 @@ def get_real_pms_url():
     fallback_url = 'http://' + plexpy.CONFIG.PMS_IP + ':' + str(plexpy.CONFIG.PMS_PORT)
 
     plex_tv = PlexTV()
-    result = plex_tv.get_server_urls()
+    result = plex_tv.get_server_connections()
     plexpass = plex_tv.get_plexpass_status()
 
     connections = []
@@ -228,9 +281,6 @@ class PlexTV(object):
         user = self.get_token()
         if user:
             token = user['auth_token']
-            plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
-            plexpy.CONFIG.write()
-            logger.info(u"PlexPy PlexTV :: Updated Plex.tv token for PlexPy.")
             return token
 
     def get_server_token(self):
@@ -481,12 +531,10 @@ class PlexTV(object):
 
         return session.filter_session_info(synced_items, filter_key='user_id')
 
-    def get_server_urls(self, include_https=True):
+    def get_server_connections(self, pms_identifier='', pms_ip='', pms_port=32400, include_https=True):
 
-        if plexpy.CONFIG.PMS_IDENTIFIER:
-            server_id = plexpy.CONFIG.PMS_IDENTIFIER
-        else:
-            logger.error(u"PlexPy PlexTV :: Unable to retrieve server identity.")
+        if not pms_identifier:
+            logger.error(u"PlexPy PlexTV :: Unable to retrieve server connections: no pms_identifier provided.")
             return {}
 
         plextv_resources = self.get_plextv_resources(include_https=include_https,
@@ -502,8 +550,12 @@ class PlexTV(object):
             conn = []
             connections = device.getElementsByTagName('Connection')
 
-            server = {"platform": helpers.get_xml_attr(device, 'platform'),
-                      "version": helpers.get_xml_attr(device, 'productVersion')
+            server = {"pms_identifier": helpers.get_xml_attr(device, 'clientIdentifier'),
+                      "pms_name": helpers.get_xml_attr(device, 'name'),
+                      "pms_version": helpers.get_xml_attr(device, 'productVersion'),
+                      "pms_platform": helpers.get_xml_attr(device, 'platform'),
+                      "pms_presence": helpers.get_xml_attr(device, 'presence'),
+                      "pms_is_cloud": 1 if helpers.get_xml_attr(device, 'platform') == 'Cloud' else 0
                       }
 
             for c in connections:
@@ -522,7 +574,7 @@ class PlexTV(object):
 
         # Try to match the device
         for a in xml_head:
-            if helpers.get_xml_attr(a, 'clientIdentifier') == server_id:
+            if helpers.get_xml_attr(a, 'clientIdentifier') == pms_identifier:
                 server = get_connections(a)
                 break
                     
@@ -534,15 +586,8 @@ class PlexTV(object):
                     connections = a.getElementsByTagName('Connection')
 
                     for connection in connections:
-                        if helpers.get_xml_attr(connection, 'address') == plexpy.CONFIG.PMS_IP and \
-                            int(helpers.get_xml_attr(connection, 'port')) == plexpy.CONFIG.PMS_PORT:
-    
-                            plexpy.CONFIG.PMS_IDENTIFIER = helpers.get_xml_attr(a, 'clientIdentifier')
-                            plexpy.CONFIG.write()
-    
-                            logger.info(u"PlexPy PlexTV :: PMS identifier changed from %s to %s."
-                                        % (server_id, plexpy.CONFIG.PMS_IDENTIFIER))
-    
+                        if helpers.get_xml_attr(connection, 'address') == pms_ip and \
+                            helpers.get_xml_attr(connection, 'port') == str(pms_port):
                             server = get_connections(a)
                             break
 
@@ -689,8 +734,6 @@ class PlexTV(object):
             return True
         else:
             logger.debug(u"PlexPy PlexTV :: Plex Pass subscription not found.")
-            plexpy.CONFIG.__setattr__('PMS_PLEXPASS', 0)
-            plexpy.CONFIG.write()
             return False
 
     def get_devices_list(self):

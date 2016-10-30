@@ -40,6 +40,7 @@ import notification_handler
 import notifiers
 import plextv
 import pmsconnect
+import servers
 import versioncheck
 import plexpy.config
 
@@ -163,7 +164,8 @@ def initialize(config_file):
         except Exception as e:
             logger.error(u"Could not perform upgrades: %s" % e)
 
-        # Add notifier configs to logger blacklist
+        # Add server and notifier configs to logger blacklist
+        servers.blacklist_logger()
         notifiers.blacklist_logger()
 
         # Check if PlexPy has a uuid
@@ -201,8 +203,7 @@ def initialize(config_file):
 
         # Get the real PMS urls for SSL and remote access
         if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT:
-            plextv.get_real_pms_url()
-            pmsconnect.get_server_friendly_name()
+            servers.refresh_servers()
 
         # Refresh the users list on startup
         if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
@@ -318,7 +319,7 @@ def initialize_scheduler():
             #             hours=0, minutes=0, seconds=1)
             #schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
             #             hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
-            schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
+            schedule_job(servers.refresh_servers, 'Refresh Plex server URLs',
                          hours=12, minutes=0, seconds=0)
             schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
                          hours=12, minutes=0, seconds=0)
@@ -342,7 +343,7 @@ def initialize_scheduler():
 
         else:
             # Cancel all jobs
-            schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
+            schedule_job(servers.refresh_servers, 'Refresh Plex server URLs',
                          hours=0, minutes=0, seconds=0)
             schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
                          hours=0, minutes=0, seconds=0)
@@ -419,7 +420,7 @@ def dbcheck():
 
     # sessions table :: This is a temp table that logs currently active sessions
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, session_key INTEGER, '
+        'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, pms_identifier TEXT, session_key INTEGER, '
         'transcode_key TEXT, rating_key INTEGER, section_id INTEGER, media_type TEXT, started INTEGER, stopped INTEGER, '
         'paused_counter INTEGER DEFAULT 0, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, '
         'ip_address TEXT, machine_id TEXT, player TEXT, platform TEXT, title TEXT, parent_title TEXT, '
@@ -438,7 +439,7 @@ def dbcheck():
     # session_history table :: This is a history table which logs essential stream details
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS session_history (id INTEGER PRIMARY KEY AUTOINCREMENT, reference_id INTEGER, '
-        'started INTEGER, stopped INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
+        'started INTEGER, stopped INTEGER, pms_identifier TEXT, rating_key INTEGER, user_id INTEGER, user TEXT, '
         'ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, platform TEXT, machine_id TEXT, '
         'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, view_offset INTEGER DEFAULT 0)'
     )
@@ -468,35 +469,37 @@ def dbcheck():
     # users table :: This table keeps record of the friends list
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
+        'pms_identifier TEXT, user_id INTEGER DEFAULT NULL, username TEXT NOT NULL, friendly_name TEXT, '
         'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
         'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
         'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, allow_guest INTEGER DEFAULT 0, '
-        'user_token TEXT, server_token TEXT, shared_libraries TEXT, filter_all TEXT, filter_movies TEXT, filter_tv TEXT, '
-        'filter_music TEXT, filter_photos TEXT)'
+        'user_token TEXT, server_token TEXT, shared_libraries TEXT, filter_all TEXT, filter_movies TEXT, '
+        'filter_tv TEXT, filter_music TEXT, filter_photos TEXT, UNIQUE(pms_identifier, user_id))'
     )
 
     # notify_log table :: This is a table which logs notifications sent
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
-        'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
-        'user_id INTEGER, user TEXT, notifier_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
-        'subject_text TEXT, body_text TEXT)'
+        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'timestamp INTEGER, pms_identifier TEXT, session_key INTEGER, '
+        'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+        'user_id INTEGER, user TEXT, notifier_id INTEGER, agent_id INTEGER, agent_name TEXT, '
+        'notify_action TEXT, subject_text TEXT, body_text TEXT)'
     )
 
     # library_sections table :: This table keeps record of the servers library sections
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, '
+        'pms_identifier TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, '
         'thumb TEXT, custom_thumb_url TEXT, art TEXT, count INTEGER, parent_count INTEGER, child_count INTEGER, '
         'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
-        'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
+        'deleted_section INTEGER DEFAULT 0, UNIQUE(pms_identifier, section_id))'
     )
 
     # user_login table :: This table keeps record of the PlexPy guest logins
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS user_login (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, ip_address TEXT, host TEXT, user_agent TEXT)'
+        'timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, '
+        'ip_address TEXT, host TEXT, user_agent TEXT)'
     )
 
     # notifiers table :: This table keeps record of the notification agent settings
@@ -523,7 +526,18 @@ def dbcheck():
     # poster_urls table :: This table keeps record of the notification poster urls
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS poster_urls (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'rating_key INTEGER, poster_title TEXT, poster_url TEXT)'
+        'pms_identifier TEXT, rating_key INTEGER, poster_title TEXT, poster_url TEXT)'
+    )
+
+    # servers table :: This table keeps record of the Plex servers
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS servers (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'pms_identifier TEXT NOT NULL UNIQUE, pms_name TEXT, pms_ip TEXT NOT NULL, pms_port INTEGER NOT NULL, '
+        'pms_url TEXT, pms_token TEXT, pms_presence INTEGER DEFAULT 1, pms_version TEXT, pms_platform TEXT, pms_logs_folder TEXT, '
+        'pms_ssl INTEGER DEFAULT 0, pms_is_remote INTEGER DEFAULT 0, pms_is_cloud INTEGER DEFAULT 0, '
+        'pms_monitor_activity INTEGER DEFAULT 1, pms_monitor_recently_added INTEGER DEFAULT 0, '
+        'pms_monitor_server INTEGER DEFAULT 0, pms_monitor_remote_access INTEGER DEFAULT 0, pms_monitor_updates INTEGER DEFAULT 0, '
+        'pms_plexpass INTEGER DEFAULT 0, pms_update_channel TEXT, pms_update_distro TEXT, pms_update_distro_build TEXT)'
     )
 
     # recently_added table :: This table keeps record of recently added items
@@ -747,6 +761,15 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN year INTEGER'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT pms_identifier FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN pms_identifier TEXT'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')
@@ -768,6 +791,15 @@ def dbcheck():
                  WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) END) ' \
             'FROM session_history AS t1 ' \
             'WHERE t1.id = session_history.id) '
+        )
+
+    # Upgrade session_history table from earlier versions
+    try:
+        c_db.execute('SELECT pms_identifier FROM session_history')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history.")
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN pms_identifier TEXT'
         )
 
     # Upgrade session_history_metadata table from earlier versions
@@ -896,6 +928,72 @@ def dbcheck():
             'ALTER TABLE users ADD COLUMN filter_photos TEXT'
         )
 
+    # Upgrade users table from earlier versions (remove UNIQUE constraint on username)
+    try:
+        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="users"').fetchone()
+        if 'username TEXT NOT NULL UNIQUE' in result[0]:
+            logger.debug(u"Altering database. Removing unique constraint on username from users table.")
+            c_db.execute(
+                'CREATE TABLE users_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
+                'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
+                'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
+                'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0)'
+            )
+            c_db.execute(
+                'INSERT INTO users_temp (id, user_id, username, friendly_name, thumb, custom_avatar_url, '
+                'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user) '
+                'SELECT id, user_id, username, friendly_name, thumb, custom_avatar_url, '
+                'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user '
+                'FROM users'
+            )
+            c_db.execute(
+                'DROP TABLE users'
+            )
+            c_db.execute(
+                'ALTER TABLE users_temp RENAME TO users'
+            )
+    except sqlite3.OperationalError:
+        logger.warn(u"Unable to remove username unique constraint from users.")
+        try:
+            c_db.execute(
+                'DROP TABLE users_temp'
+            )
+        except:
+            pass
+
+    # Upgrade users table from earlier versions (add pms_identifier and UNIQUE constraint)
+    try:
+        c_db.execute('SELECT pms_identifier FROM users')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table users.")
+        c_db.execute(
+            'CREATE TABLE IF NOT EXISTS users_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+            'pms_identifier TEXT, user_id INTEGER DEFAULT NULL, username TEXT NOT NULL, friendly_name TEXT, '
+            'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
+            'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
+            'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, allow_guest INTEGER DEFAULT 0, '
+            'user_token TEXT, server_token TEXT, shared_libraries TEXT, filter_all TEXT, filter_movies TEXT, '
+            'filter_tv TEXT, filter_music TEXT, filter_photos TEXT, UNIQUE(pms_identifier, user_id))'
+        )
+        c_db.execute(
+            'INSERT INTO users_temp (id, user_id, username, friendly_name, '
+            'thumb, custom_avatar_url, email, is_home_user, is_allow_sync, is_restricted, do_notify, '
+            'keep_history, deleted_user, allow_guest, user_token, server_token, shared_libraries, '
+            'filter_all, filter_movies, filter_tv, filter_music, filter_photos) '
+            'SELECT id, user_id, username, friendly_name, '
+            'thumb, custom_avatar_url, email, is_home_user, is_allow_sync, is_restricted, do_notify, '
+            'keep_history, deleted_user, allow_guest, user_token, server_token, shared_libraries, '
+            'filter_all, filter_movies, filter_tv, filter_music, filter_photos '
+            'FROM users'
+        )
+        c_db.execute(
+            'DROP TABLE users'
+        )
+        c_db.execute(
+            'ALTER TABLE users_temp RENAME TO users'
+        )
+
     # Upgrade notify_log table from earlier versions
     try:
         c_db.execute('SELECT poster_url FROM notify_log')
@@ -952,6 +1050,15 @@ def dbcheck():
             'ALTER TABLE notify_log ADD COLUMN notifier_id INTEGER'
         )
 
+    # Upgrade notify_log table from earlier versions
+    try:
+        c_db.execute('SELECT pms_identifier FROM notify_log')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table notify_log.")
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN pms_identifier TEXT'
+        )
+
     # Upgrade library_sections table from earlier versions (remove UNIQUE constraint on section_id)
     try:
         result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="library_sections"').fetchone()
@@ -988,50 +1095,42 @@ def dbcheck():
         except:
             pass
 
-    # Upgrade library_sections table from earlier versions (remove duplicated libraries)
+    # Upgrade library_sections table from earlier versions (rename server_id to pms_identifier)
     try:
-        result = c_db.execute('SELECT * FROM library_sections WHERE server_id = ""')
-        if result.rowcount > 0:
-            logger.debug(u"Altering database. Removing duplicate libraries from library_sections table.")
-            c_db.execute(
-                'DELETE FROM library_sections WHERE server_id = ""'
-            )
+        c_db.execute('SELECT pms_identifier FROM library_sections')
     except sqlite3.OperationalError:
-        logger.warn(u"Unable to remove duplicate libraries from library_sections table.")
+        logger.debug(u"Altering database. Updating database table library_sections.")
+        c_db.execute(
+            'CREATE TABLE IF NOT EXISTS library_sections_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+            'pms_identifier TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, '
+            'thumb TEXT, custom_thumb_url TEXT, art TEXT, count INTEGER, parent_count INTEGER, child_count INTEGER, '
+            'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
+            'deleted_section INTEGER DEFAULT 0, UNIQUE(pms_identifier, section_id))'
+        )
+        c_db.execute(
+            'INSERT INTO library_sections_temp (id, pms_identifier, section_id, section_name, section_type, '
+            'thumb, custom_thumb_url, art, count, parent_count, child_count, do_notify, do_notify_created, '
+            'keep_history, deleted_section) '
+            'SELECT id, server_id, section_id, section_name, section_type, '
+            'thumb, custom_thumb_url, art, count, parent_count, child_count, do_notify, do_notify_created, '
+            'keep_history, deleted_section '
+            'FROM library_sections'
+        )
+        c_db.execute(
+            'DROP TABLE library_sections'
+        )
+        c_db.execute(
+            'ALTER TABLE library_sections_temp RENAME TO library_sections'
+        )
 
-    # Upgrade users table from earlier versions (remove UNIQUE constraint on username)
+    # Upgrade notify_log table from earlier versions
     try:
-        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="users"').fetchone()
-        if 'username TEXT NOT NULL UNIQUE' in result[0]:
-            logger.debug(u"Altering database. Removing unique constraint on username from users table.")
-            c_db.execute(
-                'CREATE TABLE users_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
-                'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
-                'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
-                'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0)'
-            )
-            c_db.execute(
-                'INSERT INTO users_temp (id, user_id, username, friendly_name, thumb, custom_avatar_url, '
-                'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user) '
-                'SELECT id, user_id, username, friendly_name, thumb, custom_avatar_url, '
-                'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user '
-                'FROM users'
-            )
-            c_db.execute(
-                'DROP TABLE users'
-            )
-            c_db.execute(
-                'ALTER TABLE users_temp RENAME TO users'
-            )
+        c_db.execute('SELECT pms_identifier FROM poster_urls')
     except sqlite3.OperationalError:
-        logger.warn(u"Unable to remove username unique constraint from users.")
-        try:
-            c_db.execute(
-                'DROP TABLE users_temp'
-            )
-        except:
-            pass
+        logger.debug(u"Altering database. Updating database table poster_urls.")
+        c_db.execute(
+            'ALTER TABLE poster_urls ADD COLUMN pms_identifier TEXT'
+        )
 
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
@@ -1045,6 +1144,8 @@ def dbcheck():
 def upgrade():
     if CONFIG.UPDATE_NOTIFIERS_DB:
         notifiers.upgrade_config_to_db()
+    if CONFIG.UPDATE_SERVERS_DB:
+        servers.upgrade_config_to_db()
 
 def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()
