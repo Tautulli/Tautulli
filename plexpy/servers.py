@@ -151,6 +151,7 @@ def set_server_config(server_id=None, **kwargs):
         if trans_type == 'insert':
             server_id = monitor_db.last_insert_id()
         logger.info(u"PlexPy Servers :: Updated server: %s (server_id %s)." % (kwargs.get('pms_name', 'Unknown'), server_id))
+        blacklist_logger()
         return server_id
     except Exception as e:
         logger.warn(u"PlexPy Servers :: Unable to update server: %s." % e)
@@ -169,7 +170,7 @@ def blacklist_logger():
         if s['pms_token']:
             blacklist.append(s['pms_token'])
 
-    logger._BLACKLIST_WORDS.extend(blacklist)
+    logger._BLACKLIST_WORDS.update(blacklist)
 
 
 def upgrade_config_to_db():

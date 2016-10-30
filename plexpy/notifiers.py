@@ -456,6 +456,7 @@ def add_notifier_config(agent_id=None, **kwargs):
         monitor_db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
         notifier_id = monitor_db.last_insert_id()
         logger.info(u"PlexPy Notifiers :: Added new notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
+        blacklist_logger()
         return notifier_id
     except Exception as e:
         logger.warn(u"PlexPy Notifiers :: Unable to add notification agent: %s." % e)
@@ -503,6 +504,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     try:
         monitor_db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
         logger.info(u"PlexPy Notifiers :: Updated notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
+        blacklist_logger()
         return True
     except Exception as e:
         logger.warn(u"PlexPy Notifiers :: Unable to update notification agent: %s." % e)
@@ -536,7 +538,7 @@ def blacklist_logger():
                 key.upper() not in _WHITELIST_KEYS and any(bk in key.upper() for bk in blacklist_keys):
                 blacklist.append(value.strip())
 
-    logger._BLACKLIST_WORDS.extend(blacklist)
+    logger._BLACKLIST_WORDS.update(blacklist)
 
 
 class PrettyMetadata(object):

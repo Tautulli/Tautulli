@@ -666,7 +666,7 @@ class Config(object):
                     subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
                     blacklist.append(value.strip())
 
-        logger._BLACKLIST_WORDS.extend(blacklist)
+        logger._BLACKLIST_WORDS.update(blacklist)
 
     def _define(self, name):
         key = name.upper()
