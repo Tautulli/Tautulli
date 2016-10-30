@@ -174,6 +174,15 @@ def upgrade_config_to_db():
 
     logger.info(u"PlexPy Servers :: Upgrading to new servers system...")
 
+    logger.info(u"PlexPy Servers :: Adding pms_identifier to existing tables.")
+    monitor_db = database.MonitorDatabase()
+    monitor_db.action('UPDATE notify_log SET pms_identifier = ?', [plexpy.CONFIG.PMS_IDENTIFIER])
+    monitor_db.action('UPDATE poster_urls SET pms_identifier = ?', [plexpy.CONFIG.PMS_IDENTIFIER])
+    monitor_db.action('UPDATE session_history SET pms_identifier = ?', [plexpy.CONFIG.PMS_IDENTIFIER])
+    monitor_db.action('UPDATE sessions SET pms_identifier = ?', [plexpy.CONFIG.PMS_IDENTIFIER])
+    monitor_db.action('UPDATE users SET pms_identifier = ?', [plexpy.CONFIG.PMS_IDENTIFIER])
+
+
     keys = {'id': None}
     values = {'pms_identifier': plexpy.CONFIG.PMS_IDENTIFIER,
               'pms_name': plexpy.CONFIG.PMS_NAME,
@@ -199,12 +208,13 @@ def upgrade_config_to_db():
               'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD
               }
 
-    monitor_db = database.MonitorDatabase()
     try:
-        monitor_db.upsert(table_name='servers', key_dict=keys, value_dict=values)
-        server_id = monitor_db.last_insert_id()
-        logger.info(u"PlexPy Servers :: Added existing Plex server to database: server_id %s." % server_id)
-        return server_id
+        server_id = set_server_config(server_id=0, **values)
+        if str(server_id).isdigit():
+            logger.info(u"PlexPy Servers :: Added existing Plex server to database: server_id %s." % server_id)
+            return server_id
+        else:
+            return False
     except Exception as e:
         logger.warn(u"PlexPy Servers :: Unable to add existing server to database: %s." % e)
         return False
