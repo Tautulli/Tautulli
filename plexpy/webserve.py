@@ -2558,14 +2558,11 @@ class WebInterface(object):
             "grouping_global_history": checked(plexpy.CONFIG.GROUPING_GLOBAL_HISTORY),
             "grouping_user_history": checked(plexpy.CONFIG.GROUPING_USER_HISTORY),
             "grouping_charts": checked(plexpy.CONFIG.GROUPING_CHARTS),
-            "movie_notify_enable": checked(plexpy.CONFIG.MOVIE_NOTIFY_ENABLE),
-            "tv_notify_enable": checked(plexpy.CONFIG.TV_NOTIFY_ENABLE),
-            "music_notify_enable": checked(plexpy.CONFIG.MUSIC_NOTIFY_ENABLE),
-            "monitor_pms_updates": checked(plexpy.CONFIG.MONITOR_PMS_UPDATES),
-            "monitor_remote_access": checked(plexpy.CONFIG.MONITOR_REMOTE_ACCESS),
             "monitoring_interval": plexpy.CONFIG.MONITORING_INTERVAL,
             "refresh_libraries_interval": plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL,
             "refresh_libraries_on_startup": checked(plexpy.CONFIG.REFRESH_LIBRARIES_ON_STARTUP),
+            "refresh_servers_interval": plexpy.CONFIG.REFRESH_SERVERS_INTERVAL,
+            "refresh_servers_on_startup": checked(plexpy.CONFIG.REFRESH_SERVERS_ON_STARTUP),
             "refresh_users_interval": plexpy.CONFIG.REFRESH_USERS_INTERVAL,
             "refresh_users_on_startup": checked(plexpy.CONFIG.REFRESH_USERS_ON_STARTUP),
             "movie_logging_enable": checked(plexpy.CONFIG.MOVIE_LOGGING_ENABLE),
@@ -2613,12 +2610,11 @@ class WebInterface(object):
             "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
             "pms_use_bif", "pms_ssl", "pms_is_remote", "home_stats_type",
-            "movie_notify_enable", "tv_notify_enable", "music_notify_enable",
-            "refresh_libraries_on_startup", "refresh_users_on_startup",
+            "refresh_libraries_on_startup", "refresh_servers_on_startup", "refresh_users_on_startup",
             "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
             "notify_consecutive", "notify_upload_posters", "notify_recently_added", "notify_recently_added_upgrade",
             "notify_group_recently_added_grandparent", "notify_group_recently_added_parent",
-            "monitor_pms_updates", "monitor_remote_access", "get_file_sizes", "log_blacklist", "http_hash_password",
+            "get_file_sizes", "log_blacklist", "http_hash_password",
             "allow_guest_access", "cache_images", "http_basic_auth", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update"
         ]
@@ -2663,10 +2659,7 @@ class WebInterface(object):
         if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
             kwargs.get('monitoring_interval') != str(plexpy.CONFIG.MONITORING_INTERVAL) or \
             kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
-            kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
-            kwargs.get('notify_recently_added') != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED or \
-            kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
-            kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
+            kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL):
             reschedule = True
 
         # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.

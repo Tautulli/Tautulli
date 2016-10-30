@@ -202,7 +202,7 @@ def initialize(config_file):
             LATEST_VERSION = CURRENT_VERSION
 
         # Get the real PMS urls for SSL and remote access
-        if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT:
+        if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT and CONFIG.REFRESH_SERVERS_ON_STARTUP:
             servers.refresh_servers()
 
         # Refresh the users list on startup
@@ -319,10 +319,8 @@ def initialize_scheduler():
             #             hours=0, minutes=0, seconds=1)
             #schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
             #             hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
-            schedule_job(servers.refresh_servers, 'Refresh Plex server URLs',
-                         hours=12, minutes=0, seconds=0)
-            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
-                         hours=12, minutes=0, seconds=0)
+            #schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
+            #             hours=12, minutes=0, seconds=0)
 
             schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
                          hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.MONITOR_REMOTE_ACCESS))
@@ -330,9 +328,12 @@ def initialize_scheduler():
                          hours=12 * bool(CONFIG.MONITOR_PMS_UPDATES), minutes=0, seconds=0)
 
             # Refresh the users list and libraries list
+            server_hours = CONFIG.REFRESH_SERVERS_INTERVAL if 1 <= CONFIG.REFRESH_SERVERS_INTERVAL <= 24 else 12
             user_hours = CONFIG.REFRESH_USERS_INTERVAL if 1 <= CONFIG.REFRESH_USERS_INTERVAL <= 24 else 12
             library_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL if 1 <= CONFIG.REFRESH_LIBRARIES_INTERVAL <= 24 else 12
 
+            schedule_job(servers.refresh_servers, 'Refresh servers list',
+                         hours=server_hours, minutes=0, seconds=0)
             schedule_job(plextv.refresh_users, 'Refresh users list',
                          hours=user_hours, minutes=0, seconds=0)
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
@@ -343,16 +344,16 @@ def initialize_scheduler():
 
         else:
             # Cancel all jobs
-            schedule_job(servers.refresh_servers, 'Refresh Plex server URLs',
-                         hours=0, minutes=0, seconds=0)
-            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
-                         hours=0, minutes=0, seconds=0)
+            #schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
+            #             hours=0, minutes=0, seconds=0)
 
             schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
                          hours=0, minutes=0, seconds=0)
             schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
                          hours=0, minutes=0, seconds=0)
 
+            schedule_job(servers.refresh_servers, 'Refresh servers list',
+                         hours=0, minutes=0, seconds=0)
             schedule_job(plextv.refresh_users, 'Refresh users list',
                          hours=0, minutes=0, seconds=0)
             schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
@@ -401,9 +402,7 @@ def start():
 
     if _INITIALIZED:
         # Start background notification thread
-        if any([CONFIG.MOVIE_NOTIFY_ENABLE, CONFIG.TV_NOTIFY_ENABLE,
-                CONFIG.MUSIC_NOTIFY_ENABLE, CONFIG.NOTIFY_RECENTLY_ADDED]):
-            notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
+        notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
 
         _STARTED = True
 
@@ -535,9 +534,10 @@ def dbcheck():
         'pms_identifier TEXT NOT NULL UNIQUE, pms_name TEXT, pms_ip TEXT NOT NULL, pms_port INTEGER NOT NULL, '
         'pms_url TEXT, pms_token TEXT, pms_presence INTEGER DEFAULT 1, pms_version TEXT, pms_platform TEXT, pms_logs_folder TEXT, '
         'pms_ssl INTEGER DEFAULT 0, pms_is_remote INTEGER DEFAULT 0, pms_is_cloud INTEGER DEFAULT 0, '
-        'pms_monitor_activity INTEGER DEFAULT 1, pms_monitor_recently_added INTEGER DEFAULT 0, '
-        'pms_monitor_server INTEGER DEFAULT 0, pms_monitor_remote_access INTEGER DEFAULT 0, pms_monitor_updates INTEGER DEFAULT 0, '
-        'pms_plexpass INTEGER DEFAULT 0, pms_update_channel TEXT, pms_update_distro TEXT, pms_update_distro_build TEXT)'
+        'pms_monitor_movie INTEGER DEFAULT 1, pms_monitor_tv INTEGER DEFAULT 1, pms_monitor_music INTEGER DEFAULT 1, '
+        'pms_monitor_recently_added INTEGER DEFAULT 0, pms_monitor_remote_access INTEGER DEFAULT 0, '
+        'pms_monitor_updates INTEGER DEFAULT 0, pms_plexpass INTEGER DEFAULT 0, '
+        'pms_update_channel TEXT, pms_update_distro TEXT, pms_update_distro_build TEXT)'
     )
 
     # recently_added table :: This table keeps record of recently added items

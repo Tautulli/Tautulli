@@ -21,19 +21,27 @@ import plextv
 
 
 def available_monitoring_actions():
-    actions = [{'label': 'Plex Server Activity',
-                'name': 'pms_monitor_activity',
-                'description': 'Enable monitoring of streaming activity on this server.'
+    actions = [{'label': 'Movie Activity',
+                'name': 'pms_monitor_movie',
+                'description': 'Enable monitoring of movie streaming activity on this server.'
                 },
-               {'label': 'Plex Server Recently Added',
+               {'label': 'TV Show Activity',
+                'name': 'pms_monitor_tv',
+                'description': 'Enable monitoring of tv show streaming activity on this server.'
+                },
+               {'label': 'Music Activity',
+                'name': 'pms_monitor_music',
+                'description': 'Enable monitoring of music streaming activity on this server.'
+                },
+               {'label': 'Recently Added',
                 'name': 'pms_monitor_recently_added',
                 'description': 'Enable monitoring of recently added content on this server.'
                 },
-               {'label': 'Plex Remote Access',
+               {'label': 'Remote Access',
                 'name': 'pms_monitor_remote_access',
                 'description': 'Enable monitoring of remote access for this server.'
                 },
-               {'label': 'Plex Updates',
+               {'label': 'Server Updates',
                 'name': 'pms_monitor_updates',
                 'description': 'Enable monitoring of server updates for this server.'
                 }
@@ -72,9 +80,10 @@ def get_servers(server_id=None, pms_identifier=None):
                        'pms_ssl': 0,
                        'pms_is_remote': 0,
                        'pms_is_cloud': 0,
-                       'pms_monitor_activity': 1,
+                       'pms_monitor_movie': 1,
+                       'pms_monitor_tv': 1,
+                       'pms_monitor_music': 1,
                        'pms_monitor_recently_added': 0,
-                       'pms_monitor_server': 0,
                        'pms_monitor_remote_access': 0,
                        'pms_monitor_updates': 0,
                        'pms_plexpass': 0,
@@ -195,11 +204,10 @@ def upgrade_config_to_db():
               'pms_logs_folder': plexpy.CONFIG.PMS_LOGS_FOLDER,
               'pms_ssl': plexpy.CONFIG.PMS_SSL,
               'pms_is_remote': plexpy.CONFIG.PMS_IS_REMOTE,
-              'pms_monitor_activity': int(any((plexpy.CONFIG.MOVIE_LOGGING_ENABLE,
-                                               plexpy.CONFIG.TV_LOGGING_ENABLE,
-                                               plexpy.CONFIG.MUSIC_LOGGING_ENABLE))),
+              'pms_monitor_movie': plexpy.CONFIG.MOVIE_LOGGING_ENABLE,
+              'pms_monitor_tv': plexpy.CONFIG.TV_LOGGING_ENABLE,
+              'pms_monitor_music': plexpy.CONFIG.MUSIC_LOGGING_ENABLE,
               'pms_monitor_recently_added': plexpy.CONFIG.NOTIFY_RECENTLY_ADDED,
-              'pms_monitor_server': 1,
               'pms_monitor_remote_access': plexpy.CONFIG.MONITOR_REMOTE_ACCESS,
               'pms_monitor_updates': plexpy.CONFIG.MONITOR_PMS_UPDATES,
               'pms_plexpass': plexpy.CONFIG.PMS_PLEXPASS,
@@ -210,11 +218,7 @@ def upgrade_config_to_db():
 
     try:
         server_id = set_server_config(server_id=0, **values)
-        if str(server_id).isdigit():
-            logger.info(u"PlexPy Servers :: Added existing Plex server to database: server_id %s." % server_id)
-            return server_id
-        else:
-            return False
+        return server_id
     except Exception as e:
         logger.warn(u"PlexPy Servers :: Unable to add existing server to database: %s." % e)
         return False
