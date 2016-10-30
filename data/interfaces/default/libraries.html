@@ -8,17 +8,6 @@
 
 <%def name="body()">
 <div class='container-fluid'>
-    % if config['update_section_ids'] == 1:
-    <div id="update_section_ids_message" style="text-align: center; margin-top: 20px;">
-        <i class="fa fa-exclamation-triangle"></i> PlexPy needs to update the Library IDs in your databse. Click the "<strong>Refresh libraries</strong>" button below to begin the update.
-    </div>
-    % elif config['update_section_ids'] == -1:
-    <div id="update_section_ids_message" style="text-align: center; margin-top: 20px;">
-        <i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes to hours depending on the size of your database.
-        <br />
-        You may leave this page and come back later.
-    </div>
-    % endif
     <div class='table-card-header'>
         <div class="header-bar">
             <span><i class="fa fa-book"></i> All Libraries</span>
@@ -31,15 +20,9 @@
                     <i class="fa fa-pencil"></i> Edit mode
                 </button>&nbsp
             </div>
-            % if config['update_section_ids'] == -1:
-            <div class="btn-group">
-                <button class="btn btn-dark refresh-libraries-button" id="refresh-libraries-list" disabled><i class="fa fa-refresh"></i> Refresh libraries</button>
-            </div>
-            % else:
             <div class="btn-group">
                 <button class="btn btn-dark refresh-libraries-button" id="refresh-libraries-list"><i class="fa fa-refresh"></i> Refresh libraries</button>
             </div>
-            % endif
             % endif
             <div class="btn-group colvis-button-bar"></div>
         </div>
@@ -192,14 +175,6 @@
 
     % if _session['user_group'] == 'admin':
     $("#refresh-libraries-list").click(function () {
-        if ("${config['update_section_ids']}" == "1") {
-            $('#update_section_ids_message').html(
-                '<i class="fa fa-refresh fa-spin"></i> PlexPy is updating library IDs in the database. This could take a few minutes to hours depending on the size of your database.' +
-                '<br />' + 
-                'You may leave this page and come back later.');
-            $(this).prop('disabled', true);
-        }
-
         $.ajax({
             url: 'refresh_libraries_list',
             cache: false,
