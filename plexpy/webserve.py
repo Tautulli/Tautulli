@@ -128,7 +128,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_server_list")
-    def discover(self, token=None, **kwargs):
+    def discover(self, token=None, all_servers=False, **kwargs):
         """ Get all your servers that are published to Plex.tv.
 
             ```
@@ -153,16 +153,18 @@ class WebInterface(object):
                      ]
             ```
         """
-        if token:
-            # Need to set token so result doesn't return http 401
-            plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
-            plexpy.CONFIG.write()
+        #if token:
+        #    # Need to set token so result doesn't return http 401
+        #    plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
+        #    plexpy.CONFIG.write()
 
-        plex_tv = plextv.PlexTV()
-        servers = plex_tv.discover()
+        all_servers == True if all_servers == 'true' else False
 
-        if servers:
-            return servers
+        plex_tv = plextv.PlexTV(token=token)
+        servers_list = plex_tv.discover(all_servers=all_servers)
+
+        if servers_list:
+            return servers_list
 
 
     ##### Home #####
@@ -3410,11 +3412,12 @@ class WebInterface(object):
         if hostname and port:
             logger.info('Attempting to retrieve server identity...')
 
-            scheme = 'https' if cloud else 'http'
+            scheme = 'https' if ssl else 'http'
             url = '{scheme}://{hostname}:{port}'.format(scheme=scheme, hostname=hostname, port=port)
             uri = '/identity'
 
-            request_handler = http_handler.HTTPHandler(urls=url)
+            request_handler = http_handler.HTTPHandler(urls=url,
+                                                       ssl_verify=False)
             request = request_handler.make_request(uri=uri,
                                                    request_type='GET',
                                                    output_format='xml')

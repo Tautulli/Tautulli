@@ -136,11 +136,10 @@ def set_server_config(server_id=None, **kwargs):
         return False
 
     # Check if the server is already in the databse
-    if not server_id:
-        server = get_servers(pms_identifier=pms_identifier)
-        if server[0]['id']:
-            logger.error(u"PlexPy Servers :: Unable to update server: server already in database.")
-            return 'Server already exists'
+    server = get_servers(pms_identifier=pms_identifier)[0]
+    if server['id'] != server_id:
+        logger.error(u"PlexPy Servers :: Unable to update server: server already in database.")
+        return 'Server already exists'
 
     keys = {'id': server_id or None,
             'pms_identifier': pms_identifier}

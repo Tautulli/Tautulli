@@ -35,7 +35,7 @@
                                 <input type="hidden" id="pms_plexpass" name="pms_plexpass" value="${server['pms_plexpass']}">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label for="pms_token">Plex Server Token</label>
+                                        <label for="pms_token">Plex.tv Account Token</label>
                                         <div class="row">
                                             <div class="col-md-8">
                                                 <div class="input-group">
@@ -49,8 +49,27 @@
                                         </div>
                                         <p class="help-block">Required: Token for Plex.tv authentication.</p>
                                     </div>
-                                    <% hide = 'inline' if server['pms_is_cloud'] else 'inline' %>
-                                    <div id="pms_local_settings" style="display: ${hide};">
+                                    <div class="form-group has-feedback">
+                                        <label for="pms_port">Select Plex Server</label>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <select class="form-control" id="pms_select">
+                                                    <option value="none"></option>
+                                                    % if server['id'] and server['pms_is_cloud']:
+                                                    <option value="${server['pms_identifier']}" selected>${server['pms_name']} (${server['pms_platform']})</option>
+                                                    % elif server['id']:
+                                                    <option value="${server['pms_identifier']}" selected>${server['pms_name']} (${server['pms_ip']}:${server['pms_port']})</option>
+                                                    % endif
+                                                </select>
+                                                <span class="form-control-feedback" id="pms-select-loading" aria-hidden="true" style="display: none; right: 20px;"></span>
+                                            </div>
+                                        </div>
+                                        <p class="help-block">Select a server or manually enter one below. Plex.tv token required.</p>
+                                    </div>
+                                </div>
+                                <% hide = 'none' if server['pms_is_cloud'] else 'inline' %>
+                                <div id="pms_local_settings" style="display: ${hide};">
+                                    <div class="col-md-12" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
                                         <div class="form-group has-feedback">
                                             <label for="pms_ip">Plex Server IP or Hostname</label>
                                             <div class="row">
@@ -88,7 +107,7 @@
                                             <label>
                                                 <input type="checkbox" data-id="pms_is_remote" class="checkboxes pms-settings" value="1" ${checked(server['pms_is_remote'])}> Remote Server
                                             </label>
-                                            <p class="help-block">Check this if your Plex Server is not on the same local network as PlexPy.</p>
+                                            <p class="help-block">Enable if your Plex Server is not on the same local network as PlexPy.</p>
                                             <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${server['pms_is_remote']}">
                                         </div>
                                         <div class="form-group">
@@ -263,6 +282,120 @@
     }
     checkCloud();
 
+    function getServerList(token) {
+        $("#pms-select-loading").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
+        $.ajax({
+            type: 'GET',
+            url: 'discover',
+            data: {
+                token: token,
+                all_servers: true
+            },
+            cache: false,
+            async: true,
+            success: function (result) {
+                if (!(result)) {
+                    $("#pms-select-loading").fadeOut('fast');
+                    return
+                }
+
+                $("#pms_select option[value!=none]").remove();
+                var pms_identifier = $("#pms_identifier").val();
+                var pms_ip = $("#pms_ip").val();
+
+                $.each(result, function (i, item) {
+                    var selected = (item.pms_identifier == pms_identifier && item.pms_ip == pms_ip) ? true : false;
+                    var label = (item.pms_is_cloud === 1) ? item.pms_platform : item.pms_ip + ':' + item.pms_port;
+                    $('#pms_select')
+                        .append($('<option></option>')
+                        .text(item.pms_name + ' (' + label + ')')
+                        .val(item.pms_identifier)
+                        .attr('data-pms_identifier', item.pms_identifier)
+                        .attr('data-pms_name', item.pms_name)
+                        .attr('data-pms_version', item.pms_version)
+                        .attr('data-pms_platform', item.pms_platform)
+                        .attr('data-pms_is_cloud', item.pms_is_cloud)
+                        .attr('data-pms_plexpass', item.pms_plexpass)
+                        .attr('data-pms_ip', item.pms_ip)
+                        .attr('data-pms_port', item.pms_port)
+                        .attr('data-pms_url', item.pms_url)
+                        .attr('data-pms_ssl', item.pms_ssl)
+                        .attr('data-pms_is_remote', item.pms_is_remote)
+                        .prop('selected', selected));
+                });
+                $("#pms-select-loading").fadeOut('fast');
+            }
+        })
+    }
+
+    if ($("#pms_token").val()) {
+        getServerList($("#pms_token").val());
+    }
+
+    $("#pms_select").change(function () {
+        var option = $("option:selected", this);
+
+        if (option.val() && option.val() != 'none') {
+            var pms_identifier = option.data('pms_identifier');
+            var pms_name = option.data('pms_name');
+            var pms_version = option.data('pms_version');
+            var pms_platform = option.data('pms_platform');
+            var pms_is_cloud = option.data('pms_is_cloud');
+            var pms_plexpass = option.data('pms_plexpass');
+            var pms_ip = option.data('pms_ip');
+            var pms_port = option.data('pms_port');
+            var pms_url = option.data('pms_url');
+            var pms_ssl = option.data('pms_ssl');
+            var pms_is_remote = option.data('pms_is_remote');
+
+            pms_is_cloud = (pms_is_cloud == '1') ? 1 : 0;
+            pms_ssl = (pms_ssl == '1') ? 1 : 0;
+            pms_is_remote = (pms_is_remote == '1') ? 1 : 0;
+
+            $("#pms_identifier").val(pms_identifier);
+            $("#pms_name").val(pms_name);
+            $("#pms_version").val(pms_version);
+            $("#pms_platform").val(pms_platform);
+            $("#pms_is_cloud").val(pms_is_cloud);
+            $("#pms_plexpass").val(pms_plexpass);
+            $("#pms_ip").val(pms_ip);
+            $("#pms_port").val(pms_port);
+            $("#pms_url").val(pms_url);
+            $('[data-id=pms_ssl]').prop('checked', pms_ssl);
+            $('[data-id=pms_is_remote]').prop('checked', pms_is_remote);
+            $('#pms_ssl').val(pms_ssl);
+            $('#pms_is_remote').val(pms_is_remote);
+
+            if (pms_is_cloud) {
+                $('#pms_local_settings').hide();
+            } else {
+                $('#pms_local_settings').show();
+            }
+
+            verifyServer();
+        } else {
+            $("#pms_identifier").val("");
+            $("#pms_name").val("");
+            $("#pms_version").val("");
+            $("#pms_platform").val("");
+            $("#pms_is_cloud").val(0);
+            $("#pms_plexpass").val(0);
+            $("#pms_ip").val("");
+            $("#pms_port").val(32400);
+            $("#pms_url").val("");
+            $('[data-id=pms_ssl]').prop('checked', false);
+            $('[data-id=pms_is_remote]').prop('checked', false);
+            $('#pms_ssl').val(0);
+            $('#pms_is_remote').val(0);
+
+            $('#pms_local_settings').show();
+            
+            server_verified = false
+            $("#pms-verify-status").html("");
+        }
+
+    });
+
     $('#delete-server-item').click(function () {
         var msg = 'Are you sure you want to delete the <strong>${server["pms_name"]}</strong> server?';
         var url = 'delete_server';
@@ -282,6 +415,7 @@
         }
     });
 
+        
     $('.pms-settings').change(function() {
         $("#pms_identifier").val("");
         $("#pms_url").val("");
@@ -319,10 +453,11 @@
                         $("#pms-token-status").html('<i class="fa fa-check"></i> ' + msg);
                         $("#pms_token").val(authToken);
                         $('#pms-auth-modal').modal('hide');
+                        loadUpdateDistros();
+                        getServerList(authToken);
                     } else {
                         $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> ' + msg);
                     }
-                    loadUpdateDistros();
                 }
             });
         } else {
@@ -341,6 +476,7 @@
     function verifyServer(_callback) {
         server_verified = false;
         $("#pms-verify-status").html('<i class="fa fa-refresh fa-spin"></i> Verifying server... Please Wait.')
+        $("#save-server-item").prop('disabled', true);
 
         var pms_token = $("#pms_token").val().trim();
         var pms_ip = $("#pms_ip").val().trim();
@@ -349,9 +485,9 @@
         var pms_is_remote = ($("#pms_is_remote").val() === "1") ? 1 : 0;
         var pms_is_cloud = ($("#pms_is_cloud").val() === "1") ? 1 : 0;
         if ((pms_token !== '') && (pms_ip !== '') && (pms_port !== '')) {
-            $("#pms-verify").html('<i class="fa fa-refresh fa-spin"></i>');
-            $('#pms-verify').fadeIn('fast');
+            $("#pms-verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
             $.ajax({
+                type: 'GET',
                 url: 'verify_server',
                 data: {
                     token: pms_token,
@@ -366,7 +502,7 @@
                 timeout: 10000,
                 error: function(jqXHR, textStatus, errorThrown) {
                     $("#pms-verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
-                    $("#pms-ip-group").addClass("has-error");
+                    $("#save-server-item").prop('disabled', false);
                 },
                 success: function (jqXHR) {
                     var server_identity = jqXHR;
@@ -379,8 +515,7 @@
                         $("#pms_plexpass").val(server_identity.pms_plexpass);
                         $("#pms_url").val(server_identity.pms_url);
 
-                        $("#pms-verify").html('<i class="fa fa-check"></i>');
-                        $('#pms-verify').fadeIn('fast');
+                        $("#pms-verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
                         $("#pms-verify-status").html('<i class="fa fa-check"></i> Server verified.')
 
                         server_verified = true;
@@ -389,6 +524,7 @@
                         $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Could not verify your server.')
                     }
 
+                    $("#save-server-item").prop('disabled', false);
                     afterVerify();
 
                     if (typeof _callback === "function") {
@@ -475,7 +611,7 @@
     });
 
     // Never send checkbox values directly, always substitute value in hidden input.
-    $('.checkboxes').click(function () {
+    $('.checkboxes').on('click change', function () {
         var configToggle = $(this).data('id');
         if ($(this).is(':checked')) {
             $('#' + configToggle).val(1);

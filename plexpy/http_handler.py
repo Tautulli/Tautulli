@@ -22,6 +22,7 @@ from urlparse import urljoin
 
 import certifi
 from requests.packages import urllib3
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 import plexpy
 import helpers
@@ -107,6 +108,7 @@ class HTTPHandler(object):
         if self.ssl_verify:
             session = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
         else:
+            urllib3.disable_warnings(InsecureRequestWarning)
             session = urllib3.PoolManager()
         part = partial(self._http_requests_urllib3, session=session)
 

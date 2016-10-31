@@ -498,20 +498,20 @@ class PlexTV(object):
             conn = []
             connections = device.getElementsByTagName('Connection')
 
-            server = {"pms_identifier": helpers.get_xml_attr(device, 'clientIdentifier'),
-                      "pms_name": helpers.get_xml_attr(device, 'name'),
-                      "pms_version": helpers.get_xml_attr(device, 'productVersion'),
-                      "pms_platform": helpers.get_xml_attr(device, 'platform'),
-                      "pms_presence": helpers.get_xml_attr(device, 'presence'),
-                      "pms_is_cloud": 1 if helpers.get_xml_attr(device, 'platform') == 'Cloud' else 0
+            server = {'pms_identifier': helpers.get_xml_attr(device, 'clientIdentifier'),
+                      'pms_name': helpers.get_xml_attr(device, 'name'),
+                      'pms_version': helpers.get_xml_attr(device, 'productVersion'),
+                      'pms_platform': helpers.get_xml_attr(device, 'platform'),
+                      'pms_presence': helpers.get_xml_attr(device, 'presence'),
+                      'pms_is_cloud': 1 if helpers.get_xml_attr(device, 'platform') == 'Cloud' else 0
                       }
 
             for c in connections:
-                server_details = {"protocol": helpers.get_xml_attr(c, 'protocol'),
-                                  "address": helpers.get_xml_attr(c, 'address'),
-                                  "port": helpers.get_xml_attr(c, 'port'),
-                                  "uri": helpers.get_xml_attr(c, 'uri'),
-                                  "local": helpers.get_xml_attr(c, 'local')
+                server_details = {'protocol': helpers.get_xml_attr(c, 'protocol'),
+                                  'address': helpers.get_xml_attr(c, 'address'),
+                                  'port': helpers.get_xml_attr(c, 'port'),
+                                  'uri': helpers.get_xml_attr(c, 'uri'),
+                                  'local': helpers.get_xml_attr(c, 'local')
                                   }
                 conn.append(server_details)
 
@@ -567,6 +567,8 @@ class PlexTV(object):
     def discover(self, all_servers=False):
         """ Query plex for all servers online. Returns the ones you own in a selectize format """
         servers = self.get_plextv_resources(include_https=True, output_format='xml')
+        plexpass = self.get_plexpass_status()
+
         clean_servers = []
 
         try:
@@ -601,13 +603,18 @@ class PlexTV(object):
                                     helpers.get_xml_attr(c, 'local') == '0':
                                     continue
 
-                            server = {'httpsRequired': helpers.get_xml_attr(d, 'httpsRequired'),
-                                      'clientIdentifier': helpers.get_xml_attr(d, 'clientIdentifier'),
-                                      'label': helpers.get_xml_attr(d, 'name'),
-                                      'ip': helpers.get_xml_attr(c, 'address'),
-                                      'port': helpers.get_xml_attr(c, 'port'),
-                                      'local': helpers.get_xml_attr(c, 'local'),
-                                      'value': helpers.get_xml_attr(c, 'address')
+                            server = {'pms_identifier': helpers.get_xml_attr(d, 'clientIdentifier'),
+                                      'pms_name': helpers.get_xml_attr(d, 'name'),
+                                      'pms_version': helpers.get_xml_attr(d, 'productVersion'),
+                                      'pms_platform': helpers.get_xml_attr(d, 'platform'),
+                                      'pms_presence': helpers.get_xml_attr(d, 'presence'),
+                                      'pms_is_cloud': 1 if helpers.get_xml_attr(d, 'platform') == 'Cloud' else 0,
+                                      'pms_plexpass': int(plexpass),
+                                      'pms_ip': helpers.get_xml_attr(c, 'address'),
+                                      'pms_port': helpers.get_xml_attr(c, 'port'),
+                                      'pms_url': helpers.get_xml_attr(c, 'uri'),
+                                      'pms_ssl': 0 if helpers.get_xml_attr(d, 'httpsRequired') == "0" else 1,
+                                      'pms_is_remote': 1 if helpers.get_xml_attr(c, 'local') == "0" else 0
                                       }
                             clean_servers.append(server)
 
