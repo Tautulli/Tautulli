@@ -202,16 +202,16 @@ def initialize(config_file):
             LATEST_VERSION = CURRENT_VERSION
 
         # Get the real PMS urls for SSL and remote access
-        if CONFIG.PMS_TOKEN and CONFIG.PMS_IP and CONFIG.PMS_PORT and CONFIG.REFRESH_SERVERS_ON_STARTUP:
+        if CONFIG.REFRESH_SERVERS_ON_STARTUP:
             servers.refresh_servers()
 
         # Refresh the users list on startup
-        if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
-            plextv.refresh_users()
+        if CONFIG.REFRESH_USERS_ON_STARTUP:
+            users.refresh_users()
 
         # Refresh the libraries list on startup
-        if CONFIG.PMS_IP and CONFIG.PMS_TOKEN and CONFIG.REFRESH_LIBRARIES_ON_STARTUP:
-            pmsconnect.refresh_libraries()
+        if CONFIG.REFRESH_LIBRARIES_ON_STARTUP:
+            libraries.refresh_libraries()
 
         # Store the original umask
         UMASK = os.umask(0)
@@ -334,9 +334,9 @@ def initialize_scheduler():
 
             schedule_job(servers.refresh_servers, 'Refresh servers list',
                          hours=server_hours, minutes=0, seconds=0)
-            schedule_job(plextv.refresh_users, 'Refresh users list',
+            schedule_job(users.refresh_users, 'Refresh users list',
                          hours=user_hours, minutes=0, seconds=0)
-            schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
+            schedule_job(libraries.refresh_libraries, 'Refresh libraries list',
                          hours=library_hours, minutes=0, seconds=0)
 
             schedule_job(activity_pinger.check_server_response, 'Check server response',
@@ -354,9 +354,9 @@ def initialize_scheduler():
 
             schedule_job(servers.refresh_servers, 'Refresh servers list',
                          hours=0, minutes=0, seconds=0)
-            schedule_job(plextv.refresh_users, 'Refresh users list',
+            schedule_job(users.refresh_users, 'Refresh users list',
                          hours=0, minutes=0, seconds=0)
-            schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
+            schedule_job(libraries.refresh_libraries, 'Refresh libraries list',
                          hours=0, minutes=0, seconds=0)
 
             # Schedule job to reconnect websocket
@@ -1132,11 +1132,11 @@ def dbcheck():
             'ALTER TABLE poster_urls ADD COLUMN pms_identifier TEXT'
         )
 
-    # Add "Local" user to database as default unauthenticated user.
-    result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
-    if not result.fetchone():
-        logger.debug(u"User 'Local' does not exist. Adding user.")
-        c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
+    ## Add "Local" user to database as default unauthenticated user.
+    #result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
+    #if not result.fetchone():
+    #    logger.debug(u"User 'Local' does not exist. Adding user.")
+    #    c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
 
     conn_db.commit()
     c_db.close()

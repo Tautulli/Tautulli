@@ -348,11 +348,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def libraries(self, **kwargs):
-        config = {
-            "update_section_ids": plexpy.CONFIG.UPDATE_SECTION_IDS
-        }
-
-        return serve_template(templatename="libraries.html", title="Libraries", config=config)
+        return serve_template(templatename="libraries.html", title="Libraries")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -467,7 +463,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def refresh_libraries_list(self, **kwargs):
         """ Refresh the libraries list on it's own thread. """
-        threading.Thread(target=pmsconnect.refresh_libraries).start()
+        threading.Thread(target=libraries.refresh_libraries).start()
         logger.info(u"Manual libraries list refresh requested.")
         return True
 
@@ -1085,7 +1081,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def refresh_users_list(self, **kwargs):
         """ Refresh the users list on it's own thread. """
-        threading.Thread(target=plextv.refresh_users).start()
+        threading.Thread(target=users.refresh_users).start()
         logger.info(u"Manual users list refresh requested.")
         return True
 
@@ -2717,11 +2713,11 @@ class WebInterface(object):
 
         # Refresh users table if our server IP changes.
         if refresh_libraries:
-            threading.Thread(target=pmsconnect.refresh_libraries).start()
+            threading.Thread(target=libraries.refresh_libraries).start()
 
         # Refresh users table if our server IP changes.
         if refresh_users:
-            threading.Thread(target=plextv.refresh_users).start()
+            threading.Thread(target=users.refresh_users).start()
 
         return {'result': 'success', 'message': 'Settings saved.'}
 

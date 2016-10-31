@@ -48,72 +48,23 @@ def get_server_friendly_name():
     return server_name
 
 
-def refresh_libraries():
-    logger.info(u"PlexPy Pmsconnect :: Requesting libraries list refresh...")
-
-    server_id = plexpy.CONFIG.PMS_IDENTIFIER
-    if not server_id:
-        logger.error(u"PlexPy Pmsconnect :: No PMS identifier, cannot refresh libraries. Verify server in settings.")
-        return
-
-    library_sections = PmsConnect().get_library_details()
-
-    if library_sections:
-        monitor_db = database.MonitorDatabase()
-
-        library_keys = []
-        new_keys = []
-
-        for section in library_sections:
-            section_keys = {'server_id': server_id,
-                            'section_id': section['section_id']}
-            section_values = {'server_id': server_id,
-                              'section_id': section['section_id'],
-                              'section_name': section['section_name'],
-                              'section_type': section['section_type'],
-                              'thumb': section['thumb'],
-                              'art': section['art'],
-                              'count': section['count'],
-                              'parent_count': section.get('parent_count', None),
-                              'child_count': section.get('child_count', None),
-                              }
-
-            result = monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
-
-            library_keys.append(section['section_id'])
-
-            if result == 'insert':
-                new_keys.append(section['section_id'])
-
-        if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run_wizard']:
-            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
-            plexpy.CONFIG.write()
-        else:
-            new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
-            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
-            plexpy.CONFIG.write()
-
-        logger.info(u"PlexPy Pmsconnect :: Libraries list refreshed.")
-        return True
-    else:
-        logger.warn(u"PlexPy Pmsconnect :: Unable to refresh libraries list.")
-        return False
-
-
 class PmsConnect(object):
     """
     Retrieve data from Plex Server
     """
 
-    def __init__(self, token=None):
-        if plexpy.CONFIG.PMS_URL:
-            self.urls = plexpy.CONFIG.PMS_URL
-        else:
-            self.urls = 'http://{hostname}:{port}'.format(hostname=plexpy.CONFIG.PMS_IP,
+    def __init__(self, url=None, token=None):
+        self.url = url
+        self.token = token
+
+        if not self.url and plexpy.CONFIG.PMS_URL:
+            self.url = plexpy.CONFIG.PMS_URL
+        elif not self.url:
+            self.url = 'http://{hostname}:{port}'.format(hostname=plexpy.CONFIG.PMS_IP,
                                                           port=plexpy.CONFIG.PMS_PORT)
         self.timeout = plexpy.CONFIG.PMS_TIMEOUT
 
-        if not token:
+        if not self.token:
             # Check if we should use the admin token, or the guest server token
             if session.get_session_user_id():
                 user_data = users.Users()
@@ -121,10 +72,8 @@ class PmsConnect(object):
                 self.token = user_tokens['server_token']
             else:
                 self.token = plexpy.CONFIG.PMS_TOKEN
-        else:
-            self.token = token
 
-        self.request_handler = http_handler.HTTPHandler(urls=self.urls,
+        self.request_handler = http_handler.HTTPHandler(urls=self.url,
                                                         token=self.token,
                                                         timeout=self.timeout)
 

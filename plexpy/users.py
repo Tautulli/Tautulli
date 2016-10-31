@@ -23,13 +23,88 @@ import datatables
 import helpers
 import logger
 import plextv
+import pmsconnect
+import servers
 import session
+
+
+def refresh_users(pms_identifier=None):
+    logger.info(u"PlexPy Users :: Requesting users list refresh...")
+
+    servers_list = servers.get_servers(pms_identifier=pms_identifier)
+
+    server_users = []
+    for server in servers_list:
+        if server['id']:
+            plex_tv = plextv.PlexTV(token=server['pms_token'])
+            users_list = plex_tv.get_full_users_list()
+            server_users.append((server, users_list))
+
+    monitor_db = database.MonitorDatabase()
+
+    if not server_users:
+        logger.warn(u"PlexPy Users :: Unable to refresh users list.")
+        return False
+
+    for server, users_list in server_users:
+        pms_identifier = server['pms_identifier']
+        pms_url = server['pms_url']
+
+        for user in users_list:
+            shared_libraries = ''
+
+            user_data = Users(pms_identifier=pms_identifier, user_id=user['user_id'])
+            user_tokens = user_data.get_tokens()
+
+            if user_tokens and user_tokens['server_token']:
+                pms_connect = pmsconnect.PmsConnect(url=pms_url, token=user_tokens['server_token'])
+                library_details = pms_connect.get_server_children()
+
+                if library_details:
+                    shared_libraries = ';'.join(d['section_id'] for d in library_details['libraries_list'])
+
+            keys = {'user_id': user['user_id'],
+                    'pms_identifier': pms_identifier
+                    }
+            values = {'username': user['username'],
+                      'thumb': user['thumb'],
+                      'email': user['email'],
+                      'is_home_user': user['is_home_user'],
+                      'is_allow_sync': user['is_allow_sync'],
+                      'is_restricted': user['is_restricted'],
+                      'shared_libraries': shared_libraries,
+                      'filter_all': user['filter_all'],
+                      'filter_movies': user['filter_movies'],
+                      'filter_tv': user['filter_tv'],
+                      'filter_music': user['filter_music'],
+                      'filter_photos': user['filter_photos']
+                      }
+
+            monitor_db.upsert(table_name='users', key_dict=keys, value_dict=values)
+
+        # Make sure there is a Local user
+        keys = {'user_id': 0, 'pms_identifier': pms_identifier}
+        values = {'username': 'Local'}
+        monitor_db.upsert(table_name='users', key_dict=keys, value_dict=values)
+
+    logger.info(u"PlexPy Users :: Users list refreshed.")
+
+    return True
 
 
 class Users(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, pms_identifier=None, user_id=None, user=None, email=None):
+        self.db = database.MonitorDatabase()
+
+        self.pms_identifier = pms_identifier
+        self.user_id = user_id
+        self.user = user
+        self.email = email
+
+        if self.pms_identifier:
+            self.pms_where = 'pms_identifier = ?'
+            self.pms_where_args = [self.pms_identifier]
 
     def get_datatables_list(self, kwargs=None):
         default_return = {'recordsFiltered': 0,
@@ -357,7 +432,7 @@ class Users(object):
             logger.warn(u"PlexPy Users :: Unable to retrieve user %s from database. Requesting user list refresh."
                         % user_id if user_id else user)
             # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
-            plextv.refresh_users()
+            refresh_users()
 
             user_details = get_user_details(user_id=user_id, user=user)
 
@@ -626,24 +701,22 @@ class Users(object):
         return session.friendly_name_to_username(result)
     
     def get_tokens(self, user_id=None):
-        if user_id:
-            try:
-                monitor_db = database.MonitorDatabase()
-                query = 'SELECT allow_guest, user_token, server_token FROM users ' \
-                        'WHERE user_id = ? AND deleted_user = 0'
-                result = monitor_db.select_single(query, args=[user_id])
-                if result:
-                    tokens = {'allow_guest': result['allow_guest'],
-                              'user_token': result['user_token'],
-                              'server_token': result['server_token']
-                              }
-                    return tokens
-                else:
-                    return None
-            except:
-                return None
+        if not self.user_id:
+            return
 
-        return None
+        try:
+            query = 'SELECT allow_guest, user_token, server_token FROM users ' \
+                    'WHERE user_id = ? AND deleted_user = 0'
+            args = [self.user_id]
+
+            if self.pms_identifier:
+                query += ' AND ' + self.pms_where
+                args += self.pms_where_args
+
+            result = self.db.select_single(query=query, args=args)
+            return result
+        except:
+            return None
 
     def get_filters(self, user_id=None):
         import urlparse

@@ -72,7 +72,7 @@ def user_login(username=None, password=None):
 
                 if result:
                     # Refresh the users list to make sure we have all the correct permissions.
-                    plextv.refresh_users()
+                    users.refresh_users()
                     # Successful login
                     return True
                 else:

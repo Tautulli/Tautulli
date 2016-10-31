@@ -31,62 +31,6 @@ import pmsconnect
 import session
 
 
-def refresh_users():
-    logger.info(u"PlexPy PlexTV :: Requesting users list refresh...")
-    result = PlexTV().get_full_users_list()
-
-    monitor_db = database.MonitorDatabase()
-    user_data = users.Users()
-
-    if result:
-        for item in result:
-
-            shared_libraries = ''
-            user_tokens = user_data.get_tokens(user_id=item['user_id'])
-            if user_tokens and user_tokens['server_token']:
-                pms_connect = pmsconnect.PmsConnect(token=user_tokens['server_token'])
-                library_details = pms_connect.get_server_children()
-
-                if library_details:
-                    shared_libraries = ';'.join(d['section_id'] for d in library_details['libraries_list'])
-                else:
-                    shared_libraries = ''
-
-            control_value_dict = {"user_id": item['user_id']}
-            new_value_dict = {"username": item['username'],
-                              "thumb": item['thumb'],
-                              "email": item['email'],
-                              "is_home_user": item['is_home_user'],
-                              "is_allow_sync": item['is_allow_sync'],
-                              "is_restricted": item['is_restricted'],
-                              "shared_libraries": shared_libraries,
-                              "filter_all": item['filter_all'],
-                              "filter_movies": item['filter_movies'],
-                              "filter_tv": item['filter_tv'],
-                              "filter_music": item['filter_music'],
-                              "filter_photos": item['filter_photos']
-                              }
-
-            # Check if we've set a custom avatar if so don't overwrite it.
-            if item['user_id']:
-                avatar_urls = monitor_db.select('SELECT thumb, custom_avatar_url '
-                                                'FROM users WHERE user_id = ?',
-                                                [item['user_id']])
-                if avatar_urls:
-                    if not avatar_urls[0]['custom_avatar_url'] or \
-                            avatar_urls[0]['custom_avatar_url'] == avatar_urls[0]['thumb']:
-                        new_value_dict['custom_avatar_url'] = item['thumb']
-                else:
-                    new_value_dict['custom_avatar_url'] = item['thumb']
-
-            monitor_db.upsert('users', new_value_dict, control_value_dict)
-
-        logger.info(u"PlexPy PlexTV :: Users list refreshed.")
-        return True
-    else:
-        logger.warn(u"PlexPy PlexTV :: Unable to refresh users list.")
-        return False
-
 def get_server_resources(pms_token=None, pms_identifier='', pms_ip='', pms_port=32400, pms_ssl=0, pms_is_remote=0, pms_is_cloud=0, **kwargs):
     logger.info(u"PlexPy PlexTV :: Requesting resources for server...")
 
@@ -200,11 +144,13 @@ class PlexTV(object):
     def __init__(self, username=None, password=None, token=None):
         self.username = username
         self.password = password
+        self.token = token
+
         self.urls = 'https://plex.tv'
         self.timeout = plexpy.CONFIG.PMS_TIMEOUT
         self.ssl_verify = plexpy.CONFIG.VERIFY_SSL_CERT
 
-        if not token:
+        if not self.token:
             # Check if we should use the admin token, or the guest server token
             if session.get_session_user_id():
                 user_data = users.Users()
@@ -212,8 +158,10 @@ class PlexTV(object):
                 self.token = user_tokens['server_token']
             else:
                 self.token = plexpy.CONFIG.PMS_TOKEN
-        else:
-            self.token = token
+
+        if not self.token:
+            logger.error(u"PlexPy PlexTV :: PlexTV called, but no token provided.")
+            return
 
         self.request_handler = http_handler.HTTPHandler(urls=self.urls,
                                                         token=self.token,

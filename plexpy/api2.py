@@ -32,9 +32,11 @@ import xmltodict
 import plexpy
 import config
 import database
+import libraries
 import logger
 import plextv
 import pmsconnect
+import users
 
 
 class API2:
@@ -329,14 +331,13 @@ class API2:
 
     def refresh_libraries_list(self, **kwargs):
         """ Refresh the PlexPy libraries list."""
-        data = pmsconnect.refresh_libraries()
+        data = libraries.refresh_libraries()
         self._api_result_type = 'success' if data else 'error'
-
         return data
 
     def refresh_users_list(self, **kwargs):
         """ Refresh the PlexPy users list."""
-        data = plextv.refresh_users()
+        data = users.refresh_users()
         self._api_result_type = 'success' if data else 'error'
 
         return data

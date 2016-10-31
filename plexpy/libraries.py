@@ -24,13 +24,78 @@ import helpers
 import logger
 import plextv
 import pmsconnect
+import servers
 import session
+
+
+def refresh_libraries(pms_identifier=None):
+    logger.info(u"PlexPy Libraries :: Requesting libraries list refresh...")
+
+    servers_list = servers.get_servers(pms_identifier=pms_identifier)
+
+    server_libraries = []
+    for server in servers_list:
+        if server['id']:
+            pms_connect = pmsconnect.PmsConnect(url=server['pms_url'], token=server['pms_token'])
+            libraries_list = pms_connect.get_library_details()
+            server_libraries.append((server, libraries_list))
+
+    monitor_db = database.MonitorDatabase()
+
+    if not server_libraries:
+        logger.warn(u"PlexPy Libraries :: Unable to refresh libraries list.")
+        return False
+
+    for server, libraries_list in server_libraries:
+        pms_identifier = server['pms_identifier']
+
+        #library_keys = []
+        #new_keys = []
+
+        for section in libraries_list:
+            keys = {'section_id': section['section_id'],
+                    'pms_identifier': pms_identifier
+                    }
+            values = {'section_name': section['section_name'],
+                      'section_type': section['section_type'],
+                      'thumb': section['thumb'],
+                      'art': section['art'],
+                      'count': section['count'],
+                      'parent_count': section.get('parent_count', None),
+                      'child_count': section.get('child_count', None),
+                      }
+
+            result = monitor_db.upsert(table_name='library_sections', key_dict=keys, value_dict=values)
+
+            #library_keys.append(library['section_id'])
+
+            #if result == 'insert':
+            #    new_keys.append(section['section_id'])
+
+        #if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run_wizard']:
+        #    plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
+        #    plexpy.CONFIG.write()
+        #else:
+        #    new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
+        #    plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
+        #    plexpy.CONFIG.write()
+
+    logger.info(u"PlexPy Libraries :: Libraries list refreshed.")
+
+    return True
 
 
 class Libraries(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, pms_identifier=None, section_id=None):
+        self.db = database.MonitorDatabase()
+
+        self.pms_identifier = pms_identifier
+        self.section_id = section_id
+
+        if self.pms_identifier:
+            self.pms_where = 'pms_identifier = ?'
+            self.pms_where_args = [self.pms_identifier]
 
     def get_datatables_list(self, kwargs=None):
         default_return = {'recordsFiltered': 0,
@@ -531,7 +596,7 @@ class Libraries(object):
             logger.warn(u"PlexPy Libraries :: Unable to retrieve library %s from database. Requesting library list refresh."
                         % section_id)
             # Let's first refresh the libraries list to make sure the library isn't newly added and not in the db yet
-            pmsconnect.refresh_libraries()
+            refresh_libraries()
 
             library_details = get_library_details(section_id=section_id)
 
