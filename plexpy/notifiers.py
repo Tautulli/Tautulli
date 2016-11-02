@@ -1018,7 +1018,8 @@ class EMAIL(Notifier):
                          {'label': 'Enable HTML Support',
                           'value': self.config['html_support'],
                           'name': 'email_html_support',
-                          'description': 'Style your messages using  HTML tags.',
+                          'description': 'Style your messages using  HTML tags. '
+                                         'Line breaks (&lt;br&gt;) will be inserted automatically.',
                           'input_type': 'checkbox'
                           }
                          ]
