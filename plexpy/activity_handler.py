@@ -303,71 +303,52 @@ class TimelineHandler(object):
                     metadata = self.get_metadata()
                     if metadata:
                         grandparent_rating_key = int(metadata['grandparent_rating_key'])
+                        parent_rating_key = int(metadata['parent_rating_key'])
+                        
+                        grandparent_set = RECENTLY_ADDED_QUEUE.get(grandparent_rating_key, set())
+                        grandparent_set.add(parent_rating_key)
+                        RECENTLY_ADDED_QUEUE[grandparent_rating_key] = grandparent_set
+
+                        parent_set = RECENTLY_ADDED_QUEUE.get(parent_rating_key, set())
+                        parent_set.add(rating_key)
+                        RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
 
                         logger.debug(u"PlexPy TimelineHandler :: Library item %s (grandparent %s) added to recently added queue."
                                      % (str(rating_key), str(grandparent_rating_key)))
-                        RECENTLY_ADDED_QUEUE[grandparent_rating_key] = RECENTLY_ADDED_QUEUE.get(grandparent_rating_key, []) + [(media_type, rating_key)]
 
                 elif media_type in ('season', 'album'):
                     metadata = self.get_metadata()
                     if metadata:
                         parent_rating_key = int(metadata['parent_rating_key'])
 
+                        parent_set = RECENTLY_ADDED_QUEUE.get(parent_rating_key, set())
+                        parent_set.add(rating_key)
+                        RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
+
                         logger.debug(u"PlexPy TimelineHandler :: Library item %s (parent %s) added to recently added queue."
                                      % (str(rating_key), str(parent_rating_key)))
-                        RECENTLY_ADDED_QUEUE[parent_rating_key] = RECENTLY_ADDED_QUEUE.get(parent_rating_key, []) + [(media_type, rating_key)]
 
                 else:
+                    queue_set = RECENTLY_ADDED_QUEUE.get(rating_key, set())
+                    RECENTLY_ADDED_QUEUE[rating_key] = queue_set
+
                     logger.debug(u"PlexPy TimelineHandler :: Library item %s added to recently added queue." % str(rating_key))
-                    RECENTLY_ADDED_QUEUE[rating_key] = RECENTLY_ADDED_QUEUE.get(rating_key, []) + [(media_type, rating_key)]
 
-            if state_type == 'processed' and media_type and section_id > 0 and metadata_state is None and rating_key in RECENTLY_ADDED_QUEUE:
+            if state_type == 'processed' and media_type in ('movie', 'show', 'artist') and section_id > 0 and metadata_state is None:
                 logger.debug(u"PlexPy TimelineHandler :: Library item %s done processing metadata." % str(rating_key))
-                child_keys = RECENTLY_ADDED_QUEUE.pop(rating_key)
 
-                def notify_keys(keys, **kwargs):
-                    for key in keys: self.on_created(key, **kwargs)
+                child_keys = RECENTLY_ADDED_QUEUE.pop(rating_key, [])
 
-                if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED:
-                    media_type_dict = {}
-                    for type, key in child_keys:
-                        media_type_dict[type] = media_type_dict.get(type, []) + [key]
-
-                    if len(media_type_dict.get('episode', [])) > 1:
-                        if len(media_type_dict.get('season', [])) > 1:
-                            if media_type_dict.get('show', []):
-                                notify_keys(media_type_dict['show'],
-                                            child_keys=media_type_dict.get('season', []),
-                                            grandchild_keys=media_type_dict.get('episode', []))
-                            else:
-                                notify_keys(media_type_dict['season'],
-                                            child_keys=media_type_dict.get('episode', []))
-                        elif media_type_dict.get('season', []):
-                            notify_keys(media_type_dict['season'],
-                                        child_keys=media_type_dict.get('episode', []))
-                        else:
-                            notify_keys(media_type_dict['episode'])
-                    else:
-                        notify_keys(media_type_dict.get('episode', []))
-
-                    if len(media_type_dict.get('track', [])) > 1:
-                        if len(media_type_dict.get('album', [])) > 1:
-                            if media_type_dict.get('artist', []):
-                                notify_keys(media_type_dict['artist'],
-                                            child_keys=media_type_dict.get('album', []),
-                                            grandchild_keys=media_type_dict.get('track', []))
-                            else:
-                                notify_keys(media_type_dict['album'],
-                                            child_keys=media_type_dict.get('track', []))
-                        elif media_type_dict.get('album', []):
-                            notify_keys(media_type_dict['album'],
-                                        child_keys=media_type_dict.get('track', []))
-                        else:
-                            notify_keys(media_type_dict['track'])
-                    else:
-                        notify_keys(media_type_dict.get('track', []))
-
-                    notify_keys(media_type_dict.get('movie', []))
+                if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and len(child_keys) > 1:
+                    self.on_created(rating_key, child_keys=child_keys)
 
                 else:
-                    notify_keys([key for type, key in child_keys if type in ('movie', 'episode', 'track')])
+                    for child_key in child_keys:
+                        grandchild_keys = RECENTLY_ADDED_QUEUE.pop(child_key, [])
+
+                        if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT and len(grandchild_keys) > 1:
+                            self.on_created(child_key, child_keys=grandchild_keys)
+
+                        else:
+                            for grandchild_key in grandchild_keys:
+                                self.on_created(grandchild_key)

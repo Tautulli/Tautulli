@@ -257,13 +257,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         server_uptime = 'N/A'
 
     # Get metadata for the item
+    pms_connect = pmsconnect.PmsConnect()
     if session:
         rating_key = session['rating_key']
+        metadata = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
     elif timeline:
         rating_key = timeline['rating_key']
-
-    pms_connect = pmsconnect.PmsConnect()
-    metadata = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
+        metadata = timeline
 
     if not metadata:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
@@ -353,65 +353,46 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
     else:
         full_title = metadata['title']
 
-    # Fix metadata params for grouped recently added
-    show_name = metadata['grandparent_title']
-    episode_name = metadata['title']
-    artist_name = metadata['grandparent_title']
-    album_name = metadata['parent_title']
-    track_name = metadata['title']
-    season_num = metadata['parent_media_index'].zfill(1)
-    season_num00 = metadata['parent_media_index'].zfill(2)
-    episode_num = metadata['media_index'].zfill(1)
-    episode_num00 = metadata['media_index'].zfill(2)
-    track_num = metadata['media_index'].zfill(1)
-    track_num00 = metadata['media_index'].zfill(2)
+    if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and metadata['media_type'] in ('show', 'artist'):
+        show_name = metadata['title']
+        episode_name = ''
+        artist_name = metadata['title']
+        album_name = ''
+        track_name = ''
 
-    if notify_action == 'on_created' and plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED and metadata['media_type'] != 'movie':
-        if metadata['media_type'] in ('episode', 'track'):
-            show_name = metadata['grandparent_title']
-            episode_name = metadata['title']
-            artist_name = metadata['grandparent_title']
-            album_name = metadata['parent_title']
-            track_name = metadata['title']
-            season_num = metadata['parent_media_index'].zfill(1)
-            season_num00 = metadata['parent_media_index'].zfill(2)
-            episode_num = metadata['media_index'].zfill(1)
-            episode_num00 = metadata['media_index'].zfill(2)
-            track_num = metadata['media_index'].zfill(1)
-            track_num00 = metadata['media_index'].zfill(2)
+        num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
+                                        for d in child_metadata if d['parent_rating_key'] == rating_key])
+        season_num, season_num00 = num, num00
 
-        elif metadata['media_type'] in ('season', 'album'):
-            show_name = metadata['parent_title']
-            episode_name = ''
-            artist_name = metadata['parent_title']
-            album_name = metadata['title']
-            track_name = ''
-            season_num = metadata['media_index'].zfill(1)
-            season_num00 = metadata['media_index'].zfill(2)
+        episode_num, episode_num00 = '', ''
+        track_num, track_num00 = '', ''
 
-            num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
-                                            for d in child_metadata if d['parent_rating_key'] == rating_key])
-            episode_num, episode_num00 = num, num00
-            track_num, track_num00 = num, num00
+    elif plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT and metadata['media_type'] in ('season', 'album'):
+        show_name = metadata['parent_title']
+        episode_name = ''
+        artist_name = metadata['parent_title']
+        album_name = metadata['title']
+        track_name = ''
+        season_num = metadata['media_index'].zfill(1)
+        season_num00 = metadata['media_index'].zfill(2)
 
-        elif metadata['media_type'] in ('show', 'artist'):
-            show_name = metadata['title']
-            episode_name = ''
-            artist_name = metadata['title']
-            album_name = ''
-            track_name = ''
+        num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
+                                        for d in child_metadata if d['parent_rating_key'] == rating_key])
+        episode_num, episode_num00 = num, num00
+        track_num, track_num00 = num, num00
 
-            num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
-                                            for d in child_metadata if d['parent_rating_key'] == rating_key])
-            season_num, season_num00 = num, num00
-
-            num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
-                                            for d in grandchild_metadata if d['grandparent_rating_key'] == rating_key])
-            episode_num, episode_num00 = num, num00
-            track_num, track_num00 = num, num00
-
-        else:
-            pass
+    else:
+        show_name = metadata['grandparent_title']
+        episode_name = metadata['title']
+        artist_name = metadata['grandparent_title']
+        album_name = metadata['parent_title']
+        track_name = metadata['title']
+        season_num = metadata['parent_media_index'].zfill(1)
+        season_num00 = metadata['parent_media_index'].zfill(2)
+        episode_num = metadata['media_index'].zfill(1)
+        episode_num00 = metadata['media_index'].zfill(2)
+        track_num = metadata['media_index'].zfill(1)
+        track_num00 = metadata['media_index'].zfill(2)
 
     available_params = {# Global paramaters
                         'plexpy_version': common.VERSION_NUMBER,
@@ -669,20 +650,23 @@ def strip_tag(data, agent_id=None):
 
 
 def format_group_index(group_keys):
+    group_keys = sorted(group_keys)
+
     num = []
     num00 = []
 
     for k, g in groupby(enumerate(group_keys), lambda (i, x): i-x):
         group = map(itemgetter(1), g)
+        g_min, g_max = min(group), max(group)
 
-        if len(group) > 1:
-            num.append('{0}-{1}'.format(str(min(group)).zfill(1), str(max(group)).zfill(1)))
-            num00.append('{0}-{1}'.format(str(min(group)).zfill(2), str(max(group)).zfill(2)))
+        if g_min == g_max:
+            num.append('{0:01d}'.format(g_min))
+            num00.append('{0:02d}'.format(g_min))
         else:
-            num.append(str(group[0]).zfill(1))
-            num00.append(str(group[0]).zfill(2))
+            num.append('{0:01d}-{1:01d}'.format(g_min, g_max))
+            num00.append('{0:02d}-{1:02d}'.format(g_min, g_max))
 
-    return ','.join(sorted(num)) or '0', ','.join(sorted(num00)) or '00'
+    return ','.join(num) or '0', ','.join(num00) or '00'
 
 
 def get_poster_info(metadata):

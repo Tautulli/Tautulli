@@ -984,11 +984,20 @@
 
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="notify_group_recently_added" id="notify_group_recently_added" value="1" ${config['notify_group_recently_added']}> Group notifications for recently added TV Shows or Music
+                                <input type="checkbox" name="notify_group_recently_added_parent" id="notify_group_recently_added_parent" value="1" ${config['notify_group_recently_added_parent']}> Group Notifications into Season or Album
                             </label>
                             <p class="help-block">
-                                Enable to only send one TV Show/Season or Artist/Album notification for a batch of recently added media. Movies are unaffected.<br />
-                                Note: When grouped, numeric ranges will be shown (e.g. S01E01-03), but specific episode/track metadata will be unavailable.
+                                Enable to only send one season or album notification when multiple episodes or tracks are added. Movies, single episodes, and single tracks are unaffected.<br />
+                                Note: An episode/track range can be shown (e.g. 01-12), but all other episode/track metadata will be unavailable.
+                            </p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_group_recently_added_grandparent" id="notify_group_recently_added_grandparent" value="1" ${config['notify_group_recently_added_grandparent']}> Group Notifications into TV Show or Artist
+                            </label>
+                            <p class="help-block">
+                                Enable to only send one TV show or artist notification when multiple seasons or albums are added. Movies, single episodes, and single tracks are unaffected.<br />
+                                Note: A season range can be shown (e.g. 1-3), but all other season/episode/album/track metadata will be unavailable.
                             </p>
                         </div>
 

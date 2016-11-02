@@ -314,7 +314,9 @@ _CONFIG_DEFINITIONS = {
     'NMA_ON_NEWDEVICE': (int, 'NMA', 0),
     'NOTIFICATION_THREADS': (int, 'Advanced', 2),
     'NOTIFY_CONSECUTIVE': (int, 'Monitoring', 1),
-    'NOTIFY_GROUP_RECENTLY_ADDED': (int, 'Monitoring', 1),
+    'NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 0),
+    'NOTIFY_GROUP_RECENTLY_ADDED_PARENT': (int, 'Monitoring', 1),
+    'NOTIFY_GROUP_RECENTLY_ADDED': (int, 'Monitoring', 0),
     'NOTIFY_UPLOAD_POSTERS': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED': (int, 'Monitoring', 0),
     'NOTIFY_RECENTLY_ADDED_GRANDPARENT': (int, 'Monitoring', 0),
@@ -841,6 +843,8 @@ class Config(object):
             self.NOTIFY_ON_WATCHED_SUBJECT_TEXT = rep(self.NOTIFY_ON_WATCHED_SUBJECT_TEXT)
             self.NOTIFY_ON_WATCHED_BODY_TEXT = rep(self.NOTIFY_ON_WATCHED_BODY_TEXT)
             self.NOTIFY_SCRIPTS_ARGS_TEXT = rep(self.NOTIFY_SCRIPTS_ARGS_TEXT)
+
+            self.NOTIFY_GROUP_RECENTLY_ADDED_PARENT = self.NOTIFY_GROUP_RECENTLY_ADDED
 
             self.MONITORING_USE_WEBSOCKET = 1
             self.HTTP_PROXY = 1
