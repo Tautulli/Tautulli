@@ -32,7 +32,7 @@
                                         <label>${item['label']}</label>
                                         <p class="help-block">${item['description'] | n}</p>
                                     </div>
-                                    % elif item['input_type'] == 'text' or item['input_type'] == 'number' or item['input_type'] == 'password':
+                                    % elif item['input_type'] == 'text' or item['input_type'] == 'password':
                                     <div class="form-group">
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
@@ -41,6 +41,16 @@
                                                 % if item['name'] == 'osx_notify_app':
                                                 <a href="javascript:void(0)" id="osxnotifyregister">Register</a>
                                                 % endif
+                                            </div>
+                                        </div>
+                                        <p class="help-block">${item['description'] | n}</p>
+                                    </div>
+                                    % elif item['input_type'] == 'number':
+                                    <div class="form-group">
+                                        <label for="${item['name']}">${item['label']}</label>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30">
                                             </div>
                                         </div>
                                         <p class="help-block">${item['description'] | n}</p>

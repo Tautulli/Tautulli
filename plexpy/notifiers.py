@@ -1756,7 +1756,9 @@ class PLEX(Notifier):
     """
     _DEFAULT_CONFIG = {'hosts': '',
                        'username': '',
-                       'password': ''
+                       'password': '',
+                       'display_time': 5,
+                       'image': ''
                        }
 
     def _sendhttp(self, host, command):
@@ -1788,7 +1790,15 @@ class PLEX(Notifier):
 
         hosts = [x.strip() for x in self.config['hosts'].split(',')]
 
-        display_time = "3000"  # in ms
+        if self.config['display_time'] > 0:
+            display_time = 1000 * self.config['display_time']  # in ms
+        else:
+            display_time = 5000
+
+        if self.config['image']:
+            image = self.config['image']
+        else:
+            image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/favicon.png"))
 
         for host in hosts:
             logger.info(u"PlexPy Notifiers :: Sending notification command to Plex Home Theater @ " + host)
@@ -1796,12 +1806,12 @@ class PLEX(Notifier):
                 version = self._sendjson(host, 'Application.GetProperties', {'properties': ['version']})['version']['major']
 
                 if version < 12:  # Eden
-                    notification = subject + "," + body + "," + display_time
+                    notification = subject + "," + body + "," + str(display_time)
                     notifycommand = {'command': 'ExecBuiltIn', 'parameter': 'Notification(' + notification + ')'}
                     request = self._sendhttp(host, notifycommand)
 
                 else:  # Frodo
-                    params = {'title': subject, 'message': body, 'displaytime': int(display_time)}
+                    params = {'title': subject, 'message': body, 'displaytime': display_time, 'image': image}
                     request = self._sendjson(host, 'GUI.ShowNotification', params)
 
                 if not request:
@@ -1809,8 +1819,8 @@ class PLEX(Notifier):
                 else:
                     logger.info(u"PlexPy Notifiers :: Plex Home Theater notification sent.")
 
-            except Exception:
-                logger.warn(u"PlexPy Notifiers :: Plex Home Theater notification failed.")
+            except Exception as e:
+                logger.warn(u"PlexPy Notifiers :: Plex Home Theater notification failed: %s." % e)
                 return False
                 
         return True
@@ -1833,6 +1843,18 @@ class PLEX(Notifier):
                           'name': 'plex_password',
                           'description': 'Password of your Plex Home Theater client API (blank for none).',
                           'input_type': 'password'
+                          },
+                         {'label': 'Notification Duration',
+                          'value': self.config['display_time'],
+                          'name': 'plex_display_time',
+                          'description': 'The duration (in seconds) for the notification to stay on screen.',
+                          'input_type': 'number'
+                          },
+                         {'label': 'Notification Icon',
+                          'value': self.config['image'],
+                          'name': 'plex_image',
+                          'description': 'Full path or URL to an image to display with the notification. Leave blank for the default.',
+                          'input_type': 'text'
                           }
                          ]
 
@@ -2221,7 +2243,7 @@ class SCRIPTS(Notifier):
                                        cwd=self.config['script_folder'])
 
             if self.config['timeout']:
-                timer = threading.Timer(self.script_timeout, kill_script, (process,))
+                timer = threading.Timer(self.config['timeout'], kill_script, (process,))
             else:
                 timer = None
 
@@ -2712,7 +2734,9 @@ class XBMC(Notifier):
     """
     _DEFAULT_CONFIG = {'hosts': '',
                        'username': '',
-                       'password': ''
+                       'password': '',
+                       'display_time': 5,
+                       'image': ''
                        }
 
     def _sendhttp(self, host, command):
@@ -2744,7 +2768,15 @@ class XBMC(Notifier):
 
         hosts = [x.strip() for x in self.config['hosts'].split(',')]
 
-        display_time = "3000"  # in ms
+        if self.config['display_time'] > 0:
+            display_time = 1000 * self.config['display_time']  # in ms
+        else:
+            display_time = 5000
+
+        if self.config['image']:
+            image = self.config['image']
+        else:
+            image = os.path.join(plexpy.DATA_DIR, os.path.abspath("data/interfaces/default/images/favicon.png"))
 
         for host in hosts:
             logger.info(u"PlexPy Notifiers :: Sending notification command to XMBC @ " + host)
@@ -2752,12 +2784,12 @@ class XBMC(Notifier):
                 version = self._sendjson(host, 'Application.GetProperties', {'properties': ['version']})['version']['major']
 
                 if version < 12:  # Eden
-                    notification = subject + "," + body + "," + display_time
+                    notification = subject + "," + body + "," + str(display_time)
                     notifycommand = {'command': 'ExecBuiltIn', 'parameter': 'Notification(' + notification + ')'}
                     request = self._sendhttp(host, notifycommand)
 
                 else:  # Frodo
-                    params = {'title': subject, 'message': body, 'displaytime': int(display_time)}
+                    params = {'title': subject, 'message': body, 'displaytime': display_time, 'image': image}
                     request = self._sendjson(host, 'GUI.ShowNotification', params)
 
                 if not request:
@@ -2765,8 +2797,8 @@ class XBMC(Notifier):
                 else:
                     logger.info(u"PlexPy Notifiers :: XBMC notification sent.")
 
-            except Exception:
-                logger.warn(u"PlexPy Notifiers :: XBMC notification failed.")
+            except Exception as e:
+                logger.warn(u"PlexPy Notifiers :: Plex Home Theater notification failed: %s." % e)
                 return False
 
         return True
@@ -2789,6 +2821,18 @@ class XBMC(Notifier):
                           'name': 'xbmc_password',
                           'description': 'Password of your XBMC client API (blank for none).',
                           'input_type': 'password'
+                          },
+                         {'label': 'Notification Duration',
+                          'value': self.config['display_time'],
+                          'name': 'xbmc_display_time',
+                          'description': 'The duration (in seconds) for the notification to stay on screen.',
+                          'input_type': 'number'
+                          },
+                         {'label': 'Notification Icon',
+                          'value': self.config['image'],
+                          'name': 'xbmc_image',
+                          'description': 'Full path or URL to an image to display with the notification. Leave blank for the default.',
+                          'input_type': 'text'
                           }
                          ]
 
