@@ -151,6 +151,13 @@
                                                 <input class="form-control" type="text" id="${action['name']}_subject" name="${action['name']}_subject" value="${notifier['notify_text'][action['name']]['subject']}" data-parsley-trigger="change" required>
                                                 <p class="help-block">Set custom arguments passed to the script.</p>
                                             </div>
+                                            <div class="form-group">
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <input type="button" class="btn btn-bright notifier-text-preview" data-action="${action['name']}" value="Preview Arguments">
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </li>
                                     </ul>
                                 </li>
@@ -170,6 +177,13 @@
                                                 <label for="${action['name']}_body">Message Body</label>
                                                 <textarea class="form-control" id="${action['name']}_body" name="${action['name']}_body" data-parsley-trigger="change" data-autoresize required>${notifier['notify_text'][action['name']]['body']}</textarea>
                                                 <p class="help-block">Set a custom body.</p>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <input type="button" class="btn btn-bright notifier-text-preview" data-action="${action['name']}" value="Preview Text">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </li>
                                     </ul>
@@ -334,6 +348,28 @@
         $.get('osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
     })
     % endif
+
+    $('.notifier-text-preview').click(function () {
+        var action = $(this).data('action');
+        var subject = $('#' + action + '_subject').val();
+        var body = $('#' + action + '_body').val();
+
+        $.ajax({
+            url: 'get_notify_text_preview',
+            data: {
+                notify_action: action,
+                subject: subject,
+                body: body,
+                agent_id: "${notifier['agent_id']}",
+                agent_name: "${notifier['agent_name']}"
+            },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#notifier-text-preview-modal").html(xhr.responseText).modal('show');
+            }
+        });
+    });
 
     $('#test_notifier').click(function () {
         doAjaxCall('set_notifier_config', $(this), 'tabs', true, false, sendTestNotification);

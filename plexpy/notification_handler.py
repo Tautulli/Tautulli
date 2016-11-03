@@ -557,7 +557,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
     return available_params
 
 
-def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None):
+def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None, test=False):
     media_type = parameters.get('media_type')
 
     all_tags = r'<movie>.*?</movie>|' \
@@ -596,8 +596,13 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     default_body = default_action.get('body', '')
 
     # Use default subject and body if they are blank
-    subject = subject or default_subject
-    body = body or default_body
+    # only if the notification is not script
+    if agent_id != 15:
+        subject = subject or default_subject
+        body = body or default_body
+
+    if test:
+        return subject, body
 
     try:
         subject = unicode(subject).format(**parameters)

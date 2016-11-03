@@ -39,6 +39,7 @@ import http_handler
 import libraries
 import log_reader
 import logger
+import notification_handler
 import notifiers
 import plextv
 import plexivity_import
@@ -2984,6 +2985,26 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Added notification agent.'}
         else:
             return {'result': 'error', 'message': 'Failed to add notification agent.'}
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def get_notify_text_preview(self, notify_action='', subject='', body='', agent_id=0, agent_name='', **kwargs):
+        if str(agent_id).isdigit():
+            agent_id = int(agent_id)
+
+        text = []
+
+        for media_type in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
+            test_subject, test_body = notification_handler.build_notify_text(subject=subject,
+                                                                             body=body,
+                                                                             notify_action=notify_action,
+                                                                             parameters={'media_type': media_type},
+                                                                             agent_id=agent_id,
+                                                                             test=True)
+
+            text.append({'media_type': media_type, 'subject': test_subject, 'body': test_body})
+
+        return serve_template(templatename="notifier_text_preview.html", text=text, agent=agent_name)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))

@@ -1,0 +1,23 @@
+% if text:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title">Notification Text Preview</h4>
+        </div>
+        <div class="modal-body">
+            % for item in text:
+            <div style="padding-bottom: 10px;">
+                <h4>${item['media_type'].capitalize()}</h4>
+                <pre>${item['subject']}</pre>
+                % if agent != 'scripts':
+                <pre>${item['body']}</pre>
+                % endif
+            </div>
+            % endfor
+        </div>
+        <div class="modal-footer">
+        </div>
+    </div>
+</div>
+% endif
