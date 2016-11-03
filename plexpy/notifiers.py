@@ -2242,7 +2242,7 @@ class SCRIPTS(Notifier):
                                        stderr=subprocess.PIPE,
                                        cwd=self.config['script_folder'])
 
-            if self.config['timeout']:
+            if self.config['timeout'] > 0:
                 timer = threading.Timer(self.config['timeout'], kill_script, (process,))
             else:
                 timer = None
