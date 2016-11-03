@@ -257,13 +257,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         server_uptime = 'N/A'
 
     # Get metadata for the item
-    pms_connect = pmsconnect.PmsConnect()
     if session:
         rating_key = session['rating_key']
-        metadata = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
     elif timeline:
         rating_key = timeline['rating_key']
-        metadata = timeline
+
+    pms_connect = pmsconnect.PmsConnect()
+    metadata = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
 
     if not metadata:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
