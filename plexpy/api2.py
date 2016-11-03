@@ -47,7 +47,7 @@ class API2:
         self._api_cmd = None
         self._api_apikey = None
         self._api_callback = None  # JSONP
-        self._api_result_type = 'failed'
+        self._api_result_type = 'error'
         self._api_profileme = None  # For profiling the api call
         self._api_kwargs = None  # Cleaned kwargs
 
@@ -137,17 +137,16 @@ class API2:
 
             Returns:
                 json:
-                    [{"loglevel": "DEBUG", 
-                      "msg": "Latest version is 2d10b0748c7fa2ee4cf59960c3d3fffc6aa9512b", 
-                      "thread": "MainThread", 
+                    [{"loglevel": "DEBUG",
+                      "msg": "Latest version is 2d10b0748c7fa2ee4cf59960c3d3fffc6aa9512b",
+                      "thread": "MainThread",
                       "time": "2016-05-08 09:36:51 "
-                      }, 
+                      },
                      {...},
                      {...}
                      ]
             ```
         """
-
         logfile = os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)
         templog = []
         start = int(kwargs.get('start', 0))
@@ -213,7 +212,6 @@ class API2:
         if order == 'desc':
             templog = templog[::-1]
 
-        self.data = templog
         return templog
 
     def get_settings(self, key=''):
@@ -257,7 +255,7 @@ class API2:
                 config[k]['interface_list'] = interface_list
 
         if key:
-            return config.get(key, None)
+            return config.get(key)
 
         return config
 
@@ -297,18 +295,13 @@ class API2:
 
         db = database.MonitorDatabase()
         rows = db.select(query)
-        self.data = rows
         return rows
 
     def backup_config(self):
         """ Create a manual backup of the `config.ini` file. """
 
         data = config.make_backup()
-
-        if data:
-            self.result_type = 'success'
-        else:
-            self.result_type = 'failed'
+        self._api_result_type = 'success' if data else 'error'
 
         return data
 
@@ -316,11 +309,7 @@ class API2:
         """ Create a manual backup of the `plexpy.db` file. """
 
         data = database.make_backup()
-
-        if data:
-            self.result_type = 'success'
-        else:
-            self.result_type = 'failed'
+        self._api_result_type = 'success' if data else 'error'
 
         return data
 
@@ -329,34 +318,26 @@ class API2:
 
         plexpy.SIGNAL = 'restart'
         self._api_msg = 'Restarting plexpy'
-        self.result_type = 'success'
+        self._api_result_type = 'success'
 
     def update(self, **kwargs):
         """ Check for PlexPy updates on Github. """
 
         plexpy.SIGNAL = 'update'
         self._api_msg = 'Updating plexpy'
-        self.result_type = 'success'
+        self._api_result_type = 'success'
 
     def refresh_libraries_list(self, **kwargs):
         """ Refresh the PlexPy libraries list. """
         data = pmsconnect.refresh_libraries()
-
-        if data:
-            self.result_type = 'success'
-        else:
-            self.result_type = 'failed'
+        self._api_result_type = 'success' if data else 'error'
 
         return data
 
     def refresh_users_list(self, **kwargs):
         """ Refresh the PlexPy users list. """
         data = plextv.refresh_users()
-
-        if data:
-            self.result_type = 'success'
-        else:
-            self.result_type = 'failed'
+        self._api_result_type = 'success' if data else 'error'
 
         return data
 
@@ -423,30 +404,30 @@ General optional parameters:
                 string:             "apikey"
             ```
          """
-
+        data = None
         apikey = hashlib.sha224(str(random.getrandbits(256))).hexdigest()[0:32]
         if plexpy.CONFIG.HTTP_USERNAME and plexpy.CONFIG.HTTP_PASSWORD:
             if username == plexpy.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
                 if plexpy.CONFIG.API_KEY:
-                    self.data = plexpy.CONFIG.API_KEY
+                    data = plexpy.CONFIG.API_KEY
                 else:
-                    self.data = apikey
+                    data = apikey
                     plexpy.CONFIG.API_KEY = apikey
                     plexpy.CONFIG.write()
             else:
                 self._api_msg = 'Authentication is enabled, please add the correct username and password to the parameters'
         else:
             if plexpy.CONFIG.API_KEY:
-                self.data = plexpy.CONFIG.API_KEY
+                data = plexpy.CONFIG.API_KEY
             else:
                 # Make a apikey if the doesn't exist
-                self.data = apikey
+                data = apikey
                 plexpy.CONFIG.API_KEY = apikey
                 plexpy.CONFIG.write()
 
-        return self.data
+        return data
 
-    def _api_responds(self, result_type='success', data=None, msg=''):
+    def _api_responds(self, result_type='error', data=None, msg=''):
         """ Formats the result to a predefined dict so we can hange it the to
             the desired output by _api_out_as """
 
@@ -483,6 +464,7 @@ General optional parameters:
                 logger.info(u'PlexPy APIv2 :: ' + traceback.format_exc())
                 out['message'] = traceback.format_exc()
                 out['result'] = 'error'
+
         elif self._api_out_type == 'xml':
             cherrypy.response.headers['Content-Type'] = 'application/xml'
             try:
@@ -524,13 +506,13 @@ General optional parameters:
 
             # We allow this to fail so we get a
             # traceback in the browser
-            if self._api_debug:
+            try:
                 result = call(**self._api_kwargs)
-            else:
-                try:
-                    result = call(**self._api_kwargs)
-                except Exception as e:
-                    logger.error(u'PlexPy APIv2 :: Failed to run %s %s %s' % (self._api_cmd, self._api_kwargs, e))
+            except Exception as e:
+                if self._api_debug:  # check this with j
+                    pass
+                    #cherrypy.request.show_tracebacks = True
+                logger.error(u'PlexPy APIv2 :: Failed to run %s %s %s' % (self._api_cmd, self._api_kwargs, e))
 
         ret = None
         # The api decorated function can return different result types.
@@ -560,5 +542,15 @@ General optional parameters:
             self._api_result_type = 'success'
         else:
             self._api_result_type = 'error'
+
+        # Since some of them metods use a api like response for the ui
+        # {result: error, message: 'Some shit happend'}
+        if isinstance(ret, dict):
+            if ret.get('message'):
+                self._api_msg = ret.get('message', {})
+                ret = {}
+
+            if ret.get('result'):
+                self._api_result_type = ret.get('result')
 
         return self._api_out_as(self._api_responds(result_type=self._api_result_type, msg=self._api_msg, data=ret))

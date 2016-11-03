@@ -329,6 +329,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    @addtoapi()
     def delete_temp_sessions(self, **kwargs):
 
         result = database.delete_sessions()
