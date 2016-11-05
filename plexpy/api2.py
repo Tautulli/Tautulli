@@ -95,7 +95,7 @@ class API2:
             self._api_msg = 'Parameter cmd is required. Possible commands are: %s' % ', '.join(self._api_valid_methods)
 
         elif 'cmd' in kwargs and kwargs.get('cmd') not in self._api_valid_methods:
-            self._api_msg = 'Unknown command: %s. Possible commands are: %s' % (kwargs.get('cmd', ''), ', '.join(self._api_valid_methods))
+            self._api_msg = 'Unknown command: %s. Possible commands are: %s' % (kwargs.get('cmd', ''), ', '.join(sorted(self._api_valid_methods)))
 
         self._api_callback = kwargs.pop('callback', None)
         self._api_apikey = kwargs.pop('apikey', None)
@@ -427,6 +427,9 @@ General optional parameters:
 
         return data
 
+    def error(self, **kwargs):
+        return 1 / 0
+
     def _api_responds(self, result_type='error', data=None, msg=''):
         """ Formats the result to a predefined dict so we can hange it the to
             the desired output by _api_out_as """
@@ -507,12 +510,15 @@ General optional parameters:
             # We allow this to fail so we get a
             # traceback in the browser
             try:
+
                 result = call(**self._api_kwargs)
             except Exception as e:
-                if self._api_debug:  # check this with j
-                    pass
-                    #cherrypy.request.show_tracebacks = True
                 logger.error(u'PlexPy APIv2 :: Failed to run %s %s %s' % (self._api_cmd, self._api_kwargs, e))
+                if self._api_debug:
+                    cherrypy.request.show_tracebacks = True
+                    # Reraise the exception so the traceback hits the browser
+                    raise
+                self._api_msg = 'Check the log'
 
         ret = None
         # The api decorated function can return different result types.

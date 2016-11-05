@@ -37,11 +37,11 @@ Get to the chopper!
 
 
 ### backup_config
-Create a manual backup of the `config.ini` file. 
+Create a manual backup of the `config.ini` file.
 
 
 ### backup_db
-Create a manual backup of the `plexpy.db` file. 
+Create a manual backup of the `plexpy.db` file.
 
 
 ### delete_all_library_history
@@ -142,6 +142,18 @@ Returns:
 ```
 
 
+### delete_temp_sessions
+Flush out all of the temporary sessions in the database.
+
+```
+Required parameters:
+    None
+
+Required parameters:
+    None
+```
+
+
 ### delete_user
 Delete a user from PlexPy. Also erases all history for the user.
 
@@ -158,11 +170,11 @@ Returns:
 
 
 ### docs
-Return the api docs as a dict where commands are keys, docstring are value. 
+Return the api docs as a dict where commands are keys, docstring are value.
 
 
 ### docs_md
-Return the api docs formatted with markdown. 
+Return the api docs formatted with markdown.
 
 
 ### download_log
@@ -755,11 +767,11 @@ Optional parameters:
 
 Returns:
     json:
-        [{"loglevel": "DEBUG", 
-          "msg": "Latest version is 2d10b0748c7fa2ee4cf59960c3d3fffc6aa9512b", 
-          "thread": "MainThread", 
+        [{"loglevel": "DEBUG",
+          "msg": "Latest version is 2d10b0748c7fa2ee4cf59960c3d3fffc6aa9512b",
+          "thread": "MainThread",
           "time": "2016-05-08 09:36:51 "
-          }, 
+          },
          {...},
          {...}
          ]
@@ -1814,15 +1826,15 @@ Returns:
 
 
 ### refresh_libraries_list
-Refresh the PlexPy libraries list. 
+Refresh the PlexPy libraries list.
 
 
 ### refresh_users_list
-Refresh the PlexPy users list. 
+Refresh the PlexPy users list.
 
 
 ### restart
-Restart PlexPy. 
+Restart PlexPy.
 
 
 ### search
@@ -1905,7 +1917,7 @@ Uninstalls the GeoLite2 database
 
 
 ### update
-Check for PlexPy updates on Github. 
+Check for PlexPy updates on Github.
 
 
 ### update_metadata_details
