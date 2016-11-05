@@ -3212,8 +3212,13 @@ class WebInterface(object):
         quote = self.random_arnold_quotes()
         plexpy.SIGNAL = signal
 
+        if plexpy.CONFIG.HTTP_ROOT:
+            new_http_root = '/' + plexpy.CONFIG.HTTP_ROOT.strip('/') + '/'
+        else:
+            new_http_root = '/'
+
         return serve_template(templatename="shutdown.html", title=title,
-                              message=message, timer=timer, quote=quote)
+                              new_http_root=new_http_root, message=message, timer=timer, quote=quote)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
