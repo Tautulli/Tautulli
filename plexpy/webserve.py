@@ -4454,7 +4454,7 @@ class WebInterface(object):
     @addtoapi("arnold")
     def random_arnold_quotes(self, **kwargs):
         """ Get to the chopper! """
-        from random import randint
+        import random
         quote_list = ['To crush your enemies, see them driven before you, and to hear the lamentation of their women!',
                       'Your clothes, give them to me, now!',
                       'Do it!',
@@ -4487,8 +4487,7 @@ class WebInterface(object):
                       'I just had a terrible thought... What if this is a dream?'
                       ]
 
-        random_number = randint(0, len(quote_list) - 1)
-        return quote_list[int(random_number)]
+        return random.choice(quote_list)
 
     ### API ###
 
