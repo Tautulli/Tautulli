@@ -795,7 +795,7 @@ class DISCORD(Notifier):
         if self.config['tts']:
             data['tts'] = True
 
-        if self.config['incl_poster'] and kwargs.get('parameters'):
+        if self.config['incl_poster'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
             poster_url = pretty_metadata.get_poster_url()
@@ -1108,7 +1108,7 @@ class FACEBOOK(Notifier):
 
         attachment = {}
 
-        if self.config['incl_poster'] and kwargs.get('parameters'):
+        if self.config['incl_poster'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
             poster_url = pretty_metadata.get_poster_url()
@@ -1326,8 +1326,9 @@ class HIPCHAT(Notifier):
         if self.config['color']:
             data['color'] = self.config['color']
 
-        if self.config['incl_poster'] and 'metadata' in kwargs:
-            pretty_metadata = PrettyMetadata(kwargs['metadata'])
+        if self.config['incl_poster'] and kwargs.get('parameters', {}).get('media_type'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
             poster_url = pretty_metadata.get_poster_url()
             poster_link = pretty_metadata.get_poster_link()
             caption = pretty_metadata.get_caption()
@@ -2081,9 +2082,9 @@ class PUSHOVER(Notifier):
                 'html': self.config['html_support'],
                 'priority': self.config['priority']}
 
-        if self.config['incl_url'] and 'metadata' in kwargs:
+        if self.config['incl_url'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
-            pretty_metadata = PrettyMetadata(kwargs['metadata'])
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
             plex_url = pretty_metadata.get_plex_url()
             poster_link = pretty_metadata.get_poster_link()
             caption = pretty_metadata.get_caption()
@@ -2401,7 +2402,7 @@ class SLACK(Notifier):
             else:
                 data['icon_url'] = self.config['icon_emoji']
 
-        if self.config['incl_poster'] and kwargs.get('parameters'):
+        if self.config['incl_poster'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
             poster_url = pretty_metadata.get_poster_url()
