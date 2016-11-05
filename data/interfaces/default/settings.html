@@ -959,7 +959,7 @@
                             <label>
                                 <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Consecutive Notifications
                             </label>
-                            <p class="help-block">Disable to prevent consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
+                            <p class="help-block">Enable to allow sending of consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
                         </div>
                         <div class="checkbox">
                             <label>
@@ -984,7 +984,7 @@
 
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="notify_group_recently_added_parent" id="notify_group_recently_added_parent" value="1" ${config['notify_group_recently_added_parent']}> Group Notifications into Season or Album
+                                <input type="checkbox" name="notify_group_recently_added_parent" id="notify_group_recently_added_parent" value="1" ${config['notify_group_recently_added_parent']}> Group Notifications by Season or Album
                             </label>
                             <p class="help-block">
                                 Enable to only send one season or album notification when multiple episodes or tracks are added. Movies, single episodes, and single tracks are unaffected.<br />
@@ -993,11 +993,20 @@
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="notify_group_recently_added_grandparent" id="notify_group_recently_added_grandparent" value="1" ${config['notify_group_recently_added_grandparent']}> Group Notifications into TV Show or Artist
+                                <input type="checkbox" name="notify_group_recently_added_grandparent" id="notify_group_recently_added_grandparent" value="1" ${config['notify_group_recently_added_grandparent']}> Group Notifications by TV Show or Artist
                             </label>
                             <p class="help-block">
                                 Enable to only send one TV show or artist notification when multiple seasons or albums are added. Movies, single episodes, and single tracks are unaffected.<br />
                                 Note: A season range can be shown (e.g. 1-3), but all other season/episode/album/track metadata will be unavailable.
+                            </p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_recently_added_upgrade" id="notify_recently_added_upgrade" value="1" ${config['notify_recently_added_upgrade']}> Send a Notification for New Versions
+                            </label>
+                            <p class="help-block">
+                                Enable to send another recently added notification when adding a new version of existing media.<br />
+                                Note: If multiple versions are available, PlexPy will assume the higher quality one is newer.
                             </p>
                         </div>
 

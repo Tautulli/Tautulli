@@ -282,8 +282,6 @@ class TimelineHandler(object):
 
             rating_key = self.get_rating_key()
 
-            state_types = {0: 'created',
-                           5: 'processed'}
             media_types = {1: 'movie',
                            2: 'show',
                            3: 'season',
@@ -292,13 +290,20 @@ class TimelineHandler(object):
                            9: 'album',
                            10: 'track'}
 
-            state_type = state_types.get(self.timeline['state'])
-            media_type = media_types.get(self.timeline['type'])
-            section_id = self.timeline['sectionID']
+            state_type = self.timeline.get('state')
+            media_type = media_types.get(self.timeline.get('type'))
+            section_id = self.timeline.get('sectionID', 0)
+            title = self.timeline.get('title', 'Unknown')
             metadata_state = self.timeline.get('metadataState')
+            media_state = self.timeline.get('mediaState')
+            queue_size = self.timeline.get('queueSize')
 
+            # Add a new media item to the recently added queue
+            if media_type and section_id > 0 and \
+                ((state_type == 0 and metadata_state == 'created') or \
+                (plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_UPGRADE and state_type in (1, 5) and \
+                 media_state == 'analyzing' and queue_size is None)):
 
-            if state_type == 'created' and media_type and section_id > 0 and metadata_state == 'created':
                 if media_type in ('episode', 'track'):
                     metadata = self.get_metadata()
                     if metadata:
@@ -313,8 +318,10 @@ class TimelineHandler(object):
                         parent_set.add(rating_key)
                         RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
 
-                        logger.debug(u"PlexPy TimelineHandler :: Library item %s (grandparent %s) added to recently added queue."
-                                     % (str(rating_key), str(grandparent_rating_key)))
+                        RECENTLY_ADDED_QUEUE[rating_key] = set([grandparent_rating_key])
+
+                        logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s, grandparent %s) added to recently added queue."
+                                     % (title, str(rating_key), str(grandparent_rating_key)))
 
                 elif media_type in ('season', 'album'):
                     metadata = self.get_metadata()
@@ -325,30 +332,74 @@ class TimelineHandler(object):
                         parent_set.add(rating_key)
                         RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
 
-                        logger.debug(u"PlexPy TimelineHandler :: Library item %s (parent %s) added to recently added queue."
-                                     % (str(rating_key), str(parent_rating_key)))
+                        logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s , parent %s) added to recently added queue."
+                                     % (title, str(rating_key), str(parent_rating_key)))
 
                 else:
                     queue_set = RECENTLY_ADDED_QUEUE.get(rating_key, set())
                     RECENTLY_ADDED_QUEUE[rating_key] = queue_set
 
-                    logger.debug(u"PlexPy TimelineHandler :: Library item %s added to recently added queue." % str(rating_key))
+                    logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s) added to recently added queue."
+                                 % (title, str(rating_key)))
 
-            if state_type == 'processed' and media_type in ('movie', 'show', 'artist') and section_id > 0 and metadata_state is None:
-                logger.debug(u"PlexPy TimelineHandler :: Library item %s done processing metadata." % str(rating_key))
+            # A movie, show, or artist is done processing
+            elif media_type in ('movie', 'show', 'artist') and section_id > 0 and \
+                state_type == 5 and metadata_state is None and queue_size is None and \
+                rating_key in RECENTLY_ADDED_QUEUE:
+                
+                logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s) done processing metadata."
+                             % (title, str(rating_key)))
 
-                child_keys = RECENTLY_ADDED_QUEUE.pop(rating_key, [])
+                child_keys = RECENTLY_ADDED_QUEUE[rating_key]
 
                 if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and len(child_keys) > 1:
                     self.on_created(rating_key, child_keys=child_keys)
 
-                else:
+                elif child_keys:
                     for child_key in child_keys:
-                        grandchild_keys = RECENTLY_ADDED_QUEUE.pop(child_key, [])
+                        grandchild_keys = RECENTLY_ADDED_QUEUE.get(child_key, [])
 
                         if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT and len(grandchild_keys) > 1:
                             self.on_created(child_key, child_keys=grandchild_keys)
 
-                        else:
+                        elif grandchild_keys:
                             for grandchild_key in grandchild_keys:
                                 self.on_created(grandchild_key)
+
+                        else:
+                            self.on_created(child_key)
+
+                else:
+                    self.on_created(rating_key)
+
+                # Remove all keys
+                self.del_keys(rating_key)
+
+
+            # An episode or track is done processing (upgrade only)
+            elif plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_UPGRADE and \
+                media_type in ('episode', 'track') and section_id > 0 and \
+                state_type == 5 and metadata_state is None and queue_size is None and \
+                rating_key in RECENTLY_ADDED_QUEUE:
+                
+                logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s) done processing metadata (upgrade)."
+                             % (title, str(rating_key)))
+
+                grandparent_rating_key = RECENTLY_ADDED_QUEUE[rating_key]
+                self.on_created(rating_key)
+
+                # Remove all keys
+                self.del_keys(grandparent_rating_key)
+            
+            # An item was deleted, make sure it is removed from the queue
+            elif state_type == 9 and metadata_state == 'deleted':
+                logger.debug(u"PlexPy TimelineHandler :: Library item %s removed from recently added queue."
+                             % str(rating_key))
+                self.del_keys(rating_key)
+
+    def del_keys(self, key):
+        if isinstance(key, set):
+            for child_key in key:
+                self.del_keys(child_key)
+        elif key in RECENTLY_ADDED_QUEUE:
+            self.del_keys(RECENTLY_ADDED_QUEUE.pop(key))
