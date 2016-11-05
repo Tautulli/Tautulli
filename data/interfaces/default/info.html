@@ -53,6 +53,9 @@ DOCUMENTATION :: END
             if re.match(pattern, codec):
                 return file
         return codec
+
+    def br(text):
+        return text.replace('\n', '<br /><br />')
 %>
 
 <%inherit file="base.html"/>
@@ -250,7 +253,7 @@ DOCUMENTATION :: END
                         </div>
                         % endif
                         <div class="summary-content-summary">
-                            <p> ${data['summary']} </p>
+                            <p> ${data['summary'] | br, n} </p>
                         </div>
                     </div>
                 </div>
