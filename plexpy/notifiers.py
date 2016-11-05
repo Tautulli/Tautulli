@@ -170,105 +170,120 @@ def available_notification_actions():
                 'description': 'Trigger a notification when a stream is started.',
                 'subject': 'PlexPy ({server_name})',
                 'body': '{user} ({player}) started playing {title}.',
-                'icon': 'fa-play'
+                'icon': 'fa-play',
+                'media_types': ('movie', 'episode', 'track')
                 },
                {'label': 'Playback Stop',
                 'name': 'on_stop',
                 'description': 'Trigger a notification when a stream is stopped.',
                 'subject': 'PlexPy ({server_name})',
                 'body': '{user} ({player}) has stopped {title}.',
-                'icon': 'fa-stop'
+                'icon': 'fa-stop',
+                'media_types': ('movie', 'episode', 'track')
                 },
                {'label': 'Playback Pause',
                 'name': 'on_pause',
                 'description': 'Trigger a notification when a stream is puased.',
                 'subject': 'PlexPy ({server_name})',
                 'body': '{user} ({player}) has paused {title}.',
-                'icon': 'fa-pause'
+                'icon': 'fa-pause',
+                'media_types': ('movie', 'episode', 'track')
                 },
                {'label': 'Playback Resume',
                 'name': 'on_resume',
                 'description': 'Trigger a notification when a stream is resumed.',
                 'subject': 'PlexPy ({server_name})',
                 'body': '{user} ({player}) has resumed {title}.',
-                'icon': 'fa-play'
+                'icon': 'fa-play',
+                'media_types': ('movie', 'episode', 'track')
                 },
                {'label': 'Watched',
                 'name': 'on_watched',
                 'description': 'Trigger a notification when a video stream reaches the specified watch percentage.',
                 'subject': 'PlexPy ({server_name})',
                 'body': '{user} ({player}) has watched {title}.',
-                'icon': 'fa-eye'
+                'icon': 'fa-eye',
+                'media_types': ('movie', 'episode', 'track')
                 },
                {'label': 'Buffer Warning',
                 'name': 'on_buffer',
                 'description': 'Trigger a notification when a stream exceeds the specified buffer threshold.',
                 'subject': 'PlexPy ({server_name})',
                 'body': '{user} ({player}) is buffering {title}.',
-                'icon': 'fa-spinner'
+                'icon': 'fa-spinner',
+                'media_types': ('movie', 'episode', 'track')
                 },
                {'label': 'User Concurrent Streams',
                 'name': 'on_concurrent',
                 'description': 'Trigger a notification when a user exceeds the concurrent stream threshold.',
                 'subject': 'PlexPy ({server_name})',
                 'body': '{user} has {user_streams} concurrent streams.',
-                'icon': 'fa-arrow-circle-o-right'
+                'icon': 'fa-arrow-circle-o-right',
+                'media_types': ('movie', 'episode', 'track')
                 },
                {'label': 'User New Device',
                 'name': 'on_newdevice',
                 'description': 'Trigger a notification when a user streams from a new device.',
                 'subject': 'PlexPy ({server_name})',
                 'body': '{user} is streaming from a new device: {player}.',
-                'icon': 'fa-desktop'
+                'icon': 'fa-desktop',
+                'media_types': ('movie', 'episode', 'track')
                 },
                {'label': 'Recently Added',
                 'name': 'on_created',
                 'description': 'Trigger a notification when a media item is added to the Plex Media Server.',
                 'subject': 'PlexPy ({server_name})',
                 'body': '{title} was recently added to Plex.',
-                'icon': 'fa-download'
+                'icon': 'fa-download',
+                'media_types': ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track')
                 },
                {'label': 'Plex Server Down',
                 'name': 'on_intdown',
                 'description': 'Trigger a notification when the Plex Media Server cannot be reached internally.',
                 'subject': 'PlexPy ({server_name})',
                 'body': 'The Plex Media Server is down.',
-                'icon': 'fa-server'
+                'icon': 'fa-server',
+                'media_types': ('server',)
                 },
                {'label': 'Plex Server Back Up',
                 'name': 'on_intup',
                 'description': 'Trigger a notification when the Plex Media Server can be reached internally after being down.',
                 'subject': 'PlexPy ({server_name})',
                 'body': 'The Plex Media Server is back up.',
-                'icon': 'fa-server'
+                'icon': 'fa-server',
+                'media_types': ('server',)
                 },
                {'label': 'Plex Remote Access Down',
                 'name': 'on_extdown',
                 'description': 'Trigger a notification when the Plex Media Server cannot be reached externally.',
                 'subject': 'PlexPy ({server_name})',
                 'body': 'The Plex Media Server remote access is down.',
-                'icon': 'fa-server'
+                'icon': 'fa-server',
+                'media_types': ('server',)
                 },
                {'label': 'Plex Remote Access Back Up',
                 'name': 'on_extup',
                 'description': 'Trigger a notification when the Plex Media Server can be reached externally after being down.',
                 'subject': 'PlexPy ({server_name})',
                 'body': 'The Plex Media Server remote access is back up.',
-                'icon': 'fa-server'
+                'icon': 'fa-server',
+                'media_types': ('server',)
                 },
                {'label': 'Plex Update Available',
                 'name': 'on_pmsupdate',
                 'description': 'Trigger a notification when an update for the Plex Media Server is available.',
                 'subject': 'PlexPy ({server_name})',
                 'body': 'An update is available for the Plex Media Server (version {update_version}).',
-                'icon': 'fa-refresh'
+                'icon': 'fa-refresh',
+                'media_types': ('server',)
                 },
                {'label': 'PlexPy Update Available',
                 'name': 'on_plexpyupdate',
                 'description': 'Trigger a notification when an update for the PlexPy is available.',
                 'subject': 'PlexPy ({server_name})',
                 'body': 'An update is available for PlexPy (version {plexpy_update_version}).',
-                'icon': 'fa-refresh'
+                'icon': 'fa-refresh',
+                'media_types': ('server',)
                 }
                ]
 

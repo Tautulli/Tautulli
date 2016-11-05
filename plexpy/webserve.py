@@ -2993,8 +2993,10 @@ class WebInterface(object):
             agent_id = int(agent_id)
 
         text = []
+        media_types = next((a['media_types'] for a in notifiers.available_notification_actions()
+                            if a['name'] == notify_action), ())
 
-        for media_type in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
+        for media_type in media_types:
             test_subject, test_body = notification_handler.build_notify_text(subject=subject,
                                                                              body=body,
                                                                              notify_action=notify_action,

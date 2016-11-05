@@ -580,7 +580,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     elif media_type == 'track':
         pattern = re.compile(all_tags.replace('<track>.*?</track>', '<track>|</track>'), re.IGNORECASE | re.DOTALL)
     else:
-        pattern = None
+        pattern = re.compile(all_tags, re.IGNORECASE | re.DOTALL)
 
     if pattern:
         # Remove the unwanted tags and strip any unmatch tags too.
