@@ -405,4 +405,4 @@ class ActivityProcessor(object):
 
     def set_temp_stopped(self):
         stopped_time = int(time.time())
-        monitor_db.action('UPDATE sessions SET stopped = ?', [stopped_time])
+        self.db.action('UPDATE sessions SET stopped = ?', [stopped_time])
