@@ -14,9 +14,15 @@
                 <div class="row">
                     <ul class="nav nav-tabs list-unstyled" role="tablist">
                         <li role="presentation" class="active"><a href="#tabs-config" aria-controls="tabs-config" role="tab" data-toggle="tab">Configuration</a></li>
+                        % if notifier['agent_name'] == 'scripts':
+                        <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Script Triggers</a></li>
+                        <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Script Arguments</a></li>
+                        <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Scripts</a></li>
+                        % else:
                         <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Notification Triggers</a></li>
                         <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Notification Text</a></li>
                         <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Notifications</a></li>
+                        % endif
                     </ul>
                 </div>
                 <form action="set_notifier_config" method="post" class="form" id="set_notifier_config" data-parsley-validate>
