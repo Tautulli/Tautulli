@@ -2307,7 +2307,7 @@ class SCRIPTS(Notifier):
         if not script_args:
             script_args = []
 
-        script = self.config.get('script', kwargs.get('script', ''))
+        script = kwargs.get('script', self.config.get('script', ''))
 
         # Don't try to run the script if the action does not have one
         if action and not script:
