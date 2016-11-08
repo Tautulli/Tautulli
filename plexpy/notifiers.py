@@ -2901,8 +2901,12 @@ def upgrade_config_to_db():
 
         # Get the old config section for the agent
         agent_section = section_overrides.get(agent, agent.capitalize())
-        agent_config = plexpy.CONFIG._config[agent_section]
+        agent_config = plexpy.CONFIG._config.get(agent_section)
         agent_config_key = agent_section.lower()
+        
+        # Make sure there is an existing config section (to prevent adding v2 agents)
+        if not agent_config:
+            continue
 
         # Get all the actions for the agent
         agent_actions = {}
