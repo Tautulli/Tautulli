@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.4.15 (2016-11-11)
+
+* New: Add stream and transcoder progress percent to the current activity tooltip.
+* Fix: Refreshing of images in the cache when authentication is disabled.
+* Fix: Plex.tv authentication with special characters in the username or password.
+* Fix: Line breaks in the info page summaries.
+* Fix: Redirect to the proper http root when restarting.
+* Fix: API result type and responses showing incorrectly. (Thanks @Hellowlol)
+* Change: Use https URL for app.plex.tv.
+* Change: Show API traceback errors in the browser with debugging enabled. (Thanks @Hellowlol)
+* Change: Increase table width on mobile devices and max width set to 1750px. (Thanks @XusBadia)
+
+
 ## v1.4.14 (2016-10-12)
 
 * Fix: History logging locking up if media is removed from Plex before PlexPy can save the session.
