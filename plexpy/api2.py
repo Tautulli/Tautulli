@@ -64,12 +64,12 @@ class API2:
         return docs
 
     def docs_md(self):
-        """ Return the api docs formatted with markdown. """
+        """ Return the api docs formatted with markdown."""
 
         return self._api_make_md()
 
     def docs(self):
-        """ Return the api docs as a dict where commands are keys, docstring are value. """
+        """ Return the api docs as a dict where commands are keys, docstring are value."""
 
         return self._api_docs()
 
@@ -298,7 +298,7 @@ class API2:
         return rows
 
     def backup_config(self):
-        """ Create a manual backup of the `config.ini` file. """
+        """ Create a manual backup of the `config.ini` file."""
 
         data = config.make_backup()
         self._api_result_type = 'success' if data else 'error'
@@ -306,7 +306,7 @@ class API2:
         return data
 
     def backup_db(self):
-        """ Create a manual backup of the `plexpy.db` file. """
+        """ Create a manual backup of the `plexpy.db` file."""
 
         data = database.make_backup()
         self._api_result_type = 'success' if data else 'error'
@@ -314,28 +314,28 @@ class API2:
         return data
 
     def restart(self, **kwargs):
-        """ Restart PlexPy. """
+        """ Restart PlexPy."""
 
         plexpy.SIGNAL = 'restart'
         self._api_msg = 'Restarting plexpy'
         self._api_result_type = 'success'
 
     def update(self, **kwargs):
-        """ Check for PlexPy updates on Github. """
+        """ Check for PlexPy updates on Github."""
 
         plexpy.SIGNAL = 'update'
         self._api_msg = 'Updating plexpy'
         self._api_result_type = 'success'
 
     def refresh_libraries_list(self, **kwargs):
-        """ Refresh the PlexPy libraries list. """
+        """ Refresh the PlexPy libraries list."""
         data = pmsconnect.refresh_libraries()
         self._api_result_type = 'success' if data else 'error'
 
         return data
 
     def refresh_users_list(self, **kwargs):
-        """ Refresh the PlexPy users list. """
+        """ Refresh the PlexPy users list."""
         data = plextv.refresh_users()
         self._api_result_type = 'success' if data else 'error'
 
@@ -427,9 +427,6 @@ General optional parameters:
 
         return data
 
-    def error(self, **kwargs):
-        return 1 / 0
-
     def _api_responds(self, result_type='error', data=None, msg=''):
         """ Formats the result to a predefined dict so we can hange it the to
             the desired output by _api_out_as """
@@ -513,12 +510,12 @@ General optional parameters:
 
                 result = call(**self._api_kwargs)
             except Exception as e:
-                logger.error(u'PlexPy APIv2 :: Failed to run %s %s %s' % (self._api_cmd, self._api_kwargs, e))
+                logger.error(u'PlexPy APIv2 :: Failed to run %s with %s: %s' % (self._api_cmd, self._api_kwargs, e))
                 if self._api_debug:
                     cherrypy.request.show_tracebacks = True
                     # Reraise the exception so the traceback hits the browser
                     raise
-                self._api_msg = 'Check the log'
+                self._api_msg = 'Check the logs'
 
         ret = None
         # The api decorated function can return different result types.

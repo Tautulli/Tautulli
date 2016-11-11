@@ -331,16 +331,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_temp_sessions(self, **kwargs):
-        """ Flush out all of the temporary sessions in the database.
-
-            ```
-            Required parameters:
-                None
-
-            Required parameters:
-                None
-            ```
-        """
+        """ Flush out all of the temporary sessions in the database."""
 
         result = database.delete_sessions()
 

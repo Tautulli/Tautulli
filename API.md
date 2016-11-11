@@ -145,14 +145,6 @@ Returns:
 ### delete_temp_sessions
 Flush out all of the temporary sessions in the database.
 
-```
-Required parameters:
-    None
-
-Required parameters:
-    None
-```
-
 
 ### delete_user
 Delete a user from PlexPy. Also erases all history for the user.
