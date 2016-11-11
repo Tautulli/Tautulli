@@ -179,7 +179,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
     notifiers.send_notification(notifier_id=notifier_config['id'],
                                 subject=subject,
                                 body=body,
-                                action=notify_action.split('on_')[-1],
+                                notify_action=notify_action,
                                 parameters=parameters)
 
     # Set the notification state in the db

@@ -506,14 +506,14 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
         return False
 
 
-def send_notification(notifier_id=None, subject='', body='', action='', **kwargs):
+def send_notification(notifier_id=None, subject='', body='', notify_action='', **kwargs):
     notifier_config = get_notifier_config(notifier_id=notifier_id)
     if notifier_config:
         agent = get_agent_class(agent_id=notifier_config['agent_id'],
                                 config=notifier_config['config'])
         return agent.notify(subject=subject,
                             body=body,
-                            action=action,
+                            action=notify_action.split('on_')[-1],
                             **kwargs)
     else:
         logger.debug(u"PlexPy Notifiers :: Notification requested but no notifier_id received.")
@@ -2299,7 +2299,6 @@ class SCRIPTS(Notifier):
             return
 
         script_args = subject or None
-        action = kwargs.get('action', '')
 
         logger.debug(u"PlexPy Notifiers :: Trying to run notify script, action: %s, arguments: %s"
                      % (action, script_args))
@@ -2361,14 +2360,14 @@ class SCRIPTS(Notifier):
                          {'label': 'Script Folder',
                           'value': self.config['script_folder'],
                           'name': 'scripts_script_folder',
-                          'description': 'Set your script folder.',
+                          'description': 'Enter the full path to your scripts folder.',
                           'input_type': 'text',
                           'refresh': True
                           },
                          {'label': 'Script File',
                           'value': self.config['script'],
                           'name': 'scripts_script',
-                          'description': 'Choose the script file.',
+                          'description': 'Choose the script file to run.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },
