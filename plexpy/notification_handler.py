@@ -558,6 +558,19 @@ def build_server_notify_params(notify_action=None, **kwargs):
 
 
 def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None, test=False):
+    # Default subject and body text
+    default_action = next((a for a in notifiers.available_notification_actions() if a['name'] == notify_action), {})
+    default_subject = default_action.get('subject', '')
+    default_body = default_action.get('body', '')
+
+    # Make sure subject and body text are strings
+    if not isinstance(subject, basestring):
+        logger.error(u"PlexPy NotificationHandler :: Invalid subject text. Using fallback.")
+        subject = default_subject
+    if not isinstance(body, basestring):
+        logger.error(u"PlexPy NotificationHandler :: Invalid body text. Using fallback.")
+        body = default_body
+
     media_type = parameters.get('media_type')
 
     all_tags = r'<movie>.*?</movie>|' \
@@ -582,18 +595,9 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     else:
         pattern = re.compile(all_tags, re.IGNORECASE | re.DOTALL)
 
-    if pattern:
-        # Remove the unwanted tags and strip any unmatch tags too.
-        subject = strip_tag(re.sub(pattern, '', subject), agent_id)
-        body = strip_tag(re.sub(pattern, '', body), agent_id)
-    else:
-        subject = strip_tag(subject, agent_id)
-        body = strip_tag(body, agent_id)
-
-    # Default subject and body text
-    default_action = next((a for a in notifiers.available_notification_actions() if a['name'] == notify_action), {})
-    default_subject = default_action.get('subject', '')
-    default_body = default_action.get('body', '')
+    # Remove the unwanted tags and strip any unmatch tags too.
+    subject = strip_tag(re.sub(pattern, '', subject), agent_id)
+    body = strip_tag(re.sub(pattern, '', body), agent_id)
 
     # Use default subject and body if they are blank
     # only if the notification is not script
