@@ -4607,3 +4607,30 @@ class WebInterface(object):
         """
         whois_info = helpers.whois_lookup(ip_address)
         return whois_info
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    def get_plexpy_url(self, **kwargs):
+        if plexpy.CONFIG.ENABLE_HTTPS:
+           scheme = 'https' 
+        else:
+           scheme = 'http'
+
+        if plexpy.CONFIG.HTTP_HOST == '0.0.0.0':
+            import socket
+            hostname = socket.gethostbyname(socket.gethostname())
+        else:
+            hostname = plexpy.CONFIG.HTTP_HOST
+
+        if plexpy.CONFIG.HTTP_PORT not in (80, 443):
+            port = ':' + str(plexpy.CONFIG.HTTP_PORT)
+        else:
+            port = ''
+
+        if plexpy.CONFIG.HTTP_ROOT:
+            root = '/' + plexpy.CONFIG.HTTP_ROOT.strip('/')
+        else:
+            root = ''
+
+        return scheme + '://' + hostname + port + root

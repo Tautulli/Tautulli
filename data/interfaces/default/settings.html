@@ -536,19 +536,31 @@
                             </label>
                             <p class="help-block">Allow remote applications to interface with PlexPy.</p>
                         </div>
-                        <div id="apioptions" class="form-group">
-                            <label for="api_key">API key</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="input-group">
-                                        <input class="form-control" type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20" readonly>
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="generate_api">Generate</button>
-                                        </span>
+                        <div id="apioptions">
+                            <div class="form-group">
+                                <label for="api_key">API key</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <input class="form-control" type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20" readonly>
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form" type="button" id="generate_api">Generate</button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="help-block">Current API key: <strong> ${config['api_key']}</strong></p>
+                            </div>
+                            <div class="form-group">
+                                <label>Link PlexPy Remote Android App</label>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="btn-group">
+                                            <button class="btn btn-form" type="button" id="generate_qr" data-target="#api-qr-modal" data-toggle="modal">Generate QR Code</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <p class="help-block">Current API key: <strong> ${config['api_key']}</strong></p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
@@ -1969,6 +1981,33 @@
             </div>
         </div>
     </div>
+    <div id="api-qr-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="api-qr-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                    <h4 class="modal-title">Link PlexPy Remote Android App</h4>
+                </div>
+                <div class="modal-body">
+                    <label>Instructions</label>
+                    <p class="help-block">
+                        Step 1: Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br />
+                        Step 2: Praesent et odio non dolor bibendum imperdiet quis et odio.<br />
+                        Step 3: Etiam sodales est volutpat finibus placerat.<br />
+                        Step 4: Curabitur at diam quis nulla pellentesque ultrices eu vitae eros.<br />
+                    </p>
+                    <label>QR Code</label>
+                    <div id="api_qr_code" style="text-align: center"></div>
+                    <br />
+                    <label>Encoded String</label>
+                    <pre id="api_qr_string"></pre>
+                </div>
+                <div class="modal-footer">
+                    <input type="button" class="btn btn-bright" data-dismiss="modal" value="Cancel">
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </%def>
 
@@ -1976,6 +2015,7 @@
 <script src="${http_root}js/parsley.min.js"></script>
 <script src="${http_root}js/Sortable.min.js"></script>
 <script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/jquery.qrcode.min.js"></script>
 <script>
     function getConfigurationTable() {
         $.ajax({
@@ -2568,6 +2608,27 @@ $(document).ready(function() {
         });
     });
 
+    getPlexPyURL = function () {
+        var deferred = $.Deferred();
+        if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+            deferred.resolve(location.origin + location.pathname.replace('/settings', ''));
+        } else {
+            $.get('get_plexpy_url').then(function (url) {
+                deferred.resolve(url);
+            })
+        }
+        return deferred;
+    }
+
+    $('#generate_qr').click(function () {
+        getPlexPyURL().then(function (url) {
+            var encoded_string = url + '|' + $('#api_key').val();
+            $('#api_qr_string').html(encoded_string);
+            $('#api_qr_code').empty().qrcode({
+                text: encoded_string
+            });
+        });
+    });
 });
 </script>
 </%def>
