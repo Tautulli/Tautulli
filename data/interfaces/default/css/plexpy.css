@@ -3161,3 +3161,15 @@ a:hover .overlay-refresh-image:hover {
 #changelog-modal ul {
     padding-left: 20px;
 }
+.google-play-badge {
+    display:inline-block;
+    height:45px;
+    margin-top: 10px;
+}
+.google-play-badge img {
+    border: 1px solid #3B3B3B;
+    border-radius: 6px;
+    box-sizing: border-box;
+    height: 45px;
+    vertical-align: middle;
+}

@@ -37,23 +37,24 @@
         <!-- Nav tabs -->
         <div class="col-md-3">
             <ul class="nav-settings list-unstyled" role="tablist">
-                <li role="presentation" class="active"><a href="#tabs-0" aria-controls="tabs-0" role="tab" data-toggle="tab">Help & Info</a></li>
-                <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">General</a></li>
-                <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Homepage</a></li>
-                <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Web Interface</a></li>
-                <li role="presentation"><a href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Access Control</a></li>
-                <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Plex Media Server</a></li>
-                <li role="presentation"><a href="#tabs-6" aria-controls="tabs-6" role="tab" data-toggle="tab">Plex.tv Account</a></li>
-                <li role="presentation"><a href="#tabs-7" aria-controls="tabs-7" role="tab" data-toggle="tab">Extra Settings</a></li>
-                <li role="presentation"><a href="#tabs-8" aria-controls="tabs-8" role="tab" data-toggle="tab">Activity Monitoring</a></li>
-                <li role="presentation"><a href="#tabs-9" aria-controls="tabs-9" role="tab" data-toggle="tab">Notifications</a></li>
-                <li role="presentation"><a href="#tabs-10" aria-controls="tabs-10" role="tab" data-toggle="tab">Notification Agents</a></li>
+                <li role="presentation" class="active"><a href="#tabs-help_info" aria-controls="tabs-help_info" role="tab" data-toggle="tab">Help & Info</a></li>
+                <li role="presentation"><a href="#tabs-general" aria-controls="tabs-general" role="tab" data-toggle="tab">General</a></li>
+                <li role="presentation"><a href="#tabs-homepage" aria-controls="tabs-homepage" role="tab" data-toggle="tab">Homepage</a></li>
+                <li role="presentation"><a href="#tabs-web_interface" aria-controls="tabs-web_interface" role="tab" data-toggle="tab">Web Interface</a></li>
+                <li role="presentation"><a href="#tabs-access_control" aria-controls="tabs-access_control" role="tab" data-toggle="tab">Access Control</a></li>
+                <li role="presentation"><a href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
+                <li role="presentation"><a href="#tabs-plextv_account" aria-controls="tabs-plextv_account" role="tab" data-toggle="tab">Plex.tv Account</a></li>
+                <li role="presentation"><a href="#tabs-extra_settings" aria-controls="tabs-extra_settings" role="tab" data-toggle="tab">Extra Settings</a></li>
+                <li role="presentation"><a href="#tabs-activity_monitoring" aria-controls="tabs-activity_monitoring" role="tab" data-toggle="tab">Activity Monitoring</a></li>
+                <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications</a></li>
+                <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
+                <li role="presentation"><a href="#tabs-remote_app" aria-controls="tabs-remote_app" role="tab" data-toggle="tab">PlexPy Remote App</a></li>
             </ul>
         </div>
         <div class="col-md-9">
             <form action="configUpdate" method="post" class="form" id="configUpdate" data-parsley-validate>
                 <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="tabs-0">
+                    <div role="tabpanel" class="tab-pane active" id="tabs-help_info">
                         % if common.VERSION_NUMBER:
                         <div class="padded-header">
                             <h3>Version ${common.VERSION_NUMBER} <small><a id="changelog-modal-link" href="#"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
@@ -74,7 +75,7 @@
                             <br>
                         </div>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-1">
+                    <div role="tabpanel" class="tab-pane" id="tabs-general">
                         <div class="padded-header">
                             <h3>Updates</h3>
                         </div>
@@ -214,8 +215,7 @@
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-
-                    <div role="tabpanel" class="tab-pane" id="tabs-2">
+                    <div role="tabpanel" class="tab-pane" id="tabs-homepage">
                         <div class="padded-header">
                             <h3>Sections</h3>
                         </div>
@@ -380,7 +380,7 @@
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-3">
+                    <div role="tabpanel" class="tab-pane" id="tabs-web_interface">
                         <div class="padded-header">
                             <h3>Web Interface</h3>
                         </div>
@@ -474,7 +474,7 @@
                         </div>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-4">
+                    <div role="tabpanel" class="tab-pane" id="tabs-access_control">
 
                         <div class="padded-header">
                             <h3>Authentication</h3>
@@ -551,21 +551,11 @@
                                 </div>
                                 <p class="help-block">Current API key: <strong> ${config['api_key']}</strong></p>
                             </div>
-                            <div class="form-group">
-                                <label>Link PlexPy Remote Android App</label>
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="btn-group">
-                                            <button class="btn btn-form" type="button" id="generate_qr" data-target="#api-qr-modal" data-toggle="modal">Generate QR Code</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-5">
+                    <div role="tabpanel" class="tab-pane" id="tabs-plex_media_server">
 
                         <div class="padded-header">
                             <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
@@ -666,7 +656,7 @@
                         <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
 
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-6">
+                    <div role="tabpanel" class="tab-pane" id="tabs-plextv_account">
 
                         <div class="padded-header">
                             <h3>Plex.tv Authentication</h3>
@@ -729,7 +719,7 @@
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-7">
+                    <div role="tabpanel" class="tab-pane" id="tabs-extra_settings">
                         % if plexpy.INSTALL_TYPE == 'git':
                         <div class="padded-header">
                             <h3>Git Settings</h3>
@@ -842,7 +832,7 @@
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-8">
+                    <div role="tabpanel" class="tab-pane" id="tabs-activity_monitoring">
 
                         <div class="padded-header">
                             <h3>Monitoring Settings</h3>
@@ -918,7 +908,7 @@
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-9">
+                    <div role="tabpanel" class="tab-pane" id="tabs-notifications">
 
                         <div class="padded-header">
                             <h3>Global Notification Settings</h3>
@@ -1024,7 +1014,7 @@
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-10">
+                    <div role="tabpanel" class="tab-pane" id="tabs-notification_agents">
 
                         <div class="padded-header">
                             <h3>Notification Agents</h3>
@@ -1038,7 +1028,32 @@
                             <br>
                         </div>
                     </div>
-                </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-remote_app">
+
+                        <div class="padded-header">
+                            <h3>PlexPy Remote App</h3>
+                        </div>
+                        <div class="form-group">
+                            <label>Get the App</label>
+                            <p class="help-block">
+                                Get the <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank">PlexPy Remote</a> app on Google Play<sup>TM</sup> to access PlexPy from your Android device!<br />
+                                <span class="google-play-badge">
+                                    <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank"><img alt="Get it on Google Play" src="images/en-play-badge.png" /></a>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label>Link the App</label>
+                            <p class="help-block">Link the app to your server by scanning a QR code.</p>
+                            <div class="btn-group" style="display: table-cell; vertical-align: middle;">
+                                <button class="btn btn-form" type="button" id="generate_qr" data-target="#api-qr-modal" data-toggle="modal">Generate QR Code</button>
+                            </div>
+                            <div style="display: table-cell; vertical-align: middle;">
+                                <span style="color: #eb8600; padding-left: 10px;" id="generate_qr_msg">The API must be enabled under <a data-tab-destination="tabs-access_control" style="cursor: pointer;">Access Control</a> to use the app.</span>
+                            </div>
+                        </div>
+
+                    </div>
             </form>
         </div>
     </div>
@@ -1986,20 +2001,21 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Link PlexPy Remote Android App</h4>
+                    <h4 class="modal-title">Link PlexPy Remote App</h4>
                 </div>
                 <div class="modal-body">
                     <label>Instructions</label>
                     <p class="help-block">
-                        Step 1: Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br />
-                        Step 2: Praesent et odio non dolor bibendum imperdiet quis et odio.<br />
-                        Step 3: Etiam sodales est volutpat finibus placerat.<br />
-                        Step 4: Curabitur at diam quis nulla pellentesque ultrices eu vitae eros.<br />
+                        Scan the QR code below in the PlexPy Remote app to automatically link it with PlexPy.
                     </p>
                     <label>QR Code</label>
                     <pre id="api_qr_code" style="text-align: center"></pre>
                     <label>Encoded String</label>
                     <pre id="api_qr_string"></pre>
+                    <p class="help-block" id="api_qr_private" style="display: none;">
+                        Note: This is a private IP address. PlexPy will not be reachable outside of your home network.
+                        Access PlexPy externally to generate the QR code for remote access.
+                    </p>
                 </div>
                 <div class="modal-footer">
                     <input type="button" class="btn btn-bright" data-dismiss="modal" value="Cancel">
@@ -2607,10 +2623,20 @@ $(document).ready(function() {
         });
     });
 
+    function apiEnabled() {
+        var api_enabled = $('#api_enabled').prop('checked');
+        $('#generate_qr').prop('disabled', !(api_enabled));
+        $('#generate_qr_msg').toggle(!(api_enabled));
+    }
+    apiEnabled();
+    $('#api_enabled').click(function () {
+        apiEnabled();
+    });
+
     getPlexPyURL = function () {
         var deferred = $.Deferred();
         if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
-            deferred.resolve(location.origin + location.pathname.replace('/settings', ''));
+            deferred.resolve(location.href.split('/settings')[0]);
         } else {
             $.get('get_plexpy_url').then(function (url) {
                 deferred.resolve(url);
@@ -2621,12 +2647,21 @@ $(document).ready(function() {
 
     $('#generate_qr').click(function () {
         getPlexPyURL().then(function (url) {
+            var parser = document.createElement('a');
+            parser.href = url;
+            $('#api_qr_private').toggle(isPrivateIP(parser.hostname));
+
             var encoded_string = url + '|' + $('#api_key').val();
             $('#api_qr_string').html(encoded_string);
             $('#api_qr_code').empty().qrcode({
                 text: encoded_string
             });
         });
+    });
+
+    $("a[data-tab-destination]").click(function () {
+        var tab = $(this).data('tab-destination');
+        $("a[href=#" + tab + "]").click();
     });
 });
 </script>
