@@ -178,8 +178,7 @@ def process(opcode, data):
         return False
 
     if type == 'playing':
-        # logger.debug('%s.playing %s' % (name, info))
-        time_line = info.get('PlaySessionStateNotification', info.get('_children'))
+        time_line = info.get('PlaySessionStateNotification', info.get('_children', {}))
 
         if not time_line:
             logger.debug(u"PlexPy WebSocket :: Session found but unable to get timeline data.")
@@ -189,13 +188,13 @@ def process(opcode, data):
         activity.process()
 
     if type == 'timeline':
-        try:
-            children = info.get('_children')
-        except:
+        time_line = info.get('TimelineEntry', info.get('_children', {}))
+
+        if not time_line:
             logger.debug(u"PlexPy WebSocket :: Timeline event found but unable to get timeline data.")
             return False
 
-        activity = activity_handler.TimelineHandler(timeline=children[0])
+        activity = activity_handler.TimelineHandler(timeline=time_line[0])
         activity.process()
 
     return True
