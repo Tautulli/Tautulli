@@ -142,11 +142,12 @@ def process(opcode, data):
 
     try:
         info = json.loads(data)
-    except Exception as ex:
-        logger.warn(u"PlexPy WebSocket :: Error decoding message from websocket: %s" % ex)
+    except Exception as e:
+        logger.warn(u"PlexPy WebSocket :: Error decoding message from websocket: %s" % e)
         logger.debug(data)
         return False
 
+    info = info.get('NotificationContainer', info)
     type = info.get('type')
 
     if not type:
@@ -154,9 +155,9 @@ def process(opcode, data):
 
     if type == 'playing':
         # logger.debug('%s.playing %s' % (name, info))
-        try:
-            time_line = info.get('_children')
-        except:
+        time_line = info.get('PlaySessionStateNotification', info.get('_children'))
+
+        if not time_line:
             logger.debug(u"PlexPy WebSocket :: Session found but unable to get timeline data.")
             return False
 
