@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.16 (2016-11-25)
+
+* Fix: Websocket for new json response on PMS 1.3.0.
+* Fix: Update stream and transcoder tooltip percent.
+* Fix: Typo in the edit user modal.
+
+
 ## v1.4.15 (2016-11-11)
 
 * New: Add stream and transcoder progress percent to the current activity tooltip.
