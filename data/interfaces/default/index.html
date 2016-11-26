@@ -221,8 +221,11 @@
 
                         // update the progress bars
                         // percent - 3 because of 3px padding-right
-                        $('#bufferbar-' + key).width(parseInt(s.transcode_progress) - 3 + '%').html(s.transcode_progress + '%');
-                        $('#bar-' + key).width(parseInt(s.progress_percent) - 3 + '%').html(s.progress_percent + '%');
+                        $('#bufferbar-' + key).width(parseInt(s.transcode_progress) - 3 + '%').html(s.transcode_progress + '%')
+                            .attr('data-original-title', 'Transcoder Progress ' + s.transcode_progress + '%');
+                        $('#bar-' + key).width(parseInt(s.progress_percent) - 3 + '%').html(s.progress_percent + '%')
+                            .attr('data-original-title', 'Stream Progress ' + s.progress_percent + '%');
+
 
                         // add temporary class so we know which instances are still active
                         instance.addClass('updated-temp');
