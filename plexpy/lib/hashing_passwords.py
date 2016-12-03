@@ -17,13 +17,12 @@
 """
 
 import hashlib
+from base64 import b64decode, b64encode
 from os import urandom
-from base64 import b64encode, b64decode
-from six.moves import zip
-from six import text_type
 
 from pbkdf2_ctypes import pbkdf2_bin
-
+from six import text_type
+from six.moves import zip
 
 # Parameters to PBKDF2. Only affect new passwords.
 SALT_LENGTH = 16

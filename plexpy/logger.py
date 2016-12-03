@@ -24,9 +24,9 @@ import sys
 import threading
 import traceback
 from logging import handlers
-from six import string_types
 
 from logutils.queue import QueueHandler, QueueListener
+from six import string_types
 
 import plexpy
 from plexpy import helpers
@@ -61,7 +61,7 @@ class BlacklistFilter(logging.Filter):
     Log filter for blacklisted tokens and passwords
     """
     def __init__(self):
-        pass
+        super(BlacklistFilter, self).__init__()
 
     def filter(self, record):
         if not plexpy.CONFIG.LOG_BLACKLIST:
@@ -84,7 +84,7 @@ class PublicIPFilter(logging.Filter):
     Log filter for public IP addresses
     """
     def __init__(self):
-        pass
+        super(PublicIPFilter, self).__init__()
 
     def filter(self, record):
         if not plexpy.CONFIG.LOG_BLACKLIST:

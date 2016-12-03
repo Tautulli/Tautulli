@@ -25,7 +25,6 @@ from six import iteritems
 from six import string_types
 from six import text_type
 
-
 import plexpy
 from plexpy import logger
 

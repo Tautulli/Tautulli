@@ -40,13 +40,14 @@ import maxminddb
 import xmltodict
 from IPy import IP
 from six import iteritems
-from six.moves.urllib.request import Request, urlopen, URLopener
+from six import text_type
 from six.moves.urllib.error import HTTPError, URLError
 from six.moves.urllib.parse import urlencode
-from six import text_type
+from six.moves.urllib.request import Request, URLopener, urlopen
+
 import plexpy
-from plexpy.api2 import API2
 from plexpy import logger
+from plexpy.api2 import API2
 
 
 def addtoapi(*dargs, **dkwargs):

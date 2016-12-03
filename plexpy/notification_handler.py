@@ -21,11 +21,11 @@ import threading
 import time
 from itertools import groupby
 from operator import itemgetter
-from six import string_types
-from six import text_type
 
 import arrow
 import bleach
+from six import string_types
+from six import text_type
 
 import plexpy
 from plexpy import activity_processor

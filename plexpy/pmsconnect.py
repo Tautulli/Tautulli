@@ -17,7 +17,7 @@
 import threading
 
 from six import iteritems
-from six.moves.urllib.parse import urlparse, quote, urlencode
+from six.moves.urllib.parse import quote, urlencode, urlparse
 
 import plexpy
 from plexpy import common

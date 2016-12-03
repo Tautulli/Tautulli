@@ -24,15 +24,12 @@ import threading
 import cherrypy
 from cherrypy._cperror import NotFound
 from cherrypy.lib.static import serve_download, serve_file
-from plexpy.lib.hashing_passwords import make_hash
 from mako import exceptions
 from mako.lookup import TemplateLookup
+from six import string_types
+from six import text_type
 
 import plexpy
-from plexpy.api2 import API2
-from plexpy.helpers import addtoapi, build_datatables_json, checked, create_https_certificates, get_ip
-from plexpy.session import allow_session_library, allow_session_user, get_session_info, get_session_user_id
-from plexpy.webauth import AuthController, member_of, requireAuth
 from plexpy import common
 from plexpy import config
 from plexpy import database
@@ -52,8 +49,11 @@ from plexpy import pmsconnect
 from plexpy import users
 from plexpy import versioncheck
 from plexpy import web_socket
-from six import text_type
-from six import string_types
+from plexpy.api2 import API2
+from plexpy.helpers import addtoapi, build_datatables_json, checked, create_https_certificates, get_ip
+from plexpy.lib.hashing_passwords import make_hash
+from plexpy.session import allow_session_library, allow_session_user, get_session_info, get_session_user_id
+from plexpy.webauth import AuthController, member_of, requireAuth
 
 
 def serve_template(templatename, **kwargs):
