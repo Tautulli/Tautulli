@@ -1,5 +1,4 @@
 apscheduler==3.0.1
-argparse==1.1
 arrow==0.10.0
 beautifulsoup4==4.5.1
 bleach==1.4.2
@@ -20,7 +19,6 @@ logutils==0.3.3
 mako==1.0.1
 maxminddb==1.2.1
 oauthlib==1.1.1
-ordereddict==1.1
 osxnotify-cffi==1.0
 profilehooks==1.4
 PyNMA==1.0 # Old version no longer available
