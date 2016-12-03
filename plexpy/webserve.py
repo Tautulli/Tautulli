@@ -24,34 +24,36 @@ import threading
 import cherrypy
 from cherrypy._cperror import NotFound
 from cherrypy.lib.static import serve_download, serve_file
-from hashing_passwords import make_hash
+from plexpy.lib.hashing_passwords import make_hash
 from mako import exceptions
 from mako.lookup import TemplateLookup
 
-import common
-import config
-import database
-import datafactory
-import graphs
-import helpers
-import http_handler
-import libraries
-import log_reader
-import logger
-import notification_handler
-import notifiers
-import plexivity_import
 import plexpy
-import plextv
-import plexwatch_import
-import pmsconnect
-import users
-import versioncheck
-import web_socket
 from plexpy.api2 import API2
 from plexpy.helpers import addtoapi, build_datatables_json, checked, create_https_certificates, get_ip
 from plexpy.session import allow_session_library, allow_session_user, get_session_info, get_session_user_id
 from plexpy.webauth import AuthController, member_of, requireAuth
+from plexpy import common
+from plexpy import config
+from plexpy import database
+from plexpy import datafactory
+from plexpy import graphs
+from plexpy import helpers
+from plexpy import http_handler
+from plexpy import libraries
+from plexpy import log_reader
+from plexpy import logger
+from plexpy import notification_handler
+from plexpy import notifiers
+from plexpy import plexivity_import
+from plexpy import plextv
+from plexpy import plexwatch_import
+from plexpy import pmsconnect
+from plexpy import users
+from plexpy import versioncheck
+from plexpy import web_socket
+from six import text_type
+from six import string_types
 
 
 def serve_template(templatename, **kwargs):
@@ -73,7 +75,6 @@ def serve_template(templatename, **kwargs):
 
 
 class WebInterface(object):
-
     auth = AuthController()
 
     def __init__(self):
@@ -1561,7 +1562,6 @@ class WebInterface(object):
         else:
             return {'message': 'no data received'}
 
-
     ##### History #####
 
     @cherrypy.expose
@@ -1738,7 +1738,6 @@ class WebInterface(object):
                 return {'message': delete_row}
         else:
             return {'message': 'no data received'}
-
 
     ##### Graphs #####
 
@@ -2202,7 +2201,6 @@ class WebInterface(object):
 
         return serve_template(templatename="history_table_modal.html", title="History Data", data=kwargs)
 
-
     ##### Sync #####
 
     @cherrypy.expose
@@ -2228,7 +2226,6 @@ class WebInterface(object):
             output = {"data": []}
 
         return output
-
 
     ##### Logs #####
     @cherrypy.expose
@@ -2257,7 +2254,7 @@ class WebInterface(object):
                 try:
                     temp_loglevel_and_time = l.split(' - ', 1)
                     loglvl = temp_loglevel_and_time[1].split(' ::', 1)[0].strip()
-                    msg = unicode(l.split(' : ', 1)[1].replace('\n', ''), 'utf-8')
+                    msg = text_type(l.split(' : ', 1)[1].replace('\n', ''), 'utf-8')
                     fa([temp_loglevel_and_time[0], loglvl, msg])
                 except IndexError:
                     # Add traceback message to previous msg.
@@ -2490,7 +2487,6 @@ class WebInterface(object):
         except IOError as e:
             return "Log file not found."
 
-
     ##### Settings #####
 
     @cherrypy.expose
@@ -2655,26 +2651,26 @@ class WebInterface(object):
         refresh_users = False
 
         # If we change any monitoring settings, make sure we reschedule tasks.
-        if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
-            kwargs.get('monitoring_interval') != str(plexpy.CONFIG.MONITORING_INTERVAL) or \
-            kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
-            kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
-            kwargs.get('notify_recently_added') != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED or \
-            kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
-            kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
-            reschedule = True
+        if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB \
+                or kwargs.get('monitoring_interval') != str(plexpy.CONFIG.MONITORING_INTERVAL) \
+                or kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) \
+                or kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) \
+                or kwargs.get('notify_recently_added') != plexpy.CONFIG.NOTIFY_RECENTLY_ADDED \
+                or kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES \
+                or kwargs.get('monitor_remote_access') != plexpy.CONFIG.MONITOR_REMOTE_ACCESS:
+                reschedule = True
 
         # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.
-        if kwargs.get('pms_ssl') != plexpy.CONFIG.PMS_SSL or \
-            kwargs.get('pms_is_remote') != plexpy.CONFIG.PMS_IS_REMOTE:
+        if kwargs.get('pms_ssl') != plexpy.CONFIG.PMS_SSL \
+                or kwargs.get('pms_is_remote') != plexpy.CONFIG.PMS_IS_REMOTE:
             server_changed = True
 
         # If we change the HTTPS setting, make sure we generate a new certificate.
         if kwargs.get('enable_https') and kwargs.get('https_create_cert'):
-            if kwargs.get('https_domain') != plexpy.CONFIG.HTTPS_DOMAIN or \
-                kwargs.get('https_ip') != plexpy.CONFIG.HTTPS_IP or \
-                kwargs.get('https_cert') != plexpy.CONFIG.HTTPS_CERT or \
-                kwargs.get('https_key') != plexpy.CONFIG.HTTPS_KEY:
+            if kwargs.get('https_domain') != plexpy.CONFIG.HTTPS_DOMAIN \
+                    or kwargs.get('https_ip') != plexpy.CONFIG.HTTPS_IP \
+                    or kwargs.get('https_cert') != plexpy.CONFIG.HTTPS_CERT \
+                    or kwargs.get('https_key') != plexpy.CONFIG.HTTPS_KEY:
                 https_changed = True
 
         # Remove config with 'hsec-' prefix and change home_sections to list
@@ -3054,7 +3050,7 @@ class WebInterface(object):
 
         if notifier_id:
             notifier = notifiers.get_notifier_config(notifier_id=notifier_id)
-            
+
             if notifier:
                 logger.debug(u"Sending %s%s notification." % (test, notifier['agent_name']))
                 if notifiers.send_notification(notifier_id=notifier_id,
@@ -3115,8 +3111,8 @@ class WebInterface(object):
 
         if access_token:
             return "Facebook authorization successful. PlexPy can send notification to Facebook. " \
-                "Your Facebook access token is:" \
-                "<pre>{0}</pre>You may close this page.".format(access_token)
+                   "Your Facebook access token is:" \
+                   "<pre>{0}</pre>You may close this page.".format(access_token)
         else:
             return "Failed to request authorization from Facebook. Check the PlexPy logs for details.<br />You may close this page."
 
@@ -3401,7 +3397,7 @@ class WebInterface(object):
         if git_branch == plexpy.CONFIG.GIT_BRANCH:
             logger.error(u"Already on the %s branch" % git_branch)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
-        
+
         # Set the new git remote and branch
         plexpy.CONFIG.__setattr__('GIT_REMOTE', git_remote)
         plexpy.CONFIG.__setattr__('GIT_BRANCH', git_branch)
@@ -3554,7 +3550,6 @@ class WebInterface(object):
                     fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
                     return serve_file(path=fp, content_type='image/png')
 
-
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -3585,7 +3580,6 @@ class WebInterface(object):
                 log_file_path = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, log_file)
         else:
             return "Plex log folder not set in the settings."
-
 
         if log_file and os.path.isfile(log_file_path):
             return serve_download(log_file_path, name=log_file)
@@ -3640,7 +3634,6 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Deleted Imgur poster url.'}
         else:
             return {'result': 'error', 'message': 'Failed to delete Imgur poster url.'}
-
 
     ##### Search #####
 
@@ -3704,7 +3697,6 @@ class WebInterface(object):
         else:
             logger.warn(u"Unable to retrieve data for get_search_results_children.")
             return serve_template(templatename="info_search_results_list.html", data=None, title="Search Result List")
-
 
     ##### Update Metadata #####
 
@@ -3821,7 +3813,6 @@ class WebInterface(object):
             return result
         else:
             logger.warn(u"Unable to retrieve data for get_old_rating_keys.")
-
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4568,7 +4559,7 @@ class WebInterface(object):
             ```
         """
         geo_info = helpers.geoip_lookup(ip_address)
-        if isinstance(geo_info, basestring):
+        if isinstance(geo_info, string_types):
             return {'error': geo_info}
         return geo_info
 

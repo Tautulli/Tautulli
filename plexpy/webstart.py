@@ -19,15 +19,14 @@ import sys
 
 import cherrypy
 
-import logger
 import plexpy
-import webauth
 from plexpy.helpers import create_https_certificates
 from plexpy.webserve import WebInterface
+from plexpy import logger
+from plexpy import webauth
 
 
 def initialize(options):
-
     # HTTPS stuff stolen from sickbeard
     enable_https = options['enable_https']
     https_cert = options['https_cert']

@@ -3,9 +3,10 @@
 Locking-related classes
 """
 
-import Queue
 import threading
 import time
+
+import six.moves.queue as Queue
 
 import plexpy.logger
 

@@ -21,7 +21,8 @@ import subprocess
 import sys
 import threading
 import uuid
-from Queue import Queue
+
+from six.moves.queue import Queue
 
 # Some cut down versions of Python may not include this module and it's not critical for us
 try:
@@ -34,16 +35,16 @@ import cherrypy
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-import activity_pinger
-import config
-import database
-import logger
-import notification_handler
-import notifiers
-import plextv
-import pmsconnect
-import versioncheck
-import plexpy.config
+from plexpy import activity_pinger
+from plexpy import config
+from plexpy import database
+from plexpy import logger
+from plexpy import notification_handler
+from plexpy import notifiers
+from plexpy import plextv
+from plexpy import pmsconnect
+from plexpy import versioncheck
+from plexpy import config
 
 PROG_DIR = None
 FULL_PATH = None
@@ -100,7 +101,7 @@ def initialize(config_file):
         global CURRENT_VERSION
         global LATEST_VERSION
         global UMASK
-        CONFIG = plexpy.config.Config(config_file)
+        CONFIG = config.Config(config_file)
         CONFIG_FILE = config_file
 
         assert CONFIG is not None
@@ -109,8 +110,7 @@ def initialize(config_file):
             return False
 
         if CONFIG.HTTP_PORT < 21 or CONFIG.HTTP_PORT > 65535:
-            plexpy.logger.warn(
-                u"HTTP_PORT out of bounds: 21 < %s < 65535", CONFIG.HTTP_PORT)
+            logger.warn(u"HTTP_PORT out of bounds: 21 < %s < 65535", CONFIG.HTTP_PORT)
             CONFIG.HTTP_PORT = 8181
 
         if not CONFIG.HTTPS_CERT:

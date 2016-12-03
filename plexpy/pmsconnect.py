@@ -15,18 +15,19 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import threading
-import urllib
-from urlparse import urlparse
 
-import common
-import database
-import helpers
-import http_handler
-import libraries
-import logger
+from six import iteritems
+from six.moves.urllib.parse import urlparse, quote, urlencode
+
 import plexpy
-import session
-import users
+from plexpy import common
+from plexpy import database
+from plexpy import helpers
+from plexpy import http_handler
+from plexpy import libraries
+from plexpy import logger
+from plexpy import session
+from plexpy import users
 
 
 def get_server_friendly_name():
@@ -398,7 +399,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/search?query=' + urllib.quote(query.encode('utf8')) + track
+        uri = '/search?query=' + quote(query.encode('utf8')) + track
         request = self.request_handler.make_request(uri=uri,
                                                     proto=self.protocol,
                                                     request_type='GET',
@@ -1944,12 +1945,12 @@ class PmsConnect(object):
         """
 
         if img:
-            params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}
+            params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urlencode({'X-Plex-Token': self.token}))}
             if width.isdigit() and height.isdigit():
                 params['width'] = width
                 params['height'] = height
 
-            uri = '/photo/:/transcode?%s' % urllib.urlencode(params)
+            uri = '/photo/:/transcode?%s' % urlencode(params)
             result = self.request_handler.make_request(uri=uri,
                                                        proto=self.protocol,
                                                        request_type='GET',
@@ -2051,7 +2052,7 @@ class PmsConnect(object):
                     search_results_count += 1
 
         output = {'results_count': search_results_count,
-                  'results_list': {k: v for k, v in search_results_list.iteritems()}
+                  'results_list': {k: v for k, v in iteritems(search_results_list)}
                   }
 
         return output
@@ -2204,7 +2205,7 @@ class PmsConnect(object):
 
             # Catch the malformed XML on certain PMX version.
             # XML parser helper returns empty list if there is an error parsing XML
-            if updater_status == []:
+            if not updater_status:
                 logger.warn(u"Plex API updater XML is broken on the current PMS version. Please update your PMS manually.")
                 logger.info(u"PlexPy is unable to check for Plex updates. Disabling check for Plex updates.")
 

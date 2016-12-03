@@ -24,14 +24,14 @@ from cgi import escape
 from datetime import datetime, timedelta
 
 import cherrypy
-from hashing_passwords import check_hash
+from plexpy.lib.hashing_passwords import check_hash
 
-import logger
 import plexpy
-import plextv
 from plexpy.database import MonitorDatabase
 from plexpy.plextv import PlexTV
 from plexpy.users import Users
+from plexpy import logger
+from plexpy import plextv
 
 SESSION_KEY = '_cp_username'
 

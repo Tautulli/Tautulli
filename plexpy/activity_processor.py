@@ -16,12 +16,14 @@
 
 import time
 
-import database
-import libraries
-import logger
+from six import iteritems
+
 import plexpy
-import pmsconnect
-import users
+from plexpy import database
+from plexpy import libraries
+from plexpy import logger
+from plexpy import pmsconnect
+from plexpy import users
 
 
 class ActivityProcessor(object):
@@ -326,7 +328,7 @@ class ActivityProcessor(object):
             if state:
                 values['state'] = state
 
-            for k,v in kwargs.iteritems():
+            for k, v in iteritems(kwargs):
                 values[k] = v
 
             keys = {'session_key': session_key}

@@ -27,8 +27,6 @@ import socket
 import sys
 import time
 import unicodedata
-import urllib
-import urllib2
 from functools import wraps
 from operator import itemgetter
 from xml.dom import minidom
@@ -41,10 +39,14 @@ import ipwhois.utils
 import maxminddb
 import xmltodict
 from IPy import IP
-
-import logger
+from six import iteritems
+from six.moves.urllib.request import Request, urlopen, URLopener
+from six.moves.urllib.error import HTTPError, URLError
+from six.moves.urllib.parse import urlencode
+from six import text_type
 import plexpy
 from plexpy.api2 import API2
+from . import logger
 
 
 def addtoapi(*dargs, **dkwargs):
@@ -86,6 +88,8 @@ def multikeysort(items, columns):
     comparers = [((itemgetter(col[1:].strip()), -1) if col.startswith('-') else (itemgetter(col.strip()), 1)) for col in columns]
 
     def comparer(left, right):
+        def cmp(a, b):
+            return (a > b) - (a < b)
         for fn, mult in comparers:
             result = cmp(fn(left), fn(right))
             if result:
@@ -294,7 +298,7 @@ def replace_all(text, dic, normalize=False):
     if not text:
         return ''
 
-    for i, j in dic.iteritems():
+    for i, j in iteritems(dic):
         if normalize:
             try:
                 if sys.platform == 'darwin':
@@ -309,22 +313,22 @@ def replace_all(text, dic, normalize=False):
 
 def replace_illegal_chars(string, type="file"):
     if type == "file":
-        string = re.sub('[\?"*:|<>/]', '_', string)
+        string = re.sub('[?"*:|<>/]', '_', string)
     if type == "folder":
-        string = re.sub('[:\?<>"|]', '_', string)
+        string = re.sub('[:?<>"|]', '_', string)
 
     return string
 
 
 def cleanName(string):
     pass1 = latinToAscii(string).lower()
-    out_string = re.sub('[\.\-\/\!\@\#\$\%\^\&\*\(\)\+\-\"\'\,\;\:\[\]\{\}\<\>\=\_]', '', pass1).encode('utf-8')
+    out_string = re.sub('[.\-/!@#$%\^&*()+\"\',;:\[\]{\}<>=_]', '', pass1).encode('utf-8')
 
     return out_string
 
 
 def cleanTitle(title):
-    title = re.sub('[\.\-\/\_]', ' ', title).lower()
+    title = re.sub('[.\-/_]', ' ', title).lower()
 
     # Strip out extra whitespace
     title = ' '.join(title.split())
@@ -368,7 +372,7 @@ def split_path(f):
 
 def extract_logline(s):
     # Default log format
-    pattern = re.compile(r'(?P<timestamp>.*?)\s\-\s(?P<level>.*?)\s*\:\:\s(?P<thread>.*?)\s\:\s(?P<message>.*)', re.VERBOSE)
+    pattern = re.compile(r'(?P<timestamp>.*?)\s-\s(?P<level>.*?)\s*::\s(?P<thread>.*?)\s:\s(?P<message>.*)', re.VERBOSE)
     match = pattern.match(s)
     if match:
         timestamp = match.group("timestamp")
@@ -395,7 +399,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     This code is stolen from SickBeard (http://github.com/midgetspy/Sick-Beard).
     """
     from OpenSSL import crypto
-    from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
+    from plexpy.lib.certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
     serial = int(time.time())
     domains = ['DNS:' + d.strip() for d in plexpy.CONFIG.HTTPS_DOMAIN.split(',') if d]
@@ -405,7 +409,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     # Create the self-signed PlexPy certificate
     logger.debug(u"Generating self-signed SSL certificate.")
     pkey = createKeyPair(TYPE_RSA, 2048)
-    cert = createSelfSignedCertificate(("PlexPy", pkey), serial, (0, 60 * 60 * 24 * 365 * 10), altNames)  # ten years
+    cert = createSelfSignedCertificate("PlexPy", pkey, serial, 0, 60 * 60 * 24 * 365 * 10, altNames)  # ten years
 
     # Save the key and certificate to disk
     try:
@@ -501,7 +505,7 @@ def process_json_kwargs(json_kwargs):
 
 def sanitize(string):
     if string:
-        return unicode(string).replace('<', '&lt;').replace('>', '&gt;')
+        return text_type(string).replace('<', '&lt;').replace('>', '&gt;')
     else:
         return ''
 
@@ -544,9 +548,9 @@ def install_geoip_db():
     # Retrieve the GeoLite2 gzip file
     logger.debug(u"PlexPy Helpers :: Downloading GeoLite2 gzip file from MaxMind...")
     try:
-        maxmind = urllib.URLopener()
+        maxmind = URLopener()
         maxmind.retrieve(maxmind_url + geolite2_gz, temp_gz)
-        md5_checksum = urllib2.urlopen(maxmind_url + geolite2_md5).read()
+        md5_checksum = urlopen(maxmind_url + geolite2_md5).read()
     except Exception as e:
         logger.error(u"PlexPy Helpers :: Failed to download GeoLite2 gzip file from MaxMind: %s" % e)
         return False
@@ -714,8 +718,8 @@ def uploadToImgur(imgPath, imgTitle=''):
         data['name'] = imgTitle.encode('utf-8') + '.jpg'
 
     try:
-        request = urllib2.Request('https://api.imgur.com/3/image', headers=headers, data=urllib.urlencode(data))
-        response = urllib2.urlopen(request)
+        request = Request('https://api.imgur.com/3/image', headers=headers, data=urlencode(data))
+        response = urlopen(request)
         response = json.loads(response.read())
 
         if response.get('status') == 200:
@@ -726,7 +730,7 @@ def uploadToImgur(imgPath, imgTitle=''):
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % response.reason)
         else:
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur.")
-    except (urllib2.HTTPError, urllib2.URLError) as e:
+    except (HTTPError, URLError) as e:
         logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % e)
 
     return img_url

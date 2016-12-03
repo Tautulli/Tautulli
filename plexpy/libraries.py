@@ -17,15 +17,17 @@
 import json
 import os
 
-import common
-import database
-import datatables
-import helpers
-import logger
+from six import iteritems
+
 import plexpy
-import plextv
-import pmsconnect
-import session
+from plexpy import common
+from plexpy import database
+from plexpy import datatables
+from plexpy import helpers
+from plexpy import logger
+from plexpy import plextv
+from plexpy import pmsconnect
+from plexpy import session
 
 
 def update_section_ids():
@@ -155,7 +157,7 @@ def update_labels():
                                     % section_id)
 
     error_keys = set()
-    for rating_key, labels in key_mappings.iteritems():
+    for rating_key, labels in iteritems(key_mappings):
         try:
             labels = ';'.join(labels)
             monitor_db.action('UPDATE session_history_metadata SET labels = ? '
@@ -475,7 +477,7 @@ class Libraries(object):
         if search_value:
             searchable_columns = [d['data'] for d in json_data['columns'] if d['searchable']]
             for row in rows:
-                for k, v in row.iteritems():
+                for k, v in iteritems(row):
                     if k in searchable_columns and search_value in v.lower():
                         results.append(row)
                         break

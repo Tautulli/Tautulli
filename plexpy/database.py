@@ -22,8 +22,8 @@ import time
 
 import arrow
 
-import logger
 import plexpy
+from plexpy import logger
 
 FILENAME = "plexpy.db"
 db_lock = threading.Lock()

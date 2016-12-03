@@ -14,14 +14,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import common
-import database
-import datatables
-import helpers
-import logger
+from six import iteritems
+
 import plexpy
-import pmsconnect
-import session
+from plexpy import common
+from plexpy import database
+from plexpy import datatables
+from plexpy import helpers
+from plexpy import logger
+from plexpy import pmsconnect
+from plexpy import session
 
 
 class DataFactory(object):
@@ -1222,7 +1224,7 @@ class DataFactory(object):
         # function to map rating keys pairs
         def get_pairs(old, new):
             pairs = {}
-            for k, v in old.iteritems():
+            for k, v in iteritems(old):
                 if k in new:
                     pairs.update({v['rating_key']: new[k]['rating_key']})
                     if 'children' in old[k]:
@@ -1237,7 +1239,7 @@ class DataFactory(object):
 
         if mapping:
             logger.info(u"PlexPy DataFactory :: Updating metadata in the database.")
-            for old_key, new_key in mapping.iteritems():
+            for old_key, new_key in iteritems(mapping):
                 metadata = pms_connect.get_metadata_details(new_key)
 
                 if metadata:

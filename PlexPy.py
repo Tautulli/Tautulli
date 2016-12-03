@@ -1,10 +1,5 @@
-#!/bin/sh
-''''which python    >/dev/null 2>&1 && exec python    "$0" "$@" # '''
-''''which python2   >/dev/null 2>&1 && exec python2   "$0" "$@" # '''
-''''which python2.7 >/dev/null 2>&1 && exec python2.7 "$0" "$@" # '''
-''''exec echo "Error: Python not found!" # '''
-
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# coding=utf-8
 
 # This file is part of PlexPy.
 #
@@ -21,20 +16,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import sys
-
-# Ensure lib added to path, before any other imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib/'))
 
 import argparse
 import locale
+import os
 import signal
+import sys
 import time
 
 import plexpy
 from plexpy import config, database, logger, web_socket, webstart
-
 
 # Register signals, such as CTRL + C
 signal.signal(signal.SIGINT, plexpy.sig_handler)
@@ -129,7 +120,7 @@ def main():
             except IOError as e:
                 raise SystemExit("Unable to read PID file: %s", e)
             except OSError:
-                logger.warn("PID file '%s' already exists, but PID %d is " \
+                logger.warn("PID file '%s' already exists, but PID %d is "
                             "not running. Ignoring PID file." %
                             (plexpy.PIDFILE, pid))
             else:
@@ -149,7 +140,7 @@ def main():
             except IOError as e:
                 raise SystemExit("Unable to write PID file: %s", e)
         else:
-            logger.warn("Not running in daemon mode. PID file creation " \
+            logger.warn("Not running in daemon mode. PID file creation "
                         "disabled.")
 
     # Determine which data directory and config file to use
@@ -207,7 +198,7 @@ def main():
         try:
             import OpenSSL
         except ImportError:
-            logger.warn("The pyOpenSSL module is missing. Install this " \
+            logger.warn("The pyOpenSSL module is missing. Install this "
                         "module to enable HTTPS. HTTPS will be disabled.")
             plexpy.CONFIG.ENABLE_HTTPS = False
 

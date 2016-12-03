@@ -17,14 +17,16 @@
 import time
 
 import httpagentparser
+from six import iteritems
+from six.moves.urllib.parse import parse_qsl
 
-import common
-import database
-import datatables
-import helpers
-import logger
-import plextv
-import session
+from plexpy import common
+from plexpy import database
+from plexpy import datatables
+from plexpy import helpers
+from plexpy import logger
+from plexpy import plextv
+from plexpy import session
 
 
 class Users(object):
@@ -647,8 +649,6 @@ class Users(object):
         return None
 
     def get_filters(self, user_id=None):
-        import urlparse
-
         if not user_id:
             return {}
 
@@ -662,12 +662,12 @@ class Users(object):
             result = {}
 
         filters_list = {}
-        for k, v in result.iteritems():
+        for k, v in iteritems(result):
             filters = {}
                 
             for f in v.split('|'):
                 if 'contentRating=' in f or 'label=' in f:
-                    filters.update(dict(urlparse.parse_qsl(f)))
+                    filters.update(dict(parse_qsl(f)))
                         
             filters['content_rating'] = tuple(f for f in filters.pop('contentRating', '').split(',') if f)
             filters['labels'] = tuple(f for f in filters.pop('label', '').split(',') if f)

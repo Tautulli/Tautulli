@@ -23,14 +23,9 @@ import smtplib
 import subprocess
 import threading
 import time
-import urllib
-import urllib2
 import uuid
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from httplib import HTTPSConnection
-from urllib import urlencode
-from urlparse import urlparse
 
 import bleach
 import facebook
@@ -38,13 +33,18 @@ import gntp.notifier
 import pynma
 import requests
 import twitter
+from six import iteritems
+from six.moves.http_client import HTTPSConnection
+from six.moves.urllib.error import URLError
+from six.moves.urllib.parse import urlencode, urlparse
+from six.moves.urllib.request import Request, urlopen
 
-import database
-import helpers
-import logger
 import plexpy
-import request
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
+from plexpy import database
+from plexpy import helpers
+from plexpy import logger
+from plexpy import request
 
 AGENT_IDS = {'growl': 0,
              'prowl': 1,
@@ -527,7 +527,7 @@ def blacklist_logger():
 
     for n in notifiers:
         config = json.loads(n['notifier_config'] or '{}')
-        for key, value in config.iteritems():
+        for key, value in iteritems(config):
             if isinstance(value, basestring) and len(value.strip()) > 5 and \
                             key.upper() not in _WHITELIST_KEYS and any(bk in key.upper() for bk in blacklist_keys):
                 blacklist.append(value.strip())
@@ -622,7 +622,7 @@ class Notifier(object):
             return self._DEFAULT_CONFIG
 
         new_config = {}
-        for k, v in self._DEFAULT_CONFIG.iteritems():
+        for k, v in iteritems(self._DEFAULT_CONFIG):
             if isinstance(v, int):
                 new_config[k] = helpers.cast_to_int(config.get(k, v))
             else:
@@ -658,13 +658,13 @@ class BOXCAR(Notifier):
                 'notification[sound]': self.config['sound']
                 })
 
-            req = urllib2.Request('https://new.boxcar.io/api/notifications')
-            handle = urllib2.urlopen(req, data)
+            req = Request('https://new.boxcar.io/api/notifications')
+            handle = urlopen(req, data)
             handle.close()
             logger.info(u"PlexPy Notifiers :: Boxcar2 notification sent.")
             return True
 
-        except urllib2.URLError as e:
+        except URLError as e:
             logger.warn(u"PlexPy Notifiers :: Boxcar2 notification failed: %s" % e)
             return False
 
@@ -1586,7 +1586,7 @@ class JOIN(Notifier):
 
     def return_config_options(self):
         devices = '<br>'.join(['%s: <span class="inline-pre">%s</span>'
-                               % (v, k) for k, v in self.get_devices().iteritems() if k])
+                               % (v, k) for k, v in iteritems(self.get_devices()) if k])
         if not devices:
             devices = 'Enter your Join API key to load your device list.'
 
@@ -2928,7 +2928,7 @@ def upgrade_config_to_db():
 
             # Update the new config with the old config values
             notifier_config = {}
-            for conf, val in notifier_default_config.iteritems():
+            for conf, val in iteritems(notifier_default_config):
                 c_key = agent_config_key + '_' + config_key_overrides.get(agent, {}).get(conf, conf)
                 notifier_config[agent + '_' + conf] = agent_config.get(c_key, val)
 

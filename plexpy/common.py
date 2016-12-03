@@ -21,7 +21,7 @@ Created on Aug 1, 2011
 """
 import platform
 
-import version
+from plexpy import version
 
 # Identify Our Application
 USER_AGENT = 'PlexPy/-' + version.PLEXPY_BRANCH + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \

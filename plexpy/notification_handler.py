@@ -21,22 +21,24 @@ import threading
 import time
 from itertools import groupby
 from operator import itemgetter
+from six import string_types
+from six import text_type
 
 import arrow
 import bleach
 
-import activity_processor
-import common
-import database
-import datafactory
-import helpers
-import libraries
-import logger
-import notifiers
 import plexpy
-import plextv
-import pmsconnect
-import users
+from plexpy import activity_processor
+from plexpy import common
+from plexpy import database
+from plexpy import datafactory
+from plexpy import helpers
+from plexpy import libraries
+from plexpy import logger
+from plexpy import notifiers
+from plexpy import plextv
+from plexpy import pmsconnect
+from plexpy import users
 
 
 def process_queue():
@@ -565,10 +567,10 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     default_body = default_action.get('body', '')
 
     # Make sure subject and body text are strings
-    if not isinstance(subject, basestring):
+    if not isinstance(subject, string_types):
         logger.error(u"PlexPy NotificationHandler :: Invalid subject text. Using fallback.")
         subject = default_subject
-    if not isinstance(body, basestring):
+    if not isinstance(body, string_types):
         logger.error(u"PlexPy NotificationHandler :: Invalid body text. Using fallback.")
         body = default_body
 
@@ -610,22 +612,22 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         return subject, body
 
     try:
-        subject = unicode(subject).format(**parameters)
+        subject = text_type(subject).format(**parameters)
     except LookupError as e:
         logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
-        subject = unicode(default_subject).format(**parameters)
+        subject = text_type(default_subject).format(**parameters)
     except:
         logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
-        subject = unicode(default_subject).format(**parameters)
+        subject = text_type(default_subject).format(**parameters)
 
     try:
-        body = unicode(body).format(**parameters)
+        body = text_type(body).format(**parameters)
     except LookupError as e:
         logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
-        body = unicode(default_body).format(**parameters)
+        body = text_type(default_body).format(**parameters)
     except:
         logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
-        body = unicode(default_body).format(**parameters)
+        body = text_type(default_body).format(**parameters)
 
     return subject, body
 
@@ -664,7 +666,7 @@ def format_group_index(group_keys):
     num = []
     num00 = []
 
-    for k, g in groupby(enumerate(group_keys), lambda (i, x): i - x):
+    for k, g in groupby(enumerate(group_keys), lambda x: x[0] - x[1]):
         group = map(itemgetter(1), g)
         g_min, g_max = min(group), max(group)
 

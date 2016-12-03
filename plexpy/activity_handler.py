@@ -16,12 +16,12 @@
 
 import time
 
-import activity_processor
-import helpers
-import logger
-import notification_handler
 import plexpy
-import pmsconnect
+from plexpy import activity_processor
+from plexpy import helpers
+from plexpy import logger
+from plexpy import notification_handler
+from plexpy import pmsconnect
 
 
 RECENTLY_ADDED_QUEUE = {}

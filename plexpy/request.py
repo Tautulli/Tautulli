@@ -21,9 +21,9 @@ import feedparser
 import requests
 from bs4 import BeautifulSoup
 
-import logger
 import plexpy
 import plexpy.lock
+from plexpy import logger
 
 # Dictionary with last request times, for rate limiting.
 last_requests = collections.defaultdict(int)

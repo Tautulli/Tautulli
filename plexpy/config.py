@@ -21,16 +21,20 @@ import time
 
 import arrow
 from configobj import ConfigObj
+from six import iteritems
+from six import string_types
+from six import text_type
 
-import logger
+
 import plexpy
+from plexpy import logger
 
 
 def bool_int(value):
     """
     Casts a config value into a 0 or 1
     """
-    if isinstance(value, basestring):
+    if isinstance(value, string_types):
         if value.lower() in ('', '0', 'false', 'f', 'no', 'n', 'off'):
             value = 0
     return int(bool(value))
@@ -49,7 +53,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_IS_REMOTE': (int, 'PMS', 0),
     'PMS_LOGS_FOLDER': (str, 'PMS', ''),
     'PMS_LOGS_LINE_CAP': (int, 'PMS', 1000),
-    'PMS_NAME': (unicode, 'PMS', ''),
+    'PMS_NAME': (text_type, 'PMS', ''),
     'PMS_PORT': (int, 'PMS', 32400),
     'PMS_TOKEN': (str, 'PMS', ''),
     'PMS_SSL': (int, 'PMS', 0),
@@ -328,35 +332,35 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_CONCURRENT_BY_IP': (int, 'Monitoring', 0),
     'NOTIFY_CONCURRENT_THRESHOLD': (int, 'Monitoring', 2),
     'NOTIFY_WATCHED_PERCENT': (int, 'Monitoring', 85),
-    'NOTIFY_ON_START_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_START_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) started playing {title}.'),
-    'NOTIFY_ON_STOP_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_STOP_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has stopped {title}.'),
-    'NOTIFY_ON_PAUSE_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_PAUSE_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has paused {title}.'),
-    'NOTIFY_ON_RESUME_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_RESUME_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has resumed {title}.'),
-    'NOTIFY_ON_BUFFER_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_BUFFER_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) is buffering {title}.'),
-    'NOTIFY_ON_WATCHED_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_WATCHED_BODY_TEXT': (unicode, 'Monitoring', '{user} ({player}) has watched {title}.'),
-    'NOTIFY_ON_CREATED_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_CREATED_BODY_TEXT': (unicode, 'Monitoring', '{title} was recently added to Plex.'),
-    'NOTIFY_ON_EXTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_EXTDOWN_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server remote access is down.'),
-    'NOTIFY_ON_INTDOWN_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_INTDOWN_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server is down.'),
-    'NOTIFY_ON_EXTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_EXTUP_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server remote access is back up.'),
-    'NOTIFY_ON_INTUP_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_INTUP_BODY_TEXT': (unicode, 'Monitoring', 'The Plex Media Server is back up.'),
-    'NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_PMSUPDATE_BODY_TEXT': (unicode, 'Monitoring', 'An update is available for the Plex Media Server (version {update_version}).'),
-    'NOTIFY_ON_CONCURRENT_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_CONCURRENT_BODY_TEXT': (unicode, 'Monitoring', '{user} has {user_streams} concurrent streams.'),
-    'NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT': (unicode, 'Monitoring', 'PlexPy ({server_name})'),
-    'NOTIFY_ON_NEWDEVICE_BODY_TEXT': (unicode, 'Monitoring', '{user} is streaming from a new device: {player}.'),
-    'NOTIFY_SCRIPTS_ARGS_TEXT': (unicode, 'Monitoring', ''),
+    'NOTIFY_ON_START_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_START_BODY_TEXT': (text_type, 'Monitoring', '{user} ({player}) started playing {title}.'),
+    'NOTIFY_ON_STOP_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_STOP_BODY_TEXT': (text_type, 'Monitoring', '{user} ({player}) has stopped {title}.'),
+    'NOTIFY_ON_PAUSE_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_PAUSE_BODY_TEXT': (text_type, 'Monitoring', '{user} ({player}) has paused {title}.'),
+    'NOTIFY_ON_RESUME_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_RESUME_BODY_TEXT': (text_type, 'Monitoring', '{user} ({player}) has resumed {title}.'),
+    'NOTIFY_ON_BUFFER_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_BUFFER_BODY_TEXT': (text_type, 'Monitoring', '{user} ({player}) is buffering {title}.'),
+    'NOTIFY_ON_WATCHED_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_WATCHED_BODY_TEXT': (text_type, 'Monitoring', '{user} ({player}) has watched {title}.'),
+    'NOTIFY_ON_CREATED_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_CREATED_BODY_TEXT': (text_type, 'Monitoring', '{title} was recently added to Plex.'),
+    'NOTIFY_ON_EXTDOWN_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_EXTDOWN_BODY_TEXT': (text_type, 'Monitoring', 'The Plex Media Server remote access is down.'),
+    'NOTIFY_ON_INTDOWN_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_INTDOWN_BODY_TEXT': (text_type, 'Monitoring', 'The Plex Media Server is down.'),
+    'NOTIFY_ON_EXTUP_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_EXTUP_BODY_TEXT': (text_type, 'Monitoring', 'The Plex Media Server remote access is back up.'),
+    'NOTIFY_ON_INTUP_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_INTUP_BODY_TEXT': (text_type, 'Monitoring', 'The Plex Media Server is back up.'),
+    'NOTIFY_ON_PMSUPDATE_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_PMSUPDATE_BODY_TEXT': (text_type, 'Monitoring', 'An update is available for the Plex Media Server (version {update_version}).'),
+    'NOTIFY_ON_CONCURRENT_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_CONCURRENT_BODY_TEXT': (text_type, 'Monitoring', '{user} has {user_streams} concurrent streams.'),
+    'NOTIFY_ON_NEWDEVICE_SUBJECT_TEXT': (text_type, 'Monitoring', 'PlexPy ({server_name})'),
+    'NOTIFY_ON_NEWDEVICE_BODY_TEXT': (text_type, 'Monitoring', '{user} is streaming from a new device: {player}.'),
+    'NOTIFY_SCRIPTS_ARGS_TEXT': (text_type, 'Monitoring', ''),
     'OSX_NOTIFY_APP': (str, 'OSX_Notify', '/Applications/PlexPy'),
     'OSX_NOTIFY_ENABLED': (int, 'OSX_Notify', 0),
     'OSX_NOTIFY_ON_PLAY': (int, 'OSX_Notify', 0),
@@ -494,7 +498,7 @@ _CONFIG_DEFINITIONS = {
     'SLACK_ON_CONCURRENT': (int, 'Slack', 0),
     'SLACK_ON_NEWDEVICE': (int, 'Slack', 0),
     'SCRIPTS_ENABLED': (int, 'Scripts', 0),
-    'SCRIPTS_FOLDER': (unicode, 'Scripts', ''),
+    'SCRIPTS_FOLDER': (text_type, 'Scripts', ''),
     'SCRIPTS_TIMEOUT': (int, 'Scripts', 30),
     'SCRIPTS_ON_PLAY': (int, 'Scripts', 0),
     'SCRIPTS_ON_STOP': (int, 'Scripts', 0),
@@ -510,20 +514,20 @@ _CONFIG_DEFINITIONS = {
     'SCRIPTS_ON_PMSUPDATE': (int, 'Scripts', 0),
     'SCRIPTS_ON_CONCURRENT': (int, 'Scripts', 0),
     'SCRIPTS_ON_NEWDEVICE': (int, 'Scripts', 0),
-    'SCRIPTS_ON_PLAY_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_STOP_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_PAUSE_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_RESUME_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_BUFFER_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_WATCHED_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_CREATED_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_EXTDOWN_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_EXTUP_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_INTDOWN_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_INTUP_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_PMSUPDATE_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_CONCURRENT_SCRIPT': (unicode, 'Scripts', ''),
-    'SCRIPTS_ON_NEWDEVICE_SCRIPT': (unicode, 'Scripts', ''),
+    'SCRIPTS_ON_PLAY_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_STOP_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_PAUSE_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_RESUME_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_BUFFER_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_WATCHED_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_CREATED_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_EXTDOWN_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_EXTUP_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_INTDOWN_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_INTUP_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_PMSUPDATE_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_CONCURRENT_SCRIPT': (text_type, 'Scripts', ''),
+    'SCRIPTS_ON_NEWDEVICE_SCRIPT': (text_type, 'Scripts', ''),
     'TELEGRAM_BOT_TOKEN': (str, 'Telegram', ''),
     'TELEGRAM_ENABLED': (int, 'Telegram', 0),
     'TELEGRAM_CHAT_ID': (str, 'Telegram', ''),
@@ -659,9 +663,9 @@ class Config(object):
         """ Add tokens and passwords to blacklisted words in logger """
         blacklist = []
 
-        for key, subkeys in self._config.iteritems():
-            for subkey, value in subkeys.iteritems():
-                if isinstance(value, basestring) and \
+        for key, subkeys in iteritems(self._config):
+            for subkey, value in iteritems(subkeys):
+                if isinstance(value, string_types) and \
                                 len(value.strip()) > 5 and \
                                 subkey.upper() not in _WHITELIST_KEYS and \
                                 any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):

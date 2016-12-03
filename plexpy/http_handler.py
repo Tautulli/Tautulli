@@ -17,12 +17,12 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import ssl
-from httplib import HTTPConnection
-from httplib import HTTPSConnection
 
-import helpers
-import logger
+from six.moves.http_client import HTTPConnection, HTTPSConnection
+
 import plexpy
+from plexpy import helpers
+from plexpy import logger
 
 
 class HTTPHandler(object):

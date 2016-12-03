@@ -15,9 +15,10 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import cherrypy
+from six import iteritems
 
-import common
-import users
+from plexpy import common
+from plexpy import users
 
 
 def get_session_info():
@@ -227,7 +228,7 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
 
     for d in list_of_dicts:
         if session_user_id and not (str(d.get('user_id')) == session_user_id or d.get('user') == session_user):
-            for k, v in keys_to_mask.iteritems():
+            for k, v in iteritems(keys_to_mask):
                 if k in d:
                     d[k] = keys_to_mask[k]
 
@@ -235,7 +236,7 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
             continue
 
         if str(d.get('section_id', '')) not in session_library_ids:
-            for k, v in metadata_to_mask.iteritems():
+            for k, v in iteritems(metadata_to_mask):
                 if k in d:
                     d[k] = metadata_to_mask[k]
             continue
@@ -260,7 +261,7 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
                 if d_content_rating in f_content_rating or set(d_labels).intersection(set(f_labels)):
                     continue
 
-            for k, v in metadata_to_mask.iteritems():
+            for k, v in iteritems(metadata_to_mask):
                 if k in d:
                     d[k] = metadata_to_mask[k]
 

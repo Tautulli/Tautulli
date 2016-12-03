@@ -28,13 +28,14 @@ import traceback
 
 import cherrypy
 import xmltodict
+from six import iteritems
 
-import config
-import database
-import logger
 import plexpy
-import plextv
-import pmsconnect
+from plexpy import config
+from plexpy import database
+from plexpy import logger
+from plexpy import plextv
+from plexpy import pmsconnect
 
 
 class API2(object):
@@ -241,10 +242,10 @@ class API2(object):
         config = {}
 
         # Truthify the dict
-        for k, v in conf.iteritems():
+        for k, v in iteritems(conf):
             if isinstance(v, dict):
                 d = {}
-                for kk, vv in v.iteritems():
+                for kk, vv in iteritems(v):
                     if vv == '0' or vv == '1':
                         d[kk] = bool(vv)
                     else:
@@ -521,12 +522,10 @@ General optional parameters:
         # The api decorated function can return different result types.
         # convert it to a list/dict before we change it to the users
         # wanted output
-        try:
-            if isinstance(result, (dict, list)):
-                ret = result
-            else:
-                raise
-        except:
+        if isinstance(result, (dict, list)):
+            ret = result
+
+        else:
             try:
                 ret = json.loads(result)
             except (ValueError, TypeError):
