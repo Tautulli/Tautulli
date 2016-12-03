@@ -25,7 +25,11 @@ import sys
 import time
 
 import plexpy
-from plexpy import config, database, logger, web_socket, webstart
+from plexpy import config
+from plexpy import database
+from plexpy import logger
+from plexpy import web_socket
+from plexpy import webstart
 
 # Register signals, such as CTRL + C
 signal.signal(signal.SIGINT, plexpy.sig_handler)
