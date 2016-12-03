@@ -293,7 +293,7 @@ class Graphs(object):
         return output
 
     def get_total_plays_per_month(self, y_axis='plays', user_id=None):
-        import time as time
+        import time
 
         monitor_db = database.MonitorDatabase()
 
