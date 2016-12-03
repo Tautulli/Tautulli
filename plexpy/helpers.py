@@ -391,7 +391,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     This code is stolen from SickBeard (http://github.com/midgetspy/Sick-Beard).
     """
     from OpenSSL import crypto
-    from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
+    from plexpy.lib.certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
     serial = int(time.time())
     domains = ['DNS:' + d.strip() for d in plexpy.CONFIG.HTTPS_DOMAIN.split(',') if d]

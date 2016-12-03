@@ -24,7 +24,7 @@ import cherrypy
 from cherrypy.lib.static import serve_file, serve_download
 from cherrypy._cperror import NotFound
 
-from hashing_passwords import make_hash
+from plexpy.lib.hashing_passwords import make_hash
 from mako.lookup import TemplateLookup
 from mako import exceptions
 

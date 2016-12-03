@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 import re
 
 import cherrypy
-from hashing_passwords import check_hash
+from plexpy.lib.hashing_passwords import check_hash
 
 import plexpy
 import logger
