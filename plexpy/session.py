@@ -1,4 +1,5 @@
-﻿#  This file is part of PlexPy.
+﻿# coding=utf-8
+#  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -34,12 +35,14 @@ def get_session_info():
     except AttributeError as e:
         return _session
 
+
 def get_session_user():
     """
     Returns the user_id for the current logged in session
     """
     _session = get_session_info()
     return _session['user'] if _session and _session['user'] else None
+
 
 def get_session_user_id():
     """
@@ -48,12 +51,14 @@ def get_session_user_id():
     _session = get_session_info()
     return str(_session['user_id']) if _session and _session['user_id'] else None
 
+
 def get_session_shared_libraries():
     """
     Returns a tuple of section_id for the current logged in session
     """
     user_details = users.Users().get_details(user_id=get_session_user_id())
     return tuple(str(s) for s in user_details['shared_libraries'])
+
 
 def get_session_library_filters():
     """
@@ -65,6 +70,7 @@ def get_session_library_filters():
     """
     filters = users.Users().get_filters(user_id=get_session_user_id())
     return filters
+
 
 def get_session_library_filters_type(filters, media_type=None):
     """
@@ -90,6 +96,7 @@ def get_session_library_filters_type(filters, media_type=None):
 
     return content_rating, tuple(f.lower() for f in labels)
 
+
 def allow_session_user(user_id):
     """
     Returns True or False if the user_id is allowed for the current logged in session
@@ -99,6 +106,7 @@ def allow_session_user(user_id):
         return False
     return True
 
+
 def allow_session_library(section_id):
     """
     Returns True or False if the section_id is allowed for the current logged in session
@@ -107,6 +115,7 @@ def allow_session_library(section_id):
     if session_library_ids and str(section_id) not in session_library_ids:
         return False
     return True
+
 
 def friendly_name_to_username(list_of_dicts):
     """
@@ -121,6 +130,7 @@ def friendly_name_to_username(list_of_dicts):
                 d['friendly_name'] = session_user
 
     return list_of_dicts
+
 
 def filter_session_info(list_of_dicts, filter_key=None):
     """
@@ -137,13 +147,13 @@ def filter_session_info(list_of_dicts, filter_key=None):
     list_of_dicts = friendly_name_to_username(list_of_dicts)
 
     if filter_key == 'user_id' and session_user_id:
-        return [d for d in list_of_dicts if str(d.get('user_id','')) == session_user_id]
+        return [d for d in list_of_dicts if str(d.get('user_id', '')) == session_user_id]
 
     elif filter_key == 'section_id' and session_library_ids:
         new_list_of_dicts = []
 
         for d in list_of_dicts:
-            if str(d.get('section_id','')) not in session_library_ids:
+            if str(d.get('section_id', '')) not in session_library_ids:
                 continue
 
             if d.get('media_type'):
@@ -172,6 +182,7 @@ def filter_session_info(list_of_dicts, filter_key=None):
         return new_list_of_dicts
 
     return list_of_dicts
+
 
 def mask_session_info(list_of_dicts, mask_metadata=True):
     """
@@ -217,20 +228,22 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
     for d in list_of_dicts:
         if session_user_id and not (str(d.get('user_id')) == session_user_id or d.get('user') == session_user):
             for k, v in keys_to_mask.iteritems():
-                if k in d: d[k] = keys_to_mask[k]
+                if k in d:
+                    d[k] = keys_to_mask[k]
 
         if not mask_metadata:
             continue
 
-        if str(d.get('section_id','')) not in session_library_ids:
+        if str(d.get('section_id', '')) not in session_library_ids:
             for k, v in metadata_to_mask.iteritems():
-                if k in d: d[k] = metadata_to_mask[k]
+                if k in d:
+                    d[k] = metadata_to_mask[k]
             continue
 
         media_type = d.get('media_type')
         if media_type:
             f_content_rating, f_labels = get_session_library_filters_type(session_library_filters,
-                                                                      media_type=d['media_type'])
+                                                                          media_type=d['media_type'])
 
             d_content_rating = d.get('content_rating', '')
             d_labels = tuple(f.lower() for f in d.get('labels', ()))
@@ -248,6 +261,7 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
                     continue
 
             for k, v in metadata_to_mask.iteritems():
-                if k in d: d[k] = metadata_to_mask[k]
+                if k in d:
+                    d[k] = metadata_to_mask[k]
 
     return list_of_dicts

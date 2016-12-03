@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,8 +17,6 @@
 import sqlite3
 from xml.dom import minidom
 
-import plexpy
-import activity_pinger
 import activity_processor
 import database
 import helpers
@@ -31,8 +30,9 @@ def extract_plexwatch_xml(xml=None):
     clean_xml = helpers.latinToAscii(xml)
     try:
         xml_parse = minidom.parseString(clean_xml)
-    except:
+    except Exception as e:
         logger.warn(u"PlexPy Importer :: Error parsing XML for PlexWatch database.")
+        logger.exception(e)
         return None
 
     xml_head = xml_parse.getElementsByTagName('opt')
@@ -225,6 +225,7 @@ def extract_plexwatch_xml(xml=None):
 
     return output
 
+
 def validate_database(database=None, table_name=None):
     try:
         connection = sqlite3.connect(database, timeout=20)
@@ -234,8 +235,9 @@ def validate_database(database=None, table_name=None):
     except ValueError:
         logger.error(u"PlexPy Importer :: Invalid database specified.")
         return 'Invalid database specified.'
-    except:
+    except Exception as e:
         logger.error(u"PlexPy Importer :: Uncaught exception.")
+        logger.exception(e)
         return 'Uncaught exception.'
 
     try:
@@ -244,11 +246,13 @@ def validate_database(database=None, table_name=None):
     except sqlite3.OperationalError:
         logger.error(u"PlexPy Importer :: Invalid database specified.")
         return 'Invalid database specified.'
-    except:
+    except Exception as e:
         logger.error(u"PlexPy Importer :: Uncaught exception.")
+        logger.exception(e)
         return 'Uncaught exception.'
 
     return 'success'
+
 
 def import_from_plexwatch(database=None, table_name=None, import_ignore_interval=0):
 
@@ -276,8 +280,9 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
     # Get the latest friends list so we can pull user id's
     try:
         plextv.refresh_users()
-    except:
+    except Exception as e:
         logger.debug(u"PlexPy Importer :: Unable to refresh the users list. Aborting import.")
+        logger.exception(e)
         return None
 
     query = 'SELECT time AS started, ' \
@@ -415,6 +420,7 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
     logger.debug(u"PlexPy Importer :: PlexWatch data import complete.")
     import_users()
 
+
 def import_users():
     logger.debug(u"PlexPy Importer :: Importing PlexWatch Users...")
     monitor_db = database.MonitorDatabase()
@@ -426,5 +432,6 @@ def import_users():
     try:
         monitor_db.action(query)
         logger.debug(u"PlexPy Importer :: Users imported.")
-    except:
+    except Exception as e:
         logger.debug(u"PlexPy Importer :: Failed to import users.")
+        logger.exception(e)

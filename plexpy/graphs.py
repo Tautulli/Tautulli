@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,10 +16,10 @@
 
 import datetime
 
-import plexpy
 import common
 import database
 import logger
+import plexpy
 import session
 
 
@@ -250,10 +251,10 @@ class Graphs(object):
             logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_per_hourofday: %s." % e)
             return None
 
-        hours_list = ['00','01','02','03','04','05',
-                      '06','07','08','09','10','11',
-                      '12','13','14','15','16','17',
-                      '18','19','20','21','22','23']
+        hours_list = ['00', '01', '02', '03', '04', '05',
+                      '06', '07', '08', '09', '10', '11',
+                      '12', '13', '14', '15', '16', '17',
+                      '18', '19', '20', '21', '22', '23']
 
         categories = []
         series_1 = []
@@ -311,7 +312,7 @@ class Graphs(object):
                         'FROM session_history ' \
                         'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-12 months", "localtime") %s' \
                         'GROUP BY strftime("%%Y-%%m", datetime(started, "unixepoch", "localtime")) ' \
-                        'ORDER BY datestring DESC LIMIT 12' % (user_cond)
+                        'ORDER BY datestring DESC LIMIT 12' % user_cond
 
                 result = monitor_db.select(query)
             else:
@@ -325,7 +326,7 @@ class Graphs(object):
                         'FROM session_history ' \
                         'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-12 months", "localtime") %s' \
                         'GROUP BY strftime("%%Y-%%m", datetime(started, "unixepoch", "localtime")) ' \
-                        'ORDER BY datestring DESC LIMIT 12' % (user_cond)
+                        'ORDER BY datestring DESC LIMIT 12' % user_cond
 
                 result = monitor_db.select(query)
         except Exception as e:

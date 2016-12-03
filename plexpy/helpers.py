@@ -1,4 +1,5 @@
-﻿#  This file is part of PlexPy.
+﻿# coding=utf-8
+#  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,29 +16,34 @@
 
 import base64
 import datetime
-from functools import wraps
-import geoip2.database, geoip2.errors
 import gzip
 import hashlib
 import imghdr
-import ipwhois, ipwhois.exceptions, ipwhois.utils
-from IPy import IP
 import json
 import math
-import maxminddb
-from operator import itemgetter
 import os
 import re
 import socket
 import sys
 import time
 import unicodedata
-import urllib, urllib2
+import urllib
+import urllib2
+from functools import wraps
+from operator import itemgetter
 from xml.dom import minidom
-import xmltodict
 
-import plexpy
+import geoip2.database
+import geoip2.errors
+import ipwhois
+import ipwhois.exceptions
+import ipwhois.utils
+import maxminddb
+import xmltodict
+from IPy import IP
+
 import logger
+import plexpy
 from plexpy.api2 import API2
 
 
@@ -53,6 +59,7 @@ def addtoapi(*dargs, **dkwargs):
             @addtoapi()
 
     """
+
     def rd(function):
         @wraps(function)
         def wrapper(*args, **kwargs):
@@ -73,6 +80,7 @@ def addtoapi(*dargs, **dkwargs):
         return wrapper
 
     return rd
+
 
 def multikeysort(items, columns):
     comparers = [((itemgetter(col[1:].strip()), -1) if col.startswith('-') else (itemgetter(col.strip()), 1)) for col in columns]
@@ -96,7 +104,6 @@ def checked(variable):
 
 
 def radio(variable, pos):
-
     if variable == pos:
         return 'Checked'
     else:
@@ -149,7 +156,6 @@ def latinToAscii(unicrap):
 
 
 def convert_milliseconds(ms):
-
     seconds = ms / 1000
     gmtime = time.gmtime(seconds)
     if seconds > 3600:
@@ -159,8 +165,8 @@ def convert_milliseconds(ms):
 
     return minutes
 
-def convert_milliseconds_to_minutes(ms):
 
+def convert_milliseconds_to_minutes(ms):
     if str(ms).isdigit():
         seconds = float(ms) / 1000
         minutes = round(seconds / 60, 0)
@@ -169,8 +175,8 @@ def convert_milliseconds_to_minutes(ms):
 
     return 0
 
-def convert_seconds(s):
 
+def convert_seconds(s):
     gmtime = time.gmtime(s)
     if s > 3600:
         minutes = time.strftime("%H:%M:%S", gmtime)
@@ -179,8 +185,8 @@ def convert_seconds(s):
 
     return minutes
 
-def convert_seconds_to_minutes(s):
 
+def convert_seconds_to_minutes(s):
     if str(s).isdigit():
         minutes = round(float(s) / 60, 0)
 
@@ -199,8 +205,8 @@ def now():
     now = datetime.datetime.now()
     return now.strftime("%Y-%m-%d %H:%M:%S")
 
-def human_duration(s, sig='dhms'):
 
+def human_duration(s, sig='dhms'):
     hd = ''
 
     if str(s).isdigit() and s > 0:
@@ -231,11 +237,12 @@ def human_duration(s, sig='dhms'):
 
     return hd
 
-def get_age(date):
 
+def get_age(date):
     try:
         split_date = date.split('-')
-    except:
+    except Exception as e:
+        logger.exception(e)
         return False
 
     try:
@@ -247,7 +254,6 @@ def get_age(date):
 
 
 def bytes_to_mb(bytes):
-
     mb = int(bytes) / 1048576
     size = '%.1f MB' % mb
     return size
@@ -285,7 +291,6 @@ def piratesize(size):
 
 
 def replace_all(text, dic, normalize=False):
-
     if not text:
         return ''
 
@@ -312,7 +317,6 @@ def replace_illegal_chars(string, type="file"):
 
 
 def cleanName(string):
-
     pass1 = latinToAscii(string).lower()
     out_string = re.sub('[\.\-\/\!\@\#\$\%\^\&\*\(\)\+\-\"\'\,\;\:\[\]\{\}\<\>\=\_]', '', pass1).encode('utf-8')
 
@@ -320,7 +324,6 @@ def cleanName(string):
 
 
 def cleanTitle(title):
-
     title = re.sub('[\.\-\/\_]', ' ', title).lower()
 
     # Strip out extra whitespace
@@ -372,7 +375,7 @@ def extract_logline(s):
         level = match.group("level")
         thread = match.group("thread")
         message = match.group("message")
-        return (timestamp, level, thread, message)
+        return timestamp, level, thread, message
     else:
         return None
 
@@ -382,6 +385,7 @@ def split_string(mystring, splitvar=','):
     for each_word in mystring.split(splitvar):
         mylist.append(each_word.strip())
     return mylist
+
 
 def create_https_certificates(ssl_cert, ssl_key):
     """
@@ -401,7 +405,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     # Create the self-signed PlexPy certificate
     logger.debug(u"Generating self-signed SSL certificate.")
     pkey = createKeyPair(TYPE_RSA, 2048)
-    cert = createSelfSignedCertificate(("PlexPy", pkey), serial, (0, 60 * 60 * 24 * 365 * 10), altNames) # ten years
+    cert = createSelfSignedCertificate(("PlexPy", pkey), serial, (0, 60 * 60 * 24 * 365 * 10), altNames)  # ten years
 
     # Save the key and certificate to disk
     try:
@@ -422,11 +426,13 @@ def cast_to_int(s):
     except (ValueError, TypeError):
         return 0
 
+
 def cast_to_float(s):
     try:
         return float(s)
     except (ValueError, TypeError):
         return 0
+
 
 def convert_xml_to_json(xml):
     o = xmltodict.parse(xml)
@@ -439,7 +445,6 @@ def convert_xml_to_dict(xml):
 
 
 def get_percent(value1, value2):
-
     if str(value1).isdigit() and str(value2).isdigit():
         value1 = cast_to_float(value1)
         value2 = cast_to_float(value2)
@@ -453,6 +458,7 @@ def get_percent(value1, value2):
 
     return math.trunc(percent)
 
+
 def parse_xml(unparsed=None):
     if unparsed:
         try:
@@ -461,16 +467,17 @@ def parse_xml(unparsed=None):
         except Exception as e:
             logger.warn("Error parsing XML. %s" % e)
             return []
-        except:
-            logger.warn("Error parsing XML.")
-            return []
+
     else:
         logger.warn("XML parse request made but no data received.")
         return []
 
+
 """
 Validate xml keys to make sure they exist and return their attribute value, return blank value is none found
 """
+
+
 def get_xml_attr(xml_key, attribute, return_bool=False, default_return=''):
     if xml_key.getAttribute(attribute):
         if return_bool:
@@ -483,6 +490,7 @@ def get_xml_attr(xml_key, attribute, return_bool=False, default_return=''):
         else:
             return default_return
 
+
 def process_json_kwargs(json_kwargs):
     params = {}
     if json_kwargs:
@@ -490,11 +498,13 @@ def process_json_kwargs(json_kwargs):
 
     return params
 
+
 def sanitize(string):
     if string:
-        return unicode(string).replace('<','&lt;').replace('>','&gt;')
+        return unicode(string).replace('<', '&lt;').replace('>', '&gt;')
     else:
         return ''
+
 
 def is_ip_public(host):
     ip_address = get_ip(host)
@@ -503,6 +513,7 @@ def is_ip_public(host):
         return True
 
     return False
+
 
 def get_ip(host):
     ip_address = ''
@@ -513,10 +524,12 @@ def get_ip(host):
         try:
             ip_address = socket.gethostbyname(host)
             logger.debug(u"IP Checker :: Resolved %s to %s." % (host, ip_address))
-        except:
+        except Exception as e:
+            logger.exception(e)
             logger.error(u"IP Checker :: Bad IP or hostname provided.")
 
     return ip_address
+
 
 def install_geoip_db():
     maxmind_url = 'http://geolite.maxmind.com/download/geoip/database/'
@@ -578,6 +591,7 @@ def install_geoip_db():
 
     return True
 
+
 def uninstall_geoip_db():
     logger.debug(u"PlexPy Helpers :: Uninstalling the GeoLite2 database...")
     try:
@@ -591,10 +605,11 @@ def uninstall_geoip_db():
     logger.debug(u"PlexPy Helpers :: GeoLite2 database uninstalled successfully.")
     return True
 
+
 def geoip_lookup(ip_address):
     if not plexpy.CONFIG.GEOIP_DB:
         return 'GeoLite2 database not installed. Please install from the ' \
-            '<a href="settings?install_geoip=true">Settings</a> page.'
+               '<a href="settings?install_geoip=true">Settings</a> page.'
 
     if not ip_address:
         return 'No IP address provided.'
@@ -607,10 +622,10 @@ def geoip_lookup(ip_address):
         return 'Invalid IP address provided: %s.' % ip_address
     except IOError as e:
         return 'Missing GeoLite2 database. Please reinstall from the ' \
-            '<a href="settings?install_geoip=true">Settings</a> page.'
+               '<a href="settings?install_geoip=true">Settings</a> page.'
     except maxminddb.InvalidDatabaseError as e:
         return 'Invalid GeoLite2 database. Please reinstall from the ' \
-            '<a href="settings?reinstall_geoip=true">Settings</a> page.'
+               '<a href="settings?reinstall_geoip=true">Settings</a> page.'
     except geoip2.errors.AddressNotFoundError as e:
         return '%s' % e
     except Exception as e:
@@ -629,8 +644,8 @@ def geoip_lookup(ip_address):
 
     return geo_info
 
-def whois_lookup(ip_address):
 
+def whois_lookup(ip_address):
     nets = []
     err = None
     try:
@@ -640,7 +655,7 @@ def whois_lookup(ip_address):
         for net in nets:
             net['country'] = countries[net['country']]
             if net['postal_code']:
-                 net['postal_code'] = net['postal_code'].replace('-', ' ')
+                net['postal_code'] = net['postal_code'].replace('-', ' ')
     except ValueError as e:
         err = 'Invalid IP address provided: %s.' % ip_address
     except ipwhois.exceptions.IPDefinedError as e:
@@ -654,6 +669,7 @@ def whois_lookup(ip_address):
     try:
         host = ipwhois.Net(ip_address).get_host(retry_count=0)[0]
     except Exception as e:
+        logger.exception(e)
         host = 'Not available'
 
     whois_info = {"host": host,
@@ -665,12 +681,14 @@ def whois_lookup(ip_address):
 
     return whois_info
 
+
 # Taken from SickRage
 def anon_url(*url):
     """
     Return a URL string consisting of the Anonymous redirect URL and an arbitrary number of values appended.
     """
     return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
+
 
 def uploadToImgur(imgPath, imgTitle=''):
     """ Uploads an image to Imgur """
@@ -699,19 +717,20 @@ def uploadToImgur(imgPath, imgTitle=''):
         request = urllib2.Request('https://api.imgur.com/3/image', headers=headers, data=urllib.urlencode(data))
         response = urllib2.urlopen(request)
         response = json.loads(response.read())
-    
+
         if response.get('status') == 200:
             t = '\'' + imgTitle + '\' ' if imgTitle else ''
             logger.debug(u"PlexPy Helpers :: Image %suploaded to Imgur." % t)
             img_url = response.get('data').get('link', '')
-        elif response.get('status') >= 400 and response.get('status') < 500:
+        elif 400 <= response.get('status') < 500:
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % response.reason)
         else:
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur.")
     except (urllib2.HTTPError, urllib2.URLError) as e:
-            logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % e)
+        logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % e)
 
     return img_url
+
 
 def cache_image(url, image=None):
     """
@@ -745,6 +764,7 @@ def cache_image(url, image=None):
 
     return imagefile, imagetype
 
+
 def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
     """ Builds datatables json data
 
@@ -760,14 +780,15 @@ def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
 
     # Build json data
     json_data = {"draw": 1,
-                    "columns": columns,
-                    "order": [{"column": order_column,
+                 "columns": columns,
+                 "order": [{"column": order_column,
                             "dir": kwargs.pop("order_dir", "desc")}],
-                    "start": int(kwargs.pop("start", 0)),
-                    "length": int(kwargs.pop("length", 25)),
-                    "search": {"value": kwargs.pop("search", "")}
-                    }
+                 "start": int(kwargs.pop("start", 0)),
+                 "length": int(kwargs.pop("length", 25)),
+                 "search": {"value": kwargs.pop("search", "")}
+                 }
     return json.dumps(json_data)
+
 
 def humanFileSize(bytes, si=False):
     if str(bytes).isdigit():

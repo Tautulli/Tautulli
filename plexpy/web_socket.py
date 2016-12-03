@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -21,11 +22,11 @@ import time
 
 import websocket
 
-import plexpy
 import activity_handler
 import activity_pinger
 import activity_processor
 import logger
+import plexpy
 
 name = 'websocket'
 opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)

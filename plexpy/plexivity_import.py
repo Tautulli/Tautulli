@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,12 +14,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import arrow
 import sqlite3
 from xml.dom import minidom
 
-import plexpy
-import activity_pinger
+import arrow
+
 import activity_processor
 import database
 import helpers
@@ -32,8 +32,9 @@ def extract_plexivity_xml(xml=None):
     clean_xml = helpers.latinToAscii(xml)
     try:
         xml_parse = minidom.parseString(clean_xml)
-    except:
+    except Exception as e:
         logger.warn(u"PlexPy Importer :: Error parsing XML for Plexivity database.")
+        logger.exception(e)
         return None
 
     # I think Plexivity only tracked videos and not music?
@@ -234,6 +235,7 @@ def extract_plexivity_xml(xml=None):
 
     return output
 
+
 def validate_database(database=None, table_name=None):
     try:
         connection = sqlite3.connect(database, timeout=20)
@@ -243,8 +245,9 @@ def validate_database(database=None, table_name=None):
     except ValueError:
         logger.error(u"PlexPy Importer :: Invalid database specified.")
         return 'Invalid database specified.'
-    except:
+    except Exception as e:
         logger.error(u"PlexPy Importer :: Uncaught exception.")
+        logger.exception(e)
         return 'Uncaught exception.'
 
     try:
@@ -253,11 +256,13 @@ def validate_database(database=None, table_name=None):
     except sqlite3.OperationalError:
         logger.error(u"PlexPy Importer :: Invalid database specified.")
         return 'Invalid database specified.'
-    except:
+    except Exception as e:
         logger.error(u"PlexPy Importer :: Uncaught exception.")
+        logger.exception(e)
         return 'Uncaught exception.'
 
     return 'success'
+
 
 def import_from_plexivity(database=None, table_name=None, import_ignore_interval=0):
 
@@ -285,8 +290,9 @@ def import_from_plexivity(database=None, table_name=None, import_ignore_interval
     # Get the latest friends list so we can pull user id's
     try:
         plextv.refresh_users()
-    except:
+    except Exception as e:
         logger.debug(u"PlexPy Importer :: Unable to refresh the users list. Aborting import.")
+        logger.exception(e)
         return None
 
     query = 'SELECT id AS id, ' \
@@ -324,7 +330,7 @@ def import_from_plexivity(database=None, table_name=None, import_ignore_interval
             continue
 
         # Skip line if we don't have a ratingKey to work with
-        #if not row['rating_key']:
+        # if not row['rating_key']:
         #    logger.error(u"PlexPy Importer :: Skipping record due to null ratingKey.")
         #    continue
 
@@ -422,6 +428,7 @@ def import_from_plexivity(database=None, table_name=None, import_ignore_interval
     logger.debug(u"PlexPy Importer :: Plexivity data import complete.")
     import_users()
 
+
 def import_users():
     logger.debug(u"PlexPy Importer :: Importing Plexivity Users...")
     monitor_db = database.MonitorDatabase()
@@ -433,5 +440,6 @@ def import_users():
     try:
         monitor_db.action(query)
         logger.debug(u"PlexPy Importer :: Users imported.")
-    except:
+    except Exception as e:
         logger.debug(u"PlexPy Importer :: Failed to import users.")
+        logger.exception(e)

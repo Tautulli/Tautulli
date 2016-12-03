@@ -1,4 +1,5 @@
-﻿#  This file is part of PlexPy.
+﻿# coding=utf-8
+#  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,38 +15,36 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
-import bleach
-import json
-import cherrypy
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 import email.utils
-from httplib import HTTPSConnection
+import json
 import os
-import requests
 import shlex
 import smtplib
 import subprocess
 import threading
 import time
 import urllib
-from urllib import urlencode
 import urllib2
-from urlparse import urlparse
 import uuid
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from httplib import HTTPSConnection
+from urllib import urlencode
+from urlparse import urlparse
 
-import gntp.notifier
+import bleach
 import facebook
-import twitter
+import gntp.notifier
 import pynma
+import requests
+import twitter
 
-import plexpy
 import database
 import helpers
 import logger
+import plexpy
 import request
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
-from plexpy.helpers import checked
 
 AGENT_IDS = {'growl': 0,
              'prowl': 1,
@@ -530,7 +529,7 @@ def blacklist_logger():
         config = json.loads(n['notifier_config'] or '{}')
         for key, value in config.iteritems():
             if isinstance(value, basestring) and len(value.strip()) > 5 and \
-                key.upper() not in _WHITELIST_KEYS and any(bk in key.upper() for bk in blacklist_keys):
+                            key.upper() not in _WHITELIST_KEYS and any(bk in key.upper() for bk in blacklist_keys):
                 blacklist.append(value.strip())
 
     logger._BLACKLIST_WORDS.extend(blacklist)
@@ -538,8 +537,8 @@ def blacklist_logger():
 
 class PrettyMetadata(object):
     def __init__(self, parameters):
-    	self.parameters = parameters
-    	self.media_type = parameters['media_type']
+        self.parameters = parameters
+        self.media_type = parameters['media_type']
 
     def get_poster_url(self):
         self.poster_url = self.parameters['poster_url']
@@ -574,7 +573,7 @@ class PrettyMetadata(object):
             self.caption = 'View on Last.fm'
         return self.caption
 
-    def get_title(self, divider = '-'):
+    def get_title(self, divider='-'):
         self.title = ''
         if self.media_type == 'movie':
             self.title = '%s (%s)' % (self.parameters['title'], self.parameters['year'])
@@ -689,7 +688,7 @@ class BOXCAR(Notifier):
                   'flourish': 'Flourish',
                   'harp': 'Harp',
                   'light': 'Light',
-                  'magic-chime':'Magic Chime',
+                  'magic-chime': 'Magic Chime',
                   'magic-coin': 'Magic Coin',
                   'no-sound': 'No Sound',
                   'notifier-1': 'Notifier (1)',
@@ -853,7 +852,7 @@ class DISCORD(Notifier):
         if request_status == 200:
             logger.info(u"PlexPy Notifiers :: Discord notification sent.")
             return True
-        elif request_status >= 400 and request_status < 500:
+        elif 400 <= request_status < 500:
             logger.warn(u"PlexPy Notifiers :: Discord notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
@@ -867,17 +866,17 @@ class DISCORD(Notifier):
                           'description': 'Your Discord incoming webhook URL.',
                           'input_type': 'text'
                           },
-                          {'label': 'Discord Username',
-                           'value': self.config['username'],
-                           'name': 'discord_username',
-                           'description': 'The Discord username which will be used. Leave blank for webhook integration default.',
-                           'input_type': 'text'
+                         {'label': 'Discord Username',
+                          'value': self.config['username'],
+                          'name': 'discord_username',
+                          'description': 'The Discord username which will be used. Leave blank for webhook integration default.',
+                          'input_type': 'text'
                           },
-                          {'label': 'Discord Avatar',
-                           'value': self.config['avatar_url'],
-                           'description': 'The image url for the avatar which will be used. Leave blank for webhook integration default.',
-                           'name': 'discord_avatar_url',
-                           'input_type': 'text'
+                         {'label': 'Discord Avatar',
+                          'value': self.config['avatar_url'],
+                          'description': 'The image url for the avatar which will be used. Leave blank for webhook integration default.',
+                          'name': 'discord_avatar_url',
+                          'input_type': 'text'
                           },
                          {'label': 'TTS',
                           'value': self.config['tts'],
@@ -1066,7 +1065,7 @@ class FACEBOOK(Notifier):
 
         return facebook.auth_url(app_id=app_id,
                                  canvas_url=redirect_uri + '/facebookStep2',
-                                 perms=['user_managed_groups','publish_actions'])
+                                 perms=['user_managed_groups', 'publish_actions'])
 
     def _get_credentials(self, code=''):
         logger.info(u"PlexPy Notifiers :: Requesting access token from Facebook")
@@ -1278,8 +1277,7 @@ class GROWL(Notifier):
         body = body.encode(plexpy.SYS_ENCODING, "replace")
 
         # Send it, including an image
-        image_file = os.path.join(str(plexpy.PROG_DIR),
-            "data/interfaces/default/images/favicon.png")
+        image_file = os.path.join(str(plexpy.PROG_DIR), "data/interfaces/default/images/favicon.png")
 
         with open(image_file, 'rb') as f:
             image = f.read()
@@ -1328,7 +1326,7 @@ class HIPCHAT(Notifier):
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
-        if not subjecy or not body:
+        if not subject or not body:
             return
 
         data = {'notify': 'false'}
@@ -1396,7 +1394,7 @@ class HIPCHAT(Notifier):
         if request_status == 200 or request_status == 204:
             logger.info(u"PlexPy Notifiers :: Hipchat notification sent.")
             return True
-        elif request_status >= 400 and request_status < 500:
+        elif 400 <= request_status < 500:
             logger.warn(u"PlexPy Notifiers :: Hipchat notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
@@ -1484,7 +1482,7 @@ class IFTTT(Notifier):
         if request_status == 200:
             logger.info(u"PlexPy Notifiers :: Ifttt notification sent.")
             return True
-        elif request_status >= 400 and request_status < 500:
+        elif 400 <= request_status < 500:
             logger.warn(u"PlexPy Notifiers :: Ifttt notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
@@ -1549,7 +1547,7 @@ class JOIN(Notifier):
                 error_msg = data.get('errorMessage')
                 logger.info(u"PlexPy Notifiers :: Join notification failed: %s" % error_msg)
                 return False
-        elif request_status >= 400 and request_status < 500:
+        elif 400 <= request_status < 500:
             logger.warn(u"PlexPy Notifiers :: Join notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
@@ -1576,7 +1574,7 @@ class JOIN(Notifier):
                     error_msg = data.get('errorMessage')
                     logger.info(u"PlexPy Notifiers :: Unable to retrieve Join devices list: %s" % error_msg)
                     return {'': ''}
-            elif request_status >= 400 and request_status < 500:
+            elif 400 <= request_status < 500:
                 logger.warn(u"PlexPy Notifiers :: Unable to retrieve Join devices list: %s" % response.reason)
                 return {'': ''}
             else:
@@ -1602,8 +1600,9 @@ class JOIN(Notifier):
                          {'label': 'Device ID(s) or Group ID',
                           'value': self.config['device_id'],
                           'name': 'join_device_id',
-                          'description': 'Set your Join device ID or group ID. ' \
-                              'Separate multiple devices with commas (,).',
+                          'description': 'Set your Join device ID or group ID. '
+                                         'Separate multiple devices with commas '
+                                         '(,).',
                           'input_type': 'text',
                           },
                          {'label': 'Your Devices IDs',
@@ -1684,7 +1683,8 @@ class OSX(Notifier):
         try:
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
-        except:
+        except Exception as e:
+            logger.exception(e)
             # logger.error(u"PlexPy Notifiers :: Cannot load OSX Notifications agent.")
             pass
 
@@ -1693,7 +1693,8 @@ class OSX(Notifier):
             self.objc = __import__("objc")
             self.AppKit = __import__("AppKit")
             return True
-        except:
+        except Exception as e:
+            logger.exception(e)
             return False
 
     def _swizzle(self, cls, SEL, func):
@@ -1716,8 +1717,8 @@ class OSX(Notifier):
 
         try:
             self._swizzle(self.objc.lookUpClass('NSBundle'),
-                b'bundleIdentifier',
-                self._swizzled_bundleIdentifier)
+                          b'bundleIdentifier',
+                          self._swizzled_bundleIdentifier)
 
             NSUserNotification = self.objc.lookUpClass('NSUserNotification')
             NSUserNotificationCenter = self.objc.lookUpClass('NSUserNotificationCenter')
@@ -1786,7 +1787,9 @@ class PLEX(Notifier):
         else:
             return request.request_content(url)
 
-    def _sendjson(self, host, method, params={}):
+    def _sendjson(self, host, method, params=None):
+        if params is None:
+            params = {}
         data = [{'id': 0, 'jsonrpc': '2.0', 'method': method, 'params': params}]
         headers = {'Content-Type': 'application/json'}
         url = host + '/jsonrpc'
@@ -2004,7 +2007,7 @@ class PUSHBULLET(Notifier):
         http_handler.request("POST",
                              "/v2/pushes",
                              headers={'Content-type': "application/json",
-                             'Authorization': 'Basic %s' % base64.b64encode(self.config['apikey'] + ":")},
+                                      'Authorization': 'Basic %s' % base64.b64encode(self.config['apikey'] + ":")},
                              body=json.dumps(data))
         response = http_handler.getresponse()
         request_status = response.status
@@ -2012,7 +2015,7 @@ class PUSHBULLET(Notifier):
         if request_status == 200:
             logger.info(u"PlexPy Notifiers :: PushBullet notification sent.")
             return True
-        elif request_status >= 400 and request_status < 500:
+        elif 400 <= request_status < 500:
             logger.warn(u"PlexPy Notifiers :: PushBullet notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
@@ -2024,7 +2027,7 @@ class PUSHBULLET(Notifier):
             http_handler = HTTPSConnection("api.pushbullet.com")
             http_handler.request("GET", "/v2/devices",
                                  headers={'Content-type': "application/json",
-                                 'Authorization': 'Basic %s' % base64.b64encode(self.config['apikey'] + ":")})
+                                          'Authorization': 'Basic %s' % base64.b64encode(self.config['apikey'] + ":")})
 
             response = http_handler.getresponse()
             request_status = response.status
@@ -2035,7 +2038,7 @@ class PUSHBULLET(Notifier):
                 devices = {d['iden']: d['nickname'] for d in devices if d['active']}
                 devices.update({'': ''})
                 return devices
-            elif request_status >= 400 and request_status < 500:
+            elif 400 <= request_status < 500:
                 logger.warn(u"PlexPy Notifiers :: Unable to retrieve Pushbullet devices list: %s" % response.reason)
                 return {'': ''}
             else:
@@ -2056,8 +2059,8 @@ class PUSHBULLET(Notifier):
                          {'label': 'Device',
                           'value': self.config['deviceid'],
                           'name': 'pushbullet_deviceid',
-                          'description': 'Set your Pushbullet device. If set, will override channel tag. ' \
-                              'Leave blank to notify on all devices.',
+                          'description': 'Set your Pushbullet device. If set, will override channel tag. '
+                                         'Leave blank to notify on all devices.',
                           'input_type': 'select',
                           'select_options': self.get_devices()
                           },
@@ -2122,7 +2125,7 @@ class PUSHOVER(Notifier):
         if request_status == 200:
             logger.info(u"PlexPy Notifiers :: Pushover notification sent.")
             return True
-        elif request_status >= 400 and request_status < 500:
+        elif 400 <= request_status < 500:
             logger.warn(u"PlexPy Notifiers :: Pushover notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
@@ -2141,7 +2144,7 @@ class PUSHOVER(Notifier):
                 sounds = data.get('sounds', {})
                 sounds.update({'': ''})
                 return sounds
-            elif request_status >= 400 and request_status < 500:
+            elif 400 <= request_status < 500:
                 logger.warn(u"PlexPy Notifiers :: Unable to retrieve Pushover notification sounds list: %s" % response.reason)
                 return {'': ''}
             else:
@@ -2264,11 +2267,13 @@ class SCRIPTS(Notifier):
                 timer = None
 
             try:
-                if timer: timer.start()
+                if timer:
+                    timer.start()
                 output, error = process.communicate()
                 status = process.returncode
             finally:
-                if timer: timer.cancel()
+                if timer:
+                    timer.cancel()
 
         except OSError as e:
             logger.error(u"PlexPy Notifiers :: Failed to run script: %s" % e)
@@ -2353,8 +2358,8 @@ class SCRIPTS(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Supported File Types',
-                          'description': '<span class="inline-pre">' + \
-                              ', '.join(self.script_exts.keys()) + '</span>',
+                          'description': '<span class="inline-pre">' +
+                                         ', '.join(self.script_exts.keys()) + '</span>',
                           'input_type': 'help'
                           },
                          {'label': 'Script Folder',
@@ -2465,7 +2470,7 @@ class SLACK(Notifier):
         if request_status == 200:
             logger.info(u"PlexPy Notifiers :: Slack notification sent.")
             return True
-        elif request_status >= 400 and request_status < 500:
+        elif 400 <= request_status < 500:
             logger.warn(u"PlexPy Notifiers :: Slack notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
@@ -2485,23 +2490,23 @@ class SLACK(Notifier):
                           'description': 'The Slack channel name (begins with \'#\') which will be used. Leave blank for webhook integration default.',
                           'input_type': 'text'
                           },
-                          {'label': 'Slack Username',
-                           'value': self.config['username'],
-                           'name': 'slack_username',
-                           'description': 'The Slack username which will be used. Leave blank for webhook integration default.',
-                           'input_type': 'text'
+                         {'label': 'Slack Username',
+                          'value': self.config['username'],
+                          'name': 'slack_username',
+                          'description': 'The Slack username which will be used. Leave blank for webhook integration default.',
+                          'input_type': 'text'
                           },
-                          {'label': 'Slack Icon',
-                           'value': self.config['icon_emoji'],
-                           'description': 'The Slack emoji or image url for the icon which will be used. Leave blank for webhook integration default.',
-                           'name': 'slack_icon_emoji',
-                           'input_type': 'text'
+                         {'label': 'Slack Icon',
+                          'value': self.config['icon_emoji'],
+                          'description': 'The Slack emoji or image url for the icon which will be used. Leave blank for webhook integration default.',
+                          'name': 'slack_icon_emoji',
+                          'input_type': 'text'
                           },
-                          {'label': 'Slack Color',
-                           'value': self.config['color'],
-                           'description': 'The hex color value (begins with \'#\') for the border along the left side of the message attachment.',
-                           'name': 'slack_color',
-                           'input_type': 'text'
+                         {'label': 'Slack Color',
+                          'value': self.config['color'],
+                          'description': 'The hex color value (begins with \'#\') for the border along the left side of the message attachment.',
+                          'name': 'slack_color',
+                          'input_type': 'text'
                           },
                          {'label': 'Include Poster Image',
                           'value': self.config['incl_poster'],
@@ -2554,7 +2559,7 @@ class TELEGRAM(Notifier):
                            'disable_notification': True}
 
             parameters = kwargs['parameters']
-            poster_url = parameters.get('poster_url','')
+            poster_url = parameters.get('poster_url', '')
 
             if poster_url:
                 files = {'photo': (poster_url, urllib.urlopen(poster_url).read())}
@@ -2566,7 +2571,7 @@ class TELEGRAM(Notifier):
 
                 if request_status == 200:
                     logger.info(u"PlexPy Notifiers :: Telegram poster sent.")
-                elif request_status >= 400 and request_status < 500:
+                elif 400 <= request_status < 500:
                     logger.warn(u"PlexPy Notifiers :: Telegram poster failed: %s" % request_content.get('description'))
                 else:
                     logger.warn(u"PlexPy Notifiers :: Telegram poster failed.")
@@ -2591,7 +2596,7 @@ class TELEGRAM(Notifier):
         if request_status == 200:
             logger.info(u"PlexPy Notifiers :: Telegram notification sent.")
             return True
-        elif request_status >= 400 and request_status < 500:
+        elif 400 <= request_status < 500:
             logger.warn(u"PlexPy Notifiers :: Telegram notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
@@ -2685,7 +2690,7 @@ class TWITTER(Notifier):
         poster_url = ''
         if self.config['incl_poster'] and kwargs.get('parameters'):
             parameters = kwargs['parameters']
-            poster_url = parameters.get('poster_url','')
+            poster_url = parameters.get('poster_url', '')
 
         if self.config['incl_subject']:
             return self._send_tweet(subject + '\r\n' + body, attachment=poster_url)
@@ -2763,7 +2768,9 @@ class XBMC(Notifier):
         else:
             return request.request_content(url)
 
-    def _sendjson(self, host, method, params={}):
+    def _sendjson(self, host, method, params=None):
+        if params is None:
+            params = {}
         data = [{'id': 0, 'jsonrpc': '2.0', 'method': method, 'params': params}]
         headers = {'Content-Type': 'application/json'}
         url = host + '/jsonrpc'
@@ -2939,7 +2946,8 @@ def upgrade_config_to_db():
                 # Reverse the dict to {script: [actions]}
                 script_actions = {}
                 for k, v in action_scripts.items():
-                    if v: script_actions.setdefault(v, set()).add(k)
+                    if v:
+                        script_actions.setdefault(v, set()).add(k)
 
                 # Add a new script notifier for each script if the action was enabled
                 for script, actions in script_actions.items():

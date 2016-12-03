@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,14 +14,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-from Queue import Queue
-import sqlite3
-import sys
-import subprocess
-import threading
 import datetime
+import os
+import sqlite3
+import subprocess
+import sys
+import threading
 import uuid
+from Queue import Queue
+
 # Some cut down versions of Python may not include this module and it's not critical for us
 try:
     import webbrowser
@@ -126,7 +128,7 @@ def initialize(config_file):
                 CONFIG.LOG_DIR = None
 
                 if not QUIET:
-                    sys.stderr.write("Unable to create the log directory. " \
+                    sys.stderr.write("Unable to create the log directory. "
                                      "Logging to screen only.\n")
 
         # Start the logger, disable console if needed
@@ -193,8 +195,9 @@ def initialize(config_file):
         if CONFIG.CHECK_GITHUB_ON_STARTUP and CONFIG.CHECK_GITHUB:
             try:
                 LATEST_VERSION = versioncheck.checkGithub()
-            except:
+            except Exception as e:
                 logger.exception(u"Unhandled exception")
+                logger.exception(e)
                 LATEST_VERSION = CURRENT_VERSION
         else:
             LATEST_VERSION = CURRENT_VERSION
@@ -218,6 +221,7 @@ def initialize(config_file):
 
         _INITIALIZED = True
         return True
+
 
 def daemonize():
     if threading.activeCount() != 1:
@@ -251,7 +255,7 @@ def daemonize():
     except OSError as e:
         raise RuntimeError("2nd fork failed: %s [%d]", e.strerror, e.errno)
 
-    dev_null = file('/dev/null', 'r')
+    dev_null = open('/dev/null', 'r')
     os.dup2(dev_null.fileno(), sys.stdin.fileno())
 
     si = open('/dev/null', "r")
@@ -267,7 +271,7 @@ def daemonize():
 
     if CREATEPID:
         logger.info(u"Writing PID %d to %s", pid, PIDFILE)
-        with file(PIDFILE, 'w') as fp:
+        with open(PIDFILE, 'w') as fp:
             fp.write("%s\n" % pid)
 
 
@@ -314,9 +318,9 @@ def initialize_scheduler():
             # Our interval should never be less than 30 seconds
             monitor_seconds = CONFIG.MONITORING_INTERVAL if CONFIG.MONITORING_INTERVAL >= 30 else 30
 
-            #schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
+            # schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
             #             hours=0, minutes=0, seconds=1)
-            #schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
+            # schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
             #             hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
             schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
                          hours=12, minutes=0, seconds=0)
@@ -749,7 +753,7 @@ def dbcheck():
         )
         # Set reference_id to the first row where (user_id = previous row, rating_key != previous row) and user_id = user_id
         c_db.execute(
-            'UPDATE session_history ' \
+            'UPDATE session_history '
             'SET reference_id = (SELECT (CASE \
              WHEN (SELECT MIN(id) FROM session_history WHERE id > ( \
                  SELECT MAX(id) FROM session_history \
@@ -757,8 +761,8 @@ def dbcheck():
              THEN (SELECT MIN(id) FROM session_history WHERE (user_id = t1.user_id)) \
              ELSE (SELECT MIN(id) FROM session_history WHERE id > ( \
                  SELECT MAX(id) FROM session_history \
-                 WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) END) ' \
-            'FROM session_history AS t1 ' \
+                 WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) END) '
+            'FROM session_history AS t1 '
             'WHERE t1.id = session_history.id) '
         )
 
@@ -808,9 +812,9 @@ def dbcheck():
         )
         c_db.execute(
             'UPDATE session_history_media_info SET transcode_decision = (CASE '
-		    'WHEN video_decision = "transcode" OR audio_decision = "transcode" THEN "transcode" '
-			'WHEN video_decision = "copy" OR audio_decision = "copy" THEN "copy" '
-			'WHEN video_decision = "direct play" OR audio_decision = "direct play" THEN "direct play" END)'
+            'WHEN video_decision = "transcode" OR audio_decision = "transcode" THEN "transcode" '
+            'WHEN video_decision = "copy" OR audio_decision = "copy" THEN "copy" '
+            'WHEN video_decision = "direct play" OR audio_decision = "direct play" THEN "direct play" END)'
         )
 
     # Upgrade users table from earlier versions
@@ -977,8 +981,9 @@ def dbcheck():
             c_db.execute(
                 'DROP TABLE library_sections_temp'
             )
-        except:
-            pass
+        except Exception as e:
+            logger.exception(u"Unhandled exception")
+            logger.exception(e)
 
     # Upgrade library_sections table from earlier versions (remove duplicated libraries)
     try:
@@ -1022,8 +1027,9 @@ def dbcheck():
             c_db.execute(
                 'DROP TABLE users_temp'
             )
-        except:
-            pass
+        except Exception as e:
+            logger.exception(u"Unhandled exception")
+            logger.exception(e)
 
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
@@ -1034,9 +1040,11 @@ def dbcheck():
     conn_db.commit()
     c_db.close()
 
+
 def upgrade():
     if CONFIG.UPDATE_NOTIFIERS_DB:
         notifiers.upgrade_config_to_db()
+
 
 def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()

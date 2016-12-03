@@ -1,3 +1,4 @@
+# coding=utf-8
 #  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -19,8 +20,8 @@ import re
 import subprocess
 import tarfile
 
-import plexpy
 import logger
+import plexpy
 import request
 import version
 
@@ -60,7 +61,7 @@ def runGit(args):
         elif output:
             break
 
-    return (output, err)
+    return output, err
 
 
 def getVersion():
@@ -137,7 +138,8 @@ def checkGithub(auto_update=False):
     # Get the latest version available from github
     logger.info('Retrieving latest version information from GitHub')
     url = 'https://api.github.com/repos/%s/plexpy/commits/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_BRANCH)
-    if plexpy.CONFIG.GIT_TOKEN: url = url + '?access_token=%s' % plexpy.CONFIG.GIT_TOKEN
+    if plexpy.CONFIG.GIT_TOKEN:
+        url += '?access_token=%s' % plexpy.CONFIG.GIT_TOKEN
     version = request.request_json(url, timeout=20, validator=lambda x: type(x) == dict)
 
     if version is None:
@@ -158,7 +160,8 @@ def checkGithub(auto_update=False):
 
     logger.info('Comparing currently installed version with latest GitHub version')
     url = 'https://api.github.com/repos/%s/plexpy/compare/%s...%s' % (plexpy.CONFIG.GIT_USER, plexpy.LATEST_VERSION, plexpy.CURRENT_VERSION)
-    if plexpy.CONFIG.GIT_TOKEN: url = url + '?access_token=%s' % plexpy.CONFIG.GIT_TOKEN
+    if plexpy.CONFIG.GIT_TOKEN:
+        url += '?access_token=%s' % plexpy.CONFIG.GIT_TOKEN
     commits = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == dict)
 
     if commits is None:
@@ -178,7 +181,7 @@ def checkGithub(auto_update=False):
         url = 'https://api.github.com/repos/%s/plexpy/releases/latest' % plexpy.CONFIG.GIT_USER
         release = request.request_json(url, timeout=20, whitelist_status_code=404, validator=lambda x: type(x) == dict)
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpyupdate', 'plexpy_download_info': release,
-                                    'plexpy_update_commit': plexpy.LATEST_VERSION, 'plexpy_update_behind': plexpy.COMMITS_BEHIND})
+                                'plexpy_update_commit': plexpy.LATEST_VERSION, 'plexpy_update_behind': plexpy.COMMITS_BEHIND})
 
         if auto_update:
             logger.info('Running automatic update.')
@@ -332,7 +335,7 @@ def read_changelog(latest_only=False):
                     prev_level = line_level
 
                 elif line.strip() == '' and prev_level:
-                    output += '</ul>' * (prev_level)
+                    output += '</ul>' * prev_level
                     prev_level = 0
 
         return output

@@ -1,4 +1,5 @@
-﻿#  This file is part of PlexPy.
+﻿# coding=utf-8
+#  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,24 +15,25 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import arrow
-import bleach
-from itertools import groupby
-from operator import itemgetter
 import os
 import re
 import threading
 import time
+from itertools import groupby
+from operator import itemgetter
 
-import plexpy
+import arrow
+import bleach
+
 import activity_processor
 import common
 import database
 import datafactory
+import helpers
 import libraries
 import logger
-import helpers
 import notifiers
+import plexpy
 import plextv
 import pmsconnect
 import users
@@ -128,7 +130,7 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
             return False
 
         if (stream_data['media_type'] == 'movie' and plexpy.CONFIG.MOVIE_NOTIFY_ENABLE) \
-            or (stream_data['media_type'] == 'episode' and plexpy.CONFIG.TV_NOTIFY_ENABLE):
+                or (stream_data['media_type'] == 'episode' and plexpy.CONFIG.TV_NOTIFY_ENABLE):
 
             progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
 
@@ -148,7 +150,7 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
 
             return conditions.get(notify_action, True)
 
-        elif (stream_data['media_type'] == 'track' and plexpy.CONFIG.MUSIC_NOTIFY_ENABLE):
+        elif stream_data['media_type'] == 'track' and plexpy.CONFIG.MUSIC_NOTIFY_ENABLE:
             return True
         else:
             return False
@@ -210,7 +212,6 @@ def get_notify_state(session):
 
 
 def set_notify_state(notify_action, notifier, subject, body, session=None):
-
     if notify_action and notifier:
         monitor_db = database.MonitorDatabase()
 
@@ -238,9 +239,9 @@ def set_notify_state(notify_action, notifier, subject, body, session=None):
 
 def build_media_notify_params(notify_action=None, session=None, timeline=None, **kwargs):
     # Get time formats
-    date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
-    time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
-    duration_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','').replace('a','').replace('A','')
+    date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do', '')
+    time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do', '')
+    duration_format = plexpy.CONFIG.TIME_FORMAT.replace('Do', '').replace('a', '').replace('A', '')
 
     # Get the server name
     server_name = plexpy.CONFIG.PMS_NAME
@@ -285,13 +286,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
     user_stream_count = len(user_sessions)
 
     # Generate a combined transcode decision value
-    if session.get('video_decision','') == 'transcode' or session.get('audio_decision','') == 'transcode':
+    if session.get('video_decision', '') == 'transcode' or session.get('audio_decision', '') == 'transcode':
         transcode_decision = 'Transcode'
-    elif session.get('video_decision','') == 'copy' or session.get('audio_decision','') == 'copy':
+    elif session.get('video_decision', '') == 'copy' or session.get('audio_decision', '') == 'copy':
         transcode_decision = 'Direct Stream'
     else:
         transcode_decision = 'Direct Play'
-    
+
     if notify_action != 'play':
         stream_duration = int((time.time() -
                                helpers.cast_to_int(session.get('started', 0)) -
@@ -361,7 +362,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         track_name = ''
 
         num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
-                                        for d in child_metadata if d['parent_rating_key'] == rating_key])
+                                         for d in child_metadata if d['parent_rating_key'] == rating_key])
         season_num, season_num00 = num, num00
 
         episode_num, episode_num00 = '', ''
@@ -377,7 +378,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         season_num00 = metadata['media_index'].zfill(2)
 
         num, num00 = format_group_index([helpers.cast_to_int(d['media_index'])
-                                        for d in child_metadata if d['parent_rating_key'] == rating_key])
+                                         for d in child_metadata if d['parent_rating_key'] == rating_key])
         episode_num, episode_num00 = num, num00
         track_num, track_num00 = num, num00
 
@@ -394,116 +395,116 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         track_num = metadata['media_index'].zfill(1)
         track_num00 = metadata['media_index'].zfill(2)
 
-    available_params = {# Global paramaters
-                        'plexpy_version': common.VERSION_NUMBER,
-                        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
-                        'plexpy_commit': plexpy.CURRENT_VERSION,
-                        'server_name': server_name,
-                        'server_uptime': server_uptime,
-                        'server_version': server_times.get('version',''),
-                        'action': notify_action.split('on_')[-1],
-                        'datestamp': arrow.now().format(date_format),
-                        'timestamp': arrow.now().format(time_format),
-                        # Stream parameters
-                        'streams': stream_count,
-                        'user_streams': user_stream_count,
-                        'user': session.get('friendly_name',''),
-                        'username': session.get('user',''),
-                        'platform': session.get('platform',''),
-                        'player': session.get('player',''),
-                        'ip_address': session.get('ip_address','N/A'),
-                        'stream_duration': stream_duration,
-                        'stream_time': arrow.get(stream_duration * 60).format(duration_format),
-                        'remaining_duration': remaining_duration,
-                        'remaining_time': arrow.get(remaining_duration * 60).format(duration_format),
-                        'progress_duration': view_offset,
-                        'progress_time': arrow.get(view_offset * 60).format(duration_format),
-                        'progress_percent': progress_percent,
-                        'transcode_decision': transcode_decision,
-                        'video_decision': session.get('video_decision',''),
-                        'audio_decision': session.get('audio_decision',''),
-                        'transcode_container': session.get('transcode_container',''),
-                        'transcode_video_codec': session.get('transcode_video_codec',''),
-                        'transcode_video_width': session.get('transcode_width',''),
-                        'transcode_video_height': session.get('transcode_height',''),
-                        'transcode_audio_codec': session.get('transcode_audio_codec',''),
-                        'transcode_audio_channels': session.get('transcode_audio_channels',''),
-                        'session_key': session.get('session_key',''),
-                        'transcode_key': session.get('transcode_key',''),
-                        'user_id': session.get('user_id',''),
-                        'machine_id': session.get('machine_id',''),
-                        # Metadata parameters
-                        'media_type': metadata['media_type'],
-                        'container': session.get('container', metadata.get('container','')),
-                        'video_codec': session.get('video_codec', metadata.get('video_codec','')),
-                        'video_bitrate': session.get('bitrate', metadata.get('bitrate','')),
-                        'video_width': session.get('width', metadata.get('width','')),
-                        'video_height': session.get('height', metadata.get('height','')),
-                        'video_resolution': session.get('video_resolution', metadata.get('video_resolution','')),
-                        'video_framerate': session.get('video_framerate', metadata.get('video_framerate','')),
-                        'aspect_ratio': session.get('aspect_ratio', metadata.get('aspect_ratio','')),
-                        'audio_codec': session.get('audio_codec', metadata.get('audio_codec','')),
-                        'audio_channels': session.get('audio_channels', metadata.get('audio_channels','')),
-                        'title': full_title,
-                        'library_name': metadata['library_name'],
-                        'show_name': show_name,
-                        'episode_name': episode_name,
-                        'artist_name': artist_name,
-                        'album_name': album_name,
-                        'track_name': track_name,
-                        'season_num': season_num,
-                        'season_num00': season_num00,
-                        'episode_num': episode_num,
-                        'episode_num00': episode_num00,
-                        'track_num': track_num,
-                        'track_num00': track_num00,
-                        'year': metadata['year'],
-                        'release_date': arrow.get(metadata['originally_available_at']).format(date_format)
-                            if metadata['originally_available_at'] else '',
-                        'air_date': arrow.get(metadata['originally_available_at']).format(date_format)
-                            if metadata['originally_available_at'] else '',
-                        'added_date': arrow.get(metadata['added_at']).format(date_format)
-                            if metadata['added_at'] else '',
-                        'updated_date': arrow.get(metadata['updated_at']).format(date_format)
-                            if metadata['updated_at'] else '',
-                        'last_viewed_date': arrow.get(metadata['last_viewed_at']).format(date_format)
-                            if metadata['last_viewed_at'] else '',
-                        'studio': metadata['studio'],
-                        'content_rating': metadata['content_rating'],
-                        'directors': ', '.join(metadata['directors']),
-                        'writers': ', '.join(metadata['writers']),
-                        'actors': ', '.join(metadata['actors']),
-                        'genres': ', '.join(metadata['genres']),
-                        'summary': metadata['summary'],
-                        'tagline': metadata['tagline'],
-                        'rating': metadata['rating'],
-                        'duration': duration,
-                        'poster_title': metadata.get('poster_title',''),
-                        'poster_url': metadata.get('poster_url',''),
-                        'plex_url': metadata.get('plex_url',''),
-                        'imdb_id': metadata.get('imdb_id',''),
-                        'imdb_url': metadata.get('imdb_url',''),
-                        'thetvdb_id': metadata.get('thetvdb_id',''),
-                        'thetvdb_url': metadata.get('thetvdb_url',''),
-                        'themoviedb_id': metadata.get('themoviedb_id',''),
-                        'themoviedb_url': metadata.get('themoviedb_url',''),
-                        'lastfm_url': metadata.get('lastfm_url',''),
-                        'trakt_url': metadata.get('trakt_url',''),
-                        'file': metadata.get('file',''),
-                        'file_size': helpers.humanFileSize(metadata.get('file_size','')),
-                        'section_id': metadata['section_id'],
-                        'rating_key': metadata['rating_key'],
-                        'parent_rating_key': metadata['parent_rating_key'],
-                        'grandparent_rating_key': metadata['grandparent_rating_key']
-                        }
+    available_params = {   # Global paramaters
+        'plexpy_version': common.VERSION_NUMBER,
+        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
+        'plexpy_commit': plexpy.CURRENT_VERSION,
+        'server_name': server_name,
+        'server_uptime': server_uptime,
+        'server_version': server_times.get('version', ''),
+        'action': notify_action.split('on_')[-1],
+        'datestamp': arrow.now().format(date_format),
+        'timestamp': arrow.now().format(time_format),
+        # Stream parameters
+        'streams': stream_count,
+        'user_streams': user_stream_count,
+        'user': session.get('friendly_name', ''),
+        'username': session.get('user', ''),
+        'platform': session.get('platform', ''),
+        'player': session.get('player', ''),
+        'ip_address': session.get('ip_address', 'N/A'),
+        'stream_duration': stream_duration,
+        'stream_time': arrow.get(stream_duration * 60).format(duration_format),
+        'remaining_duration': remaining_duration,
+        'remaining_time': arrow.get(remaining_duration * 60).format(duration_format),
+        'progress_duration': view_offset,
+        'progress_time': arrow.get(view_offset * 60).format(duration_format),
+        'progress_percent': progress_percent,
+        'transcode_decision': transcode_decision,
+        'video_decision': session.get('video_decision', ''),
+        'audio_decision': session.get('audio_decision', ''),
+        'transcode_container': session.get('transcode_container', ''),
+        'transcode_video_codec': session.get('transcode_video_codec', ''),
+        'transcode_video_width': session.get('transcode_width', ''),
+        'transcode_video_height': session.get('transcode_height', ''),
+        'transcode_audio_codec': session.get('transcode_audio_codec', ''),
+        'transcode_audio_channels': session.get('transcode_audio_channels', ''),
+        'session_key': session.get('session_key', ''),
+        'transcode_key': session.get('transcode_key', ''),
+        'user_id': session.get('user_id', ''),
+        'machine_id': session.get('machine_id', ''),
+        # Metadata parameters
+        'media_type': metadata['media_type'],
+        'container': session.get('container', metadata.get('container', '')),
+        'video_codec': session.get('video_codec', metadata.get('video_codec', '')),
+        'video_bitrate': session.get('bitrate', metadata.get('bitrate', '')),
+        'video_width': session.get('width', metadata.get('width', '')),
+        'video_height': session.get('height', metadata.get('height', '')),
+        'video_resolution': session.get('video_resolution', metadata.get('video_resolution', '')),
+        'video_framerate': session.get('video_framerate', metadata.get('video_framerate', '')),
+        'aspect_ratio': session.get('aspect_ratio', metadata.get('aspect_ratio', '')),
+        'audio_codec': session.get('audio_codec', metadata.get('audio_codec', '')),
+        'audio_channels': session.get('audio_channels', metadata.get('audio_channels', '')),
+        'title': full_title,
+        'library_name': metadata['library_name'],
+        'show_name': show_name,
+        'episode_name': episode_name,
+        'artist_name': artist_name,
+        'album_name': album_name,
+        'track_name': track_name,
+        'season_num': season_num,
+        'season_num00': season_num00,
+        'episode_num': episode_num,
+        'episode_num00': episode_num00,
+        'track_num': track_num,
+        'track_num00': track_num00,
+        'year': metadata['year'],
+        'release_date': arrow.get(metadata['originally_available_at']).format(date_format)
+        if metadata['originally_available_at'] else '',
+        'air_date': arrow.get(metadata['originally_available_at']).format(date_format)
+        if metadata['originally_available_at'] else '',
+        'added_date': arrow.get(metadata['added_at']).format(date_format)
+        if metadata['added_at'] else '',
+        'updated_date': arrow.get(metadata['updated_at']).format(date_format)
+        if metadata['updated_at'] else '',
+        'last_viewed_date': arrow.get(metadata['last_viewed_at']).format(date_format)
+        if metadata['last_viewed_at'] else '',
+        'studio': metadata['studio'],
+        'content_rating': metadata['content_rating'],
+        'directors': ', '.join(metadata['directors']),
+        'writers': ', '.join(metadata['writers']),
+        'actors': ', '.join(metadata['actors']),
+        'genres': ', '.join(metadata['genres']),
+        'summary': metadata['summary'],
+        'tagline': metadata['tagline'],
+        'rating': metadata['rating'],
+        'duration': duration,
+        'poster_title': metadata.get('poster_title', ''),
+        'poster_url': metadata.get('poster_url', ''),
+        'plex_url': metadata.get('plex_url', ''),
+        'imdb_id': metadata.get('imdb_id', ''),
+        'imdb_url': metadata.get('imdb_url', ''),
+        'thetvdb_id': metadata.get('thetvdb_id', ''),
+        'thetvdb_url': metadata.get('thetvdb_url', ''),
+        'themoviedb_id': metadata.get('themoviedb_id', ''),
+        'themoviedb_url': metadata.get('themoviedb_url', ''),
+        'lastfm_url': metadata.get('lastfm_url', ''),
+        'trakt_url': metadata.get('trakt_url', ''),
+        'file': metadata.get('file', ''),
+        'file_size': helpers.humanFileSize(metadata.get('file_size', '')),
+        'section_id': metadata['section_id'],
+        'rating_key': metadata['rating_key'],
+        'parent_rating_key': metadata['parent_rating_key'],
+        'grandparent_rating_key': metadata['grandparent_rating_key']
+    }
 
     return available_params
 
 
 def build_server_notify_params(notify_action=None, **kwargs):
     # Get time formats
-    date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
-    time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
+    date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do', '')
+    time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do', '')
 
     # Get the server name
     server_name = plexpy.CONFIG.PMS_NAME
@@ -522,37 +523,37 @@ def build_server_notify_params(notify_action=None, **kwargs):
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve server uptime.")
         server_uptime = 'N/A'
 
-    available_params = {# Global paramaters
-                        'plexpy_version': common.VERSION_NUMBER,
-                        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
-                        'plexpy_commit': plexpy.CURRENT_VERSION,
-                        'server_name': server_name,
-                        'server_uptime': server_uptime,
-                        'server_version': server_times.get('version',''),
-                        'action': notify_action.split('on_')[-1],
-                        'datestamp': arrow.now().format(date_format),
-                        'timestamp': arrow.now().format(time_format),
-                        # Plex Media Server update parameters
-                        'update_version': pms_download_info.get('version',''),
-                        'update_url': pms_download_info.get('download_url',''),
-                        'update_release_date': arrow.get(pms_download_info.get('release_date','')).format(date_format)
-                            if pms_download_info.get('release_date','') else '',
-                        'update_channel': 'Plex Pass' if plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass' else 'Public',
-                        'update_platform': pms_download_info.get('platform',''),
-                        'update_distro': pms_download_info.get('distro',''),
-                        'update_distro_build': pms_download_info.get('build',''),
-                        'update_requirements': pms_download_info.get('requirements',''),
-                        'update_extra_info': pms_download_info.get('extra_info',''),
-                        'update_changelog_added': pms_download_info.get('changelog_added',''),
-                        'update_changelog_fixed': pms_download_info.get('changelog_fixed',''),
-                        # PlexPy update parameters
-                        'plexpy_update_version': plexpy_download_info.get('tag_name', ''),
-                        'plexpy_update_tar': plexpy_download_info.get('tarball_url', ''),
-                        'plexpy_update_zip': plexpy_download_info.get('zipball_url', ''),
-                        'plexpy_update_commit': kwargs.pop('plexpy_update_commit', ''),
-                        'plexpy_update_behind': kwargs.pop('plexpy_update_behind', ''),
-                        'plexpy_update_changelog': plexpy_download_info.get('body', '')
-                        }
+    available_params = {  # Global paramaters
+        'plexpy_version': common.VERSION_NUMBER,
+        'plexpy_branch': plexpy.CONFIG.GIT_BRANCH,
+        'plexpy_commit': plexpy.CURRENT_VERSION,
+        'server_name': server_name,
+        'server_uptime': server_uptime,
+        'server_version': server_times.get('version', ''),
+        'action': notify_action.split('on_')[-1],
+        'datestamp': arrow.now().format(date_format),
+        'timestamp': arrow.now().format(time_format),
+        # Plex Media Server update parameters
+        'update_version': pms_download_info.get('version', ''),
+        'update_url': pms_download_info.get('download_url', ''),
+        'update_release_date': arrow.get(pms_download_info.get('release_date', '')).format(date_format)
+        if pms_download_info.get('release_date', '') else '',
+        'update_channel': 'Plex Pass' if plexpy.CONFIG.PMS_UPDATE_CHANNEL == 'plexpass' else 'Public',
+        'update_platform': pms_download_info.get('platform', ''),
+        'update_distro': pms_download_info.get('distro', ''),
+        'update_distro_build': pms_download_info.get('build', ''),
+        'update_requirements': pms_download_info.get('requirements', ''),
+        'update_extra_info': pms_download_info.get('extra_info', ''),
+        'update_changelog_added': pms_download_info.get('changelog_added', ''),
+        'update_changelog_fixed': pms_download_info.get('changelog_fixed', ''),
+        # PlexPy update parameters
+        'plexpy_update_version': plexpy_download_info.get('tag_name', ''),
+        'plexpy_update_tar': plexpy_download_info.get('tarball_url', ''),
+        'plexpy_update_zip': plexpy_download_info.get('zipball_url', ''),
+        'plexpy_update_commit': kwargs.pop('plexpy_update_commit', ''),
+        'plexpy_update_behind': kwargs.pop('plexpy_update_behind', ''),
+        'plexpy_update_changelog': plexpy_download_info.get('body', '')
+    }
 
     return available_params
 
@@ -574,8 +575,8 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     media_type = parameters.get('media_type')
 
     all_tags = r'<movie>.*?</movie>|' \
-        '<show>.*?</show>|<season>.*?</season>|<episode>.*?</episode>|' \
-        '<artist>.*?</artist>|<album>.*?</album>|<track>.*?</track>'
+               '<show>.*?</show>|<season>.*?</season>|<episode>.*?</episode>|' \
+               '<artist>.*?</artist>|<album>.*?</album>|<track>.*?</track>'
 
     # Check for exclusion tags
     if media_type == 'movie':
@@ -630,7 +631,6 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
 
 
 def strip_tag(data, agent_id=None):
-
     if agent_id == 7:
         # Allow tags b, i, u, a[href], font[color] for Pushover
         whitelist = {'b': [],
@@ -664,7 +664,7 @@ def format_group_index(group_keys):
     num = []
     num00 = []
 
-    for k, g in groupby(enumerate(group_keys), lambda (i, x): i-x):
+    for k, g in groupby(enumerate(group_keys), lambda (i, x): i - x):
         group = map(itemgetter(1), g)
         g_min, g_max = min(group), max(group)
 

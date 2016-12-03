@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,15 +14,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import arrow
 import os
 import re
 import shutil
+import time
 
+import arrow
 from configobj import ConfigObj
 
-import plexpy
 import logger
+import plexpy
 
 
 def bool_int(value):
@@ -195,13 +197,14 @@ _CONFIG_DEFINITIONS = {
     'GROWL_ON_CONCURRENT': (int, 'Growl', 0),
     'GROWL_ON_NEWDEVICE': (int, 'Growl', 0),
     'HISTORY_TABLE_ACTIVITY': (int, 'General', 1),
-    'HOME_SECTIONS': (list, 'General', ['current_activity','watch_stats','library_stats','recently_added']),
+    'HOME_SECTIONS': (list, 'General', ['current_activity', 'watch_stats', 'library_stats', 'recently_added']),
     'HOME_LIBRARY_CARDS': (list, 'General', ['first_run']),
     'HOME_STATS_LENGTH': (int, 'General', 30),
     'HOME_STATS_TYPE': (int, 'General', 0),
     'HOME_STATS_COUNT': (int, 'General', 5),
-    'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', \
-        'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent']),
+    'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv',
+                                           'top_music', 'popular_music', 'last_watched', 'top_users',
+                                           'top_platforms', 'most_concurrent']),
     'HTTPS_CREATE_CERT': (int, 'General', 1),
     'HTTPS_CERT': (str, 'General', ''),
     'HTTPS_KEY': (str, 'General', ''),
@@ -658,8 +661,10 @@ class Config(object):
 
         for key, subkeys in self._config.iteritems():
             for subkey, value in subkeys.iteritems():
-                if isinstance(value, basestring) and len(value.strip()) > 5 and \
-                    subkey.upper() not in _WHITELIST_KEYS and any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
+                if isinstance(value, basestring) and \
+                                len(value.strip()) > 5 and \
+                                subkey.upper() not in _WHITELIST_KEYS and \
+                                any(bk in subkey.upper() for bk in _BLACKLIST_KEYS):
                     blacklist.append(value.strip())
 
         logger._BLACKLIST_WORDS.extend(blacklist)
@@ -688,7 +693,8 @@ class Config(object):
         self.check_section(section)
         try:
             my_val = definition_type(self._config[section][ini_key])
-        except Exception:
+        except Exception as e:
+            logger.exception(e)
             my_val = definition_type(default)
             self._config[section][ini_key] = my_val
         return my_val
@@ -757,7 +763,7 @@ class Config(object):
 
     def _upgrade(self):
         """
-        Upgrades config file from previous verisions and bumps up config version
+        Upgrades config file from previous versions and bumps up config version
         """
         if self.CONFIG_VERSION == 0:
             # Separate out movie and tv notifications
@@ -786,7 +792,7 @@ class Config(object):
 
         if self.CONFIG_VERSION == 2:
             def rep(s):
-                return s.replace('{progress}','{progress_duration}')
+                return s.replace('{progress}', '{progress_duration}')
 
             self.NOTIFY_ON_START_SUBJECT_TEXT = rep(self.NOTIFY_ON_START_SUBJECT_TEXT)
             self.NOTIFY_ON_START_BODY_TEXT = rep(self.NOTIFY_ON_START_BODY_TEXT)
@@ -804,7 +810,8 @@ class Config(object):
             self.CONFIG_VERSION = 3
 
         if self.CONFIG_VERSION == 3:
-            if self.HTTP_ROOT == '/': self.HTTP_ROOT = ''
+            if self.HTTP_ROOT == '/':
+                self.HTTP_ROOT = ''
             self.CONFIG_VERSION = 4
 
         if self.CONFIG_VERSION == 4:
@@ -829,7 +836,7 @@ class Config(object):
 
         if self.CONFIG_VERSION == 7:
             def rep(s):
-                return s.replace('<tv>','<episode>').replace('</tv>','</episode>').replace('<music>','<track>').replace('</music>','</track>')
+                return s.replace('<tv>', '<episode>').replace('</tv>', '</episode>').replace('<music>', '<track>').replace('</music>', '</track>')
 
             self.NOTIFY_ON_START_SUBJECT_TEXT = rep(self.NOTIFY_ON_START_SUBJECT_TEXT)
             self.NOTIFY_ON_START_BODY_TEXT = rep(self.NOTIFY_ON_START_BODY_TEXT)

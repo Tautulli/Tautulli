@@ -16,13 +16,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from httplib import HTTPSConnection
-from httplib import HTTPConnection
 import ssl
+from httplib import HTTPConnection
+from httplib import HTTPSConnection
 
-import plexpy
 import helpers
 import logger
+import plexpy
 
 
 class HTTPHandler(object):
@@ -90,9 +90,6 @@ class HTTPHandler(object):
                 return None
             except Exception as e:
                 logger.warn(u"Failed to access uri endpoint %s. Is your server maybe accepting SSL connections only? %s" % (uri, e))
-                return None
-            except:
-                logger.warn(u"Failed to access uri endpoint %s with Uncaught exception." % uri)
                 return None
 
             if request_status in (200, 201):

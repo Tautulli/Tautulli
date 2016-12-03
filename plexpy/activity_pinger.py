@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,18 +17,16 @@
 import threading
 import time
 
-import plexpy
 import activity_processor
 import database
 import helpers
 import libraries
 import logger
 import notification_handler
-import notifiers
+import plexpy
 import plextv
 import pmsconnect
 import web_socket
-
 
 monitor_lock = threading.Lock()
 ext_ping_count = 0
@@ -111,7 +110,7 @@ def check_active_sessions(ws_request=False):
                                         if int(time.time()) > buffer_values[0]['buffer_last_triggered'] + \
                                                 plexpy.CONFIG.BUFFER_WAIT:
                                             logger.info(u"PlexPy Monitor :: User '%s' has triggered multiple buffer warnings."
-                                                    % stream['user'])
+                                                        % stream['user'])
                                             # Set the buffer trigger time
                                             monitor_db.action('UPDATE sessions '
                                                               'SET buffer_last_triggered = strftime("%s","now") '
@@ -132,7 +131,7 @@ def check_active_sessions(ws_request=False):
                                 progress_percent = helpers.get_percent(session['view_offset'], session['duration'])
                                 notify_states = notification_handler.get_notify_state(session=session)
                                 if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT \
-                                    and not any(d['notify_action'] == 'on_watched' for d in notify_states):
+                                        and not any(d['notify_action'] == 'on_watched' for d in notify_states):
                                     plexpy.NOTIFY_QUEUE.put({'stream_data': stream, 'notify_action': 'on_watched'})
 
                 else:
@@ -150,7 +149,7 @@ def check_active_sessions(ws_request=False):
                         progress_percent = helpers.get_percent(stream['view_offset'], stream['duration'])
                         notify_states = notification_handler.get_notify_state(session=stream)
                         if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT \
-                            and not any(d['notify_action'] == 'on_watched' for d in notify_states):
+                                and not any(d['notify_action'] == 'on_watched' for d in notify_states):
                             plexpy.NOTIFY_QUEUE.put({'stream_data': stream, 'notify_action': 'on_watched'})
 
                         plexpy.NOTIFY_QUEUE.put({'stream_data': stream, 'notify_action': 'on_stop'})
@@ -168,21 +167,20 @@ def check_active_sessions(ws_request=False):
                         stream['write_attempts'] += 1
 
                         if stream['write_attempts'] < plexpy.CONFIG.SESSION_DB_WRITE_ATTEMPTS:
-                            logger.warn(u"PlexPy Monitor :: Failed to write sessionKey %s ratingKey %s to the database. " \
+                            logger.warn(u"PlexPy Monitor :: Failed to write sessionKey %s ratingKey %s to the database. "
                                         "Will try again on the next pass. Write attempt %s."
                                         % (stream['session_key'], stream['rating_key'], str(stream['write_attempts'])))
                             monitor_db.action('UPDATE sessions SET write_attempts = ? '
                                               'WHERE session_key = ? AND rating_key = ?',
                                               [stream['write_attempts'], stream['session_key'], stream['rating_key']])
                         else:
-                            logger.warn(u"PlexPy Monitor :: Failed to write sessionKey %s ratingKey %s to the database. " \
+                            logger.warn(u"PlexPy Monitor :: Failed to write sessionKey %s ratingKey %s to the database. "
                                         "Removing session from the database. Write attempt %s."
                                         % (stream['session_key'], stream['rating_key'], str(stream['write_attempts'])))
                             logger.debug(u"PlexPy Monitor :: Removing sessionKey %s ratingKey %s from session queue"
                                          % (stream['session_key'], stream['rating_key']))
                             monitor_db.action('DELETE FROM sessions WHERE session_key = ? AND rating_key = ?',
                                               [stream['session_key'], stream['rating_key']])
-
 
             # Process the newly received session data
             for session in media_container:
@@ -225,13 +223,13 @@ def check_recently_added():
                         if metadata:
                             metadata = [metadata]
                         else:
-                            logger.error(u"PlexPy Monitor :: Unable to retrieve metadata for rating_key %s" \
+                            logger.error(u"PlexPy Monitor :: Unable to retrieve metadata for rating_key %s"
                                          % str(item['rating_key']))
 
                     else:
                         metadata = pms_connect.get_metadata_children_details(item['rating_key'])
                         if not metadata:
-                            logger.error(u"PlexPy Monitor :: Unable to retrieve children metadata for rating_key %s" \
+                            logger.error(u"PlexPy Monitor :: Unable to retrieve children metadata for rating_key %s"
                                          % str(item['rating_key']))
 
                 if metadata:
@@ -247,7 +245,7 @@ def check_recently_added():
                                 plexpy.NOTIFY_QUEUE.put({'timeline_data': item, 'notify_action': 'on_created'})
                     
                     else:
-                        item = max(metadata, key=lambda x:x['added_at'])
+                        item = max(metadata, key=lambda x: x['added_at'])
 
                         if 0 < time_threshold - int(item['added_at']) <= time_interval:
                             if item['media_type'] == 'episode' or item['media_type'] == 'track':
@@ -256,7 +254,7 @@ def check_recently_added():
                                 if metadata:
                                     item = metadata
                                 else:
-                                    logger.error(u"PlexPy Monitor :: Unable to retrieve grandparent metadata for grandparent_rating_key %s" \
+                                    logger.error(u"PlexPy Monitor :: Unable to retrieve grandparent metadata for grandparent_rating_key %s"
                                                  % str(item['rating_key']))
 
                             logger.debug(u"PlexPy Monitor :: Library item %s added to Plex." % str(item['rating_key']))
@@ -269,7 +267,8 @@ def check_server_response():
     logger.info(u"PlexPy Monitor :: Attempting to reconnect Plex server...")
     try:
         web_socket.start_thread()
-    except:
+    except Exception as e:
+        logger.exception(e)
         logger.warn(u"Websocket :: Unable to open connection.")
 
 
@@ -290,12 +289,12 @@ def check_server_access():
             # Check if the port is mapped
             if not mapping_state == 'mapped':
                 ext_ping_count += 1
-                logger.warn(u"PlexPy Monitor :: Plex remote access port not mapped, ping attempt %s." \
+                logger.warn(u"PlexPy Monitor :: Plex remote access port not mapped, ping attempt %s."
                             % str(ext_ping_count))
             # Check if the port is open
             elif mapping_error == 'unreachable':
                 ext_ping_count += 1
-                logger.warn(u"PlexPy Monitor :: Plex remote access port mapped, but mapping failed, ping attempt %s." \
+                logger.warn(u"PlexPy Monitor :: Plex remote access port mapped, but mapping failed, ping attempt %s."
                             % str(ext_ping_count))
             # Reset external ping counter
             else:

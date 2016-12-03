@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,20 +14,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import threading
 import time
 
-import plexpy
 import activity_processor
-import datafactory
 import helpers
 import logger
 import notification_handler
-import notifiers
+import plexpy
 import pmsconnect
 
 
 RECENTLY_ADDED_QUEUE = {}
+
 
 class ActivityHandler(object):
 
@@ -177,8 +176,9 @@ class ActivityHandler(object):
                              (self.get_session_key(), buffer_last_triggered))
                 time_since_last_trigger = int(time.time()) - int(buffer_last_triggered)
 
-            if plexpy.CONFIG.BUFFER_THRESHOLD > 0 and (current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and \
-                time_since_last_trigger == 0 or time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT):
+            if plexpy.CONFIG.BUFFER_THRESHOLD > 0 and (current_buffer_count >= plexpy.CONFIG.BUFFER_THRESHOLD and
+                                                       time_since_last_trigger == 0 or
+                                                       time_since_last_trigger >= plexpy.CONFIG.BUFFER_WAIT):
                 ap.set_session_buffer_trigger_time(session_key=self.get_session_key())
 
                 plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_buffer'})
@@ -227,13 +227,14 @@ class ActivityHandler(object):
                     progress_percent = helpers.get_percent(db_session['view_offset'], db_session['duration'])
                     notify_states = notification_handler.get_notify_state(session=db_session)
                     if progress_percent >= plexpy.CONFIG.NOTIFY_WATCHED_PERCENT \
-                        and not any(d['notify_action'] == 'on_watched' for d in notify_states):
+                            and not any(d['notify_action'] == 'on_watched' for d in notify_states):
                         plexpy.NOTIFY_QUEUE.put({'stream_data': db_session, 'notify_action': 'on_watched'})
 
             else:
                 # We don't have this session in our table yet, start a new one.
                 if this_state != 'buffering':
                     self.on_start()
+
 
 class TimelineHandler(object):
 
@@ -272,7 +273,7 @@ class TimelineHandler(object):
                 data.update(kwargs)
                 plexpy.NOTIFY_QUEUE.put(data)
             else:
-                logger.error(u"PlexPy TimelineHandler :: Unable to retrieve metadata for rating_key %s" \
+                logger.error(u"PlexPy TimelineHandler :: Unable to retrieve metadata for rating_key %s"
                              % str(rating_key))
 
     # This function receives events from our websocket connection
@@ -300,8 +301,8 @@ class TimelineHandler(object):
 
             # Add a new media item to the recently added queue
             if media_type and section_id > 0 and \
-                ((state_type == 0 and metadata_state == 'created') or \
-                (plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_UPGRADE and state_type in (1, 5) and \
+                ((state_type == 0 and metadata_state == 'created') or
+                 (plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_UPGRADE and state_type in (1, 5) and
                  media_state == 'analyzing' and queue_size is None)):
 
                 if media_type in ('episode', 'track'):
@@ -345,7 +346,7 @@ class TimelineHandler(object):
             # A movie, show, or artist is done processing
             elif media_type in ('movie', 'show', 'artist') and section_id > 0 and \
                 state_type == 5 and metadata_state is None and queue_size is None and \
-                rating_key in RECENTLY_ADDED_QUEUE:
+                    rating_key in RECENTLY_ADDED_QUEUE:
                 
                 logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s) done processing metadata."
                              % (title, str(rating_key)))
@@ -375,12 +376,11 @@ class TimelineHandler(object):
                 # Remove all keys
                 self.del_keys(rating_key)
 
-
             # An episode or track is done processing (upgrade only)
             elif plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_UPGRADE and \
                 media_type in ('episode', 'track') and section_id > 0 and \
                 state_type == 5 and metadata_state is None and queue_size is None and \
-                rating_key in RECENTLY_ADDED_QUEUE:
+                    rating_key in RECENTLY_ADDED_QUEUE:
                 
                 logger.debug(u"PlexPy TimelineHandler :: Library item '%s' (%s) done processing metadata (upgrade)."
                              % (title, str(rating_key)))

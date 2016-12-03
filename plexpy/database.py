@@ -1,3 +1,4 @@
+# coding=utf-8
 # This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -13,15 +14,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import arrow
 import os
-import sqlite3
 import shutil
+import sqlite3
 import threading
 import time
 
-import plexpy
+import arrow
+
 import logger
+import plexpy
 
 FILENAME = "plexpy.db"
 db_lock = threading.Lock()
@@ -52,6 +54,7 @@ def delete_sessions():
     except Exception as e:
         logger.warn(u"PlexPy Database :: Unable to clear temporary sessions from database: %s." % e)
         return False
+
 
 def db_filename(filename=FILENAME):
     """ Returns the filepath to the db """

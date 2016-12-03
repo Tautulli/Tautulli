@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,18 +14,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import threading
 import time
-import re
 
-import plexpy
 import database
-import datafactory
 import libraries
-import log_reader
 import logger
-import notification_handler
-import notifiers
+import plexpy
 import pmsconnect
 import users
 
@@ -56,7 +51,7 @@ class ActivityProcessor(object):
                       'grandparent_thumb': session['grandparent_thumb'],
                       'year': session['year'],
                       'friendly_name': session['friendly_name'],
-                      #'ip_address': session['ip_address'],
+                      # 'ip_address': session['ip_address'],
                       'player': session['player'],
                       'platform': session['platform'],
                       'parent_rating_key': session['parent_rating_key'],
@@ -237,7 +232,7 @@ class ActivityProcessor(object):
 
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
                 # If rating_key is the same in the previous session, then set the reference_id to the previous row, else set the reference_id to the new id
-                if  prev_session == new_session == None:
+                if prev_session is None and new_session is None:
                     args = [last_id, last_id]
                 elif prev_session['rating_key'] == new_session['rating_key'] and prev_session['view_offset'] <= new_session['view_offset']:
                     args = [prev_session['reference_id'], new_session['id']]

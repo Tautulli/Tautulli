@@ -1,3 +1,4 @@
+# coding=utf-8
 #  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -16,9 +17,10 @@
 import os
 import sys
 
-import plexpy
 import cherrypy
+
 import logger
+import plexpy
 import webauth
 from plexpy.helpers import create_https_certificates
 from plexpy.webserve import WebInterface
@@ -34,7 +36,7 @@ def initialize(options):
     if enable_https:
         # If either the HTTPS certificate or key do not exist, try to make self-signed ones.
         if plexpy.CONFIG.HTTPS_CREATE_CERT and \
-            (not (https_cert and os.path.exists(https_cert)) or not (https_key and os.path.exists(https_key))):
+                (not (https_cert and os.path.exists(https_cert)) or not (https_key and os.path.exists(https_key))):
             if not create_https_certificates(https_cert, https_key):
                 logger.warn(u"PlexPy WebStart :: Unable to create certificate and key. Disabling HTTPS")
                 enable_https = False
@@ -190,7 +192,7 @@ def initialize(options):
             'tools.auth.on': False,
             'tools.sessions.on': False
         },
-        #'/pms_image_proxy': {
+        # '/pms_image_proxy': {
         #    'tools.staticdir.on': True,
         #    'tools.staticdir.dir': os.path.join(plexpy.CONFIG.CACHE_DIR, 'images'),
         #    'tools.caching.on': True,
@@ -200,7 +202,7 @@ def initialize(options):
         #    'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
         #    'tools.auth.on': False,
         #    'tools.sessions.on': False
-        #},
+        # },
         '/favicon.ico': {
             'tools.staticfile.on': True,
             'tools.staticfile.filename': os.path.abspath(os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images/favicon.ico')),

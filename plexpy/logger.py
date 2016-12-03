@@ -1,3 +1,4 @@
+# coding=utf-8
 #  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -13,9 +14,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from logutils.queue import QueueHandler, QueueListener
-from logging import handlers
-
 import contextlib
 import errno
 import logging
@@ -25,9 +23,12 @@ import re
 import sys
 import threading
 import traceback
+from logging import handlers
 
-import plexpy
+from logutils.queue import QueueHandler, QueueListener
+
 import helpers
+import plexpy
 
 # These settings are for file logging only
 FILENAME = "plexpy.log"

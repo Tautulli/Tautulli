@@ -1,3 +1,4 @@
+# coding=utf-8
 #  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -18,22 +19,22 @@
 # Form based authentication for CherryPy. Requires the
 # Session tool to be loaded.
 
+import re
 from cgi import escape
 from datetime import datetime, timedelta
-import re
 
 import cherrypy
 from hashing_passwords import check_hash
 
-import plexpy
 import logger
+import plexpy
 import plextv
 from plexpy.database import MonitorDatabase
-from plexpy.users import Users
 from plexpy.plextv import PlexTV
-
+from plexpy.users import Users
 
 SESSION_KEY = '_cp_username'
+
 
 def user_login(username=None, password=None):
     if not username or not password:
@@ -88,7 +89,6 @@ def user_login(username=None, password=None):
         logger.warn(u"PlexPy WebAuth :: Unable to retrieve Plex.tv user token for user '%s'." % username)
         return None
 
-    return None
 
 def check_credentials(username, password, admin_login='0'):
     """Verifies credentials for username and password.
@@ -103,7 +103,8 @@ def check_credentials(username, password, admin_login='0'):
         return True, u'guest'
     else:
         return False, None
-    
+
+
 def check_auth(*args, **kwargs):
     """A tool that looks in config for 'auth.require'. If found and it
     is not None, a login is required and the entry is evaluated as a list of
@@ -120,7 +121,8 @@ def check_auth(*args, **kwargs):
                     raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
         else:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/logout")
-    
+
+
 def requireAuth(*conditions):
     """A decorator that appends conditions to the auth.require config
     variable."""
@@ -147,11 +149,12 @@ def member_of(groupname):
         return cherrypy.request.login == plexpy.CONFIG.HTTP_USERNAME and groupname == 'admin'
     return check
 
+
 def name_is(reqd_username):
     return lambda: reqd_username == cherrypy.request.login
 
-# These might be handy
 
+# These might be handy
 def any_of(*conditions):
     """Returns True if any of the conditions match"""
     def check():
@@ -160,6 +163,7 @@ def any_of(*conditions):
                 return True
         return False
     return check
+
 
 # By default all conditions are required, but this might still be
 # needed if you want to use it inside of an any_of(...) condition

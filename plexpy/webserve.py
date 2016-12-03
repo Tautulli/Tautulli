@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -21,14 +22,12 @@ import shutil
 import threading
 
 import cherrypy
-from cherrypy.lib.static import serve_file, serve_download
 from cherrypy._cperror import NotFound
-
+from cherrypy.lib.static import serve_download, serve_file
 from hashing_passwords import make_hash
-from mako.lookup import TemplateLookup
 from mako import exceptions
+from mako.lookup import TemplateLookup
 
-import plexpy
 import common
 import config
 import database
@@ -41,17 +40,18 @@ import log_reader
 import logger
 import notification_handler
 import notifiers
-import plextv
 import plexivity_import
+import plexpy
+import plextv
 import plexwatch_import
 import pmsconnect
 import users
 import versioncheck
 import web_socket
 from plexpy.api2 import API2
-from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json
-from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
-from plexpy.webauth import AuthController, requireAuth, member_of, name_is
+from plexpy.helpers import addtoapi, build_datatables_json, checked, create_https_certificates, get_ip
+from plexpy.session import allow_session_library, allow_session_user, get_session_info, get_session_user_id
+from plexpy.webauth import AuthController, member_of, requireAuth
 
 
 def serve_template(templatename, **kwargs):
@@ -86,7 +86,6 @@ class WebInterface(object):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
         else:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "welcome")
-
 
     ##### Welcome #####
 
@@ -162,7 +161,6 @@ class WebInterface(object):
 
         if servers:
             return servers
-
 
     ##### Home #####
 
@@ -340,7 +338,6 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Temporary sessions flushed.'}
         else:
             return {'result': 'error', 'message': 'Flush sessions failed.'}
-
 
     ##### Libraries #####
 
@@ -4617,9 +4614,9 @@ class WebInterface(object):
     @requireAuth()
     def get_plexpy_url(self, **kwargs):
         if plexpy.CONFIG.ENABLE_HTTPS:
-           scheme = 'https' 
+            scheme = 'https'
         else:
-           scheme = 'http'
+            scheme = 'http'
 
         if plexpy.CONFIG.HTTP_HOST == '0.0.0.0':
             import socket

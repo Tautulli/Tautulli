@@ -1,3 +1,4 @@
+# coding=utf-8
 #  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -15,9 +16,10 @@
 
 import os
 
-import plexpy
 import helpers
 import logger
+import plexpy
+
 
 def get_log_tail(window=20, parsed=True, log_type="server"):
 
@@ -45,11 +47,12 @@ def get_log_tail(window=20, parsed=True, log_type="server"):
             try:
                 i = helpers.latinToAscii(i)
                 log_time = i.split(' [')[0]
-                log_level = i.split('] ', 1)[1].split(' - ',1)[0]
-                log_msg = i.split('] ', 1)[1].split(' - ',1)[1]
+                log_level = i.split('] ', 1)[1].split(' - ', 1)[0]
+                log_msg = i.split('] ', 1)[1].split(' - ', 1)[1]
                 full_line = [log_time, log_level, log_msg]
                 clean_lines.append(full_line)
-            except:
+            except Exception as e:
+                logger.exception(e)
                 line_error = True
                 full_line = ['', '', 'Unable to parse log line.']
                 clean_lines.append(full_line)
@@ -65,7 +68,6 @@ def get_log_tail(window=20, parsed=True, log_type="server"):
 
         return raw_lines
 
-    return log_lines
 
 # http://stackoverflow.com/a/13790289/2405162
 def tail(f, lines=1, _buffer=4098):

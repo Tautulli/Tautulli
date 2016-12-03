@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -17,13 +18,13 @@ import threading
 import urllib
 from urlparse import urlparse
 
-import plexpy
 import common
 import database
 import helpers
 import http_handler
 import libraries
 import logger
+import plexpy
 import session
 import users
 

@@ -1,3 +1,4 @@
+# coding=utf-8
 #  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -13,11 +14,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
+"""
 Created on Aug 1, 2011
 
 @author: Michael
-'''
+"""
 import platform
 
 import version

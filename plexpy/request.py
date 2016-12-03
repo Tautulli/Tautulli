@@ -1,3 +1,4 @@
+# coding=utf-8
 #  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -13,17 +14,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from bs4 import BeautifulSoup
+import collections
 from xml.dom import minidom
 
 import feedparser
-import collections
 import requests
+from bs4 import BeautifulSoup
 
+import logger
 import plexpy
 import plexpy.lock
-import logger
-
 
 # Dictionary with last request times, for rate limiting.
 last_requests = collections.defaultdict(int)
@@ -210,7 +210,9 @@ def server_message(response):
     if "text/html" in response.headers.get("content-type"):
         try:
             soup = BeautifulSoup(response.content, "html5lib")
-        except Exception:
+        except Exception as e:
+            logger.exception(u"Unhandled exception")
+            logger.exception(e)
             pass
 
         # Find body and cleanup common tags to grab content, which probably

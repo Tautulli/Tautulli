@@ -1,3 +1,4 @@
+# coding=utf-8
 #  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -55,11 +56,11 @@ class AuthURLOpener(PlexPyURLopener):
         # if this is the first try then provide a username/password
         if self.numTries == 0:
             self.numTries = 1
-            return (self.username, self.password)
+            return self.username, self.password
 
         # if we've tried before then return blank which cancels the request
         else:
-            return ('', '')
+            return '', ''
 
     # this is pretty much just a hack for convenience
     def openit(self, url):

@@ -20,15 +20,15 @@ import base64
 import json
 from xml.dom import minidom
 
-import plexpy
 import common
 import database
 import helpers
 import http_handler
 import logger
-import users
+import plexpy
 import pmsconnect
 import session
+import users
 
 
 def refresh_users():
@@ -218,8 +218,9 @@ class PlexTV(object):
                 logger.debug(u"PlexPy PlexTV :: Removing PlexPy from Plex.tv devices.")
                 try:
                     self.delete_plextv_device(device_id=device_id)
-                except:
+                except Exception as e:
                     logger.error(u"PlexPy PlexTV :: Failed to remove PlexPy from Plex.tv devices.")
+                    logger.exception(e)
                     return None
             else:
                 logger.warn(u"PlexPy PlexTV :: No existing PlexPy device found.")
@@ -232,7 +233,6 @@ class PlexTV(object):
             plexpy.CONFIG.write()
             logger.info(u"PlexPy PlexTV :: Updated Plex.tv token for PlexPy.")
             return token
-
 
     def get_server_token(self):
         servers = self.get_plextv_server_list(output_format='xml')
@@ -347,9 +347,6 @@ class PlexTV(object):
         except Exception as e:
             logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list own account: %s" % e)
             return []
-        except:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list own account.")
-            return []
 
         xml_head = xml_parse.getElementsByTagName('user')
         if not xml_head:
@@ -376,9 +373,6 @@ class PlexTV(object):
             xml_parse = minidom.parseString(friends_list)
         except Exception as e:
             logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list friends list: %s" % e)
-            return []
-        except:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_full_users_list friends list.")
             return []
 
         xml_head = xml_parse.getElementsByTagName('User')
@@ -414,9 +408,6 @@ class PlexTV(object):
             xml_parse = minidom.parseString(sync_list)
         except Exception as e:
             logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items: %s" % e)
-            return []
-        except:
-            logger.warn(u"PlexPy PlexTV :: Unable to parse XML for get_synced_items.")
             return []
 
         xml_head = xml_parse.getElementsByTagName('SyncList')
@@ -575,7 +566,7 @@ class PlexTV(object):
 
                     for connection in connections:
                         if helpers.get_xml_attr(connection, 'address') == plexpy.CONFIG.PMS_IP and \
-                            int(helpers.get_xml_attr(connection, 'port')) == plexpy.CONFIG.PMS_PORT:
+                                        int(helpers.get_xml_attr(connection, 'port')) == plexpy.CONFIG.PMS_PORT:
     
                             plexpy.CONFIG.PMS_IDENTIFIER = helpers.get_xml_attr(a, 'clientIdentifier')
                             plexpy.CONFIG.write()
@@ -632,19 +623,19 @@ class PlexTV(object):
 
                 for d in devices:
                     if helpers.get_xml_attr(d, 'presence') == '1' and \
-                        helpers.get_xml_attr(d, 'owned') == '1' and \
-                        helpers.get_xml_attr(d, 'provides') == 'server':
+                                   helpers.get_xml_attr(d, 'owned') == '1' and \
+                                   helpers.get_xml_attr(d, 'provides') == 'server':
                         connections = d.getElementsByTagName('Connection')
 
                         for c in connections:
                             # If this is a remote server don't show any local IPs.
                             if helpers.get_xml_attr(d, 'publicAddressMatches') == '0' and \
-                                helpers.get_xml_attr(c, 'local') == '1':
+                                    helpers.get_xml_attr(c, 'local') == '1':
                                 continue
 
                             # If this is a local server don't show any remote IPs.
                             if helpers.get_xml_attr(d, 'publicAddressMatches') == '1' and \
-                                helpers.get_xml_attr(c, 'local') == '0':
+                                    helpers.get_xml_attr(c, 'local') == '0':
                                 continue
 
                             server = {'httpsRequired': helpers.get_xml_attr(d, 'httpsRequired'),
@@ -670,6 +661,7 @@ class PlexTV(object):
             available_downloads = json.loads(plex_downloads)
         except Exception as e:
             logger.warn(u"PlexPy PlexTV :: Unable to load JSON for get_plex_updates.")
+            logger.exception(e)
             return {}
 
         # Get the updates for the platform

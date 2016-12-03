@@ -1,3 +1,4 @@
+# coding=utf-8
 #  This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
@@ -18,4 +19,3 @@ class PlexPyException(Exception):
     """
     Generic PlexPy Exception - should never be thrown, only subclassed
     """
-

@@ -1,4 +1,5 @@
-﻿# This file is part of PlexPy.
+﻿# coding=utf-8
+# This file is part of PlexPy.
 #
 #  PlexPy is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,12 +14,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-import plexpy
 import common
 import database
 import datatables
 import helpers
 import logger
+import plexpy
 import pmsconnect
 import session
 
@@ -249,7 +250,9 @@ class DataFactory(object):
 
         return dict
 
-    def get_home_stats(self, grouping=0, time_range='30', stats_type=0, stats_count='5', stats_cards=[], notify_watched_percent='85'):
+    def get_home_stats(self, grouping=0, time_range='30', stats_type=0, stats_count='5', stats_cards=None, notify_watched_percent='85'):
+        if stats_cards is None:
+            stats_cards = []
         monitor_db = database.MonitorDatabase()
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
@@ -589,7 +592,7 @@ class DataFactory(object):
                            'platform_type': '',
                            'platform': '',
                            'row_id': ''
-                    }
+                           }
                     top_users.append(row)
 
                 home_stats.append({'stat_id': stat,
@@ -701,11 +704,11 @@ class DataFactory(object):
             elif stat == 'most_concurrent':
 
                 def calc_most_concurrent(title, result):
-                    '''
+                    """
                     Function to calculate most concurrent streams
                     Input: Stat title, SQLite query result
                     Output: Dict {title, count, started, stopped}
-                    '''
+                    """
                     times = []
                     for item in result:
                         times.append({'time': str(item['started']) + 'B', 'count': 1})
@@ -780,7 +783,9 @@ class DataFactory(object):
 
         return home_stats
 
-    def get_library_stats(self, library_cards=[]):
+    def get_library_stats(self, library_cards=None):
+        if library_cards is None:
+            library_cards = []
         monitor_db = database.MonitorDatabase()
 
         if session.get_session_shared_libraries():
@@ -1277,7 +1282,7 @@ class DataFactory(object):
             genres = ";".join(metadata['genres'])
             labels = ";".join(metadata['labels'])
 
-            #logger.info(u"PlexPy DataFactory :: Updating metadata in the database for rating key: %s." % new_rating_key)
+            # logger.info(u"PlexPy DataFactory :: Updating metadata in the database for rating key: %s." % new_rating_key)
             monitor_db = database.MonitorDatabase()
 
             # Update the session_history_metadata table

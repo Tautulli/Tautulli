@@ -29,15 +29,15 @@ import traceback
 import cherrypy
 import xmltodict
 
-import plexpy
 import config
 import database
 import logger
+import plexpy
 import plextv
 import pmsconnect
 
 
-class API2:
+class API2(object):
     def __init__(self, **kwargs):
         self._api_valid_methods = self._api_docs().keys()
         self._api_authenticated = False
