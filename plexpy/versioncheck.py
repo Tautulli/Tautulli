@@ -21,9 +21,9 @@ import subprocess
 import tarfile
 
 import plexpy
-from plexpy import logger
-from plexpy import request
-from plexpy import version
+import logger
+import request
+import version
 
 
 def runGit(args):

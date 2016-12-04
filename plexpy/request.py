@@ -23,7 +23,7 @@ from bs4 import BeautifulSoup
 
 import plexpy
 import plexpy.lock
-from plexpy import logger
+import logger
 
 # Dictionary with last request times, for rate limiting.
 last_requests = collections.defaultdict(int)

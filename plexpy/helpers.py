@@ -46,8 +46,8 @@ from six.moves.urllib.parse import urlencode
 from six.moves.urllib.request import Request, URLopener, urlopen
 
 import plexpy
-from plexpy import logger
-from plexpy.api2 import API2
+import logger
+from api2 import API2
 
 
 def addtoapi(*dargs, **dkwargs):

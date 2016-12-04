@@ -30,30 +30,30 @@ from six import string_types
 from six import text_type
 
 import plexpy
-from plexpy import common
-from plexpy import config
-from plexpy import database
-from plexpy import datafactory
-from plexpy import graphs
-from plexpy import helpers
-from plexpy import http_handler
-from plexpy import libraries
-from plexpy import log_reader
-from plexpy import logger
-from plexpy import notification_handler
-from plexpy import notifiers
-from plexpy import plexivity_import
-from plexpy import plextv
-from plexpy import plexwatch_import
-from plexpy import pmsconnect
-from plexpy import users
-from plexpy import versioncheck
-from plexpy import web_socket
-from plexpy.api2 import API2
-from plexpy.helpers import addtoapi, build_datatables_json, checked, create_https_certificates, get_ip
-from plexpy.lib.hashing_passwords import make_hash
-from plexpy.session import allow_session_library, allow_session_user, get_session_info, get_session_user_id
-from plexpy.webauth import AuthController, member_of, requireAuth
+import common
+import config
+import database
+import datafactory
+import graphs
+import helpers
+import http_handler
+import libraries
+import log_reader
+import logger
+import notification_handler
+import notifiers
+import plexivity_import
+import plextv
+import plexwatch_import
+import pmsconnect
+import users
+import versioncheck
+import web_socket
+from api2 import API2
+from helpers import addtoapi, build_datatables_json, checked, create_https_certificates, get_ip
+from lib.hashing_passwords import make_hash
+from session import allow_session_library, allow_session_user, get_session_info, get_session_user_id
+from webauth import AuthController, member_of, requireAuth
 
 
 def serve_template(templatename, **kwargs):

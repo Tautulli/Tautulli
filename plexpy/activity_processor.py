@@ -19,11 +19,11 @@ import time
 from six import iteritems
 
 import plexpy
-from plexpy import database
-from plexpy import libraries
-from plexpy import logger
-from plexpy import pmsconnect
-from plexpy import users
+import database
+import libraries
+import logger
+import pmsconnect
+import users
 
 
 class ActivityProcessor(object):

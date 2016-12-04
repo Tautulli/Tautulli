@@ -20,14 +20,14 @@ from six import iteritems
 from six.moves.urllib.parse import quote, urlencode, urlparse
 
 import plexpy
-from plexpy import common
-from plexpy import database
-from plexpy import helpers
-from plexpy import http_handler
-from plexpy import libraries
-from plexpy import logger
-from plexpy import session
-from plexpy import users
+import common
+import database
+import helpers
+import http_handler
+import libraries
+import logger
+import session
+import users
 
 
 def get_server_friendly_name():

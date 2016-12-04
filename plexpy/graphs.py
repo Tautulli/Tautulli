@@ -17,10 +17,10 @@
 import datetime
 
 import plexpy
-from plexpy import common
-from plexpy import database
-from plexpy import logger
-from plexpy import session
+import common
+import database
+import logger
+import session
 
 
 class Graphs(object):

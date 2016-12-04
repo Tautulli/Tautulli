@@ -17,12 +17,12 @@
 import sqlite3
 from xml.dom import minidom
 
-from plexpy import activity_processor
-from plexpy import database
-from plexpy import helpers
-from plexpy import logger
-from plexpy import plextv
-from plexpy import users
+import activity_processor
+import database
+import helpers
+import logger
+import plextv
+import users
 
 
 def extract_plexwatch_xml(xml=None):

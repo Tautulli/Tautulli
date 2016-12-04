@@ -17,8 +17,8 @@
 import cherrypy
 from six import iteritems
 
-from plexpy import common
-from plexpy import users
+import common
+import users
 
 
 def get_session_info():

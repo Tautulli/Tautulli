@@ -20,13 +20,13 @@ import httpagentparser
 from six import iteritems
 from six.moves.urllib.parse import parse_qsl
 
-from plexpy import common
-from plexpy import database
-from plexpy import datatables
-from plexpy import helpers
-from plexpy import logger
-from plexpy import plextv
-from plexpy import session
+import common
+import database
+import datatables
+import helpers
+import logger
+import plextv
+import session
 
 
 class Users(object):

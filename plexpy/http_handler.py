@@ -21,8 +21,8 @@ import ssl
 from six.moves.http_client import HTTPConnection, HTTPSConnection
 
 import plexpy
-from plexpy import helpers
-from plexpy import logger
+import helpers
+import logger
 
 
 class HTTPHandler(object):

@@ -20,10 +20,10 @@ import sys
 import cherrypy
 
 import plexpy
-from plexpy import logger
-from plexpy import webauth
-from plexpy.helpers import create_https_certificates
-from plexpy.webserve import WebInterface
+import logger
+import webauth
+from helpers import create_https_certificates
+from webserve import WebInterface
 
 
 def initialize(options):
@@ -35,7 +35,8 @@ def initialize(options):
     if enable_https:
         # If either the HTTPS certificate or key do not exist, try to make self-signed ones.
         if plexpy.CONFIG.HTTPS_CREATE_CERT and \
-                (not (https_cert and os.path.exists(https_cert)) or not (https_key and os.path.exists(https_key))):
+                (not (https_cert and os.path.exists(https_cert)) or
+                 not (https_key and os.path.exists(https_key))):
             if not create_https_certificates(https_cert, https_key):
                 logger.warn(u"PlexPy WebStart :: Unable to create certificate and key. Disabling HTTPS")
                 enable_https = False

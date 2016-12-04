@@ -17,13 +17,13 @@
 from six import iteritems
 
 import plexpy
-from plexpy import common
-from plexpy import database
-from plexpy import datatables
-from plexpy import helpers
-from plexpy import logger
-from plexpy import pmsconnect
-from plexpy import session
+import common
+import database
+import datatables
+import helpers
+import logger
+import pmsconnect
+import session
 
 
 class DataFactory(object):

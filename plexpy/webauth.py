@@ -26,12 +26,12 @@ from datetime import datetime, timedelta
 import cherrypy
 
 import plexpy
-from plexpy import logger
-from plexpy import plextv
-from plexpy.database import MonitorDatabase
-from plexpy.lib.hashing_passwords import check_hash
-from plexpy.plextv import PlexTV
-from plexpy.users import Users
+import logger
+import plextv
+from database import MonitorDatabase
+from lib.hashing_passwords import check_hash
+from plextv import PlexTV
+from users import Users
 
 SESSION_KEY = '_cp_username'
 

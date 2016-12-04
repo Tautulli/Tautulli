@@ -17,11 +17,11 @@
 import time
 
 import plexpy
-from plexpy import activity_processor
-from plexpy import helpers
-from plexpy import logger
-from plexpy import notification_handler
-from plexpy import pmsconnect
+import activity_processor
+import helpers
+import logger
+import notification_handler
+import pmsconnect
 
 
 RECENTLY_ADDED_QUEUE = {}

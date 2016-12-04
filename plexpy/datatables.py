@@ -19,9 +19,10 @@ import re
 from six import iteritems
 from six import string_types
 
-from plexpy import database
-from plexpy import helpers
-from plexpy import logger
+import database
+import helpers
+import logger
+
 
 class DataTables(object):
     """

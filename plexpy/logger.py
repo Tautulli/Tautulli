@@ -29,7 +29,7 @@ from logutils.queue import QueueHandler, QueueListener
 from six import string_types
 
 import plexpy
-from plexpy import helpers
+import helpers
 
 # These settings are for file logging only
 FILENAME = "plexpy.log"

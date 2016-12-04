@@ -21,7 +21,7 @@
 
 from six.moves.urllib.request import FancyURLopener
 
-from plexpy.common import USER_AGENT
+from common import USER_AGENT
 
 
 class PlexPyURLopener(FancyURLopener):
