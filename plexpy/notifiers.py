@@ -65,7 +65,8 @@ AGENT_IDS = {"Growl": 0,
              "Facebook": 16,
              "Browser": 17,
              "Join": 18,
-             "Hipchat": 19}
+             "Hipchat": 19,
+             "Discord": 20}
 
 
 def available_notification_agents():
@@ -448,7 +449,27 @@ def available_notification_agents():
                'on_pmsupdate': plexpy.CONFIG.HIPCHAT_ON_PMSUPDATE,
                'on_concurrent': plexpy.CONFIG.HIPCHAT_ON_CONCURRENT,
                'on_newdevice': plexpy.CONFIG.HIPCHAT_ON_NEWDEVICE
-               }
+               },
+               {'name': 'Discord',
+                'id': AGENT_IDS['Discord'],
+                'config_prefix': 'discord',
+                'has_config': True,
+                'state': checked(plexpy.CONFIG.DISCORD_ENABLED),
+                'on_play': plexpy.CONFIG.DISCORD_ON_PLAY,
+                'on_stop': plexpy.CONFIG.DISCORD_ON_STOP,
+                'on_resume': plexpy.CONFIG.DISCORD_ON_RESUME,
+                'on_pause': plexpy.CONFIG.DISCORD_ON_PAUSE,
+                'on_buffer': plexpy.CONFIG.DISCORD_ON_BUFFER,
+                'on_watched': plexpy.CONFIG.DISCORD_ON_WATCHED,
+                'on_created': plexpy.CONFIG.DISCORD_ON_CREATED,
+                'on_extdown': plexpy.CONFIG.DISCORD_ON_EXTDOWN,
+                'on_intdown': plexpy.CONFIG.DISCORD_ON_INTDOWN,
+                'on_extup': plexpy.CONFIG.DISCORD_ON_EXTUP,
+                'on_intup': plexpy.CONFIG.DISCORD_ON_INTUP,
+                'on_pmsupdate': plexpy.CONFIG.DISCORD_ON_PMSUPDATE,
+                'on_concurrent': plexpy.CONFIG.DISCORD_ON_CONCURRENT,
+                'on_newdevice': plexpy.CONFIG.DISCORD_ON_NEWDEVICE
+                }
               ]
 
     # OSX Notifications should only be visible if it can be used
@@ -542,6 +563,9 @@ def get_notification_agent_config(agent_id):
         elif agent_id == 19:
             hipchat = HIPCHAT()
             return hipchat.return_config_options()
+        elif agent_id == 20:
+            discordClient = DISCORD()
+            return discordClient.return_config_options()
         else:
             return []
     else:
@@ -612,6 +636,9 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
         elif agent_id == 19:
             hipchat = HIPCHAT()
             return hipchat.notify(message=body, subject=subject, **kwargs)
+        elif agent_id == 20:
+            discordClient = DISCORD()
+            return discordClient.notify(message=body, event=subject, **kwargs)
         else:
             logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
@@ -927,7 +954,7 @@ class XBMC(object):
                 return False
 
         return True
-        
+
     def return_config_options(self):
         config_option = [{'label': 'XBMC Host:Port',
                           'value': self.hosts,
@@ -1010,7 +1037,7 @@ class Plex(object):
             except Exception:
                 logger.warn(u"PlexPy Notifiers :: Plex Home Theater notification failed.")
                 return False
-                
+
         return True
 
     def return_config_options(self):
@@ -2913,6 +2940,143 @@ class HIPCHAT(object):
                           'value': self.incl_subject,
                           'name': 'hipchat_incl_subject',
                           'description': 'Includes the subject with the notifications.',
+                          'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+
+
+class DISCORD(object):
+    """
+    Discord Notifications
+    """
+    def __init__(self):
+        self.enabled = plexpy.CONFIG.DISCORD_ENABLED
+        self.discord_hook = plexpy.CONFIG.DISCORD_HOOK
+        self.username = plexpy.CONFIG.DISCORD_USERNAME
+        self.avatar_url = plexpy.CONFIG.DISCORD_AVATAR_URL
+        self.incl_pmslink = plexpy.CONFIG.DISCORD_INCL_PMSLINK
+        self.incl_poster = plexpy.CONFIG.DISCORD_INCL_POSTER
+        self.incl_subject = plexpy.CONFIG.DISCORD_INCL_SUBJECT
+
+    def conf(self, options):
+        return cherrypy.config['config'].get('Discord', options)
+
+    def notify(self, message, event, **kwargs):
+        logger.info(u"PlexPy Notifiers :: Discord notify.")
+        if not message or not event:
+            return
+
+        data = {'content': message.encode("utf-8")}
+
+        if self.username != '': data['username'] = self.username
+
+        if self.incl_poster and 'metadata' in kwargs:
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['metadata'])
+            poster_url = pretty_metadata.get_poster_url()
+            plex_url = pretty_metadata.get_plex_url()
+            poster_link = pretty_metadata.get_poster_link()
+            caption = pretty_metadata.get_caption()
+            title = pretty_metadata.get_title()
+            subtitle = pretty_metadata.get_subtitle()
+
+            # Build Discord post embed
+            embed = {
+                'title': title,
+        	    'description': subtitle,
+        		'image': {
+        			'url': poster_url,
+        		},
+                'author': {
+        			'name': 'PlexPy',
+        		}
+            }
+
+            fields = []
+            if poster_link:
+                embed['url'] = poster_link
+
+            if self.incl_pmslink:
+                fields.append({'name': 'Links',
+                               'value': '[%s](%s)' % ('View on Plex Web', plex_url),
+                               'inline': True})
+
+            if self.incl_subject:
+                embed['author'] = {'name': event.encode('utf-8')}
+
+            if fields:
+                embed['fields'] = fields
+
+            data['embeds'] = [embed]
+
+        discordhost = urlparse(self.discord_hook).hostname
+        discordpath = urlparse(self.discord_hook).path
+
+        http_handler = HTTPSConnection(discordhost)
+        http_handler.request("POST",
+                             discordpath,
+                             headers={'Content-type': "application/json"},
+                             body=json.dumps(data))
+
+        response = http_handler.getresponse()
+        request_status = response.status
+
+        if request_status == 204:
+            logger.info(u"PlexPy Notifiers :: Discord notification sent.")
+            return True
+        elif request_status >= 400 and request_status < 500:
+            logger.warn(u"PlexPy Notifiers :: Discord notification failed: [%s] %s" % (request_status, response.reason))
+            return False
+        else:
+            logger.warn(u"PlexPy Notifiers :: Discord notification failed.")
+            return False
+
+    def updateLibrary(self):
+        #For uniformity reasons not removed
+        return
+
+    def test(self):
+        self.enabled = True
+        return self.notify('Main Screen Activate', 'Test Message')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Discord Webhook URL',
+                          'value': self.discord_hook,
+                          'name': 'discord_hook',
+                          'description': 'Your Discord incoming webhook URL.',
+                          'input_type': 'text'
+                          },
+                          {'label': 'Discord Username',
+                           'value': self.username,
+                           'name': 'discord_username',
+                           'description': 'The Discord username which will be shown. Leave blank for webhook integration default.',
+                           'input_type': 'text'
+                          },
+                          {'label': 'Discord Icon',
+                           'value': self.avatar_url,
+                           'description': 'The icon you wish to show, use Discord emoji or image url. Leave blank for webhook integration default.',
+                           'name': 'discord_avatar_url',
+                           'input_type': 'text'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.incl_poster,
+                          'name': 'discord_incl_poster',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Link to Plex Web',
+                          'value': self.incl_pmslink,
+                          'name': 'discord_incl_pmslink',
+                          'description': 'Include a link to the media in Plex Web with the notifications.<br>'
+                                         'If disabled, the link will go to IMDB, TVDB, TMDb, or Last.fm instead, if available.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.incl_subject,
+                          'name': 'discord_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
