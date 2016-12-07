@@ -393,9 +393,10 @@ class TimelineHandler(object):
             
             # An item was deleted, make sure it is removed from the queue
             elif state_type == 9 and metadata_state == 'deleted':
-                logger.debug(u"PlexPy TimelineHandler :: Library item %s removed from recently added queue."
-                             % str(rating_key))
-                self.del_keys(rating_key)
+                if rating_key in RECENTLY_ADDED_QUEUE and not RECENTLY_ADDED_QUEUE[rating_key]:
+                    logger.debug(u"PlexPy TimelineHandler :: Library item %s removed from recently added queue."
+                                 % str(rating_key))
+                    self.del_keys(rating_key)
 
     def del_keys(self, key):
         if isinstance(key, set):
