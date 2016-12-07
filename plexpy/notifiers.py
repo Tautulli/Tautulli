@@ -817,7 +817,7 @@ class DISCORD(Notifier):
             plex_url = pretty_metadata.get_plex_url()
             poster_link = pretty_metadata.get_poster_link()
             caption = pretty_metadata.get_caption()
-            title = pretty_metadata.get_title()
+            title = pretty_metadata.get_title('\xc2\xb7'.decode('utf8'))
             subtitle = pretty_metadata.get_subtitle()
 
             # Build Discord post attachment
@@ -828,10 +828,10 @@ class DISCORD(Notifier):
 
             if self.config['incl_pmslink']:
                 attachment['url'] = plex_url
-                attachment['description'] += '\r\n\r\nView on Plex Web'
+                attachment['description'] += '\r\n\r\n[View on Plex Web](%s)' % plex_url.encode('utf-8')
             elif poster_link:
                 attachment['url'] = poster_link
-                attachment['description'] += '\r\n\r\n' + caption
+                attachment['description'] += '\r\n\r\n[%s](%s)' % (caption, poster_link.encode('utf-8'))
 
             data['embeds'] = [attachment]
 
