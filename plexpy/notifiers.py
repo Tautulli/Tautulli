@@ -183,7 +183,7 @@ def available_notification_actions():
                 },
                {'label': 'Playback Pause',
                 'name': 'on_pause',
-                'description': 'Trigger a notification when a stream is puased.',
+                'description': 'Trigger a notification when a stream is paused.',
                 'subject': 'PlexPy ({server_name})',
                 'body': '{user} ({player}) has paused {title}.',
                 'icon': 'fa-pause',
