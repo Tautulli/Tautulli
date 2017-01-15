@@ -29,6 +29,7 @@ def initialize(options):
     # HTTPS stuff stolen from sickbeard
     enable_https = options['enable_https']
     https_cert = options['https_cert']
+    https_cert_chain = options['https_cert_chain']
     https_key = options['https_key']
 
     if enable_https:
@@ -59,6 +60,7 @@ def initialize(options):
 
     if enable_https:
         options_dict['server.ssl_certificate'] = https_cert
+        options_dict['server.ssl_certificate_chain'] = https_cert_chain
         options_dict['server.ssl_private_key'] = https_key
         protocol = "https"
     else:

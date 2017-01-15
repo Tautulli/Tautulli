@@ -2525,6 +2525,7 @@ class WebInterface(object):
             "enable_https": checked(plexpy.CONFIG.ENABLE_HTTPS),
             "https_create_cert": checked(plexpy.CONFIG.HTTPS_CREATE_CERT),
             "https_cert": plexpy.CONFIG.HTTPS_CERT,
+            "https_cert_chain": plexpy.CONFIG.HTTPS_CERT_CHAIN,
             "https_key": plexpy.CONFIG.HTTPS_KEY,
             "https_domain": plexpy.CONFIG.HTTPS_DOMAIN,
             "https_ip": plexpy.CONFIG.HTTPS_IP,

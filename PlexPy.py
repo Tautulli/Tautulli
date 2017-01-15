@@ -220,6 +220,7 @@ def main():
         'http_proxy': plexpy.CONFIG.HTTP_PROXY,
         'enable_https': plexpy.CONFIG.ENABLE_HTTPS,
         'https_cert': plexpy.CONFIG.HTTPS_CERT,
+        'https_cert_chain': plexpy.CONFIG.HTTPS_CERT_CHAIN,
         'https_key': plexpy.CONFIG.HTTPS_KEY,
         'http_username': plexpy.CONFIG.HTTP_USERNAME,
         'http_password': plexpy.CONFIG.HTTP_PASSWORD,

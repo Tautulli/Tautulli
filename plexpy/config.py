@@ -204,6 +204,7 @@ _CONFIG_DEFINITIONS = {
         'popular_music', 'last_watched', 'top_users', 'top_platforms', 'most_concurrent']),
     'HTTPS_CREATE_CERT': (int, 'General', 1),
     'HTTPS_CERT': (str, 'General', ''),
+    'HTTPS_CERT_CHAIN': (str, 'General', ''),
     'HTTPS_KEY': (str, 'General', ''),
     'HTTPS_DOMAIN': (str, 'General', 'localhost'),
     'HTTPS_IP': (str, 'General', '127.0.0.1'),
