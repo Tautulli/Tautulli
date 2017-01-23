@@ -30,6 +30,24 @@ General optional parameters:
     debug:      1
 ```
 
+### Request Example
+
+Making a request to PlayPy using the [curl](https://curl.haxx.se/) tool is straightforward
+
+```
+your_name$ curl "http://<hostname>:<port>/api/v2?apikey=<apikey>&cmd=get_home_stats"  \
+	| python -m json.tool        `# Make the output pretty`
+{
+    "response": {
+        "data": [
+            {
+                "rows": [],
+                "stat_id": "top_movies",
+                "stat_type": "total_plays"
+            }
+            ...<snip>...
+```
+
 ## API methods
 
 ### arnold
