@@ -132,7 +132,7 @@ def available_notification_agents():
                'name': 'pushover',
                'id': AGENT_IDS['pushover']
                },
-              {'label': 'Scripts',
+              {'label': 'Script',
                'name': 'scripts',
                'id': AGENT_IDS['scripts']
                },
@@ -2360,14 +2360,14 @@ class SCRIPTS(Notifier):
                          {'label': 'Script Folder',
                           'value': self.config['script_folder'],
                           'name': 'scripts_script_folder',
-                          'description': 'Enter the full path to your scripts folder.',
+                          'description': 'Enter the full path to your script folder.',
                           'input_type': 'text',
                           'refresh': True
                           },
                          {'label': 'Script File',
                           'value': self.config['script'],
                           'name': 'scripts_script',
-                          'description': 'Choose the script file to run.',
+                          'description': 'Select the script file to run.',
                           'input_type': 'select',
                           'select_options': self.list_scripts()
                           },

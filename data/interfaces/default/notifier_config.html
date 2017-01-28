@@ -17,7 +17,7 @@
                         % if notifier['agent_name'] == 'scripts':
                         <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Script Triggers</a></li>
                         <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Script Arguments</a></li>
-                        <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Scripts</a></li>
+                        <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Script</a></li>
                         % else:
                         <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Notification Triggers</a></li>
                         <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Notification Text</a></li>
@@ -102,13 +102,13 @@
                                 </div>
                                 <div class="col-md-12" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
                                     <div class="form-group">
-                                        <label for="friendly_name">Friendly Identifier</label>
+                                        <label for="friendly_name">Description</label>
                                         <div class="row">
                                             <div class="col-md-8">
                                                 <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${notifier['friendly_name']}" size="30">
                                             </div>
                                         </div>
-                                        <p class="help-block">Optional: Enter a friendly identifier for the notification agent (e.g. Recently Added)</p>
+                                        <p class="help-block">Optional: Enter a description to help identify this agent in the notification agents list.</p>
                                     </div>
                                 </div>
                             </div>
