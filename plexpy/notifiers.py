@@ -542,82 +542,80 @@ class PrettyMetadata(object):
     	self.media_type = parameters['media_type']
 
     def get_poster_url(self):
-        self.poster_url = self.parameters['poster_url']
-        if not self.poster_url:
+        poster_url = self.parameters['poster_url']
+        if not poster_url:
             if self.media_type in ('artist', 'album', 'track'):
-                self.poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/cover.png' % plexpy.CONFIG.GIT_USER
+                poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/cover.png' % plexpy.CONFIG.GIT_USER
             else:
-                self.poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/poster.png' % plexpy.CONFIG.GIT_USER
-        return self.poster_url
+                poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/poster.png' % plexpy.CONFIG.GIT_USER
+        return poster_url
 
     def get_provider(self):
-        self.provider = ''
+        provider = ''
         if self.parameters['thetvdb_url']:
-            self.provider = 'TheTVDB'
+            provider = 'TheTVDB'
         elif self.parameters['themoviedb_url']:
-            self.provider = 'The Movie Database'
+            provider = 'The Movie Database'
         elif self.parameters['imdb_url']:
-            self.provider = 'IMDb'
+            provider = 'IMDb'
         elif self.parameters['lastfm_url']:
-            self.provider = 'Last.fm'
-        return self.provider
+            provider = 'Last.fm'
+        return provider
 
     def get_provider_link(self):
-        self.provider_link = ''
+        provider_link = ''
         if self.parameters['thetvdb_url']:
-            self.provider_link = self.parameters['thetvdb_url']
+            provider_link = self.parameters['thetvdb_url']
         elif self.parameters['themoviedb_url']:
-            self.provider_link = self.parameters['themoviedb_url']
+            provider_link = self.parameters['themoviedb_url']
         elif self.parameters['imdb_url']:
-            self.provider_link = self.parameters['imdb_url']
+            provider_link = self.parameters['imdb_url']
         elif self.parameters['lastfm_url']:
-            self.provider_link = self.parameters['lastfm_url']
-        return self.provider_link
+            provider_link = self.parameters['lastfm_url']
+        return provider_link
 
     def get_caption(self):
-        self.caption = ''
+        caption = ''
         if self.parameters['thetvdb_url']:
-            self.caption = 'View on TheTVDB'
+            caption = 'View on TheTVDB'
         elif self.parameters['themoviedb_url']:
-            self.caption = 'View on The Movie Database'
+            caption = 'View on The Movie Database'
         elif self.parameters['imdb_url']:
-            self.caption = 'View on IMDB'
+            caption = 'View on IMDB'
         elif self.parameters['lastfm_url']:
-            self.caption = 'View on Last.fm'
-        return self.caption
+            caption = 'View on Last.fm'
+        return caption
 
-    def get_title(self, divider = '-'):
-        self.title = ''
+    def get_title(self, divider='-'):
         if self.media_type == 'movie':
-            self.title = '%s (%s)' % (self.parameters['title'], self.parameters['year'])
+            title = '%s (%s)' % (self.parameters['title'], self.parameters['year'])
         elif self.media_type == 'show':
-            self.title = '%s (%s)' % (self.parameters['show_name'], self.parameters['year'])
+            title = '%s (%s)' % (self.parameters['show_name'], self.parameters['year'])
         elif self.media_type == 'season':
-            self.title = '%s - Season %s' % (self.parameters['show_name'], self.parameters['season_num'])
+            title = '%s - Season %s' % (self.parameters['show_name'], self.parameters['season_num'])
         elif self.media_type == 'episode':
-            self.title = '%s - %s (S%s %s E%s)' % (self.parameters['show_name'],
-                                                   self.parameters['episode_name'],
-                                                   self.parameters['season_num'],
-                                                   divider,
-                                                   self.parameters['episode_num'])
+            title = '%s - %s (S%s %s E%s)' % (self.parameters['show_name'],
+                                              self.parameters['episode_name'],
+                                              self.parameters['season_num'],
+                                              divider,
+                                              self.parameters['episode_num'])
         elif self.media_type == 'artist':
-            self.title = self.parameters['artist_name']
+            title = self.parameters['artist_name']
         elif self.media_type == 'album':
-            self.title = '%s - %s' % (self.parameters['artist_name'], self.parameters['album_name'])
+            title = '%s - %s' % (self.parameters['artist_name'], self.parameters['album_name'])
         elif self.media_type == 'track':
-            self.title = '%s - %s' % (self.parameters['artist_name'], self.parameters['track_name'])
-        return self.title.encode("utf-8")
+            title = '%s - %s' % (self.parameters['artist_name'], self.parameters['track_name'])
+        return title.encode("utf-8")
 
     def get_subtitle(self):
         if self.media_type == 'track':
-            self.subtitle = self.parameters['album_name']
+            subtitle = self.parameters['album_name']
         else:
-            self.subtitle = self.parameters['summary']
-        return self.subtitle.encode("utf-8")
+            subtitle = self.parameters['summary']
+        return subtitle.encode("utf-8")
 
     def get_plex_url(self):
-        self.plex_url = self.parameters['plex_url']
-        return self.plex_url
+        return self.parameters['plex_url']
 
 
 class Notifier(object):
