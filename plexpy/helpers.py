@@ -453,6 +453,12 @@ def get_percent(value1, value2):
 
     return math.trunc(percent)
 
+def hex_to_int(hex):
+    try:
+        return int(hex, 16)
+    except (ValueError, TypeError):
+        return 0
+
 def parse_xml(unparsed=None):
     if unparsed:
         try:

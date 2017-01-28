@@ -550,17 +550,29 @@ class PrettyMetadata(object):
                 self.poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/poster.png' % plexpy.CONFIG.GIT_USER
         return self.poster_url
 
-    def get_poster_link(self):
-        self.poster_link = ''
+    def get_provider(self):
+        self.provider = ''
         if self.parameters['thetvdb_url']:
-            self.poster_link = self.parameters['thetvdb_url']
+            self.provider = 'TheTVDB'
         elif self.parameters['themoviedb_url']:
-            self.poster_link = self.parameters['themoviedb_url']
+            self.provider = 'The Movie Database'
         elif self.parameters['imdb_url']:
-            self.poster_link = self.parameters['imdb_url']
+            self.provider = 'IMDb'
         elif self.parameters['lastfm_url']:
-            self.poster_link = self.parameters['lastfm_url']
-        return self.poster_link
+            self.provider = 'Last.fm'
+        return self.provider
+
+    def get_provider_link(self):
+        self.provider_link = ''
+        if self.parameters['thetvdb_url']:
+            self.provider_link = self.parameters['thetvdb_url']
+        elif self.parameters['themoviedb_url']:
+            self.provider_link = self.parameters['themoviedb_url']
+        elif self.parameters['imdb_url']:
+            self.provider_link = self.parameters['imdb_url']
+        elif self.parameters['lastfm_url']:
+            self.provider_link = self.parameters['lastfm_url']
+        return self.provider_link
 
     def get_caption(self):
         self.caption = ''
@@ -787,6 +799,7 @@ class DISCORD(Notifier):
     _DEFAULT_CONFIG = {'hook': '',
                        'username': '',
                        'avatar_url': '',
+                       'color': '',
                        'tts': 0,
                        'incl_pmslink': 0,
                        'incl_poster': 0,
@@ -815,23 +828,33 @@ class DISCORD(Notifier):
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
             poster_url = pretty_metadata.get_poster_url()
             plex_url = pretty_metadata.get_plex_url()
-            poster_link = pretty_metadata.get_poster_link()
-            caption = pretty_metadata.get_caption()
+            provider = pretty_metadata.get_provider()
+            provider_link = pretty_metadata.get_provider_link()
             title = pretty_metadata.get_title('\xc2\xb7'.decode('utf8'))
             subtitle = pretty_metadata.get_subtitle()
 
             # Build Discord post attachment
             attachment = {'title': title,
                           'description': subtitle,
-                          'thumbnail': {'url': poster_url},
+                          'thumbnail': {'url': poster_url}
                           }
 
+            if self.config['color'] and self.config['color'].startswith('#'):
+                hex = self.config['color'].lstrip('#')
+                attachment['color'] = helpers.hex_to_int(hex)
+
+            fields = []
+            if provider_link:
+                attachment['url'] = provider_link
+                fields.append({'name': 'View Details',
+                               'value': '[%s](%s)' % (provider, provider_link.encode('utf-8')),
+                               'inline': True})
             if self.config['incl_pmslink']:
-                attachment['url'] = plex_url
-                attachment['description'] += '\r\n\r\n[View on Plex Web](%s)' % plex_url.encode('utf-8')
-            elif poster_link:
-                attachment['url'] = poster_link
-                attachment['description'] += '\r\n\r\n[%s](%s)' % (caption, poster_link.encode('utf-8'))
+                fields.append({'name': 'View Details',
+                               'value': '[Plex Web](%s)' % plex_url.encode('utf-8'),
+                               'inline': True})
+            if fields:
+                attachment['fields'] = fields
 
             data['embeds'] = [attachment]
 
@@ -877,6 +900,12 @@ class DISCORD(Notifier):
                            'value': self.config['avatar_url'],
                            'description': 'The image url for the avatar which will be used. Leave blank for webhook integration default.',
                            'name': 'discord_avatar_url',
+                           'input_type': 'text'
+                          },
+                          {'label': 'Discord Color',
+                           'value': self.config['color'],
+                           'description': 'The hex color value (begins with \'#\') for the border along the left side of the message attachment.',
+                           'name': 'discord_color',
                            'input_type': 'text'
                           },
                          {'label': 'TTS',
@@ -1128,7 +1157,7 @@ class FACEBOOK(Notifier):
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
             poster_url = pretty_metadata.get_poster_url()
             plex_url = pretty_metadata.get_plex_url()
-            poster_link = pretty_metadata.get_poster_link()
+            provider_link = pretty_metadata.get_provider_link()
             caption = pretty_metadata.get_caption()
             title = pretty_metadata.get_title('\xc2\xb7'.decode('utf8'))
             subtitle = pretty_metadata.get_subtitle()
@@ -1137,8 +1166,8 @@ class FACEBOOK(Notifier):
             if self.config['incl_pmslink']:
                 attachment['link'] = plex_url
                 attachment['caption'] = 'View on Plex Web'
-            elif poster_link:
-                attachment['link'] = poster_link
+            elif provider_link:
+                attachment['link'] = provider_link
                 attachment['caption'] = caption
             else:
                 attachment['link'] = poster_url
@@ -1328,7 +1357,7 @@ class HIPCHAT(Notifier):
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
-        if not subjecy or not body:
+        if not subject or not body:
             return
 
         data = {'notify': 'false'}
@@ -1345,8 +1374,8 @@ class HIPCHAT(Notifier):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
             poster_url = pretty_metadata.get_poster_url()
-            poster_link = pretty_metadata.get_poster_link()
-            caption = pretty_metadata.get_caption()
+            provider = pretty_metadata.get_provider()
+            provider_link = pretty_metadata.get_provider_link()
             title = pretty_metadata.get_title()
             subtitle = pretty_metadata.get_subtitle()
             plex_url = pretty_metadata.get_plex_url()
@@ -1363,12 +1392,14 @@ class HIPCHAT(Notifier):
                     }
 
             attributes = []
-            if poster_link:
-                card['url'] = poster_link
-                attributes.append({'value': {'label': caption,
-                                             'url': poster_link}})
+            if provider_link:
+                card['url'] = provider_link
+                attributes.append({'label': 'View Details',
+                                   'value': {'label': provider,
+                                             'url': provider_link}})
             if self.config['incl_pmslink']:
-                attributes.append({'value': {'label': 'View on Plex Web',
+                attributes.append({'label': 'View Details',
+                                   'value': {'label': 'Plex Web',
                                              'url': plex_url}})
             if attributes:
                 card['attributes'] = attributes
@@ -2101,14 +2132,14 @@ class PUSHOVER(Notifier):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
             plex_url = pretty_metadata.get_plex_url()
-            poster_link = pretty_metadata.get_poster_link()
+            provider_link = pretty_metadata.get_provider_link()
             caption = pretty_metadata.get_caption()
 
             if self.config['incl_pmslink']:
                 data['url'] = plex_url
                 data['url_title'] = 'View on Plex Web'
             else:
-                data['url'] = poster_link
+                data['url'] = provider_link
                 data['url_title'] = caption
 
         http_handler = HTTPSConnection("api.pushover.net")
@@ -2421,8 +2452,8 @@ class SLACK(Notifier):
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
             poster_url = pretty_metadata.get_poster_url()
             plex_url = pretty_metadata.get_plex_url()
-            poster_link = pretty_metadata.get_poster_link()
-            caption = pretty_metadata.get_caption()
+            provider = pretty_metadata.get_provider()
+            provider_link = pretty_metadata.get_provider_link()
             title = pretty_metadata.get_title()
             subtitle = pretty_metadata.get_subtitle()
 
@@ -2438,12 +2469,14 @@ class SLACK(Notifier):
                 attachment['color'] = self.config['color']
 
             fields = []
-            if poster_link:
-                attachment['title_link'] = poster_link
-                fields.append({'value': '<%s|%s>' % (poster_link, caption),
+            if provider_link:
+                attachment['title_link'] = provider_link
+                fields.append({'title': 'View Details',
+                               'value': '<%s|%s>' % (provider_link, provider),
                                'short': True})
             if self.config['incl_pmslink']:
-                fields.append({'value': '<%s|%s>' % (plex_url, 'View on Plex Web'),
+                fields.append({'title': 'View Details',
+                               'value': '<%s|%s>' % (plex_url, 'Plex Web'),
                                'short': True})
             if fields:
                 attachment['fields'] = fields
