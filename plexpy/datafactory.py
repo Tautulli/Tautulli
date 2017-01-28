@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+
 import plexpy
 import common
 import database
@@ -920,6 +922,15 @@ class DataFactory(object):
             genres = item['genres'].split(';') if item['genres'] else []
             labels = item['labels'].split(';') if item['labels'] else []
 
+            media_info = [{'container': item['container'],
+                           'bitrate': item['bitrate'],
+                           'video_codec': item['video_codec'],
+                           'video_resolution': item['video_resolution'],
+                           'video_framerate': item['video_framerate'],
+                           'audio_codec': item['audio_codec'],
+                           'audio_channels': item['audio_channels']
+                           }]
+
             metadata = {'media_type': item['media_type'],
                         'rating_key': item['rating_key'],
                         'parent_rating_key': item['parent_rating_key'],
@@ -952,13 +963,7 @@ class DataFactory(object):
                         'labels': labels,
                         'library_name': item['section_name'],
                         'section_id': item['section_id'],
-                        'container': item['container'],
-                        'bitrate': item['bitrate'],
-                        'video_codec': item['video_codec'],
-                        'video_resolution': item['video_resolution'],
-                        'video_framerate': item['video_framerate'],
-                        'audio_codec': item['audio_codec'],
-                        'audio_channels': item['audio_channels']
+                        'media_info': media_info
                         }
             metadata_list.append(metadata)
 
@@ -1394,3 +1399,42 @@ class DataFactory(object):
             return []
 
         return [d['machine_id'] for d in result]
+
+    def get_recently_added_item(self, rating_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        if rating_key:
+            try:
+                query = 'SELECT * FROM recently_added WHERE rating_key = ?'
+                result = monitor_db.select(query=query, args=[rating_key])
+            except Exception as e:
+                logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_recently_added_item: %s." % e)
+                return []
+        else:
+            return []
+
+        return result
+
+    def set_recently_added_item(self, rating_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        pms_connect = pmsconnect.PmsConnect()
+        metadata = pms_connect.get_metadata_details(rating_key)
+
+        keys = {'rating_key': metadata['rating_key']}
+
+        values = {'added_at': metadata['added_at'],
+                  'section_id': metadata['section_id'],
+                  'parent_rating_key': metadata['parent_rating_key'],
+                  'grandparent_rating_key': metadata['grandparent_rating_key'],
+                  'media_type': metadata['media_type'],
+                  'media_info': json.dumps(metadata['media_info'])
+                  }
+
+        try:
+            monitor_db.upsert(table_name='recently_added', key_dict=keys, value_dict=values)
+        except Exception as e:
+            logger.warn(u"PlexPy DataFactory :: Unable to execute database query for set_recently_added_item: %s." % e)
+            return False
+
+        return True

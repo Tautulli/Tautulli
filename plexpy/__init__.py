@@ -526,6 +526,14 @@ def dbcheck():
         'rating_key INTEGER, poster_title TEXT, poster_url TEXT)'
     )
 
+    # recently_added table :: This table keeps record of recently added items
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS recently_added (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'added_at INTEGER, pms_identifier TEXT, section_id INTEGER, '
+        'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, '
+        'media_info TEXT)'
+    )
+
     # Upgrade sessions table from earlier versions
     try:
         c_db.execute('SELECT started FROM sessions')

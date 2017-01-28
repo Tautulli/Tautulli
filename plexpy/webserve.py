@@ -3441,7 +3441,7 @@ class WebInterface(object):
                 metadata.update(poster_info)
         else:
             pms_connect = pmsconnect.PmsConnect()
-            metadata = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
+            metadata = pms_connect.get_metadata_details(rating_key=rating_key)
             if metadata:
                 data_factory = datafactory.DataFactory()
                 poster_info = data_factory.get_poster_info(metadata=metadata)

@@ -871,29 +871,32 @@ class PmsConnect(object):
         else:
             return []
 
-        if get_media_info and metadata_main.getElementsByTagName('Media'):
-            item_media = metadata_main.getElementsByTagName('Media')[0]
-            media_info = {'container': helpers.get_xml_attr(item_media, 'container'),
-                          'bitrate': helpers.get_xml_attr(item_media, 'bitrate'),
-                          'height': helpers.get_xml_attr(item_media, 'height'),
-                          'width': helpers.get_xml_attr(item_media, 'width'),
-                          'aspect_ratio': helpers.get_xml_attr(item_media, 'aspectRatio'),
-                          'video_codec': helpers.get_xml_attr(item_media, 'videoCodec'),
-                          'video_resolution': helpers.get_xml_attr(item_media, 'videoResolution'),
-                          'video_framerate': helpers.get_xml_attr(item_media, 'videoFrameRate'),
-                          'audio_codec': helpers.get_xml_attr(item_media, 'audioCodec'),
-                          'audio_channels': helpers.get_xml_attr(item_media, 'audioChannels'),
-                          'file': helpers.get_xml_attr(item_media.getElementsByTagName('Part')[0], 'file'),
-                          'file_size': helpers.get_xml_attr(item_media.getElementsByTagName('Part')[0], 'size'),
-                          }
-            metadata.update(media_info)
+        media_info_list = []
+        media_items = metadata_main.getElementsByTagName('Media')
+        for item in media_items:
+            media_info = {'container': helpers.get_xml_attr(item, 'container'),
+                            'bitrate': helpers.get_xml_attr(item, 'bitrate'),
+                            'height': helpers.get_xml_attr(item, 'height'),
+                            'width': helpers.get_xml_attr(item, 'width'),
+                            'aspect_ratio': helpers.get_xml_attr(item, 'aspectRatio'),
+                            'video_codec': helpers.get_xml_attr(item, 'videoCodec'),
+                            'video_resolution': helpers.get_xml_attr(item, 'videoResolution'),
+                            'video_framerate': helpers.get_xml_attr(item, 'videoFrameRate'),
+                            'audio_codec': helpers.get_xml_attr(item, 'audioCodec'),
+                            'audio_channels': helpers.get_xml_attr(item, 'audioChannels'),
+                            'file': helpers.get_xml_attr(item.getElementsByTagName('Part')[0], 'file'),
+                            'file_size': helpers.get_xml_attr(item.getElementsByTagName('Part')[0], 'size'),
+                            }
+            media_info_list.append(media_info)
+        
+        metadata['media_info'] = media_info_list
 
         if metadata_list:
             return metadata_list[0]
         else:
             return []
 
-    def get_metadata_children_details(self, rating_key='', get_children=False, get_media_info=False):
+    def get_metadata_children_details(self, rating_key='', get_children=False):
         """
         Return processed and validated metadata list for all children of requested item.
 
@@ -920,7 +923,7 @@ class PmsConnect(object):
                 metadata_main = a.getElementsByTagName('Video')
                 for item in metadata_main:
                     child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
-                    metadata = self.get_metadata_details(str(child_rating_key), get_media_info)
+                    metadata = self.get_metadata_details(str(child_rating_key))
                     if metadata:
                         metadata_list.append(metadata)
 
@@ -928,7 +931,7 @@ class PmsConnect(object):
                 metadata_main = a.getElementsByTagName('Track')
                 for item in metadata_main:
                     child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
-                    metadata = self.get_metadata_details(str(child_rating_key), get_media_info)
+                    metadata = self.get_metadata_details(str(child_rating_key))
                     if metadata:
                         metadata_list.append(metadata)
 
@@ -937,7 +940,7 @@ class PmsConnect(object):
                 metadata_main = [d for d in dir_main if helpers.get_xml_attr(d, 'ratingKey')]
                 for item in metadata_main:
                     child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
-                    metadata = self.get_metadata_children_details(str(child_rating_key), get_children, get_media_info)
+                    metadata = self.get_metadata_children_details(str(child_rating_key), get_children)
                     if metadata:
                         metadata_list.extend(metadata)
 

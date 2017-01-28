@@ -68,6 +68,7 @@ DOCUMENTATION :: END
 
 <%def name="body()">
 % if data:
+<% media_info = data['media_info'][0] if data['media_info'] else {} %>
 <div class="container-fluid">
     <div class="row">
         <div class="art-face" style="background-image:url(pms_image_proxy?img=${data['art']}&width=1920&height=1080)"></div>
@@ -187,17 +188,17 @@ DOCUMENTATION :: END
                     % endif
                         % if data['media_type'] in ('movie', 'episode', 'track'):
                         <div class="summary-content-media-info-wrapper">
-                            % if data['media_type'] != 'track' and data['video_codec']:
-                            <img class="summary-content-media-flag" title="${data['video_codec']}" src="${http_root}images/media_flags/video_codec/${data['video_codec'] | vf}.png" />
+                            % if data['media_type'] != 'track' and media_info['video_codec']:
+                            <img class="summary-content-media-flag" title="${media_info['video_codec']}" src="${http_root}images/media_flags/video_codec/${media_info['video_codec'] | vf}.png" />
                             % endif
-                            % if data['media_type'] != 'track' and data['video_resolution']:
-                            <img class="summary-content-media-flag" title="${data['video_resolution']}" src="${http_root}images/media_flags/video_resolution/${data['video_resolution']}.png" />
+                            % if data['media_type'] != 'track' and media_info['video_resolution']:
+                            <img class="summary-content-media-flag" title="${media_info['video_resolution']}" src="${http_root}images/media_flags/video_resolution/${media_info['video_resolution']}.png" />
                             % endif
-                            % if data['audio_codec']:
-                            <img class="summary-content-media-flag" title="${data['audio_codec']}" src="${http_root}images/media_flags/audio_codec/${data['audio_codec'] | af}.png" />
+                            % if media_info['audio_codec']:
+                            <img class="summary-content-media-flag" title="${media_info['audio_codec']}" src="${http_root}images/media_flags/audio_codec/${media_info['audio_codec'] | af}.png" />
                             % endif
-                            % if data['audio_channels']:
-                            <img class="summary-content-media-flag" title="${data['audio_channels']}" src="${http_root}images/media_flags/audio_channels/${data['audio_channels']}.png" />
+                            % if media_info['audio_channels']:
+                            <img class="summary-content-media-flag" title="${media_info['audio_channels']}" src="${http_root}images/media_flags/audio_channels/${media_info['audio_channels']}.png" />
                             % endif
                         </div>
                         % endif

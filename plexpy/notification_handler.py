@@ -263,11 +263,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         rating_key = timeline['rating_key']
 
     pms_connect = pmsconnect.PmsConnect()
-    metadata = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=True)
+    metadata = pms_connect.get_metadata_details(rating_key=rating_key)
 
     if not metadata:
         logger.error(u"PlexPy NotificationHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
         return None
+
+    ## TODO: Check list of media info items, currently only grabs first item
+    media_info = metadata['media_info'][0] if metadata['media_info'] else {}
 
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
@@ -434,16 +437,16 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'machine_id': session.get('machine_id',''),
                         # Metadata parameters
                         'media_type': metadata['media_type'],
-                        'container': session.get('container', metadata.get('container','')),
-                        'video_codec': session.get('video_codec', metadata.get('video_codec','')),
-                        'video_bitrate': session.get('bitrate', metadata.get('bitrate','')),
-                        'video_width': session.get('width', metadata.get('width','')),
-                        'video_height': session.get('height', metadata.get('height','')),
-                        'video_resolution': session.get('video_resolution', metadata.get('video_resolution','')),
-                        'video_framerate': session.get('video_framerate', metadata.get('video_framerate','')),
-                        'aspect_ratio': session.get('aspect_ratio', metadata.get('aspect_ratio','')),
-                        'audio_codec': session.get('audio_codec', metadata.get('audio_codec','')),
-                        'audio_channels': session.get('audio_channels', metadata.get('audio_channels','')),
+                        'container': session.get('container', media_info.get('container','')),
+                        'video_codec': session.get('video_codec', media_info.get('video_codec','')),
+                        'video_bitrate': session.get('bitrate', media_info.get('bitrate','')),
+                        'video_width': session.get('width', media_info.get('width','')),
+                        'video_height': session.get('height', media_info.get('height','')),
+                        'video_resolution': session.get('video_resolution', media_info.get('video_resolution','')),
+                        'video_framerate': session.get('video_framerate', media_info.get('video_framerate','')),
+                        'aspect_ratio': session.get('aspect_ratio', media_info.get('aspect_ratio','')),
+                        'audio_codec': session.get('audio_codec', media_info.get('audio_codec','')),
+                        'audio_channels': session.get('audio_channels', media_info.get('audio_channels','')),
                         'title': full_title,
                         'library_name': metadata['library_name'],
                         'show_name': show_name,
@@ -489,8 +492,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'themoviedb_url': metadata.get('themoviedb_url',''),
                         'lastfm_url': metadata.get('lastfm_url',''),
                         'trakt_url': metadata.get('trakt_url',''),
-                        'file': metadata.get('file',''),
-                        'file_size': helpers.humanFileSize(metadata.get('file_size','')),
+                        'file': media_info.get('file',''),
+                        'file_size': helpers.humanFileSize(media_info.get('file_size','')),
                         'section_id': metadata['section_id'],
                         'rating_key': metadata['rating_key'],
                         'parent_rating_key': metadata['parent_rating_key'],
