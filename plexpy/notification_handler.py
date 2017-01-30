@@ -602,12 +602,6 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     subject = strip_tag(re.sub(pattern, '', subject), agent_id)
     body = strip_tag(re.sub(pattern, '', body), agent_id)
 
-    # Use default subject and body if they are blank
-    # only if the notification is not script
-    if agent_id != 15:
-        subject = subject or default_subject
-        body = body or default_body
-
     if test:
         return subject, body
 
