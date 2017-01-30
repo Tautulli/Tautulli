@@ -607,12 +607,12 @@ class PrettyMetadata(object):
             title = '%s - %s' % (self.parameters['artist_name'], self.parameters['track_name'])
         return title.encode("utf-8")
 
-    def get_subtitle(self):
+    def get_description(self):
         if self.media_type == 'track':
-            subtitle = self.parameters['album_name']
+            description = self.parameters['album_name']
         else:
-            subtitle = self.parameters['summary']
-        return subtitle.encode("utf-8")
+            description = self.parameters['summary']
+        return description.encode("utf-8")
 
     def get_plex_url(self):
         return self.parameters['plex_url']
@@ -799,9 +799,11 @@ class DISCORD(Notifier):
                        'avatar_url': '',
                        'color': '',
                        'tts': 0,
-                       'incl_pmslink': 0,
-                       'incl_poster': 0,
-                       'incl_subject': 1
+                       'incl_subject': 1,
+                       'incl_card': 0,
+                       'incl_description': 1,
+                       'incl_thumbnail': 0,
+                       'incl_pmslink': 0
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
@@ -821,25 +823,32 @@ class DISCORD(Notifier):
         if self.config['tts']:
             data['tts'] = True
 
-        if self.config['incl_poster'] and kwargs.get('parameters', {}).get('media_type'):
+        if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
+            media_type = pretty_metadata.media_type
             poster_url = pretty_metadata.get_poster_url()
             plex_url = pretty_metadata.get_plex_url()
             provider = pretty_metadata.get_provider()
             provider_link = pretty_metadata.get_provider_link()
             title = pretty_metadata.get_title('\xc2\xb7'.decode('utf8'))
-            subtitle = pretty_metadata.get_subtitle()
+            description = pretty_metadata.get_description()
 
             # Build Discord post attachment
-            attachment = {'title': title,
-                          'description': subtitle,
-                          'thumbnail': {'url': poster_url}
+            attachment = {'title': title
                           }
 
             if self.config['color'] and self.config['color'].startswith('#'):
                 hex = self.config['color'].lstrip('#')
                 attachment['color'] = helpers.hex_to_int(hex)
+
+            if self.config['incl_thumbnail']:
+                attachment['thumbnail'] = {'url': poster_url}
+            else:
+                attachment['image'] = {'url': poster_url}
+
+            if self.config['incl_description'] or media_type in ('artist', 'album', 'track'):
+                attachment['description'] = description
 
             fields = []
             if provider_link:
@@ -912,23 +921,34 @@ class DISCORD(Notifier):
                           'description': 'Send the notification using text-to-speech.',
                           'input_type': 'checkbox'
                           },
-                         {'label': 'Include Poster Image',
-                          'value': self.config['incl_poster'],
-                          'name': 'discord_incl_poster',
-                          'description': 'Include a poster with the notifications.',
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'discord_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Rich Metadata Info',
+                          'value': self.config['incl_card'],
+                          'name': 'discord_incl_card',
+                          'description': 'Include an info card with a poster and metadata with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Plot Summaries',
+                          'value': self.config['incl_description'],
+                          'name': 'discord_incl_description',
+                          'description': 'Include a plot summary for movies and TV shows on the info card.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Use Poster Thumbnail',
+                          'value': self.config['incl_thumbnail'],
+                          'name': 'discord_incl_thumbnail',
+                          'description': 'Use a thumbnail instead of a full sized poster on the info card.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Link to Plex Web',
                           'value': self.config['incl_pmslink'],
                           'name': 'discord_incl_pmslink',
-                          'description': 'Include a link to the media in Plex Web with the notifications.<br>'
-                                         'If disabled, the link will go to IMDB, TVDB, TMDb, or Last.fm instead, if available.',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Include Subject Line',
-                          'value': self.config['incl_subject'],
-                          'name': 'discord_incl_subject',
-                          'description': 'Include the subject line with the notifications.',
+                          'description': 'Include a second link to the media in Plex Web on the info card.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1078,9 +1098,10 @@ class FACEBOOK(Notifier):
                        'app_id': '',
                        'app_secret': '',
                        'group_id': '',
-                       'incl_pmslink': 0,
-                       'incl_poster': 0,
-                       'incl_subject': 1
+                       'incl_subject': 1,
+                       'incl_card': 0,
+                       'incl_description': 1,
+                       'incl_pmslink': 0
                        }
 
     def _get_authorization(self, app_id='', app_secret='', redirect_uri=''):
@@ -1150,15 +1171,16 @@ class FACEBOOK(Notifier):
 
         attachment = {}
 
-        if self.config['incl_poster'] and kwargs.get('parameters', {}).get('media_type'):
+        if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
+            media_type = pretty_metadata.media_type
             poster_url = pretty_metadata.get_poster_url()
             plex_url = pretty_metadata.get_plex_url()
             provider_link = pretty_metadata.get_provider_link()
             caption = pretty_metadata.get_caption()
             title = pretty_metadata.get_title('\xc2\xb7'.decode('utf8'))
-            subtitle = pretty_metadata.get_subtitle()
+            description = pretty_metadata.get_description()
 
             # Build Facebook post attachment
             if self.config['incl_pmslink']:
@@ -1172,7 +1194,11 @@ class FACEBOOK(Notifier):
 
             attachment['picture'] = poster_url
             attachment['name'] = title
-            attachment['description'] = subtitle
+
+            if self.config['incl_description'] or media_type in ('artist', 'album', 'track'):
+                attachment['description'] = description
+            else:
+                attachment['description'] = ' '
 
         if self.config['incl_subject']:
             return self._post_facebook(subject + '\r\n' + body, attachment=attachment)
@@ -1191,7 +1217,7 @@ class FACEBOOK(Notifier):
                                           Step 6: Fill in the <strong>App ID</strong> and <strong>App Secret</strong> below.<br>\
                                           Step 7: Click the <strong>Request Authorization</strong> button below to retrieve your access token.<br>\
                                           Step 8: Fill in your <strong>Access Token</strong> below if it is not filled in automatically.<br>\
-                                          Step 9: Fill in your <strong>Group ID</strong> below.',
+                                          Step 9: Fill in your <strong>Group ID</strong> number below. It can be found in the URL of your group page.',
                           'input_type': 'help'
                           },
                          {'label': 'PlexPy URL',
@@ -1231,23 +1257,29 @@ class FACEBOOK(Notifier):
                           'description': 'Your Facebook Group ID.',
                           'input_type': 'text'
                           },
-                         {'label': 'Include Poster Image',
-                          'value': self.config['incl_poster'],
-                          'name': 'facebook_incl_poster',
-                          'description': 'Include a poster with the notifications.',
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'facebook_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Rich Metadata Info',
+                          'value': self.config['incl_card'],
+                          'name': 'facebook_incl_card',
+                          'description': 'Include an info card with a poster and metadata with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Plot Summaries',
+                          'value': self.config['incl_description'],
+                          'name': 'facebook_incl_description',
+                          'description': 'Include a plot summary for movies and TV shows on the info card.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Link to Plex Web',
                           'value': self.config['incl_pmslink'],
                           'name': 'facebook_incl_pmslink',
-                          'description': 'Include a link to the media in Plex Web with the notifications.<br>'
+                          'description': 'Include a link to the media in Plex Web on the info card.<br>'
                                          'If disabled, the link will go to IMDB, TVDB, TMDb, or Last.fm instead, if available.',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Include Subject Line',
-                          'value': self.config['incl_subject'],
-                          'name': 'facebook_incl_subject',
-                          'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -1349,9 +1381,10 @@ class HIPCHAT(Notifier):
     _DEFAULT_CONFIG = {'api_url': '',
                        'color': '',
                        'emoticon': '',
-                       'incl_pmslink': 0,
-                       'incl_poster': 0,
-                       'incl_subject': 1
+                       'incl_subject': 1,
+                       'incl_card': 0,
+                       'incl_description': 1,
+                       'incl_pmslink': 0
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
@@ -1368,30 +1401,33 @@ class HIPCHAT(Notifier):
         if self.config['color']:
             data['color'] = self.config['color']
 
-        if self.config['incl_poster'] and kwargs.get('parameters', {}).get('media_type'):
+        if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
+            media_type = pretty_metadata.media_type
             poster_url = pretty_metadata.get_poster_url()
             provider = pretty_metadata.get_provider()
             provider_link = pretty_metadata.get_provider_link()
             title = pretty_metadata.get_title()
-            subtitle = pretty_metadata.get_subtitle()
+            description = pretty_metadata.get_description()
             plex_url = pretty_metadata.get_plex_url()
 
-            card = {'title': title,
-                    'format': 'medium',
-                    'style': 'application',
-                    'id': uuid.uuid4().hex,
-                    'activity': {'html': text,
-                                 'icon': {'url': poster_url}},
-                    'description': {'format': 'text',
-                                    'value': subtitle},
-                    'thumbnail': {'url': poster_url}
-                    }
+            attachment = {'title': title,
+                          'format': 'medium',
+                          'style': 'application',
+                          'id': uuid.uuid4().hex,
+                          'activity': {'html': text,
+                                       'icon': {'url': poster_url}},
+                          'thumbnail': {'url': poster_url}
+                          }
+
+            if self.config['incl_description'] or media_type in ('artist', 'album', 'track'):
+                attachment['description'] = {'format': 'text',
+                                             'value': description}
 
             attributes = []
             if provider_link:
-                card['url'] = provider_link
+                attachment['url'] = provider_link
                 attributes.append({'label': 'View Details',
                                    'value': {'label': provider,
                                              'url': provider_link}})
@@ -1400,10 +1436,10 @@ class HIPCHAT(Notifier):
                                    'value': {'label': 'Plex Web',
                                              'url': plex_url}})
             if attributes:
-                card['attributes'] = attributes
+                attachment['attributes'] = attributes
 
             data['message'] = text
-            data['card'] = card
+            data['card'] = attachment
 
         else:
             if self.config['emoticon']:
@@ -1462,22 +1498,29 @@ class HIPCHAT(Notifier):
                                          ' <a href="' + helpers.anon_url('https://www.hipchat.com/emoticons/') + '" target="_blank">here</a>.',
                           'input_type': 'text'
                           },
-                         {'label': 'Include Poster',
-                          'value': self.config['incl_poster'],
-                          'name': 'hipchat_incl_poster',
-                          'description': 'Include a poster with the notifications.<br>Note: This will change the notification type to HTML and emoticons will no longer work.',
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'hipchat_incl_subject',
+                          'description': 'Includes the subject with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Rich Metadata Info',
+                          'value': self.config['incl_card'],
+                          'name': 'hipchat_incl_card',
+                          'description': 'Include an info card with a poster and metadata with the notifications.<br>'
+                                         'Note: This will change the notification type to HTML and emoticons will no longer work.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Plot Summaries',
+                          'value': self.config['incl_description'],
+                          'name': 'hipchat_incl_description',
+                          'description': 'Include a plot summary for movies and TV shows on the info card.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Link to Plex Web',
                           'value': self.config['incl_pmslink'],
                           'name': 'hipchat_incl_pmslink',
-                          'description': 'Include a link to the media in Plex Web with the notifications.',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Include Subject Line',
-                          'value': self.config['incl_subject'],
-                          'name': 'hipchat_incl_subject',
-                          'description': 'Includes the subject with the notifications.',
+                          'description': 'Include a second link to the media in Plex Web on the info card.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -2420,9 +2463,10 @@ class SLACK(Notifier):
                        'username': '',
                        'icon_emoji': '',
                        'color': '',
-                       'incl_pmslink': 0,
-                       'incl_poster': 0,
-                       'incl_subject': 1
+                       'incl_subject': 1,
+                       'incl_card': 0,
+                       'incl_description': 1,
+                       'incl_pmslink': 0
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
@@ -2445,26 +2489,29 @@ class SLACK(Notifier):
             else:
                 data['icon_url'] = self.config['icon_emoji']
 
-        if self.config['incl_poster'] and kwargs.get('parameters', {}).get('media_type'):
+        if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
+            media_type = pretty_metadata.media_type
             poster_url = pretty_metadata.get_poster_url()
             plex_url = pretty_metadata.get_plex_url()
             provider = pretty_metadata.get_provider()
             provider_link = pretty_metadata.get_provider_link()
             title = pretty_metadata.get_title()
-            subtitle = pretty_metadata.get_subtitle()
+            description = pretty_metadata.get_description()
 
             # Build Slack post attachment
             attachment = {'fallback': 'Image for %s' % title,
                           'title': title,
-                          'text': subtitle,
                           'image_url': poster_url,
                           'thumb_url': poster_url
                           }
 
             if self.config['color'] and self.config['color'].startswith('#'):
                 attachment['color'] = self.config['color']
+
+            if self.config['incl_description'] or media_type in ('artist', 'album', 'track'):
+                attachment['text'] = description
 
             fields = []
             if provider_link:
@@ -2516,40 +2563,46 @@ class SLACK(Notifier):
                           'description': 'The Slack channel name (begins with \'#\') which will be used. Leave blank for webhook integration default.',
                           'input_type': 'text'
                           },
-                          {'label': 'Slack Username',
-                           'value': self.config['username'],
-                           'name': 'slack_username',
-                           'description': 'The Slack username which will be used. Leave blank for webhook integration default.',
-                           'input_type': 'text'
+                         {'label': 'Slack Username',
+                          'value': self.config['username'],
+                          'name': 'slack_username',
+                          'description': 'The Slack username which will be used. Leave blank for webhook integration default.',
+                          'input_type': 'text'
                           },
-                          {'label': 'Slack Icon',
-                           'value': self.config['icon_emoji'],
-                           'description': 'The Slack emoji or image url for the icon which will be used. Leave blank for webhook integration default.',
-                           'name': 'slack_icon_emoji',
-                           'input_type': 'text'
+                         {'label': 'Slack Icon',
+                          'value': self.config['icon_emoji'],
+                          'description': 'The Slack emoji or image url for the icon which will be used. Leave blank for webhook integration default.',
+                          'name': 'slack_icon_emoji',
+                          'input_type': 'text'
                           },
-                          {'label': 'Slack Color',
-                           'value': self.config['color'],
-                           'description': 'The hex color value (begins with \'#\') for the border along the left side of the message attachment.',
-                           'name': 'slack_color',
-                           'input_type': 'text'
-                          },
-                         {'label': 'Include Poster Image',
-                          'value': self.config['incl_poster'],
-                          'name': 'slack_incl_poster',
-                          'description': 'Include a poster with the notifications.',
-                          'input_type': 'checkbox'
-                          },
-                         {'label': 'Include Link to Plex Web',
-                          'value': self.config['incl_pmslink'],
-                          'name': 'slack_incl_pmslink',
-                          'description': 'Include a second link to the media in Plex Web with the notifications.',
-                          'input_type': 'checkbox'
+                         {'label': 'Slack Color',
+                          'value': self.config['color'],
+                          'description': 'The hex color value (begins with \'#\') for the border along the left side of the message attachment.',
+                          'name': 'slack_color',
+                          'input_type': 'text'
                           },
                          {'label': 'Include Subject Line',
                           'value': self.config['incl_subject'],
                           'name': 'slack_incl_subject',
                           'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Rich Metadata Info',
+                          'value': self.config['incl_card'],
+                          'name': 'slack_incl_card',
+                          'description': 'Include an info card with a poster and metadata with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Plot Summaries',
+                          'value': self.config['incl_description'],
+                          'name': 'slack_incl_description',
+                          'description': 'Include a plot summary for movies and TV shows on the info card.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Link to Plex Web',
+                          'value': self.config['incl_pmslink'],
+                          'name': 'slack_incl_pmslink',
+                          'description': 'Include a second link to the media in Plex Web on the info card.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -2565,8 +2618,8 @@ class TELEGRAM(Notifier):
                        'chat_id': '',
                        'disable_web_preview': 0,
                        'html_support': 1,
-                       'incl_poster': 0,
-                       'incl_subject': 1
+                       'incl_subject': 1,
+                       'incl_poster': 0
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
@@ -2646,16 +2699,16 @@ class TELEGRAM(Notifier):
                                          ' on Telegram to get an ID.',
                           'input_type': 'text'
                           },
-                         {'label': 'Include Poster Image',
-                          'value': self.config['incl_poster'],
-                          'name': 'telegram_incl_poster',
-                          'description': 'Include a poster with the notifications.',
-                          'input_type': 'checkbox'
-                          },
                          {'label': 'Include Subject Line',
                           'value': self.config['incl_subject'],
                           'name': 'telegram_incl_subject',
                           'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.config['incl_poster'],
+                          'name': 'telegram_incl_poster',
+                          'description': 'Include a poster with the notifications.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Enable HTML Support',
@@ -2687,8 +2740,8 @@ class TWITTER(Notifier):
                        'access_token_secret': '',
                        'consumer_key': '',
                        'consumer_secret': '',
-                       'incl_poster': 0,
-                       'incl_subject': 1
+                       'incl_subject': 1,
+                       'incl_poster': 0
                        }
 
     def _send_tweet(self, message=None, attachment=None):
@@ -2757,16 +2810,16 @@ class TWITTER(Notifier):
                           'description': 'Your Twitter access token secret.',
                           'input_type': 'text'
                           },
-                         {'label': 'Include Poster Image',
-                          'value': self.config['incl_poster'],
-                          'name': 'twitter_incl_poster',
-                          'description': 'Include a poster with the notifications.',
-                          'input_type': 'checkbox'
-                          },
                          {'label': 'Include Subject Line',
                           'value': self.config['incl_subject'],
                           'name': 'twitter_incl_subject',
                           'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.config['incl_poster'],
+                          'name': 'twitter_incl_poster',
+                          'description': 'Include a poster with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -2903,11 +2956,14 @@ def upgrade_config_to_db():
     # Config keys from the {new: old} config
     config_key_overrides = {'plex': {'hosts': 'client_host'},
                             'facebook': {'access_token': 'token',
-                                         'group_id': 'group'},
+                                         'group_id': 'group',
+                                         'incl_poster': 'incl_card'},
                             'join': {'device_id': 'deviceid'},
-                            'hipchat': {'api_url': 'url'},
+                            'hipchat': {'api_url': 'url',
+                                        'incl_poster': 'incl_card'},
                             'osx': {'notify_app': 'app'},
-                            'scripts': {'script_folder': 'folder'}
+                            'scripts': {'script_folder': 'folder'},
+                            'slack': {'incl_poster': 'incl_card'}
                             }
 
     # Get Monitoring config section
