@@ -2534,9 +2534,10 @@ class SLACK(Notifier):
             data['attachments'] = [attachment]
 
         host = urlparse(self.config['hook']).hostname
+        port = urlparse(self.config['hook']).port
         path = urlparse(self.config['hook']).path
 
-        http_handler = HTTPSConnection(host)
+        http_handler = HTTPSConnection(host, port)
         http_handler.request("POST",
                              path,
                              headers={'Content-type': "application/json"},
