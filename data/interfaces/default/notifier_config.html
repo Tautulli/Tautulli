@@ -278,6 +278,10 @@
     });
 
     $('#save-notifier-item').click(function () {
+        // Trim all text inputs before saving
+        $('input[type=text]').val(function(_, value) {
+            return $.trim(value);
+        });
         // Reload modal to update certain fields
         doAjaxCall('set_notifier_config', $(this), 'tabs', true, true, saveCallback);
         return false;
