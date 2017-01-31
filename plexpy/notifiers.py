@@ -22,6 +22,7 @@ from email.mime.text import MIMEText
 import email.utils
 from httplib import HTTPSConnection
 import os
+import re
 import requests
 import shlex
 import smtplib
@@ -838,9 +839,13 @@ class DISCORD(Notifier):
             attachment = {'title': title
                           }
 
-            if self.config['color'] and self.config['color'].startswith('#'):
-                hex = self.config['color'].lstrip('#')
-                attachment['color'] = helpers.hex_to_int(hex)
+
+            if self.config['color']:
+                hex_match = re.match(r'^#([0-9a-fA-F]{3}){1,2}$', self.config['color'])
+                if hex_match:
+                    hex = hex_match.group(0).lstrip('#')
+                    hex = ''.join(h * 2 for h in hex) if len(hex) == 3 else hex
+                    attachment['color'] = helpers.hex_to_int(hex)
 
             if self.config['incl_thumbnail']:
                 attachment['thumbnail'] = {'url': poster_url}
@@ -2507,7 +2512,7 @@ class SLACK(Notifier):
                           'thumb_url': poster_url
                           }
 
-            if self.config['color'] and self.config['color'].startswith('#'):
+            if self.config['color'] and re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', self.config['color']):
                 attachment['color'] = self.config['color']
 
             if self.config['incl_description'] or media_type in ('artist', 'album', 'track'):
