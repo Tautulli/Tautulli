@@ -247,6 +247,7 @@
         </div>
         <div class="modal-footer">
             <input type="button" id="delete-notifier-item" class="btn btn-danger btn-edit" style="float:left;" value="Delete">
+            <input type="button" id="duplicate-notifier-item" class="btn btn-dark btn-edit" style="float:left;" value="Duplicate">
             <input type="button" id="save-notifier-item" class="btn btn-bright" value="Save">
         </div>
     </div>
@@ -254,6 +255,8 @@
 % endif
 
 <script>
+
+    $('#notifier-config-modal').unbind('hidden.bs.modal');
 
     function reloadModal() {
         $.ajax({
@@ -267,24 +270,64 @@
         });
     }
 
-    function saveCallback() {
+    function saveCallback(jqXHR) {
+        if (jqXHR) {
+            var result = $.parseJSON(jqXHR.responseText);
+            var msg = result.message;
+            if (result.result == 'success') {
+                showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
+            } else {
+                showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
+            }
+        }
+
         getNotifiersTable();
     }
 
-    $('#delete-notifier-item').click(function () {
-        var msg = 'Are you sure you want to delete this <strong>${notifier["agent_label"]}</strong> notification agent?';
-        var url = 'delete_notifier';
-        confirmAjaxCall(url, msg, { notifier_id: '${notifier["id"]}' }, null, saveCallback);
-    });
+    function deleteCallback() {
+        $('#notifier-config-modal').modal('hide');
+        getNotifiersTable();
+    }
 
-    $('#save-notifier-item').click(function () {
+    function duplicateCallback(result) {
+        // Set new notifier id
+        $('#notifier_id').val(result.notifier_id);
+        // Clear friendly name
+        $('#friendly_name').val("");
+        // Uncheck all triggers
+        $('#tabs-notify_triggers input[id^=on_]').val(0);
+                    
+        saveNotifier();
+
+        $('#notifier-config-modal').on('hidden.bs.modal', function () {
+            loadNotifierConfig(result.notifier_id);
+        });
+        $('#notifier-config-modal').modal('hide');
+    }
+
+    function saveNotifier() {
         // Trim all text inputs before saving
         $('input[type=text]').val(function(_, value) {
             return $.trim(value);
         });
         // Reload modal to update certain fields
         doAjaxCall('set_notifier_config', $(this), 'tabs', true, true, saveCallback);
-        return false;
+    }
+
+    $('#delete-notifier-item').click(function () {
+        var msg = 'Are you sure you want to delete this <strong>${notifier["agent_label"]}</strong> notification agent?';
+        var url = 'delete_notifier';
+        confirmAjaxCall(url, msg, { notifier_id: '${notifier["id"]}' }, null, deleteCallback);
+    });
+
+    $('#duplicate-notifier-item').click(function() {
+        var msg = 'Are you sure you want to duplicate this <strong>${notifier["agent_label"]}</strong> notification agent?';
+        var url = 'add_notifier_config';
+        confirmAjaxCall(url, msg, { agent_id: "${notifier['agent_id']}" }, null, duplicateCallback);
+    });
+
+    $('#save-notifier-item').click(function () {
+        saveNotifier();
     });
 
     % if notifier['agent_name'] == 'facebook':

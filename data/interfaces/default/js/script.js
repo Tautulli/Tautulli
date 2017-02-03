@@ -76,7 +76,7 @@ function confirmAjaxCall(url, msg, data, loader_msg, callback) {
                     showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
                 }
                 if (typeof callback === "function") {
-                    callback();
+                    callback(result);
                 }
             }
         });
@@ -186,7 +186,7 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
             // Remove loaders and stuff, ajax request is complete!
             loader.remove();
             if (typeof callback === "function") {
-                callback();
+                callback(jqXHR);
             }
         }
     });
