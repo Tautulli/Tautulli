@@ -2471,6 +2471,7 @@ class SLACK(Notifier):
                        'incl_subject': 1,
                        'incl_card': 0,
                        'incl_description': 1,
+                       'incl_thumbnail': 0,
                        'incl_pmslink': 0
                        }
 
@@ -2507,13 +2508,16 @@ class SLACK(Notifier):
 
             # Build Slack post attachment
             attachment = {'fallback': 'Image for %s' % title,
-                          'title': title,
-                          'image_url': poster_url,
-                          'thumb_url': poster_url
+                          'title': title
                           }
 
             if self.config['color'] and re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', self.config['color']):
                 attachment['color'] = self.config['color']
+
+            if self.config['incl_thumbnail']:
+                attachment['thumb_url'] = poster_url
+            else:
+                attachment['image_url'] = poster_url
 
             if self.config['incl_description'] or media_type in ('artist', 'album', 'track'):
                 attachment['text'] = description
@@ -2609,6 +2613,12 @@ class SLACK(Notifier):
                           'value': self.config['incl_pmslink'],
                           'name': 'slack_incl_pmslink',
                           'description': 'Include a second link to the media in Plex Web on the info card.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Use Poster Thumbnail',
+                          'value': self.config['incl_thumbnail'],
+                          'name': 'slack_incl_thumbnail',
+                          'description': 'Use a thumbnail instead of a full sized poster on the info card.',
                           'input_type': 'checkbox'
                           }
                          ]
