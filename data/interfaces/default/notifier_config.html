@@ -9,7 +9,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-            <h4 class="modal-title" id="notifier-config-modal-header">${notifier['agent_label']} Settings <small><span class="notifier_id">(Notifier ID: ${notifier['id']})</span></small></h4>
+            <h4 class="modal-title" id="notifier-config-modal-header">${notifier['agent_label']} Settings &nbsp;<small><span class="notifier_id">(Notifier ID: ${notifier['id']})</span></small></h4>
         </div>
         <div class="modal-body">
             <div class="container-fluid">
@@ -249,6 +249,7 @@
         </div>
         <div class="modal-footer">
             <input type="button" id="delete-notifier-item" class="btn btn-danger btn-edit" style="float:left;" value="Delete">
+            <input type="button" id="duplicate-notifier-item" class="btn btn-dark btn-edit" style="float:left;" value="Duplicate">
             <input type="button" id="save-notifier-item" class="btn btn-bright" value="Save">
         </div>
     </div>
@@ -256,6 +257,8 @@
 % endif
 
 <script>
+
+    $('#notifier-config-modal').unbind('hidden.bs.modal');
 
     function reloadModal() {
         $.ajax({
@@ -272,19 +275,45 @@
     function saveCallback(jqXHR) {
         if (jqXHR) {
             var result = $.parseJSON(jqXHR.responseText);
-            msg = result.message;
+            var msg = result.message;
             if (result.result == 'success') {
                 showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000)
             } else {
                 showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
             }
         }
+
         getNotifiersTable();
     }
 
-    function deleteCallback(jqXHR) {
+    function deleteCallback(result) {
         $('#notifier-config-modal').modal('hide');
         getNotifiersTable();
+    }
+
+    function duplicateCallback(result) {
+        // Set new notifier id
+        $('#notifier_id').val(result.notifier_id);
+        // Clear friendly name
+        $('#friendly_name').val("");
+        // Uncheck all triggers
+        $('#tabs-notify_triggers input[id^=on_]').val(0);
+                    
+        saveNotifier();
+
+        $('#notifier-config-modal').on('hidden.bs.modal', function () {
+            loadNotifierConfig(result.notifier_id);
+        });
+        $('#notifier-config-modal').modal('hide');
+    }
+
+    function saveNotifier() {
+        // Trim all text inputs before saving
+        $('input[type=text]').val(function(_, value) {
+            return $.trim(value);
+        });
+        // Reload modal to update certain fields
+        doAjaxCall('set_notifier_config', $(this), 'tabs', true, true, saveCallback);
     }
 
     $('#delete-notifier-item').click(function () {
@@ -293,9 +322,14 @@
         confirmAjaxCall(url, msg, { notifier_id: '${notifier["id"]}' }, null, deleteCallback);
     });
 
+    $('#duplicate-notifier-item').click(function() {
+        var msg = 'Are you sure you want to duplicate this <strong>${notifier["agent_label"]}</strong> notification agent?';
+        var url = 'add_notifier_config';
+        confirmAjaxCall(url, msg, { agent_id: "${notifier['agent_id']}" }, null, duplicateCallback);
+    });
+
     $('#save-notifier-item').click(function () {
-        doAjaxCall('set_notifier_config', $(this), 'tabs', true, true, saveCallback);
-        return false;
+        saveNotifier();
     });
 
     % if notifier['agent_name'] == 'facebook':

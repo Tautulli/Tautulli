@@ -270,9 +270,8 @@ class TimelineHandler(object):
             if metadata:
                 notify = True
 
+                data_factory = datafactory.DataFactory()
                 if 'child_keys' not in kwargs:
-                    data_factory = datafactory.DataFactory()
-
                     if data_factory.get_recently_added_item(rating_key):
                         logger.debug(u"PlexPy TimelineHandler :: Library item %s added already. Not notifying again." % str(rating_key))
                         notify = False

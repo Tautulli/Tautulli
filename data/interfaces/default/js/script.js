@@ -76,7 +76,7 @@ function confirmAjaxCall(url, msg, data, loader_msg, callback) {
                     showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true)
                 }
                 if (typeof callback === "function") {
-                    callback();
+                    callback(result);
                 }
             }
         });
