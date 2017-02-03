@@ -916,7 +916,7 @@ class DISCORD(Notifier):
                           },
                           {'label': 'Discord Color',
                            'value': self.config['color'],
-                           'description': 'The hex color value (begins with \'#\') for the border along the left side of the message attachment.',
+                           'description': 'The hex color value (starting with \'#\') for the border along the left side of the message attachment.',
                            'name': 'discord_color',
                            'input_type': 'text'
                           },
@@ -944,16 +944,16 @@ class DISCORD(Notifier):
                           'description': 'Include a plot summary for movies and TV shows on the info card.',
                           'input_type': 'checkbox'
                           },
-                         {'label': 'Use Poster Thumbnail',
-                          'value': self.config['incl_thumbnail'],
-                          'name': 'discord_incl_thumbnail',
-                          'description': 'Use a thumbnail instead of a full sized poster on the info card.',
-                          'input_type': 'checkbox'
-                          },
                          {'label': 'Include Link to Plex Web',
                           'value': self.config['incl_pmslink'],
                           'name': 'discord_incl_pmslink',
                           'description': 'Include a second link to the media in Plex Web on the info card.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Use Poster Thumbnail',
+                          'value': self.config['incl_thumbnail'],
+                          'name': 'discord_incl_thumbnail',
+                          'description': 'Use a thumbnail instead of a full sized poster on the info card.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -2566,7 +2566,7 @@ class SLACK(Notifier):
                          {'label': 'Slack Channel',
                           'value': self.config['channel'],
                           'name': 'slack_channel',
-                          'description': 'The Slack channel name (begins with \'#\') which will be used. Leave blank for webhook integration default.',
+                          'description': 'The Slack channel name (starting with \'#\') which will be used. Leave blank for webhook integration default.',
                           'input_type': 'text'
                           },
                          {'label': 'Slack Username',
@@ -2583,7 +2583,7 @@ class SLACK(Notifier):
                           },
                          {'label': 'Slack Color',
                           'value': self.config['color'],
-                          'description': 'The hex color value (begins with \'#\') for the border along the left side of the message attachment.',
+                          'description': 'The hex color value (starting with \'#\') for the border along the left side of the message attachment.',
                           'name': 'slack_color',
                           'input_type': 'text'
                           },
