@@ -165,26 +165,6 @@ DOCUMENTATION :: END
             $('#confirm-modal-purge').appendTo($('#edit-user-modal').parent());
         }
         $('#edit-user-modal > #confirm-modal-purge').remove();
-
-        $('#edit-user-modal').css('z-index', '1050');
-        $('.modal-backdrop').not('.modal-backdrop-stack').css('z-index', '1049');
-        $('.modal-backdrop').not('.modal-backdrop-stack').addClass('modal-backdrop-stack');
-
-        $('#confirm-modal-purge').on('show.bs.modal', function () {
-            // Fix position to match parent modal
-            var currentPadding = parseInt($('body').css('padding-right'));
-            $(this).children('.modal-dialog').css('left', -currentPadding/2);
-            $('#edit-user-modal').css('overflow-y', 'hidden');
-        });
-        $('#confirm-modal-purge').on('shown.bs.modal', function () {
-            $(this).css('z-index', '1060');
-            $('.modal-backdrop').not('.modal-backdrop-stack').css('z-index', '1059');
-            $('.modal-backdrop').not('.modal-backdrop-stack').addClass('modal-backdrop-stack'); 
-        });
-        $('#confirm-modal-purge').on('hidden.bs.modal', function () {
-            $('body').addClass('modal-open');
-            $('#edit-user-modal').css('overflow-y', 'auto');
-        });
     });
 </script>
 % endif
