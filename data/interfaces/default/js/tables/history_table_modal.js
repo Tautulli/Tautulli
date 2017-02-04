@@ -27,7 +27,6 @@ history_table_modal_options = {
     "pageLength": 10,
     "lengthChange": false,
     "autoWidth": false,
-    "scrollX": true,
     "order": [0, 'desc'],
     "columnDefs": [
         {

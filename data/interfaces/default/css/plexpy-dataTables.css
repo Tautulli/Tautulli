@@ -34,7 +34,7 @@ table.display {
 	margin: 0 auto;
 	clear: both;
 	width: 100%;
-	font-size: 14px;
+	font-size: 12px;
 	line-height: 25px;
 	/* Note Firefox 3.5 and before have a bug with border-collapse
 	 * ( https://bugzilla.mozilla.org/show%5Fbug.cgi?id=155955 )
@@ -332,4 +332,86 @@ div.box {
 }
 td.no-wrap, th.no-wrap {
 	white-space:nowrap;
+}
+
+
+
+/*
+ * Custom styles
+ */
+
+table.display,
+table.display tr.shown + tr table[id^='history_child'],
+table.display tr.shown + tr table[id^='media_info_child'],
+table.display tr.shown + tr table[id^='media_info_child'] tr.shown + tr table[id^='media_info_child'] {
+    table-layout: auto;
+}
+table.display tr.shown + tr div.slider {
+    display: none;
+}
+table.display tr.shown + tr > td {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+}
+table.display tr.shown + tr:hover {
+    background-color: rgba(255,255,255,0);
+}
+table.display tr.shown + tr:hover a,
+table.display tr.shown + tr td:hover a,
+table.display tr.shown + tr .pagination > .active > a,
+table.display tr.shown + tr .pagination > .active > a:hover {
+    color: #fff;
+}
+table.display tr.shown + tr table[id^='history_child'] td:hover a, 
+table.display tr.shown + tr table[id^='media_info_child'] > tr > td:hover a,
+table.display tr.shown + tr table[id^='media_info_child'] tr.shown + tr table[id^='media_info_child'] td:hover a {
+    color: #cc7b19;
+}
+table.display tr.shown + tr .pagination > .disabled > a,
+table.display tr.shown + tr .pagination > .disabled > a:hover {
+    color: #444444;
+}
+table.display tr.shown + tr .pagination > li > a:hover {
+    color: #e9a049;
+}
+table.display tr.odd td,
+table.display tr.even td {
+    padding: 5px 10px !important;
+}
+table[id^='history_child'] {
+    margin-top: 0;
+    opacity: .6;
+}
+table[id^='media_info_child'] {
+    margin-top: 0;
+}
+div[id^='history_child'] thead th,
+div[id^='media_info_child'] thead th {
+    line-height: 0;
+    height: 0 !important;
+    overflow: hidden;
+}
+div[id^='history_child'] div.row,
+div[id^='media_info_child'] div.row {
+    margin: 0;
+}
+div[id^='history_child'] div.col-sm-12,
+div[id^='media_info_child'] div.col-sm-12 {
+    padding: 0;
+}
+div[id^='history_child'] div.dataTables_scrollBody,
+div[id^='media_info_child'] div.dataTables_scrollBody {
+    overflow: hidden !important;
+}
+div[id^='media_info_child'] div[id^='media_info_child'] div.dataTables_scrollHead thead th {
+    line-height: 25px;
+    height: 35px !important;
+    overflow: hidden;
+}
+.current-activity-row {
+    background-color: rgba(255,255,255,.1) !important;
+}
+.current-activity-row:hover {
+    background-color: rgba(255,255,255,0.125) !important;
 }

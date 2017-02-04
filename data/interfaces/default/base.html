@@ -246,6 +246,14 @@
     </nav>
 </div>
 
+${next.headerIncludes()}
+
+<div class="body-container">
+    ${next.body()}
+</div>
+
+${next.modalIncludes()}
+
 % if _session['user_group'] != 'admin':
 <div id="admin-login-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="admin-login-modal">
     <div class="modal-dialog" role="document">
@@ -287,11 +295,6 @@
     </div>
 </div>
 % endif
-
-${next.headerIncludes()}
-<div class="body-container">
-    ${next.body()}
-</div>
 
 <div id="confirm-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal">
     <div class="modal-dialog" role="document">
@@ -419,6 +422,7 @@ ${next.javascriptIncludes()}
 </body>
 </html>
 
+<%def name="modalIncludes()"></%def>
 <%def name="javascriptIncludes()"></%def>
 <%def name="headIncludes()"></%def>
 <%def name="headerIncludes()"></%def>
