@@ -4,10 +4,10 @@
     import sys
 
     import plexpy
-    from plexpy import common, notifiers, versioncheck
+    from plexpy import common, notifiers
     from plexpy.helpers import anon_url
 
-    available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['name'])
+    available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['label'])
 %>
 <%def name="headIncludes()">
 </%def>
@@ -37,26 +37,27 @@
         <!-- Nav tabs -->
         <div class="col-md-3">
             <ul class="nav-settings list-unstyled" role="tablist">
-                <li role="presentation" class="active"><a href="#tabs-0" aria-controls="tabs-0" role="tab" data-toggle="tab">Help & Info</a></li>
-                <li role="presentation"><a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">General</a></li>
-                <li role="presentation"><a href="#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab">Homepage</a></li>
-                <li role="presentation"><a href="#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab">Web Interface</a></li>
-                <li role="presentation"><a href="#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab">Access Control</a></li>
-                <li role="presentation"><a href="#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab">Plex Media Server</a></li>
-                <li role="presentation"><a href="#tabs-6" aria-controls="tabs-6" role="tab" data-toggle="tab">Plex.tv Account</a></li>
-                <li role="presentation"><a href="#tabs-7" aria-controls="tabs-7" role="tab" data-toggle="tab">Extra Settings</a></li>
-                <li role="presentation"><a href="#tabs-8" aria-controls="tabs-8" role="tab" data-toggle="tab">Activity Monitoring</a></li>
-                <li role="presentation"><a href="#tabs-9" aria-controls="tabs-9" role="tab" data-toggle="tab">Notifications</a></li>
-                <li role="presentation"><a href="#tabs-10" aria-controls="tabs-10" role="tab" data-toggle="tab">Notification Agents</a></li>
+                <li role="presentation" class="active"><a href="#tabs-help_info" aria-controls="tabs-help_info" role="tab" data-toggle="tab">Help & Info</a></li>
+                <li role="presentation"><a href="#tabs-general" aria-controls="tabs-general" role="tab" data-toggle="tab">General</a></li>
+                <li role="presentation"><a href="#tabs-homepage" aria-controls="tabs-homepage" role="tab" data-toggle="tab">Homepage</a></li>
+                <li role="presentation"><a href="#tabs-web_interface" aria-controls="tabs-web_interface" role="tab" data-toggle="tab">Web Interface</a></li>
+                <li role="presentation"><a href="#tabs-access_control" aria-controls="tabs-access_control" role="tab" data-toggle="tab">Access Control</a></li>
+                <li role="presentation"><a href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
+                <li role="presentation"><a href="#tabs-plextv_account" aria-controls="tabs-plextv_account" role="tab" data-toggle="tab">Plex.tv Account</a></li>
+                <li role="presentation"><a href="#tabs-extra_settings" aria-controls="tabs-extra_settings" role="tab" data-toggle="tab">Extra Settings</a></li>
+                <li role="presentation"><a href="#tabs-activity_monitoring" aria-controls="tabs-activity_monitoring" role="tab" data-toggle="tab">Activity Monitoring</a></li>
+                <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications</a></li>
+                <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
+                <li role="presentation"><a href="#tabs-remote_app" aria-controls="tabs-remote_app" role="tab" data-toggle="tab">PlexPy Remote App</a></li>
             </ul>
         </div>
         <div class="col-md-9">
             <form action="configUpdate" method="post" class="form" id="configUpdate" data-parsley-validate>
                 <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="tabs-0">
+                    <div role="tabpanel" class="tab-pane active" id="tabs-help_info">
                         % if common.VERSION_NUMBER:
                         <div class="padded-header">
-                            <h3>Version ${common.VERSION_NUMBER} <small><a href="#changelog-modal" data-toggle="modal"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
+                            <h3>Version ${common.VERSION_NUMBER} <small><a id="changelog-modal-link" href="#"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
                         </div>
                         % endif
                         <div class="padded-header">
@@ -74,7 +75,7 @@
                             <br>
                         </div>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-1">
+                    <div role="tabpanel" class="tab-pane" id="tabs-general">
                         <div class="padded-header">
                             <h3>Updates</h3>
                         </div>
@@ -82,9 +83,15 @@
                             <label>
                                 <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
                             </label>
-                            <p class="help-block">If you have Git installed, allow periodic checks for updates.</p>
+                            <p class="help-block">Check for PlexPy updates periodically.</p>
                         </div>
                         <div id="git_update_options">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" id="plexpy_auto_update" name="plexpy_auto_update" value="1" ${config['plexpy_auto_update']}> Update Automatically
+                                </label>
+                                <p class="help-block">Update PlexPy automatically if an update is available when checking for updates.</p>
+                            </div>
                             <div class="form-group">
                                 <label for="git_token">GitHub API Token</label>
                                 <div class="row">
@@ -208,8 +215,7 @@
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-
-                    <div role="tabpanel" class="tab-pane" id="tabs-2">
+                    <div role="tabpanel" class="tab-pane" id="tabs-homepage">
                         <div class="padded-header">
                             <h3>Sections</h3>
                         </div>
@@ -374,7 +380,7 @@
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-3">
+                    <div role="tabpanel" class="tab-pane" id="tabs-web_interface">
                         <div class="padded-header">
                             <h3>Web Interface</h3>
                         </div>
@@ -406,12 +412,6 @@
                                 </div>
                             </div>
                             <p class="help-block">The base URL of the web server. Used for reverse proxies.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" class="http-settings" name="http_proxy" id="http_proxy" value="1" ${config['http_proxy']}> Enable HTTP Proxy
-                            </label>
-                            <p class="help-block">Respect the X-Forwarded-Proto header. Used for reverse proxies with SSL.</p>
                         </div>
                         <br />
                         <div class="checkbox">
@@ -454,13 +454,22 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="https_cert">HTTPS Cert</label>
+                                <label for="https_cert">HTTPS Certificate</label>
                                 <div class="row">
                                     <div class="col-md-6">
                                         <input type="text" class="form-control http-settings" id="https_cert" name="https_cert" value="${config['https_cert']}">
                                     </div>
                                 </div>
                                 <p class="help-block">The location of the SSL certificate.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="https_cert_chain">HTTPS Certificate Chain</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_cert_chain" name="https_cert_chain" value="${config['https_cert_chain']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The location of the SSL certificate chain.</p>
                             </div>
                             <div class="form-group">
                                 <label for="https_key">HTTPS Key</label>
@@ -474,7 +483,7 @@
                         </div>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-4">
+                    <div role="tabpanel" class="tab-pane" id="tabs-access_control">
 
                         <div class="padded-header">
                             <h3>Authentication</h3>
@@ -536,24 +545,26 @@
                             </label>
                             <p class="help-block">Allow remote applications to interface with PlexPy.</p>
                         </div>
-                        <div id="apioptions" class="form-group">
-                            <label for="api_key">API key</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="input-group">
-                                        <input class="form-control" type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20" readonly>
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="generate_api">Generate</button>
-                                        </span>
+                        <div id="apioptions">
+                            <div class="form-group">
+                                <label for="api_key">API key</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <input class="form-control" type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20" readonly>
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form" type="button" id="generate_api">Generate</button>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
+                                <p class="help-block">Current API key: <strong> ${config['api_key']}</strong></p>
                             </div>
-                            <p class="help-block">Current API key: <strong> ${config['api_key']}</strong></p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-5">
+                    <div role="tabpanel" class="tab-pane" id="tabs-plex_media_server">
 
                         <div class="padded-header">
                             <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
@@ -645,14 +656,16 @@
                                 </div>
                                 <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.<br />
-                            <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help. This is required if you enable IP logging (for PMS 0.9.12 and below). </p>
+                            <p class="help-block">
+                                Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.
+                                <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help.
+                            </p>
                         </div>
 
                         <input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully">
 
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-6">
+                    <div role="tabpanel" class="tab-pane" id="tabs-plextv_account">
 
                         <div class="padded-header">
                             <h3>Plex.tv Authentication</h3>
@@ -715,7 +728,50 @@
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-7">
+                    <div role="tabpanel" class="tab-pane" id="tabs-extra_settings">
+                        % if plexpy.INSTALL_TYPE == 'git':
+                        <div class="padded-header">
+                            <h3>Git Settings</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="git_branch">Git Remote / Branch</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group git-group">
+                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
+                                        <select class="form-control" id="git_branch" name="git_branch">
+                                            % if config['git_branch'] == 'master':
+                                            <option value="master" selected>master</option>
+                                            <option value="dev">dev</option>
+                                            % elif config['git_branch'] == 'dev':
+                                            <option value="master">master</option>
+                                            <option value="dev" selected>dev</option>
+                                            % else:
+                                            <option value="master">master</option>
+                                            <option value="dev">dev</option>
+                                            <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
+                                            % endif
+                                        </select>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="switch_git_branch">Checkout Branch</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help-block">The git tracking remote and branch (default "origin/master"). Select to switch the git branch (requires restart).</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="git_path">Git Path</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">The path to your git environment variable. Leave blank for default.</p>
+                        </div>
+                        % endif
+
                         <div class="padded-header">
                             <h3>Extra Settings</h3>
                         </div>
@@ -785,7 +841,7 @@
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-8">
+                    <div role="tabpanel" class="tab-pane" id="tabs-activity_monitoring">
 
                         <div class="padded-header">
                             <h3>Monitoring Settings</h3>
@@ -798,13 +854,10 @@
                                 </div>
                                 <div id="monitoring_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">The interval (in seconds) PlexPy will ping your Plex Server. Minimum 30 seconds, recommended 60 seconds.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" class="monitor-settings" id="monitoring_use_websocket" name="monitoring_use_websocket" value="1" ${config['monitoring_use_websocket']}> Use Websocket (requires restart) <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
-                            </label>
-                            <p class="help-block">Instead of polling the server at regular intervals let the server tell PlexPy when something happens.</p>
+                            <p class="help-block">
+                                The interval (in seconds) PlexPy will ping your Plex Server. Minimum 30 seconds, recommended 60 seconds.<br />
+                                Note: Only used for checking Plex remote access.
+                            </p>
                         </div>
 
                         <div class="padded-header">
@@ -836,20 +889,11 @@
                             </div>
                             <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
                         </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="ip_logging_enable" name="ip_logging_enable" value="1" ${config['ip_logging_enable']}> Enable IP Logging
-                            </label>
-                            <span id="debugLogCheck" style="color: #eb8600; padding-left: 10px;"></span>
-                            <p class="help-block">
-                                Enable this to attempt to log the IP address of the user.
-                            </p>
-                        </div>
 
                         <div class="padded-header">
                             <h3>Buffer Warnings</h3>
                         </div>
-                        <p class="help-block">Note: Buffer warnings only work on certain Plex clients. Android and PlexWeb do not report buffer events accurately or at all.</p>
+                        <p class="help-block">Note: Buffer warnings only work on certain Plex clients. Android and Plex Web do not report buffer events accurately or at all.</p>
                         <div class="form-group">
                             <label for="buffer_threshold">Buffer Threshold</label>
                             <div class="row">
@@ -873,7 +917,7 @@
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-9">
+                    <div role="tabpanel" class="tab-pane" id="tabs-notifications">
 
                         <div class="padded-header">
                             <h3>Global Notification Settings</h3>
@@ -915,8 +959,6 @@
                                 </div>
                                 <p class="help-block">Enter your Imgur API client ID in order to upload posters. 
                                     You can register a new application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br />
-                                    <span style="color: #eb8600;">Note: The shared Imgur client id will be removed in a future PlexPy update!
-                                        Please enter your own client id in to continue uploading posters!</span>
                             </div>
                         </div>
 
@@ -928,13 +970,13 @@
                             <label>
                                 <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Consecutive Notifications
                             </label>
-                            <p class="help-block">Disable to prevent consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
+                            <p class="help-block">Enable to allow sending of consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
                         </div>
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="notify_concurrent_by_ip" id="notify_concurrent_by_ip" value="1" ${config['notify_concurrent_by_ip']}> User Concurrent Streams Notifications by IP Address
                             </label>
-                            <p class="help-block">Enable to only get notified of concurrent streams by a single user from different IP addresses.</p>
+                            <p class="help-block">Enable to only send a notification of concurrent streams by a single user from different IP addresses.</p>
                         </div>
                         <div class="form-group">
                             <label for="notify_concurrent_threshold">User Concurrent Stream Threshold</label>
@@ -953,1178 +995,1102 @@
 
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="notify_recently_added_grandparent" id="notify_recently_added_grandparent" value="1" ${config['notify_recently_added_grandparent']}> Group notifications for recently added TV Shows or Music
+                                <input type="checkbox" name="notify_group_recently_added_parent" id="notify_group_recently_added_parent" value="1" ${config['notify_group_recently_added_parent']}> Group Notifications by Season or Album
                             </label>
                             <p class="help-block">
-                                Enable to only get one TV Show or Artist notification for a batch of recently added Episodes or Tracks. Movies are unaffected.<br />
-                                % if config['notify_recently_added_grandparent'] == 'Checked':
-                                <span id="notify_recently_added_grandparent_note" style="color: #eb8600;">Note: No Season/Episode or Album/Track metadata will be available.</span>
-                                % else:
-                                <span id="notify_recently_added_grandparent_note">Note: No Season/Episode or Album/Track metadata will be available.</span>
-                                % endif
+                                Enable to only send one season or album notification when multiple episodes or tracks are added. Movies, single episodes, and single tracks are unaffected.<br />
+                                Note: An episode/track range can be shown (e.g. 01-12), but all other episode/track metadata will be unavailable.
                             </p>
                         </div>
-                        <div class="form-group">
-                            <label for="notify_recently_added_delay">Notification Delay</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_recently_added_delay" name="notify_recently_added_delay" value="${config['notify_recently_added_delay']}" size="5" data-parsley-min="60" data-parsley-trigger="change" data-parsley-errors-container="#notify_recently_added_delay_error" required>
-                                </div>
-                                <div id="notify_recently_added_delay_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">Set the delay (in seconds) for recently added notifications to allow metadata to be processed. Minimum 60 seconds.</p>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_group_recently_added_grandparent" id="notify_group_recently_added_grandparent" value="1" ${config['notify_group_recently_added_grandparent']}> Group Notifications by TV Show or Artist
+                            </label>
+                            <p class="help-block">
+                                Enable to only send one TV show or artist notification when multiple seasons or albums are added. Movies, single episodes, and single tracks are unaffected.<br />
+                                Note: A season range can be shown (e.g. 1-3), but all other season/episode/album/track metadata will be unavailable.
+                            </p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_recently_added_upgrade" id="notify_recently_added_upgrade" value="1" ${config['notify_recently_added_upgrade']}> Send a Notification for New Versions <span style="color: #eb8600; padding-left: 10px;">[Not working]</span>
+                            </label>
+                            <p class="help-block">
+                                Enable to send another recently added notification when adding a new version of existing media.<br />
+                                Note: If multiple versions are available, PlexPy will assume the higher quality one is newer.
+                            </p>
                         </div>
 
-                        <div class="padded-header">
-                            <h3>Custom Notification Messages</h3>
-                        </div>
-                        <p class="help-block">
-                            You can set custom formatted text for each type of notification.
-                            <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a list of available parameters which can be used.
-                        </p>
-                        <p class="help-block">
-                            You can also add tags to exclude certain text depending on the media type.
-                            <a href="#notify-text-tags-modal" data-toggle="modal">Click here</a> to view usage information.
-                        </p>
-                        <br/>
-                        <ul id="accordion-session" class="accordion list-unstyled">
-                            <li>
-                                <div class="link"><i class="fa fa-play fa-fw"></i>&nbsp;Playback Start<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_start_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_start_subject_text" name="notify_on_start_subject_text" value="${config['notify_on_start_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_start_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_start_body_text" name="notify_on_start_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_start_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-stop fa-fw"></i>&nbsp;Playback Stop<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_stop_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_stop_subject_text" name="notify_on_stop_subject_text" value="${config['notify_on_stop_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_stop_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_stop_body_text" name="notify_on_stop_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_stop_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-pause fa-fw"></i>&nbsp;Playback Pause<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_pause_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_pause_subject_text" name="notify_on_pause_subject_text" value="${config['notify_on_pause_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_pause_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_pause_body_text" name="notify_on_pause_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_pause_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-play fa-fw"></i>&nbsp;Playback Resume<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_resume_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_resume_subject_text" name="notify_on_resume_subject_text" value="${config['notify_on_resume_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_resume_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_resume_body_text" name="notify_on_resume_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_resume_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-eye fa-fw"></i>&nbsp;Watched<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_watched_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_watched_subject_text" name="notify_on_watched_subject_text" value="${config['notify_on_watched_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_watched_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_watched_body_text" name="notify_on_watched_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_watched_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-spinner fa-fw"></i>&nbsp;Buffer Warnings<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_buffer_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_buffer_subject_text" name="notify_on_buffer_subject_text" value="${config['notify_on_buffer_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_buffer_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_buffer_body_text" name="notify_on_buffer_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_buffer_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-arrow-circle-o-right fa-fw"></i>&nbsp;User Concurrent Streams<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_concurrent_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_concurrent_subject_text" name="notify_on_concurrent_subject_text" value="${config['notify_on_concurrent_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_buffer_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_concurrent_body_text" name="notify_on_concurrent_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_concurrent_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-desktop fa-fw"></i>&nbsp;User New Device<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_newdevice_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_newdevice_subject_text" name="notify_on_newdevice_subject_text" value="${config['notify_on_newdevice_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_buffer_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_newdevice_body_text" name="notify_on_newdevice_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_newdevice_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <ul id="accordion-timeline" class="accordion list-unstyled">
-                            <li>
-                                <div class="link"><i class="fa fa-download fa-fw"></i>&nbsp;Recently Added<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_created_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_created_subject_text" name="notify_on_created_subject_text" value="${config['notify_on_created_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_created_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_created_body_text" name="notify_on_created_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_created_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Server Down<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_intdown_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_intdown_subject_text" name="notify_on_intdown_subject_text" value="${config['notify_on_intdown_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_intdown_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_intdown_body_text" name="notify_on_intdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_intdown_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Server Back Up<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_intup_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_intup_subject_text" name="notify_on_intup_subject_text" value="${config['notify_on_intup_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_intup_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_intup_body_text" name="notify_on_intup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_intup_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Down<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_extdown_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_extdown_subject_text" name="notify_on_extdown_subject_text" value="${config['notify_on_extdown_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_extdown_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_extdown_body_text" name="notify_on_extdown_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extdown_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-server fa-fw"></i>&nbsp;Plex Remote Access Back Up<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_extup_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_extup_subject_text" name="notify_on_extup_subject_text" value="${config['notify_on_extup_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_extup_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_extup_body_text" name="notify_on_extup_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_extup_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li>
-                                <div class="link"><i class="fa fa-refresh fa-fw"></i>&nbsp;Plex Update Available<i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_on_pmsupdate_subject_text">Subject Line</label>
-                                            <input class="form-control" type="text" id="notify_on_pmsupdate_subject_text" name="notify_on_pmsupdate_subject_text" value="${config['notify_on_pmsupdate_subject_text']}" data-parsley-trigger="change" required>
-                                            <p class="help-block">Set a custom subject line.</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="notify_on_extup_body_text">Message Body</label>
-                                            <textarea class="form-control" id="notify_on_pmsupdate_body_text" name="notify_on_pmsupdate_body_text" data-parsley-trigger="change" data-autoresize required>${config['notify_on_pmsupdate_body_text']}</textarea>
-                                            <p class="help-block">Set a custom body.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <ul id="accordion-scripts" class="accordion list-unstyled">
-                            <li>
-                                <div class="link"><i class="glyphicon glyphicon-console"></i>&nbsp;Script <i class="fa fa-chevron-down"></i></div>
-                                <ul class="submenu">
-                                    <li>
-                                        <div class="form-group">
-                                            <label for="notify_scripts_args_text">Script Arguments</label>
-                                            <input class="form-control" type="text" id="notify_scripts_args_text" name="notify_scripts_args_text" value="${config['notify_scripts_args_text']}" data-parsley-trigger="change">
-                                            <p class="help-block">Set custom arguments passed to the scripts.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-10">
+                    <div role="tabpanel" class="tab-pane" id="tabs-notification_agents">
 
                         <div class="padded-header">
                             <h3>Notification Agents</h3>
                         </div>
                         <p class="help-block">
-                            Toggle the desired notification options by clicking the <span class="help-bold">bell icon (<i class="fa fa-sm fa-bell"></i>)</span> and configure it by clicking the settings icon to the right.
+                            Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
                         </p>
-                        <br/>
-                        <ul class="stacked-configs list-unstyled">
-                            % for agent in available_notification_agents:
-                            <li>
-                                <span>
-                                    % if any(k[:2] == 'on' and v == 1 for k, v in agent.iteritems()):
-                                    <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left active" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
-                                    % else:
-                                    <a href="javascript:void(0)" data-target="#notification-triggers-modal" data-id="${agent['id']}" class="toggle-notification-triggers-modal toggle-left" data-toggle="modal"><i class="fa fa-lg fa-bell"></i></a>
-                                    % endif
-                                    ${agent['name']}
-                                    % if agent['has_config']:
-                                    <a href="javascript:void(0)" rel="tooltip" data-target="#notification-config-modal" data-placement="top" title data-title="Open configuration" data-id="${agent['id']}" class="toggle-notification-config-modal toggle-right" data-toggle="modal"><i class="fa fa-lg fa-cog"></i></a>
-                                    % endif
+                        <br />
+                        <div id="plexpy-notifiers-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
+                            <br>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="tabs-remote_app">
+
+                        <div class="padded-header">
+                            <h3>PlexPy Remote App</h3>
+                        </div>
+                        <div class="form-group">
+                            <label>Get the App</label>
+                            <p class="help-block">
+                                Get the <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank">PlexPy Remote</a> app on Google Play<sup>TM</sup> to access PlexPy from your Android device!<br />
+                                <span class="google-play-badge">
+                                    <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank"><img alt="Get it on Google Play" src="images/en-play-badge.png" /></a>
                                 </span>
-                            </li>
-                            % endfor
-                        </ul>
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label>Link the App</label>
+                            <p class="help-block">Link the app to your server by scanning a QR code.</p>
+                            <div class="btn-group" style="display: table-cell; vertical-align: middle;">
+                                <button class="btn btn-form" type="button" id="generate_qr" data-target="#api-qr-modal" data-toggle="modal">Generate QR Code</button>
+                            </div>
+                            <div style="display: table-cell; vertical-align: middle;">
+                                <span style="color: #eb8600; padding-left: 10px;" id="generate_qr_msg">The API must be enabled under <a data-tab-destination="tabs-access_control" style="cursor: pointer;">Access Control</a> to use the app.</span>
+                            </div>
+                        </div>
 
                     </div>
                 </div>
             </form>
         </div>
     </div>
+</div>
+</%def>
 
-    <div id="dateTimeOptionsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dateTimeOptionsModal">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                        <i class="fa fa-remove"></i>
-                    </button>
-                    <h4 class="modal-title">Date &amp; Time Format Options</h4>
+<%def name="modalIncludes()">
+<div id="guidelines-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="guidelines-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Guidelines</h4>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                    <strong>Please read the <a href="#" target="_blank" id="guidelines-link">guidelines</a> in the README document <br />before submitting a new <span id="guidelines-type"></span>!</strong>
+                    <br /><br />
+                    Your post may be removed for failure to follow the guidelines.
                 </div>
-                <div class="modal-body">
-                    <table class="notification-params time-options">
-                        <thead>
-                            <tr>
-                                <th colspan="3">
-                                    Year
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>YYYY</strong></td>
-                                <td>Numeric, four digits</td>
-                                <td>E.g. 1999, 2003</td>
-                            </tr>
-                            <tr>
-                                <td><strong>YY</strong></td>
-                                <td>Numeric, two digits</td>
-                                <td>E.g. 99, 03</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="notification-params time-options">
-                        <thead>
-                            <tr>
-                                <th colspan="3">
-                                    Month
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>MMMM</strong></td>
-                                <td>Textual, full</td>
-                                <td>January-December</td>
-                            </tr>
-                            <tr>
-                                <td><strong>MMM</strong></td>
-                                <td>Textual, three letters</td>
-                                <td>Jan-Dec</td>
-                            </tr>
-                            <tr>
-                                <td><strong>MM</strong></td>
-                                <td>Numeric, with leading zeros</td>
-                                <td>01-12</td>
-                            </tr>
-                            <tr>
-                                <td><strong>M</strong></td>
-                                <td>Numeric, without leading zeros</td>
-                                <td>1-12</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="notification-params time-options">
-                        <thead>
-                            <tr>
-                                <th colspan="3">
-                                    Day of the Year
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>DDDD</strong></td>
-                                <td>Numeric, with leading zeros</td>
-                                <td>001-365</td>
-                            </tr>
-                            <tr>
-                                <td><strong>DDD</strong></td>
-                                <td>Numeric, without leading zeros</td>
-                                <td>1-365</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="notification-params time-options">
-                        <thead>
-                            <tr>
-                                <th colspan="3">
-                                    Day of the Month
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>DD</strong></td>
-                                <td>Numeric, with leading zeros</td>
-                                <td>01-31</td>
-                            </tr>
-                            <tr>
-                                <td><strong>D</strong></td>
-                                <td>Numeric, without leading zeros</td>
-                                <td>1-31</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Do</strong></td>
-                                <td>Numeric, with suffix</td>
-                                <td>E.g. 1st, 2nd ... 31st.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="notification-params time-options">
-                        <thead>
-                            <tr>
-                                <th colspan="3">
-                                    Day of the Week
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>dddd</strong></td>
-                                <td>Textual, full</td>
-                                <td>Sunday-Saturday</td>
-                            </tr>
-                            <tr>
-                                <td><strong>ddd</strong></td>
-                                <td>Textual, three letters</td>
-                                <td>Sun-Sat</td>
-                            </tr>
-                            <tr>
-                                <td><strong>d</strong></td>
-                                <td>Numeric</td>
-                                <td>0-6</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="notification-params time-options">
-                        <thead>
-                            <tr>
-                                <th colspan="3">
-                                    Hour
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>HH</strong></td>
-                                <td>24-hour, with leading zeros</td>
-                                <td>00-23</td>
-                            </tr>
-                            <tr>
-                                <td><strong>H</strong></td>
-                                <td>24-hour, without leading zeros</td>
-                                <td>0-23</td>
-                            </tr>
-                            <tr>
-                                <td><strong>hh</strong></td>
-                                <td>12-hour, with leading zeros</td>
-                                <td>01-12</td>
-                            </tr>
-                            <tr>
-                                <td><strong>h</strong></td>
-                                <td>12-hour, without leading zeros</td>
-                                <td>1-12</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="notification-params time-options">
-                        <thead>
-                            <tr>
-                                <th colspan="3">
-                                    Minute
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>mm</strong></td>
-                                <td>Numeric, with leading zeros</td>
-                                <td>00-59</td>
-                            </tr>
-                            <tr>
-                                <td><strong>m</strong></td>
-                                <td>Numeric, without leading zeros</td>
-                                <td>0-59</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="notification-params time-options">
-                        <thead>
-                            <tr>
-                                <th colspan="3">
-                                    Second
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>ss</strong></td>
-                                <td>Numeric, with leading zeros</td>
-                                <td>00-59</td>
-                            </tr>
-                            <tr>
-                                <td><strong>s</strong></td>
-                                <td>Numeric, without leading zeros</td>
-                                <td>0-59</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="notification-params time-options">
-                        <thead>
-                            <tr>
-                                <th colspan="3">
-                                    AM / PM
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>A</strong></td>
-                                <td>AM/PM uppercase</td>
-                                <td>AM, PM</td>
-                            </tr>
-                            <tr>
-                                <td><strong>a</strong></td>
-                                <td width="300">am/pm lowercase</td>
-                                <td>am, pm</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="notification-params time-options">
-                        <thead>
-                            <tr>
-                                <th colspan="3">
-                                    Timezone
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>ZZ</strong></td>
-                                <td>UTC offset</td>
-                                <td>E.g. +0100, -0700</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Z</strong></td>
-                                <td>UTC offset</td>
-                                <td>E.g. +01:00, -07:00</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="notification-params time-options">
-                        <thead>
-                            <tr>
-                                <th colspan="3">
-                                    Timestamp
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>X</strong></td>
-                                <td>Unix timestamp</td>
-                                <td>E.g. 1456887825</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer"></div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" target="_blank" id="guidelines-continue" class="btn btn-bright">Continue</a>
             </div>
         </div>
     </div>
-    <div id="pms-auth-modal" class="modal fade" tabindex="-1" role="dialog"
-         aria-labelledby="ip-info-modal">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Fetch Plex.tv Token</h4>
+</div>
+
+<div id="support-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="support-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Support</h4>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                    <strong>Please read the <a href="#" target="_blank" id="faq-link">FAQ</a> before asking for help!</strong>
                 </div>
-                <div class="modal-body" id="modal-text">
+            </div>
+            <div class="modal-footer">
+                <a href="#" target="_blank" id="support-continue" class="btn btn-bright">Continue</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="dateTimeOptionsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dateTimeOptionsModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    <i class="fa fa-remove"></i>
+                </button>
+                <h4 class="modal-title">Date &amp; Time Format Options</h4>
+            </div>
+            <div class="modal-body">
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                Year
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>YYYY</strong></td>
+                            <td>Numeric, four digits</td>
+                            <td>E.g. 1999, 2003</td>
+                        </tr>
+                        <tr>
+                            <td><strong>YY</strong></td>
+                            <td>Numeric, two digits</td>
+                            <td>E.g. 99, 03</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                Month
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>MMMM</strong></td>
+                            <td>Textual, full</td>
+                            <td>January-December</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MMM</strong></td>
+                            <td>Textual, three letters</td>
+                            <td>Jan-Dec</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MM</strong></td>
+                            <td>Numeric, with leading zeros</td>
+                            <td>01-12</td>
+                        </tr>
+                        <tr>
+                            <td><strong>M</strong></td>
+                            <td>Numeric, without leading zeros</td>
+                            <td>1-12</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                Day of the Year
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>DDDD</strong></td>
+                            <td>Numeric, with leading zeros</td>
+                            <td>001-365</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DDD</strong></td>
+                            <td>Numeric, without leading zeros</td>
+                            <td>1-365</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                Day of the Month
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>DD</strong></td>
+                            <td>Numeric, with leading zeros</td>
+                            <td>01-31</td>
+                        </tr>
+                        <tr>
+                            <td><strong>D</strong></td>
+                            <td>Numeric, without leading zeros</td>
+                            <td>1-31</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Do</strong></td>
+                            <td>Numeric, with suffix</td>
+                            <td>E.g. 1st, 2nd ... 31st.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                Day of the Week
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>dddd</strong></td>
+                            <td>Textual, full</td>
+                            <td>Sunday-Saturday</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ddd</strong></td>
+                            <td>Textual, three letters</td>
+                            <td>Sun-Sat</td>
+                        </tr>
+                        <tr>
+                            <td><strong>d</strong></td>
+                            <td>Numeric</td>
+                            <td>0-6</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                Hour
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>HH</strong></td>
+                            <td>24-hour, with leading zeros</td>
+                            <td>00-23</td>
+                        </tr>
+                        <tr>
+                            <td><strong>H</strong></td>
+                            <td>24-hour, without leading zeros</td>
+                            <td>0-23</td>
+                        </tr>
+                        <tr>
+                            <td><strong>hh</strong></td>
+                            <td>12-hour, with leading zeros</td>
+                            <td>01-12</td>
+                        </tr>
+                        <tr>
+                            <td><strong>h</strong></td>
+                            <td>12-hour, without leading zeros</td>
+                            <td>1-12</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                Minute
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>mm</strong></td>
+                            <td>Numeric, with leading zeros</td>
+                            <td>00-59</td>
+                        </tr>
+                        <tr>
+                            <td><strong>m</strong></td>
+                            <td>Numeric, without leading zeros</td>
+                            <td>0-59</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                Second
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>ss</strong></td>
+                            <td>Numeric, with leading zeros</td>
+                            <td>00-59</td>
+                        </tr>
+                        <tr>
+                            <td><strong>s</strong></td>
+                            <td>Numeric, without leading zeros</td>
+                            <td>0-59</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                AM / PM
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>A</strong></td>
+                            <td>AM/PM uppercase</td>
+                            <td>AM, PM</td>
+                        </tr>
+                        <tr>
+                            <td><strong>a</strong></td>
+                            <td width="300">am/pm lowercase</td>
+                            <td>am, pm</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                Timezone
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>ZZ</strong></td>
+                            <td>UTC offset</td>
+                            <td>E.g. +0100, -0700</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Z</strong></td>
+                            <td>UTC offset</td>
+                            <td>E.g. +01:00, -07:00</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                Timestamp
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>X</strong></td>
+                            <td>Unix timestamp</td>
+                            <td>E.g. 1456887825</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+<div id="pms-auth-modal" class="modal fade" tabindex="-1" role="dialog"
+     aria-labelledby="ip-info-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Fetch Plex.tv Token</h4>
+            </div>
+            <div class="modal-body" id="modal-text">
+                <div>
+                    <p class="help-block">
+                        This will attempt to fetch a new Plex.tv token for you. PlexPy does not store your username and password.
+                        Note: This will not work on Internet Explorer 9 or lower.
+                    </p>
+                    <div class="form-group">
+                        <label for="pms_username">Plex.tv Username</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" id="pms_username" name="pms_username" size="30">
+                            </div>
+                        </div>
+                        <p class="help-block">Username for Plex.tv authentication.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="pms_password">Plex.tv Password</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="password" class="form-control" id="pms_password" name="pms_password" size="30">
+                            </div>
+                        </div>
+                        <p class="help-block">Password for Plex.tv authentication.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div style="float: left;">
+                    <strong><span id="pms-token-status"></span></strong>
+                </div>
+                <input type="button" id="get-pms-auth-token" class="btn btn-bright" value="Fetch Token">
+            </div>
+        </div>
+    </div>
+</div>
+<div id="app-import-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="app-import-modal"></div>
+<div id="add-notifier-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add-notifier-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Add a Notification Agent</h4>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <ul class="stacked-configs list-unstyled">
+                                % for agent in available_notification_agents:
+                                <li class="new-notification-agent" data-id="${agent['id']}">
+                                    <span>${agent['label']}</span>
+                                </li>
+                                % endfor
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Cancel">
+            </div>
+        </div>
+    </div>
+</div>
+<div id="notifier-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="notifier-config-modal"></div>
+<div id="notify-text-sub-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notify-text-sub-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    <i class="fa fa-remove"></i>
+                </button>
+                <h4 class="modal-title">Notification Parameters</h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <p class="help-block">
+                        If the value for a selected parameter cannot be provided, it will display as blank.
+                    </p>
+                    <table class="notification-params">
+                        <thead>
+                            <tr>
+                                <th colspan="2">
+                                    Global
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>{plexpy_version}</strong></td>
+                                <td>The current version of PlexPy.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{plexpy_branch}</strong></td>
+                                <td>The current git branch of PlexPy.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{plexpy_commit}</strong></td>
+                                <td>The current git commit hash of PlexPy.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{server_name}</strong></td>
+                                <td>The name of your Plex Server.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{server_uptime}</strong></td>
+                                <td>The uptime (in days, hours, mins, secs) of your Plex Server.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{server_version}</strong></td>
+                                <td>The current version of your Plex Server.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{action}</strong></td>
+                                <td>The action that triggered the notification.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{datestamp}</strong></td>
+                                <td>The date (in date format) the notification was triggered.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{timestamp}</strong></td>
+                                <td>The time (in time format) the notification was triggered.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params">
+                        <thead>
+                            <tr>
+                                <th colspan="2">
+                                    Stream Details
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>{streams}</strong></td>
+                                <td>The number of concurrent streams.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{user_streams}</strong></td>
+                                <td>The number of concurrent streams by the person streaming.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{user}</strong></td>
+                                <td>The friendly name of the person streaming.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{username}</strong></td>
+                                <td>The username of the person streaming.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{platform}</strong></td>
+                                <td>The type of client being used for playback.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{player}</strong></td>
+                                <td>The name of the device being used for playback.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{ip_address}</strong></td>
+                                <td>The IP address of the device being used for playback. <span class="small-muted">(PMS 0.9.14 and above)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{stream_duration}</strong></td>
+                                <td>The stream duration (in minutes) for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{stream_time}</strong></td>
+                                <td>The stream duration (in time format) for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{remaining_duration}</strong></td>
+                                <td>The remaining duration (in minutes) for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{remaining_time}</strong></td>
+                                <td>The remaining duration (in time format) for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{progress_duration}</strong></td>
+                                <td>The last reported offset (in minutes) for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{progress_time}</strong></td>
+                                <td>The last reported offset (in time format) for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{progress_percent}</strong></td>
+                                <td>The last reported progress percent for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{transcode_decision}</strong></td>
+                                <td>The stream transcode decisions for the media item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_decision}</strong></td>
+                                <td>The video transcode decisions for the media item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{audio_decision}</strong></td>
+                                <td>The audio transcode decisions for the media item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{transcode_container}</strong></td>
+                                <td>The media container of the transcoded media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{transcode_video_codec}</strong></td>
+                                <td>The video codec of the transcoded media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{transcode_video_width}</strong></td>
+                                <td>The video width of the transcoded media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{transcode_video_height}</strong></td>
+                                <td>The video height of the transcoded media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{transcode_audio_codec}</strong></td>
+                                <td>The audio codec of the transcoded media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{transcode_audio_channels}</strong></td>
+                                <td>The audio channels of the transcoded media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{session_key}</strong></td>
+                                <td>The unique identifier for the stream session.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{transcode_key}</strong></td>
+                                <td>The unique identifier for the transcode session.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{user_id}</strong></td>
+                                <td>The unique identifier for the user.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{machine_id}</strong></td>
+                                <td>The unique identifier for the player.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params">
+                        <thead>
+                            <tr>
+                                <th colspan="2">
+                                    Metadata Details
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>{media_type}</strong></td>
+                                <td>The type of media. <span class="small-muted">(movie, episode, track)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{container}</strong></td>
+                                <td>The media container of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_codec}</strong></td>
+                                <td>The video codec of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_bitrate}</strong></td>
+                                <td>The video bitrate of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_width}</strong></td>
+                                <td>The video width of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_height}</strong></td>
+                                <td>The video height of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_resolution}</strong></td>
+                                <td>The video resolution of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_framerate}</strong></td>
+                                <td>The video framerate of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{aspect_ratio}</strong></td>
+                                <td>The aspect ratio of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{audio_codec}</strong></td>
+                                <td>The audio codec of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{audio_channels}</strong></td>
+                                <td>The audio channels of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{title}</strong></td>
+                                <td>The full title of the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{library_name}</strong></td>
+                                <td>The library name of the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{show_name}</strong></td>
+                                <td>The title of the TV series.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{episode_name}</strong></td>
+                                <td>The title of the episode.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{artist_name}</strong></td>
+                                <td>The name of the artist.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{album_name}</strong></td>
+                                <td>The title of the album.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{track_name}</strong></td>
+                                <td>The title of the track.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{season_num}</strong></td>
+                                <td>The season number. <span class="small-muted">(e.g. 1, or 1-3)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{season_num00}</strong></td>
+                                <td>The two digit season number. <span class="small-muted">(e.g. 01, or 01-03)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{episode_num}</strong></td>
+                                <td>The episode number. <span class="small-muted">(e.g. 6, or 6-10)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{episode_num00}</strong></td>
+                                <td>The two digit episode number. <span class="small-muted">(e.g. 06, or 06-10)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{track_num}</strong></td>
+                                <td>The track number. <span class="small-muted">(e.g. 4, or 4-10)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{track_num00}</strong></td>
+                                <td>The two digit track number. <span class="small-muted">(e.g. 04, or 04-10)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{year}</strong></td>
+                                <td>The release year for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{release_date}</strong></td>
+                                <td>The release date (in date format) for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{air_date}</strong></td>
+                                <td>The air date (in date format) for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{added_date}</strong></td>
+                                <td>The date (in date format) the item was added to Plex.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{updated_date}</strong></td>
+                                <td>The date (in date format) the item was updated on Plex.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{last_viewed_date}</strong></td>
+                                <td>The date (in date format) the item was last viewed on Plex.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{studio}</strong></td>
+                                <td>The studio for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{content_rating}</strong></td>
+                                <td>The content rating for the item. <span class="small-muted">(e.g. TV-MA, TV-PG, etc.)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{directors}</strong></td>
+                                <td>A list of directors for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{writers}</strong></td>
+                                <td>A list of writers for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{actors}</strong></td>
+                                <td>A list of actors for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{genres}</strong></td>
+                                <td>A list of genres for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{summary}</strong></td>
+                                <td>A short plot summary for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{tagline}</strong></td>
+                                <td>A tagline for the media item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{rating}</strong></td>
+                                <td>The rating (out of 10) for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{duration}</strong></td>
+                                <td>The duration (in minutes) for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{poster_url}</strong></td>
+                                <td>A URL for the movie, TV show, or album poster.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{plex_url}</strong></td>
+                                <td>The Plex URL to your server for the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{imdb_id}</strong></td>
+                                <td>
+                                    The IMDB ID for the movie. <span class="small-muted">(e.g. tt2488496)</span>
+                                    <p class="small-muted">(PMS agent must be Plex Movie)</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>{imdb_url}</strong></td>
+                                <td>
+                                    The IMDB URL for the movie.
+                                    <p class="small-muted">(PMS agent must be Plex Movie)</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>{thetvdb_id}</strong></td>
+                                <td>
+                                    The TVDB ID for the TV show. <span class="small-muted">(e.g. 121361)</span>
+                                    <p class="small-muted">(PMS agent must be TheTVDB)</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>{thetvdb_url}</strong></td>
+                                <td>
+                                    The TVDB URL for the TV show.
+                                    <p class="small-muted">(PMS agent must be TheTVDB)</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>{themoviedb_id}</strong></td>
+                                <td>
+                                    The TMDb ID for the movie or TV show. <span class="small-muted">(e.g. 15260)</span>
+                                    <p class="small-muted">(PMS agent must be The Movie Database)</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>{themoviedb_url}</strong></td>
+                                <td>
+                                    The TMDb URL for the movie or TV show.
+                                    <p class="small-muted">(PMS agent must be The Movie Database)</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>{lastfm_url}</strong></td>
+                                <td>
+                                    The Last.fm URL for the album.
+                                    <p class="small-muted">(PMS agent must be Last.fm)</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>{trakt_url}</strong></td>
+                                <td>The trakt.tv URL for the movie or TV show.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{file}</strong></td>
+                                <td>The file path to the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{file_size}</strong></td>
+                                <td>The file size of the item.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{section_id}</strong></td>
+                                <td>The unique identifier for the library.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{rating_key}</strong></td>
+                                <td>The unique identifier for the movie, episode, or track.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{parent_rating_key}</strong></td>
+                                <td>The unique identifier for the season or album.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{grandparent_rating_key}</strong></td>
+                                <td>The unique identifier for the TV show or artist.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params">
+                        <thead>
+                            <tr>
+                                <th colspan="2">
+                                    Plex Update Available
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>{update_version}</strong></td>
+                                <td>The available update version for your Plex Server.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{update_url}</strong></td>
+                                <td>The download URL for the available update.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{update_release_date}</strong></td>
+                                <td>The release date of the available update.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{update_channel}</strong></td>
+                                <td>The update channel. <span class="small-muted">(Public or Plex Pass)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{update_platform}</strong></td>
+                                <td>The platform of your Plex Server.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{update_distro}</strong></td>
+                                <td>The distro of your Plex Server.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{update_distro_build}</strong></td>
+                                <td>The distro build of your Plex Server.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{update_requirements}</strong></td>
+                                <td>The requirements for the available update.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{update_extra_info}</strong></td>
+                                <td>Any extra info for the available update.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{update_changelog_added}</strong></td>
+                                <td>The added changelog for the available update.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{update_changelog_fixed}</strong></td>
+                                <td>The fixed changelog for the available update.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="notification-params">
+                        <thead>
+                            <tr>
+                                <th colspan="2">
+                                    PlexPy Update Available
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>{plexpy_update_version}</strong></td>
+                                <td>The available update version for PlexPy.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{plexpy_update_tar}</strong></td>
+                                <td>The tar download URL for the available update.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{plexpy_update_zip}</strong></td>
+                                <td>The zip download URL for the available update.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{plexpy_update_commit}</strong></td>
+                                <td>The commit hash for the available update.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{plexpy_update_behind}</strong></td>
+                                <td>The number of commits behind for the available update.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{plexpy_update_changelog}</strong></td>
+                                <td>The changelog for the available update.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+<div id="notify-text-tags-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notify-text-tags-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Notification Exclusion Tags</h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <div>
+                        <h4>Movie Tag</h4>
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <p class="help-block">All text inside <span class="inline-pre">&lt;movie&gt;&lt;/movie&gt;</span> tags will only be sent when the media item is a movie.</p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{title} &lt;movie&gt;({year})&lt;/movie&gt; was recently added to Plex</pre>
+                    </div>
+                    <div>
+                        <h4>Show / Season / Episode Tags</h4>
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <p class="help-block">
+                            All text inside <span class="inline-pre">&lt;show&gt;&lt;/show&gt;</span>/<span class="inline-pre">&lt;season&gt;&lt;/season&gt;</span>/<span class="inline-pre">&lt;episode&gt;&lt;/episode&gt;</span>
+                            tags will only be sent when the media item is a show/season/episode.
+                        </p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{show_name}&lt;season&gt; - Season {season_num}&lt;/season&gt;&lt;episode&gt; - S{season_num}E{episode_num} - {episode_name}&lt;/episode&gt; was recently added to Plex.</pre>
+                    </div>
+                    <div>
+                        <h4>Artist / Album / Track Tag</h4>
+                    </div>
                     <div>
                         <p class="help-block">
-                            This will attempt to fetch a new Plex.tv token for you. PlexPy does not store your username and password.
-                            Note: This will not work on Internet Explorer 9 or lower.
+                            All text inside <span class="inline-pre">&lt;artist&gt;&lt;/artist&gt;</span>/<span class="inline-pre">&lt;album&gt;&lt;/album&gt;</span>/<span class="inline-pre">&lt;track&gt;&lt;/track&gt;</span>
+                            tags will only be sent when the media item is an artist/album/track.
                         </p>
-                        <div class="form-group">
-                            <label for="pms_username">Plex.tv Username</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="pms_username" name="pms_username" size="30">
-                                </div>
-                            </div>
-                            <p class="help-block">Username for Plex.tv authentication.</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="pms_password">Plex.tv Password</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="password" class="form-control" id="pms_password" name="pms_password" size="30">
-                                </div>
-                            </div>
-                            <p class="help-block">Password for Plex.tv authentication.</p>
-                        </div>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{artist_name}&lt;album&gt; - {album_name}&lt;/album&gt;&lt;track&gt; - {album_name} - {track_name}&lt;/track&gt; was recently added to Plex.</pre>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <div style="float: left;">
-                        <strong><span id="pms-token-status"></span></strong>
-                    </div>
-                    <input type="button" id="get-pms-auth-token" class="btn btn-bright" value="Fetch Token">
-                </div>
+            </div>
+            <div class="modal-footer">
             </div>
         </div>
     </div>
-    <div id="app-import-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="app-import-modal"></div>
-    <div id="notification-config-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notification-config-modal"></div>
-    <div id="notification-triggers-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notification-triggers-modal"></div>
-    <div id="notify-text-sub-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notify-text-sub-modal">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i
-                            class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Notification Parameters</h4>
-                </div>
-                <div class="modal-body">
-                    <div>
-                        <p class="help-block">
-                            If the value for a selected parameter cannot be provided, it will display as blank.
-                        </p>
-                        <table class="notification-params">
-                            <thead>
-                                <tr>
-                                    <th colspan="2">
-                                        Global
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>{server_name}</strong></td>
-                                    <td>The name of your Plex Server.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{server_uptime}</strong></td>
-                                    <td>The uptime (in days, hours, mins, secs) of your Plex Server.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{server_version}</strong></td>
-                                    <td>The current version of your Plex Server.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{action}</strong></td>
-                                    <td>The action that triggered the notification.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{datestamp}</strong></td>
-                                    <td>The date (in date format) the notification was triggered.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{timestamp}</strong></td>
-                                    <td>The time (in time format) the notification was triggered.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <table class="notification-params">
-                            <thead>
-                                <tr>
-                                    <th colspan="2">
-                                        Stream Details
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>{streams}</strong></td>
-                                    <td>The number of concurrent streams.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{user_streams}</strong></td>
-                                    <td>The number of concurrent streams by the person streaming.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{user}</strong></td>
-                                    <td>The friendly name of the person streaming.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{username}</strong></td>
-                                    <td>The username of the person streaming.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{platform}</strong></td>
-                                    <td>The type of client being used for playback.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{player}</strong></td>
-                                    <td>The name of the device being used for playback.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{ip_address}</strong></td>
-                                    <td>The IP address of the device being used for playback. <span class="small-muted">(PMS 0.9.14 and above)</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{stream_duration}</strong></td>
-                                    <td>The stream duration (in minutes) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{stream_time}</strong></td>
-                                    <td>The stream duration (in time format) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{remaining_duration}</strong></td>
-                                    <td>The remaining duration (in minutes) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{remaining_time}</strong></td>
-                                    <td>The remaining duration (in time format) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{progress_duration}</strong></td>
-                                    <td>The last reported offset (in minutes) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{progress_time}</strong></td>
-                                    <td>The last reported offset (in time format) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{progress_percent}</strong></td>
-                                    <td>The last reported progress percent for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{container}</strong></td>
-                                    <td>The media container of the original media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{video_codec}</strong></td>
-                                    <td>The video codec of the original media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{video_bitrate}</strong></td>
-                                    <td>The video bitrate of the original media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{video_width}</strong></td>
-                                    <td>The video width of the original media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{video_height}</strong></td>
-                                    <td>The video height of the original media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{video_resolution}</strong></td>
-                                    <td>The video resolution of the original media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{video_framerate}</strong></td>
-                                    <td>The video framerate of the original media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{aspect_ratio}</strong></td>
-                                    <td>The aspect ratio of the original media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{audio_codec}</strong></td>
-                                    <td>The audio codec of the original media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{audio_channels}</strong></td>
-                                    <td>The audio channels of the original media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{transcode_decision}</strong></td>
-                                    <td>The stream transcode decisions for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{video_decision}</strong></td>
-                                    <td>The video transcode decisions for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{audio_decision}</strong></td>
-                                    <td>The audio transcode decisions for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{transcode_container}</strong></td>
-                                    <td>The media container of the transcoded media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{transcode_video_codec}</strong></td>
-                                    <td>The video codec of the transcoded media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{transcode_video_width}</strong></td>
-                                    <td>The video width of the transcoded media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{transcode_video_height}</strong></td>
-                                    <td>The video height of the transcoded media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{transcode_audio_codec}</strong></td>
-                                    <td>The audio codec of the transcoded media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{transcode_audio_channels}</strong></td>
-                                    <td>The audio channels of the transcoded media.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{session_key}</strong></td>
-                                    <td>The unique identifier for the stream session.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{transcode_key}</strong></td>
-                                    <td>The unique identifier for the transcode session.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{user_id}</strong></td>
-                                    <td>The unique identifier for the user.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{machine_id}</strong></td>
-                                    <td>The unique identifier for the player.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <table class="notification-params">
-                            <thead>
-                                <tr>
-                                    <th colspan="2">
-                                        Metadata Details
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>{media_type}</strong></td>
-                                    <td>The type of media. <span class="small-muted">(movie, episode, track)</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{title}</strong></td>
-                                    <td>The full title of the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{library_name}</strong></td>
-                                    <td>The library title of the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{show_name}</strong></td>
-                                    <td>The title of the TV series.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{episode_name}</strong></td>
-                                    <td>The title of the episode.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{artist_name}</strong></td>
-                                    <td>The name of the artist.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{album_name}</strong></td>
-                                    <td>The title of the album.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{track_name}</strong></td>
-                                    <td>The title of the track.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{season_num}</strong></td>
-                                    <td>The season number for the episode.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{season_num00}</strong></td>
-                                    <td>The two digit season number.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{episode_num}</strong></td>
-                                    <td>The episode number for the episode.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{episode_num00}</strong></td>
-                                    <td>The two digit episode number.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{track_num}</strong></td>
-                                    <td>The track number for the track.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{track_num00}</strong></td>
-                                    <td>The two digit track number.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{year}</strong></td>
-                                    <td>The release year for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{release_date}</strong></td>
-                                    <td>The release date (in date format) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{air_date}</strong></td>
-                                    <td>The air date (in date format) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{added_date}</strong></td>
-                                    <td>The date (in date format) the item was added to Plex.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{updated_date}</strong></td>
-                                    <td>The date (in date format) the item was updated on Plex.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{last_viewed_date}</strong></td>
-                                    <td>The date (in date format) the item was last viewed on Plex.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{studio}</strong></td>
-                                    <td>The studio for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{content_rating}</strong></td>
-                                    <td>The content rating for the item. <span class="small-muted">(e.g. TV-MA, TV-PG, etc.)</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{directors}</strong></td>
-                                    <td>A list of directors for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{writers}</strong></td>
-                                    <td>A list of writers for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{actors}</strong></td>
-                                    <td>A list of actors for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{genres}</strong></td>
-                                    <td>A list of genres for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{summary}</strong></td>
-                                    <td>A short plot summary for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{tagline}</strong></td>
-                                    <td>A tagline for the media item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{rating}</strong></td>
-                                    <td>The rating (out of 10) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{duration}</strong></td>
-                                    <td>The duration (in minutes) for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{poster_url}</strong></td>
-                                    <td>A URL for the movie, TV show, or album poster.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{plex_url}</strong></td>
-                                    <td>The Plex URL to your server for the item.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{imdb_id}</strong></td>
-                                    <td>The IMDB ID for the movie. <span class="small-muted">(e.g. tt2488496)</span>
-                                    <p class="small-muted">(PMS agent must be Plex Movie)</p></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{imdb_url}</strong></td>
-                                    <td>The IMDB URL for the movie.
-                                    <p class="small-muted">(PMS agent must be Plex Movie)</p></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{thetvdb_id}</strong></td>
-                                    <td>The TVDB ID for the TV show. <span class="small-muted">(e.g. 121361)</span>
-                                    <p class="small-muted">(PMS agent must be TheTVDB)</p></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{thetvdb_url}</strong></td>
-                                    <td>The TVDB URL for the TV show.
-                                    <p class="small-muted">(PMS agent must be TheTVDB)</p></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{themoviedb_id}</strong></td>
-                                    <td>The TMDb ID for the movie or TV show. <span class="small-muted">(e.g. 15260)</span>
-                                    <p class="small-muted">(PMS agent must be The Movie Database)</p></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{themoviedb_url}</strong></td>
-                                    <td>The TMDb URL for the movie or TV show.
-                                    <p class="small-muted">(PMS agent must be The Movie Database)</p></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{lastfm_url}</strong></td>
-                                    <td>The Last.fm URL for the album.
-                                    <p class="small-muted">(PMS agent must be Last.fm)</p></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{trakt_url}</strong></td>
-                                    <td>The trakt.tv URL for the movie or TV show.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{section_id}</strong></td>
-                                    <td>The unique identifier for the library.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{rating_key}</strong></td>
-                                    <td>The unique identifier for the movie, episode, or track.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{parent_rating_key}</strong></td>
-                                    <td>The unique identifier for the season or album.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{grandparent_rating_key}</strong></td>
-                                    <td>The unique identifier for the TV show or artist.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <table class="notification-params">
-                            <thead>
-                                <tr>
-                                    <th colspan="2">
-                                        Plex Update Available
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>{update_version}</strong></td>
-                                    <td>The available update version for your Plex Server.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{update_url}</strong></td>
-                                    <td>The available update download URL.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{update_release_date}</strong></td>
-                                    <td>The release date of the update version.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{update_channel}</strong></td>
-                                    <td>The update channel. <span class="small-muted">(Public or Plex Pass)</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{update_platform}</strong></td>
-                                    <td>The platform of your Plex Server.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{update_distro}</strong></td>
-                                    <td>The distro of your Plex Server.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{update_distro_build}</strong></td>
-                                    <td>The distro build of your Plex Server.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{update_requirements}</strong></td>
-                                    <td>The requirements for the available update.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{update_extra_info}</strong></td>
-                                    <td>Any extra info for the available update.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{update_changelog_added}</strong></td>
-                                    <td>The added changelog for the available update.</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>{update_changelog_fixed}</strong></td>
-                                    <td>The fixed changelog for the available update.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer"></div>
+</div>
+<div id="notifier-text-preview-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notifier-text-preview-modal">
+</div>
+<div id="changelog-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Changelog</h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
             </div>
         </div>
     </div>
-    <div id="notify-text-tags-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notify-text-tags-modal">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Notification Exclusion Tags</h4>
+</div>
+<div id="restart-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="restart-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Restart</h4>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                    You have changed settings that require PlexPy to restart.<br />Click the restart button below to restart now.
                 </div>
-                <div class="modal-body">
-                    <div>
-                        <div>
-                            <h4>Movie Tag</h4>
-                        </div>
-                        <div style="padding-bottom: 10px;">
-                            <p class="help-block">All text inside <span class="inline-pre">&lt;movie&gt;&lt;/movie&gt;</span> tags will only be sent when the media item is a movie.</p>
-                            <p><strong style="color: #fff;">Example:</strong></p>
-                            <pre>{user} has started playing {title} &lt;movie&gt;({year})&lt;/movie&gt;</pre>
-                        </div>
-                        <div>
-                            <h4>TV Tag</h4>
-                        </div>
-                        <div style="padding-bottom: 10px;">
-                            <p class="help-block">All text inside <span class="inline-pre">&lt;tv&gt;&lt;/tv&gt;</span> tags will only be sent when the media item is an episode.</p>
-                            <p><strong style="color: #fff;">Example:</strong></p>
-                            <pre>{user} has started playing {title} &lt;tv&gt;(S{season_num}E{episode_num})&lt;/tv&gt;</pre>
-                        </div>
-                        <div>
-                            <h4>Music Tag</h4>
-                        </div>
-                        <div>
-                            <p class="help-block">All text inside <span class="inline-pre">&lt;music&gt;&lt;/music&gt;</span> tags will only be sent when the media item is a track.</p>
-                            <p><strong style="color: #fff;">Example:</strong></p>
-                            <pre>{user} has started playing {title} &lt;music&gt;(Track {track_num})&lt;/music&gt;</pre>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal_link_restart" class="btn btn-bright"><i class="fa fa-refresh"></i> Restart</button>
             </div>
         </div>
     </div>
-    <div id="changelog-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Changelog</h4>
-                </div>
-                <div class="modal-body">
-                    ${versioncheck.read_changelog() | n}
-                </div>
-                <div class="modal-footer">
-                </div>
+</div>
+<div id="api-qr-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="api-qr-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Link PlexPy Remote App</h4>
             </div>
-        </div>
-    </div>
-    <div id="restart-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="restart-modal">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Restart</h4>
-                </div>
-                <div class="modal-body">
-                    You have changed settings that require PlexPy to restart. Hit the restart button below to restart now.
-                </div>
-                <div class="modal-footer">
-                    <button id="modal_link_restart" class="btn btn-bright"><i class="fa fa-refresh"></i> Restart</button>
-                </div>
+            <div class="modal-body">
+                <label>Instructions</label>
+                <p class="help-block">
+                    Scan the QR code below with the PlexPy Remote app to automatically link it with the server.
+                </p>
+                <label>QR Code</label>
+                <pre id="api_qr_code" style="text-align: center"></pre>
+                <label>Encoded String</label>
+                <pre id="api_qr_string"></pre>
+                <p class="help-block" id="api_qr_private" style="display: none;">
+                    Note: This is a private IP address. PlexPy will not be reachable outside of your home network.
+                    Access PlexPy externally to generate the QR code for remote access.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Cancel">
             </div>
         </div>
     </div>
@@ -2135,6 +2101,7 @@
 <script src="${http_root}js/parsley.min.js"></script>
 <script src="${http_root}js/Sortable.min.js"></script>
 <script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/jquery.qrcode.min.js"></script>
 <script>
     function getConfigurationTable() {
         $.ajax({
@@ -2168,6 +2135,29 @@
         });
     }
 
+    function getNotifiersTable() {
+        $.ajax({
+            url: 'get_notifiers_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-notifiers-table").html(xhr.responseText);
+            }
+        });
+    }
+
+    function loadNotifierConfig(notifier_id) {
+        $.ajax({
+            url: 'get_notifier_config_modal',
+            data: { notifier_id: notifier_id },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#notifier-config-modal").html(xhr.responseText).modal('show');
+            }
+        });
+    }
+
 $(document).ready(function() {
 
     // Javascript to enable link to tab
@@ -2187,7 +2177,6 @@ $(document).ready(function() {
     serverChanged = false;
     authChanged = false;
     httpChanged = false;
-    monitorChanged = false;
     directoryChanged = false;
 
     // Alert if leaving the page without saving changes to settings
@@ -2200,12 +2189,13 @@ $(document).ready(function() {
 
     // Alert the user that their changes require a restart.
     function postSaveChecks() {
-        if ((serverChanged && $('#monitoring_use_websocket').is(":checked")) || authChanged || httpChanged || monitorChanged || directoryChanged) {
+        if (serverChanged || authChanged || httpChanged || directoryChanged) {
           $('#restart-modal').modal('show');
         }
         $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0)
         getConfigurationTable();
         getSchedulerTable();
+        getNotifiersTable();
         loadUpdateDistros();
         settingsChanged = false;
     }
@@ -2239,36 +2229,50 @@ $(document).ready(function() {
     initConfigCheckbox('#notify_upload_posters');
     initConfigCheckbox('#monitor_pms_updates');
     
-    $("#menu_link_shutdown").click(function() {
-        $("#confirm-message").text("Are you sure you want to shutdown PlexPy?");
+    $('#menu_link_shutdown').click(function() {
+        $('#confirm-message').text("Are you sure you want to shutdown PlexPy?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = "shutdown";
+            window.location.href = 'shutdown';
         });
     });
 
-    $("#menu_link_restart").click(function() {
+    $('#menu_link_restart').click(function() {
         $("#confirm-message").text("Are you sure you want to restart PlexPy?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = "restart";
+            window.location.href = 'restart';
         });
     });
 
-    $("#menu_link_update_check").click(function() {
+    $('#menu_link_update_check').click(function() {
         // Allow the update bar to show again if previously dismissed.
         setCookie('updateDismiss', 'true', 0);
         $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking');
         $(this).prop('disabled', true);
-        window.location.href = "checkGithub";
+        window.location.href = 'checkGithub';
     });
 
-    $("#modal_link_restart").click(function() {
-        window.location.href = "restart";
+    $('#modal_link_restart').click(function() {
+        window.location.href = 'restart';
     });
 
     getConfigurationTable();
     getSchedulerTable();
+    getNotifiersTable();
+
+    $('#changelog-modal-link').on('click', function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: 'get_changelog',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#changelog-modal .modal-body").html(xhr.responseText);
+                $('#changelog-modal').modal();
+            }
+        });
+    });
 
     $("#backup_config").click(function () {
         var msg = 'Are you sure you want to create a backup of the PlexPy config?';
@@ -2306,6 +2310,26 @@ $(document).ready(function() {
         confirmAjaxCall(url, msg);
     });
 
+    $("#switch_git_branch").click(function () {
+        var current_remote = "${config['git_remote']}";
+        var current_branch = "${config['git_branch']}";
+        var new_remote = $("#git_remote").val();
+        var new_branch = $("#git_branch option:selected").val();
+
+        if (new_remote === current_remote && new_branch === current_branch) {
+            showMsg('<i class="fa fa-exclamation-circle"></i> Already on the ' + current_remote + ' ' + current_branch + ' branch.', false, true, 5000, true)
+        } else {
+            var msg = 'Are you sure you want to switch to the <strong>' + new_remote + ' ' + new_branch + '</strong> branch?' +
+                '<br />Switching branches may cause PlexPy to become unstable.<br /><br />PlexPy will restart.';
+            $('#confirm-message').html(msg);
+            $('#confirm-modal').modal();
+            $('#confirm-modal').one('click', '#confirm-button', function () {
+                settingsChanged = false;
+                window.location.href = 'checkout_git_branch?git_remote=' + new_remote + '&git_branch=' + new_branch;
+            });
+        }
+    });
+
     $('#api_key').click(function(){ $('#api_key').select() });
     $("#generate_api").click(function() {
         $.get('generateAPI',
@@ -2324,10 +2348,6 @@ $(document).ready(function() {
 
     $( ".auth-settings" ).change(function() {
         authChanged = true;
-    });
-
-    $( ".monitor-settings" ).change(function() {
-        monitorChanged = true;
     });
 
     $( ".directory-settings" ).change(function() {
@@ -2441,87 +2461,9 @@ $(document).ready(function() {
         });
     });
 
-    // Load notification agent config modal
-    $(".toggle-notification-config-modal").click(function() {
-        var agent_id = $(this).data('id');
-        $.ajax({
-            url: 'get_notification_agent_config',
-            data: { agent_id: agent_id },
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#notification-config-modal").html(xhr.responseText);
-            }
-        });
-    });
-
-    // Load notification triggers config modal
-    $(".toggle-notification-triggers-modal").click(function() {
-        var agent_id = $(this).data('id');
-        $.ajax({
-            url: 'get_notification_agent_triggers',
-            data: { agent_id: agent_id },
-            cache: false,
-            async: true,
-            complete: function(xhr, status) {
-                $("#notification-triggers-modal").html(xhr.responseText);
-            }
-        });
-    });
-
-    $('#osxnotifyregister').click(function () {
-        var osx_notify_app = $("#osx_notify_reg").val();
-        $.get("/osxnotifyregister", { 'app': osx_notify_app }, function (data) { showMsg("<div class='msg'><span class='fa fa-check'></span>" + data + "</div>", false, true, 3000); });
-    })
-
     pms_version = false;
     pms_logs_debug = false;
     pms_logs = false;
-
-    // Checks to see if PMS server version is >= 0.9.14 with automaatically logged IP addresses
-    var version = parseInt($.map("${config['pms_version']}".split('-')[0].split('.').slice(0,4), function(v) { return ('0000'+v).substring(v.length); }).join(""));
-    if (version > 900140000) {
-        $("#debugLogCheck").html("IP address is automatically logged for PMS version 0.9.14 and above.");
-        $("#ip_logging_enable").attr("disabled", true);
-        $("#ip_logging_enable").attr("checked", true);
-        pms_version = true;
-        checkLogsPath();
-    } else {
-        // Check to see if debug logs are enabled on the PMS.
-        $.ajax({
-            url: 'get_server_pref',
-            data: { pref: 'logDebug' },
-            async: true,
-            success: function(data) {
-                pms_logs_debug = (data == 'true' ? true : false);
-                // Check to see if our logs folder is set before allowing IP logging to be enabled.
-                checkLogsPath();
-            }
-        });
-    }
-
-    $("#pms_logs_folder").change(function() {
-        checkLogsPath();
-    });
-
-    function checkLogsPath() {
-        pms_logs = ($("#pms_logs_folder").val() == '' ? false : true);
-        // Toggle IP logging checkbox depending on debug logs, and logs path
-        if (!(pms_version)) {
-            if (pms_logs_debug && pms_logs) {
-                $("#ip_logging_enable").attr("disabled", false);
-                $("#debugLogCheck").html("");
-            } else if (!(pms_logs_debug)) {
-                $("#debugLogCheck").html("Debug logging must be enabled on your Plex Server. <a target='_blank' href='${anon_url('https://support.plex.tv/hc/en-us/articles/201643703-Reporting-issues-with-Plex-Media-Server')}'>Click here</a> for help.");
-                $("#ip_logging_enable").attr("disabled", true);
-                $("#ip_logging_enable").attr("checked", false);
-            } else {
-                $("#debugLogCheck").html("You must first define your Plex Server Logs folder path under the Plex Media Server tab.");
-                $("#ip_logging_enable").attr("disabled", true);
-                $("#ip_logging_enable").attr("checked", false);
-            }
-        }
-    }
 
     $.ajax({
         url: 'get_server_pref',
@@ -2535,10 +2477,6 @@ $(document).ready(function() {
             }
         }
     });
-
-    var accordion_session = new Accordion($('#accordion-session'), false);
-    var accordion_timeline = new Accordion($('#accordion-timeline'), false);
-    var accordion_scripts = new Accordion($('#accordion-scripts'), false);
 
     // Sortable home_sections
     function set_home_sections() {
@@ -2637,21 +2575,6 @@ $(document).ready(function() {
         }
     });
 
-
-    // auto resizing textarea for custom notification message body
-    $('textarea[data-autoresize]').each(function() {
-        var offset = this.offsetHeight - this.clientHeight;
-        var resizeTextarea = function(el) {
-            $(el).css('height', 'auto').css('height', el.scrollHeight + offset);
-        };
-        $(this).on('focus keyup input', function() { resizeTextarea(this); }).removeAttr('data-autoresize');
-    });
-
-    $("#notify_recently_added_grandparent").change(function () {
-        var c = this.checked ? '#eb8600' : '#737373';
-        $('#notify_recently_added_grandparent_note').css('color', c);
-    });
-
     function allowGuestAccessCheck () {
         if ($("#http_basic_auth").is(":checked")) {
             $("#allow_guest_access").attr("disabled", true);
@@ -2747,6 +2670,71 @@ $(document).ready(function() {
     $('#pms_update_distro_build').change(function () {
         var distro = $("option:selected", this).data('distro')
         $('#pms_update_distro').val(distro)
+    });
+
+    // Add a new notification agent
+    $('.new-notification-agent').click(function () {
+        $.ajax({
+            url: 'add_notifier_config',
+            data: { agent_id: $(this).data('id') },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                var result = $.parseJSON(xhr.responseText);
+                var msg = result.message;
+                $('#add-notifier-modal').modal('hide');
+                if (result.result == 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
+                    loadNotifierConfig(result.notifier_id);
+                } else {
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
+                }
+                getNotifiersTable();
+            }
+        });
+    });
+
+    function apiEnabled() {
+        var api_enabled = $('#api_enabled').prop('checked');
+        $('#generate_qr').prop('disabled', !(api_enabled));
+        $('#generate_qr_msg').toggle(!(api_enabled));
+    }
+    apiEnabled();
+    $('#api_enabled').click(function () {
+        apiEnabled();
+    });
+
+    getPlexPyURL = function () {
+        var deferred = $.Deferred();
+        if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+            deferred.resolve(location.href.split('/settings')[0]);
+        } else {
+            $.get('get_plexpy_url').then(function (url) {
+                deferred.resolve(url);
+            })
+        }
+        return deferred;
+    }
+
+    $('#generate_qr').click(function () {
+        getPlexPyURL().then(function (url) {
+            var parser = document.createElement('a');
+            parser.href = url;
+            isPrivateIP(parser.hostname).then(function (valid) {
+                $('#api_qr_private').toggle((valid !== 'n/a'));
+            });
+
+            var encoded_string = url + '|' + $('#api_key').val();
+            $('#api_qr_string').html(encoded_string);
+            $('#api_qr_code').empty().qrcode({
+                text: encoded_string
+            });
+        });
+    });
+
+    $("a[data-tab-destination]").click(function () {
+        var tab = $(this).data('tab-destination');
+        $("a[href=#" + tab + "]").click();
     });
 });
 </script>

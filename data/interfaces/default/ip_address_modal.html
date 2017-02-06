@@ -14,7 +14,12 @@
         </div>
         <div class="modal-body" id="modal-text">
             <div class="col-sm-12">
-                <h4><strong>Location Details</strong><span id="ip_loading" style="padding-left: 5px;"><i class="fa fa-refresh fa-spin"></i></span></h4>
+                <h4>
+                    <strong>Location Details</strong>
+                    % if data:
+                    <span id="ip_loading" style="padding-left: 5px;"><i class="fa fa-refresh fa-spin"></i></span>
+                    % endif
+                </h4>
             </div>
             <div id="ip_error" class="col-sm-12 text-muted"></div>
             <div class="col-sm-6">
@@ -35,7 +40,12 @@
                 </ul>
             </div>
             <div class="col-sm-12">
-                <h4><strong>Connection Details</strong><span id="isp_loading" style="padding-left: 5px;"><i class="fa fa-refresh fa-spin"></i></span></h4>
+                <h4>
+                    <strong>Connection Details</strong>
+                    % if data:
+                    <span id="isp_loading" style="padding-left: 5px;"><i class="fa fa-refresh fa-spin"></i></span>
+                    % endif
+                </h4>
             </div>
             <div id="isp_error" class="col-sm-12 text-muted"></div>
             <div class="col-sm-12">

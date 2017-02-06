@@ -104,11 +104,11 @@
                         <thead>
                             <tr>
                                 <th align="left" id="notification_timestamp">Timestamp</th>
+                                <th align="left" id="notification_notifier_id">Notifier ID</th>
                                 <th align="left" id="notification_agent_name">Agent</th>
-                                <th align="left" id="notification_action">Action</th>
-                                <th align="left" id="notification_poster_url">Subject Text</th>
-                                <th align="left" id="notification_poster_url">Body Text</th>
-                                <th align="left" id="notification_poster_url">Script Args</th>
+                                <th align="left" id="notification_notify_action">Action</th>
+                                <th align="left" id="notification_subject_text">Subject Text</th>
+                                <th align="left" id="notification_body_text">Body Text</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -130,8 +130,6 @@
                         <tbody></tbody>
                     </table>
                 </div>
-                <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
-                </div>
             </div>
         </div>
     </div>
@@ -149,6 +147,11 @@
         <option value="300">5 Minutes</option>
         <option value="600">10 Minutes</option>
     </select>
+</div>
+</%def>
+
+<%def name="modalIncludes()">
+<div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
 </div>
 </%def>
 

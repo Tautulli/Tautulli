@@ -92,14 +92,14 @@ class PublicIPFilter(logging.Filter):
             # Currently only checking for ipv4 addresses
             ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})', record.msg)
             for ip in ipv4:
-                if helpers.is_ip_public(ip):
+                if helpers.is_public_ip(ip):
                     record.msg = record.msg.replace(ip, ip.partition('.')[0] + '.***.***.***')
 
             args = []
             for arg in record.args:
                 ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})', arg) if isinstance(arg, basestring) else []
                 for ip in ipv4:
-                    if helpers.is_ip_public(ip):
+                    if helpers.is_public_ip(ip):
                         arg = arg.replace(ip, ip.partition('.')[0] + '.***.***.***')
                 args.append(arg)
             record.args = tuple(args)

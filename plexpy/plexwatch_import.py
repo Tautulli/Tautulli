@@ -270,14 +270,6 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
 
     logger.debug(u"PlexPy Importer :: PlexWatch data import in progress...")
 
-    logger.debug(u"PlexPy Importer :: Disabling monitoring while import in progress.")
-    plexpy.schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
-                        hours=0, minutes=0, seconds=0)
-    plexpy.schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-                        hours=0, minutes=0, seconds=0)
-    plexpy.schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
-                        hours=0, minutes=0, seconds=0)
-
     ap = activity_processor.ActivityProcessor()
     user_data = users.Users()
 
@@ -422,9 +414,6 @@ def import_from_plexwatch(database=None, table_name=None, import_ignore_interval
 
     logger.debug(u"PlexPy Importer :: PlexWatch data import complete.")
     import_users()
-
-    logger.debug(u"PlexPy Importer :: Re-enabling monitoring.")
-    plexpy.initialize_scheduler()
 
 def import_users():
     logger.debug(u"PlexPy Importer :: Importing PlexWatch Users...")
