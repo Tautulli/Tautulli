@@ -1719,11 +1719,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def get_ip_address_details(self, ip_address=None, **kwargs):
-        import socket
-
-        try:
-            socket.inet_aton(ip_address)
-        except socket.error:
+        if not helpers.is_valid_ip(ip_address):
             ip_address = None
 
         return serve_template(templatename="ip_address_modal.html", title="IP Address Details", data=ip_address)

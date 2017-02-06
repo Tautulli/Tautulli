@@ -2720,7 +2720,9 @@ $(document).ready(function() {
         getPlexPyURL().then(function (url) {
             var parser = document.createElement('a');
             parser.href = url;
-            $('#api_qr_private').toggle(isPrivateIP(parser.hostname));
+            isPrivateIP(parser.hostname).then(function (valid) {
+                $('#api_qr_private').toggle((valid !== 'n/a'));
+            });
 
             var encoded_string = url + '|' + $('#api_key').val();
             $('#api_qr_string').html(encoded_string);

@@ -502,27 +502,31 @@ def sanitize(string):
     else:
         return ''
 
-def is_ip_public(host):
-    ip_address = get_ip(host)
-    ip = IP(ip_address)
-    if ip.iptype() == 'PUBLIC':
+def is_public_ip(host):
+    ip = is_valid_ip(get_ip(host))
+    if ip and ip.iptype() == 'PUBLIC':
         return True
-
     return False
 
 def get_ip(host):
     ip_address = ''
-    try:
-        socket.inet_aton(host)
-        ip_address = host
-    except socket.error:
+    if is_valid_ip(host):
+        return host
+    else:
         try:
-            ip_address = socket.gethostbyname(host)
+            ip_address = socket.getaddrinfo(host, None)[0][4][0]
             logger.debug(u"IP Checker :: Resolved %s to %s." % (host, ip_address))
         except:
             logger.error(u"IP Checker :: Bad IP or hostname provided.")
-
     return ip_address
+
+def is_valid_ip(address):
+    try:
+        return IP(address)
+    except TypeError:
+        return False
+    except ValueError:
+        return False
 
 def install_geoip_db():
     maxmind_url = 'http://geolite.maxmind.com/download/geoip/database/'
