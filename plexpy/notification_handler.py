@@ -599,8 +599,8 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         pattern = re.compile(all_tags, re.IGNORECASE | re.DOTALL)
 
     # Remove the unwanted tags and strip any unmatch tags too.
-    subject = strip_tag(re.sub(pattern, '', subject), agent_id)
-    body = strip_tag(re.sub(pattern, '', body), agent_id)
+    subject = strip_tag(re.sub(pattern, '', subject), agent_id).strip(' \t\n\r')
+    body = strip_tag(re.sub(pattern, '', body), agent_id).strip(' \t\n\r')
 
     if test:
         return subject, body
