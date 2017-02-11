@@ -2080,8 +2080,10 @@ class PUSHBULLET(Notifier):
         http_handler = HTTPSConnection("api.pushbullet.com")
         http_handler.request("POST",
                              "/v2/pushes",
-                             headers={'Content-type': "application/json",
-                             'Authorization': 'Basic %s' % base64.b64encode(self.config['apikey'] + ":")},
+                             headers={
+                                 'Content-type': "application/json",
+                                 'Access-Token': self.config['apikey']
+                                 },
                              body=json.dumps(data))
         response = http_handler.getresponse()
         request_status = response.status
@@ -2099,9 +2101,12 @@ class PUSHBULLET(Notifier):
     def get_devices(self):
         if self.config['apikey']:
             http_handler = HTTPSConnection("api.pushbullet.com")
-            http_handler.request("GET", "/v2/devices",
-                                 headers={'Content-type': "application/json",
-                                 'Authorization': 'Basic %s' % base64.b64encode(self.config['apikey'] + ":")})
+            http_handler.request("GET",
+                                 "/v2/devices",
+                                 headers={
+                                     'Content-type': "application/json",
+                                     'Access-Token': self.config['apikey']
+                                     })
 
             response = http_handler.getresponse()
             request_status = response.status
