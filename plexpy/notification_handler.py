@@ -801,6 +801,7 @@ def build_notify_text(session=None, timeline=None, notify_action=None, agent_id=
                         'transcode_audio_channels': session.get('transcode_audio_channels',''),
                         'session_key': session.get('session_key',''),
                         'transcode_key': session.get('transcode_key',''),
+                        'session_id': session.get('session_id',''),
                         'user_id': session.get('user_id',''),
                         'machine_id': session.get('machine_id',''),
                         # Metadata parameters

@@ -38,6 +38,7 @@ class ActivityProcessor(object):
         if session:
             values = {'session_key': session['session_key'],
                       'transcode_key': session['transcode_key'],
+                      'session_id': session['session_id'],
                       'section_id': session['section_id'],
                       'rating_key': session['rating_key'],
                       'media_type': session['media_type'],
