@@ -1050,6 +1050,10 @@ def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()
     SCHED.shutdown(wait=False)
 
+    # Stop the notification threads
+    for i in range(CONFIG.NOTIFICATION_THREADS):
+        NOTIFY_QUEUE.put(None)
+
     CONFIG.write()
 
     if not restart and not update and not checkout:

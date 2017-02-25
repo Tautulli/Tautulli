@@ -41,16 +41,21 @@ def process_queue():
     queue = plexpy.NOTIFY_QUEUE
     while True:
         params = queue.get()
-        if params:
+        
+        if params is None:
+            break
+        elif params:
             if 'notifier_id' in params:
                 notify(**params)
             else:
                 add_notifier_each(**params)
         queue.task_done()
 
+    logger.info(u"PlexPy NotificationHandler :: Notification thread exiting...")
+
 
 def start_threads(num_threads=1):
-    logger.info(u"PlexPy NotificationHandler :: Starting background notification handler.")
+    logger.info(u"PlexPy NotificationHandler :: Starting background notification handler ({} threads).".format(num_threads))
     for x in range(num_threads):
         thread = threading.Thread(target=process_queue)
         thread.daemon = True
