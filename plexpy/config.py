@@ -62,7 +62,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_UPDATE_DISTRO': (str, 'PMS', ''),
     'PMS_UPDATE_DISTRO_BUILD': (str, 'PMS', ''),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
-    'ANON_REDIRECT': (str, 'General', 'http://dereferer.org/?'),
+    'ANON_REDIRECT': (str, 'General', 'http://www.nullrefer.com/?'),
     'API_ENABLED': (int, 'General', 0),
     'API_KEY': (str, 'General', ''),
     'API_SQL': (int, 'General', 0),

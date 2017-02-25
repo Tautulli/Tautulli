@@ -44,10 +44,11 @@
                 <li role="presentation"><a href="#tabs-access_control" aria-controls="tabs-access_control" role="tab" data-toggle="tab">Access Control</a></li>
                 <li role="presentation"><a href="#tabs-plex_media_server" aria-controls="tabs-plex_media_server" role="tab" data-toggle="tab">Plex Media Server</a></li>
                 <li role="presentation"><a href="#tabs-plextv_account" aria-controls="tabs-plextv_account" role="tab" data-toggle="tab">Plex.tv Account</a></li>
-                <li role="presentation"><a href="#tabs-extra_settings" aria-controls="tabs-extra_settings" role="tab" data-toggle="tab">Extra Settings</a></li>
                 <li role="presentation"><a href="#tabs-activity_monitoring" aria-controls="tabs-activity_monitoring" role="tab" data-toggle="tab">Activity Monitoring</a></li>
                 <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications</a></li>
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
+                <li role="presentation"><a href="#tabs-extra_settings" aria-controls="tabs-extra_settings" role="tab" data-toggle="tab">Extra Settings</a></li>
+                <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
                 <li role="presentation"><a href="#tabs-remote_app" aria-controls="tabs-remote_app" role="tab" data-toggle="tab">PlexPy Remote App</a></li>
             </ul>
         </div>
@@ -76,36 +77,11 @@
                         </div>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-general">
-                        <div class="padded-header">
-                            <h3>Updates</h3>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
-                            </label>
-                            <p class="help-block">Check for PlexPy updates periodically.</p>
-                        </div>
-                        <div id="git_update_options">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" id="plexpy_auto_update" name="plexpy_auto_update" value="1" ${config['plexpy_auto_update']}> Update Automatically
-                                </label>
-                                <p class="help-block">Update PlexPy automatically if an update is available when checking for updates.</p>
-                            </div>
-                            <div class="form-group">
-                                <label for="git_token">GitHub API Token</label>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <input type="text" class="form-control" id="git_token" name="git_token" value="${config['git_token']}" data-parsley-trigger="change">
-                                    </div>
-                                </div>
-                                <p class="help-block">Optional: Use your own GitHub API token when checking for updates.
-                            </div>
-                        </div>
 
                         <div class="padded-header">
                             <h3>Display Settings</h3>
                         </div>
+
                         <div class="form-group">
                             <label for="date_format">Date Format</label>
                             <div class="row">
@@ -148,74 +124,39 @@
                         </div>
 
                         <div class="padded-header">
-                            <h3>Backup</h3>
-                        </div>
-                        <div class="form-group">
-                            <label for="backup_interval">Backup Interval</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="backup_interval" name="backup_interval" value="${config['backup_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#backup_interval_error" required>
-                                </div>
-                                <div id="backup_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">The interval (in hours) PlexPy will backup the database and configuration file. Minimum 1, maximum 24, default 6.</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="backup_interval">Backup Days</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="backup_days" name="backup_days" value="${config['backup_days']}" size="5" data-parsley-min="1" data-parsley-trigger="change" data-parsley-errors-container="#backup_days_error" required>
-                                </div>
-                                <div id="backup_days_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">
-                                The number of days to keep scheduled backups. Minimum 1, default 3.<br />
-                                Note: Manual backups are not removed automatically.
-                            </p>
+                            <h3>Updates</h3>
                         </div>
 
-                        <div class="padded-header">
-                            <h3>Directories</h3>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
+                            </label>
+                            <p class="help-block">Check for PlexPy updates periodically.</p>
                         </div>
-                        <div class="form-group">
-                            <label for="backup_dir">Backup Directory</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}">
-                                    <div class="btn-group">
-                                        <button class="btn btn-form" type="button" id="backup_config">Backup Config</button>
-                                        <button class="btn btn-form" type="button" id="backup_database">Backup Database</button>
-                                    </div>
-                                </div>
+                        <div id="git_update_options">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" id="plexpy_auto_update" name="plexpy_auto_update" value="1" ${config['plexpy_auto_update']}> Update Automatically
+                                </label>
+                                <p class="help-block">Update PlexPy automatically if an update is available.</p>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="cache_dir">Cache Directory</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}">
-                                    <div class="btn-group">
-                                        <button class="btn btn-form" type="button" id="clear_cache">Clear All Cache</button>
-                                        <button class="btn btn-form" type="button" id="clear_image_cache">Clear Image Cache</button>
+                            <div class="form-group">
+                                <label for="git_token">GitHub API Token</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="git_token" name="git_token" value="${config['git_token']}" data-parsley-trigger="change">
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="log_dir">Log Directory</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
-                                    <div class="btn-group">
-                                        <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
-                                    </div>
-                                </div>
+                                <p class="help-block">Optional: Use your own GitHub API token when checking for updates.
                             </div>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
                     </div>
+
                     <div role="tabpanel" class="tab-pane" id="tabs-homepage">
+
                         <div class="padded-header">
                             <h3>Sections</h3>
                         </div>
@@ -380,10 +321,13 @@
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
                     </div>
+
                     <div role="tabpanel" class="tab-pane" id="tabs-web_interface">
+
                         <div class="padded-header">
                             <h3>Web Interface</h3>
                         </div>
+
                         <p class="help-block">Web interface changes require a restart.</p>
                         <div class="form-group">
                             <label for="http_host">HTTP Host</label>
@@ -482,12 +426,15 @@
                             </div>
                         </div>
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
                     </div>
+
                     <div role="tabpanel" class="tab-pane" id="tabs-access_control">
 
                         <div class="padded-header">
                             <h3>Authentication</h3>
                         </div>
+
                         <p class="help-block">Authentication changes require a restart.</p>
                         <div class="form-group">
                             <label for="http_username">HTTP Username</label>
@@ -528,6 +475,7 @@
                         <div class="padded-header">
                             <h3>Guest Access</h3>
                         </div>
+
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="allow_guest_access" name="allow_guest_access" value="1" ${config['allow_guest_access']}> Allow Guest Access to PlexPy
@@ -539,6 +487,7 @@
                         <div class="padded-header">
                             <h3>API</h3>
                         </div>
+
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" id="api_enabled" name="api_enabled" value="1" ${config['api_enabled']}> Enable API
@@ -563,12 +512,15 @@
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
                     </div>
+
                     <div role="tabpanel" class="tab-pane" id="tabs-plex_media_server">
 
                         <div class="padded-header">
                             <h3>Plex Media Server <small style="color: #fff;">Version <span id="pms_version">${config['pms_version']}</span></small></h3>
                         </div>
+
                         <p class="help-block">If you're using websocket monitoring, any server changes require a restart of PlexPy.</p>
                         <div class="checkbox">
                             <label>
@@ -670,6 +622,7 @@
                         <div class="padded-header">
                             <h3>Plex.tv Authentication</h3>
                         </div>
+
                         <div class="form-group">
                             <label for="pms_token">PMS Token</label>
                             <div class="row">
@@ -689,6 +642,7 @@
                         <div class="padded-header">
                             <h3>Friends List</h3>
                         </div>
+
                         <div class="form-group">
                             <label for="refresh_users_interval">Users List Refresh Interval</label>
                             <div class="row">
@@ -709,6 +663,7 @@
                         <div class="padded-header">
                             <h3>Libraries List</h3>
                         </div>
+
                         <div class="form-group">
                             <label for="refresh_libraries_interval">Libraries List Refresh Interval</label>
                             <div class="row">
@@ -727,125 +682,15 @@
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="tabs-extra_settings">
-                        % if plexpy.INSTALL_TYPE == 'git':
-                        <div class="padded-header">
-                            <h3>Git Settings</h3>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="git_branch">Git Remote / Branch</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="input-group git-group">
-                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
-                                        <select class="form-control" id="git_branch" name="git_branch">
-                                            % if config['git_branch'] == 'master':
-                                            <option value="master" selected>master</option>
-                                            <option value="dev">dev</option>
-                                            % elif config['git_branch'] == 'dev':
-                                            <option value="master">master</option>
-                                            <option value="dev" selected>dev</option>
-                                            % else:
-                                            <option value="master">master</option>
-                                            <option value="dev">dev</option>
-                                            <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
-                                            % endif
-                                        </select>
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form" type="button" id="switch_git_branch">Checkout Branch</button>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="help-block">The git tracking remote and branch (default "origin/master"). Select to switch the git branch (requires restart).</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="git_path">Git Path</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
-                                </div>
-                            </div>
-                            <p class="help-block">The path to your git environment variable. Leave blank for default.</p>
-                        </div>
-                        % endif
-
-                        <div class="padded-header">
-                            <h3>Extra Settings</h3>
-                        </div>
-
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="pms_use_bif" name="pms_use_bif" value="1" ${config['pms_use_bif']}> Use Video Preview Thumbnails (BIF)
-                            </label>
-                            <p class="help-block">If you have media indexing enabled on your server, use these on the activity pane.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
-                            </label>
-                            <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
-                            </label>
-                            <p class="help-block">
-                                Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
-                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
-                            </p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="cache_images" name="cache_images" value="1" ${config['cache_images']}> Cache Plex Images
-                            </label>
-                            <p class="help-block">
-                                Enable to cache images from Plex to reduce API calls and improve loading times.<br />
-                                Note: Video preview thumbnails (BIF) are not cached.
-                            </p>
-                        </div>
-                        <div class="form-group">
-                            <label for="anon_redirect">Anonymous Redirect</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
-                                </div>
-                            </div>
-                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
-                        </div>
-                        <div class="form-group">
-                            <label>Flush Temporary Sessions</label>
-                            <p class="help-block">
-                                Attempt to fix history logging by flushing out all of the temporary sessions in the database.<br />
-                                Warning: This will reset all currently active sessions. For emergency use only when history logging is stuck!
-                            </p>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="btn-group">
-                                        <button class="btn btn-form" type="button" id="delete_temp_sessions">Flush</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="padded-header">
-                            <h3>Database Import Tool</h3>
-                        </div>
-                        <p class="help-block">Click a button below to import an exisiting database from another app.</p>
-                        <div class="btn-group">
-                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexwatch">PlexWatch</button>
-                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexivity">Plexivity</button>
-                        </div>
-
-                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
-                    </div>
                     <div role="tabpanel" class="tab-pane" id="tabs-activity_monitoring">
 
                         <div class="padded-header">
                             <h3>Monitoring Settings</h3>
                         </div>
+
                         <div class="form-group">
                             <label for="monitoring_interval">Monitoring Interval</label>
                             <div class="row">
@@ -863,6 +708,7 @@
                         <div class="padded-header">
                             <h3>History Logging</h3>
                         </div>
+
                         <p class="help-block">Keep records of all movie, TV show, or music items played from your Plex Media Server.</p>
                         <div class="checkbox">
                             <label>
@@ -893,6 +739,7 @@
                         <div class="padded-header">
                             <h3>Buffer Warnings</h3>
                         </div>
+
                         <p class="help-block">Note: Buffer warnings only work on certain Plex clients. Android and Plex Web do not report buffer events accurately or at all.</p>
                         <div class="form-group">
                             <label for="buffer_threshold">Buffer Threshold</label>
@@ -916,12 +763,15 @@
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
                     </div>
+
                     <div role="tabpanel" class="tab-pane" id="tabs-notifications">
 
                         <div class="padded-header">
                             <h3>Global Notification Settings</h3>
                         </div>
+
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="movie_notify_enable" id="movie_notify_enable" value="1" ${config['movie_notify_enable']}> Enable Movie Notifications
@@ -1022,12 +872,15 @@
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
                     </div>
+
                     <div role="tabpanel" class="tab-pane" id="tabs-notification_agents">
 
                         <div class="padded-header">
                             <h3>Notification Agents</h3>
                         </div>
+
                         <p class="help-block">
                             Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
                         </p>
@@ -1036,12 +889,204 @@
                             <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
                             <br>
                         </div>
+
                     </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-extra_settings">
+
+                        <div class="padded-header">
+                            <h3>Extra Settings</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="pms_use_bif" name="pms_use_bif" value="1" ${config['pms_use_bif']}> Use Video Preview Thumbnails (BIF)
+                            </label>
+                            <p class="help-block">If you have media indexing enabled on your server, use these on the activity pane.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes <span style="color: #eb8600; padding-left: 10px;">[experimental]</span>
+                            </label>
+                            <p class="help-block">Enable if you want PlexPy to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
+                            </label>
+                            <p class="help-block">
+                                Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
+                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
+                            </p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="cache_images" name="cache_images" value="1" ${config['cache_images']}> Cache Plex Images
+                            </label>
+                            <p class="help-block">
+                                Enable to cache images from Plex to reduce API calls and improve loading times.<br />
+                                Note: Video preview thumbnails (BIF) are not cached.
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label for="anon_redirect">Anonymous Redirect</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Flush Temporary Sessions</label>
+                            <p class="help-block">
+                                Attempt to fix history logging by flushing out all of the temporary sessions in the database.<br />
+                                Warning: This will reset all currently active sessions. For emergency use only when history logging is stuck!
+                            </p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="delete_temp_sessions">Flush</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        % if plexpy.INSTALL_TYPE == 'git':
+                        <div class="padded-header">
+                            <h3>Git Settings</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="git_branch">Git Remote / Branch</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group git-group">
+                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change">
+                                        <select class="form-control" id="git_branch" name="git_branch">
+                                            % if config['git_branch'] == 'master':
+                                            <option value="master" selected>master</option>
+                                            <option value="dev">dev</option>
+                                            % elif config['git_branch'] == 'dev':
+                                            <option value="master">master</option>
+                                            <option value="dev" selected>dev</option>
+                                            % else:
+                                            <option value="master">master</option>
+                                            <option value="dev">dev</option>
+                                            <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
+                                            % endif
+                                        </select>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="switch_git_branch">Checkout Branch</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help-block">The git tracking remote and branch (default "origin/master"). Select to switch the git branch (requires restart).</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="git_path">Git Path</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">The path to your git environment variable. Leave blank for default.</p>
+                        </div>
+                        % endif
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-import_backups">
+
+                        <div class="padded-header">
+                            <h3>Database Import</h3>
+                        </div>
+
+                        <p class="help-block">Click a button below to import an exisiting database from another app.</p>
+                        <div class="btn-group">
+                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexwatch">PlexWatch</button>
+                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexivity">Plexivity</button>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Backup</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="backup_interval">Backup Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="backup_interval" name="backup_interval" value="${config['backup_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#backup_interval_error" required>
+                                </div>
+                                <div id="backup_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in hours) PlexPy will backup the database and configuration file. Minimum 1, maximum 24, default 6.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="backup_interval">Backup Days</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="backup_days" name="backup_days" value="${config['backup_days']}" size="5" data-parsley-min="1" data-parsley-trigger="change" data-parsley-errors-container="#backup_days_error" required>
+                                </div>
+                                <div id="backup_days_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                The number of days to keep scheduled backups. Minimum 1, default 3.<br />
+                                Note: Manual backups are not removed automatically.
+                            </p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Directories</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="backup_dir">Backup Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="backup_config">Backup Config</button>
+                                        <button class="btn btn-form" type="button" id="backup_database">Backup Database</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cache_dir">Cache Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_cache">Clear All Cache</button>
+                                        <button class="btn btn-form" type="button" id="clear_image_cache">Clear Image Cache</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="log_dir">Log Directory</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
                     <div role="tabpanel" class="tab-pane" id="tabs-remote_app">
 
                         <div class="padded-header">
                             <h3>PlexPy Remote App</h3>
                         </div>
+
                         <div class="form-group">
                             <label>Get the App</label>
                             <p class="help-block">
@@ -1053,7 +1098,7 @@
                         </div>
                         <div class="form-group">
                             <label>Link the App</label>
-                            <p class="help-block">Link the app to your server by scanning a QR code.</p>
+                            <p class="help-block">Link the app to your PlexPy server by scanning a QR code.</p>
                             <div class="btn-group" style="display: table-cell; vertical-align: middle;">
                                 <button class="btn btn-form" type="button" id="generate_qr" data-target="#api-qr-modal" data-toggle="modal">Generate QR Code</button>
                             </div>
@@ -2319,7 +2364,7 @@ $(document).ready(function() {
         if (new_remote === current_remote && new_branch === current_branch) {
             showMsg('<i class="fa fa-exclamation-circle"></i> Already on the ' + current_remote + ' ' + current_branch + ' branch.', false, true, 5000, true)
         } else {
-            var msg = 'Are you sure you want to switch to the <strong>' + new_remote + ' ' + new_branch + '</strong> branch?' +
+            var msg = 'Are you sure you want to switch to the <strong>' + new_remote + '/' + new_branch + '</strong> branch?' +
                 '<br />Switching branches may cause PlexPy to become unstable.<br /><br />PlexPy will restart.';
             $('#confirm-message').html(msg);
             $('#confirm-modal').modal();
