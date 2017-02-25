@@ -153,6 +153,13 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
         else:
             return False
     elif timeline_data:
+        library_data = libraries.Libraries()
+        library_details = library_data.get_details(section_id=timeline_data['section_id'])
+
+        if not library_details['do_notify_created']:
+            # logger.debug(u"PlexPy NotificationHandler :: Notifications for library '%s' is disabled." % library_details['section_name'])
+            return False
+
         return True
     else:
         return True
