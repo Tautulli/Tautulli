@@ -42,6 +42,11 @@
                     <input type="number" name="graph-days" id="graph-days" value="${config['graph_days']}" min="1" /> days
                 </label>
             </div>
+            <div class="btn-group" id="months-selection">
+                <label>
+                    <input type="number" name="graph-months" id="graph-months" value="${config['graph_months']}" min="1" /> months
+                </label>
+			</div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -226,7 +231,7 @@
             % endif
                 <div class="row">
                     <div class="col-md-12">
-                        <h4><i class="fa fa-calendar"></i> Plays by Month <small>Last 12 months</small></h4>
+                        <h4><i class="fa fa-calendar"></i> Plays by Month <small>Last <span class="months">12</span> months</small></h4>
                         <p class="help-block">
                             The combined total of tv, movies, and music by month.
                         </p>
@@ -318,9 +323,11 @@
         // Initial values for graph from config
         var yaxis = "${config['graph_type']}";
         var current_range = ${config['graph_days']};
+        var current_month_range = ${config['graph_months']};
         var current_tab = "${'#' + config['graph_tab']}";
         
         $('.days').html(current_range);
+        $('.months').html(current_month_range);
         
         // Load user ids and names (for the selector)
         $.ajax({
@@ -352,6 +359,7 @@
 
         function loadGraphsTab1(time_range, yaxis) {
             $('#days-selection').show();
+            $('#months-selection').hide();
 
             setGraphFormat(yaxis);
 
@@ -442,6 +450,7 @@
 
         function loadGraphsTab2(time_range, yaxis) {
             $('#days-selection').show();
+            $('#months-selection').hide();
 
             setGraphFormat(yaxis);
 
@@ -525,15 +534,16 @@
             });
         }
 
-        function loadGraphsTab3(yaxis) {
+        function loadGraphsTab3(time_range, yaxis) {
             $('#days-selection').hide();
+            $('#months-selection').show();
 
             setGraphFormat(yaxis);
 
             $.ajax({
                 url: "get_plays_per_month",
                 type: 'get',
-                data: { y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -549,7 +559,7 @@
         // Set initial state
         if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
         if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
-        if (current_tab == '#tabs-3') { loadGraphsTab3(yaxis); }
+        if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
 
         // Tab1 opened
         $('#graph-tabs a[href="#tabs-1"]').on('shown.bs.tab', function (e) {
@@ -579,7 +589,7 @@
         $('#graph-tabs a[href="#tabs-3"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
-            loadGraphsTab3(yaxis);
+            loadGraphsTab3(current_month_range, yaxis);
             $.ajax({
                 url: 'set_graph_config',
                 data: { graph_tab: current_tab.replace('#','') },
@@ -603,13 +613,29 @@
                 async: true
             });
         });
+        
+        // Month range changed
+        $('#graph-months').on('change', function() {
+            current_month_range = $(this).val();
+            if (current_month_range < 1) {
+                $(this).val(12);
+                current_month_range = 12;
+            }
+            if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
+            $('.months').html(current_month_range);
+            $.ajax({
+                url: 'set_graph_config',
+                data: { graph_months: current_month_range},
+                async: true
+            });
+        });
 
         // User changed
         $('#graph-user').on('change', function() {
             selected_user_id = $(this).val() || null;
             if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
             if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
-            if (current_tab == '#tabs-3') { loadGraphsTab3(yaxis); }
+            if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
         });
         
         // Y-axis changed
@@ -617,7 +643,7 @@
             yaxis = $('input[name=yaxis-options]:checked', '#yaxis-selection').val();
             if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
             if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
-            if (current_tab == '#tabs-3') { loadGraphsTab3(yaxis); }
+            if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range,yaxis); }
             $.ajax({
                 url: 'set_graph_config',
                 data: { graph_type: yaxis},

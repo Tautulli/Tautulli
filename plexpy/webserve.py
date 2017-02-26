@@ -1747,6 +1747,7 @@ class WebInterface(object):
         config = {
             "graph_type": plexpy.CONFIG.GRAPH_TYPE,
             "graph_days": plexpy.CONFIG.GRAPH_DAYS,
+            "graph_months": 12,
             "graph_tab": plexpy.CONFIG.GRAPH_TAB,
             "music_logging_enable": plexpy.CONFIG.MUSIC_LOGGING_ENABLE
         }
@@ -1755,13 +1756,15 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def set_graph_config(self, graph_type=None, graph_days=None, graph_tab=None, **kwargs):
+    def set_graph_config(self, graph_type=None, graph_days=None, graph_months=None, graph_tab=None, **kwargs):
         if graph_type:
             plexpy.CONFIG.__setattr__('GRAPH_TYPE', graph_type)
             plexpy.CONFIG.write()
         if graph_days:
             plexpy.CONFIG.__setattr__('GRAPH_DAYS', graph_days)
             plexpy.CONFIG.write()
+        if graph_months:
+            pass
         if graph_tab:
             plexpy.CONFIG.__setattr__('GRAPH_TAB', graph_tab)
             plexpy.CONFIG.write()
@@ -1908,7 +1911,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_per_month(self, y_axis='plays', user_id=None, **kwargs):
+    def get_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, **kwargs):
         """ Get graph data by month.
 
             ```
@@ -1916,7 +1919,7 @@ class WebInterface(object):
                 None
 
             Optional parameters:
-                time_range (str):       The number of days of data to return
+                time_range (str):       The number of months of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
 
@@ -1933,7 +1936,7 @@ class WebInterface(object):
             ```
         """
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_month(y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_per_month(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
             return result
