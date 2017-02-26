@@ -155,6 +155,22 @@ class PmsConnect(object):
 
         return request
 
+    def get_sessions_terminate(self, session_id='', reason='', output_format=''):
+        """
+        Return current sessions.
+
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
+        uri = '/status/sessions/terminate?sessionId=%s&reason=%s' % (session_id, reason)
+        request = self.request_handler.make_request(uri=uri,
+                                                    proto=self.protocol,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
     def get_metadata(self, rating_key='', output_format=''):
         """
         Return metadata for request item.
@@ -1359,6 +1375,21 @@ class PmsConnect(object):
         session_output.update(source_media_details)
 
         return session_output
+
+    def terminate_session(self, session_id='', message=''):
+        """
+        Terminates a streaming session.
+
+        Output: bool
+        """
+        message = message or 'The server owner has ended the stream.'
+
+        if session_id:
+            result = self.get_sessions_terminate(session_id=session_id, reason=urllib.quote_plus(message))
+            return result
+        else:
+            return False
+
 
     def get_item_children(self, rating_key=''):
         """

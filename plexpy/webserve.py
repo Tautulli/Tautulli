@@ -281,6 +281,33 @@ class WebInterface(object):
             return serve_template(templatename="current_activity_header.html", data=None)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def terminate_session(self, session_id=None, message=None, **kwargs):
+        """ Add a new notification agent.
+
+            ```
+            Required parameters:
+                session_id (str):           The id of the session to terminate
+                message (str):              A custom message to send to the client
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        pms_connect = pmsconnect.PmsConnect()
+        result = pms_connect.terminate_session(session_id=session_id, message=message)
+
+        if result:
+            return {'result': 'success', 'message': 'Session terminated.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to terminate session.'}
+
+    @cherrypy.expose
     @requireAuth()
     def home_stats(self, **kwargs):
         grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
