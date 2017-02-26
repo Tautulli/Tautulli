@@ -30,7 +30,7 @@ year                        Returns the year of the episode, movie, or clip.
 ip_address                  Returns the ip address of the stream.
 player                      Returns the name of the platform used to play the stream.
 platform                    Returns the type of platform used to play the stream.
-throttled                   Returns true if the transcode session is throttled.
+transcode_throttled         Returns true if the transcode session is throttled.
 transcode_progress          Returns the current transcode progress of the item. 0 to 100.
 transcode_speed             Returns the current transcode speed of the item.
 audio_decision              Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
@@ -138,7 +138,7 @@ DOCUMENTATION :: END
                             <span id="transcode-state-${data['session_key']}">
                                 % if data['video_decision'] == 'transcode' or data['audio_decision'] == 'transcode':
                                 Stream &nbsp;<strong>Transcode (Speed: ${data['transcode_speed']})
-                                    % if data['throttled'] == '1':
+                                    % if data['transcode_throttled'] == '1':
                                     (Throttled)
                                     % endif
                                     </strong>
@@ -148,7 +148,7 @@ DOCUMENTATION :: END
                                 Stream &nbsp;<strong>Direct Play</strong>
                                 % endif
                                 <br />
-                                % if data['video_decision'] and data['media_type'] != 'photo':
+                                % if data['media_type'] in ('movie', 'episode'):
                                     % if data['video_decision'] == 'transcode':
                                     Video &nbsp;<strong>Transcode (${data['transcode_video_codec']}) (${data['transcode_width']}x${data['transcode_height']})</strong>
                                     % elif data['video_decision'] == 'copy':
@@ -158,7 +158,7 @@ DOCUMENTATION :: END
                                     % endif
                                 <br />
                                 % endif
-                                % if data['audio_decision']:
+                                % if data['media_type'] in ('movie', 'episode', 'track'):
                                     % if data['audio_decision'] == 'transcode':
                                     Audio &nbsp;<strong>Transcode (${data['transcode_audio_codec']}) (${data['transcode_audio_channels']}ch)</strong>
                                     % elif data['audio_decision'] == 'copy':

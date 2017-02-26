@@ -3841,13 +3841,12 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_metadata")
-    def get_metadata_details(self, rating_key='', media_info=False, **kwargs):
+    def get_metadata_details(self, rating_key='', **kwargs):
         """ Get the metadata for a media item.
 
             ```
             Required parameters:
                 rating_key (str):       Rating key of the item
-                media_info (bool):      True or False whether to get media info
 
             Optional parameters:
                 None
@@ -3905,7 +3904,7 @@ class WebInterface(object):
             ```
         """
         pms_connect = pmsconnect.PmsConnect()
-        metadata = pms_connect.get_metadata_details(rating_key=rating_key, get_media_info=media_info)
+        metadata = pms_connect.get_metadata_details(rating_key=rating_key)
 
         if metadata:
             return metadata

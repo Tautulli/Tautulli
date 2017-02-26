@@ -543,7 +543,7 @@ class PmsConnect(object):
 
         return output
 
-    def get_metadata_details(self, rating_key='', get_media_info=False):
+    def get_metadata_details(self, rating_key=''):
         """
         Return processed and validated metadata list for requested item.
 
@@ -569,11 +569,16 @@ class PmsConnect(object):
             if a.getElementsByTagName('Directory'):
                 metadata_main = a.getElementsByTagName('Directory')[0]
                 metadata_type = helpers.get_xml_attr(metadata_main, 'type')
+                if metadata_type == 'photo':
+                    metadata_type = 'photo_album'
             elif a.getElementsByTagName('Video'):
                 metadata_main = a.getElementsByTagName('Video')[0]
                 metadata_type = helpers.get_xml_attr(metadata_main, 'type')
             elif a.getElementsByTagName('Track'):
                 metadata_main = a.getElementsByTagName('Track')[0]
+                metadata_type = helpers.get_xml_attr(metadata_main, 'type')
+            elif a.getElementsByTagName('Photo'):
+                metadata_main = a.getElementsByTagName('Photo')[0]
                 metadata_type = helpers.get_xml_attr(metadata_main, 'type')
             else:
                 logger.debug(u"PlexPy Pmsconnect :: Metadata failed")
@@ -640,7 +645,8 @@ class PmsConnect(object):
                         'writers': writers,
                         'actors': actors,
                         'genres': genres,
-                        'labels': labels
+                        'labels': labels,
+                        'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
             metadata_list.append(metadata)
 
@@ -676,7 +682,8 @@ class PmsConnect(object):
                         'writers': writers,
                         'actors': actors,
                         'genres': genres,
-                        'labels': labels
+                        'labels': labels,
+                        'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
             metadata_list.append(metadata)
 
@@ -714,7 +721,9 @@ class PmsConnect(object):
                         'writers': show_details['writers'],
                         'actors': show_details['actors'],
                         'genres': show_details['genres'],
-                        'labels': show_details['labels']
+                        'labels': show_details['labels'],
+                        'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                                                       helpers.get_xml_attr(metadata_main, 'title'))
                         }
             metadata_list.append(metadata)
 
@@ -752,7 +761,9 @@ class PmsConnect(object):
                         'writers': writers,
                         'actors': show_details['actors'],
                         'genres': show_details['genres'],
-                        'labels': show_details['labels']
+                        'labels': show_details['labels'],
+                        'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
+                                                       helpers.get_xml_attr(metadata_main, 'title'))
                         }
             metadata_list.append(metadata)
 
@@ -788,7 +799,8 @@ class PmsConnect(object):
                         'writers': writers,
                         'actors': actors,
                         'genres': genres,
-                        'labels': labels
+                        'labels': labels,
+                        'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
             metadata_list.append(metadata)
 
@@ -826,7 +838,9 @@ class PmsConnect(object):
                         'writers': writers,
                         'actors': actors,
                         'genres': genres,
-                        'labels': labels
+                        'labels': labels,
+                        'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                                                       helpers.get_xml_attr(metadata_main, 'title'))
                         }
             metadata_list.append(metadata)
 
@@ -864,7 +878,86 @@ class PmsConnect(object):
                         'writers': writers,
                         'actors': actors,
                         'genres': album_details['genres'],
-                        'labels': album_details['labels']
+                        'labels': album_details['labels'],
+                        'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
+                                                       helpers.get_xml_attr(metadata_main, 'title'))
+                        }
+            metadata_list.append(metadata)
+
+        elif metadata_type == 'photo_album':
+            metadata = {'media_type': metadata_type,
+                        'section_id': section_id,
+                        'library_name': library_name,
+                        'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
+                        'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
+                        'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
+                        'title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                        'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
+                        'media_index': helpers.get_xml_attr(metadata_main, 'index'),
+                        'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
+                        'studio': helpers.get_xml_attr(metadata_main, 'studio'),
+                        'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
+                        'summary': helpers.get_xml_attr(metadata_main, 'summary'),
+                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
+                        'rating': helpers.get_xml_attr(metadata_main, 'rating'),
+                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
+                        'year': helpers.get_xml_attr(metadata_main, 'year'),
+                        'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
+                        'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
+                        'art': helpers.get_xml_attr(metadata_main, 'art'),
+                        'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
+                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
+                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
+                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
+                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
+                        'directors': directors,
+                        'writers': writers,
+                        'actors': actors,
+                        'genres': genres,
+                        'labels': labels,
+                        'full_title': helpers.get_xml_attr(metadata_main, 'title')
+                        }
+            metadata_list.append(metadata)
+
+        elif metadata_type == 'photo':
+            parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
+            photo_album_details = self.get_metadata_details(parent_rating_key)
+            metadata = {'media_type': metadata_type,
+                        'section_id': section_id,
+                        'library_name': library_name,
+                        'rating_key': helpers.get_xml_attr(metadata_main, 'ratingKey'),
+                        'parent_rating_key': helpers.get_xml_attr(metadata_main, 'parentRatingKey'),
+                        'grandparent_rating_key': helpers.get_xml_attr(metadata_main, 'grandparentRatingKey'),
+                        'title': helpers.get_xml_attr(metadata_main, 'title'),
+                        'parent_title': helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                        'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
+                        'media_index': helpers.get_xml_attr(metadata_main, 'index'),
+                        'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
+                        'studio': helpers.get_xml_attr(metadata_main, 'studio'),
+                        'content_rating': helpers.get_xml_attr(metadata_main, 'contentRating'),
+                        'summary': helpers.get_xml_attr(metadata_main, 'summary'),
+                        'tagline': helpers.get_xml_attr(metadata_main, 'tagline'),
+                        'rating': helpers.get_xml_attr(metadata_main, 'rating'),
+                        'duration': helpers.get_xml_attr(metadata_main, 'duration'),
+                        'year': helpers.get_xml_attr(metadata_main, 'year'),
+                        'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
+                        'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
+                        'art': helpers.get_xml_attr(metadata_main, 'art'),
+                        'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
+                        'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
+                        'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
+                        'last_viewed_at': helpers.get_xml_attr(metadata_main, 'lastViewedAt'),
+                        'guid': helpers.get_xml_attr(metadata_main, 'guid'),
+                        'directors': directors,
+                        'writers': writers,
+                        'actors': actors,
+                        'genres': photo_album_details['genres'],
+                        'labels': photo_album_details['labels'],
+                        'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                                                       helpers.get_xml_attr(metadata_main, 'title'))
                         }
             metadata_list.append(metadata)
 
@@ -874,19 +967,26 @@ class PmsConnect(object):
         media_info_list = []
         media_items = metadata_main.getElementsByTagName('Media')
         for item in media_items:
-            media_info = {'container': helpers.get_xml_attr(item, 'container'),
-                            'bitrate': helpers.get_xml_attr(item, 'bitrate'),
-                            'height': helpers.get_xml_attr(item, 'height'),
-                            'width': helpers.get_xml_attr(item, 'width'),
-                            'aspect_ratio': helpers.get_xml_attr(item, 'aspectRatio'),
-                            'video_codec': helpers.get_xml_attr(item, 'videoCodec'),
-                            'video_resolution': helpers.get_xml_attr(item, 'videoResolution'),
-                            'video_framerate': helpers.get_xml_attr(item, 'videoFrameRate'),
-                            'audio_codec': helpers.get_xml_attr(item, 'audioCodec'),
-                            'audio_channels': helpers.get_xml_attr(item, 'audioChannels'),
-                            'file': helpers.get_xml_attr(item.getElementsByTagName('Part')[0], 'file'),
-                            'file_size': helpers.get_xml_attr(item.getElementsByTagName('Part')[0], 'size'),
-                            }
+            if helpers.get_xml_attr(item, 'optimizedForStreaming'):
+                optimized_version = 1
+            else:
+                optimized_version = 0
+
+            media_info = {'id': helpers.get_xml_attr(item, 'id'),
+                          'container': helpers.get_xml_attr(item, 'container'),
+                          'bitrate': helpers.get_xml_attr(item, 'bitrate'),
+                          'height': helpers.get_xml_attr(item, 'height'),
+                          'width': helpers.get_xml_attr(item, 'width'),
+                          'aspect_ratio': helpers.get_xml_attr(item, 'aspectRatio'),
+                          'video_codec': helpers.get_xml_attr(item, 'videoCodec'),
+                          'video_resolution': helpers.get_xml_attr(item, 'videoResolution'),
+                          'video_framerate': helpers.get_xml_attr(item, 'videoFrameRate'),
+                          'audio_codec': helpers.get_xml_attr(item, 'audioCodec'),
+                          'audio_channels': helpers.get_xml_attr(item, 'audioChannels'),
+                          'file': helpers.get_xml_attr(item.getElementsByTagName('Part')[0], 'file'),
+                          'file_size': helpers.get_xml_attr(item.getElementsByTagName('Part')[0], 'size'),
+                          'optimized_version': optimized_version
+                          }
             media_info_list.append(media_info)
         
         metadata['media_info'] = media_info_list
@@ -1053,499 +1153,196 @@ class PmsConnect(object):
                                 session { the session dictionary }
         Output: dict
         """
-        session_output = None
-        user_data = users.Users()
 
-        if stream_type == 'track':
-            media_info = session.getElementsByTagName('Media')[0]
-            audio_decision = 'direct play'
-            audio_channels = helpers.get_xml_attr(media_info, 'audioChannels')
-            audio_codec = helpers.get_xml_attr(media_info, 'audioCodec')
-            container = helpers.get_xml_attr(media_info, 'container')
-            bitrate = helpers.get_xml_attr(media_info, 'bitrate')
-            duration = helpers.get_xml_attr(media_info, 'duration')
-            progress = helpers.get_xml_attr(session, 'viewOffset')
+        # Get the user details
+        user_info = session.getElementsByTagName('User')[0]
+        user_details = users.Users().get_details(user=helpers.get_xml_attr(user_info, 'title'))
 
-            if session.getElementsByTagName('TranscodeSession'):
-                transcode_session = session.getElementsByTagName('TranscodeSession')[0]
-                transcode_key = helpers.get_xml_attr(transcode_session, 'key')
-                throttled = helpers.get_xml_attr(transcode_session, 'throttled')
-                transcode_progress = helpers.get_xml_attr(transcode_session, 'progress')
-                transcode_speed = helpers.get_xml_attr(transcode_session, 'speed')
-                audio_decision = helpers.get_xml_attr(transcode_session, 'audioDecision')
-                transcode_audio_channels = helpers.get_xml_attr(transcode_session, 'audioChannels')
-                transcode_audio_codec = helpers.get_xml_attr(transcode_session, 'audioCodec')
-                transcode_container = helpers.get_xml_attr(transcode_session, 'container')
-                transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
-                duration = helpers.get_xml_attr(transcode_session, 'duration')
-            else:
-                transcode_key = ''
-                throttled = '0'
-                transcode_progress = '0'
-                transcode_speed = ''
-                transcode_audio_channels = ''
-                transcode_audio_codec = ''
-                transcode_container = ''
-                transcode_protocol = ''
+        # Get the player details
+        player_info = session.getElementsByTagName('Player')[0]
 
-            # Generate a combined transcode decision value
-            transcode_decision = audio_decision
+        platform = helpers.get_xml_attr(player_info, 'platform')
+        platform = common.PLATFORM_NAME_OVERRIDES.get(platform, platform)
+        if not platform and helpers.get_xml_attr(player_info, 'product') == 'DLNA':
+            platform = 'DLNA'
 
-            user_details = user_data.get_details(
-                user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
+        player_details = {'ip_address': helpers.get_xml_attr(player_info, 'address').split('::ffff:')[-1],
+                          'ip_address_public': helpers.get_xml_attr(player_info, 'remotePublicAddress').split('::ffff:')[-1],
+                          'device': helpers.get_xml_attr(player_info, 'device'),
+                          'platform': platform,
+                          'platform_version': helpers.get_xml_attr(player_info, 'platformVersion'),
+                          'product': helpers.get_xml_attr(player_info, 'product'),
+                          'product_version': helpers.get_xml_attr(player_info, 'version'),
+                          'profile': helpers.get_xml_attr(player_info, 'profile'),
+                          'player': helpers.get_xml_attr(player_info, 'title'),
+                          'machine_id': helpers.get_xml_attr(player_info, 'machineIdentifier').rstrip('_Video').rstrip('_Track'),
+                          'state': helpers.get_xml_attr(player_info, 'state'),
+                          'local': helpers.get_xml_attr(player_info, 'local')
+                          }
 
-            player = session.getElementsByTagName('Player')[0]
-            platform = helpers.get_xml_attr(player, 'platform')
-            if not platform and helpers.get_xml_attr(player, 'product') == 'DLNA':
-                platform = 'DLNA'
+        # Get the session details
+        if session.getElementsByTagName('Session'):
+            session_info = session.getElementsByTagName('Session')[0]
 
-            labels = []
-            if session.getElementsByTagName('Label'):
-                for label in session.getElementsByTagName('Label'):
-                    labels.append(helpers.get_xml_attr(label, 'tag'))
-
-            session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
-                              'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
-                              'media_index': helpers.get_xml_attr(session, 'index'),
-                              'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
-                              'art': helpers.get_xml_attr(session, 'art'),
-                              'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
-                              'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
-                              'thumb': helpers.get_xml_attr(session, 'thumb'),
-                              'bif_thumb': '',
-                              'user': user_details['username'],
-                              'user_id': user_details['user_id'],
-                              'friendly_name': user_details['friendly_name'],
-                              'user_thumb': user_details['user_thumb'],
-                              'ip_address': helpers.get_xml_attr(player, 'address').split('::ffff:')[-1],
-                              'player': helpers.get_xml_attr(player, 'title'),
-                              'platform': platform,
-                              'machine_id': helpers.get_xml_attr(player, 'machineIdentifier').rstrip('_Track'),
-                              'state': helpers.get_xml_attr(player, 'state'),
-                              'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
-                              'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
-                              'title': helpers.get_xml_attr(session, 'title'),
-                              'full_title': '%s - %s' % (helpers.get_xml_attr(session, 'grandparentTitle'),
-                                                         helpers.get_xml_attr(session, 'title')),
-                              'year': helpers.get_xml_attr(session, 'year'),
-                              'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
-                              'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
-                              'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
-                              'content_rating': helpers.get_xml_attr(session, 'contentRating'),
-                              'labels': labels,
-                              'transcode_key': transcode_key,
-                              'throttled': throttled,
-                              'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
-                              'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
-                              'audio_decision': audio_decision,
-                              'audio_channels': audio_channels,
-                              'audio_codec': audio_codec,
-                              'video_decision': '',
-                              'video_codec': '',
-                              'height': '',
-                              'width': '',
-                              'container': container,
-                              'bitrate': bitrate,
-                              'video_resolution': '',
-                              'video_framerate': '',
-                              'aspect_ratio': '',
-                              'transcode_decision': transcode_decision,
-                              'transcode_audio_channels': transcode_audio_channels,
-                              'transcode_audio_codec': transcode_audio_codec,
-                              'transcode_video_codec': '',
-                              'transcode_width': '',
-                              'transcode_height': '',
-                              'transcode_container': transcode_container,
-                              'transcode_protocol': transcode_protocol,
-                              'duration': duration,
-                              'view_offset': progress,
-                              'progress_percent': str(helpers.get_percent(progress, duration)),
-                              'media_type': 'track',
-                              'indexes': 0
-                              }
-
-        elif stream_type == 'video':
-            media_info = session.getElementsByTagName('Media')[0]
-            audio_decision = 'direct play'
-            audio_channels = helpers.get_xml_attr(media_info, 'audioChannels')
-            audio_codec = helpers.get_xml_attr(media_info, 'audioCodec')
-            video_decision = 'direct play'
-            video_codec = helpers.get_xml_attr(media_info, 'videoCodec')
-            container = helpers.get_xml_attr(media_info, 'container')
-            bitrate = helpers.get_xml_attr(media_info, 'bitrate')
-            video_resolution = helpers.get_xml_attr(media_info, 'videoResolution')
-            video_framerate = helpers.get_xml_attr(media_info, 'videoFrameRate')
-            aspect_ratio = helpers.get_xml_attr(media_info, 'aspectRatio')
-            width = helpers.get_xml_attr(media_info, 'width')
-            height = helpers.get_xml_attr(media_info, 'height')
-            duration = helpers.get_xml_attr(media_info, 'duration')
-            progress = helpers.get_xml_attr(session, 'viewOffset')
-
-            if session.getElementsByTagName('TranscodeSession'):
-                transcode_session = session.getElementsByTagName('TranscodeSession')[0]
-                transcode_key = helpers.get_xml_attr(transcode_session, 'key')
-                throttled = helpers.get_xml_attr(transcode_session, 'throttled')
-                transcode_progress = helpers.get_xml_attr(transcode_session, 'progress')
-                transcode_speed = helpers.get_xml_attr(transcode_session, 'speed')
-                audio_decision = helpers.get_xml_attr(transcode_session, 'audioDecision')
-                transcode_audio_channels = helpers.get_xml_attr(transcode_session, 'audioChannels')
-                transcode_audio_codec = helpers.get_xml_attr(transcode_session, 'audioCodec')
-                video_decision = helpers.get_xml_attr(transcode_session, 'videoDecision')
-                transcode_video_codec = helpers.get_xml_attr(transcode_session, 'videoCodec')
-                transcode_width = helpers.get_xml_attr(transcode_session, 'width')
-                transcode_height = helpers.get_xml_attr(transcode_session, 'height')
-                transcode_container = helpers.get_xml_attr(transcode_session, 'container')
-                transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
-            else:
-                transcode_key = ''
-                throttled = '0'
-                transcode_progress = '0'
-                transcode_speed = ''
-                transcode_audio_channels = ''
-                transcode_audio_codec = ''
-                transcode_video_codec = ''
-                transcode_width = ''
-                transcode_height = ''
-                transcode_container = ''
-                transcode_protocol = ''
-
-            # Generate a combined transcode decision value
-            if video_decision == 'transcode' or audio_decision == 'transcode':
-                transcode_decision = 'transcode'
-            elif video_decision == 'copy' or audio_decision == 'copy':
-                transcode_decision = 'copy'
-            else:
-                transcode_decision = 'direct play'
-
-            if media_info.getElementsByTagName('Part'):
-                indexes = helpers.get_xml_attr(media_info.getElementsByTagName('Part')[0], 'indexes')
-                part_id = helpers.get_xml_attr(media_info.getElementsByTagName('Part')[0], 'id')
-                if indexes == 'sd':
-                    bif_thumb = '/library/parts/' + part_id + '/indexes/sd/' + progress
-                else:
-                    bif_thumb = ''
-            else:
-                indexes = ''
-                bif_thumb = ''
-
-            if plexpy.CONFIG.PMS_USE_BIF and indexes == 'sd':
-                use_indexes = 1
-            else:
-                use_indexes = 0
-
-            user_details = user_data.get_details(
-                user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
-
-            player = session.getElementsByTagName('Player')[0]
-            platform = helpers.get_xml_attr(player, 'platform')
-            if not platform and helpers.get_xml_attr(player, 'product') == 'DLNA':
-                platform = 'DLNA'
-
-            labels = []
-            if session.getElementsByTagName('Label'):
-                for label in session.getElementsByTagName('Label'):
-                    labels.append(helpers.get_xml_attr(label, 'tag'))
-
-            if helpers.get_xml_attr(session, 'type') == 'episode':
-                session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
-                                  'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
-                                  'media_index': helpers.get_xml_attr(session, 'index'),
-                                  'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
-                                  'art': helpers.get_xml_attr(session, 'art'),
-                                  'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
-                                  'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
-                                  'thumb': helpers.get_xml_attr(session, 'thumb'),
-                                  'bif_thumb': bif_thumb,
-                                  'user': user_details['username'],
-                                  'user_id': user_details['user_id'],
-                                  'friendly_name': user_details['friendly_name'],
-                                  'user_thumb': user_details['user_thumb'],
-                                  'ip_address': helpers.get_xml_attr(player, 'address').split('::ffff:')[-1],
-                                  'player': helpers.get_xml_attr(player, 'title'),
-                                  'platform': platform,
-                                  'machine_id': helpers.get_xml_attr(player, 'machineIdentifier').rstrip('_Video'),
-                                  'state': helpers.get_xml_attr(player, 'state'),
-                                  'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
-                                  'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
-                                  'title': helpers.get_xml_attr(session, 'title'),
-                                  'full_title': '%s - %s' % (helpers.get_xml_attr(session, 'grandparentTitle'),
-                                                             helpers.get_xml_attr(session, 'title')),
-                                  'year': helpers.get_xml_attr(session, 'year'),
-                                  'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
-                                  'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
-                                  'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
-                                  'content_rating': helpers.get_xml_attr(session, 'contentRating'),
-                                  'labels': labels,
-                                  'transcode_key': transcode_key,
-                                  'throttled': throttled,
-                                  'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
-                                  'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
-                                  'audio_decision': audio_decision,
-                                  'audio_channels': audio_channels,
-                                  'audio_codec': audio_codec,
-                                  'video_decision': video_decision,
-                                  'video_codec': video_codec,
-                                  'height': height,
-                                  'width': width,
-                                  'container': container,
-                                  'bitrate': bitrate,
-                                  'video_resolution': video_resolution,
-                                  'video_framerate': video_framerate,
-                                  'aspect_ratio': aspect_ratio,
-                                  'transcode_decision': transcode_decision,
-                                  'transcode_audio_channels': transcode_audio_channels,
-                                  'transcode_audio_codec': transcode_audio_codec,
-                                  'transcode_video_codec': transcode_video_codec,
-                                  'transcode_width': transcode_width,
-                                  'transcode_height': transcode_height,
-                                  'transcode_container': transcode_container,
-                                  'transcode_protocol': transcode_protocol,
-                                  'duration': duration,
-                                  'view_offset': progress,
-                                  'progress_percent': str(helpers.get_percent(progress, duration)),
-                                  'indexes': use_indexes
-                                  }
-                if helpers.get_xml_attr(session, 'ratingKey').isdigit():
-                    session_output['media_type'] = helpers.get_xml_attr(session, 'type')
-                else:
-                    session_output['media_type'] = 'clip'
-
-            elif helpers.get_xml_attr(session, 'type') == 'movie':
-                session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
-                                  'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
-                                  'media_index': helpers.get_xml_attr(session, 'index'),
-                                  'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
-                                  'art': helpers.get_xml_attr(session, 'art'),
-                                  'thumb': helpers.get_xml_attr(session, 'thumb'),
-                                  'bif_thumb': bif_thumb,
-                                  'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
-                                  'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
-                                  'user': user_details['username'],
-                                  'user_id': user_details['user_id'],
-                                  'friendly_name': user_details['friendly_name'],
-                                  'user_thumb': user_details['user_thumb'],
-                                  'ip_address': helpers.get_xml_attr(player, 'address').split('::ffff:')[-1],
-                                  'player': helpers.get_xml_attr(player, 'title'),
-                                  'platform': platform,
-                                  'machine_id': helpers.get_xml_attr(player, 'machineIdentifier').rstrip('_Video'),
-                                  'state': helpers.get_xml_attr(player, 'state'),
-                                  'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
-                                  'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
-                                  'title': helpers.get_xml_attr(session, 'title'),
-                                  'full_title': helpers.get_xml_attr(session, 'title'),
-                                  'year': helpers.get_xml_attr(session, 'year'),
-                                  'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
-                                  'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
-                                  'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
-                                  'content_rating': helpers.get_xml_attr(session, 'contentRating'),
-                                  'labels': labels,
-                                  'transcode_key': transcode_key,
-                                  'throttled': throttled,
-                                  'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
-                                  'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
-                                  'audio_decision': audio_decision,
-                                  'audio_channels': audio_channels,
-                                  'audio_codec': audio_codec,
-                                  'video_decision': video_decision,
-                                  'video_codec': video_codec,
-                                  'height': height,
-                                  'width': width,
-                                  'container': container,
-                                  'bitrate': bitrate,
-                                  'video_resolution': video_resolution,
-                                  'video_framerate': video_framerate,
-                                  'aspect_ratio': aspect_ratio,
-                                  'transcode_decision': transcode_decision,
-                                  'transcode_audio_channels': transcode_audio_channels,
-                                  'transcode_audio_codec': transcode_audio_codec,
-                                  'transcode_video_codec': transcode_video_codec,
-                                  'transcode_width': transcode_width,
-                                  'transcode_height': transcode_height,
-                                  'transcode_container': transcode_container,
-                                  'transcode_protocol': transcode_protocol,
-                                  'duration': duration,
-                                  'view_offset': progress,
-                                  'progress_percent': str(helpers.get_percent(progress, duration)),
-                                  'indexes': use_indexes
-                                  }
-                if helpers.get_xml_attr(session, 'ratingKey').isdigit():
-                    session_output['media_type'] = helpers.get_xml_attr(session, 'type')
-                else:
-                    session_output['media_type'] = 'clip'
-
-            elif helpers.get_xml_attr(session, 'type') == 'clip':
-                session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
-                                  'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
-                                  'media_index': helpers.get_xml_attr(session, 'index'),
-                                  'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
-                                  'art': helpers.get_xml_attr(session, 'art'),
-                                  'thumb': helpers.get_xml_attr(session, 'thumb'),
-                                  'bif_thumb': bif_thumb,
-                                  'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
-                                  'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
-                                  'user': user_details['username'],
-                                  'user_id': user_details['user_id'],
-                                  'friendly_name': user_details['friendly_name'],
-                                  'user_thumb': user_details['user_thumb'],
-                                  'ip_address': helpers.get_xml_attr(player, 'address').split('::ffff:')[-1],
-                                  'player': helpers.get_xml_attr(player, 'title'),
-                                  'platform': platform,
-                                  'machine_id': helpers.get_xml_attr(player, 'machineIdentifier').rstrip('_Video'),
-                                  'state': helpers.get_xml_attr(player, 'state'),
-                                  'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
-                                  'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
-                                  'title': helpers.get_xml_attr(session, 'title'),
-                                  'full_title': helpers.get_xml_attr(session, 'title'),
-                                  'year': helpers.get_xml_attr(session, 'year'),
-                                  'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
-                                  'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
-                                  'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
-                                  'content_rating': helpers.get_xml_attr(session, 'contentRating'),
-                                  'labels': labels,
-                                  'transcode_key': transcode_key,
-                                  'throttled': throttled,
-                                  'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
-                                  'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
-                                  'audio_decision': audio_decision,
-                                  'audio_channels': audio_channels,
-                                  'audio_codec': audio_codec,
-                                  'video_decision': video_decision,
-                                  'video_codec': video_codec,
-                                  'height': height,
-                                  'width': width,
-                                  'container': container,
-                                  'bitrate': bitrate,
-                                  'video_resolution': video_resolution,
-                                  'video_framerate': video_framerate,
-                                  'aspect_ratio': aspect_ratio,
-                                  'transcode_decision': transcode_decision,
-                                  'transcode_audio_channels': transcode_audio_channels,
-                                  'transcode_audio_codec': transcode_audio_codec,
-                                  'transcode_video_codec': transcode_video_codec,
-                                  'transcode_width': transcode_width,
-                                  'transcode_height': transcode_height,
-                                  'transcode_container': transcode_container,
-                                  'transcode_protocol': transcode_protocol,
-                                  'duration': duration,
-                                  'view_offset': progress,
-                                  'progress_percent': str(helpers.get_percent(progress, duration)),
-                                  'media_type': helpers.get_xml_attr(session, 'type'),
-                                  'indexes': 0
-                                  }
-
-        elif stream_type == 'photo':
-            media_info = session.getElementsByTagName('Media')[0]
-            video_decision = 'direct play'
-            container = helpers.get_xml_attr(media_info, 'container')
-            aspect_ratio = helpers.get_xml_attr(media_info, 'aspectRatio')
-            width = helpers.get_xml_attr(media_info, 'width')
-            height = helpers.get_xml_attr(media_info, 'height')
-
-            if session.getElementsByTagName('TranscodeSession'):
-                transcode_session = session.getElementsByTagName('TranscodeSession')[0]
-                transcode_key = helpers.get_xml_attr(transcode_session, 'key')
-                throttled = helpers.get_xml_attr(transcode_session, 'throttled')
-                transcode_progress = helpers.get_xml_attr(transcode_session, 'progress')
-                transcode_speed = helpers.get_xml_attr(transcode_session, 'speed')
-                video_decision = helpers.get_xml_attr(transcode_session, 'videoDecision')
-                transcode_video_codec = helpers.get_xml_attr(transcode_session, 'videoCodec')
-                transcode_width = helpers.get_xml_attr(transcode_session, 'width')
-                transcode_height = helpers.get_xml_attr(transcode_session, 'height')
-                transcode_container = helpers.get_xml_attr(transcode_session, 'container')
-                transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
-            else:
-                transcode_key = ''
-                throttled = '0'
-                transcode_progress = '0'
-                transcode_speed = ''
-                transcode_video_codec = ''
-                transcode_width = ''
-                transcode_height = ''
-                transcode_container = ''
-                transcode_protocol = ''
-
-            # Generate a combined transcode decision value
-            transcode_decision = video_decision
-
-            user_details = user_data.get_details(
-                user=helpers.get_xml_attr(session.getElementsByTagName('User')[0], 'title'))
-
-            player = session.getElementsByTagName('Player')[0]
-            platform = helpers.get_xml_attr(player, 'platform')
-            if not platform and helpers.get_xml_attr(player, 'product') == 'DLNA':
-                platform = 'DLNA'
-
-            labels = []
-            if session.getElementsByTagName('Label'):
-                for label in session.getElementsByTagName('Label'):
-                    labels.append(helpers.get_xml_attr(label, 'tag'))
-
-            session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
-                              'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
-                              'media_index': helpers.get_xml_attr(session, 'index'),
-                              'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
-                              'art': helpers.get_xml_attr(session, 'art'),
-                              'parent_thumb': helpers.get_xml_attr(session, 'parentThumb'),
-                              'grandparent_thumb': helpers.get_xml_attr(session, 'grandparentThumb'),
-                              'thumb': helpers.get_xml_attr(session, 'thumb'),
-                              'bif_thumb': '',
-                              'user': user_details['username'],
-                              'user_id': user_details['user_id'],
-                              'friendly_name': user_details['friendly_name'],
-                              'user_thumb': user_details['user_thumb'],
-                              'ip_address': helpers.get_xml_attr(player, 'address').split('::ffff:')[-1],
-                              'player': helpers.get_xml_attr(player, 'title'),
-                              'platform': platform,
-                              'machine_id': helpers.get_xml_attr(player, 'machineIdentifier').rstrip('_Photo'),
-                              'state': helpers.get_xml_attr(player, 'state'),
-                              'grandparent_title': helpers.get_xml_attr(session, 'grandparentTitle'),
-                              'parent_title': helpers.get_xml_attr(session, 'parentTitle'),
-                              'title': helpers.get_xml_attr(session, 'title'),
-                              'full_title': '%s - %s' % (helpers.get_xml_attr(session, 'grandparentTitle'),
-                                                         helpers.get_xml_attr(session, 'title')),
-                              'year': helpers.get_xml_attr(session, 'year'),
-                              'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
-                              'parent_rating_key': helpers.get_xml_attr(session, 'parentRatingKey'),
-                              'grandparent_rating_key': helpers.get_xml_attr(session, 'grandparentRatingKey'),
-                              'content_rating': helpers.get_xml_attr(session, 'contentRating'),
-                              'labels': labels,
-                              'transcode_key': transcode_key,
-                              'throttled': throttled,
-                              'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
-                              'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
-                              'audio_decision': '',
-                              'audio_channels': '',
-                              'audio_codec': '',
-                              'video_decision': video_decision,
-                              'video_codec': '',
-                              'height': height,
-                              'width': width,
-                              'container': container,
-                              'bitrate': '',
-                              'video_resolution': '',
-                              'video_framerate': '',
-                              'aspect_ratio': aspect_ratio,
-                              'transcode_decision': transcode_decision,
-                              'transcode_audio_channels': '',
-                              'transcode_audio_codec': '',
-                              'transcode_video_codec': transcode_video_codec,
-                              'transcode_width': transcode_width,
-                              'transcode_height': transcode_height,
-                              'transcode_container': transcode_container,
-                              'transcode_protocol': transcode_protocol,
-                              'duration': '',
-                              'view_offset': '',
-                              'progress_percent': '100',
-                              'media_type': 'photo',
-                              'indexes': 0
-                              }
-
+            session_details = {'session_id': helpers.get_xml_attr(session_info, 'id'),
+                               'bandwidth': helpers.get_xml_attr(session_info, 'bandwidth'),
+                               'location': helpers.get_xml_attr(session_info, 'location')
+                               }
         else:
-            logger.warn(u"PlexPy Pmsconnect :: No known stream types found in session list.")
+            session_details = {}
 
-        # Rename Mystery platform names
-        session_output['platform'] = common.PLATFORM_NAME_OVERRIDES.get(session_output['platform'],
-                                                                        session_output['platform'])
+        # Get the transcode details
+        if session.getElementsByTagName('TranscodeSession'):
+            transcode_info = session.getElementsByTagName('TranscodeSession')[0]
+
+            if helpers.get_xml_attr(transcode_info, 'throttled') == '1':
+                transcode_throttled = 1
+            else:
+                transcode_throttled = 0
+
+            if helpers.get_xml_attr(transcode_info, 'transcodeHwRequested') == '1':
+                transcode_hardware = 1
+            else:
+                transcode_hardware = 0
+
+            transcode_progress = helpers.get_xml_attr(transcode_info, 'progress')
+            transcode_speed = helpers.get_xml_attr(transcode_info, 'speed')
+
+            transcode_details = {'transcode_key': helpers.get_xml_attr(transcode_info, 'key'),
+                                 'transcode_throttled': transcode_throttled,
+                                 'transcode_progress': int(round(helpers.cast_to_float(transcode_progress), 0)),
+                                 'transcode_speed': str(round(helpers.cast_to_float(transcode_speed), 1)),
+                                 'transcode_audio_channels': helpers.get_xml_attr(transcode_info, 'audioChannels'),
+                                 'transcode_audio_codec': helpers.get_xml_attr(transcode_info, 'audioCodec'),
+                                 'transcode_video_codec': helpers.get_xml_attr(transcode_info, 'videoCodec'),
+                                 'transcode_width': helpers.get_xml_attr(transcode_info, 'width'),
+                                 'transcode_height': helpers.get_xml_attr(transcode_info, 'height'),
+                                 'transcode_container': helpers.get_xml_attr(transcode_info, 'container'),
+                                 'transcode_protocol': helpers.get_xml_attr(transcode_info, 'protocol'),
+                                 'transcode_hardware': transcode_hardware,
+                                 'audio_decision': helpers.get_xml_attr(transcode_info, 'audioDecision'),
+                                 'video_decision': helpers.get_xml_attr(transcode_info, 'videoDecision')
+                                 }
+        else:
+            transcode_details = {'transcode_key': '',
+                                 'transcode_throttled': 0,
+                                 'transcode_progress': '0',
+                                 'transcode_speed': '',
+                                 'transcode_audio_channels': '',
+                                 'transcode_audio_codec': '',
+                                 'transcode_video_codec': '',
+                                 'transcode_width': '',
+                                 'transcode_height': '',
+                                 'transcode_container': '',
+                                 'transcode_protocol': '',
+                                 'transcode_hardware': 0,
+                                 'audio_decision': 'direct play',
+                                 'video_decision': 'direct play'
+                                 }
+
+        # Figure out which version is being played
+        media_info_all = session.getElementsByTagName('Media')
+        media_parts_stream_info = []
+
+        for stream_media_info in media_info_all:
+            stream_media_parts_info = stream_media_info.getElementsByTagName('Part')[0]
+            if stream_media_parts_info.getElementsByTagName('Stream'):
+                media_parts_stream_info = stream_media_parts_info.getElementsByTagName('Stream')
+                break
+
+        # Get the stream details
+        video_stream_info = audio_stream_info = subtitle_stream_info = None
+        for stream in media_parts_stream_info:
+            if helpers.get_xml_attr(stream, 'streamType') == '1':
+                video_stream_info = stream
+
+            elif helpers.get_xml_attr(stream, 'streamType') == '2':
+                audio_stream_info = stream
+
+            elif helpers.get_xml_attr(stream, 'streamType') == '3':
+                subtitle_stream_info = stream
+
+        video_details = audio_details = subtitle_details = {}
+        if video_stream_info:
+            video_details = {'stream_video_bitrate': helpers.get_xml_attr(video_stream_info, 'bitrate'),
+                             'stream_video_language': helpers.get_xml_attr(video_stream_info, 'language'),
+                             'stream_video_language_code': helpers.get_xml_attr(video_stream_info, 'languageCode'),
+                             'stream_video_decision': helpers.get_xml_attr(video_stream_info, 'decision')
+                             }
+
+        if audio_stream_info:
+            audio_details = {'stream_audio_bitrate': helpers.get_xml_attr(audio_stream_info, 'bitrate'),
+                             'stream_audio_bitrate_mode': helpers.get_xml_attr(audio_stream_info, 'bitrateMode'),
+                             'stream_audio_language': helpers.get_xml_attr(audio_stream_info, 'language'),
+                             'stream_audio_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
+                             'stream_audio_decision': helpers.get_xml_attr(audio_stream_info, 'decision')
+                             }
+
+        if subtitle_stream_info:
+            subtitle_details = {'stream_subtitle_codec': helpers.get_xml_attr(audio_stream_info, 'codec'),
+                                'stream_subtitle_container': helpers.get_xml_attr(audio_stream_info, 'container'),
+                                'stream_subtitle_format': helpers.get_xml_attr(audio_stream_info, 'format'),
+                                'stream_subtitle_language': helpers.get_xml_attr(audio_stream_info, 'language'),
+                                'stream_subtitle_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
+                                'stream_subtitle_location': helpers.get_xml_attr(audio_stream_info, 'location'),
+                                'stream_subtitle_decision': helpers.get_xml_attr(audio_stream_info, 'decision')
+                                }
+
+        # Get the bif thumbnail
+        indexes = helpers.get_xml_attr(stream_media_parts_info, 'indexes')
+        progress = helpers.get_xml_attr(session, 'viewOffset')
+        if indexes == 'sd':
+            part_id = helpers.get_xml_attr(stream_media_parts_info, 'id')
+            bif_thumb = '/library/parts/{part_id}/indexes/sd/{progress}'.format(part_id=part_id, progress=progress)
+        else:
+            bif_thumb = ''
+
+        # Check if it is an optimized version
+        stream_details = {'stream_container': helpers.get_xml_attr(stream_media_info, 'container'),
+                          'stream_bitrate': helpers.get_xml_attr(stream_media_info, 'bitrate'),
+                          'stream_audio_codec': helpers.get_xml_attr(stream_media_info, 'audioCodec'),
+                          'stream_audio_channels': helpers.get_xml_attr(stream_media_info, 'audioChannels'),
+                          'stream_video_codec': helpers.get_xml_attr(stream_media_info, 'videoCodec'),
+                          'stream_video_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution'),
+                          'stream_video_framerate': helpers.get_xml_attr(stream_media_info, 'videoFrameRate'),
+                          'stream_aspect_ratio': helpers.get_xml_attr(stream_media_info, 'aspectRatio'),
+                          'stream_height': helpers.get_xml_attr(stream_media_info, 'height'),
+                          'stream_width': helpers.get_xml_attr(stream_media_info, 'width'),
+                          'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration'),
+                          'transcode_decision': helpers.get_xml_attr(stream_media_info, 'decision'),
+                          'indexes': 1 if indexes == 'sd' else 0,
+                          'bif_thumb': bif_thumb,
+                          'subtitles': 1 if subtitle_details else 0
+                          }
+
+        # Get the source media info
+        media_id = helpers.get_xml_attr(stream_media_info, 'id')
+
+        metadata_details = self.get_metadata_details(rating_key=helpers.get_xml_attr(session, 'ratingKey'))
+        source_media_details = next((m for m in metadata_details.pop('media_info') if m['id'] == media_id), {})
+
+        # Entire session output (single dict for backwards compatibility)
+        session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                          'view_offset': progress,
+                          'progress_percent': str(helpers.get_percent(progress, stream_details['stream_duration'])),
+                          'user': user_details['username']  # Keep for backwards compatibility
+                          }
+
+        if helpers.get_xml_attr(session, 'ratingKey').isdigit():
+            session_output['media_type'] = helpers.get_xml_attr(session, 'type')
+        else:
+            session_output['media_type'] = 'clip'
+
+        session_output.update(user_details)
+        session_output.update(player_details)
+        session_output.update(session_details)
+        session_output.update(transcode_details)
+        session_output.update(stream_details)
+        session_output.update(video_details)
+        session_output.update(audio_details)
+        session_output.update(subtitle_details)
+        session_output.update(metadata_details)
+        session_output.update(source_media_details)
 
         return session_output
 
