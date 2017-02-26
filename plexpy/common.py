@@ -56,19 +56,6 @@ MEDIA_FLAGS_VIDEO = {'avc1': 'h264',
                      'wmv3': 'wmvhd'
                      }
 
-SCHEDULER_LIST = ['Check GitHub for updates',
-                  'Check for active sessions',
-                  'Check for recently added items',
-                  'Check for Plex updates',
-                  'Check for Plex remote access',
-                  'Refresh users list',
-                  'Refresh libraries list',
-                  'Refresh Plex server URLs',
-                  'Refresh Plex server name',
-                  'Backup PlexPy database',
-                  'Backup PlexPy config'
-                  ]
-
 QUALITY_PROFILES = {'20000': '20 Mbps 1080p',
                     '12000': '12 Mbps 1080p',
                     '10000': '10 Mbps 1080p',
@@ -83,3 +70,16 @@ QUALITY_PROFILES = {'20000': '20 Mbps 1080p',
                     '96': '96 kbps',
                     '64': '64 kbps'
                     }
+
+SCHEDULER_LIST = ['Check GitHub for updates',
+                  'Check for active sessions',
+                  'Check for recently added items',
+                  'Check for Plex updates',
+                  'Check for Plex remote access',
+                  'Refresh users list',
+                  'Refresh libraries list',
+                  'Refresh Plex server URLs',
+                  'Refresh Plex server name',
+                  'Backup PlexPy database',
+                  'Backup PlexPy config'
+                  ]
