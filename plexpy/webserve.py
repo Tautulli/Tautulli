@@ -1747,7 +1747,7 @@ class WebInterface(object):
         config = {
             "graph_type": plexpy.CONFIG.GRAPH_TYPE,
             "graph_days": plexpy.CONFIG.GRAPH_DAYS,
-            "graph_months": 12,
+            "graph_months": plexpy.CONFIG.GRAPH_MONTHS,
             "graph_tab": plexpy.CONFIG.GRAPH_TAB,
             "music_logging_enable": plexpy.CONFIG.MUSIC_LOGGING_ENABLE
         }
@@ -1764,7 +1764,8 @@ class WebInterface(object):
             plexpy.CONFIG.__setattr__('GRAPH_DAYS', graph_days)
             plexpy.CONFIG.write()
         if graph_months:
-            pass
+            plexpy.CONFIG.__setattr__('GRAPH_MONTHS', graph_months)
+            plexpy.CONFIG.write()
         if graph_tab:
             plexpy.CONFIG.__setattr__('GRAPH_TAB', graph_tab)
             plexpy.CONFIG.write()

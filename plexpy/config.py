@@ -174,6 +174,7 @@ _CONFIG_DEFINITIONS = {
     'GIT_USER': (str, 'General', 'JonnyWong16'),
     'GRAPH_TYPE': (str, 'General', 'plays'),
     'GRAPH_DAYS': (int, 'General', 30),
+    'GRAPH_MONTHS': (int, 'General', 12),
     'GRAPH_TAB': (str, 'General', 'tabs-1'),
     'GROUP_HISTORY_TABLES': (int, 'General', 0),
     'GROWL_ENABLED': (int, 'Growl', 0),
