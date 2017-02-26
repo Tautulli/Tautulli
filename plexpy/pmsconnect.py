@@ -967,11 +967,6 @@ class PmsConnect(object):
         media_info_list = []
         media_items = metadata_main.getElementsByTagName('Media')
         for item in media_items:
-            if helpers.get_xml_attr(item, 'optimizedForStreaming'):
-                optimized_version = 1
-            else:
-                optimized_version = 0
-
             media_info = {'id': helpers.get_xml_attr(item, 'id'),
                           'container': helpers.get_xml_attr(item, 'container'),
                           'bitrate': helpers.get_xml_attr(item, 'bitrate'),
@@ -984,8 +979,7 @@ class PmsConnect(object):
                           'audio_codec': helpers.get_xml_attr(item, 'audioCodec'),
                           'audio_channels': helpers.get_xml_attr(item, 'audioChannels'),
                           'file': helpers.get_xml_attr(item.getElementsByTagName('Part')[0], 'file'),
-                          'file_size': helpers.get_xml_attr(item.getElementsByTagName('Part')[0], 'size'),
-                          'optimized_version': optimized_version
+                          'file_size': helpers.get_xml_attr(item.getElementsByTagName('Part')[0], 'size')
                           }
             media_info_list.append(media_info)
         
@@ -1221,7 +1215,8 @@ class PmsConnect(object):
                                  'transcode_protocol': helpers.get_xml_attr(transcode_info, 'protocol'),
                                  'transcode_hardware': transcode_hardware,
                                  'audio_decision': helpers.get_xml_attr(transcode_info, 'audioDecision'),
-                                 'video_decision': helpers.get_xml_attr(transcode_info, 'videoDecision')
+                                 'video_decision': helpers.get_xml_attr(transcode_info, 'videoDecision'),
+                                 'subtitle_decision': helpers.get_xml_attr(transcode_info, 'subtitleDecision')
                                  }
         else:
             transcode_details = {'transcode_key': '',
@@ -1237,7 +1232,8 @@ class PmsConnect(object):
                                  'transcode_protocol': '',
                                  'transcode_hardware': 0,
                                  'audio_decision': 'direct play',
-                                 'video_decision': 'direct play'
+                                 'video_decision': 'direct play',
+                                 'subtitle_decision': ''
                                  }
 
         # Figure out which version is being played
@@ -1267,7 +1263,7 @@ class PmsConnect(object):
             video_details = {'stream_video_bitrate': helpers.get_xml_attr(video_stream_info, 'bitrate'),
                              'stream_video_language': helpers.get_xml_attr(video_stream_info, 'language'),
                              'stream_video_language_code': helpers.get_xml_attr(video_stream_info, 'languageCode'),
-                             'stream_video_decision': helpers.get_xml_attr(video_stream_info, 'decision')
+                             'stream_video_decision': helpers.get_xml_attr(video_stream_info, 'decision') or 'direct play'
                              }
 
         if audio_stream_info:
@@ -1275,7 +1271,7 @@ class PmsConnect(object):
                              'stream_audio_bitrate_mode': helpers.get_xml_attr(audio_stream_info, 'bitrateMode'),
                              'stream_audio_language': helpers.get_xml_attr(audio_stream_info, 'language'),
                              'stream_audio_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
-                             'stream_audio_decision': helpers.get_xml_attr(audio_stream_info, 'decision')
+                             'stream_audio_decision': helpers.get_xml_attr(audio_stream_info, 'decision') or 'direct play'
                              }
 
         if subtitle_stream_info:
@@ -1298,18 +1294,36 @@ class PmsConnect(object):
             bif_thumb = ''
 
         # Check if it is an optimized version
+        if helpers.get_xml_attr(stream_media_parts_info, 'optimizedForStreaming'):
+            optimized_version = 1
+        else:
+            optimized_version = 0
+
+        # Get the quality profile
+        if video_details:
+            quality_profile = common.QUALITY_PROFILES.get(video_details['stream_video_bitrate'], 'Original')
+        else:
+            quality_profile = ''
+
+        transcode_decision = helpers.get_xml_attr(stream_media_parts_info, 'decision')
+        if transcode_decision == 'directplay':
+            transcode_decision = 'direct play'
+
+        # Check if it is an optimized version
         stream_details = {'stream_container': helpers.get_xml_attr(stream_media_info, 'container'),
                           'stream_bitrate': helpers.get_xml_attr(stream_media_info, 'bitrate'),
+                          'stream_aspect_ratio': helpers.get_xml_attr(stream_media_info, 'aspectRatio'),
                           'stream_audio_codec': helpers.get_xml_attr(stream_media_info, 'audioCodec'),
                           'stream_audio_channels': helpers.get_xml_attr(stream_media_info, 'audioChannels'),
                           'stream_video_codec': helpers.get_xml_attr(stream_media_info, 'videoCodec'),
-                          'stream_video_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution'),
                           'stream_video_framerate': helpers.get_xml_attr(stream_media_info, 'videoFrameRate'),
-                          'stream_aspect_ratio': helpers.get_xml_attr(stream_media_info, 'aspectRatio'),
-                          'stream_height': helpers.get_xml_attr(stream_media_info, 'height'),
-                          'stream_width': helpers.get_xml_attr(stream_media_info, 'width'),
+                          'stream_video_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution'),
+                          'stream_video_height': helpers.get_xml_attr(stream_media_info, 'height'),
+                          'stream_video_width': helpers.get_xml_attr(stream_media_info, 'width'),
                           'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration'),
-                          'transcode_decision': helpers.get_xml_attr(stream_media_info, 'decision'),
+                          'transcode_decision': transcode_decision,
+                          'optimized_version': optimized_version,
+                          'quality_profile': quality_profile,
                           'indexes': 1 if indexes == 'sd' else 0,
                           'bif_thumb': bif_thumb,
                           'subtitles': 1 if subtitle_details else 0

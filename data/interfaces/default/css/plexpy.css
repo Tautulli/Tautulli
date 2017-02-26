@@ -2767,7 +2767,7 @@ pre::-webkit-scrollbar-thumb {
 }
 .notification-params td:first-child {
     padding-left: 10px;
-    width: 200px;
+    width: 250px;
 }
 .notification-params.time-options td:first-child {
     padding-left: 10px;

@@ -68,3 +68,18 @@ SCHEDULER_LIST = ['Check GitHub for updates',
                   'Backup PlexPy database',
                   'Backup PlexPy config'
                   ]
+
+QUALITY_PROFILES = {'20000': '20 Mbps 1080p',
+                    '12000': '12 Mbps 1080p',
+                    '10000': '10 Mbps 1080p',
+                    '8000': '8 Mbps 1080p',
+                    '4000': '4 Mbps 720p',
+                    '3000': '3 Mbps 720p',
+                    '2000': '2 Mbps 720p',
+                    '1500': '1.5 Mbps 480p',
+                    '720': '720 kbps',
+                    '320': '320 kbps',
+                    '208': '208 kbps',
+                    '96': '96 kbps',
+                    '64': '64 kbps'
+                    }
