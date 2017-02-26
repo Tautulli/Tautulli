@@ -738,8 +738,8 @@ class PmsConnect(object):
                         'actors': show_details['actors'],
                         'genres': show_details['genres'],
                         'labels': show_details['labels'],
-                        'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
-                                                       helpers.get_xml_attr(metadata_main, 'title'))
+                        'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                                                        helpers.get_xml_attr(metadata_main, 'title'))
                         }
             metadata_list.append(metadata)
 
@@ -778,8 +778,8 @@ class PmsConnect(object):
                         'actors': show_details['actors'],
                         'genres': show_details['genres'],
                         'labels': show_details['labels'],
-                        'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
-                                                       helpers.get_xml_attr(metadata_main, 'title'))
+                        'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
+                                                        helpers.get_xml_attr(metadata_main, 'title'))
                         }
             metadata_list.append(metadata)
 
@@ -855,8 +855,8 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': genres,
                         'labels': labels,
-                        'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
-                                                       helpers.get_xml_attr(metadata_main, 'title'))
+                        'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                                                        helpers.get_xml_attr(metadata_main, 'title'))
                         }
             metadata_list.append(metadata)
 
@@ -895,8 +895,8 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': album_details['genres'],
                         'labels': album_details['labels'],
-                        'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
-                                                       helpers.get_xml_attr(metadata_main, 'title'))
+                        'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
+                                                        helpers.get_xml_attr(metadata_main, 'title'))
                         }
             metadata_list.append(metadata)
 
@@ -972,8 +972,8 @@ class PmsConnect(object):
                         'actors': actors,
                         'genres': photo_album_details['genres'],
                         'labels': photo_album_details['labels'],
-                        'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
-                                                       helpers.get_xml_attr(metadata_main, 'title'))
+                        'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
+                                                        helpers.get_xml_attr(metadata_main, 'title'))
                         }
             metadata_list.append(metadata)
 

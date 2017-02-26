@@ -358,16 +358,6 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         poster_info = get_poster_info(metadata=metadata)
         metadata.update(poster_info)
 
-    # Create a title
-    if metadata['media_type'] in ('episode', 'track'):
-        full_title = '%s - %s' % (metadata['grandparent_title'],
-                                  metadata['title'])
-    elif metadata['media_type'] in ('season', 'album'):
-        full_title = '%s - %s' % (metadata['parent_title'],
-                                  metadata['title'])
-    else:
-        full_title = metadata['title']
-
     if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and metadata['media_type'] in ('show', 'artist'):
         show_name = metadata['title']
         episode_name = ''
@@ -490,7 +480,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'video_height': session.get('height', media_info.get('height','')),
                         'audio_codec': session.get('audio_codec', media_info.get('audio_codec','')),
                         'audio_channels': session.get('audio_channels', media_info.get('audio_channels','')),
-                        'title': full_title,
+                        'title': metadata['full_title'],
                         'library_name': metadata['library_name'],
                         'show_name': show_name,
                         'episode_name': episode_name,
