@@ -36,69 +36,69 @@ class ActivityProcessor(object):
 
     def write_session(self, session=None, notify=True):
         if session:
-            values = {'session_key': session['session_key'],
-                      'transcode_key': session['transcode_key'],
-                      'section_id': session['section_id'],
-                      'rating_key': session['rating_key'],
-                      'media_type': session['media_type'],
-                      'state': session['state'],
-                      'user_id': session['user_id'],
-                      'user': session['user'],
-                      'machine_id': session['machine_id'],
-                      'title': session['title'],
-                      'parent_title': session['parent_title'],
-                      'grandparent_title': session['grandparent_title'],
-                      'full_title': session['full_title'],
-                      'media_index': session['media_index'],
-                      'parent_media_index': session['parent_media_index'],
-                      'thumb': session['thumb'],
-                      'parent_thumb': session['parent_thumb'],
-                      'grandparent_thumb': session['grandparent_thumb'],
-                      'year': session['year'],
-                      'friendly_name': session['friendly_name'],
-                      #'ip_address': session['ip_address'],
-                      'player': session['player'],
-                      'platform': session['platform'],
-                      'parent_rating_key': session['parent_rating_key'],
-                      'grandparent_rating_key': session['grandparent_rating_key'],
-                      'view_offset': session['view_offset'],
-                      'duration': session['duration'],
-                      'video_decision': session['video_decision'],
-                      'audio_decision': session['audio_decision'],
-                      'transcode_decision': session['transcode_decision'],
-                      'width': session['width'],
-                      'height': session['height'],
-                      'container': session['container'],
-                      'video_codec': session['video_codec'],
-                      'audio_codec': session['audio_codec'],
-                      'bitrate': session['bitrate'],
-                      'video_resolution': session['video_resolution'],
-                      'video_framerate': session['video_framerate'],
-                      'aspect_ratio': session['aspect_ratio'],
-                      'audio_channels': session['audio_channels'],
-                      'transcode_protocol': session['transcode_protocol'],
-                      'transcode_container': session['transcode_container'],
-                      'transcode_video_codec': session['transcode_video_codec'],
-                      'transcode_audio_codec': session['transcode_audio_codec'],
-                      'transcode_audio_channels': session['transcode_audio_channels'],
-                      'transcode_width': session['transcode_width'],
-                      'transcode_height': session['transcode_height'],
+            values = {'session_key': session.get('session_key', ''),
+                      'transcode_key': session.get('transcode_key', ''),
+                      'section_id': session.get('section_id', ''),
+                      'rating_key': session.get('rating_key', ''),
+                      'media_type': session.get('media_type', ''),
+                      'state': session.get('state', ''),
+                      'user_id': session.get('user_id', ''),
+                      'user': session.get('user', ''),
+                      'machine_id': session.get('machine_id', ''),
+                      'title': session.get('title', ''),
+                      'parent_title': session.get('parent_title', ''),
+                      'grandparent_title': session.get('grandparent_title', ''),
+                      'full_title': session.get('full_title', ''),
+                      'media_index': session.get('media_index', ''),
+                      'parent_media_index': session.get('parent_media_index', ''),
+                      'thumb': session.get('thumb', ''),
+                      'parent_thumb': session.get('parent_thumb', ''),
+                      'grandparent_thumb': session.get('grandparent_thumb', ''),
+                      'year': session.get('year', ''),
+                      'friendly_name': session.get('friendly_name', ''),
+                      #'ip_address': session.get('ip_address', ''),
+                      'player': session.get('player', ''),
+                      'platform': session.get('platform', ''),
+                      'parent_rating_key': session.get('parent_rating_key', ''),
+                      'grandparent_rating_key': session.get('grandparent_rating_key', ''),
+                      'view_offset': session.get('view_offset', ''),
+                      'duration': session.get('duration', ''),
+                      'video_decision': session.get('video_decision', ''),
+                      'audio_decision': session.get('audio_decision', ''),
+                      'transcode_decision': session.get('transcode_decision', ''),
+                      'width': session.get('width', ''),
+                      'height': session.get('height', ''),
+                      'container': session.get('container', ''),
+                      'video_codec': session.get('video_codec', ''),
+                      'audio_codec': session.get('audio_codec', ''),
+                      'bitrate': session.get('bitrate', ''),
+                      'video_resolution': session.get('video_resolution', ''),
+                      'video_framerate': session.get('video_framerate', ''),
+                      'aspect_ratio': session.get('aspect_ratio', ''),
+                      'audio_channels': session.get('audio_channels', ''),
+                      'transcode_protocol': session.get('transcode_protocol', ''),
+                      'transcode_container': session.get('transcode_container', ''),
+                      'transcode_video_codec': session.get('transcode_video_codec', ''),
+                      'transcode_audio_codec': session.get('transcode_audio_codec', ''),
+                      'transcode_audio_channels': session.get('transcode_audio_channels', ''),
+                      'transcode_width': session.get('transcode_width', ''),
+                      'transcode_height': session.get('transcode_height', ''),
                       'stopped': None
                       }
 
             # Add ip_address back into values
             if session['ip_address']:
-                values.update({'ip_address': session['ip_address']})
+                values.update({'ip_address': session.get('ip_address', 'N/A')})
 
-            keys = {'session_key': session['session_key'],
-                    'rating_key': session['rating_key']}
+            keys = {'session_key': session.get('session_key', ''),
+                    'rating_key': session.get('rating_key', '')}
 
             result = self.db.upsert('sessions', values, keys)
 
             if result == 'insert':
                 # Check if any notification agents have notifications enabled
                 if notify:
-                    values.update({'ip_address': session['ip_address']})
+                    values.update({'ip_address': session.get('ip_address', 'N/A')})
                     plexpy.NOTIFY_QUEUE.put({'stream_data': values, 'notify_action': 'on_play'})
 
                 # If it's our first write then time stamp it.

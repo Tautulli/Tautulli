@@ -75,36 +75,36 @@ DOCUMENTATION :: END
                 % endif
                 <div class="dashboard-activity-poster" id="poster-${data['session_key']}">
                     % if not data['art'].startswith('interfaces') or not data['thumb'].startswith('interfaces'):
-                    % if (data['media_type'] == 'movie' and not data['indexes']) or (data['indexes'] and not data['view_offset']):
-                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art);"></div>
-                    % elif (data['media_type'] == 'episode' and not data['indexes']) or (data['indexes'] and not data['view_offset']):
-                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art);"></div>
-                    % elif data['indexes']:
-                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['bif_thumb']}&width=500&height=280&fallback=art); display: none;"></div>
-                    % else:
-                    % if data['media_type'] == 'track':
-                    <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
-                    <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
-                    % elif data['media_type'] == 'clip':
-                    % if data['art'].startswith('http'):
-                    <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
-                    % elif data['thumb'].startswith('http'):
-                    <div class="dashboard-activity-poster-face" style="background-image: url(${data['thumb']});"></div>
-                    % else:
-                    % if data['art']:
-                    <!--Hacky solution to escape the image url until I come up with something better-->
-                    <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['art'])}&width=500&height=280&fallback=art);"></div>
-                    % else:
-                    <!--Hacky solution to escape the image url until I come up with something better-->
-                    <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['thumb'])}&width=500&height=280&fallback=art);"></div>
-                    % endif
-                    % endif
-                    % elif data['media_type'] == 'photo':
-                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=cover);"></div>
-                    % else:
-                    <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
-                    % endif
-                    % endif
+                        % if (data['media_type'] == 'movie' and not data['indexes']) or (data['indexes'] and not data['view_offset']):
+                        <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art);"></div>
+                        % elif (data['media_type'] == 'episode' and not data['indexes']) or (data['indexes'] and not data['view_offset']):
+                        <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art);"></div>
+                        % elif data['indexes']:
+                        <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['bif_thumb']}&width=500&height=280&fallback=art); display: none;"></div>
+                        % else:
+                            % if data['media_type'] == 'track':
+                            <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
+                            <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
+                            % elif data['media_type'] == 'clip':
+                                % if data['art'].startswith('http'):
+                                <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
+                                % elif data['thumb'].startswith('http'):
+                                <div class="dashboard-activity-poster-face" style="background-image: url(${data['thumb']});"></div>
+                                % else:
+                                    % if data['art']:
+                                    <!--Hacky solution to escape the image url until I come up with something better-->
+                                    <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['art'])}&width=500&height=280&fallback=art&clip=true);"></div>
+                                    % else:
+                                    <!--Hacky solution to escape the image url until I come up with something better-->
+                                    <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['thumb'])}&width=500&height=280&fallback=art&clip=true);"></div>
+                                    % endif
+                                % endif
+                            % elif data['media_type'] == 'photo':
+                            <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=cover);"></div>
+                            % else:
+                            <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
+                            % endif
+                        % endif
                     % else:
                     <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
                     % endif

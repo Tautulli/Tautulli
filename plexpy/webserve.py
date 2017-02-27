@@ -3509,7 +3509,7 @@ class WebInterface(object):
 
     @addtoapi('pms_image_proxy')
     def real_pms_image_proxy(self, img='', rating_key=None, width='0', height='0',
-                             fallback=None, refresh=False, **kwargs):
+                             fallback=None, refresh=False, clip=False, **kwargs):
         """ Gets an image from the PMS and saves it to the image cache directory.
 
             ```
@@ -3545,6 +3545,8 @@ class WebInterface(object):
         if not os.path.exists(c_dir):
             os.mkdir(c_dir)
 
+        clip = True if clip == 'true' else False
+
         try:
             if not plexpy.CONFIG.CACHE_IMAGES or refresh or 'indexes' in img:
                 raise NotFound
@@ -3555,7 +3557,7 @@ class WebInterface(object):
             # the image does not exist, download it from pms
             try:
                 pms_connect = pmsconnect.PmsConnect()
-                result = pms_connect.get_image(img, width, height)
+                result = pms_connect.get_image(img, width, height, clip=clip)
 
                 if result and result[0]:
                     cherrypy.response.headers['Content-type'] = result[1]

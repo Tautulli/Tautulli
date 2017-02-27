@@ -573,14 +573,14 @@ class PmsConnect(object):
             xml_head = metadata.getElementsByTagName('MediaContainer')
         except Exception as e:
             logger.warn(u"PlexPy Pmsconnect :: Unable to parse XML for get_metadata: %s." % e)
-            return []
+            return {}
 
-        metadata_list = []
+        metadata = {}
 
         for a in xml_head:
             if a.getAttribute('size'):
                 if a.getAttribute('size') != '1':
-                    return metadata_list
+                    return metadata
 
             if a.getElementsByTagName('Directory'):
                 metadata_main = a.getElementsByTagName('Directory')[0]
@@ -598,7 +598,7 @@ class PmsConnect(object):
                 metadata_type = helpers.get_xml_attr(metadata_main, 'type')
             else:
                 logger.debug(u"PlexPy Pmsconnect :: Metadata failed")
-                return []
+                return {}
 
             section_id = helpers.get_xml_attr(a, 'librarySectionID')
             library_name = helpers.get_xml_attr(a, 'librarySectionTitle')
@@ -664,7 +664,6 @@ class PmsConnect(object):
                         'labels': labels,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
-            metadata_list.append(metadata)
 
         elif metadata_type == 'show':
             metadata = {'media_type': metadata_type,
@@ -701,7 +700,6 @@ class PmsConnect(object):
                         'labels': labels,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
-            metadata_list.append(metadata)
 
         elif metadata_type == 'season':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
@@ -741,7 +739,6 @@ class PmsConnect(object):
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
-            metadata_list.append(metadata)
 
         elif metadata_type == 'episode':
             grandparent_rating_key = helpers.get_xml_attr(metadata_main, 'grandparentRatingKey')
@@ -781,7 +778,6 @@ class PmsConnect(object):
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
-            metadata_list.append(metadata)
 
         elif metadata_type == 'artist':
             metadata = {'media_type': metadata_type,
@@ -818,7 +814,6 @@ class PmsConnect(object):
                         'labels': labels,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
-            metadata_list.append(metadata)
 
         elif metadata_type == 'album':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
@@ -858,7 +853,6 @@ class PmsConnect(object):
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
-            metadata_list.append(metadata)
 
         elif metadata_type == 'track':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
@@ -898,7 +892,6 @@ class PmsConnect(object):
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
-            metadata_list.append(metadata)
 
         elif metadata_type == 'photo_album':
             metadata = {'media_type': metadata_type,
@@ -935,7 +928,6 @@ class PmsConnect(object):
                         'labels': labels,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title')
                         }
-            metadata_list.append(metadata)
 
         elif metadata_type == 'photo':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
@@ -975,36 +967,84 @@ class PmsConnect(object):
                         'full_title': u'{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                         helpers.get_xml_attr(metadata_main, 'title'))
                         }
-            metadata_list.append(metadata)
 
         else:
-            return []
+            return {}
 
-        media_info_list = []
-        media_items = metadata_main.getElementsByTagName('Media')
-        for item in media_items:
-            media_info = {'id': helpers.get_xml_attr(item, 'id'),
-                          'container': helpers.get_xml_attr(item, 'container'),
-                          'bitrate': helpers.get_xml_attr(item, 'bitrate'),
-                          'height': helpers.get_xml_attr(item, 'height'),
-                          'width': helpers.get_xml_attr(item, 'width'),
-                          'aspect_ratio': helpers.get_xml_attr(item, 'aspectRatio'),
-                          'video_codec': helpers.get_xml_attr(item, 'videoCodec'),
-                          'video_resolution': helpers.get_xml_attr(item, 'videoResolution'),
-                          'video_framerate': helpers.get_xml_attr(item, 'videoFrameRate'),
-                          'audio_codec': helpers.get_xml_attr(item, 'audioCodec'),
-                          'audio_channels': helpers.get_xml_attr(item, 'audioChannels'),
-                          'file': helpers.get_xml_attr(item.getElementsByTagName('Part')[0], 'file'),
-                          'file_size': helpers.get_xml_attr(item.getElementsByTagName('Part')[0], 'size')
-                          }
-            media_info_list.append(media_info)
+        if metadata:
+            medias = []
+            media_items = metadata_main.getElementsByTagName('Media')
+            for media in media_items:
+
+                parts = []
+                part_items = media.getElementsByTagName('Part')
+                for part in part_items:
+
+                    streams = []
+                    stream_items = part.getElementsByTagName('Stream')
+                    for stream in stream_items:
+                        if helpers.get_xml_attr(stream, 'streamType') == '1':
+                            streams.append({'id': helpers.get_xml_attr(stream, 'id'),
+                                            'type': helpers.get_xml_attr(stream, 'streamType'),
+                                            'video_bitrate': helpers.get_xml_attr(stream, 'bitrate'),
+                                            'video_bit_depth': helpers.get_xml_attr(stream, 'bitDepth'),
+                                            'video_codec_level': helpers.get_xml_attr(stream, 'level'),
+                                            'video_ref_frames': helpers.get_xml_attr(stream, 'refFrames'),
+                                            'video_language': helpers.get_xml_attr(stream, 'language'),
+                                            'video_language_code': helpers.get_xml_attr(stream, 'languageCode')
+                                            })
+
+                        elif helpers.get_xml_attr(stream, 'streamType') == '2':
+                            streams.append({'id': helpers.get_xml_attr(stream, 'id'),
+                                            'type': helpers.get_xml_attr(stream, 'streamType'),
+                                            'audio_bitrate': helpers.get_xml_attr(stream, 'bitrate'),
+                                            'audio_bitrate_mode': helpers.get_xml_attr(stream, 'bitrateMode'),
+                                            'audio_channel_layout': helpers.get_xml_attr(stream, 'audioChannelLayout'),
+                                            'audio_sample_rate': helpers.get_xml_attr(stream, 'samplingRate'),
+                                            'audio_language': helpers.get_xml_attr(stream, 'language'),
+                                            'audio_language_code': helpers.get_xml_attr(stream, 'languageCode'),
+                                            })
+
+                        elif helpers.get_xml_attr(stream, 'streamType') == '3':
+                            streams.append({'id': helpers.get_xml_attr(stream, 'id'),
+                                            'type': helpers.get_xml_attr(stream, 'streamType'),
+                                            'subtitle_codec': helpers.get_xml_attr(stream, 'codec'),
+                                            'subtitle_container': helpers.get_xml_attr(stream, 'container'),
+                                            'subtitle_format': helpers.get_xml_attr(stream, 'format'),
+                                            'subtitle_forced': 1 if helpers.get_xml_attr(stream, 'forced') == '1' else 0,
+                                            'subtitle_location': 'external' if helpers.get_xml_attr(stream, 'key') else 'embedded',
+                                            'subtitle_language': helpers.get_xml_attr(stream, 'language'),
+                                            'subtitle_language_code': helpers.get_xml_attr(stream, 'languageCode')
+                                            })
+
+                    parts.append({'id': helpers.get_xml_attr(part, 'id'),
+                                  'file': helpers.get_xml_attr(part, 'file'),
+                                  'file_size': helpers.get_xml_attr(part, 'size'),
+                                  'indexes': 1 if helpers.get_xml_attr(part, 'indexes') == 'sd' else 0,
+                                  'streams': streams
+                                  })
+
+                medias.append({'id': helpers.get_xml_attr(media, 'id'),
+                               'container': helpers.get_xml_attr(media, 'container'),
+                               'bitrate': helpers.get_xml_attr(media, 'bitrate'),
+                               'height': helpers.get_xml_attr(media, 'height'),
+                               'width': helpers.get_xml_attr(media, 'width'),
+                               'aspect_ratio': helpers.get_xml_attr(media, 'aspectRatio'),
+                               'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
+                               'video_resolution': helpers.get_xml_attr(media, 'videoResolution'),
+                               'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
+                               'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
+                               'audio_channels': helpers.get_xml_attr(media, 'audioChannels'),
+                               'optimized_version': 1 if helpers.get_xml_attr(media, 'optimizedForStreaming') else 0,
+                               'parts': parts
+                               })
         
-        metadata['media_info'] = media_info_list
+            metadata['media_info'] = medias
 
-        if metadata_list:
-            return metadata_list[0]
+        if metadata:
+            return metadata
         else:
-            return []
+            return {}
 
     def get_metadata_children_details(self, rating_key='', get_children=False):
         """
@@ -1257,9 +1297,14 @@ class PmsConnect(object):
         media_parts_stream_info = []
 
         for stream_media_info in media_info_all:
-            stream_media_parts_info = stream_media_info.getElementsByTagName('Part')[0]
-            if stream_media_parts_info.getElementsByTagName('Stream'):
-                media_parts_stream_info = stream_media_parts_info.getElementsByTagName('Stream')
+            media_part_info_all = stream_media_info.getElementsByTagName('Part')
+
+            for stream_media_parts_info in media_part_info_all:
+                if stream_media_parts_info.getElementsByTagName('Stream'):
+                    media_parts_stream_info = stream_media_parts_info.getElementsByTagName('Stream')
+                    break
+
+            if media_parts_stream_info:
                 break
 
         # Get the stream details
@@ -1274,30 +1319,40 @@ class PmsConnect(object):
             elif helpers.get_xml_attr(stream, 'streamType') == '3':
                 subtitle_stream_info = stream
 
+        video_id = audio_id = subtitle_id = None
         video_details = audio_details = subtitle_details = {}
         if video_stream_info:
+            video_id = helpers.get_xml_attr(video_stream_info, 'id')
             video_details = {'stream_video_bitrate': helpers.get_xml_attr(video_stream_info, 'bitrate'),
+                             'stream_video_bit_depth': helpers.get_xml_attr(video_stream_info, 'bitDepth'),
+                             'stream_video_codec_level': helpers.get_xml_attr(video_stream_info, 'level'),
+                             'stream_video_ref_frames': helpers.get_xml_attr(video_stream_info, 'refFrames'),
                              'stream_video_language': helpers.get_xml_attr(video_stream_info, 'language'),
                              'stream_video_language_code': helpers.get_xml_attr(video_stream_info, 'languageCode'),
                              'stream_video_decision': helpers.get_xml_attr(video_stream_info, 'decision') or 'direct play'
                              }
 
         if audio_stream_info:
+            audio_id = helpers.get_xml_attr(audio_stream_info, 'id')
             audio_details = {'stream_audio_bitrate': helpers.get_xml_attr(audio_stream_info, 'bitrate'),
                              'stream_audio_bitrate_mode': helpers.get_xml_attr(audio_stream_info, 'bitrateMode'),
+                             'stream_audio_channel_layout': helpers.get_xml_attr(audio_stream_info, 'audioChannelLayout'),
+                             'stream_audio_sample_rate': helpers.get_xml_attr(audio_stream_info, 'samplingRate'),
                              'stream_audio_language': helpers.get_xml_attr(audio_stream_info, 'language'),
                              'stream_audio_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
                              'stream_audio_decision': helpers.get_xml_attr(audio_stream_info, 'decision') or 'direct play'
                              }
 
         if subtitle_stream_info:
-            subtitle_details = {'stream_subtitle_codec': helpers.get_xml_attr(audio_stream_info, 'codec'),
-                                'stream_subtitle_container': helpers.get_xml_attr(audio_stream_info, 'container'),
-                                'stream_subtitle_format': helpers.get_xml_attr(audio_stream_info, 'format'),
-                                'stream_subtitle_language': helpers.get_xml_attr(audio_stream_info, 'language'),
-                                'stream_subtitle_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
-                                'stream_subtitle_location': helpers.get_xml_attr(audio_stream_info, 'location'),
-                                'stream_subtitle_decision': helpers.get_xml_attr(audio_stream_info, 'decision')
+            subtitle_id = helpers.get_xml_attr(subtitle_stream_info, 'id')
+            subtitle_details = {'stream_subtitle_codec': helpers.get_xml_attr(subtitle_stream_info, 'codec'),
+                                'stream_subtitle_container': helpers.get_xml_attr(subtitle_stream_info, 'container'),
+                                'stream_subtitle_format': helpers.get_xml_attr(subtitle_stream_info, 'format'),
+                                'stream_subtitle_forced': 1 if helpers.get_xml_attr(subtitle_stream_info, 'forced') == '1' else 0,
+                                'stream_subtitle_location': helpers.get_xml_attr(subtitle_stream_info, 'location'),
+                                'stream_subtitle_language': helpers.get_xml_attr(subtitle_stream_info, 'language'),
+                                'stream_subtitle_language_code': helpers.get_xml_attr(subtitle_stream_info, 'languageCode'),
+                                'stream_subtitle_decision': helpers.get_xml_attr(subtitle_stream_info, 'decision')
                                 }
 
         # Get the bif thumbnail
@@ -1309,21 +1364,11 @@ class PmsConnect(object):
         else:
             bif_thumb = ''
 
-        # Check if it is an optimized version
-        if helpers.get_xml_attr(stream_media_parts_info, 'optimizedForStreaming'):
-            optimized_version = 1
-        else:
-            optimized_version = 0
-
         # Get the quality profile
         if video_details:
             quality_profile = common.QUALITY_PROFILES.get(video_details['stream_video_bitrate'], 'Original')
         else:
             quality_profile = ''
-
-        transcode_decision = helpers.get_xml_attr(stream_media_parts_info, 'decision')
-        if transcode_decision == 'directplay':
-            transcode_decision = 'direct play'
 
         # Check if it is an optimized version
         stream_details = {'stream_container': helpers.get_xml_attr(stream_media_info, 'container'),
@@ -1337,8 +1382,9 @@ class PmsConnect(object):
                           'stream_video_height': helpers.get_xml_attr(stream_media_info, 'height'),
                           'stream_video_width': helpers.get_xml_attr(stream_media_info, 'width'),
                           'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration'),
-                          'transcode_decision': transcode_decision,
-                          'optimized_version': optimized_version,
+                          'transcode_decision': helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
+                          'optimized_version': 1 if helpers.get_xml_attr(stream_media_info, 'optimizedForStreaming') else 0,
+                          'optimized_version_profile': helpers.get_xml_attr(stream_media_info, 'title'),
                           'quality_profile': quality_profile,
                           'indexes': 1 if indexes == 'sd' else 0,
                           'bif_thumb': bif_thumb,
@@ -1346,23 +1392,62 @@ class PmsConnect(object):
                           }
 
         # Get the source media info
-        media_id = helpers.get_xml_attr(stream_media_info, 'id')
+        media_type = helpers.get_xml_attr(session, 'type')
 
-        metadata_details = self.get_metadata_details(rating_key=helpers.get_xml_attr(session, 'ratingKey'))
-        source_media_details = next((m for m in metadata_details.pop('media_info') if m['id'] == media_id), {})
+        source_media_details = source_media_part_details = \
+            source_video_details = source_audio_details = source_subtitle_details = {}
+
+        if media_type == 'clip':
+            clip_media = session.getElementsByTagName('Media')[0]
+            metadata_details = {'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
+                                'title': helpers.get_xml_attr(session, 'title'),
+                                'summary': helpers.get_xml_attr(session, 'summary'),
+                                'duration': helpers.get_xml_attr(session, 'duration'),
+                                'year': helpers.get_xml_attr(session, 'year'),
+                                'thumb': helpers.get_xml_attr(session, 'thumb'),
+                                'art': helpers.get_xml_attr(session, 'art'),
+                                'full_title': helpers.get_xml_attr(session, 'title'),
+                                'container': helpers.get_xml_attr(clip_media, 'container'),
+                                'height': helpers.get_xml_attr(clip_media, 'height'),
+                                'width': helpers.get_xml_attr(clip_media, 'width'),
+                                'video_codec': helpers.get_xml_attr(clip_media, 'videoCodec'),
+                                'video_resolution': helpers.get_xml_attr(clip_media, 'videoResolution'),
+                                'audio_codec': helpers.get_xml_attr(clip_media, 'audioCodec'),
+                                'audio_channels': helpers.get_xml_attr(clip_media, 'audioChannels'),
+                                 }
+        else:
+            media_id = helpers.get_xml_attr(stream_media_info, 'id')
+            part_id = helpers.get_xml_attr(stream_media_parts_info, 'id')
+
+            metadata_details = self.get_metadata_details(rating_key=helpers.get_xml_attr(session, 'ratingKey'))
+            source_media_details = next((m for m in metadata_details.pop('media_info', []) if m['id'] == media_id), {})
+            source_media_part_details = next((p for p in source_media_details.pop('parts', []) if p['id'] == part_id), {})
+            source_media_part_streams = source_media_part_details.pop('streams', [])
+
+            if video_id:
+                source_video_details = next((p for p in source_media_part_streams if p['id'] == video_id), {})
+            if audio_id:
+                source_audio_details = next((p for p in source_media_part_streams if p['id'] == audio_id), {})
+            if subtitle_id:
+                source_subtitle_details = next((p for p in source_media_part_streams if p['id'] == subtitle_id), {})
 
         # Entire session output (single dict for backwards compatibility)
         session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                          'media_type': media_type,
                           'view_offset': progress,
                           'progress_percent': str(helpers.get_percent(progress, stream_details['stream_duration'])),
                           'user': user_details['username']  # Keep for backwards compatibility
                           }
+        
+        if 'rating_key' not in session_output:
+            session_output['rating_key'] = helpers.get_xml_attr(session, 'ratingKey')
 
-        if helpers.get_xml_attr(session, 'ratingKey').isdigit():
-            session_output['media_type'] = helpers.get_xml_attr(session, 'type')
-        else:
-            session_output['media_type'] = 'clip'
-
+        session_output.update(metadata_details)
+        session_output.update(source_media_details)
+        session_output.update(source_media_part_details)
+        session_output.update(source_video_details)
+        session_output.update(source_audio_details)
+        session_output.update(source_subtitle_details)
         session_output.update(user_details)
         session_output.update(player_details)
         session_output.update(session_details)
@@ -1371,8 +1456,6 @@ class PmsConnect(object):
         session_output.update(video_details)
         session_output.update(audio_details)
         session_output.update(subtitle_details)
-        session_output.update(metadata_details)
-        session_output.update(source_media_details)
 
         return session_output
 
@@ -1776,7 +1859,7 @@ class PmsConnect(object):
 
         return labels_list
 
-    def get_image(self, img=None, width='1000', height='1500'):
+    def get_image(self, img=None, width='1000', height='1500', clip=False):
         """
         Return image data as array.
         Array contains the image content type and image binary
@@ -1788,7 +1871,11 @@ class PmsConnect(object):
         """
 
         if img:
-            params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}
+            if clip:
+                params = {'url': '%s&%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}
+            else:
+                params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urllib.urlencode({'X-Plex-Token': self.token}))}
+
             if width.isdigit() and height.isdigit():
                 params['width'] = width
                 params['height'] = height

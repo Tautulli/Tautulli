@@ -1587,12 +1587,20 @@
                                 <td>The username of the person streaming.</td>
                             </tr>
                             <tr>
+                                <td><strong>{device}</strong></td>
+                                <td>The type of client device being used for playback.</td>
+                            </tr>
+                            <tr>
                                 <td><strong>{platform}</strong></td>
-                                <td>The type of client being used for playback.</td>
+                                <td>The type of client platform being used for playback.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{product}</strong></td>
+                                <td>The type of client product being used for playback.</td>
                             </tr>
                             <tr>
                                 <td><strong>{player}</strong></td>
-                                <td>The name of the device being used for playback.</td>
+                                <td>The name of the player being used for playback.</td>
                             </tr>
                             <tr>
                                 <td><strong>{ip_address}</strong></td>
@@ -1644,11 +1652,15 @@
                             </tr>
                             <tr>
                                 <td><strong>{quality_profile}</strong></td>
-                                <td>The Plex quality profile of the stream. <span class="small-muted">(e.g. 4 Mbps 720p)</span></td>
+                                <td>The Plex quality profile of the stream. <span class="small-muted">(e.g. Original, 4 Mbps 720p, etc.)</span></td>
                             </tr>
                             <tr>
                                 <td><strong>{optimized_version}</strong></td>
                                 <td>If the stream is an optimized version. <span class="small-muted">(0 or 1)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{optimized_version_profile}</strong></td>
+                                <td>The optimized version profile of the stream.</td>
                             </tr>
                             <tr>
                                 <td><strong>{stream_local}</strong></td>
@@ -1682,12 +1694,24 @@
                                 <td>The video codec of the stream.</td>
                             </tr>
                             <tr>
+                                <td><strong>{stream_video_codec_level}</strong></td>
+                                <td>The video codec level of the stream.</td>
+                            </tr>
+                            <tr>
                                 <td><strong>{stream_video_bitrate}</strong></td>
                                 <td>The video bitrate (in kbps) of the stream.</td>
                             </tr>
                             <tr>
+                                <td><strong>{stream_video_bit_depth}</strong></td>
+                                <td>The video bit depth of the stream.</td>
+                            </tr>
+                            <tr>
                                 <td><strong>{stream_video_framerate}</strong></td>
                                 <td>The video framerate of the stream.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{stream_video_ref_frames}</strong></td>
+                                <td>The video reference frames of the stream.</td>
                             </tr>
                             <tr>
                                 <td><strong>{stream_video_resolution}</strong></td>
@@ -1715,7 +1739,7 @@
                             </tr>
                             <tr>
                                 <td><strong>{stream_audio_bitrate_mode}</strong></td>
-                                <td>The audio bitrage mode of the stream. <span class="small-muted">(cbr or vbr)</span></td>
+                                <td>The audio bitrate mode of the stream. <span class="small-muted">(cbr or vbr)</span></td>
                             </tr>
                             <tr>
                                 <td><strong>{stream_audio_codec}</strong></td>
@@ -1724,6 +1748,14 @@
                             <tr>
                                 <td><strong>{stream_audio_channels}</strong></td>
                                 <td>The audio channels of the stream.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{stream_audio_channel_layout}</strong></td>
+                                <td>The audio channel layout of the stream.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{stream_audio_sample_rate}</strong></td>
+                                <td>The audio sample rate (in Hz) of the stream.</td>
                             </tr>
                             <tr>
                                 <td><strong>{stream_audio_language}</strong></td>
@@ -1744,6 +1776,10 @@
                             <tr>
                                 <td><strong>{stream_subtitle_format}</strong></td>
                                 <td>The subtitle format of the stream.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{stream_subtitle_forced}</strong></td>
+                                <td>If the subtitles are forced. <span class="small-muted">(0 or 1)</span></td>
                             </tr>
                             <tr>
                                 <td><strong>{stream_subtitle_language}</strong></td>
@@ -1819,46 +1855,6 @@
                             <tr>
                                 <td><strong>{media_type}</strong></td>
                                 <td>The type of media. <span class="small-muted">(movie, show, season, episode, artist, album, track)</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>{container}</strong></td>
-                                <td>The media container of the original media.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>{aspect_ratio}</strong></td>
-                                <td>The aspect ratio of the original media.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>{video_codec}</strong></td>
-                                <td>The video codec of the original media.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>{video_bitrate}</strong></td>
-                                <td>The video bitrate of the original media.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>{video_framerate}</strong></td>
-                                <td>The video framerate of the original media.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>{video_resolution}</strong></td>
-                                <td>The video resolution of the original media.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>{video_width}</strong></td>
-                                <td>The video width of the original media.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>{video_height}</strong></td>
-                                <td>The video height of the original media.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>{audio_codec}</strong></td>
-                                <td>The audio codec of the original media.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>{audio_channels}</strong></td>
-                                <td>The audio channels of the original media.</td>
                             </tr>
                             <tr>
                                 <td><strong>{title}</strong></td>
@@ -2036,6 +2032,118 @@
                             <tr>
                                 <td><strong>{trakt_url}</strong></td>
                                 <td>The trakt.tv URL for the movie or TV show.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{container}</strong></td>
+                                <td>The media container of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{bitrate}</strong></td>
+                                <td>The bitrate of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{aspect_ratio}</strong></td>
+                                <td>The aspect ratio of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_codec}</strong></td>
+                                <td>The video codec of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_codec_level}</strong></td>
+                                <td>The video codec level of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_bitrate}</strong></td>
+                                <td>The video bitrate of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_bit_depth}</strong></td>
+                                <td>The video bit depth of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_framerate}</strong></td>
+                                <td>The video framerate of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_ref_frames}</strong></td>
+                                <td>The video reference frames of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_resolution}</strong></td>
+                                <td>The video resolution of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_height}</strong></td>
+                                <td>The video height of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_width}</strong></td>
+                                <td>The video width of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_language}</strong></td>
+                                <td>The video language of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{video_language_code}</strong></td>
+                                <td>The video language code of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{audio_bitrate}</strong></td>
+                                <td>The audio bitrate of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{audio_bitrate_mode}</strong></td>
+                                <td>The audio bitrate mode of the original media. <span class="small-muted">(cbr or vbr)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{audio_codec}</strong></td>
+                                <td>The audio codec of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{audio_channels}</strong></td>
+                                <td>The audio channels of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{audio_channel_layout}</strong></td>
+                                <td>The audio channel layout of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{audio_language}</strong></td>
+                                <td>The audio language of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{audio_language_code}</strong></td>
+                                <td>The audio language code of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{subtitle_codec}</strong></td>
+                                <td>The subtitle codec of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{subtitle_container}</strong></td>
+                                <td>The subtitle container of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{subtitle_format}</strong></td>
+                                <td>The subtitle format of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{subtitle_forced}</strong></td>
+                                <td>If the subtitles are forced. <span class="small-muted">(0 or 1)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>{subtitle_location}</strong></td>
+                                <td>The subtitle location of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{subtitle_language}</strong></td>
+                                <td>The subtitle language of the original media.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>{subtitle_language_code}</strong></td>
+                                <td>The subtitle language code of the original media.</td>
                             </tr>
                             <tr>
                                 <td><strong>{file}</strong></td>

@@ -118,6 +118,10 @@ def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, 
 
 def notify_conditions(notifier=None, notify_action=None, stream_data=None, timeline_data=None):
     if stream_data:
+
+        if stream_data['media_type'] == 'clip':
+            return False
+
         # Check if notifications enabled for user and library
         user_data = users.Users()
         user_details = user_data.get_details(user_id=stream_data['user_id'])
@@ -283,6 +287,16 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
 
     ## TODO: Check list of media info items, currently only grabs first item
     media_info = metadata['media_info'][0] if metadata['media_info'] else {}
+    media_part_info = media_info['parts'][0] if media_info['parts'] else {}
+
+    stream_video = stream_audio = stream_subtitle = False
+    for stream in media_part_info['streams']:
+        if not stream_video and stream['type'] == '1':
+            media_part_info.update(stream)
+        if not stream_audio and stream['type'] == '2':
+            media_part_info.update(stream)
+        if not stream_subtitle and stream['type'] == '3':
+            media_part_info.update(stream)
 
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
@@ -414,7 +428,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'user_streams': user_stream_count,
                         'user': session.get('friendly_name',''),
                         'username': session.get('user',''),
+                        'device': session.get('device',''),
                         'platform': session.get('platform',''),
+                        'product': session.get('product',''),
                         'player': session.get('player',''),
                         'ip_address': session.get('ip_address','N/A'),
                         'stream_duration': stream_duration,
@@ -430,6 +446,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'subtitle_decision': session.get('subtitle_decision',''),
                         'quality_profile': session.get('quality_profile',''),
                         'optimized_version': session.get('optimized_version',''),
+                        'optimized_version_profile': session.get('optimized_version_profile',''),
                         'stream_local': session.get('local', ''),
                         'stream_location': session.get('location', ''),
                         'stream_bandwidth': session.get('bandwidth', ''),
@@ -437,22 +454,28 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'stream_bitrate': session.get('stream_bitrate', ''),
                         'stream_aspect_ratio': session.get('stream_aspect_ratio', ''),
                         'stream_video_codec': session.get('stream_video_codec', ''),
+                        'stream_video_codec_level': session.get('stream_video_codec_level', ''),
                         'stream_video_bitrate': session.get('stream_video_bitrate', ''),
+                        'stream_video_bit_depth': session.get('stream_video_bit_depth', ''),
                         'stream_video_framerate': session.get('stream_video_framerate', ''),
+                        'stream_video_ref_frames': session.get('stream_video_ref_frames', ''),
                         'stream_video_resolution': session.get('stream_video_resolution', ''),
-                        'stream_video_height': session.get('stream_height', ''),
-                        'stream_video_width': session.get('stream_width', ''),
+                        'stream_video_height': session.get('stream_video_height', ''),
+                        'stream_video_width': session.get('stream_video_width', ''),
                         'stream_video_language': session.get('stream_video_language', ''),
                         'stream_video_language_code': session.get('stream_video_language_code', ''),
                         'stream_audio_bitrate': session.get('stream_audio_bitrate', ''),
                         'stream_audio_bitrate_mode': session.get('stream_audio_bitrate_mode', ''),
                         'stream_audio_codec': session.get('stream_audio_codec', ''),
                         'stream_audio_channels': session.get('stream_audio_channels', ''),
+                        'stream_audio_channel_layout': session.get('stream_audio_channel_layout', ''),
+                        'stream_audio_sample_rate': session.get('stream_audio_sample_rate', ''),
                         'stream_audio_language': session.get('stream_audio_language', ''),
                         'stream_audio_language_code': session.get('stream_audio_language_code', ''),
                         'stream_subtitle_codec': session.get('stream_subtitle_codec', ''),
                         'stream_subtitle_container': session.get('stream_subtitle_container', ''),
                         'stream_subtitle_format': session.get('stream_subtitle_format', ''),
+                        'stream_subtitle_forced': session.get('stream_subtitle_forced', ''),
                         'stream_subtitle_language': session.get('stream_subtitle_language', ''),
                         'stream_subtitle_language_code': session.get('stream_subtitle_language_code', ''),
                         'stream_subtitle_location': session.get('stream_subtitle_location', ''),
@@ -470,16 +493,6 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'machine_id': session.get('machine_id',''),
                         # Source metadata parameters
                         'media_type': metadata['media_type'],
-                        'container': session.get('container', media_info.get('container','')),
-                        'aspect_ratio': session.get('aspect_ratio', media_info.get('aspect_ratio','')),
-                        'video_codec': session.get('video_codec', media_info.get('video_codec','')),
-                        'video_bitrate': session.get('bitrate', media_info.get('bitrate','')),
-                        'video_framerate': session.get('video_framerate', media_info.get('video_framerate','')),
-                        'video_resolution': session.get('video_resolution', media_info.get('video_resolution','')),
-                        'video_width': session.get('width', media_info.get('width','')),
-                        'video_height': session.get('height', media_info.get('height','')),
-                        'audio_codec': session.get('audio_codec', media_info.get('audio_codec','')),
-                        'audio_channels': session.get('audio_channels', media_info.get('audio_channels','')),
                         'title': metadata['full_title'],
                         'library_name': metadata['library_name'],
                         'show_name': show_name,
@@ -525,8 +538,38 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'themoviedb_url': metadata.get('themoviedb_url',''),
                         'lastfm_url': metadata.get('lastfm_url',''),
                         'trakt_url': metadata.get('trakt_url',''),
-                        'file': media_info.get('file',''),
-                        'file_size': helpers.humanFileSize(media_info.get('file_size','')),
+                        'container': session.get('container', media_info.get('container','')),
+                        'bitrate': session.get('bitrate', media_info.get('bitrate','')),
+                        'aspect_ratio': session.get('aspect_ratio', media_info.get('aspect_ratio','')),
+                        'video_codec': session.get('video_codec', media_info.get('video_codec','')),
+                        'video_codec_level': session.get('video_codec_level', media_info.get('video_codec_level','')),
+                        'video_bitrate': session.get('video_bitrate', media_info.get('video_bitrate','')),
+                        'video_bit_depth': session.get('video_bit_depth', media_info.get('video_bit_depth','')),
+                        'video_framerate': session.get('video_framerate', media_info.get('video_framerate','')),
+                        'video_ref_frames': session.get('video_ref_frames', media_info.get('video_ref_frames','')),
+                        'video_resolution': session.get('video_resolution', media_info.get('video_resolution','')),
+                        'video_height': session.get('height', media_info.get('height','')),
+                        'video_width': session.get('width', media_info.get('width','')),
+                        'video_language': session.get('video_language', media_info.get('video_language','')),
+                        'video_language_code': session.get('video_language_code', media_info.get('video_language_code','')),
+                        'audio_bitrate': session.get('audio_bitrate', media_info.get('audio_bitrate','')),
+                        'audio_bitrate_mode': session.get('audio_bitrate_mode', media_info.get('audio_bitrate_mode','')),
+                        'audio_codec': session.get('audio_codec', media_info.get('audio_codec','')),
+                        'audio_channels': session.get('audio_channels', media_info.get('audio_channels','')),
+                        'audio_channel_layout': session.get('audio_channel_layout', media_info.get('audio_channel_layout','')),
+                        'audio_sample_rate': session.get('audio_sample_rate', media_info.get('audio_sample_rate','')),
+                        'audio_language': session.get('audio_language', media_info.get('audio_language','')),
+                        'audio_language_code': session.get('audio_language_code', media_info.get('audio_language_code','')),
+                        'subtitle_codec': session.get('subtitle_codec', media_info.get('subtitle_codec','')),
+                        'subtitle_container': session.get('subtitle_container', media_info.get('subtitle_container','')),
+                        'subtitle_format': session.get('subtitle_format', media_info.get('subtitle_format','')),
+                        'subtitle_forced': session.get('subtitle_forced', media_info.get('subtitle_forced','')),
+                        'subtitle_location': session.get('subtitle_location', media_info.get('subtitle_location','')),
+                        'subtitle_language': session.get('subtitle_language', media_info.get('subtitle_language','')),
+                        'subtitle_language_code': session.get('subtitle_language_code', media_info.get('subtitle_language_code','')),
+                        'file': media_part_info.get('file',''),
+                        'file_size': helpers.humanFileSize(media_part_info.get('file_size','')),
+                        'indexes': media_part_info.get('indexes',''),
                         'section_id': metadata['section_id'],
                         'rating_key': metadata['rating_key'],
                         'parent_rating_key': metadata['parent_rating_key'],
