@@ -119,6 +119,12 @@
                         </div>
                         <div class="checkbox">
                             <label>
+                                <input type="checkbox" id="week_start" name="week_start" value="1" ${config['week_start']}> Week starting on Monday
+                            </label>
+                            <p class="help-block">Default is Sunday. This is only relevant for the Play by day of week graph.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
                                 <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Table and Watch Statistics History
                             </label>
                             <p class="help-block">Group successive play history by the same user as a single entry in the tables and watch statistics.</p>

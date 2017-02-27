@@ -169,7 +169,12 @@ class Graphs(object):
             logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_per_dayofweek: %s." % e)
             return None
 
-        days_list = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
+        week_start = plexpy.CONFIG.WEEK_START
+        if (week_start == 1):
+            days_list = ['Monday', 'Tuesday', 'Wednesday',
+                     'Thursday', 'Friday', 'Saturday', 'Sunday']
+        else:
+            days_list = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
                      'Thursday', 'Friday', 'Saturday']
 
         categories = []
