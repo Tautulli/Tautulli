@@ -161,10 +161,10 @@ history_table_options = {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="pms_image_proxy?img=' + rowData['thumb'] + '&width=300&height=300&fallback=cover" data-height="80" data-width="80">' + cellData + parent_info + '</span>'
                         $(td).html('<div class="history-title"><a href="info?' + source + 'rating_key=' + rowData['rating_key'] + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
-                    } else if (/^[0-9]+$/.test(rowData['rating_key'])) {
-                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
-                    } else {
+                    } else if (rowData['media_type'] === 'clip') {
                         $(td).html(cellData);
+                    } else {
+                        $(td).html('<a href="info?rating_key=' + rowData['rating_key'] + '">' + cellData + '</a>');
                     }
                 }
             },
