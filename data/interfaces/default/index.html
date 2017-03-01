@@ -178,7 +178,8 @@
                                 var overlay_state = 'State &nbsp;<strong>Unknown</strong>';
                                 var state_icon = '<i class="fa fa-fw fa-question-circle"></i>&nbsp;';
                         }
-                        $('#overlay-play-state-' + key).html(overlay_state);
+                        var q = (s.media_type != 'track') ? ' (' + s.quality_profile + ')' : '';
+                        $('#overlay-play-state-' + key).html(overlay_state + q);
                         $('#play-state-' + key).html(state_icon);
 
                         % if config['pms_use_bif']:
@@ -196,29 +197,43 @@
                         var ts = '';
                         if (s.video_decision == 'transcode' || s.audio_decision == 'transcode') {
                             var throttled = (s.throttled == '1') ? ' (Throttled)' : '';
-                            ts += 'Stream &nbsp;<strong>Transcode (Speed: ' + s.transcode_speed + ')' + throttled + '</strong><br>';
+                            var hw = (s.transcode_hardware == '1') ? ' (HW)' : '';
+                            ts += 'Stream &nbsp;<strong>Transcode' + hw + ' (Speed: ' + s.transcode_speed + ')' + throttled + '</strong><br>';
                         } else if (s.video_decision == 'copy' || s.audio_decision == 'copy') {
                             ts += 'Stream &nbsp;<strong>Direct Stream</strong><br>';
                         } else {
                             ts += 'Stream &nbsp;<strong>Direct Play</strong><br>';
                         }
                         if (s.video_decision != '' && s.media_type != 'photo') {
+                            var v_res = s.video_resolution.replace(/p$/, '') + ((s.video_resolution.toLowerCase() == 'sd') ? '' : 'p');
+                            var sv_res = s.stream_video_resolution.replace(/p$/, '') + ((s.stream_video_resolution.toLowerCase() == 'sd') ? '' : 'p');
                             if (s.video_decision == 'transcode') {
-                                ts += 'Video &nbsp;<strong>Transcode (' + s.transcode_video_codec + ') (' + s.transcode_width + 'x' + s.transcode_height + ')</strong><br>';
+                                ts += 'Video &nbsp;<strong>Transcode (' + s.video_codec + ' ' + v_res + ' &rarr; ' + s.stream_video_codec + ' ' + sv_res + ')</strong><br>';
                             } else if (s.video_decision == 'copy') {
-                                ts += 'Video &nbsp;<strong>Direct Stream (' + s.transcode_video_codec + ') (' + s.width + 'x' + s.height + ')</strong><br>';
+                                ts += 'Video &nbsp;<strong>Direct Stream (' + s.video_codec + ' ' + v_res + ' &rarr; ' + s.stream_video_codec + ' ' + sv_res + ')</strong><br>';
                             } else {
-                                ts += 'Video &nbsp;<strong>Direct Play (' + s.video_codec + ') (' + s.width + 'x' + s.height + ')</strong><br>';
+                                ts += 'Video &nbsp;<strong>Direct Play (' + s.video_codec + ' ' + v_res + ')</strong><br>';
                             }
                         }
                         if (s.audio_decision != '') {
                             if (s.audio_decision == 'transcode') {
-                                ts += 'Audio &nbsp;<strong>Transcode (' + s.transcode_audio_codec + ') (' + s.transcode_audio_channels + 'ch)</strong>';
+                                ts += 'Audio &nbsp;<strong>Transcode (' + s.audio_codec + ' ' + s.audio_channels + 'ch &rarr; ' + s.stream_audio_codec + ' ' + s.stream_audio_channels + 'ch)</strong><br>';
                             } else if (s.audio_decision == 'copy') {
-                                ts += 'Audio &nbsp;<strong>Direct Stream (' + s.transcode_audio_codec + ') (' + s.transcode_audio_channels + 'ch)</strong>';
+                                ts += 'Audio &nbsp;<strong>Direct Stream (' + s.audio_codec + ' ' + s.audio_channels + 'ch &rarr; ' + s.stream_audio_codec + ' ' + s.stream_audio_channels + 'ch)</strong><br>';
                             } else {
-                                ts += 'Audio &nbsp;<strong>Direct Play (' + s.audio_codec + ') (' + s.audio_channels + 'ch)</strong>';
+                                ts += 'Audio &nbsp;<strong>Direct Play (' + s.audio_codec + ' ' + s.audio_channels + 'ch)</strong><br>';
                             }
+                        }
+                        if (s.subtitles) {
+                            if (s.subtitle_decision == 'transcode') {
+                                ts += 'Subtitle &nbsp;<strong>Transcode (' + s.subtitle_codec + ' &rarr; ' + s.stream_subtitle_codec + ')</strong>';
+                            } else if (s.audio_decision == 'burn') {
+                                ts += 'Subtitle &nbsp;<strong>Burn</strong>';
+                            } else {
+                                ts += 'Subtitle &nbsp;<strong>Direct Play (' + s.subtitle_codec + ')</strong>';
+                            }
+                        } else if (s.media_type != 'track') {
+                            ts += 'Subtitle &nbsp;<strong>None</strong>';
                         }
                         $('#transcode-state-' + key).html(ts);
 

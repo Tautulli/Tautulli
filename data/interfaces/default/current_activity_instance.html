@@ -125,17 +125,21 @@ DOCUMENTATION :: END
                             <strong>${data['player']}</strong><br />
                             <span id="overlay-play-state-${data['session_key']}">
                                 % if data['state'] == 'playing':
-                                State &nbsp;<strong>Playing</strong>
+                                State &nbsp;<strong>Playing</strong> ${'(' + data['quality_profile'] + ')' if data['media_type'] != 'track' else ''}
                                 % elif data['state'] == 'paused':
-                                State &nbsp;<strong>Paused</strong>
+                                State &nbsp;<strong>Paused</strong> ${'(' + data['quality_profile'] + ')' if data['media_type'] != 'track' else ''}
                                 % elif data['state'] == 'buffering':
-                                State &nbsp;<strong>Buffering</strong>
+                                State &nbsp;<strong>Buffering</strong> ${'(' + data['quality_profile'] + ')' if data['media_type'] != 'track' else ''}
                                 % endif
                             </span>
                         </div>
-                        <span id="transcode-state-${data['session_key']}">
+                        <div class="dashboard-activity-info-details-transcode-state" id="transcode-state-${data['session_key']}">
                             % if data['video_decision'] == 'transcode' or data['audio_decision'] == 'transcode':
-                            Stream &nbsp;<strong>Transcode (Speed: ${data['transcode_speed']})
+                                % if data['transcode_hardware'] == '1':
+                                Stream &nbsp;<strong>Transcode (HW) (Speed: ${data['transcode_speed']})
+                                % else:
+                                Stream &nbsp;<strong>Transcode (Speed: ${data['transcode_speed']})
+                                % endif
                                 % if data['transcode_throttled'] == '1':
                                 (Throttled)
                                 % endif
@@ -148,24 +152,36 @@ DOCUMENTATION :: END
                             <br />
                             % if data['media_type'] in ('movie', 'episode', 'clip'):
                                 % if data['video_decision'] == 'transcode':
-                                Video &nbsp;<strong>Transcode (${data['transcode_video_codec']}) (${data['transcode_width']}x${data['transcode_height']})</strong>
+                                Video &nbsp;<strong>Transcode (${data['video_codec']} ${data['video_resolution'].rstrip('p') + ('p' if data['video_resolution'].lower() != 'sd' else '')} &rarr; ${data['stream_video_codec']} ${data['stream_video_resolution'].rstrip('p') + ('p' if data['stream_video_resolution'].lower() != 'sd' else '')})</strong>
                                 % elif data['video_decision'] == 'copy':
-                                Video &nbsp;<strong>Direct Stream (${data['transcode_video_codec']}) (${data['width']}x${data['height']})</strong>
+                                Video &nbsp;<strong>Direct Stream (${data['video_codec']} ${data['video_resolution'].rstrip('p') + ('p' if data['video_resolution'].lower() != 'sd' else '')} &rarr; ${data['stream_video_codec']} ${data['stream_video_resolution'].rstrip('p') + ('p' if data['stream_video_resolution'].lower() != 'sd' else '')})</strong>
                                 % else:
-                                Video &nbsp;<strong>Direct Play (${data['video_codec']}) (${data['width']}x${data['height']})</strong>
+                                Video &nbsp;<strong>Direct Play (${data['video_codec']} ${data['video_resolution'].rstrip('p') + ('p' if data['video_resolution'].lower() != 'sd' else '')})</strong>
                                 % endif
                             <br />
                             % endif
                             % if data['media_type'] in ('movie', 'episode', 'clip', 'track'):
                                 % if data['audio_decision'] == 'transcode':
-                                Audio &nbsp;<strong>Transcode (${data['transcode_audio_codec']}) (${data['transcode_audio_channels']}ch)</strong>
+                                Audio &nbsp;<strong>Transcode (${data['audio_codec']} ${data['audio_channels']}ch &rarr; ${data['stream_audio_codec']} ${data['stream_audio_channels']}ch)</strong>
                                 % elif data['audio_decision'] == 'copy':
-                                Audio &nbsp;<strong>Direct Stream (${data['transcode_audio_codec']}) (${data['transcode_audio_channels']}ch)</strong>
+                                Audio &nbsp;<strong>Direct Stream (${data['audio_codec']} ${data['audio_channels']}ch &rarr; ${data['stream_audio_codec']} ${data['stream_audio_channels']}ch)</strong>
                                 % else:
-                                Audio &nbsp;<strong>Direct Play (${data['audio_codec']}) (${data['audio_channels']}ch)</strong>
+                                Audio &nbsp;<strong>Direct Play (${data['audio_codec']} ${data['audio_channels']}ch)</strong>
                                 % endif
+                            <br />
                             % endif
-                        </span>
+                            % if data['media_type'] in ('movie', 'episode', 'clip') and data['subtitles'] == '1':
+                                % if data['subtitle_decision'] == 'transcode':
+                                Subtitle &nbsp;<strong>Transcode (${data['subtitle_codec']} &rarr; ${data['stream_subtitle_codec']})</strong>
+                                % elif data['subtitle_decision'] == 'burn':
+                                Subtitle &nbsp;<strong>Burn</strong>
+                                % else:
+                                Subtitle &nbsp;<strong>Direct Play (${data['subtitle_codec']})</strong>
+                                % endif
+                            % elif data['media_type'] != 'track':
+                                Subtitle &nbsp;<strong>None</strong>
+                            % endif
+                        </div>
                     </div>
                 </div>
                 % if data['media_type'] != 'photo':
