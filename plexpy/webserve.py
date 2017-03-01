@@ -172,10 +172,8 @@ class WebInterface(object):
         config = {
             "home_sections": plexpy.CONFIG.HOME_SECTIONS,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
-            "home_stats_cards": plexpy.CONFIG.HOME_STATS_CARDS,
-            "home_library_cards": plexpy.CONFIG.HOME_LIBRARY_CARDS,
-            "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_name": plexpy.CONFIG.PMS_NAME,
+            "pms_use_bif": plexpy.CONFIG.PMS_USE_BIF,
             "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG
         }
         return serve_template(templatename="index.html", title="Home", config=config)

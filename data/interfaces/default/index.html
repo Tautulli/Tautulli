@@ -181,6 +181,7 @@
                         $('#overlay-play-state-' + key).html(overlay_state);
                         $('#play-state-' + key).html(state_icon);
 
+                        % if config['pms_use_bif']:
                         // if using bif indexes, update the bif thumbnail
                         if (s.indexes) {
                             var bif_poster = $('#bif-' + key);
@@ -189,6 +190,7 @@
                                 + s.bif_thumb + '&width=500&height=280&fallback=art);"></div>').fadeIn(1000, function () { bif_poster.remove() }));
                             blurArtwork(key);
                         }
+                        % endif
 
                         // if transcoding, update the transcode state
                         var ts = '';
