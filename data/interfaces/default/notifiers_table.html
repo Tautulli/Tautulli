@@ -14,7 +14,11 @@ DOCUMENTATION :: END
     <li class="notification-agent" data-id="${notifier['id']}">
         <span>
             <span class="toggle-left trigger-tooltip ${'active' if notifier['active'] else ''}" data-toggle="tooltip" data-placement="top" title="Triggers ${'active' if notifier['active'] else 'inactive'}"><i class="fa fa-lg fa-bell"></i></span>
-            ${notifier['agent_label']} &nbsp;<span class="friendly_name">(${notifier['friendly_name'] or notifier['id']})</span>
+            % if notifier['friendly_name']:
+            ${notifier['agent_label']} &nbsp;<span class="friendly_name">(${notifier['id']} - ${notifier['friendly_name']})</span>
+            % else:
+            ${notifier['agent_label']} &nbsp;<span class="friendly_name">(${notifier['id']})</span>
+            % endif
             <span class="toggle-right"><i class="fa fa-lg fa-cog"></i></span>
         </span>
     </li>
