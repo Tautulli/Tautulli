@@ -334,7 +334,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
     remaining_duration = duration - view_offset
 
     # Build Plex URL
-    metadata['plex_url'] = 'https://app.plex.tv/web/app#!/server/{0}/details/%2Flibrary%2Fmetadata%2F{1}'.format(
+    metadata['plex_url'] = 'https://app.plex.tv/web/app#!/server/{0}/details?key=%2Flibrary%2Fmetadata%2F{1}'.format(
         plexpy.CONFIG.PMS_IDENTIFIER, str(rating_key))
 
     # Get media IDs from guid and build URLs
