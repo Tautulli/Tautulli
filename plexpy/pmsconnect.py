@@ -1035,7 +1035,7 @@ class PmsConnect(object):
                                'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
                                'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
                                'audio_channels': helpers.get_xml_attr(media, 'audioChannels'),
-                               'optimized_version': 1 if helpers.get_xml_attr(media, 'optimizedForStreaming') else 0,
+                               'optimized_version': 1 if helpers.get_xml_attr(media, 'proxyType') == '42' else 0,
                                'parts': parts
                                })
         
@@ -1272,7 +1272,8 @@ class PmsConnect(object):
                                  'transcode_hardware': transcode_hardware,
                                  'audio_decision': helpers.get_xml_attr(transcode_info, 'audioDecision'),
                                  'video_decision': helpers.get_xml_attr(transcode_info, 'videoDecision'),
-                                 'subtitle_decision': helpers.get_xml_attr(transcode_info, 'subtitleDecision')
+                                 'subtitle_decision': helpers.get_xml_attr(transcode_info, 'subtitleDecision'),
+                                 'throttled': str(transcode_throttled)  # Keep for backwards compatibility
                                  }
         else:
             transcode_details = {'transcode_key': '',
@@ -1289,7 +1290,8 @@ class PmsConnect(object):
                                  'transcode_hardware': 0,
                                  'audio_decision': 'direct play',
                                  'video_decision': 'direct play',
-                                 'subtitle_decision': ''
+                                 'subtitle_decision': '',
+                                 'throttled': '0'  # Keep for backwards compatibility
                                  }
 
         # Figure out which version is being played
@@ -1370,7 +1372,6 @@ class PmsConnect(object):
         else:
             quality_profile = ''
 
-        # Check if it is an optimized version
         stream_details = {'stream_container': helpers.get_xml_attr(stream_media_info, 'container'),
                           'stream_bitrate': helpers.get_xml_attr(stream_media_info, 'bitrate'),
                           'stream_aspect_ratio': helpers.get_xml_attr(stream_media_info, 'aspectRatio'),
@@ -1383,7 +1384,7 @@ class PmsConnect(object):
                           'stream_video_width': helpers.get_xml_attr(stream_media_info, 'width'),
                           'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration'),
                           'transcode_decision': helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
-                          'optimized_version': 1 if helpers.get_xml_attr(stream_media_info, 'optimizedForStreaming') else 0,
+                          'optimized_version': 1 if helpers.get_xml_attr(stream_media_info, 'proxyType') == '42' else 0,
                           'optimized_version_profile': helpers.get_xml_attr(stream_media_info, 'title'),
                           'quality_profile': quality_profile,
                           'indexes': 1 if indexes == 'sd' else 0,
