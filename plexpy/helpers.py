@@ -713,7 +713,7 @@ def uploadToImgur(imgPath, imgTitle=''):
         if response.get('status') == 200:
             t = '\'' + imgTitle + '\' ' if imgTitle else ''
             logger.debug(u"PlexPy Helpers :: Image %suploaded to Imgur." % t)
-            img_url = response.get('data').get('link', '')
+            img_url = response.get('data').get('link', '').replace('http', 'https')
         elif response.get('status') >= 400 and response.get('status') < 500:
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % response.reason)
         else:
