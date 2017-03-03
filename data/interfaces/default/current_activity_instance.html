@@ -154,7 +154,7 @@ DOCUMENTATION :: END
                                 % if data['video_decision'] == 'transcode':
                                 Video &nbsp;<strong>Transcode (${data['video_codec'].upper()} ${data['video_resolution'].rstrip('p') + ('p' if data['video_resolution'].lower() != 'sd' else '')} &rarr; ${data['stream_video_codec'].upper()} ${data['stream_video_resolution'].rstrip('p') + ('p' if data['stream_video_resolution'].lower() != 'sd' else '')})</strong>
                                 % elif data['video_decision'] == 'copy':
-                                Video &nbsp;<strong>Direct Stream (${data['video_codec'].upper()} ${data['video_resolution'].rstrip('p') + ('p' if data['video_resolution'].lower() != 'sd' else '')} &rarr; ${data['stream_video_codec'].upper()} ${data['stream_video_resolution'].rstrip('p') + ('p' if data['stream_video_resolution'].lower() != 'sd' else '')})</strong>
+                                Video &nbsp;<strong>Direct Stream (${data['stream_video_codec'].upper()} ${data['stream_video_resolution'].rstrip('p') + ('p' if data['stream_video_resolution'].lower() != 'sd' else '')})</strong>
                                 % else:
                                 Video &nbsp;<strong>Direct Play (${data['video_codec'].upper()} ${data['video_resolution'].rstrip('p') + ('p' if data['video_resolution'].lower() != 'sd' else '')})</strong>
                                 % endif
@@ -162,11 +162,11 @@ DOCUMENTATION :: END
                             % endif
                             % if data['media_type'] in ('movie', 'episode', 'clip', 'track'):
                                 % if data['audio_decision'] == 'transcode':
-                                Audio &nbsp;<strong>Transcode (${data['audio_codec'].upper()} ${data['audio_channels']}ch &rarr; ${data['stream_audio_codec'].upper()} ${data['stream_audio_channels']}ch)</strong>
+                                Audio &nbsp;<strong>Transcode (${data['audio_codec'].upper()} ${data['audio_channel_layout']} &rarr; ${data['stream_audio_codec'].upper()} ${data['stream_audio_channel_layout']})</strong>
                                 % elif data['audio_decision'] == 'copy':
-                                Audio &nbsp;<strong>Direct Stream (${data['audio_codec'].upper()} ${data['audio_channels']}ch &rarr; ${data['stream_audio_codec'].upper()} ${data['stream_audio_channels']}ch)</strong>
+                                Audio &nbsp;<strong>Direct Stream (${data['stream_audio_codec'].upper()} ${data['stream_audio_channel_layout']})</strong>
                                 % else:
-                                Audio &nbsp;<strong>Direct Play (${data['audio_codec'].upper()} ${data['audio_channels']}ch)</strong>
+                                Audio &nbsp;<strong>Direct Play (${data['audio_codec'].upper()} ${data['audio_channel_layout']})</strong>
                                 % endif
                             <br />
                             % endif

@@ -999,7 +999,6 @@ class PmsConnect(object):
                                             'type': helpers.get_xml_attr(stream, 'streamType'),
                                             'audio_bitrate': helpers.get_xml_attr(stream, 'bitrate'),
                                             'audio_bitrate_mode': helpers.get_xml_attr(stream, 'bitrateMode'),
-                                            'audio_channel_layout': helpers.get_xml_attr(stream, 'audioChannelLayout'),
                                             'audio_sample_rate': helpers.get_xml_attr(stream, 'samplingRate'),
                                             'audio_language': helpers.get_xml_attr(stream, 'language'),
                                             'audio_language_code': helpers.get_xml_attr(stream, 'languageCode'),
@@ -1024,6 +1023,8 @@ class PmsConnect(object):
                                   'streams': streams
                                   })
 
+                audio_channels = helpers.get_xml_attr(media, 'audioChannels')
+
                 medias.append({'id': helpers.get_xml_attr(media, 'id'),
                                'container': helpers.get_xml_attr(media, 'container'),
                                'bitrate': helpers.get_xml_attr(media, 'bitrate'),
@@ -1034,7 +1035,8 @@ class PmsConnect(object):
                                'video_resolution': helpers.get_xml_attr(media, 'videoResolution'),
                                'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
                                'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
-                               'audio_channels': helpers.get_xml_attr(media, 'audioChannels'),
+                               'audio_channels': audio_channels,
+                               'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels),
                                'optimized_version': 1 if helpers.get_xml_attr(media, 'proxyType') == '42' else 0,
                                'parts': parts
                                })
@@ -1338,7 +1340,6 @@ class PmsConnect(object):
             audio_id = helpers.get_xml_attr(audio_stream_info, 'id')
             audio_details = {'stream_audio_bitrate': helpers.get_xml_attr(audio_stream_info, 'bitrate'),
                              'stream_audio_bitrate_mode': helpers.get_xml_attr(audio_stream_info, 'bitrateMode'),
-                             'stream_audio_channel_layout': helpers.get_xml_attr(audio_stream_info, 'audioChannelLayout'),
                              'stream_audio_sample_rate': helpers.get_xml_attr(audio_stream_info, 'samplingRate'),
                              'stream_audio_language': helpers.get_xml_attr(audio_stream_info, 'language'),
                              'stream_audio_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
@@ -1372,11 +1373,14 @@ class PmsConnect(object):
         else:
             quality_profile = ''
 
+        stream_audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
+
         stream_details = {'stream_container': helpers.get_xml_attr(stream_media_info, 'container'),
                           'stream_bitrate': helpers.get_xml_attr(stream_media_info, 'bitrate'),
                           'stream_aspect_ratio': helpers.get_xml_attr(stream_media_info, 'aspectRatio'),
                           'stream_audio_codec': helpers.get_xml_attr(stream_media_info, 'audioCodec'),
-                          'stream_audio_channels': helpers.get_xml_attr(stream_media_info, 'audioChannels'),
+                          'stream_audio_channels': stream_audio_channels,
+                          'stream_audio_channel_layout': common.AUDIO_CHANNELS.get(stream_audio_channels, stream_audio_channels),
                           'stream_video_codec': helpers.get_xml_attr(stream_media_info, 'videoCodec'),
                           'stream_video_framerate': helpers.get_xml_attr(stream_media_info, 'videoFrameRate'),
                           'stream_video_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution'),
@@ -1400,6 +1404,7 @@ class PmsConnect(object):
 
         if media_type == 'clip':
             clip_media = session.getElementsByTagName('Media')[0]
+            audio_channels = helpers.get_xml_attr(clip_media, 'audioChannels')
             metadata_details = {'rating_key': helpers.get_xml_attr(session, 'ratingKey'),
                                 'title': helpers.get_xml_attr(session, 'title'),
                                 'summary': helpers.get_xml_attr(session, 'summary'),
@@ -1414,7 +1419,8 @@ class PmsConnect(object):
                                 'video_codec': helpers.get_xml_attr(clip_media, 'videoCodec'),
                                 'video_resolution': helpers.get_xml_attr(clip_media, 'videoResolution'),
                                 'audio_codec': helpers.get_xml_attr(clip_media, 'audioCodec'),
-                                'audio_channels': helpers.get_xml_attr(clip_media, 'audioChannels'),
+                                'audio_channels': audio_channels,
+                                'audio_channel_layout': common.AUDIO_CHANNELS.get(audio_channels, audio_channels)
                                  }
         else:
             media_id = helpers.get_xml_attr(stream_media_info, 'id')

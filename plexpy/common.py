@@ -56,6 +56,15 @@ MEDIA_FLAGS_VIDEO = {'avc1': 'h264',
                      'wmv3': 'wmvhd'
                      }
 
+AUDIO_CHANNELS = {'1': 'Mono',
+                  '2': 'Stereo',
+                  '3': '2.1',
+                  '4': '3.1',
+                  '6': '5.1',
+                  '7': '6.1',
+                  '8': '7.1'
+                  }
+
 QUALITY_PROFILES = {'20000': '20 Mbps 1080p',
                     '12000': '12 Mbps 1080p',
                     '10000': '10 Mbps 1080p',
