@@ -173,6 +173,8 @@ DOCUMENTATION :: END
                             % if data['media_type'] in ('movie', 'episode', 'clip') and data['subtitles'] == '1':
                                 % if data['subtitle_decision'] == 'transcode':
                                 Subtitle &nbsp;<strong>Transcode (${data['subtitle_codec'].upper()} &rarr; ${data['stream_subtitle_codec'].upper()})</strong>
+                                % elif data['subtitle_decision'] == 'copy':
+                                Subtitle &nbsp;<strong>Direct Stream (${data['subtitle_codec'].upper()})</strong>
                                 % elif data['subtitle_decision'] == 'burn':
                                 Subtitle &nbsp;<strong>Burn (${data['subtitle_codec'].upper()})</strong>
                                 % else:

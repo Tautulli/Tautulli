@@ -227,8 +227,10 @@
                         if (s.subtitles) {
                             if (s.subtitle_decision == 'transcode') {
                                 ts += 'Subtitle &nbsp;<strong>Transcode (' + s.subtitle_codec.toUpperCase() + ' &rarr; ' + s.stream_subtitle_codec.toUpperCase() + ')</strong>';
+                            } else if (s.subtitle_decision == 'copy') {
+                                ts += 'Subtitle &nbsp;<strong>Direct Stream (' + s.subtitle_codec.toUpperCase() + ')</strong>';
                             } else if (s.subtitle_decision == 'burn') {
-                                ts += 'Subtitle &nbsp;<strong>Burn (' + s.stream_subtitle_codec.toUpperCase() + ')</strong>';
+                                ts += 'Subtitle &nbsp;<strong>Burn (' + s.subtitle_codec.toUpperCase() + ')</strong>';
                             } else {
                                 ts += 'Subtitle &nbsp;<strong>Direct Play (' + s.subtitle_codec.toUpperCase() + ')</strong>';
                             }
