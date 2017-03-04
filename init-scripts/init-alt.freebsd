@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # PROVIDE: plexpy
-# REQUIRE: sabnzbd
+# REQUIRE: plexpy
 # KEYWORD: shutdown
 #
 # Add the following lines to /etc/rc.conf.local or /etc/rc.conf
@@ -10,7 +10,7 @@
 # plexpy_enable (bool):     Set to NO by default.
 #                       Set it to YES to enable it.
 # plexpy_user:  The user account PlexPy daemon runs as what
-#                       you want it to be. It uses '_sabnzbd' user by
+#                       you want it to be. It uses 'plexpy' user by
 #                       default. Do not sets it as empty or it will run
 #                       as root.
 # plexpy_dir:       Directory where PlexPy lives.
@@ -28,7 +28,7 @@ rcvar=${name}_enable
 load_rc_config ${name}
 
 : ${plexpy_enable:="NO"}
-: ${plexpy_user:="_sabnzbd"}
+: ${plexpy_user:="plexpy"}
 : ${plexpy_dir:="/usr/local/plexpy"}
 : ${plexpy_chdir:="${plexpy_dir}"}
 : ${plexpy_pid:="${plexpy_dir}/plexpy.pid"}
