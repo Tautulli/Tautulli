@@ -330,7 +330,6 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
 
     view_offset = helpers.convert_milliseconds_to_minutes(session.get('view_offset', 0))
     duration = helpers.convert_milliseconds_to_minutes(metadata['duration'])
-    progress_percent = helpers.get_percent(view_offset, duration)
     remaining_duration = duration - view_offset
 
     # Build Plex URL
@@ -439,7 +438,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'remaining_time': arrow.get(remaining_duration * 60).format(duration_format),
                         'progress_duration': view_offset,
                         'progress_time': arrow.get(view_offset * 60).format(duration_format),
-                        'progress_percent': progress_percent,
+                        'progress_percent': helpers.get_percent(view_offset, duration),
                         'transcode_decision': transcode_decision,
                         'video_decision': session.get('video_decision',''),
                         'audio_decision': session.get('audio_decision',''),
@@ -526,6 +525,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'summary': metadata['summary'],
                         'tagline': metadata['tagline'],
                         'rating': metadata['rating'],
+                        'audience_rating': helpers.get_percent(metadata['audience_rating'], 10) or '',
                         'duration': duration,
                         'poster_title': metadata.get('poster_title',''),
                         'poster_url': metadata.get('poster_url',''),
