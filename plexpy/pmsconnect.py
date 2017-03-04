@@ -1384,6 +1384,14 @@ class PmsConnect(object):
 
         stream_audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
 
+        # Generate a combined transcode decision value
+        if transcode_details['video_decision'] == 'transcode' or transcode_details['audio_decision'] == 'transcode':
+            transcode_decision = 'transcode'
+        elif transcode_details['video_decision'] == 'copy' or transcode_details['audio_decision'] == 'copy':
+            transcode_decision = 'copy'
+        else:
+            transcode_decision = 'direct play'
+    
         stream_details = {'stream_container': helpers.get_xml_attr(stream_media_info, 'container'),
                           'stream_bitrate': helpers.get_xml_attr(stream_media_info, 'bitrate'),
                           'stream_aspect_ratio': helpers.get_xml_attr(stream_media_info, 'aspectRatio'),
@@ -1396,7 +1404,8 @@ class PmsConnect(object):
                           'stream_video_height': helpers.get_xml_attr(stream_media_info, 'height'),
                           'stream_video_width': helpers.get_xml_attr(stream_media_info, 'width'),
                           'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration'),
-                          'transcode_decision': helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
+                          'stream_container_decision': helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
+                          'transcode_decision': transcode_decision,
                           'optimized_version': 1 if helpers.get_xml_attr(stream_media_info, 'proxyType') == '42' else 0,
                           'optimized_version_profile': helpers.get_xml_attr(stream_media_info, 'title'),
                           'quality_profile': quality_profile,
