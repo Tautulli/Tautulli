@@ -93,7 +93,7 @@ DOCUMENTATION :: END
 <script>
     // Set user options
     $("#save_user").on('click', function () {
-        var friendly_name = $("#friendly_name").val();
+        var friendly_name = $("input#friendly_name").val();
         var custom_thumb = $("#custom_avatar_url").val();
         var do_notify = 0;
         var keep_history = 0;
