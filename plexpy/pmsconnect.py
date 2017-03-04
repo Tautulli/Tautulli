@@ -1376,12 +1376,6 @@ class PmsConnect(object):
         else:
             bif_thumb = ''
 
-        # Get the quality profile
-        if video_details:
-            quality_profile = common.QUALITY_PROFILES.get(video_details['stream_video_bitrate'], 'Original')
-        else:
-            quality_profile = ''
-
         stream_audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
 
         # Generate a combined transcode decision value
@@ -1408,7 +1402,6 @@ class PmsConnect(object):
                           'transcode_decision': transcode_decision,
                           'optimized_version': 1 if helpers.get_xml_attr(stream_media_info, 'proxyType') == '42' else 0,
                           'optimized_version_profile': helpers.get_xml_attr(stream_media_info, 'title'),
-                          'quality_profile': quality_profile,
                           'indexes': 1 if indexes == 'sd' else 0,
                           'bif_thumb': bif_thumb,
                           'subtitles': 1 if subtitle_details else 0
@@ -1456,11 +1449,26 @@ class PmsConnect(object):
             if subtitle_id:
                 source_subtitle_details = next((p for p in source_media_part_streams if p['id'] == subtitle_id), {})
 
+        # Get the quality profile
+        if media_type in ('movie', 'episode', 'clip'):
+            stream_video_bitrate = helpers.cast_to_int(video_details['stream_video_bitrate'])
+            video_bitrate = helpers.cast_to_int(source_video_details['video_bitrate'])
+
+            try:
+                quailtiy_bitrate = min(b for b in common.QUALITY_PROFILES if stream_video_bitrate <= b <= video_bitrate)
+                quality_profile = common.QUALITY_PROFILES[quailtiy_bitrate]
+            except ValueError:
+                quality_profile = 'Original'
+            
+        else:
+            quality_profile = ''
+
         # Entire session output (single dict for backwards compatibility)
         session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                           'media_type': media_type,
                           'view_offset': progress,
                           'progress_percent': str(helpers.get_percent(progress, stream_details['stream_duration'])),
+                          'quality_profile': quality_profile,
                           'user': user_details['username']  # Keep for backwards compatibility
                           }
         
