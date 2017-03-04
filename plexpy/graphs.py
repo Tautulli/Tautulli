@@ -169,13 +169,12 @@ class Graphs(object):
             logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_per_dayofweek: %s." % e)
             return None
 
-        week_start = plexpy.CONFIG.WEEK_START
-        if (week_start == 1):
+        if plexpy.CONFIG.WEEK_START_MONDAY:
             days_list = ['Monday', 'Tuesday', 'Wednesday',
-                     'Thursday', 'Friday', 'Saturday', 'Sunday']
+                         'Thursday', 'Friday', 'Saturday', 'Sunday']
         else:
             days_list = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
-                     'Thursday', 'Friday', 'Saturday']
+                         'Thursday', 'Friday', 'Saturday']
 
         categories = []
         series_1 = []
@@ -335,19 +334,16 @@ class Graphs(object):
                         'GROUP BY strftime("%%Y-%%m", datetime(started, "unixepoch", "localtime")) ' \
                         'ORDER BY datestring DESC LIMIT %s' % (time_range, user_cond, time_range)
 
-                result = monitor_db.select(query)        
+                result = monitor_db.select(query)
         except Exception as e:
             logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_per_month: %s." % e)
             return None
 
         # create our date range as some months may not have any data
         # but we still want to display them
-        time_range = int(time_range)
-        x = time_range
-        
         base = time.localtime()
         month_range = [time.localtime(
-            time.mktime((base.tm_year, base.tm_mon - n, 1, 0, 0, 0, 0, 0, 0))) for n in range(x)]
+            time.mktime((base.tm_year, base.tm_mon - n, 1, 0, 0, 0, 0, 0, 0))) for n in range(int(time_range))]
 
         categories = []
         series_1 = []

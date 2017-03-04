@@ -322,11 +322,11 @@
 
         // Initial values for graph from config
         var yaxis = "${config['graph_type']}";
-        var current_range = ${config['graph_days']};
+        var current_day_range = ${config['graph_days']};
         var current_month_range = ${config['graph_months']};
         var current_tab = "${'#' + config['graph_tab']}";
         
-        $('.days').html(current_range);
+        $('.days').html(current_day_range);
         $('.months').html(current_month_range);
         
         // Load user ids and names (for the selector)
@@ -557,15 +557,15 @@
         }
 
         // Set initial state
-        if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
-        if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
+        if (current_tab == '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
+        if (current_tab == '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
         if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
 
         // Tab1 opened
         $('#graph-tabs a[href="#tabs-1"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
-            loadGraphsTab1(current_range, yaxis);
+            loadGraphsTab1(current_day_range, yaxis);
             $.ajax({
                 url: 'set_graph_config',
                 data: { graph_tab: current_tab.replace('#','') },
@@ -577,7 +577,7 @@
         $('#graph-tabs a[href="#tabs-2"]').on('shown.bs.tab', function (e) {
             e.preventDefault();
             current_tab = $(this).attr('href');
-            loadGraphsTab2(current_range, yaxis);
+            loadGraphsTab2(current_day_range, yaxis);
             $.ajax({
                 url: 'set_graph_config',
                 data: { graph_tab: current_tab.replace('#','') },
@@ -599,24 +599,26 @@
 
         // Date range changed
         $('#graph-days').on('change', function() {
-            current_range = $(this).val();
-            if (current_range < 1) {
+            current_day_range = Math.round($(this).val());
+            $(this).val(current_day_range);
+            if (current_day_range < 1) {
                 $(this).val(7);
-                current_range = 7;
+                current_day_range = 7;
             }
-            if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
-            if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
-            $('.days').html(current_range);
+            if (current_tab == '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
+            if (current_tab == '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
+            $('.days').html(current_day_range);
             $.ajax({
                 url: 'set_graph_config',
-                data: { graph_days: current_range},
+                data: { graph_days: current_day_range},
                 async: true
             });
         });
         
         // Month range changed
         $('#graph-months').on('change', function() {
-            current_month_range = $(this).val();
+            current_month_range = Math.round($(this).val());
+            $(this).val(current_month_range);
             if (current_month_range < 1) {
                 $(this).val(12);
                 current_month_range = 12;
@@ -633,17 +635,17 @@
         // User changed
         $('#graph-user').on('change', function() {
             selected_user_id = $(this).val() || null;
-            if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
-            if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
+            if (current_tab == '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
+            if (current_tab == '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
             if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
         });
         
         // Y-axis changed
         $('#yaxis-selection').on('change', function() {
             yaxis = $('input[name=yaxis-options]:checked', '#yaxis-selection').val();
-            if (current_tab == '#tabs-1') { loadGraphsTab1(current_range, yaxis); }
-            if (current_tab == '#tabs-2') { loadGraphsTab2(current_range, yaxis); }
-            if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range,yaxis); }
+            if (current_tab == '#tabs-1') { loadGraphsTab1(current_day_range, yaxis); }
+            if (current_tab == '#tabs-2') { loadGraphsTab2(current_day_range, yaxis); }
+            if (current_tab == '#tabs-3') { loadGraphsTab3(current_month_range, yaxis); }
             $.ajax({
                 url: 'set_graph_config',
                 data: { graph_type: yaxis},

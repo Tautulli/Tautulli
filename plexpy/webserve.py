@@ -2623,7 +2623,7 @@ class WebInterface(object):
             "imgur_client_id": plexpy.CONFIG.IMGUR_CLIENT_ID,
             "cache_images": checked(plexpy.CONFIG.CACHE_IMAGES),
             "pms_version": plexpy.CONFIG.PMS_VERSION,
-            "week_start": checked(plexpy.CONFIG.WEEK_START)
+            "week_start_monday": checked(plexpy.CONFIG.WEEK_START_MONDAY)
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -2637,7 +2637,7 @@ class WebInterface(object):
         checked_configs = [
             "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
-            "pms_use_bif", "pms_ssl", "pms_is_remote", "home_stats_type", "week_start",
+            "pms_use_bif", "pms_ssl", "pms_is_remote", "home_stats_type", "week_start_monday",
             "movie_notify_enable", "tv_notify_enable", "music_notify_enable", "monitoring_use_websocket",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "ip_logging_enable", "movie_logging_enable", "tv_logging_enable", "music_logging_enable",
