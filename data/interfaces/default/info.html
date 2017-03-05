@@ -116,9 +116,9 @@ DOCUMENTATION :: END
                 <div class="col-md-9">
                     <div class="summary-content-poster hidden-xs hidden-sm">
                         % if data['media_type'] == 'track':
-                        <a href="https://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}" target="_blank" title="View on Plex Web">
+                        <a href="https://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}" target="_blank" title="View in Plex Web">
                         % else:
-                        <a href="https://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="_blank" title="View on Plex Web">
+                        <a href="https://app.plex.tv/web/app#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}" target="_blank" title="View in Plex Web">
                         % endif
                             % if data['media_type'] == 'episode':
                             <div class="summary-poster-face-episode" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=280&fallback=art);">

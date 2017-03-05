@@ -19,7 +19,7 @@
         </dependency>
 
         <method_context>
-            <method_credential user="sabnzbd" group="sabnzbd"/>
+            <method_credential user="plexpy" group="nogroup"/>
         </method_context>
 
         <exec_method type="method" name="start" exec="python /opt/plexpy/PlexPy.py --daemon --quiet --nolaunch" timeout_seconds="60"/>

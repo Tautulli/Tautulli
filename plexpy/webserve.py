@@ -1773,6 +1773,7 @@ class WebInterface(object):
         config = {
             "graph_type": plexpy.CONFIG.GRAPH_TYPE,
             "graph_days": plexpy.CONFIG.GRAPH_DAYS,
+            "graph_months": plexpy.CONFIG.GRAPH_MONTHS,
             "graph_tab": plexpy.CONFIG.GRAPH_TAB,
             "music_logging_enable": plexpy.CONFIG.MUSIC_LOGGING_ENABLE
         }
@@ -1781,12 +1782,15 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def set_graph_config(self, graph_type=None, graph_days=None, graph_tab=None, **kwargs):
+    def set_graph_config(self, graph_type=None, graph_days=None, graph_months=None, graph_tab=None, **kwargs):
         if graph_type:
             plexpy.CONFIG.__setattr__('GRAPH_TYPE', graph_type)
             plexpy.CONFIG.write()
         if graph_days:
             plexpy.CONFIG.__setattr__('GRAPH_DAYS', graph_days)
+            plexpy.CONFIG.write()
+        if graph_months:
+            plexpy.CONFIG.__setattr__('GRAPH_MONTHS', graph_months)
             plexpy.CONFIG.write()
         if graph_tab:
             plexpy.CONFIG.__setattr__('GRAPH_TAB', graph_tab)
@@ -1934,7 +1938,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_per_month(self, y_axis='plays', user_id=None, **kwargs):
+    def get_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, **kwargs):
         """ Get graph data by month.
 
             ```
@@ -1942,7 +1946,7 @@ class WebInterface(object):
                 None
 
             Optional parameters:
-                time_range (str):       The number of days of data to return
+                time_range (str):       The number of months of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          The user id to filter the data
 
@@ -1959,7 +1963,7 @@ class WebInterface(object):
             ```
         """
         graph = graphs.Graphs()
-        result = graph.get_total_plays_per_month(y_axis=y_axis, user_id=user_id)
+        result = graph.get_total_plays_per_month(time_range=time_range, y_axis=y_axis, user_id=user_id)
 
         if result:
             return result
@@ -2574,6 +2578,7 @@ class WebInterface(object):
             "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
+            "week_start_monday": checked(plexpy.CONFIG.WEEK_START_MONDAY),
             "get_file_sizes": checked(plexpy.CONFIG.GET_FILE_SIZES),
             "grouping_global_history": checked(plexpy.CONFIG.GROUPING_GLOBAL_HISTORY),
             "grouping_user_history": checked(plexpy.CONFIG.GROUPING_USER_HISTORY),
@@ -2632,7 +2637,7 @@ class WebInterface(object):
         checked_configs = [
             "launch_browser", "enable_https", "https_create_cert", "api_enabled", "freeze_db", "check_github",
             "grouping_global_history", "grouping_user_history", "grouping_charts", "group_history_tables",
-            "pms_use_bif", "pms_ssl", "pms_is_remote", "home_stats_type",
+            "pms_use_bif", "pms_ssl", "pms_is_remote", "home_stats_type", "week_start_monday",
             "movie_notify_enable", "tv_notify_enable", "music_notify_enable",
             "refresh_libraries_on_startup", "refresh_users_on_startup",
             "movie_logging_enable", "tv_logging_enable", "music_logging_enable",

@@ -169,8 +169,12 @@ class Graphs(object):
             logger.warn(u"PlexPy Graphs :: Unable to execute database query for get_total_plays_per_dayofweek: %s." % e)
             return None
 
-        days_list = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
-                     'Thursday', 'Friday', 'Saturday']
+        if plexpy.CONFIG.WEEK_START_MONDAY:
+            days_list = ['Monday', 'Tuesday', 'Wednesday',
+                         'Thursday', 'Friday', 'Saturday', 'Sunday']
+        else:
+            days_list = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
+                         'Thursday', 'Friday', 'Saturday']
 
         categories = []
         series_1 = []
@@ -291,8 +295,11 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_plays_per_month(self, y_axis='plays', user_id=None):
+    def get_total_plays_per_month(self, time_range='12', y_axis='plays', user_id=None):
         import time as time
+        
+        if not time_range.isdigit():
+            time_range = '12'
 
         monitor_db = database.MonitorDatabase()
 
@@ -309,9 +316,9 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS music_count ' \
                         'FROM session_history ' \
-                        'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-12 months", "localtime") %s' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s months", "localtime") %s' \
                         'GROUP BY strftime("%%Y-%%m", datetime(started, "unixepoch", "localtime")) ' \
-                        'ORDER BY datestring DESC LIMIT 12' % (user_cond)
+                        'ORDER BY datestring DESC LIMIT %s' % (time_range, user_cond, time_range)
 
                 result = monitor_db.select(query)
             else:
@@ -323,9 +330,9 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "track" AND stopped > 0 THEN (stopped - started) ' \
                         ' - (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) AS music_count ' \
                         'FROM session_history ' \
-                        'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-12 months", "localtime") %s' \
+                        'WHERE datetime(started, "unixepoch", "localtime") >= datetime("now", "-%s months", "localtime") %s' \
                         'GROUP BY strftime("%%Y-%%m", datetime(started, "unixepoch", "localtime")) ' \
-                        'ORDER BY datestring DESC LIMIT 12' % (user_cond)
+                        'ORDER BY datestring DESC LIMIT %s' % (time_range, user_cond, time_range)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -334,10 +341,9 @@ class Graphs(object):
 
         # create our date range as some months may not have any data
         # but we still want to display them
-        x = 12
         base = time.localtime()
         month_range = [time.localtime(
-            time.mktime((base.tm_year, base.tm_mon - n, 1, 0, 0, 0, 0, 0, 0))) for n in range(x)]
+            time.mktime((base.tm_year, base.tm_mon - n, 1, 0, 0, 0, 0, 0, 0))) for n in range(int(time_range))]
 
         categories = []
         series_1 = []

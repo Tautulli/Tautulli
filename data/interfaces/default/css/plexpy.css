@@ -2797,6 +2797,14 @@ pre::-webkit-scrollbar-thumb {
     width: 75px;
     height: 34px;
 }
+#months-selection label {
+    margin-bottom: 0;
+}
+#graph-months {
+	margin: 0;
+	width: 75px;
+	height: 34px;
+}
 .card-sortable {
     height: 36px;
     padding: 0 20px 0 0;

@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.4.17 (2017-03-04)
+
+* New: Configurable month range for the Plays by month graph. (Thanks @Pbaboe)
+* New: Option to chanage the week to start on Monday for the the Plays by day of week graph. (Thanks @Pbaboe)
+* Fix: Invalid iOS icon file paths. (Thanks @demonbane)
+* Fix: Plex Web 3.0 URLs on info pages and notifications.
+* Fix: Update bitcoin donation link to Coinbase.
+* Fix: Update init scripts. (Thanks @ampsonic)
+
+
 ## v1.4.16 (2016-11-25)
 
 * Fix: Websocket for new json response on PMS 1.3.0.
