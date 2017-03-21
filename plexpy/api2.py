@@ -407,7 +407,7 @@ General optional parameters:
         data = None
         apikey = hashlib.sha224(str(random.getrandbits(256))).hexdigest()[0:32]
         if plexpy.CONFIG.HTTP_USERNAME and plexpy.CONFIG.HTTP_PASSWORD:
-            if username == plexpy.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
+            if username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
                 if plexpy.CONFIG.API_KEY:
                     data = plexpy.CONFIG.API_KEY
                 else:
