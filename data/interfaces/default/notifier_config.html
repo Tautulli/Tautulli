@@ -202,7 +202,7 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <p class="help-block">
-                                        Test if ${notifier['agent_label']} notifications are working. See the <a href="logs">logs</a> for troubleshooting.
+                                        Test if ${notifier['agent_label']} notifications are working. Check the <a href="logs">logs</a> for troubleshooting.
                                     </p>
                                     % if notifier['agent_name'] == 'scripts':
                                     <div class="form-group">
@@ -252,7 +252,6 @@
         </div>
     </div>
 </div>
-% endif
 
 <script>
 
@@ -296,7 +295,7 @@
         $('#friendly_name').val("");
         // Uncheck all triggers
         $('#tabs-notify_triggers input[id^=on_]').val(0);
-                    
+
         saveNotifier();
 
         $('#notifier-config-modal').on('hidden.bs.modal', function () {
@@ -339,7 +338,7 @@
     $('#facebook_app_id, #facebook_app_secret').on('change', function () {
         disableFacebookRequest();
     });
-    
+
     $('#facebook_facebookStep1').click(function () {
         // Remove trailing '/' from Facebook redirect URI
         if ($('#facebook_redirect_uri') && $('#facebook_redirect_uri').val().endsWith('/')) {
@@ -492,3 +491,20 @@
         $(this).on('focus keyup input', function () { resizeTextarea(this); }).removeAttr('data-autoresize');
     });
 </script>
+% else:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title" id="notifier-config-modal-header">Error</h4>
+        </div>
+        <div class="modal-body">
+            <center><strong>
+                <i class="fa fa-exclamation-circle"></i> Failed to retrieve notifier configuration. Check the <a href="logs">logs</a> for more info.
+            </strong></center>
+        </div>
+        <div class="modal-footer">
+        </div>
+    </div>
+</div>
+% endif

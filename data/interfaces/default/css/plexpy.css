@@ -372,7 +372,8 @@ fieldset[disabled] .btn-bright.active {
 .modal-body a:focus i.fa {
     color: #f9aa03;
 }
-.modal-body strong {
+.modal-body strong,
+.modal-body strong i.fa {
     color: #F9AA03;
 }
 .modal-footer {

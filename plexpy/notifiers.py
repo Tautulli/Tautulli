@@ -398,9 +398,13 @@ def get_notifier_config(notifier_id=None):
     if not result:
         return None
 
-    config = json.loads(result.pop('notifier_config') or '{}')
-    notifier_agent = get_agent_class(agent_id=result['agent_id'], config=config)
-    notifier_config = notifier_agent.return_config_options()
+    try:
+        config = json.loads(result.pop('notifier_config') or '{}')
+        notifier_agent = get_agent_class(agent_id=result['agent_id'], config=config)
+        notifier_config = notifier_agent.return_config_options()
+    except Exception as e:
+        logger.error(u"PlexPy Notifiers :: Failed to get notifier config options: %s." % e)
+        return
 
     notify_actions = get_notify_actions()
 
