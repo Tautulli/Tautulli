@@ -1279,7 +1279,7 @@ class PmsConnect(object):
             else:
                 transcode_throttled = 0
 
-            if helpers.get_xml_attr(transcode_info, 'transcodeHwRequested') == '1':
+            if helpers.get_xml_attr(transcode_info, 'transcodeHwFullPipeline') == '1':
                 transcode_hardware = 1
             else:
                 transcode_hardware = 0
@@ -1404,6 +1404,13 @@ class PmsConnect(object):
         else:
             transcode_decision = 'direct play'
     
+        stream_video_width = helpers.get_xml_attr(stream_media_info, 'width')
+        if helpers.cast_to_int(stream_video_width) >= 3840:
+            stream_video_resolution = '4k'
+        else:
+            stream_video_resolution = helpers.get_xml_attr(stream_media_info, 'videoResolution').rstrip('p')
+
+
         stream_details = {'stream_container': helpers.get_xml_attr(stream_media_info, 'container'),
                           'stream_bitrate': helpers.get_xml_attr(stream_media_info, 'bitrate'),
                           'stream_aspect_ratio': helpers.get_xml_attr(stream_media_info, 'aspectRatio'),
@@ -1412,7 +1419,7 @@ class PmsConnect(object):
                           'stream_audio_channel_layout': common.AUDIO_CHANNELS.get(stream_audio_channels, stream_audio_channels),
                           'stream_video_codec': helpers.get_xml_attr(stream_media_info, 'videoCodec'),
                           'stream_video_framerate': helpers.get_xml_attr(stream_media_info, 'videoFrameRate'),
-                          'stream_video_resolution': helpers.get_xml_attr(stream_media_info, 'videoResolution'),
+                          'stream_video_resolution': stream_video_resolution,
                           'stream_video_height': helpers.get_xml_attr(stream_media_info, 'height'),
                           'stream_video_width': helpers.get_xml_attr(stream_media_info, 'width'),
                           'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration'),

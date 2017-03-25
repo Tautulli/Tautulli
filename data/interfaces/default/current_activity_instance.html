@@ -152,15 +152,15 @@ DOCUMENTATION :: END
                             <br />
                             % if data['media_type'] in ('movie', 'episode', 'clip'):
                                 % if data['video_decision'] == 'transcode':
-                                Video &nbsp;<strong>Transcode (${data['video_codec'].upper()} ${data['video_resolution'].rstrip('p') + ('p' if data['video_resolution'].lower() != 'sd' else '')} &rarr; ${data['stream_video_codec'].upper()} ${data['stream_video_resolution'].rstrip('p') + ('p' if data['stream_video_resolution'].lower() != 'sd' else '')})</strong>
+                                Video &nbsp;<strong>Transcode (${data['video_codec'].upper()} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])} &rarr; ${data['stream_video_codec'].upper()} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})</strong>
                                 % elif data['video_decision'] == 'copy':
-                                Video &nbsp;<strong>Direct Stream (${data['stream_video_codec'].upper()} ${data['stream_video_resolution'].rstrip('p') + ('p' if data['stream_video_resolution'].lower() != 'sd' else '')})</strong>
+                                Video &nbsp;<strong>Direct Stream (${data['stream_video_codec'].upper()} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})</strong>
                                 % else:
-                                Video &nbsp;<strong>Direct Play (${data['video_codec'].upper()} ${data['video_resolution'].rstrip('p') + ('p' if data['video_resolution'].lower() != 'sd' else '')})</strong>
+                                Video &nbsp;<strong>Direct Play (${data['video_codec'].upper()} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])})</strong>
                                 % endif
                             <br />
                             % endif
-                            % if data['media_type'] in ('movie', 'episode', 'clip', 'track'):
+                            % if data['media_type'] in ('movie', 'episode', 'clip', 'track') and data['audio_codec']:
                                 % if data['audio_decision'] == 'transcode':
                                 Audio &nbsp;<strong>Transcode (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout']} &rarr; ${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout']})</strong>
                                 % elif data['audio_decision'] == 'copy':
@@ -168,6 +168,9 @@ DOCUMENTATION :: END
                                 % else:
                                 Audio &nbsp;<strong>Direct Play (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout']})</strong>
                                 % endif
+                            <br />
+                            % else:
+                            Audio &nbsp;<strong>None</strong>
                             <br />
                             % endif
                             % if data['media_type'] in ('movie', 'episode', 'clip') and data['subtitles'] == '1':

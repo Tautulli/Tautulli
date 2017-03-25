@@ -205,8 +205,26 @@
                             ts += 'Stream &nbsp;<strong>Direct Play</strong><br>';
                         }
                         if (s.video_decision != '' && s.media_type != 'photo') {
-                            var v_res = s.video_resolution.replace(/p$/, '') + ((s.video_resolution.toLowerCase() == 'sd') ? '' : 'p');
-                            var sv_res = s.stream_video_resolution.replace(/p$/, '') + ((s.stream_video_resolution.toLowerCase() == 'sd') ? '' : 'p');
+                            switch (s.video_resolution.toLowerCase()) {
+                                case 'sd':
+                                    var v_res = 'SD';
+                                    break;
+                                case '4k':
+                                    var v_res = '4k';
+                                    break;
+                                default:
+                                    var v_res = s.video_resolution + 'p'
+                            }
+                            switch (s.stream_video_resolution.toLowerCase()) {
+                                case 'sd':
+                                    var sv_res = 'SD';
+                                    break;
+                                case '4k':
+                                    var sv_res = '4k';
+                                    break;
+                                default:
+                                    var sv_res = s.stream_video_resolution + 'p'
+                            }
                             if (s.video_decision == 'transcode') {
                                 ts += 'Video &nbsp;<strong>Transcode (' + s.video_codec.toUpperCase() + ' ' + v_res + ' &rarr; ' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')</strong><br>';
                             } else if (s.video_decision == 'copy') {
@@ -215,14 +233,19 @@
                                 ts += 'Video &nbsp;<strong>Direct Play (' + s.video_codec.toUpperCase() + ' ' + v_res + ')</strong><br>';
                             }
                         }
-                        if (s.audio_decision != '') {
+                        if (s.audio_codec) {
+                            var a_codec = (s.audio_codec == 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
+                            var sa_codec = (s.stream_audio_codec == 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
                             if (s.audio_decision == 'transcode') {
-                                ts += 'Audio &nbsp;<strong>Transcode (' + s.audio_codec.toUpperCase() + ' ' + s.audio_channel_layout + ' &rarr; ' + s.stream_audio_codec.toUpperCase() + ' ' + s.stream_audio_channel_layout + ')</strong><br>';
+                                ts += 'Audio &nbsp;<strong>Transcode (' + a_codec + ' ' + s.audio_channel_layout + ' &rarr; ' + sa_codec + ' ' + s.stream_audio_channel_layout + ')</strong><br>';
                             } else if (s.audio_decision == 'copy') {
-                                ts += 'Audio &nbsp;<strong>Direct Stream (' + s.stream_audio_codec.toUpperCase() + ' ' + s.stream_audio_channel_layout + ')</strong><br>';
+                                ts += 'Audio &nbsp;<strong>Direct Stream (' + sa_codec + ' ' + s.stream_audio_channel_layout + ')</strong><br>';
                             } else {
-                                ts += 'Audio &nbsp;<strong>Direct Play (' + s.audio_codec.toUpperCase() + ' ' + s.audio_channel_layout + ')</strong><br>';
+                                ts += 'Audio &nbsp;<strong>Direct Play (' + a_codec + ' ' + s.audio_channel_layout + ')</strong><br>';
                             }
+                        }
+                        else {
+                            ts += 'Audio &nbsp;<strong>None</strong><br>';
                         }
                         if (s.subtitles) {
                             if (s.subtitle_decision == 'transcode') {

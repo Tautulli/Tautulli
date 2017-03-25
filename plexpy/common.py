@@ -58,6 +58,14 @@ MEDIA_FLAGS_VIDEO = {'avc1': 'h264',
 
 AUDIO_CODEC_OVERRIDES = {'truehd': 'TrueHD'}
 
+VIDEO_RESOLUTION_OVERRIDES = {'sd': 'SD',
+                              '480': '480p',
+                              '576': '576p',
+                              '720': '720p',
+                              '1080': '1080p',
+                              '4k': '4k'
+                              }
+
 AUDIO_CHANNELS = {'1': 'Mono',
                   '2': 'Stereo',
                   '3': '2.1',
