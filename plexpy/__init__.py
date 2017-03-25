@@ -481,7 +481,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
         'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
         'user_id INTEGER, user TEXT, notifier_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
-        'subject_text TEXT, body_text TEXT)'
+        'subject_text TEXT, body_text TEXT, script_args TEXT)'
     )
 
     # library_sections table :: This table keeps record of the servers library sections

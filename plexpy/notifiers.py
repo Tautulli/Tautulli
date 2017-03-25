@@ -2380,13 +2380,10 @@ class SCRIPTS(Notifier):
             logger.error(u"PlexPy Notifiers :: No script folder specified.")
             return
 
-        script_args = subject or None
+        script_args = kwargs.get('script_args', [])
 
         logger.debug(u"PlexPy Notifiers :: Trying to run notify script, action: %s, arguments: %s"
                      % (action, script_args))
-
-        if not script_args:
-            script_args = []
 
         script = kwargs.get('script', self.config.get('script', ''))
 

@@ -17,6 +17,7 @@
 import arrow
 import bleach
 from itertools import groupby
+import json
 from operator import itemgetter
 import os
 import re
@@ -185,16 +186,17 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
     body_string = notifier_config['notify_text'][notify_action]['body']
 
     # Format the subject and body strings
-    subject, body = build_notify_text(subject=subject_string,
-                                      body=body_string,
-                                      notify_action=notify_action,
-                                      parameters=parameters,
-                                      agent_id=notifier_config['agent_id'])
+    subject, body, script_args = build_notify_text(subject=subject_string,
+                                                   body=body_string,
+                                                   notify_action=notify_action,
+                                                   parameters=parameters,
+                                                   agent_id=notifier_config['agent_id'])
 
     # Send the notification
     notifiers.send_notification(notifier_id=notifier_config['id'],
                                 subject=subject,
                                 body=body,
+                                script_args=script_args,
                                 notify_action=notify_action,
                                 parameters=parameters)
 
@@ -203,7 +205,8 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                      notify_action=notify_action,
                      notifier=notifier_config,
                      subject=subject,
-                     body=body)
+                     body=body,
+                     script_args=script_args)
 
 
 def get_notify_state(session):
@@ -225,12 +228,14 @@ def get_notify_state(session):
     return notify_states
 
 
-def set_notify_state(notify_action, notifier, subject, body, session=None):
+def set_notify_state(notify_action, notifier, subject, body, script_args, session=None):
 
     if notify_action and notifier:
         monitor_db = database.MonitorDatabase()
 
         session = session or {}
+
+        script_args = json.dumps(script_args) if script_args else None
 
         keys = {'timestamp': int(time.time()),
                 'session_key': session.get('session_key', None),
@@ -245,7 +250,8 @@ def set_notify_state(notify_action, notifier, subject, body, session=None):
                   'user': session.get('user', None),
                   'agent_name': notifier['agent_name'],
                   'subject_text': subject,
-                  'body_text': body}
+                  'body_text': body,
+                  'script_args': script_args}
 
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
     else:
@@ -638,9 +644,12 @@ def build_server_notify_params(notify_action=None, **kwargs):
 
 def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None, test=False):
     # Default subject and body text
-    default_action = next((a for a in notifiers.available_notification_actions() if a['name'] == notify_action), {})
-    default_subject = default_action.get('subject', '')
-    default_body = default_action.get('body', '')
+    if agent_id == 15:
+        default_subject = default_body = ''
+    else:
+        default_action = next((a for a in notifiers.available_notification_actions() if a['name'] == notify_action), {})
+        default_subject = default_action.get('subject', '')
+        default_body = default_action.get('body', '')
 
     # Make sure subject and body text are strings
     if not isinstance(subject, basestring):
@@ -681,13 +690,25 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     if test:
         return subject, body
 
+    if agent_id == 15:
+        try:
+            script_args = [unicode(arg).format(**parameters) for arg in subject.split()]
+        except LookupError as e:
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in script argument. Using fallback." % e)
+            script_args = []
+        except Exception as e:
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
+            script_args = []
+    else:
+        script_args = []
+
     try:
         subject = unicode(subject).format(**parameters)
     except LookupError as e:
         logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification subject. Using fallback." % e)
         subject = unicode(default_subject).format(**parameters)
-    except:
-        logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject. Using fallback.")
+    except Exception as e:
+        logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
         subject = unicode(default_subject).format(**parameters)
 
     try:
@@ -695,11 +716,11 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
     except LookupError as e:
         logger.error(u"PlexPy NotificationHandler :: Unable to parse field %s in notification body. Using fallback." % e)
         body = unicode(default_body).format(**parameters)
-    except:
-        logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body. Using fallback.")
+    except Exception as e:
+        logger.error(u"PlexPy NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e)
         body = unicode(default_body).format(**parameters)
 
-    return subject, body
+    return subject, body, script_args
 
 
 def strip_tag(data, agent_id=None):
