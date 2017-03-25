@@ -56,6 +56,8 @@ MEDIA_FLAGS_VIDEO = {'avc1': 'h264',
                      'wmv3': 'wmvhd'
                      }
 
+AUDIO_CODEC_OVERRIDES = {'truehd': 'TrueHD'}
+
 AUDIO_CHANNELS = {'1': 'Mono',
                   '2': 'Stereo',
                   '3': '2.1',

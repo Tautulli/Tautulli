@@ -162,11 +162,11 @@ DOCUMENTATION :: END
                             % endif
                             % if data['media_type'] in ('movie', 'episode', 'clip', 'track'):
                                 % if data['audio_decision'] == 'transcode':
-                                Audio &nbsp;<strong>Transcode (${data['audio_codec'].upper()} ${data['audio_channel_layout']} &rarr; ${data['stream_audio_codec'].upper()} ${data['stream_audio_channel_layout']})</strong>
+                                Audio &nbsp;<strong>Transcode (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout']} &rarr; ${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout']})</strong>
                                 % elif data['audio_decision'] == 'copy':
-                                Audio &nbsp;<strong>Direct Stream (${data['stream_audio_codec'].upper()} ${data['stream_audio_channel_layout']})</strong>
+                                Audio &nbsp;<strong>Direct Stream (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout']})</strong>
                                 % else:
-                                Audio &nbsp;<strong>Direct Play (${data['audio_codec'].upper()} ${data['audio_channel_layout']})</strong>
+                                Audio &nbsp;<strong>Direct Play (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout']})</strong>
                                 % endif
                             <br />
                             % endif
