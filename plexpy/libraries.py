@@ -403,8 +403,11 @@ class Libraries(object):
             new_rows = []
             for item in children_list:
                 ## TODO: Check list of media info items, currently only grabs first item
-                media_info = item['media_info'][0] if item['media_info'] else {}
-                media_part_info = media_info['parts'][0] if media_info['parts'] else {}
+                media_info = media_part_info = {}
+                if 'media_info' in item:
+                    media_info = item['media_info'][0]
+                    if 'parts' in media_info:
+                        media_part_info = media_info['parts'][0]
 
                 cached_file_size = cached_items.get(item['rating_key'], None)
                 file_size = cached_file_size if cached_file_size else media_part_info.get('file_size', '')
@@ -567,8 +570,11 @@ class Libraries(object):
 
                 for child_metadata in metadata:
                     ## TODO: Check list of media info items, currently only grabs first item
-                    media_info = item['media_info'][0] if item['media_info'] else {}
-                    media_part_info = media_info['parts'][0] if media_info['parts'] else {}
+                    media_info = media_part_info = {}
+                    if 'media_info' in item:
+                        media_info = item['media_info'][0]
+                        if 'parts' in media_info:
+                            media_part_info = media_info['parts'][0]
 
                     file_size += helpers.cast_to_int(media_info.get('file_size', 0))
 

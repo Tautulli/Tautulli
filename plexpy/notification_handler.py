@@ -292,8 +292,11 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         return None
 
     ## TODO: Check list of media info items, currently only grabs first item
-    media_info = metadata['media_info'][0] if metadata['media_info'] else {}
-    media_part_info = media_info['parts'][0] if media_info['parts'] else {}
+    media_info = media_part_info = {}
+    if 'media_info' in item:
+        media_info = item['media_info'][0]
+        if 'parts' in media_info:
+            media_part_info = media_info['parts'][0]
 
     stream_video = stream_audio = stream_subtitle = False
     for stream in media_part_info['streams']:
