@@ -68,12 +68,17 @@ AGENT_IDS = {'growl': 0,
              'browser': 17,
              'join': 18,
              'hipchat': 19,
-             'discord': 20
+             'discord': 20,
+             'androidapp': 21
              }
 
 
 def available_notification_agents():
-    agents = [{'label': 'Boxcar',
+    agents = [{'label': 'PlexPy Android App',
+               'name': 'androidapp',
+               'id': AGENT_IDS['androidapp']
+               },
+              {'label': 'Boxcar',
                'name': 'boxcar',
                'id': AGENT_IDS['boxcar']
                },
@@ -337,6 +342,8 @@ def get_agent_class(agent_id=None, config=None):
             return HIPCHAT(config=config)
         elif agent_id == 20:
             return DISCORD(config=config)
+        elif agent_id == 21:
+            return ANDROIDAPP(config=config)
         else:
             return Notifier(config=config)
     else:
@@ -652,6 +659,62 @@ class Notifier(object):
     def return_config_options(self):
         config_options = []
         return config_options
+
+
+class ANDROIDAPP(Notifier):
+    """
+    PlexPy Android App notifications
+    """
+    _DEFAULT_CONFIG = {'apikey': '',
+                       'deviceid': ''
+                       }
+
+    def _register_device(self, apikey='', device_id=''):
+        config = {'apikey': apikey,
+                  'deviceid': device_id}
+
+        if self.set_config(config):
+            return True
+
+    def notify(self, subject='', body='', action='', **kwargs):
+        if not subject or not body:
+            return
+
+        data = {'to': self.config['deviceid'],
+                'data': {'subject': subject.encode("utf-8"),
+                         'body': body.encode("utf-8")}
+                }
+
+        http_handler = HTTPSConnection("api.pushy.me")
+        http_handler.request("POST",
+                             "/push",
+                             headers={
+                                 'Content-type': "application/json"
+                                 },
+                             body=json.dumps(data))
+        response = http_handler.getresponse()
+        request_status = response.status
+
+        if request_status == 200:
+            logger.info(u"PlexPy Notifiers :: Android App notification sent.")
+            return True
+        elif request_status >= 400 and request_status < 500:
+            logger.warn(u"PlexPy Notifiers :: Android App notification failed: [%s] %s" % (request_status, response.reason))
+            return False
+        else:
+            logger.warn(u"PlexPy Notifiers :: Android App notification failed.")
+            return False
+
+    def return_config_options(self):
+        config_option = [{'label': 'Pushy API Key',
+                          'value': self.config['apikey'],
+                          'name': 'androidapp_apikey',
+                          'description': 'Your Pushy API key.',
+                          'input_type': 'text'
+                          }
+                         ]
+
+        return config_option
 
 
 class BOXCAR(Notifier):
