@@ -526,6 +526,12 @@ textarea.form-control:focus {
     text-align: center;
     pointer-events: none;
 }
+.form-control[readonly] {
+    background-color: #555;
+}
+.form-control[readonly]:focus {
+    background-color: #fff;
+}
 .poster {
     position: relative;
     height: 225px;
@@ -3036,12 +3042,6 @@ a:hover .overlay-refresh-image:hover {
 #plexpy-log-levels label,
 #plex-log-levels label {
     margin-bottom: 0;
-}
-#api_key.form-control[readonly] {
-    background-color: #555;
-}
-#api_key.form-control[readonly]:focus {
-    background-color: #fff;
 }
 #plexpy-notifiers-table .friendly_name,
 #notifier-config-modal span.notifier_id {

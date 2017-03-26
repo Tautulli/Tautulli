@@ -341,13 +341,13 @@ class API2:
 
         return data
 
-    def register_android_app(self, notifier_id=None, device_id='', **kwargs):
+    def register_android_app(self, notifier_id=None, device_token='', **kwargs):
         """ Registers the PlexPy Android App for notifications.
 
             ```
             Required parameters:
                 notifier_id (int):        The notifier id of the PlexPy Android App notifier
-                device_id (str):          The device id of the PlexPy Android App
+                device_token (str):       The device token of the PlexPy Android App
 
             Optional parameters:
                 None
@@ -363,8 +363,8 @@ class API2:
             self._api_result_type = 'error'
             return
 
-        elif not device_id:
-            self._api_msg = 'Device registartion failed: no device id provided.'
+        elif not device_token:
+            self._api_msg = 'Device registartion failed: no device token provided.'
             self._api_result_type = 'error'
             return
 
@@ -375,8 +375,8 @@ class API2:
                 self._api_result_type = 'error'
                 return
 
-            config = {'androidapp_apikey': notifier['config']['apikey'],
-                      'androidapp_deviceid': device_id}
+            config = {'androidapp_api_key': notifier['config']['api_key'],
+                      'androidapp_device_token': device_token}
             
             if notifiers.set_notifier_config(notifier_id=notifier_id, agent_id=notifier['agent_id'], **config):
                 self._api_msg = 'Device registration successful.'

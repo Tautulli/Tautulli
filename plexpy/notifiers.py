@@ -665,32 +665,23 @@ class ANDROIDAPP(Notifier):
     """
     PlexPy Android App notifications
     """
-    _DEFAULT_CONFIG = {'apikey': '',
-                       'deviceid': ''
+    _DEFAULT_CONFIG = {'api_key': '',
+                       'device_token': ''
                        }
-
-    def _register_device(self, apikey='', device_id=''):
-        config = {'apikey': apikey,
-                  'deviceid': device_id}
-
-        if self.set_config(config):
-            return True
 
     def notify(self, subject='', body='', action='', **kwargs):
         if not subject or not body:
             return
 
-        data = {'to': self.config['deviceid'],
+        data = {'to': self.config['device_token'],
                 'data': {'subject': subject.encode("utf-8"),
                          'body': body.encode("utf-8")}
                 }
 
         http_handler = HTTPSConnection("api.pushy.me")
         http_handler.request("POST",
-                             "/push",
-                             headers={
-                                 'Content-type': "application/json"
-                                 },
+                             "/push?%s" % urlencode({'api_key': self.config['api_key']}),
+                             headers={'Content-type': "application/json"},
                              body=json.dumps(data))
         response = http_handler.getresponse()
         request_status = response.status
@@ -707,10 +698,17 @@ class ANDROIDAPP(Notifier):
 
     def return_config_options(self):
         config_option = [{'label': 'Pushy API Key',
-                          'value': self.config['apikey'],
-                          'name': 'androidapp_apikey',
+                          'value': self.config['api_key'],
+                          'name': 'androidapp_api_key',
                           'description': 'Your Pushy API key.',
                           'input_type': 'text'
+                          },
+                         {'label': 'Device Token',
+                          'value': self.config['device_token'],
+                          'name': 'androidapp_device_token',
+                          'description': 'Your Android App device token. Filled in automatically after registering the deivce in the app.',
+                          'input_type': 'text',
+                          'readonly': True
                           }
                          ]
 
