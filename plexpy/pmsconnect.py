@@ -899,7 +899,7 @@ class PmsConnect(object):
                         'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
                         'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
-                        'banner': artist_details['banner'],
+                        'banner': album_details['banner'],
                         'originally_available_at': helpers.get_xml_attr(metadata_main, 'originallyAvailableAt'),
                         'added_at': helpers.get_xml_attr(metadata_main, 'addedAt'),
                         'updated_at': helpers.get_xml_attr(metadata_main, 'updatedAt'),
