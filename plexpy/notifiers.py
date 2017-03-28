@@ -663,7 +663,7 @@ class Notifier(object):
 
 class ANDROIDAPP(Notifier):
     """
-    PlexPy Android App notifications
+    PlexPy Android app notifications
     """
     _DEFAULT_CONFIG = {'api_key': '',
                        'device_token': ''
@@ -687,29 +687,60 @@ class ANDROIDAPP(Notifier):
         request_status = response.status
 
         if request_status == 200:
-            logger.info(u"PlexPy Notifiers :: Android App notification sent.")
+            logger.info(u"PlexPy Notifiers :: Android app notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Android App notification failed: [%s] %s" % (request_status, response.reason))
+            logger.warn(u"PlexPy Notifiers :: Android app notification failed: [%s] %s" % (request_status, response.reason))
             return False
         else:
-            logger.warn(u"PlexPy Notifiers :: Android App notification failed.")
+            logger.warn(u"PlexPy Notifiers :: Android app notification failed.")
             return False
 
+    def get_devices(self):
+        db = database.MonitorDatabase()
+
+        try:
+            query = 'SELECT * FROM mobile_devices'
+            result = db.select(query=query)
+        except Exception as e:
+            logger.warn(u"PlexPy Notifiers :: Unable to retrieve Android app devices list: %s." % e)
+            return {'': ''}
+
+        devices = {}
+        for device in result:
+            if device['friendly_name']:
+                devices['device_token'] = device['friendly_name']
+            else:
+                devices['device_token'] = device['device_name']
+
+        return devices
+
     def return_config_options(self):
+        devices = self.get_devices()
+
+        if not devices:
+            devices_config = {'label': 'Device',
+                              'description': 'No devices registered. ' \
+                                  '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
+                                  'style="cursor: pointer;">Register the Android app with PlexPy.</a>',
+                              'input_type': 'help'
+                              }
+        else:
+            devices_config = {'label': 'Device',
+                              'value': self.config['device_token'],
+                              'name': 'androidapp_device_token',
+                              'description': 'Set your Android app device.',
+                              'input_type': 'select',
+                              'select_options': devices
+                              }
+
         config_option = [{'label': 'Pushy API Key',
                           'value': self.config['api_key'],
                           'name': 'androidapp_api_key',
                           'description': 'Your Pushy API key.',
                           'input_type': 'text'
                           },
-                         {'label': 'Device Token',
-                          'value': self.config['device_token'],
-                          'name': 'androidapp_device_token',
-                          'description': 'Your Android App device token. Filled in automatically after registering the deivce in the app.',
-                          'input_type': 'text',
-                          'readonly': True
-                          }
+                         devices_config
                          ]
 
         return config_option

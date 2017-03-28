@@ -534,6 +534,12 @@ def dbcheck():
         'media_info TEXT)'
     )
 
+    # mobile_devices table :: This table keeps record of devices linked with the mobile app
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'device_token TEXT NOT NULL UNIQUE, device_name TEXT, friendly_name TEXT)'
+    )
+
     # Upgrade sessions table from earlier versions
     try:
         c_db.execute('SELECT started FROM sessions')

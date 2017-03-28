@@ -49,7 +49,7 @@
                 <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
                 <li role="presentation"><a href="#tabs-extra_settings" aria-controls="tabs-extra_settings" role="tab" data-toggle="tab">Extra Settings</a></li>
                 <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
-                <li role="presentation"><a href="#tabs-remote_app" aria-controls="tabs-remote_app" role="tab" data-toggle="tab">PlexPy Remote App</a></li>
+                <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">PlexPy Android App</a></li>
             </ul>
         </div>
         <div class="col-md-9">
@@ -1087,10 +1087,10 @@
 
                     </div>
 
-                    <div role="tabpanel" class="tab-pane" id="tabs-remote_app">
+                    <div role="tabpanel" class="tab-pane" id="tabs-android_app">
 
                         <div class="padded-header">
-                            <h3>PlexPy Remote App</h3>
+                            <h3>PlexPy Android App</h3>
                         </div>
 
                         <div class="form-group">
@@ -1103,8 +1103,8 @@
                             </p>
                         </div>
                         <div class="form-group">
-                            <label>Link the App</label>
-                            <p class="help-block">Link the app to your PlexPy server by scanning a QR code.</p>
+                            <label>Register the App</label>
+                            <p class="help-block">Register the app to your PlexPy server by scanning a QR code.</p>
                             <div class="btn-group" style="display: table-cell; vertical-align: middle;">
                                 <button class="btn btn-form" type="button" id="generate_qr" data-target="#api-qr-modal" data-toggle="modal">Generate QR Code</button>
                             </div>
@@ -2366,12 +2366,12 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">Link PlexPy Remote App</h4>
+                <h4 class="modal-title">Register PlexPy Android App</h4>
             </div>
             <div class="modal-body">
                 <label>Instructions</label>
                 <p class="help-block">
-                    Scan the QR code below with the PlexPy Remote app to automatically link it with the server.
+                    Scan the QR code below with the PlexPy Android app to automatically register it with the server.
                 </p>
                 <label>QR Code</label>
                 <pre id="api_qr_code" style="text-align: center"></pre>
@@ -3025,7 +3025,7 @@ $(document).ready(function() {
         });
     });
 
-    $("a[data-tab-destination]").click(function () {
+    $('body').on('click', 'a[data-tab-destination]', function () {
         var tab = $(this).data('tab-destination');
         $("a[href=#" + tab + "]").click();
     });
