@@ -294,7 +294,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
     ## TODO: Check list of media info items, currently only grabs first item
     media_info = media_part_info = {}
     if 'media_info' in metadata:
-        media_info = item['media_info'][0]
+        media_info = metadata['media_info'][0]
         if 'parts' in media_info:
             media_part_info = media_info['parts'][0]
 

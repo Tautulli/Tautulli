@@ -572,7 +572,7 @@ class Libraries(object):
                     ## TODO: Check list of media info items, currently only grabs first item
                     media_info = media_part_info = {}
                     if 'media_info' in child_metadata:
-                        media_info = item['media_info'][0]
+                        media_info = child_metadata['media_info'][0]
                         if 'parts' in media_info:
                             media_part_info = media_info['parts'][0]
 
