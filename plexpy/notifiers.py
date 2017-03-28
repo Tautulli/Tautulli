@@ -665,28 +665,28 @@ class ANDROIDAPP(Notifier):
     """
     PlexPy Android app notifications
     """
-    _DEFAULT_CONFIG = {'api_key': '',
-                       'device_token': ''
+    _DEFAULT_CONFIG = {'device_id': ''
                        }
+
+    ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
 
     def notify(self, subject='', body='', action='', **kwargs):
         if not subject or not body:
             return
 
-        data = {'to': self.config['device_token'],
-                'data': {'subject': subject.encode("utf-8"),
-                         'body': body.encode("utf-8")}
+        data = {'app_id': self.ONESIGNAL_APP_ID,
+                'include_player_ids': [self.config['device_id']],
+                'headings': {'en': subject.encode("utf-8")},
+                'contents': {'en': body.encode("utf-8")}
                 }
 
-        logger.debug(u"PlexPy Notifiers :: Pushy request body: %s" % json.dumps(data))
-        http_handler = HTTPSConnection("api.pushy.me")
+        http_handler = HTTPSConnection("onesignal.com")
         http_handler.request("POST",
-                             "/push?%s" % urlencode({'api_key': self.config['api_key']}),
+                             "/api/v1/notifications",
                              headers={'Content-type': "application/json"},
                              body=json.dumps(data))
         response = http_handler.getresponse()
         request_status = response.status
-        logger.debug(u"PlexPy Notifiers :: Pushy response: %s" % response.read())
 
         if request_status == 200:
             logger.info(u"PlexPy Notifiers :: Android app notification sent.")
@@ -711,9 +711,9 @@ class ANDROIDAPP(Notifier):
         devices = {}
         for device in result:
             if device['friendly_name']:
-                devices[device['device_token']] = device['friendly_name']
+                devices[device['device_id']] = device['friendly_name']
             else:
-                devices[device['device_token']] = device['device_name']
+                devices[device['device_id']] = device['device_name']
 
         return devices
 
@@ -724,26 +724,21 @@ class ANDROIDAPP(Notifier):
             devices_config = {'label': 'Device',
                               'description': 'No devices registered. ' \
                                   '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
-                                  'style="cursor: pointer;">Register the Android app with PlexPy.</a>',
+                                  'style="cursor: pointer;">Click here</a> to get the Android App.',
                               'input_type': 'help'
                               }
         else:
             devices_config = {'label': 'Device',
-                              'value': self.config['device_token'],
-                              'name': 'androidapp_device_token',
-                              'description': 'Set your Android app device.',
+                              'value': self.config['device_id'],
+                              'name': 'androidapp_device_id',
+                              'description': 'Set your Android app device or ' \
+                                  '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
+                                  'style="cursor: pointer;">register a new device</a> with PlexPy.',
                               'input_type': 'select',
                               'select_options': devices
                               }
 
-        config_option = [{'label': 'Pushy API Key',
-                          'value': self.config['api_key'],
-                          'name': 'androidapp_api_key',
-                          'description': 'Your Pushy API key.',
-                          'input_type': 'text'
-                          },
-                         devices_config
-                         ]
+        config_option = [devices_config]
 
         return config_option
 

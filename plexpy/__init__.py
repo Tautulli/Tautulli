@@ -537,7 +537,7 @@ def dbcheck():
     # mobile_devices table :: This table keeps record of devices linked with the mobile app
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'device_token TEXT NOT NULL UNIQUE, device_name TEXT, friendly_name TEXT)'
+        'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, friendly_name TEXT)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -1038,6 +1038,22 @@ def dbcheck():
             )
         except:
             pass
+
+    # Upgrade mobile_devices table from earlier versions
+    try:
+        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="mobile_devices"').fetchone()
+        if 'device_token TEXT NOT NULL UNIQUE' in result[0]:
+            logger.debug(u"Altering database. Dropping and recreating mobile_devices table.")
+            c_db.execute(
+                'DROP TABLE mobile_devices'
+            )
+            c_db.execute(
+                'CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, friendly_name TEXT)'
+            )
+    except sqlite3.OperationalError:
+        logger.warn(u"Failed to recreate mobile_devices table.")
+        pass
 
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
