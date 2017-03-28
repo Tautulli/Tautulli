@@ -678,6 +678,7 @@ class ANDROIDAPP(Notifier):
                          'body': body.encode("utf-8")}
                 }
 
+        logger.debug(u"PlexPy Notifiers :: Pushy request body: %s" % json.dumps(data))
         http_handler = HTTPSConnection("api.pushy.me")
         http_handler.request("POST",
                              "/push?%s" % urlencode({'api_key': self.config['api_key']}),
@@ -685,6 +686,7 @@ class ANDROIDAPP(Notifier):
                              body=json.dumps(data))
         response = http_handler.getresponse()
         request_status = response.status
+        logger.debug(u"PlexPy Notifiers :: Pushy response: %s" % response.read())
 
         if request_status == 200:
             logger.info(u"PlexPy Notifiers :: Android app notification sent.")
@@ -709,9 +711,9 @@ class ANDROIDAPP(Notifier):
         devices = {}
         for device in result:
             if device['friendly_name']:
-                devices['device_token'] = device['friendly_name']
+                devices[device['device_token']] = device['friendly_name']
             else:
-                devices['device_token'] = device['device_name']
+                devices[device['device_token']] = device['device_name']
 
         return devices
 
