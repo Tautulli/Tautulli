@@ -2405,6 +2405,22 @@ a .home-platforms-list-cover-face:hover
 .stacked-configs > li.add-notification-agent {
     cursor: pointer;
 }
+.stacked-configs > li.registered-device > span,
+.stacked-configs > li.registered-device > span:hover,
+.stacked-configs > li.registered-device > span:focus {
+    background-color: #282828;
+}
+.stacked-configs > li.registered-device > span > a.toggle-left,
+.stacked-configs > li.registered-device > span > span.toggle-left {
+    color: #999;
+    padding-right: 8px;
+}
+.stacked-configs > li.registered-device > span > span.delete-mobile-device {
+    cursor: pointer;
+}
+.stacked-configs > li.registered-device > span > span.delete-mobile-device:hover {
+    color: #c9302c;
+}
 .accordion {
     width: 100%;
     max-width: 900px;

@@ -3196,6 +3196,37 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
+    def get_mobile_devices_table(self, **kwargs):
+        result = notifiers.ANDROIDAPP().get_devices()
+        devices_list = [{'device_id': id, 'device_name': name} for id, name in result.iteritems()]
+        return serve_template(templatename="mobile_devices_table.html", devices_list=devices_list)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_mobile_device(self, device_id=None, **kwargs):
+        """ Remove a mobile device from the database.
+
+            ```
+            Required parameters:
+                device_id (int):        The device to delete
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        result = notifiers.delete_mobile_device(device_id=device_id)
+        if result:
+            return {'result': 'success', 'message': 'Device deleted successfully.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to delete device.'}
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
     @addtoapi()
     def import_database(self, app=None, database_path=None, table_name=None, import_ignore_interval=0, **kwargs):
         """ Import a PlexWatch or Plexivity database into PlexPy.

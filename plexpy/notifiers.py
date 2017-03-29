@@ -548,6 +548,17 @@ def blacklist_logger():
     logger._BLACKLIST_WORDS.extend(blacklist)
 
 
+def delete_mobile_device(device_id=None):
+    monitor_db = database.MonitorDatabase()
+
+    if device_id:
+        logger.debug(u"PlexPy Notifiers :: Deleting device_id %s from the database." % device_id)
+        result = monitor_db.action('DELETE FROM mobile_devices WHERE device_id = ?', [device_id])
+        return True
+    else:
+        return False
+
+
 class PrettyMetadata(object):
     def __init__(self, parameters):
     	self.parameters = parameters

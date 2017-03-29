@@ -1112,6 +1112,16 @@
                                 <span style="color: #eb8600; padding-left: 10px;" id="generate_qr_msg">The API must be enabled under <a data-tab-destination="tabs-access_control" style="cursor: pointer;">Access Control</a> to use the app.</span>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label>Registered Devices</label>
+                            <p class="help-block">List of devices currently registered with the PlexPy server.</p>
+                            <div class="row">
+                                <div id="plexpy-mobile-devices-table" class="col-md-6">
+                                    <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading registered devices...</div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
                 </div>
@@ -2451,6 +2461,17 @@
         });
     }
 
+    function getMobileDevicesTable() {
+        $.ajax({
+            url: 'get_mobile_devices_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-mobile-devices-table").html(xhr.responseText);
+            }
+        });
+    }
+
 $(document).ready(function() {
 
     // Javascript to enable link to tab
@@ -2489,6 +2510,7 @@ $(document).ready(function() {
         getConfigurationTable();
         getSchedulerTable();
         getNotifiersTable();
+        getMobileDevicesTable();
         loadUpdateDistros();
         settingsChanged = false;
     }
@@ -2553,6 +2575,7 @@ $(document).ready(function() {
     getConfigurationTable();
     getSchedulerTable();
     getNotifiersTable();
+    getMobileDevicesTable();
 
     $('#changelog-modal-link').on('click', function (e) {
         e.preventDefault();

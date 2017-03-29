@@ -372,14 +372,18 @@ class API2:
         values = {'device_name': device_name}
 
         try:
-            db.upsert(table_name='mobile_devices', key_dict=keys, value_dict=values)
+            result = db.upsert(table_name='mobile_devices', key_dict=keys, value_dict=values)
         except Exception as e:
             logger.warn(u"PlexPy APIv2 :: Failed to register mobile device in the database: %s." % e)
             self._api_msg = 'Device registartion failed: database error.'
             self._api_result_type = 'error'
             return
 
-        logger.info(u"PlexPy APIv2 :: Registered mobile device in the database: %s." % device_name)
+        if result == 'insert':
+            logger.info(u"PlexPy APIv2 :: Registered mobile device in the database: %s." % device_name)
+        else:
+            logger.debug(u"PlexPy APIv2 :: Re-registered mobile device in the database: %s." % device_name)
+
         self._api_msg = 'Device registration successful.'
         self._api_result_type = 'success'
         return
