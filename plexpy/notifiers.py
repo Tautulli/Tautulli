@@ -17,6 +17,10 @@ import base64
 import bleach
 import json
 import cherrypy
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.Hash import HMAC, SHA256
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email.utils
@@ -685,25 +689,55 @@ class ANDROIDAPP(Notifier):
         if not subject or not body:
             return
 
-        data = {'app_id': self.ONESIGNAL_APP_ID,
-                'include_player_ids': [self.config['device_id']],
-                'headings': {'en': subject.encode("utf-8")},
-                'contents': {'en': body.encode("utf-8")}
-                }
+        # Data to encrypt
+        plaintext_data = {'subject': subject.encode("utf-8"),
+                          'body': body.encode("utf-8")}
 
-        http_handler = HTTPSConnection("onesignal.com")
-        http_handler.request("POST",
-                             "/api/v1/notifications",
-                             headers={'Content-type': "application/json"},
-                             body=json.dumps(data))
-        response = http_handler.getresponse()
-        request_status = response.status
+        logger.debug("Plaintext data: {}".format(plaintext_data))
+
+        # Key generation
+        salt = get_random_bytes(16)
+        passphrase = plexpy.CONFIG.API_KEY
+        key_length = 32  # AES256
+        iterations = 1000
+        key = PBKDF2(passphrase, salt, dkLen=key_length, count=iterations,
+                     prf=lambda p, s: HMAC.new(p, s, SHA256).digest())
+
+        logger.debug("Encryption key (base64): {}".format(base64.b64encode(key)))
+
+        # Encrypt using AES GCM
+        nonce = get_random_bytes(16)
+        cipher = AES.new(key, AES.MODE_GCM, nonce)
+        encrypted_data, gcm_tag = cipher.encrypt_and_digest(json.dumps(plaintext_data))
+
+        logger.debug("Encrypted data (base64): {}".format(base64.b64encode(encrypted_data)))
+        logger.debug("GCM tag (base64): {}".format(base64.b64encode(gcm_tag)))
+        logger.debug("Nonce (base64): {}".format(base64.b64encode(nonce)))
+        logger.debug("Salt (base64): {}".format(base64.b64encode(salt)))
+
+        headers = {'Content-Type': 'application/json'}
+
+        payload = {'app_id': self.ONESIGNAL_APP_ID,
+                   'include_player_ids': [self.config['device_id']],
+                   'contents': {'en': 'PlexPy Notification'},
+                   'data': {'cipher_text': base64.b64encode(encrypted_data),
+                            'gcm_tag': base64.b64encode(gcm_tag),
+                            'nonce': base64.b64encode(nonce),
+                            'salt': base64.b64encode(salt)}
+                   }
+
+        logger.debug("OneSignal payload: {}".format(payload))
+
+        r = requests.post("https://onesignal.com/api/v1/notifications", headers=headers, json=payload)
+        request_status = r.status_code
+
+        logger.debug("OneSignal response: {}".format(r.content))
 
         if request_status == 200:
             logger.info(u"PlexPy Notifiers :: Android app notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Android app notification failed: [%s] %s" % (request_status, response.reason))
+            logger.warn(u"PlexPy Notifiers :: Android app notification failed: [%s] %s" % (request_status, r.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Android app notification failed.")
