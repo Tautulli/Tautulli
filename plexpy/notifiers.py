@@ -737,8 +737,8 @@ class ANDROIDAPP(Notifier):
                        }
         else:
             logger.warn(u"PlexPy Notifiers :: PyCryptodome library is missing. "
-                        "Install this library to encrypt Android app notifications. "
-                        "Android app notifications will be sent unecrypted.")
+                        "Android app notifications will be sent unecrypted. "
+                        "Install the library to encrypt the notifications.")
 
             payload = {'app_id': self.ONESIGNAL_APP_ID,
                        'include_player_ids': [self.config['device_id']],
@@ -785,27 +785,56 @@ class ANDROIDAPP(Notifier):
         return devices
 
     def return_config_options(self):
+        config_option = []
+
+        if not CRYPTODOME:
+            config_option.append({
+                'label': 'Warning',
+                'description': '<strong>The PyCryptodome library is missing. ' \
+                    'The content of your notifications will be sent unencrypted!</strong><br>' \
+                    'Please install the library to encrypt the notification contents. ' \
+                    'Instructions can be found in the ' \
+                    '<a href="' + helpers.anon_url('https://github.com/%s/plexpy/wiki/Frequently-Asked-Questions-(FAQ)#notifications-pycryptodome' % plexpy.CONFIG.GIT_USER) + '" target="_blank">FAQ</a>.',
+                'input_type': 'help'
+                })
+        else:
+            config_option.append({
+                'label': 'Note',
+                'description': 'The PyCryptodome library was found. ' \
+                    'The content of your notifications will be sent encrypted!',
+                'input_type': 'help'
+                })
+
+        config_option.append({
+            'label': 'Note',
+            'description': 'Notifications are sent using the <a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank">' \
+                'OneSignal</a> API. Some user data is collected and cannot be encrypted. ' \
+                'Please read the <a href="' + helpers.anon_url('https://onesignal.com/privacy_policy') + '" target="_blank">' \
+                'OneSignal Privacy Policy</a> for more details.',
+            'input_type': 'help'
+            })
+
         devices = self.get_devices()
 
         if not devices:
-            devices_config = {'label': 'Device',
-                              'description': 'No devices registered. ' \
-                                  '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
-                                  'style="cursor: pointer;">Click here</a> to get the Android App.',
-                              'input_type': 'help'
-                              }
+            config_option.append({
+                'label': 'Device',
+                'description': 'No devices registered. ' \
+                    '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
+                    'style="cursor: pointer;">Click here</a> to get the Android App.',
+                'input_type': 'help'
+                })
         else:
-            devices_config = {'label': 'Device',
-                              'value': self.config['device_id'],
-                              'name': 'androidapp_device_id',
-                              'description': 'Set your Android app device or ' \
-                                  '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
-                                  'style="cursor: pointer;">register a new device</a> with PlexPy.',
-                              'input_type': 'select',
-                              'select_options': devices
-                              }
-
-        config_option = [devices_config]
+            config_option.append({
+                'label': 'Device',
+                'value': self.config['device_id'],
+                'name': 'androidapp_device_id',
+                'description': 'Set your Android app device or ' \
+                    '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
+                    'style="cursor: pointer;">register a new device</a> with PlexPy.',
+                'input_type': 'select',
+                'select_options': devices
+                })
 
         return config_option
 
