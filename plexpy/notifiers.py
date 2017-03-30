@@ -64,6 +64,7 @@ import request
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 from plexpy.helpers import checked
 
+
 AGENT_IDS = {'growl': 0,
              'prowl': 1,
              'xbmc': 2,
@@ -692,7 +693,8 @@ class ANDROIDAPP(Notifier):
     """
     PlexPy Android app notifications
     """
-    _DEFAULT_CONFIG = {'device_id': ''
+    _DEFAULT_CONFIG = {'device_id': '',
+                       'priority': 3
                        }
 
     ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
@@ -702,7 +704,8 @@ class ANDROIDAPP(Notifier):
             return
 
         plaintext_data = {'subject': subject.encode("utf-8"),
-                          'body': body.encode("utf-8")}
+                          'body': body.encode("utf-8"),
+                          'priority': self.config['priority']}
 
         logger.debug("Plaintext data: {}".format(plaintext_data))
 
@@ -733,7 +736,7 @@ class ANDROIDAPP(Notifier):
                        'data': {'cipher_text': base64.b64encode(encrypted_data),
                                 'gcm_tag': base64.b64encode(gcm_tag),
                                 'nonce': base64.b64encode(nonce),
-                                'salt': base64.b64encode(salt)},
+                                'salt': base64.b64encode(salt)}
                        }
         else:
             logger.warn(u"PlexPy Notifiers :: PyCryptodome library is missing. "
@@ -743,7 +746,7 @@ class ANDROIDAPP(Notifier):
             payload = {'app_id': self.ONESIGNAL_APP_ID,
                        'include_player_ids': [self.config['device_id']],
                        'contents': {'en': 'PlexPy Notification'},
-                       'data': plaintext_data,
+                       'data': plaintext_data
                        }
 
         logger.debug("OneSignal payload: {}".format(payload))
@@ -835,6 +838,15 @@ class ANDROIDAPP(Notifier):
                 'input_type': 'select',
                 'select_options': devices
                 })
+
+        config_option.append({
+            'label': 'Priority',
+            'value': self.config['priority'],
+            'name': 'androidapp_priority',
+            'description': 'Set the notification priority.',
+            'input_type': 'select',
+            'select_options': {1: 'Minimum', 2: 'Low', 3: 'Normal', 4: 'High'}
+            })
 
         return config_option
 
@@ -1091,23 +1103,23 @@ class DISCORD(Notifier):
                           'description': 'Your Discord incoming webhook URL.',
                           'input_type': 'text'
                           },
-                          {'label': 'Discord Username',
-                           'value': self.config['username'],
-                           'name': 'discord_username',
-                           'description': 'The Discord username which will be used. Leave blank for webhook integration default.',
-                           'input_type': 'text'
+                         {'label': 'Discord Username',
+                          'value': self.config['username'],
+                          'name': 'discord_username',
+                          'description': 'The Discord username which will be used. Leave blank for webhook integration default.',
+                          'input_type': 'text'
                           },
-                          {'label': 'Discord Avatar',
-                           'value': self.config['avatar_url'],
-                           'description': 'The image url for the avatar which will be used. Leave blank for webhook integration default.',
-                           'name': 'discord_avatar_url',
-                           'input_type': 'text'
+                         {'label': 'Discord Avatar',
+                          'value': self.config['avatar_url'],
+                          'description': 'The image url for the avatar which will be used. Leave blank for webhook integration default.',
+                          'name': 'discord_avatar_url',
+                          'input_type': 'text'
                           },
-                          {'label': 'Discord Color',
-                           'value': self.config['color'],
-                           'description': 'The hex color value (starting with \'#\') for the border along the left side of the message attachment.',
-                           'name': 'discord_color',
-                           'input_type': 'text'
+                         {'label': 'Discord Color',
+                          'value': self.config['color'],
+                          'description': 'The hex color value (starting with \'#\') for the border along the left side of the message attachment.',
+                          'name': 'discord_color',
+                          'input_type': 'text'
                           },
                          {'label': 'TTS',
                           'value': self.config['tts'],
@@ -1928,7 +1940,7 @@ class NMA(Notifier):
                          {'label': 'Priority',
                           'value': self.config['priority'],
                           'name': 'nma_priority',
-                          'description': 'Set the priority.',
+                          'description': 'Set the notification priority.',
                           'input_type': 'select',
                           'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           }
@@ -2189,7 +2201,7 @@ class PROWL(Notifier):
                          {'label': 'Priority',
                           'value': self.config['priority'],
                           'name': 'prowl_priority',
-                          'description': 'Set the priority.',
+                          'description': 'Set the notification priority.',
                           'input_type': 'select',
                           'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           }
@@ -2439,7 +2451,7 @@ class PUSHOVER(Notifier):
                          {'label': 'Priority',
                           'value': self.config['priority'],
                           'name': 'pushover_priority',
-                          'description': 'Set the priority.',
+                          'description': 'Set the notification priority.',
                           'input_type': 'select',
                           'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           },
