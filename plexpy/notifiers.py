@@ -17,10 +17,6 @@ import base64
 import bleach
 import json
 import cherrypy
-from Cryptodome.Protocol.KDF import PBKDF2
-from Cryptodome.Cipher import AES
-from Cryptodome.Random import get_random_bytes
-from Cryptodome.Hash import HMAC, SHA256
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email.utils
@@ -38,6 +34,22 @@ from urllib import urlencode
 import urllib2
 from urlparse import urlparse
 import uuid
+
+try:
+    from Cryptodome.Protocol.KDF import PBKDF2
+    from Cryptodome.Cipher import AES
+    from Cryptodome.Random import get_random_bytes
+    from Cryptodome.Hash import HMAC, SHA256
+    CRYPTODOME = True
+except ImportError:
+    try:
+        from Crypto.Protocol.KDF import PBKDF2
+        from Crypto.Cipher import AES
+        from Crypto.Random import get_random_bytes
+        from Crypto.Hash import HMAC, SHA256
+        CRYPTODOME = True
+    except ImportError:
+        CRYPTODOME = False
 
 import gntp.notifier
 import facebook
@@ -689,44 +701,54 @@ class ANDROIDAPP(Notifier):
         if not subject or not body:
             return
 
-        # Data to encrypt
         plaintext_data = {'subject': subject.encode("utf-8"),
                           'body': body.encode("utf-8")}
 
         logger.debug("Plaintext data: {}".format(plaintext_data))
 
-        # Key generation
-        salt = get_random_bytes(16)
-        passphrase = plexpy.CONFIG.API_KEY
-        key_length = 32  # AES256
-        iterations = 1000
-        key = PBKDF2(passphrase, salt, dkLen=key_length, count=iterations,
-                     prf=lambda p, s: HMAC.new(p, s, SHA256).digest())
+        if CRYPTODOME:
+            # Key generation
+            salt = get_random_bytes(16)
+            passphrase = plexpy.CONFIG.API_KEY
+            key_length = 32  # AES256
+            iterations = 1000
+            key = PBKDF2(passphrase, salt, dkLen=key_length, count=iterations,
+                         prf=lambda p, s: HMAC.new(p, s, SHA256).digest())
 
-        logger.debug("Encryption key (base64): {}".format(base64.b64encode(key)))
+            logger.debug("Encryption key (base64): {}".format(base64.b64encode(key)))
 
-        # Encrypt using AES GCM
-        nonce = get_random_bytes(16)
-        cipher = AES.new(key, AES.MODE_GCM, nonce)
-        encrypted_data, gcm_tag = cipher.encrypt_and_digest(json.dumps(plaintext_data))
+            # Encrypt using AES GCM
+            nonce = get_random_bytes(16)
+            cipher = AES.new(key, AES.MODE_GCM, nonce)
+            encrypted_data, gcm_tag = cipher.encrypt_and_digest(json.dumps(plaintext_data))
 
-        logger.debug("Encrypted data (base64): {}".format(base64.b64encode(encrypted_data)))
-        logger.debug("GCM tag (base64): {}".format(base64.b64encode(gcm_tag)))
-        logger.debug("Nonce (base64): {}".format(base64.b64encode(nonce)))
-        logger.debug("Salt (base64): {}".format(base64.b64encode(salt)))
+            logger.debug("Encrypted data (base64): {}".format(base64.b64encode(encrypted_data)))
+            logger.debug("GCM tag (base64): {}".format(base64.b64encode(gcm_tag)))
+            logger.debug("Nonce (base64): {}".format(base64.b64encode(nonce)))
+            logger.debug("Salt (base64): {}".format(base64.b64encode(salt)))
 
-        headers = {'Content-Type': 'application/json'}
+            payload = {'app_id': self.ONESIGNAL_APP_ID,
+                       'include_player_ids': [self.config['device_id']],
+                       'contents': {'en': 'PlexPy Notification'},
+                       'data': {'cipher_text': base64.b64encode(encrypted_data),
+                                'gcm_tag': base64.b64encode(gcm_tag),
+                                'nonce': base64.b64encode(nonce),
+                                'salt': base64.b64encode(salt)},
+                       }
+        else:
+            logger.warn(u"PlexPy Notifiers :: PyCryptodome library is missing. "
+                        "Install this library to encrypt Android app notifications. "
+                        "Android app notifications will be sent unecrypted.")
 
-        payload = {'app_id': self.ONESIGNAL_APP_ID,
-                   'include_player_ids': [self.config['device_id']],
-                   'contents': {'en': 'PlexPy Notification'},
-                   'data': {'cipher_text': base64.b64encode(encrypted_data),
-                            'gcm_tag': base64.b64encode(gcm_tag),
-                            'nonce': base64.b64encode(nonce),
-                            'salt': base64.b64encode(salt)}
-                   }
+            payload = {'app_id': self.ONESIGNAL_APP_ID,
+                       'include_player_ids': [self.config['device_id']],
+                       'contents': {'en': 'PlexPy Notification'},
+                       'data': plaintext_data,
+                       }
 
         logger.debug("OneSignal payload: {}".format(payload))
+
+        headers = {'Content-Type': 'application/json'}
 
         r = requests.post("https://onesignal.com/api/v1/notifications", headers=headers, json=payload)
         request_status = r.status_code
