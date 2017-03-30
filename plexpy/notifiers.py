@@ -17,10 +17,10 @@ import base64
 import bleach
 import json
 import cherrypy
-from Crypto.Protocol.KDF import PBKDF2
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
-from Crypto.Hash import HMAC, SHA256
+from Cryptodome.Protocol.KDF import PBKDF2
+from Cryptodome.Cipher import AES
+from Cryptodome.Random import get_random_bytes
+from Cryptodome.Hash import HMAC, SHA256
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email.utils

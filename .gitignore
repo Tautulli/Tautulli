@@ -19,10 +19,10 @@ cache/*
 
 # HTTPS Cert/Key #
 ##################
-*.crt
-*.key
-*.csr
-*.pem
+/*.crt
+/*.key
+/*.csr
+/*.pem
 
 # Mergetool
 *.orgin
