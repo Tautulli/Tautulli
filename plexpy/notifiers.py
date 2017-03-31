@@ -164,7 +164,7 @@ def available_notification_agents():
     if OSX().validate():
         agents.append({'label': 'OSX Notify',
                        'name': 'osx',
-                       'id': AGENT_IDS['OSX Notify']
+                       'id': AGENT_IDS['osx']
                        })
 
     return agents
