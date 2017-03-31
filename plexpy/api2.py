@@ -341,7 +341,7 @@ class API2:
 
         return data
 
-    def register_device(self, device_name='', device_id='', **kwargs):
+    def register_device(self, device_id='', device_name='', device_token='' **kwargs):
         """ Registers the PlexPy Android App for notifications.
 
             ```
@@ -350,26 +350,28 @@ class API2:
                 device_id (str):          The OneSignal device id of the PlexPy Android App
 
             Optional parameters:
-                None
+                device_token (str):       The device token to verify QR code scan
 
             Returns:
                 None
             ```
         """
-        if not device_name:
+        if not device_id:
+            self._api_msg = 'Device registartion failed: no device id provided.'
+            self._api_result_type = 'error'
+            return
+
+        elif not device_name:
             self._api_msg = 'Device registartion failed: no device name provided.'
             self._api_result_type = 'error'
             return
 
-        elif not device_id:
-            self._api_msg = 'Device registartion failed: no device token provided.'
-            self._api_result_type = 'error'
-            return
 
         db = database.MonitorDatabase()
 
         keys = {'device_id': device_id}
-        values = {'device_name': device_name}
+        values = {'device_name': device_name,
+                  'device_token': device_token}
 
         try:
             result = db.upsert(table_name='mobile_devices', key_dict=keys, value_dict=values)

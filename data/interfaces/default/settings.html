@@ -3032,6 +3032,7 @@ $(document).ready(function() {
         return deferred;
     }
 
+    var verifiedDevice = false;
     $('#generate_qr').click(function () {
         getPlexPyURL().then(function (url) {
             var parser = document.createElement('a');
@@ -3040,13 +3041,43 @@ $(document).ready(function() {
                 $('#api_qr_private').toggle((valid !== 'n/a'));
             });
 
-            var encoded_string = url + '|' + $('#api_key').val();
+            var token = Math.random().toString(36).substr(2, 20);
+            var encoded_string = url + '|' + $('#api_key').val() + '|' + token;
             $('#api_qr_string').html(encoded_string);
             $('#api_qr_code').empty().qrcode({
                 text: encoded_string
             });
+
+            (function poll(){
+                verifiedDevice = false;
+                setTimeout(function() {
+                    $.ajax({
+                        url: 'verify_mobile_device',
+                        type: 'GET',
+                        data: { device_token: token },
+                        success: function(data) {
+                            if (data.result === 'success') {
+                                verifiedDevice = true;
+                                getMobileDevicesTable();
+                                $('#api-qr-modal').modal('hide');
+                                showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000, false);
+                            }
+                        },
+                        complete: function() {
+                            if (!(verifiedDevice)) {
+                                poll();
+                            }
+                        },
+                        timeout: 1000
+                    });
+                }, 1000);
+            })();
         });
     });
+
+    $('#api-qr-modal').on('hidden.bs.modal', function () {
+        verifiedDevice = true;
+    })
 
     $('body').on('click', 'a[data-tab-destination]', function () {
         var tab = $(this).data('tab-destination');

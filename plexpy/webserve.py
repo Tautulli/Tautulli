@@ -39,6 +39,7 @@ import http_handler
 import libraries
 import log_reader
 import logger
+import mobile_app
 import notification_handler
 import notifiers
 import plextv
@@ -3197,9 +3198,18 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def get_mobile_devices_table(self, **kwargs):
-        result = notifiers.ANDROIDAPP().get_devices()
-        devices_list = [{'device_id': id, 'device_name': name} for id, name in result.iteritems()]
-        return serve_template(templatename="mobile_devices_table.html", devices_list=devices_list)
+        result = mobile_app.get_mobile_devices()
+        return serve_template(templatename="mobile_devices_table.html", devices_list=result)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def verify_mobile_device(self, device_token='', **kwargs):
+        result = mobile_app.get_mobile_devices(device_token=device_token)
+        if result:
+            return {'result': 'success', 'message': 'Device registered successfully.', 'data': result}
+        else:
+            return {'result': 'error', 'message': 'Device not registered.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3219,7 +3229,7 @@ class WebInterface(object):
                 None
             ```
         """
-        result = notifiers.delete_mobile_device(device_id=device_id)
+        result = mobile_app.delete_mobile_device(device_id=device_id)
         if result:
             return {'result': 'success', 'message': 'Device deleted successfully.'}
         else:
