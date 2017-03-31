@@ -21,16 +21,20 @@ import logger
 
 def get_mobile_devices(device_id=None, device_token=None):
     where = where_id = where_token = ''
+    args = []
+
     if device_id or device_token:
         where = 'WHERE '
         if device_id:
-            where_id += 'device_id = "%s"' % device_id
+            where_id += 'device_id = ?'
+            args.append(device_id)
         if device_token:
-            where_token = 'device_token = "%s"' % device_token
+            where_token = 'device_token = ?'
+            args.append(device_token)
         where += ' AND '.join([w for w in [where_id, where_token] if w])
 
     monitor_db = database.MonitorDatabase()
-    result = monitor_db.select('SELECT * FROM mobile_devices %s' % where)
+    result = monitor_db.select('SELECT * FROM mobile_devices %s' % where, args=args)
 
     return result
 
@@ -40,7 +44,7 @@ def delete_mobile_device(device_id=None):
 
     if device_id:
         logger.debug(u"PlexPy Notifiers :: Deleting device_id %s from the database." % device_id)
-        result = monitor_db.action('DELETE FROM mobile_devices WHERE device_id = ?', [device_id])
+        result = monitor_db.action('DELETE FROM mobile_devices WHERE device_id = ?', args=[device_id])
         return True
     else:
         return False
