@@ -341,7 +341,7 @@ class API2:
 
         return data
 
-    def register_device(self, device_id='', device_name='', device_token='' **kwargs):
+    def register_device(self, device_id='', device_name='', device_token='', **kwargs):
         """ Registers the PlexPy Android App for notifications.
 
             ```
