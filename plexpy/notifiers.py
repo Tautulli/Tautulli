@@ -808,14 +808,11 @@ class ANDROIDAPP(Notifier):
                 'input_type': 'help'
                 })
 
-        config_option.append({
-            'label': 'Note',
-            'description': 'Notifications are sent using the <a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank">' \
-                'OneSignal</a> API. Some user data is collected and cannot be encrypted. ' \
-                'Please read the <a href="' + helpers.anon_url('https://onesignal.com/privacy_policy') + '" target="_blank">' \
-                'OneSignal Privacy Policy</a> for more details.',
-            'input_type': 'help'
-            })
+        config_option[-1]['description'] += '<br><br>Notifications are sent using the ' \
+            '<a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank">' \
+            'OneSignal</a> API. Some user data is collected and cannot be encrypted. ' \
+            'Please read the <a href="' + helpers.anon_url('https://onesignal.com/privacy_policy') + '" target="_blank">' \
+            'OneSignal Privacy Policy</a> for more details.'
 
         devices = self.get_devices()
 
