@@ -91,7 +91,7 @@ def getVersion():
 
         else:
             remote_branch, err = runGit('rev-parse --abbrev-ref --symbolic-full-name @{u}')
-            remote_branch = remote_branch.rsplit('/', 1)
+            remote_branch = remote_branch.rsplit('/', 1) if remote_branch else []
             if len(remote_branch) == 2:
                 remote_name, branch_name = remote_branch
             else:
