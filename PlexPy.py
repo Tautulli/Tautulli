@@ -189,14 +189,10 @@ def main():
     plexpy.start()
 
     # Open connection for websocket
-    if plexpy.CONFIG.MONITORING_USE_WEBSOCKET:
-        try:
-            web_socket.start_thread()
-        except:
-            logger.warn(u"Websocket :: Unable to open connection.")
-            # Fallback to polling
-            plexpy.POLLING_FAILOVER = True
-            plexpy.initialize_scheduler()
+    try:
+        web_socket.start_thread()
+    except:
+        logger.warn(u"Websocket :: Unable to open connection.")
 
     # Force the http port if neccessary
     if args.port:
@@ -224,6 +220,7 @@ def main():
         'http_proxy': plexpy.CONFIG.HTTP_PROXY,
         'enable_https': plexpy.CONFIG.ENABLE_HTTPS,
         'https_cert': plexpy.CONFIG.HTTPS_CERT,
+        'https_cert_chain': plexpy.CONFIG.HTTPS_CERT_CHAIN,
         'https_key': plexpy.CONFIG.HTTPS_KEY,
         'http_username': plexpy.CONFIG.HTTP_USERNAME,
         'http_password': plexpy.CONFIG.HTTP_PASSWORD,
@@ -250,6 +247,8 @@ def main():
                 plexpy.shutdown()
             elif plexpy.SIGNAL == 'restart':
                 plexpy.shutdown(restart=True)
+            elif plexpy.SIGNAL == 'checkout':
+                plexpy.shutdown(restart=True, checkout=True)
             else:
                 plexpy.shutdown(restart=True, update=True)
 

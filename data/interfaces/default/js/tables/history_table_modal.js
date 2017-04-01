@@ -27,7 +27,6 @@ history_table_modal_options = {
     "pageLength": 10,
     "lengthChange": false,
     "autoWidth": false,
-    "scrollX": true,
     "order": [0, 'desc'],
     "columnDefs": [
         {
@@ -132,9 +131,12 @@ history_table_modal_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.transcode-tooltip').tooltip({ container: 'body' });
-        $('.media-type-tooltip').tooltip({ container: 'body' });
-        $('.thumb-tooltip').popover({
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
+        $('body').popover({
+            selector: '[data-toggle="popover"]',
             html: true,
             container: '#history-modal',
             trigger: 'hover',

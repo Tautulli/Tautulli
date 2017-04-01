@@ -203,3 +203,9 @@ class MonitorDatabase(object):
 
         # We want to know if it was an update or insert
         return trans_type
+
+    def last_insert_id(self):
+        # Get the last insert row id
+        result = self.select_single(query='SELECT last_insert_rowid() AS last_id')
+        if result:
+            return result.get('last_id', None)

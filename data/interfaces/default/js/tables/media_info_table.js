@@ -237,9 +237,12 @@ media_info_table_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.expand-media-info-tooltip').tooltip({ container: 'body' });
-        $('.media-type-tooltip').tooltip({ container: 'body' });
-        $('.thumb-tooltip').popover({
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
+        $('body').popover({
+            selector: '[data-toggle="popover"]',
             html: true,
             container: 'body',
             trigger: 'hover',

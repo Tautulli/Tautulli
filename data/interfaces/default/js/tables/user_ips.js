@@ -33,16 +33,12 @@ user_ip_table_options = {
             "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
-                    if (isPrivateIP(cellData)) {
-                        if (cellData != '') {
-                            $(td).html(cellData);
-                        } else {
-                            $(td).html('n/a');
-                        }
-                    } else {
+                    isPrivateIP(cellData).then(function () {
+                        $(td).html(cellData || 'n/a');
+                    }, function () {
                         external_ip = '<span class="external-ip-tooltip" data-toggle="tooltip" title="External IP"><i class="fa fa-map-marker fa-fw"></i></span>';
                         $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">' + external_ip + cellData + '</a>');
-                    }
+                    });
                 } else {
                     $(td).html('n/a');
                 }
@@ -63,9 +59,9 @@ user_ip_table_options = {
         },
         {
             "targets": [3],
-            "data":"player",
+            "data": "player",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData) {
+                if (cellData !== '') {
                     var transcode_dec = '';
                     if (rowData['transcode_decision'] === 'transcode') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Transcode"><i class="fa fa-server fa-fw"></i></span>';
@@ -74,9 +70,7 @@ user_ip_table_options = {
                     } else if (rowData['transcode_decision'] === 'direct play') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>';
                     }
-                    $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp' + cellData + '</div></a></div>');
-                } else {
-                    $(td).html('n/a');
+                    $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp;' + cellData + '</div></a></div>');
                 }
             },
             "width": "15%",
@@ -84,7 +78,7 @@ user_ip_table_options = {
         },
         {
             "targets": [4],
-            "data":"last_played",
+            "data": "last_played",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
                     var parent_info = '';
@@ -117,7 +111,7 @@ user_ip_table_options = {
         },
         {
             "targets": [5],
-            "data":"play_count",
+            "data": "play_count",
             "searchable": false,
             "width": "10%",
             "className": "no-wrap"
@@ -129,11 +123,12 @@ user_ip_table_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.external-ip-tooltip').tooltip({ container: 'body' });
-        $('.transcode-tooltip').tooltip({ container: 'body' });
-        $('.media-type-tooltip').tooltip({ container: 'body' });
-        $('.watched-tooltip').tooltip({ container: 'body' });
-        $('.thumb-tooltip').popover({
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
+        $('body').popover({
+            selector: '[data-toggle="popover"]',
             html: true,
             container: 'body',
             trigger: 'hover',
@@ -179,20 +174,9 @@ $('.user_ip_table').on('click', 'td.modal-control-ip', function () {
     var row = user_ip_table.row( tr );
     var rowData = row.data();
 
-    function getUserLocation(ip_address) {
-        if (isPrivateIP(ip_address)) {
-            return "n/a"
-        } else {
-            $.ajax({
-                url: 'get_ip_address_details',
-                data: {ip_address: ip_address},
-                async: true,
-                complete: function(xhr, status) {
-                    $("#ip-info-modal").html(xhr.responseText);
-                }
-            });
-        }
-    }
-
-    getUserLocation(rowData['ip_address']);
+    $.get('get_ip_address_details', {
+        ip_address: rowData['ip_address']
+    }).then(function (jqXHR) {
+        $("#ip-info-modal").html(jqXHR);
+    });
 });

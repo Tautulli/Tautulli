@@ -23,12 +23,12 @@ import platform
 import version
 
 # Identify Our Application
-USER_AGENT = 'PlexPy/-' + version.PLEXPY_VERSION + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \
+USER_AGENT = 'PlexPy/-' + version.PLEXPY_BRANCH + ' v' + version.PLEXPY_RELEASE_VERSION + ' (' + platform.system() + \
              ' ' + platform.release() + ')'
 
 PLATFORM = platform.system()
 PLATFORM_VERSION = platform.release()
-BRANCH = version.PLEXPY_VERSION
+BRANCH = version.PLEXPY_BRANCH
 VERSION_NUMBER = version.PLEXPY_RELEASE_VERSION
 
 DEFAULT_USER_THUMB = "interfaces/default/images/gravatar-default-80x80.png"
@@ -55,6 +55,40 @@ MEDIA_FLAGS_VIDEO = {'avc1': 'h264',
                      'wmv(1|2)': 'wmv',
                      'wmv3': 'wmvhd'
                      }
+
+AUDIO_CODEC_OVERRIDES = {'truehd': 'TrueHD'}
+
+VIDEO_RESOLUTION_OVERRIDES = {'sd': 'SD',
+                              '480': '480p',
+                              '576': '576p',
+                              '720': '720p',
+                              '1080': '1080p',
+                              '4k': '4k'
+                              }
+
+AUDIO_CHANNELS = {'1': 'Mono',
+                  '2': 'Stereo',
+                  '3': '2.1',
+                  '4': '3.1',
+                  '6': '5.1',
+                  '7': '6.1',
+                  '8': '7.1'
+                  }
+
+QUALITY_PROFILES = {20000: '20 Mbps 1080p',
+                    12000: '12 Mbps 1080p',
+                    10000: '10 Mbps 1080p',
+                    8000: '8 Mbps 1080p',
+                    4000: '4 Mbps 720p',
+                    3000: '3 Mbps 720p',
+                    2000: '2 Mbps 720p',
+                    1500: '1.5 Mbps 480p',
+                    720: '720 kbps',
+                    320: '320 kbps',
+                    208: '208 kbps',
+                    96: '96 kbps',
+                    64: '64 kbps'
+                    }
 
 SCHEDULER_LIST = ['Check GitHub for updates',
                   'Check for active sessions',

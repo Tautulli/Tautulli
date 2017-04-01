@@ -217,11 +217,12 @@ libraries_list_table_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.purge-tooltip').tooltip({ container: 'body' });
-        $('.edit-tooltip').tooltip({ container: 'body' });
-        $('.transcode-tooltip').tooltip({ container: 'body' });
-        $('.media-type-tooltip').tooltip({ container: 'body' });
-        $('.thumb-tooltip').popover({
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
+        $('body').popover({
+            selector: '[data-toggle="popover"]',
             html: true,
             container: 'body',
             trigger: 'hover',

@@ -69,6 +69,28 @@
 </div>
 </%def>
 
+<%def name="modalIncludes()">
+
+% if _session['user_group'] == 'admin' and config['update_show_changelog']:
+<div id="changelog-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">PlexPy Updated</h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
+            </div>
+        </div>
+    </div>
+</div>
+% endif
+
+</%def>
+
 <%def name="javascriptIncludes()">
 <script src="${http_root}js/moment-with-locale.js"></script>
 <script>
@@ -156,9 +178,11 @@
                                 var overlay_state = 'State &nbsp;<strong>Unknown</strong>';
                                 var state_icon = '<i class="fa fa-fw fa-question-circle"></i>&nbsp;';
                         }
-                        $('#overlay-play-state-' + key).html(overlay_state);
+                        var q = (s.media_type != 'track') ? ' (' + s.quality_profile + ')' : '';
+                        $('#overlay-play-state-' + key).html(overlay_state + q);
                         $('#play-state-' + key).html(state_icon);
 
+                        % if config['pms_use_bif']:
                         // if using bif indexes, update the bif thumbnail
                         if (s.indexes) {
                             var bif_poster = $('#bif-' + key);
@@ -167,34 +191,74 @@
                                 + s.bif_thumb + '&width=500&height=280&fallback=art);"></div>').fadeIn(1000, function () { bif_poster.remove() }));
                             blurArtwork(key);
                         }
+                        % endif
 
                         // if transcoding, update the transcode state
                         var ts = '';
                         if (s.video_decision == 'transcode' || s.audio_decision == 'transcode') {
                             var throttled = (s.throttled == '1') ? ' (Throttled)' : '';
-                            ts += 'Stream &nbsp;<strong>Transcode (Speed: ' + s.transcode_speed + ')' + throttled + '</strong><br>';
+                            var hw = (s.transcode_hardware == '1') ? ' (HW)' : '';
+                            ts += 'Stream &nbsp;<strong>Transcode' + hw + ' (Speed: ' + s.transcode_speed + ')' + throttled + '</strong><br>';
                         } else if (s.video_decision == 'copy' || s.audio_decision == 'copy') {
                             ts += 'Stream &nbsp;<strong>Direct Stream</strong><br>';
                         } else {
                             ts += 'Stream &nbsp;<strong>Direct Play</strong><br>';
                         }
                         if (s.video_decision != '' && s.media_type != 'photo') {
+                            switch (s.video_resolution.toLowerCase()) {
+                                case 'sd':
+                                    var v_res = 'SD';
+                                    break;
+                                case '4k':
+                                    var v_res = '4k';
+                                    break;
+                                default:
+                                    var v_res = s.video_resolution + 'p'
+                            }
+                            switch (s.stream_video_resolution.toLowerCase()) {
+                                case 'sd':
+                                    var sv_res = 'SD';
+                                    break;
+                                case '4k':
+                                    var sv_res = '4k';
+                                    break;
+                                default:
+                                    var sv_res = s.stream_video_resolution + 'p'
+                            }
                             if (s.video_decision == 'transcode') {
-                                ts += 'Video &nbsp;<strong>Transcode (' + s.transcode_video_codec + ') (' + s.transcode_width + 'x' + s.transcode_height + ')</strong><br>';
+                                ts += 'Video &nbsp;<strong>Transcode (' + s.video_codec.toUpperCase() + ' ' + v_res + ' &rarr; ' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')</strong><br>';
                             } else if (s.video_decision == 'copy') {
-                                ts += 'Video &nbsp;<strong>Direct Stream (' + s.transcode_video_codec + ') (' + s.width + 'x' + s.height + ')</strong><br>';
+                                ts += 'Video &nbsp;<strong>Direct Stream (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')</strong><br>';
                             } else {
-                                ts += 'Video &nbsp;<strong>Direct Play (' + s.video_codec + ') (' + s.width + 'x' + s.height + ')</strong><br>';
+                                ts += 'Video &nbsp;<strong>Direct Play (' + s.video_codec.toUpperCase() + ' ' + v_res + ')</strong><br>';
                             }
                         }
-                        if (s.audio_decision != '') {
+                        if (s.audio_codec) {
+                            var a_codec = (s.audio_codec == 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
+                            var sa_codec = (s.stream_audio_codec == 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
                             if (s.audio_decision == 'transcode') {
-                                ts += 'Audio &nbsp;<strong>Transcode (' + s.transcode_audio_codec + ') (' + s.transcode_audio_channels + 'ch)</strong>';
+                                ts += 'Audio &nbsp;<strong>Transcode (' + a_codec + ' ' + s.audio_channel_layout + ' &rarr; ' + sa_codec + ' ' + s.stream_audio_channel_layout + ')</strong><br>';
                             } else if (s.audio_decision == 'copy') {
-                                ts += 'Audio &nbsp;<strong>Direct Stream (' + s.transcode_audio_codec + ') (' + s.transcode_audio_channels + 'ch)</strong>';
+                                ts += 'Audio &nbsp;<strong>Direct Stream (' + sa_codec + ' ' + s.stream_audio_channel_layout + ')</strong><br>';
                             } else {
-                                ts += 'Audio &nbsp;<strong>Direct Play (' + s.audio_codec + ') (' + s.audio_channels + 'ch)</strong>';
+                                ts += 'Audio &nbsp;<strong>Direct Play (' + a_codec + ' ' + s.audio_channel_layout + ')</strong><br>';
                             }
+                        }
+                        else {
+                            ts += 'Audio &nbsp;<strong>None</strong><br>';
+                        }
+                        if (s.subtitles) {
+                            if (s.subtitle_decision == 'transcode') {
+                                ts += 'Subtitle &nbsp;<strong>Transcode (' + s.subtitle_codec.toUpperCase() + ' &rarr; ' + s.stream_subtitle_codec.toUpperCase() + ')</strong>';
+                            } else if (s.subtitle_decision == 'copy') {
+                                ts += 'Subtitle &nbsp;<strong>Direct Stream (' + s.subtitle_codec.toUpperCase() + ')</strong>';
+                            } else if (s.subtitle_decision == 'burn') {
+                                ts += 'Subtitle &nbsp;<strong>Burn (' + s.subtitle_codec.toUpperCase() + ')</strong>';
+                            } else {
+                                ts += 'Subtitle &nbsp;<strong>Direct Play (' + s.subtitle_codec.toUpperCase() + ')</strong>';
+                            }
+                        } else if (s.media_type != 'track') {
+                            ts += 'Subtitle &nbsp;<strong>None</strong>';
                         }
                         $('#transcode-state-' + key).html(ts);
 
@@ -410,6 +474,23 @@
             $("#recently-added-page-right").addClass("disabled").blur();
         } else {
             $("#recently-added-page-right").removeClass("disabled");
+        }
+    });
+</script>
+% endif
+% if _session['user_group'] == 'admin' and config['update_show_changelog']:
+<script>
+    $.ajax({
+        url: 'get_changelog',
+        data: {
+            latest_only: true, 
+            update_shown: true
+        },
+        cache: false,
+        async: true,
+        complete: function (xhr, status) {
+            $("#changelog-modal .modal-body").html(xhr.responseText);
+            $('#changelog-modal').modal();
         }
     });
 </script>

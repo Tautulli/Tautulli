@@ -30,7 +30,7 @@ year                        Returns the year of the episode, movie, or clip.
 ip_address                  Returns the ip address of the stream.
 player                      Returns the name of the platform used to play the stream.
 platform                    Returns the type of platform used to play the stream.
-throttled                   Returns true if the transcode session is throttled.
+transcode_throttled         Returns true if the transcode session is throttled.
 transcode_progress          Returns the current transcode progress of the item. 0 to 100.
 transcode_speed             Returns the current transcode speed of the item.
 audio_decision              Returns the audio transcode decision. Either 'transcode', 'copy' or 'direct play'.
@@ -62,147 +62,166 @@ DOCUMENTATION :: END
 % if data is not None:
 <%
     from urllib import quote
-
-    from plexpy import helpers
-    data['indexes'] = helpers.cast_to_int(data['indexes'])
+    import plexpy
 %>
 <div class="dashboard-instance" id="instance-${data['session_key']}" data-id="${data['session_key']}">
     <div class="dashboard-hover-container">
         % if (data['media_type'] == 'movie' or data['media_type'] == 'episode' or data['media_type'] == 'track') and data['rating_key']:
         <a href="info?rating_key=${data['rating_key']}">
-            % else:
-            <a href="#">
-                % endif
-                <div class="dashboard-activity-poster" id="poster-${data['session_key']}">
-                    % if not data['art'].startswith('interfaces') or not data['thumb'].startswith('interfaces'):
-                    % if (data['media_type'] == 'movie' and not data['indexes']) or (data['indexes'] and not data['view_offset']):
+        % else:
+        <a href="#">
+        % endif
+            <div class="dashboard-activity-poster" id="poster-${data['session_key']}">
+                % if not data['art'].startswith('interfaces') or not data['thumb'].startswith('interfaces'):
+                    % if (data['media_type'] == 'movie' and not plexpy.CONFIG.PMS_USE_BIF) or (plexpy.CONFIG.PMS_USE_BIF and not data['view_offset']):
                     <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art);"></div>
-                    % elif (data['media_type'] == 'episode' and not data['indexes']) or (data['indexes'] and not data['view_offset']):
+                    % elif (data['media_type'] == 'episode' and not plexpy.CONFIG.PMS_USE_BIF) or (plexpy.CONFIG.PMS_USE_BIF and not data['view_offset']):
                     <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['art']}&width=500&height=280&fallback=art);"></div>
-                    % elif data['indexes']:
+                    % elif plexpy.CONFIG.PMS_USE_BIF:
                     <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['bif_thumb']}&width=500&height=280&fallback=art); display: none;"></div>
                     % else:
-                    % if data['media_type'] == 'track':
-                    <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
-                    <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
-                    % elif data['media_type'] == 'clip':
-                    % if data['art'].startswith('http'):
-                    <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
-                    % elif data['thumb'].startswith('http'):
-                    <div class="dashboard-activity-poster-face" style="background-image: url(${data['thumb']});"></div>
-                    % else:
-                    % if data['art']:
-                    <!--Hacky solution to escape the image url until I come up with something better-->
-                    <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['art'])}&width=500&height=280&fallback=art);"></div>
-                    % else:
-                    <!--Hacky solution to escape the image url until I come up with something better-->
-                    <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['thumb'])}&width=500&height=280&fallback=art);"></div>
-                    % endif
-                    % endif
-                    % elif data['media_type'] == 'photo':
-                    <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=cover);"></div>
-                    % else:
-                    <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
-                    % endif
-                    % endif
-                    % else:
-                    <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
-                    % endif
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image left" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                    <div class="dashboard-activity-button-info">
-                        <button type="button" class="btn btn-activity-info btn-lg" data-target="#stream-${data['session_key']}" data-id="${data['session_key']}">
-                            <i class="fa fa-info-circle"></i>
-                        </button>
-                    </div>
-                    <div id="stream-${data['session_key']}" class="dashboard-activity-info-details-overlay">
-                        <div class="dashboard-activity-info-details-content">
-                            <div id="platform-${data['session_key']}" title="${data['platform']}">
-                                <script>
-                                    $("#platform-${data['session_key']}").html("<div class='dashboard-activity-info-platform-box' style='background-image: url(" + getPlatformImagePath('${data['platform']}') + ");'>");
-                                </script>
-                            </div>
-                            <div class="dashboard-activity-info-platform">
-                                <strong>${data['player']}</strong><br />
-                                <span id="overlay-play-state-${data['session_key']}">
-                                    % if data['state'] == 'playing':
-                                    State &nbsp;<strong>Playing</strong>
-                                    % elif data['state'] == 'paused':
-                                    State &nbsp;<strong>Paused</strong>
-                                    % elif data['state'] == 'buffering':
-                                    State &nbsp;<strong>Buffering</strong>
-                                    % endif
-                                </span>
-                            </div>
-                            <span id="transcode-state-${data['session_key']}">
-                                % if data['video_decision'] == 'transcode' or data['audio_decision'] == 'transcode':
-                                Stream &nbsp;<strong>Transcode (Speed: ${data['transcode_speed']})
-                                    % if data['throttled'] == '1':
-                                    (Throttled)
-                                    % endif
-                                    </strong>
-                                % elif data['video_decision'] == 'copy' or data['audio_decision'] == 'copy':
-                                Stream &nbsp;<strong>Direct Stream</strong>
+                        % if data['media_type'] == 'track':
+                        <div class="dashboard-activity-cover-face-bg" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
+                        <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
+                        % elif data['media_type'] == 'clip':
+                            % if data['art'].startswith('http'):
+                            <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
+                            % elif data['thumb'].startswith('http'):
+                            <div class="dashboard-activity-poster-face" style="background-image: url(${data['thumb']});"></div>
+                            % else:
+                                % if data['art']:
+                                <!--Hacky solution to escape the image url until I come up with something better-->
+                                <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['art'])}&width=500&height=280&fallback=art&clip=true);"></div>
                                 % else:
-                                Stream &nbsp;<strong>Direct Play</strong>
+                                <!--Hacky solution to escape the image url until I come up with something better-->
+                                <div class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${quote(data['thumb'])}&width=500&height=280&fallback=art&clip=true);"></div>
                                 % endif
-                                <br />
-                                % if data['video_decision'] and data['media_type'] != 'photo':
-                                    % if data['video_decision'] == 'transcode':
-                                    Video &nbsp;<strong>Transcode (${data['transcode_video_codec']}) (${data['transcode_width']}x${data['transcode_height']})</strong>
-                                    % elif data['video_decision'] == 'copy':
-                                    Video &nbsp;<strong>Direct Stream (${data['transcode_video_codec']}) (${data['width']}x${data['height']})</strong>
-                                    % else:
-                                    Video &nbsp;<strong>Direct Play (${data['video_codec']}) (${data['width']}x${data['height']})</strong>
-                                    % endif
-                                <br />
-                                % endif
-                                % if data['audio_decision']:
-                                    % if data['audio_decision'] == 'transcode':
-                                    Audio &nbsp;<strong>Transcode (${data['transcode_audio_codec']}) (${data['transcode_audio_channels']}ch)</strong>
-                                    % elif data['audio_decision'] == 'copy':
-                                    Audio &nbsp;<strong>Direct Stream (${data['transcode_audio_codec']}) (${data['transcode_audio_channels']}ch)</strong>
-                                    % else:
-                                    Audio &nbsp;<strong>Direct Play (${data['audio_codec']}) (${data['audio_channels']}ch)</strong>
-                                    % endif
+                            % endif
+                        % elif data['media_type'] == 'photo':
+                        <div id="bif-${data['session_key']}" class="dashboard-activity-poster-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=500&height=500&fallback=cover);"></div>
+                        % else:
+                        <div class="dashboard-activity-cover-face" style="background-image: url(pms_image_proxy?img=${data['thumb']}&width=300&height=300&fallback=cover);"></div>
+                        % endif
+                    % endif
+                % else:
+                <div class="dashboard-activity-poster-face" style="background-image: url(${data['art']});"></div>
+                % endif
+                % if _session['user_group'] == 'admin':
+                <span class="overlay-refresh-image left" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                % endif
+                <div class="dashboard-activity-button-info">
+                    <button type="button" class="btn btn-activity-info btn-lg" data-target="#stream-${data['session_key']}" data-id="${data['session_key']}">
+                        <i class="fa fa-info-circle"></i>
+                    </button>
+                </div>
+                <div id="stream-${data['session_key']}" class="dashboard-activity-info-details-overlay">
+                    <div class="dashboard-activity-info-details-content">
+                        <div id="platform-${data['session_key']}" title="${data['platform']}">
+                            <script>
+                                $("#platform-${data['session_key']}").html("<div class='dashboard-activity-info-platform-box' style='background-image: url(" + getPlatformImagePath('${data['platform']}') + ");'>");
+                            </script>
+                        </div>
+                        <div class="dashboard-activity-info-platform">
+                            <strong>${data['player']}</strong><br />
+                            <span id="overlay-play-state-${data['session_key']}">
+                                % if data['state'] == 'playing':
+                                State &nbsp;<strong>Playing</strong> ${'(' + data['quality_profile'] + ')' if data['media_type'] != 'track' else ''}
+                                % elif data['state'] == 'paused':
+                                State &nbsp;<strong>Paused</strong> ${'(' + data['quality_profile'] + ')' if data['media_type'] != 'track' else ''}
+                                % elif data['state'] == 'buffering':
+                                State &nbsp;<strong>Buffering</strong> ${'(' + data['quality_profile'] + ')' if data['media_type'] != 'track' else ''}
                                 % endif
                             </span>
                         </div>
-                    </div>
-                    % if data['media_type'] != 'photo':
-                    <div class="dashboard-activity-poster-info-bar">
-                        <div class="dashboard-activity-poster-info-ip-address">
-                            % if data['ip_address']:
-                            <span>IP: ${data['ip_address']}</span>
+                        <div class="dashboard-activity-info-details-transcode-state" id="transcode-state-${data['session_key']}">
+                            % if data['video_decision'] == 'transcode' or data['audio_decision'] == 'transcode':
+                                % if data['transcode_hardware'] == '1':
+                                Stream &nbsp;<strong>Transcode (HW) (Speed: ${data['transcode_speed']})
+                                % else:
+                                Stream &nbsp;<strong>Transcode (Speed: ${data['transcode_speed']})
+                                % endif
+                                % if data['transcode_throttled'] == '1':
+                                (Throttled)
+                                % endif
+                                </strong>
+                            % elif data['video_decision'] == 'copy' or data['audio_decision'] == 'copy':
+                            Stream &nbsp;<strong>Direct Stream</strong>
                             % else:
-                            <span>IP: N/A</span>
+                            Stream &nbsp;<strong>Direct Play</strong>
                             % endif
                             <br />
-                            ETA:
-                            <span id="stream-eta-${data['session_key']}">
-                                <script>
-                                    $("#stream-eta-${data['session_key']}").html(moment().add(parseInt("${data['duration']}") - parseInt("${data['view_offset']}"), 'milliseconds').format(time_format));
-                                </script>
-                            </span>
-                        </div>
-                        <div class="dashboard-activity-poster-info-time">
-                            <span class="progress_time" id="stream-view-offset-${data['session_key']}">
-                                <script>
-                                    $("#stream-view-offset-${data['session_key']}").html(millisecondsToMinutes(parseInt("${data['view_offset']}"), false));
-                                </script>
-                            </span>/<span class="progress_time" id="stream-duration-${data['session_key']}">
-                                <script>
-                                    $("#stream-duration-${data['session_key']}").html(millisecondsToMinutes(parseInt("${data['duration']}"), false));
-                                </script>
-                            </span>
+                            % if data['media_type'] in ('movie', 'episode', 'clip'):
+                                % if data['video_decision'] == 'transcode':
+                                Video &nbsp;<strong>Transcode (${data['video_codec'].upper()} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])} &rarr; ${data['stream_video_codec'].upper()} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})</strong>
+                                % elif data['video_decision'] == 'copy':
+                                Video &nbsp;<strong>Direct Stream (${data['stream_video_codec'].upper()} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['stream_video_resolution'], data['stream_video_resolution'])})</strong>
+                                % else:
+                                Video &nbsp;<strong>Direct Play (${data['video_codec'].upper()} ${plexpy.common.VIDEO_RESOLUTION_OVERRIDES.get(data['video_resolution'], data['video_resolution'])})</strong>
+                                % endif
+                            <br />
+                            % endif
+                            % if data['media_type'] in ('movie', 'episode', 'clip', 'track') and data['audio_codec']:
+                                % if data['audio_decision'] == 'transcode':
+                                Audio &nbsp;<strong>Transcode (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout']} &rarr; ${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout']})</strong>
+                                % elif data['audio_decision'] == 'copy':
+                                Audio &nbsp;<strong>Direct Stream (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout']})</strong>
+                                % else:
+                                Audio &nbsp;<strong>Direct Play (${plexpy.common.AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout']})</strong>
+                                % endif
+                            <br />
+                            % else:
+                            Audio &nbsp;<strong>None</strong>
+                            <br />
+                            % endif
+                            % if data['media_type'] in ('movie', 'episode', 'clip') and data['subtitles'] == '1':
+                                % if data['subtitle_decision'] == 'transcode':
+                                Subtitle &nbsp;<strong>Transcode (${data['subtitle_codec'].upper()} &rarr; ${data['stream_subtitle_codec'].upper()})</strong>
+                                % elif data['subtitle_decision'] == 'copy':
+                                Subtitle &nbsp;<strong>Direct Stream (${data['subtitle_codec'].upper()})</strong>
+                                % elif data['subtitle_decision'] == 'burn':
+                                Subtitle &nbsp;<strong>Burn (${data['subtitle_codec'].upper()})</strong>
+                                % else:
+                                Subtitle &nbsp;<strong>Direct Play (${data['subtitle_codec'].upper()})</strong>
+                                % endif
+                            % elif data['media_type'] != 'track':
+                                Subtitle &nbsp;<strong>None</strong>
+                            % endif
                         </div>
                     </div>
-                    % endif
                 </div>
-                % if (data['media_type'] == 'movie' or data['media_type'] == 'episode' or data['media_type'] == 'track') and data['rating_key']:
-            </a>
-            % else:
+                % if data['media_type'] != 'photo':
+                <div class="dashboard-activity-poster-info-bar">
+                    <div class="dashboard-activity-poster-info-ip-address">
+                        % if data['ip_address']:
+                        <span>IP: ${data['ip_address']}</span>
+                        % else:
+                        <span>IP: N/A</span>
+                        % endif
+                        <br />
+                        ETA:
+                        <span id="stream-eta-${data['session_key']}">
+                            <script>
+                                $("#stream-eta-${data['session_key']}").html(moment().add(parseInt("${data['duration']}") - parseInt("${data['view_offset']}"), 'milliseconds').format(time_format));
+                            </script>
+                        </span>
+                    </div>
+                    <div class="dashboard-activity-poster-info-time">
+                        <span class="progress_time" id="stream-view-offset-${data['session_key']}">
+                            <script>
+                                $("#stream-view-offset-${data['session_key']}").html(millisecondsToMinutes(parseInt("${data['view_offset']}"), false));
+                            </script>
+                        </span>/<span class="progress_time" id="stream-duration-${data['session_key']}">
+                            <script>
+                                $("#stream-duration-${data['session_key']}").html(millisecondsToMinutes(parseInt("${data['duration']}"), false));
+                            </script>
+                        </span>
+                    </div>
+                </div>
+                % endif
+            </div>
+            % if (data['media_type'] == 'movie' or data['media_type'] == 'episode' or data['media_type'] == 'track') and data['rating_key']:
+        </a>
+        % else:
         </a>
         % endif
         <div class="dashboard-activity-progress">

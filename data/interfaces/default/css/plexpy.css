@@ -60,6 +60,28 @@ select[multiple] option {
     -moz-border-radius: 2px;
     border-radius: 2px;
 }
+select.form-control {
+    margin: 5px 0 5px 0;
+    color: #fff;
+    border: 0px solid #444;
+    background: #555;
+    height: 32px;
+    padding: 6px 12px;
+    background-color: #555;
+    border-radius: 3px;
+    transition: background-color .3s;
+}
+select.form-control:focus {
+    outline: 0;
+    outline: thin dotted \9;
+    color: #555;
+    background-color: #fff;
+    transition: background-color .3s;
+}
+select.form-control option {
+    color: #555;
+    background-color: #fff;
+}
 img {
     -webkit-box-sizing: content-box;
     -moz-box-sizing: content-box;
@@ -350,7 +372,8 @@ fieldset[disabled] .btn-bright.active {
 .modal-body a:focus i.fa {
     color: #f9aa03;
 }
-.modal-body strong {
+.modal-body strong,
+.modal-body strong i.fa {
     color: #F9AA03;
 }
 .modal-footer {
@@ -502,6 +525,12 @@ textarea.form-control:focus {
     line-height: 32px;
     text-align: center;
     pointer-events: none;
+}
+.form-control[readonly] {
+    background-color: #555;
+}
+.form-control[readonly]:focus {
+    background-color: #fff;
 }
 .poster {
     position: relative;
@@ -757,10 +786,13 @@ a .users-poster-face:hover {
     color: #fff;
     font-weight: normal;
 }
+.dashboard-activity-info-details-transcode-state {
+    line-height: 22px;
+}
 .dashboard-activity-info-platform {
     width: 100%;
     height: 50px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 .dashboard-activity-info-platform-box {
     float: left;
@@ -2328,6 +2360,7 @@ a .home-platforms-list-cover-face:hover
     margin: 0px 0px 20px 0px;
 }
 .stacked-configs > li {
+    margin: 0;
     list-style: none;
     background-color: #282828;
     width: 100%;
@@ -2349,20 +2382,44 @@ a .home-platforms-list-cover-face:hover
     color: #eee;
     background-color: #2f2f2f;
 }
-.stacked-configs > li > span > a.toggle-right {
+.stacked-configs > li > span > a.toggle-right,
+.stacked-configs > li > span > span.toggle-right {
     float: right;
     color: #999;
     padding-left: 10px;
 }
-.stacked-configs > li > span > a.toggle-left {
+.stacked-configs > li > span > a.toggle-left,
+.stacked-configs > li > span > span.toggle-left {
     color: #444;
     padding-right: 8px;
 }
 .stacked-configs > li > span > a:hover {
     color: #eee;
 }
-.stacked-configs > li > span > a.active {
+.stacked-configs > li > span > a.active,
+.stacked-configs > li > span > span.active {
     color: #f9be03;
+}
+.stacked-configs > li.new-notification-agent,
+.stacked-configs > li.notification-agent,
+.stacked-configs > li.add-notification-agent {
+    cursor: pointer;
+}
+.stacked-configs > li.registered-device > span,
+.stacked-configs > li.registered-device > span:hover,
+.stacked-configs > li.registered-device > span:focus {
+    background-color: #282828;
+}
+.stacked-configs > li.registered-device > span > a.toggle-left,
+.stacked-configs > li.registered-device > span > span.toggle-left {
+    color: #999;
+    padding-right: 8px;
+}
+.stacked-configs > li.registered-device > span > span.delete-mobile-device {
+    cursor: pointer;
+}
+.stacked-configs > li.registered-device > span > span.delete-mobile-device:hover {
+    color: #c9302c;
 }
 .accordion {
     width: 100%;
@@ -2382,10 +2439,13 @@ a .home-platforms-list-cover-face:hover
     -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
+.accordion li {
+    margin: 0;
+}
 .accordion li:last-child .link {
     border-bottom: 0;
 }
-.accordion li i {
+.accordion li i.fa {
     position: absolute;
     top: 10px;
     left: 10px;
@@ -2449,7 +2509,7 @@ a .home-platforms-list-cover-face:hover
     text-align: center;
     bottom: 10px;
     min-height: 32px;
-    width: 250px;
+    width: 400px;
     z-index: 9999;
 }
 .ajaxMsg .msg {
@@ -2661,6 +2721,12 @@ a .home-platforms-list-cover-face:hover
     border-radius: 8px;
     background-clip: padding-box;
 }
+pre::-webkit-scrollbar-track {
+    background-color: rgba(255,255,255,.2);
+}
+pre::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,.15);
+}
 
 @media only screen 
   and (min-device-width: 300px) 
@@ -2672,85 +2738,6 @@ a .home-platforms-list-cover-face:hover
         width: 100%;
     }
 }
-table.display,
-table.display tr.shown + tr table[id^='history_child'],
-table.display tr.shown + tr table[id^='media_info_child'],
-table.display tr.shown + tr table[id^='media_info_child'] tr.shown + tr table[id^='media_info_child'] {
-    table-layout: auto;
-}
-table.display tr.shown + tr div.slider {
-    display: none;
-}
-table.display tr.shown + tr > td {
-    padding-top: 0;
-    padding-bottom: 0;
-    padding-left: 0;
-}
-table.display tr.shown + tr:hover {
-    background-color: rgba(255,255,255,0);
-}
-table.display tr.shown + tr:hover a,
-table.display tr.shown + tr td:hover a,
-table.display tr.shown + tr .pagination > .active > a,
-table.display tr.shown + tr .pagination > .active > a:hover {
-    color: #fff;
-}
-table.display tr.shown + tr table[id^='history_child'] td:hover a, 
-table.display tr.shown + tr table[id^='media_info_child'] > tr > td:hover a,
-table.display tr.shown + tr table[id^='media_info_child'] tr.shown + tr table[id^='media_info_child'] td:hover a {
-    color: #cc7b19;
-}
-table.display tr.shown + tr .pagination > .disabled > a,
-table.display tr.shown + tr .pagination > .disabled > a:hover {
-    color: #444444;
-}
-table.display tr.shown + tr .pagination > li > a:hover {
-    color: #e9a049;
-}
-table.display tr.odd td,
-table.display tr.even td {
-    padding: 5px 10px !important;
-}
-table[id^='history_child'] {
-    margin-top: 0;
-    opacity: .6;
-}
-table[id^='media_info_child'] {
-    margin-top: 0;
-}
-div[id^='history_child'] thead th,
-div[id^='media_info_child'] thead th {
-    line-height: 0;
-    height: 0 !important;
-    overflow: hidden;
-}
-div[id^='history_child'] div.row,
-div[id^='media_info_child'] div.row {
-    margin: 0;
-}
-div[id^='history_child'] div.col-sm-12,
-div[id^='media_info_child'] div.col-sm-12 {
-    padding: 0;
-}
-div[id^='history_child'] div.dataTables_scrollBody,
-div[id^='media_info_child'] div.dataTables_scrollBody {
-    overflow: hidden !important;
-}
-div[id^='media_info_child'] div[id^='media_info_child'] div.dataTables_scrollHead thead th {
-    line-height: 25px;
-    height: 35px !important;
-    overflow: hidden;
-}
-.dataTables_scrollBody {
-    -webkit-overflow-scrolling: touch;
-}
-.current-activity-row {
-    background-color: rgba(255,255,255,.1) !important;
-}
-.current-activity-row:hover {
-    background-color: rgba(255,255,255,0.125) !important;
-}
-
 #search_form {
     width: 300px;
     padding: 8px 15px;
@@ -2806,7 +2793,7 @@ div[id^='media_info_child'] div[id^='media_info_child'] div.dataTables_scrollHea
 }
 .notification-params td:first-child {
     padding-left: 10px;
-    width: 200px;
+    width: 250px;
 }
 .notification-params.time-options td:first-child {
     padding-left: 10px;
@@ -2939,6 +2926,9 @@ a.no-highlight:hover {
     .login-container {
         max-width: 750px;
     }
+    .modal.wide .modal-dialog {
+        width: 750px;
+    }
 }
 @media (min-width: 992px) {
     .login-container {
@@ -3069,9 +3059,66 @@ a:hover .overlay-refresh-image:hover {
 #plex-log-levels label {
     margin-bottom: 0;
 }
-#api_key.form-control[readonly] {
-    background-color: #555;
+#plexpy-notifiers-table .friendly_name,
+#notifier-config-modal span.notifier_id {
+    color: #777;
 }
-#api_key.form-control[readonly]:focus {
-    background-color: #fff;
+#notifier-config-modal .nav-tabs {
+    margin-bottom: 10px;
+    padding-left: 15px;
+    border-bottom: 1px solid #444;
+}
+#notifier-config-modal .nav-tabs > li {
+    margin: 0 0 -1px 0;
+}
+#notifier-config-modal .nav-tabs > li > a {
+    padding: 5px 10px;
+    color: #737373;
+}
+#notifier-config-modal .nav-tabs > li > a:hover {
+    border-color: #444;
+    background: #222;
+}
+#notifier-config-modal .nav-tabs > li.active > a,
+#notifier-config-modal .nav-tabs > li.active > a:hover,
+#notifier-config-modal .nav-tabs > li.active > a:focus {
+    color: #fff;
+    background: #222;
+}
+#notifier-config-modal .nav-tabs > li.active > a,
+#notifier-config-modal .nav-tabs > li.active > a:hover,
+#notifier-config-modal .nav-tabs > li.active > a:focus {
+    border: 1px solid #444;
+    border-bottom-color: transparent;
+}
+.git-group input.form-control {
+    width: 50%;
+}
+.git-group select.form-control {
+    width: 50%;
+}
+#changelog-modal .modal-body > h2 {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444;
+    font-size: 18px;
+}
+#changelog-modal .modal-body > ul {
+    padding-left: 25px;
+    margin-bottom: 30px;
+}
+#changelog-modal ul {
+    padding-left: 20px;
+}
+.google-play-badge {
+    display:inline-block;
+    height:45px;
+    margin-top: 10px;
+}
+.google-play-badge img {
+    border: 1px solid #3B3B3B;
+    border-radius: 6px;
+    box-sizing: border-box;
+    height: 45px;
+    vertical-align: middle;
 }

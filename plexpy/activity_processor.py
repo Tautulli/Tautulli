@@ -36,105 +36,75 @@ class ActivityProcessor(object):
 
     def write_session(self, session=None, notify=True):
         if session:
-            values = {'session_key': session['session_key'],
-                      'transcode_key': session['transcode_key'],
-                      'section_id': session['section_id'],
-                      'rating_key': session['rating_key'],
-                      'media_type': session['media_type'],
-                      'state': session['state'],
-                      'user_id': session['user_id'],
-                      'user': session['user'],
-                      'machine_id': session['machine_id'],
-                      'title': session['title'],
-                      'parent_title': session['parent_title'],
-                      'grandparent_title': session['grandparent_title'],
-                      'full_title': session['full_title'],
-                      'media_index': session['media_index'],
-                      'parent_media_index': session['parent_media_index'],
-                      'thumb': session['thumb'],
-                      'parent_thumb': session['parent_thumb'],
-                      'grandparent_thumb': session['grandparent_thumb'],
-                      'year': session['year'],
-                      'friendly_name': session['friendly_name'],
-                      #'ip_address': session['ip_address'],
-                      'player': session['player'],
-                      'platform': session['platform'],
-                      'parent_rating_key': session['parent_rating_key'],
-                      'grandparent_rating_key': session['grandparent_rating_key'],
-                      'view_offset': session['view_offset'],
-                      'duration': session['duration'],
-                      'video_decision': session['video_decision'],
-                      'audio_decision': session['audio_decision'],
-                      'transcode_decision': session['transcode_decision'],
-                      'width': session['width'],
-                      'height': session['height'],
-                      'container': session['container'],
-                      'video_codec': session['video_codec'],
-                      'audio_codec': session['audio_codec'],
-                      'bitrate': session['bitrate'],
-                      'video_resolution': session['video_resolution'],
-                      'video_framerate': session['video_framerate'],
-                      'aspect_ratio': session['aspect_ratio'],
-                      'audio_channels': session['audio_channels'],
-                      'transcode_protocol': session['transcode_protocol'],
-                      'transcode_container': session['transcode_container'],
-                      'transcode_video_codec': session['transcode_video_codec'],
-                      'transcode_audio_codec': session['transcode_audio_codec'],
-                      'transcode_audio_channels': session['transcode_audio_channels'],
-                      'transcode_width': session['transcode_width'],
-                      'transcode_height': session['transcode_height'],
+            values = {'session_key': session.get('session_key', ''),
+                      'transcode_key': session.get('transcode_key', ''),
+                      'section_id': session.get('section_id', ''),
+                      'rating_key': session.get('rating_key', ''),
+                      'media_type': session.get('media_type', ''),
+                      'state': session.get('state', ''),
+                      'user_id': session.get('user_id', ''),
+                      'user': session.get('user', ''),
+                      'machine_id': session.get('machine_id', ''),
+                      'title': session.get('title', ''),
+                      'parent_title': session.get('parent_title', ''),
+                      'grandparent_title': session.get('grandparent_title', ''),
+                      'full_title': session.get('full_title', ''),
+                      'media_index': session.get('media_index', ''),
+                      'parent_media_index': session.get('parent_media_index', ''),
+                      'thumb': session.get('thumb', ''),
+                      'parent_thumb': session.get('parent_thumb', ''),
+                      'grandparent_thumb': session.get('grandparent_thumb', ''),
+                      'year': session.get('year', ''),
+                      'friendly_name': session.get('friendly_name', ''),
+                      #'ip_address': session.get('ip_address', ''),
+                      'player': session.get('player', ''),
+                      'platform': session.get('platform', ''),
+                      'parent_rating_key': session.get('parent_rating_key', ''),
+                      'grandparent_rating_key': session.get('grandparent_rating_key', ''),
+                      'view_offset': session.get('view_offset', ''),
+                      'duration': session.get('duration', ''),
+                      'video_decision': session.get('video_decision', ''),
+                      'audio_decision': session.get('audio_decision', ''),
+                      'transcode_decision': session.get('transcode_decision', ''),
+                      'width': session.get('width', ''),
+                      'height': session.get('height', ''),
+                      'container': session.get('container', ''),
+                      'video_codec': session.get('video_codec', ''),
+                      'audio_codec': session.get('audio_codec', ''),
+                      'bitrate': session.get('bitrate', ''),
+                      'video_resolution': session.get('video_resolution', ''),
+                      'video_framerate': session.get('video_framerate', ''),
+                      'aspect_ratio': session.get('aspect_ratio', ''),
+                      'audio_channels': session.get('audio_channels', ''),
+                      'transcode_protocol': session.get('transcode_protocol', ''),
+                      'transcode_container': session.get('transcode_container', ''),
+                      'transcode_video_codec': session.get('transcode_video_codec', ''),
+                      'transcode_audio_codec': session.get('transcode_audio_codec', ''),
+                      'transcode_audio_channels': session.get('transcode_audio_channels', ''),
+                      'transcode_width': session.get('transcode_width', ''),
+                      'transcode_height': session.get('transcode_height', ''),
                       'stopped': None
                       }
 
             # Add ip_address back into values
             if session['ip_address']:
-                values.update({'ip_address': session['ip_address']})
+                values.update({'ip_address': session.get('ip_address', 'N/A')})
 
-            keys = {'session_key': session['session_key'],
-                    'rating_key': session['rating_key']}
+            keys = {'session_key': session.get('session_key', ''),
+                    'rating_key': session.get('rating_key', '')}
 
             result = self.db.upsert('sessions', values, keys)
 
             if result == 'insert':
                 # Check if any notification agents have notifications enabled
-                if notify and any(d['on_play'] for d in notifiers.available_notification_agents()):
-                    values.update({'ip_address': session['ip_address']})
-                    # Push any notifications - Push it on it's own thread so we don't hold up our db actions
-                    threading.Thread(target=notification_handler.notify,
-                                     kwargs=dict(stream_data=values, notify_action='play')).start()
+                if notify:
+                    values.update({'ip_address': session.get('ip_address', 'N/A')})
+                    plexpy.NOTIFY_QUEUE.put({'stream_data': values, 'notify_action': 'on_play'})
 
                 # If it's our first write then time stamp it.
                 started = int(time.time())
                 timestamp = {'started': started}
                 self.db.upsert('sessions', timestamp, keys)
-
-                # Try and grab IP address from logs (fallback if not on PMS 0.9.14 and above)
-                if not session['ip_address']:
-                    if plexpy.CONFIG.IP_LOGGING_ENABLE and plexpy.CONFIG.PMS_LOGS_FOLDER:
-                        ip_address = self.find_session_ip(rating_key=session['rating_key'],
-                                                          machine_id=session['machine_id'])
-                        ip_address = {'ip_address': ip_address}
-                        self.db.upsert('sessions', ip_address, keys)
-
-                # Check if any notification agents have notifications enabled
-                if notify and any(d['on_concurrent'] for d in notifiers.available_notification_agents()):
-                    # Check if any concurrent streams by the user
-                    user_sessions = self.get_session_by_user_id(user_id=session['user_id'],
-                                                                ip_address=plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP)
-                    if len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD:
-                        # Push any notifications - Push it on it's own thread so we don't hold up our db actions
-                        threading.Thread(target=notification_handler.notify,
-                                         kwargs=dict(stream_data=values, notify_action='concurrent')).start()
-
-                # Check if any notification agents have notifications enabled
-                if notify and any(d['on_newdevice'] for d in notifiers.available_notification_agents()):
-                    # Check if any concurrent streams by the user
-                    data_factory = datafactory.DataFactory()
-                    user_devices = data_factory.get_user_devices(user_id=session['user_id'])
-                    if session['machine_id'] not in user_devices:
-                        # Push any notifications - Push it on it's own thread so we don't hold up our db actions
-                        threading.Thread(target=notification_handler.notify,
-                                         kwargs=dict(stream_data=values, notify_action='newdevice')).start()
 
                 return True
 
@@ -220,10 +190,8 @@ class ActivityProcessor(object):
                 if not is_import:
                     logger.debug(u"PlexPy ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
                     pms_connect = pmsconnect.PmsConnect()
-                    result = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
-                    if result and result['metadata']:
-                        metadata = result['metadata']
-                    else:
+                    metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+                    if not metadata:
                         return False
                 else:
                     metadata = import_metadata
@@ -265,8 +233,7 @@ class ActivityProcessor(object):
                                     'reference_id': result[1]['reference_id']}
                 else:
                     # Get the last insert row id
-                    result = self.db.select(query='SELECT last_insert_rowid() AS last_id')
-                    last_id = result[0]['last_id'] if result else None
+                    last_id = self.db.last_insert_id()
 
                 query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
                 # If rating_key is the same in the previous session, then set the reference_id to the previous row, else set the reference_id to the new id
@@ -335,74 +302,25 @@ class ActivityProcessor(object):
             # Return true when the session is successfully written to the database
             return True
 
-    def find_session_ip(self, rating_key=None, machine_id=None):
+    def get_sessions(self, user_id=None, ip_address=None):
+        query = 'SELECT * FROM sessions'
+        args = []
 
-        logger.debug(u"PlexPy ActivityProcessor :: Requesting log lines...")
-        log_lines = log_reader.get_log_tail(window=5000, parsed=False)
+        if str(user_id).isdigit():
+            ip = ' GROUP BY ip_address' if ip_address else ''
+            query += ' WHERE user_id = ?' + ip
+            args.append(user_id)
 
-        rating_key_line = 'ratingKey=' + rating_key
-        rating_key_line_2 = 'metadata%2F' + rating_key
-        machine_id_line = 'session=' + machine_id
-
-        for line in reversed(log_lines):
-            # We're good if we find a line with both machine id and rating key
-            # This is usually when there is a transcode session
-            if machine_id_line in line and (rating_key_line in line or rating_key_line_2 in line):
-                # Currently only checking for ipv4 addresses
-                ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}', line)
-                if ipv4:
-                    # The logged IP will always be the first match and we don't want localhost entries
-                    if ipv4[0] != '127.0.0.1':
-                        # check if IPv4 mapped IPv6 address (::ffff:xxx.xxx.xxx.xxx)
-                        #if '::ffff:' + ipv4[0] in line:
-                        #    logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s "
-                        #                 u"and machineIdentifier %s."
-                        #                 % ('::ffff:' + ipv4[0], rating_key, machine_id))
-                        #    return '::ffff:' + ipv4[0]
-                        #else:
-                        logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s "
-                                        u"and machineIdentifier %s."
-                                        % (ipv4[0], rating_key, machine_id))
-                        return ipv4[0]
-
-        logger.debug(u"PlexPy ActivityProcessor :: Unable to find IP address on first pass. "
-                     u"Attempting fallback check in 5 seconds...")
-
-        # Wait for the log to catch up and read in new lines
-        time.sleep(5)
-
-        logger.debug(u"PlexPy ActivityProcessor :: Requesting log lines...")
-        log_lines = log_reader.get_log_tail(window=5000, parsed=False)
-
-        for line in reversed(log_lines):
-            if 'GET /:/timeline' in line and (rating_key_line in line or rating_key_line_2 in line):
-                # Currently only checking for ipv4 addresses
-                # This method can return the wrong IP address if more than one user
-                # starts watching the same media item around the same time.
-                ipv4 = re.findall(r'[0-9]+(?:\.[0-9]+){3}', line)
-                if ipv4:
-                    # The logged IP will always be the first match and we don't want localhost entries
-                    if ipv4[0] != '127.0.0.1':
-                        #if '::ffff:' + ipv4[0] in line:
-                        #    logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s." %
-                        #                 ('::ffff:' + ipv4[0], rating_key))
-                        #    return '::ffff:' + ipv4[0]
-                        #else:
-                        logger.debug(u"PlexPy ActivityProcessor :: Matched IP address (%s) for stream ratingKey %s." %
-                                        (ipv4[0], rating_key))
-                        return ipv4[0]
-
-        logger.debug(u"PlexPy ActivityProcessor :: Unable to find IP address on fallback search. Not logging IP address.")
-
-        return None
+        sessions = self.db.select(query, args)
+        return sessions
 
     def get_session_by_key(self, session_key=None):
         if str(session_key).isdigit():
-            result = self.db.select('SELECT * '
-                                    'FROM sessions WHERE session_key = ? LIMIT 1', args=[session_key])
-            for session in result:
-                if session:
-                    return session
+            session = self.db.select_single('SELECT * FROM sessions '
+                                            'WHERE session_key = ? ',
+                                            args=[session_key])
+            if session:
+                return session
 
         return None
 
@@ -485,12 +403,6 @@ class ActivityProcessor(object):
 
             return None
 
-    def get_session_by_user_id(self, user_id=None, ip_address=None):
-        sessions = []
-        if str(user_id).isdigit():
-            ip = 'GROUP BY ip_address' if ip_address else ''
-            sessions = self.db.select('SELECT * '
-                                      'FROM sessions '
-                                      'WHERE user_id = ? %s' % ip,
-                                      [user_id])
-        return sessions
+    def set_temp_stopped(self):
+        stopped_time = int(time.time())
+        self.db.action('UPDATE sessions SET stopped = ?', [stopped_time])

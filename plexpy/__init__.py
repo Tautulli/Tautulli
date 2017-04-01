@@ -14,6 +14,7 @@
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from Queue import Queue
 import sqlite3
 import sys
 import subprocess
@@ -35,6 +36,9 @@ import activity_pinger
 import config
 import database
 import logger
+import mobile_app
+import notification_handler
+import notifiers
 import plextv
 import pmsconnect
 import versioncheck
@@ -58,9 +62,11 @@ PIDFILE = None
 SCHED = BackgroundScheduler()
 SCHED_LOCK = threading.Lock()
 
+NOTIFY_QUEUE = Queue()
+
 INIT_LOCK = threading.Lock()
 _INITIALIZED = False
-started = False
+_STARTED = False
 
 DATA_DIR = None
 
@@ -76,11 +82,12 @@ COMMITS_BEHIND = None
 
 UMASK = None
 
-POLLING_FAILOVER = False
-
 HTTP_ROOT = None
 
 DEV = False
+
+WS_CONNECTED = False
+PLEX_SERVER_UP = True
 
 
 def initialize(config_file):
@@ -92,7 +99,6 @@ def initialize(config_file):
         global CURRENT_VERSION
         global LATEST_VERSION
         global UMASK
-        global POLLING_FAILOVER
         CONFIG = plexpy.config.Config(config_file)
         CONFIG_FILE = config_file
 
@@ -103,7 +109,7 @@ def initialize(config_file):
 
         if CONFIG.HTTP_PORT < 21 or CONFIG.HTTP_PORT > 65535:
             plexpy.logger.warn(
-                'HTTP_PORT out of bounds: 21 < %s < 65535', CONFIG.HTTP_PORT)
+                u"HTTP_PORT out of bounds: 21 < %s < 65535", CONFIG.HTTP_PORT)
             CONFIG.HTTP_PORT = 8181
 
         if not CONFIG.HTTPS_CERT:
@@ -134,7 +140,7 @@ def initialize(config_file):
             try:
                 os.makedirs(CONFIG.BACKUP_DIR)
             except OSError as e:
-                logger.error("Could not create backup dir '%s': %s" % (CONFIG.BACKUP_DIR, e))
+                logger.error(u"Could not create backup dir '%s': %s" % (CONFIG.BACKUP_DIR, e))
 
         if not CONFIG.CACHE_DIR:
             CONFIG.CACHE_DIR = os.path.join(DATA_DIR, 'cache')
@@ -142,14 +148,25 @@ def initialize(config_file):
             try:
                 os.makedirs(CONFIG.CACHE_DIR)
             except OSError as e:
-                logger.error("Could not create cache dir '%s': %s" % (CONFIG.CACHE_DIR, e))
+                logger.error(u"Could not create cache dir '%s': %s" % (CONFIG.CACHE_DIR, e))
 
         # Initialize the database
-        logger.info('Checking to see if the database has all tables....')
+        logger.info(u"Checking if the database upgrades are required...")
         try:
             dbcheck()
         except Exception as e:
-            logger.error("Can't connect to the database: %s" % e)
+            logger.error(u"Can't connect to the database: %s" % e)
+
+        # Perform upgrades
+        logger.info(u"Checking if configuration upgrades are required...")
+        try:
+            upgrade()
+        except Exception as e:
+            logger.error(u"Could not perform upgrades: %s" % e)
+
+        # Add notifier configs to logger blacklist
+        notifiers.blacklist_logger()
+        mobile_app.blacklist_logger()
 
         # Check if PlexPy has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
@@ -159,7 +176,7 @@ def initialize(config_file):
 
         # Get the currently installed version. Returns None, 'win32' or the git
         # hash.
-        CURRENT_VERSION, CONFIG.GIT_BRANCH = versioncheck.getVersion()
+        CURRENT_VERSION, CONFIG.GIT_REMOTE, CONFIG.GIT_BRANCH = versioncheck.getVersion()
 
         # Write current version to a file, so we know which version did work.
         # This allowes one to restore to that version. The idea is that if we
@@ -171,7 +188,7 @@ def initialize(config_file):
                 with open(version_lock_file, "w") as fp:
                     fp.write(CURRENT_VERSION)
             except IOError as e:
-                logger.error("Unable to write current version to file '%s': %s" %
+                logger.error(u"Unable to write current version to file '%s': %s" %
                              (version_lock_file, e))
 
         # Check for new versions
@@ -179,7 +196,7 @@ def initialize(config_file):
             try:
                 LATEST_VERSION = versioncheck.checkGithub()
             except:
-                logger.exception("Unhandled exception")
+                logger.exception(u"Unhandled exception")
                 LATEST_VERSION = CURRENT_VERSION
         else:
             LATEST_VERSION = CURRENT_VERSION
@@ -207,8 +224,8 @@ def initialize(config_file):
 def daemonize():
     if threading.activeCount() != 1:
         logger.warn(
-            'There are %r active threads. Daemonizing may cause'
-            ' strange behavior.',
+            u"There are %r active threads. Daemonizing may cause"
+            " strange behavior.",
             threading.enumerate())
 
     sys.stdout.flush()
@@ -248,10 +265,10 @@ def daemonize():
     os.dup2(se.fileno(), sys.stderr.fileno())
 
     pid = os.getpid()
-    logger.info('Daemonized to PID: %d', pid)
+    logger.info(u"Daemonized to PID: %d", pid)
 
     if CREATEPID:
-        logger.info("Writing PID %d to %s", pid, PIDFILE)
+        logger.info(u"Writing PID %d to %s", pid, PIDFILE)
         with file(PIDFILE, 'w') as fp:
             fp.write("%s\n" % pid)
 
@@ -269,7 +286,7 @@ def launch_browser(host, port, root):
         try:
             webbrowser.open('%s://%s:%i%s' % (protocol, host, port, root))
         except Exception as e:
-            logger.error('Could not launch browser: %s' % e)
+            logger.error(u"Could not launch browser: %s" % e)
 
 
 def initialize_scheduler():
@@ -286,40 +303,7 @@ def initialize_scheduler():
         github_minutes = CONFIG.CHECK_GITHUB_INTERVAL if CONFIG.CHECK_GITHUB_INTERVAL and CONFIG.CHECK_GITHUB else 0
 
         schedule_job(versioncheck.checkGithub, 'Check GitHub for updates',
-                     hours=0, minutes=github_minutes, seconds=0)
-
-        # Our interval should never be less than 30 seconds
-        monitor_seconds = CONFIG.MONITORING_INTERVAL if CONFIG.MONITORING_INTERVAL >= 30 else 30
-
-        if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
-            schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
-                         hours=12, minutes=0, seconds=0)
-            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
-                         hours=12, minutes=0, seconds=0)
-
-            schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
-                         hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
-            schedule_job(activity_pinger.check_server_response, 'Check for Plex remote access',
-                         hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.MONITOR_REMOTE_ACCESS))
-            schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
-                         hours=12 * bool(CONFIG.MONITOR_PMS_UPDATES), minutes=0, seconds=0)
-
-            # If we're not using websockets then fall back to polling
-            if not CONFIG.MONITORING_USE_WEBSOCKET or POLLING_FAILOVER:
-                schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
-                             hours=0, minutes=0, seconds=monitor_seconds)
-
-        # Refresh the users list and libraries list
-        user_hours = CONFIG.REFRESH_USERS_INTERVAL if 1 <= CONFIG.REFRESH_USERS_INTERVAL <= 24 else 12
-        library_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL if 1 <= CONFIG.REFRESH_LIBRARIES_INTERVAL <= 24 else 12
-
-        if CONFIG.PMS_TOKEN:
-            schedule_job(plextv.refresh_users, 'Refresh users list',
-                         hours=user_hours, minutes=0, seconds=0)
-
-        if CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
-            schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
-                         hours=library_hours, minutes=0, seconds=0)
+                     hours=0, minutes=github_minutes, seconds=0, args=(bool(CONFIG.PLEXPY_AUTO_UPDATE),))
 
         backup_hours = CONFIG.BACKUP_INTERVAL if 1 <= CONFIG.BACKUP_INTERVAL <= 24 else 6
 
@@ -328,15 +312,66 @@ def initialize_scheduler():
         schedule_job(config.make_backup, 'Backup PlexPy config',
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
 
+        if WS_CONNECTED and CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
+            # Our interval should never be less than 30 seconds
+            monitor_seconds = CONFIG.MONITORING_INTERVAL if CONFIG.MONITORING_INTERVAL >= 30 else 30
+
+            #schedule_job(activity_pinger.check_active_sessions, 'Check for active sessions',
+            #             hours=0, minutes=0, seconds=1)
+            #schedule_job(activity_pinger.check_recently_added, 'Check for recently added items',
+            #             hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.NOTIFY_RECENTLY_ADDED))
+            schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
+                         hours=12, minutes=0, seconds=0)
+            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
+                         hours=12, minutes=0, seconds=0)
+
+            schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
+                         hours=0, minutes=0, seconds=monitor_seconds * bool(CONFIG.MONITOR_REMOTE_ACCESS))
+            schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
+                         hours=12 * bool(CONFIG.MONITOR_PMS_UPDATES), minutes=0, seconds=0)
+
+            # Refresh the users list and libraries list
+            user_hours = CONFIG.REFRESH_USERS_INTERVAL if 1 <= CONFIG.REFRESH_USERS_INTERVAL <= 24 else 12
+            library_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL if 1 <= CONFIG.REFRESH_LIBRARIES_INTERVAL <= 24 else 12
+
+            schedule_job(plextv.refresh_users, 'Refresh users list',
+                         hours=user_hours, minutes=0, seconds=0)
+            schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
+                         hours=library_hours, minutes=0, seconds=0)
+
+            schedule_job(activity_pinger.check_server_response, 'Check server response',
+                         hours=0, minutes=0, seconds=0)
+
+        else:
+            # Cancel all jobs
+            schedule_job(plextv.get_real_pms_url, 'Refresh Plex server URLs',
+                         hours=0, minutes=0, seconds=0)
+            schedule_job(pmsconnect.get_server_friendly_name, 'Refresh Plex server name',
+                         hours=0, minutes=0, seconds=0)
+
+            schedule_job(activity_pinger.check_server_access, 'Check for Plex remote access',
+                         hours=0, minutes=0, seconds=0)
+            schedule_job(activity_pinger.check_server_updates, 'Check for Plex updates',
+                         hours=0, minutes=0, seconds=0)
+
+            schedule_job(plextv.refresh_users, 'Refresh users list',
+                         hours=0, minutes=0, seconds=0)
+            schedule_job(pmsconnect.refresh_libraries, 'Refresh libraries list',
+                         hours=0, minutes=0, seconds=0)
+
+            # Schedule job to reconnect websocket
+            response_seconds = CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS * CONFIG.WEBSOCKET_CONNECTION_TIMEOUT
+            response_seconds = 60 if response_seconds < 60 else response_seconds
+
+            schedule_job(activity_pinger.check_server_response, 'Check server response',
+                         hours=0, minutes=0, seconds=response_seconds)
+
         # Start scheduler
         if start_jobs and len(SCHED.get_jobs()):
             try:
                 SCHED.start()
             except Exception as e:
                 logger.info(e)
-
-                # Debug
-                #SCHED.print_jobs()
 
 
 def schedule_job(function, name, hours=0, minutes=0, seconds=0, args=None):
@@ -351,28 +386,32 @@ def schedule_job(function, name, hours=0, minutes=0, seconds=0, args=None):
     if job:
         if hours == 0 and minutes == 0 and seconds == 0:
             SCHED.remove_job(name)
-            logger.info("Removed background task: %s", name)
+            logger.info(u"Removed background task: %s", name)
         elif job.trigger.interval != datetime.timedelta(hours=hours, minutes=minutes):
             SCHED.reschedule_job(name, trigger=IntervalTrigger(
                 hours=hours, minutes=minutes, seconds=seconds), args=args)
-            logger.info("Re-scheduled background task: %s", name)
+            logger.info(u"Re-scheduled background task: %s", name)
     elif hours > 0 or minutes > 0 or seconds > 0:
         SCHED.add_job(function, id=name, trigger=IntervalTrigger(
             hours=hours, minutes=minutes, seconds=seconds), args=args)
-        logger.info("Scheduled background task: %s", name)
+        logger.info(u"Scheduled background task: %s", name)
 
 
 def start():
-    global started
+    global _STARTED
 
     if _INITIALIZED:
-        initialize_scheduler()
-        started = True
+        # Start background notification thread
+        if any([CONFIG.MOVIE_NOTIFY_ENABLE, CONFIG.TV_NOTIFY_ENABLE,
+                CONFIG.MUSIC_NOTIFY_ENABLE, CONFIG.NOTIFY_RECENTLY_ADDED]):
+            notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
+
+        _STARTED = True
 
 
 def sig_handler(signum=None, frame=None):
     if signum is not None:
-        logger.info("Signal %i caught, saving and exiting...", signum)
+        logger.info(u"Signal %i caught, saving and exiting...", signum)
         shutdown()
 
 
@@ -443,8 +482,8 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
         'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
-        'user_id INTEGER, user TEXT, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
-        'subject_text TEXT, body_text TEXT, script_args TEXT, poster_url TEXT)'
+        'user_id INTEGER, user TEXT, notifier_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
+        'subject_text TEXT, body_text TEXT, script_args TEXT)'
     )
 
     # library_sections table :: This table keeps record of the servers library sections
@@ -460,6 +499,47 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS user_login (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, ip_address TEXT, host TEXT, user_agent TEXT)'
+    )
+
+    # notifiers table :: This table keeps record of the notification agent settings
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS notifiers (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'agent_id INTEGER, agent_name TEXT, agent_label TEXT, friendly_name TEXT, notifier_config TEXT, '
+        'on_play INTEGER DEFAULT 0, on_stop INTEGER DEFAULT 0, on_pause INTEGER DEFAULT 0, '
+        'on_resume INTEGER DEFAULT 0, on_buffer INTEGER DEFAULT 0, on_watched INTEGER DEFAULT 0, '
+        'on_created INTEGER DEFAULT 0, on_extdown INTEGER DEFAULT 0, on_intdown INTEGER DEFAULT 0, '
+        'on_extup INTEGER DEFAULT 0, on_intup INTEGER DEFAULT 0, on_pmsupdate INTEGER DEFAULT 0, '
+        'on_concurrent INTEGER DEFAULT 0, on_newdevice INTEGER DEFAULT 0, on_plexpyupdate INTEGER DEFAULT 0, '
+        'on_play_subject TEXT, on_stop_subject TEXT, on_pause_subject TEXT, '
+        'on_resume_subject TEXT, on_buffer_subject TEXT, on_watched_subject TEXT, '
+        'on_created_subject TEXT, on_extdown_subject TEXT, on_intdown_subject TEXT, '
+        'on_extup_subject TEXT, on_intup_subject TEXT, on_pmsupdate_subject TEXT, '
+        'on_concurrent_subject TEXT, on_newdevice_subject TEXT, on_plexpyupdate_subject TEXT, '
+        'on_play_body TEXT, on_stop_body TEXT, on_pause_body TEXT, '
+        'on_resume_body TEXT, on_buffer_body TEXT, on_watched_body TEXT, '
+        'on_created_body TEXT, on_extdown_body TEXT, on_intdown_body TEXT, '
+        'on_extup_body TEXT, on_intup_body TEXT, on_pmsupdate_body TEXT, '
+        'on_concurrent_body TEXT, on_newdevice_body TEXT, on_plexpyupdate_body TEXT)'
+    )
+
+    # poster_urls table :: This table keeps record of the notification poster urls
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS poster_urls (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'rating_key INTEGER, poster_title TEXT, poster_url TEXT)'
+    )
+
+    # recently_added table :: This table keeps record of recently added items
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS recently_added (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'added_at INTEGER, pms_identifier TEXT, section_id INTEGER, '
+        'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, '
+        'media_info TEXT)'
+    )
+
+    # mobile_devices table :: This table keeps record of devices linked with the mobile app
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, friendly_name TEXT)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -871,6 +951,15 @@ def dbcheck():
             'ALTER TABLE notify_log_temp RENAME TO notify_log'
         )
 
+    # Upgrade notify_log table from earlier versions
+    try:
+        c_db.execute('SELECT notifier_id FROM notify_log')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table notify_log.")
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN notifier_id INTEGER'
+        )
+
     # Upgrade library_sections table from earlier versions (remove UNIQUE constraint on section_id)
     try:
         result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="library_sections"').fetchone()
@@ -952,44 +1041,74 @@ def dbcheck():
         except:
             pass
 
+    # Upgrade mobile_devices table from earlier versions
+    try:
+        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="mobile_devices"').fetchone()
+        if 'device_token TEXT NOT NULL UNIQUE' in result[0]:
+            logger.debug(u"Altering database. Dropping and recreating mobile_devices table.")
+            c_db.execute(
+                'DROP TABLE mobile_devices'
+            )
+            c_db.execute(
+                'CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, friendly_name TEXT)'
+            )
+    except sqlite3.OperationalError:
+        logger.warn(u"Failed to recreate mobile_devices table.")
+        pass
+
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
     if not result.fetchone():
-        logger.debug(u'User "Local" does not exist. Adding user.')
+        logger.debug(u"User 'Local' does not exist. Adding user.")
         c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
 
     conn_db.commit()
     c_db.close()
 
+def upgrade():
+    if CONFIG.UPDATE_NOTIFIERS_DB:
+        notifiers.upgrade_config_to_db()
 
-def shutdown(restart=False, update=False):
+def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()
     SCHED.shutdown(wait=False)
 
+    # Stop the notification threads
+    for i in range(CONFIG.NOTIFICATION_THREADS):
+        NOTIFY_QUEUE.put(None)
+
     CONFIG.write()
 
-    if not restart and not update:
-        logger.info('PlexPy is shutting down...')
+    if not restart and not update and not checkout:
+        logger.info(u"PlexPy is shutting down...")
 
     if update:
-        logger.info('PlexPy is updating...')
+        logger.info(u"PlexPy is updating...")
         try:
             versioncheck.update()
         except Exception as e:
-            logger.warn('PlexPy failed to update: %s. Restarting.' % e)
+            logger.warn(u"PlexPy failed to update: %s. Restarting." % e)
+
+    if checkout:
+        logger.info(u"PlexPy is switching the git branch...")
+        try:
+            versioncheck.checkout_git_branch()
+        except Exception as e:
+            logger.warn(u"PlexPy failed to switch git branch: %s. Restarting." % e)
 
     if CREATEPID:
-        logger.info('Removing pidfile %s', PIDFILE)
+        logger.info(u"Removing pidfile %s", PIDFILE)
         os.remove(PIDFILE)
 
     if restart:
-        logger.info('PlexPy is restarting...')
+        logger.info(u"PlexPy is restarting...")
         exe = sys.executable
         args = [exe, FULL_PATH]
         args += ARGS
         if '--nolaunch' not in args:
             args += ['--nolaunch']
-        logger.info('Restarting PlexPy with %s', args)
+        logger.info(u"Restarting PlexPy with %s", args)
 
         # os.execv fails with spaced names on Windows
         # https://bugs.python.org/issue19066

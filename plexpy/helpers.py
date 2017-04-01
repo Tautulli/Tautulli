@@ -440,11 +440,8 @@ def convert_xml_to_dict(xml):
 
 def get_percent(value1, value2):
 
-    if str(value1).isdigit() and str(value2).isdigit():
-        value1 = cast_to_float(value1)
-        value2 = cast_to_float(value2)
-    else:
-        return 0
+    value1 = cast_to_float(value1)
+    value2 = cast_to_float(value2)
 
     if value1 != 0 and value2 != 0:
         percent = (value1 / value2) * 100
@@ -452,6 +449,12 @@ def get_percent(value1, value2):
         percent = 0
 
     return math.trunc(percent)
+
+def hex_to_int(hex):
+    try:
+        return int(hex, 16)
+    except (ValueError, TypeError):
+        return 0
 
 def parse_xml(unparsed=None):
     if unparsed:
@@ -496,27 +499,31 @@ def sanitize(string):
     else:
         return ''
 
-def is_ip_public(host):
-    ip_address = get_ip(host)
-    ip = IP(ip_address)
-    if ip.iptype() == 'PUBLIC':
+def is_public_ip(host):
+    ip = is_valid_ip(get_ip(host))
+    if ip and ip.iptype() == 'PUBLIC':
         return True
-
     return False
 
 def get_ip(host):
     ip_address = ''
-    try:
-        socket.inet_aton(host)
-        ip_address = host
-    except socket.error:
+    if is_valid_ip(host):
+        return host
+    else:
         try:
-            ip_address = socket.gethostbyname(host)
+            ip_address = socket.getaddrinfo(host, None)[0][4][0]
             logger.debug(u"IP Checker :: Resolved %s to %s." % (host, ip_address))
         except:
             logger.error(u"IP Checker :: Bad IP or hostname provided.")
-
     return ip_address
+
+def is_valid_ip(address):
+    try:
+        return IP(address)
+    except TypeError:
+        return False
+    except ValueError:
+        return False
 
 def install_geoip_db():
     maxmind_url = 'http://geolite.maxmind.com/download/geoip/database/'
@@ -678,13 +685,8 @@ def uploadToImgur(imgPath, imgTitle=''):
     img_url = ''
 
     if not client_id:
-        #logger.error(u"PlexPy Helpers :: Cannot upload poster to Imgur. No Imgur client id specified in the settings.")
-        #return img_url
-        # Fallback to shared client id for now. This will be remove in a future update.
-        logger.warn(u"PlexPy Helpers :: No Imgur client id specified in the settings. Falling back to the shared client id.")
-        logger.warn(u"***** The shared Imgur client id will be removed in a future PlexPy update! "
-                    "Please enter your own client id in the settings to continue uploading posters! *****")
-        client_id = '743b1a443ccd2b0'
+        logger.error(u"PlexPy Helpers :: Cannot upload poster to Imgur. No Imgur client id specified in the settings.")
+        return img_url
 
     try:
         with open(imgPath, 'rb') as imgFile:
@@ -708,7 +710,7 @@ def uploadToImgur(imgPath, imgTitle=''):
         if response.get('status') == 200:
             t = '\'' + imgTitle + '\' ' if imgTitle else ''
             logger.debug(u"PlexPy Helpers :: Image %suploaded to Imgur." % t)
-            img_url = response.get('data').get('link', '')
+            img_url = response.get('data').get('link', '').replace('http', 'https')
         elif response.get('status') >= 400 and response.get('status') < 500:
             logger.warn(u"PlexPy Helpers :: Unable to upload image to Imgur: %s" % response.reason)
         else:
@@ -773,3 +775,26 @@ def build_datatables_json(kwargs, dt_columns, default_sort_col=None):
                     "search": {"value": kwargs.pop("search", "")}
                     }
     return json.dumps(json_data)
+
+def humanFileSize(bytes, si=False):
+    if str(bytes).isdigit():
+        bytes = int(bytes)
+    else:
+        return bytes
+
+    thresh = 1000 if si else 1024
+    if bytes < thresh:
+        return str(bytes) + ' B'
+
+    if si:
+        units = ('kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
+    else:
+        units = ('KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
+
+    u = -1
+
+    while bytes >= thresh and u < len(units):
+        bytes /= thresh
+        u += 1
+
+    return "{0:.1f} {1}".format(bytes, units[u])

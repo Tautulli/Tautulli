@@ -49,16 +49,12 @@ login_log_table_options = {
             "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
-                    if (isPrivateIP(cellData)) {
-                        if (cellData != '') {
-                            $(td).html(cellData);
-                        } else {
-                            $(td).html('n/a');
-                        }
-                    } else {
+                    isPrivateIP(cellData).then(function () {
+                        $(td).html(cellData || 'n/a');
+                    }, function () {
                         external_ip = '<span class="external-ip-tooltip" data-toggle="tooltip" title="External IP"><i class="fa fa-map-marker fa-fw"></i></span>';
                         $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">' + external_ip + cellData + '</a>');
-                    }
+                    });
                 } else {
                     $(td).html('n/a');
                 }
@@ -92,7 +88,10 @@ login_log_table_options = {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
-        $('.external-ip-tooltip').tooltip({ container: 'body' });
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
 
     },
     "preDrawCallback": function (settings) {
@@ -106,19 +105,9 @@ $('.login_log_table').on('click', '> tbody > tr > td.modal-control-ip', function
     var row = login_log_table.row(tr);
     var rowData = row.data();
 
-    function getUserLocation(ip_address) {
-        if (isPrivateIP(ip_address)) {
-            return "n/a"
-        } else {
-            $.ajax({
-                url: 'get_ip_address_details',
-                data: { ip_address: ip_address },
-                async: true,
-                complete: function (xhr, status) {
-                    $("#ip-info-modal").html(xhr.responseText);
-                }
-            });
-        }
-    }
-    getUserLocation(rowData['ip_address']);
+    $.get('get_ip_address_details', {
+        ip_address: rowData['ip_address']
+    }).then(function (jqXHR) {
+        $("#ip-info-modal").html(jqXHR);
+    });
 });

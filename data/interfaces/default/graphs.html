@@ -245,10 +245,15 @@
                     </div>
                 </div>
             </div>
-            <div class="modal fade" id="history-modal" tabindex="-1" role="dialog" aria-labelledby="history-modal">
-            </div>
         </div>
     </div>
+</div>
+</%def>
+
+<%def name="modalIncludes()">
+<div class="modal fade" id="history-modal" tabindex="-1" role="dialog" aria-labelledby="history-modal">
+</div>
+<div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
 </div>
 </%def>
 
@@ -287,16 +292,17 @@
             
             $.ajax({
                 url: "history_table_modal",
-                type: 'post',
-                data:  {
+                cache: false,
+                async: true,
+                data: {
                     user_id: selected_user_id,
                     start_date: dateString,
                     media_type: media_type,
                     transcode_decision: transcode_decision
                 },
                 complete: function(xhr, status) {
-                    $('#history-modal').modal('show');
                     $("#history-modal").html(xhr.responseText);
+                    $('#history-modal').modal();
                 }
             });
         }
