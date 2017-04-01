@@ -1103,8 +1103,8 @@
                             </p>
                         </div>
                         <div class="form-group">
-                            <label>Register the App</label>
-                            <p class="help-block">Register the app to your PlexPy server by scanning a QR code.</p>
+                            <label>Register Your Device</label>
+                            <p class="help-block">Register your device to your PlexPy server by scanning a QR code.</p>
                             <div class="btn-group" style="display: table-cell; vertical-align: middle;">
                                 <button class="btn btn-form" type="button" id="generate_qr" data-target="#api-qr-modal" data-toggle="modal">Generate QR Code</button>
                             </div>
@@ -2391,6 +2391,10 @@
                     Note: This is a private IP address. PlexPy will not be reachable outside of your home network.
                     Access PlexPy externally to generate the QR code for remote access.
                 </p>
+                <p class="help-block" id="api_qr_https" style="display: none;">
+                    Note: This URL is not secure. Requests between the app and the server will not be encrypted.
+                    Enable HTTPS to connect the app securely.
+                </p>
             </div>
             <div class="modal-footer">
                 <input type="button" class="btn btn-bright" data-dismiss="modal" value="Cancel">
@@ -3040,6 +3044,7 @@ $(document).ready(function() {
             isPrivateIP(parser.hostname).then(function (valid) {
                 $('#api_qr_private').toggle((valid !== 'n/a'));
             });
+            $('#api_qr_https').toggle(!(url.startsWith('https')));
 
             var token = Math.random().toString(36).substr(2, 20);
             var encoded_string = url + '|' + $('#api_key').val() + '|' + token;
