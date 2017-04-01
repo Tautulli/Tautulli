@@ -44,6 +44,7 @@ import plexpy
 import database
 import helpers
 import logger
+import mobile_app
 import request
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 from plexpy.helpers import checked
@@ -690,6 +691,11 @@ class ANDROIDAPP(Notifier):
         if not subject or not body:
             return
 
+        # Check mobile device is still registered
+        if self.config['device_id'] and not mobile_app.get_mobile_devices(device_id=self.config['device_id']):
+            logger.warn(u"PlexPy Notifiers :: Unable to send Android app notification: device not registered.")
+            return
+
         data = {'app_id': self.ONESIGNAL_APP_ID,
                 'include_player_ids': [self.config['device_id']],
                 'headings': {'en': subject.encode("utf-8")},
@@ -740,7 +746,7 @@ class ANDROIDAPP(Notifier):
             devices_config = {'label': 'Device',
                               'description': 'No devices registered. ' \
                                   '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
-                                  'style="cursor: pointer;">Click here</a> to get the Android App.',
+                                  'style="cursor: pointer;">Get the Android App</a> and register a device.',
                               'input_type': 'help'
                               }
         else:

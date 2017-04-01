@@ -15,9 +15,9 @@ DOCUMENTATION :: END
     <li class="registered-device" data-id="${device['device_id']}" data-name="${device['device_name']}">
         <span>
             <span class="toggle-left mobile-device-tooltip edit-mobile-device" data-toggle="tooltip" data-placement="top" title="Rename Device"><i class="fa fa-lg fa-pencil"></i></span>
-            <span class="mobile-device-name">${device['device_name']}</span>
+            <span class="mobile-device-name">${device['friendly_name'] or device['device_name']}</span>
             <input type="text" class="edit-mobile-device-name hidden" value="${device['device_name']}" />
-            <span class="toggle-right delete-mobile-device"><i class="fa fa-lg fa-times"></i></span>
+            <span class="toggle-right delete-mobile-device" data-toggle="tooltip" data-placement="top" title="Remove Device"><i class="fa fa-lg fa-times"></i></span>
         </span>
     </li>
     % endfor
@@ -25,6 +25,7 @@ DOCUMENTATION :: END
 
 <script>
     $('.mobile-device-tooltip').tooltip();
+    $('.delete-mobile-device').tooltip();
 
     $('.delete-mobile-device').click(function () {
         var device_id = $(this).closest('li').data('id');
