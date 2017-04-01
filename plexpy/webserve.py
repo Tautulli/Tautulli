@@ -3204,9 +3204,14 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def verify_mobile_device(self, device_token='', **kwargs):
-        result = mobile_app.get_mobile_devices(device_token=device_token)
+    def verify_mobile_device(self, device_token='', cancel=False, **kwargs):
+        if cancel == 'true':
+            mobile_app.TEMP_DEVICE_TOKEN = None
+            return {'result': 'error', 'message': 'Device registration cancelled.'}
+
+        result = mobile_app.get_mobile_device_by_token(device_token)
         if result:
+            mobile_app.TEMP_DEVICE_TOKEN = None
             return {'result': 'success', 'message': 'Device registered successfully.', 'data': result}
         else:
             return {'result': 'error', 'message': 'Device not registered.'}
@@ -3421,10 +3426,16 @@ class WebInterface(object):
             logger.warn(u"Unable to retrieve data for get_server_pref.")
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def generateAPI(self, **kwargs):
+    def generate_api_key(self, device=None, **kwargs):
         apikey = hashlib.sha224(str(random.getrandbits(256))).hexdigest()[0:32]
         logger.info(u"New API key generated.")
+        logger._BLACKLIST_WORDS.append(apikey)
+
+        if device == 'true':
+            mobile_app.TEMP_DEVICE_TOKEN = apikey
+
         return apikey
 
     @cherrypy.expose

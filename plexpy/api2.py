@@ -33,6 +33,7 @@ import plexpy
 import config
 import database
 import logger
+import mobile_app
 import plextv
 import pmsconnect
 
@@ -88,7 +89,9 @@ class API2:
         elif 'apikey' not in kwargs:
             self._api_msg = 'Parameter apikey is required'
 
-        elif kwargs.get('apikey', '') != plexpy.CONFIG.API_KEY:
+        elif (kwargs.get('apikey', '') != plexpy.CONFIG.API_KEY and 
+              kwargs.get('apikey', '') != mobile_app.TEMP_DEVICE_TOKEN and 
+              not mobile_app.get_mobile_device_by_token(kwargs.get('apikey', ''))):
             self._api_msg = 'Invalid apikey'
 
         elif 'cmd' not in kwargs:
@@ -105,7 +108,9 @@ class API2:
         # Allow override for the api.
         self._api_out_type = kwargs.pop('out_type', 'json')
 
-        if self._api_apikey == plexpy.CONFIG.API_KEY and plexpy.CONFIG.API_ENABLED and self._api_cmd in self._api_valid_methods:
+        if ((self._api_apikey == plexpy.CONFIG.API_KEY or 
+             mobile_app.get_mobile_device_by_token(self._api_apikey)) and 
+            plexpy.CONFIG.API_ENABLED and self._api_cmd in self._api_valid_methods):
             self._api_authenticated = True
             self._api_msg = None
             self._api_kwargs = kwargs
@@ -341,7 +346,7 @@ class API2:
 
         return data
 
-    def register_device(self, device_id='', device_name='', device_token='', **kwargs):
+    def register_device(self, device_id='', device_name='', **kwargs):
         """ Registers the PlexPy Android App for notifications.
 
             ```
@@ -350,7 +355,7 @@ class API2:
                 device_id (str):          The OneSignal device id of the PlexPy Android App
 
             Optional parameters:
-                device_token (str):       The device token to verify QR code scan
+                None
 
             Returns:
                 None
@@ -366,28 +371,18 @@ class API2:
             self._api_result_type = 'error'
             return
 
+        result = mobile_app.add_mobile_device(device_id=device_id,
+                                              device_name=device_name,
+                                              device_token=self._api_apikey)
 
-        db = database.MonitorDatabase()
-
-        keys = {'device_id': device_id}
-        values = {'device_name': device_name,
-                  'device_token': device_token}
-
-        try:
-            result = db.upsert(table_name='mobile_devices', key_dict=keys, value_dict=values)
-        except Exception as e:
-            logger.warn(u"PlexPy APIv2 :: Failed to register mobile device in the database: %s." % e)
+        if result:
+            self._api_msg = 'Device registration successful.'
+            self._api_result_type = 'success'
+            mobile_app.TEMP_DEVICE_TOKEN = None
+        else:
             self._api_msg = 'Device registartion failed: database error.'
             self._api_result_type = 'error'
-            return
 
-        if result == 'insert':
-            logger.info(u"PlexPy APIv2 :: Registered mobile device in the database: %s." % device_name)
-        else:
-            logger.debug(u"PlexPy APIv2 :: Re-registered mobile device in the database: %s." % device_name)
-
-        self._api_msg = 'Device registration successful.'
-        self._api_result_type = 'success'
         return
 
     def _api_make_md(self):

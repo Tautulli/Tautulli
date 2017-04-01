@@ -375,8 +375,8 @@ def get_notifiers(notifier_id=None, notify_action=None):
             args.append(1)
         where += ' AND '.join([w for w in [where_id, where_action] if w])
 
-    monitor_db = database.MonitorDatabase()
-    result = monitor_db.select('SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s'
+    db = database.MonitorDatabase()
+    result = db.select('SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s'
                                % (', '.join(notify_actions), where), args=args)
     
     for item in result:
@@ -386,11 +386,11 @@ def get_notifiers(notifier_id=None, notify_action=None):
 
 
 def delete_notifier(notifier_id=None):
-    monitor_db = database.MonitorDatabase()
+    db = database.MonitorDatabase()
 
     if str(notifier_id).isdigit():
         logger.debug(u"PlexPy Notifiers :: Deleting notifier_id %s from the database." % notifier_id)
-        result = monitor_db.action('DELETE FROM notifiers WHERE id = ?',
+        result = db.action('DELETE FROM notifiers WHERE id = ?',
                                    args=[notifier_id])
         return True
     else:
@@ -404,8 +404,8 @@ def get_notifier_config(notifier_id=None):
         logger.error(u"PlexPy Notifiers :: Unable to retrieve notifier config: invalid notifier_id %s." % notifier_id)
         return None
 
-    monitor_db = database.MonitorDatabase()
-    result = monitor_db.select_single('SELECT * FROM notifiers WHERE id = ?',
+    db = database.MonitorDatabase()
+    result = db.select_single('SELECT * FROM notifiers WHERE id = ?',
                                       args=[notifier_id])
 
     if not result:
@@ -466,10 +466,10 @@ def add_notifier_config(agent_id=None, **kwargs):
             values[a['name'] + '_subject'] = a['subject']
             values[a['name'] + '_body'] = a['body']
 
-    monitor_db = database.MonitorDatabase()
+    db = database.MonitorDatabase()
     try:
-        monitor_db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
-        notifier_id = monitor_db.last_insert_id()
+        db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
+        notifier_id = db.last_insert_id()
         logger.info(u"PlexPy Notifiers :: Added new notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
         return notifier_id
     except Exception as e:
@@ -514,9 +514,9 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     values.update(subject_text)
     values.update(body_text)
 
-    monitor_db = database.MonitorDatabase()
+    db = database.MonitorDatabase()
     try:
-        monitor_db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
+        db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
         logger.info(u"PlexPy Notifiers :: Updated notification agent: %s (notifier_id %s)." % (agent['label'], notifier_id))
         return True
     except Exception as e:
@@ -538,8 +538,8 @@ def send_notification(notifier_id=None, subject='', body='', notify_action='', *
 
 
 def blacklist_logger():
-    monitor_db = database.MonitorDatabase()
-    notifiers = monitor_db.select('SELECT notifier_config FROM notifiers')
+    db = database.MonitorDatabase()
+    notifiers = db.select('SELECT notifier_config FROM notifiers')
 
     blacklist = []
     blacklist_keys = [w.lstrip('_') for w in _BLACKLIST_KEYS]
@@ -552,17 +552,6 @@ def blacklist_logger():
                 blacklist.append(value.strip())
 
     logger._BLACKLIST_WORDS.extend(blacklist)
-
-
-def delete_mobile_device(device_id=None):
-    monitor_db = database.MonitorDatabase()
-
-    if device_id:
-        logger.debug(u"PlexPy Notifiers :: Deleting device_id %s from the database." % device_id)
-        result = monitor_db.action('DELETE FROM mobile_devices WHERE device_id = ?', [device_id])
-        return True
-    else:
-        return False
 
 
 class PrettyMetadata(object):
@@ -692,7 +681,7 @@ class ANDROIDAPP(Notifier):
             return
 
         # Check mobile device is still registered
-        if self.config['device_id'] and not mobile_app.get_mobile_devices(device_id=self.config['device_id']):
+        if not mobile_app.get_mobile_devices(device_id=self.config['device_id']):
             logger.warn(u"PlexPy Notifiers :: Unable to send Android app notification: device not registered.")
             return
 
@@ -867,8 +856,8 @@ class BROWSER(Notifier):
         if not self.config['enabled']:
             return
 
-        monitor_db = database.MonitorDatabase()
-        result = monitor_db.select('SELECT subject_text, body_text FROM notify_log '
+        db = database.MonitorDatabase()
+        result = db.select('SELECT subject_text, body_text FROM notify_log '
                                    'WHERE agent_id = 17 AND timestamp >= ? ',
                                    args=[time.time() - 3])
 

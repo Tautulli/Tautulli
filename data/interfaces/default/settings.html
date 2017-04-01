@@ -2652,13 +2652,9 @@ $(document).ready(function() {
 
     $('#api_key').click(function(){ $('#api_key').select() });
     $("#generate_api").click(function() {
-        $.get('generateAPI',
-            function(data){
-                if (data.error != undefined) {
-                    alert(data.error);
-                    return;
-                }
-                $('#api_key').val(data);
+        $.get('generate_api_key',
+            function (apikey) {
+                $('#api_key').val(apikey);
         });
     });
 
@@ -3046,41 +3042,52 @@ $(document).ready(function() {
             });
             $('#api_qr_https').toggle(!(url.startsWith('https')));
 
-            var token = Math.random().toString(36).substr(2, 20);
-            var encoded_string = url + '|' + $('#api_key').val() + '|' + token;
-            $('#api_qr_string').html(encoded_string);
-            $('#api_qr_code').empty().qrcode({
-                text: encoded_string
-            });
+            $.get('generate_api_key', { device: true }).then(function (token) {
+                var encoded_string = url + '|' + token;
+                $('#api_qr_string').html(encoded_string);
+                $('#api_qr_code').empty().qrcode({
+                    text: encoded_string
+                });
 
-            (function poll(){
-                verifiedDevice = false;
-                setTimeout(function() {
-                    $.ajax({
-                        url: 'verify_mobile_device',
-                        type: 'GET',
-                        data: { device_token: token },
-                        success: function(data) {
-                            if (data.result === 'success') {
-                                verifiedDevice = true;
-                                getMobileDevicesTable();
-                                $('#api-qr-modal').modal('hide');
-                                showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000, false);
-                            }
-                        },
-                        complete: function() {
-                            if (!(verifiedDevice)) {
-                                poll();
-                            }
-                        },
-                        timeout: 1000
-                    });
-                }, 1000);
-            })();
+                (function poll(){
+                    verifiedDevice = false;
+                    setTimeout(function() {
+                        $.ajax({
+                            url: 'verify_mobile_device',
+                            type: 'GET',
+                            data: { device_token: token },
+                            success: function(data) {
+                                if (data.result === 'success') {
+                                    verifiedDevice = true;
+                                    getMobileDevicesTable();
+                                    $('#api-qr-modal').modal('hide');
+                                    showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000, false);
+                                }
+                            },
+                            complete: function() {
+                                if (!(verifiedDevice)) {
+                                    poll();
+                                }
+                            },
+                            timeout: 1000
+                        });
+                    }, 1000);
+                })();
+            });
         });
     });
 
     $('#api-qr-modal').on('hidden.bs.modal', function () {
+        if (!(verifiedDevice)) {
+            $.ajax({
+                url: 'verify_mobile_device',
+                type: 'GET',
+                data: { cancel: true },
+                success: function(data) {
+                    showMsg('<i class="fa fa-times"></i> ' + data.message, false, true, 5000, false);
+                }
+            });
+        }
         verifiedDevice = true;
     })
 

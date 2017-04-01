@@ -36,6 +36,7 @@ import activity_pinger
 import config
 import database
 import logger
+import mobile_app
 import notification_handler
 import notifiers
 import plextv
@@ -165,6 +166,7 @@ def initialize(config_file):
 
         # Add notifier configs to logger blacklist
         notifiers.blacklist_logger()
+        mobile_app.blacklist_logger()
 
         # Check if PlexPy has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
