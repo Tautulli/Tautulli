@@ -787,12 +787,12 @@ def get_poster_info(metadata):
             poster_key = metadata['rating_key']
             poster_title = metadata['title']
         elif metadata['media_type'] in ('season', 'album'):
-            thumb = metadata['thumb']
+            thumb = metadata['thumb'] or metadata['parent_thumb']
             poster_key = metadata['rating_key']
             poster_title = '%s - %s' % (metadata['parent_title'],
                                         metadata['title'])
         elif metadata['media_type'] in ('episode', 'track'):
-            thumb = metadata['parent_thumb']
+            thumb = metadata['parent_thumb'] or metadata['grandparent_thumb']
             poster_key = metadata['parent_rating_key']
             poster_title = '%s - %s' % (metadata['grandparent_title'],
                                         metadata['parent_title'])
