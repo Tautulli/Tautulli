@@ -360,7 +360,33 @@
                 if (result.result == 'success') {
                     showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
                     window.open(result.url);
-                    check_token = setInterval(retrieve_token, 500);
+
+                    (function retrieve_token(){
+                        facebook_token = null;
+                        setTimeout(function() {
+                            $.ajax({
+                                url: 'facebook_retrieve_token',
+                                type: 'GET',
+                                success: function(data) {
+                                    if (data.result === 'success') {
+                                        facebook_token = true;
+                                        showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
+                                        $('#facebook_access_token').val(data.access_token);
+                                    } else if (data.result === 'error') {
+                                        facebook_token = false;
+                                        showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
+                                    }
+                                },
+                                complete: function() {
+                                    if (facebook_token === null) {
+                                        retrieve_token();
+                                    }
+                                },
+                                timeout: 1000
+                            });
+                        }, 1000);
+                    })();
+
                 } else {
                     showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
                 }
@@ -368,26 +394,9 @@
         });
     });
 
-    check_token = null;
-    function retrieve_token() {
-        $.ajax({
-            url: 'facebook_retrieve_token',
-            cache: false,
-            async: true,
-            complete: function (xhr, status) {
-                var result = $.parseJSON(xhr.responseText);
-                var msg = result.msg;
-                if (result.result == 'success') {
-                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
-                    $('#facebook_access_token').val(result.access_token);
-                    clearInterval(check_token)
-                } else if (result.result == 'error') {
-                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
-                    clearInterval(check_token)
-                }
-            }
-        });
-    }
+    $('#notifier-config-modal').on('hidden.bs.modal', function () {
+        facebook_token = false;
+    })
 
     % elif notifier['agent_name'] == 'browser':
     $('#browser_allow_browser').click(function () {
