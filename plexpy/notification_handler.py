@@ -118,10 +118,8 @@ def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, 
 
 
 def notify_conditions(notifier=None, notify_action=None, stream_data=None, timeline_data=None):
+    # Activity notifications
     if stream_data:
-
-        if stream_data['media_type'] == 'clip':
-            return False
 
         # Check if notifications enabled for user and library
         user_data = users.Users()
@@ -133,36 +131,45 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
         if not user_details['do_notify']:
             # logger.debug(u"PlexPy NotificationHandler :: Notifications for user '%s' is disabled." % user_details['username'])
             return False
-        elif not library_details['do_notify']:
+
+        elif not library_details['do_notify'] and notify_action not in ('on_concurrent', 'on_newdevice'):
             # logger.debug(u"PlexPy NotificationHandler :: Notifications for library '%s' is disabled." % library_details['section_name'])
             return False
 
-        if (stream_data['media_type'] == 'movie' and plexpy.CONFIG.MOVIE_NOTIFY_ENABLE) \
-            or (stream_data['media_type'] == 'episode' and plexpy.CONFIG.TV_NOTIFY_ENABLE):
-
-            progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
-
+        if notify_action == 'on_concurrent':
             ap = activity_processor.ActivityProcessor()
             user_sessions = ap.get_sessions(user_id=stream_data['user_id'],
                                             ip_address=plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP)
+            return len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
 
+        elif notify_action == 'on_newdevice':
             data_factory = datafactory.DataFactory()
             user_devices = data_factory.get_user_devices(user_id=stream_data['user_id'])
+            return stream_data['machine_id'] not in user_devices
 
-            conditions = \
-                {'on_stop': plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
-                 'on_resume': plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99,
-                 'on_concurrent': len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
-                 'on_newdevice': stream_data['machine_id'] not in user_devices
-                 }
+        elif stream_data['media_type'] == 'movie' or stream_data['media_type'] == 'episode':
+            progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
+            
+            if notify_action == 'on_stop':
+                return plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
+            
+            elif notify_action == 'on_resume':
+                return plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99
 
-            return conditions.get(notify_action, True)
+            # All other activity notify actions
+            else:
+                return True
 
-        elif (stream_data['media_type'] == 'track' and plexpy.CONFIG.MUSIC_NOTIFY_ENABLE):
+        elif stream_data['media_type'] == 'track':
             return True
+
         else:
             return False
+
+    # Recently Added notifications
     elif timeline_data:
+
+        # Check if notifications enabled for library
         library_data = libraries.Libraries()
         library_details = library_data.get_details(section_id=timeline_data['section_id'])
 
@@ -171,6 +178,8 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
             return False
 
         return True
+
+    # Server notifications
     else:
         return True
 
