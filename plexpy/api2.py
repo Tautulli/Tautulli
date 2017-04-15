@@ -120,6 +120,9 @@ class API2:
             self._api_msg = None
             self._api_kwargs = kwargs
 
+        if self._api_msg:
+            logger.debug(u'PlexPy APIv2 :: %s.' % self._api_msg)
+
         logger.debug(u'PlexPy APIv2 :: Cleaned kwargs: %s' % self._api_kwargs)
 
         return self._api_kwargs
