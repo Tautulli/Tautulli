@@ -39,14 +39,14 @@ try:
     from Cryptodome.Protocol.KDF import PBKDF2
     from Cryptodome.Cipher import AES
     from Cryptodome.Random import get_random_bytes
-    from Cryptodome.Hash import HMAC, SHA256
+    from Cryptodome.Hash import HMAC, SHA1
     CRYPTODOME = True
 except ImportError:
     try:
         from Crypto.Protocol.KDF import PBKDF2
         from Crypto.Cipher import AES
         from Crypto.Random import get_random_bytes
-        from Crypto.Hash import HMAC, SHA256
+        from Crypto.Hash import HMAC, SHA1
         CRYPTODOME = True
     except ImportError:
         CRYPTODOME = False
@@ -716,7 +716,7 @@ class ANDROIDAPP(Notifier):
             key_length = 32  # AES256
             iterations = 1000
             key = PBKDF2(passphrase, salt, dkLen=key_length, count=iterations,
-                         prf=lambda p, s: HMAC.new(p, s, SHA256).digest())
+                         prf=lambda p, s: HMAC.new(p, s, SHA1).digest())
 
             logger.debug("Encryption key (base64): {}".format(base64.b64encode(key)))
 
@@ -724,6 +724,7 @@ class ANDROIDAPP(Notifier):
             nonce = get_random_bytes(16)
             cipher = AES.new(key, AES.MODE_GCM, nonce)
             encrypted_data, gcm_tag = cipher.encrypt_and_digest(json.dumps(plaintext_data))
+            encrypted_data += gcm_tag
 
             logger.debug("Encrypted data (base64): {}".format(base64.b64encode(encrypted_data)))
             logger.debug("GCM tag (base64): {}".format(base64.b64encode(gcm_tag)))
@@ -733,8 +734,8 @@ class ANDROIDAPP(Notifier):
             payload = {'app_id': self.ONESIGNAL_APP_ID,
                        'include_player_ids': [self.config['device_id']],
                        'contents': {'en': 'PlexPy Notification'},
-                       'data': {'cipher_text': base64.b64encode(encrypted_data),
-                                'gcm_tag': base64.b64encode(gcm_tag),
+                       'data': {'encrypted': True,
+                                'cipher_text': base64.b64encode(encrypted_data),
                                 'nonce': base64.b64encode(nonce),
                                 'salt': base64.b64encode(salt)}
                        }
@@ -746,7 +747,8 @@ class ANDROIDAPP(Notifier):
             payload = {'app_id': self.ONESIGNAL_APP_ID,
                        'include_player_ids': [self.config['device_id']],
                        'contents': {'en': 'PlexPy Notification'},
-                       'data': plaintext_data
+                       'data': {'encrypted': False,
+                                'plain_text': plaintext_data}
                        }
 
         logger.debug("OneSignal payload: {}".format(payload))
