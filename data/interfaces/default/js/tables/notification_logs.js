@@ -80,13 +80,34 @@ notification_log_table_options = {
                     $(td).html(cellData);
                 }
             },
-            "width": "50%"
-        }
+            "width": "48%"
+        },
+        {
+            "targets": [6],
+            "data": "success",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData == 1) {
+                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Notification Sent"><i class="fa fa-lg fa-check"></i></span>');
+                } else {
+                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Notification Failed"><i class="fa fa-lg fa-times"></i></span>');
+                }
+            },
+            "searchable": false,
+            "orderable": false,
+            "className": "no-wrap",
+            "width": "2%"
+        },
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
         //$('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
+
+        // Create the tooltips.
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
     },
     "preDrawCallback": function(settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbspFetching rows...";

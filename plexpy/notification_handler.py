@@ -192,21 +192,25 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                                                    parameters=parameters,
                                                    agent_id=notifier_config['agent_id'])
 
-    # Send the notification
-    notifiers.send_notification(notifier_id=notifier_config['id'],
-                                subject=subject,
-                                body=body,
-                                script_args=script_args,
-                                notify_action=notify_action,
-                                parameters=parameters)
-
     # Set the notification state in the db
-    set_notify_state(session=stream_data or timeline_data,
-                     notify_action=notify_action,
-                     notifier=notifier_config,
-                     subject=subject,
-                     body=body,
-                     script_args=script_args)
+    notification_id = set_notify_state(session=stream_data or timeline_data,
+                                       notify_action=notify_action,
+                                       notifier=notifier_config,
+                                       subject=subject,
+                                       body=body,
+                                       script_args=script_args)
+
+    # Send the notification
+    success = notifiers.send_notification(notifier_id=notifier_config['id'],
+                                          subject=subject,
+                                          body=body,
+                                          script_args=script_args,
+                                          notify_action=notify_action,
+                                          notification_id=notification_id,
+                                          parameters=parameters)
+
+    if success:
+        set_notify_success(notification_id)
 
 
 def get_notify_state(session):
@@ -254,8 +258,17 @@ def set_notify_state(notify_action, notifier, subject, body, script_args, sessio
                   'script_args': script_args}
 
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
+        return monitor_db.last_insert_id()
     else:
         logger.error(u"PlexPy NotificationHandler :: Unable to set notify state.")
+
+
+def set_notify_success(notification_id):
+    keys = {'id': notification_id}
+    values = {'success': 1}
+
+    monitor_db = database.MonitorDatabase()
+    monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
 
 
 def build_media_notify_params(notify_action=None, session=None, timeline=None, **kwargs):
