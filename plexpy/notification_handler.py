@@ -221,7 +221,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                                           script_args=script_args,
                                           notify_action=notify_action,
                                           notification_id=notification_id,
-                                          parameters=parameters,
+                                          parameters=parameters or {},
                                           **kwargs)
 
     if success:
@@ -405,8 +405,25 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         metadata['lastfm_id'] = metadata['guid'].split('lastfm://')[1].rsplit('/', 1)[0]
         metadata['lastfm_url'] = 'https://www.last.fm/music/' + metadata['lastfm_id']
 
+    if metadata['media_type'] in ('movie', 'show', 'artist'):
+        thumb = metadata['thumb']
+        poster_key = metadata['rating_key']
+        poster_title = metadata['title']
+    elif metadata['media_type'] in ('season', 'album'):
+        thumb = metadata['thumb'] or metadata['parent_thumb']
+        poster_key = metadata['rating_key']
+        poster_title = '%s - %s' % (metadata['parent_title'],
+                                    metadata['title'])
+    elif metadata['media_type'] in ('episode', 'track'):
+        thumb = metadata['parent_thumb'] or metadata['grandparent_thumb']
+        poster_key = metadata['parent_rating_key']
+        poster_title = '%s - %s' % (metadata['grandparent_title'],
+                                    metadata['parent_title'])
+    else:
+        thumb = ''
+
     if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
-        poster_info = get_poster_info(metadata=metadata)
+        poster_info = get_poster_info(thumb=thumb, poster_key=poster_key, poster_title=poster_title)
         metadata.update(poster_info)
 
     if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and metadata['media_type'] in ('show', 'artist'):
@@ -611,7 +628,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'section_id': metadata['section_id'],
                         'rating_key': metadata['rating_key'],
                         'parent_rating_key': metadata['parent_rating_key'],
-                        'grandparent_rating_key': metadata['grandparent_rating_key']
+                        'grandparent_rating_key': metadata['grandparent_rating_key'],
+                        'thumb': thumb
                         }
 
     return available_params
@@ -804,56 +822,38 @@ def format_group_index(group_keys):
     return ','.join(num) or '0', ','.join(num00) or '00'
 
 
-def get_poster_info(metadata):
+def get_poster_info(thumb, poster_key, poster_title):
     # Try to retrieve poster info from the database
     data_factory = datafactory.DataFactory()
-    poster_info = data_factory.get_poster_info(metadata=metadata)
+    poster_info = data_factory.get_poster_info(rating_key=poster_key)
 
     # If no previous poster info
-    if not poster_info:
-        if metadata['media_type'] in ('movie', 'show', 'artist'):
-            thumb = metadata['thumb']
-            poster_key = metadata['rating_key']
-            poster_title = metadata['title']
-        elif metadata['media_type'] in ('season', 'album'):
-            thumb = metadata['thumb'] or metadata['parent_thumb']
-            poster_key = metadata['rating_key']
-            poster_title = '%s - %s' % (metadata['parent_title'],
-                                        metadata['title'])
-        elif metadata['media_type'] in ('episode', 'track'):
-            thumb = metadata['parent_thumb'] or metadata['grandparent_thumb']
-            poster_key = metadata['parent_rating_key']
-            poster_title = '%s - %s' % (metadata['grandparent_title'],
-                                        metadata['parent_title'])
-        else:
-            thumb = None
+    if not poster_info and thumb:
+        try:
+            thread_name = str(threading.current_thread().ident)
+            poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-%s' % thread_name)
 
-        if thumb:
-            try:
-                thread_name = str(threading.current_thread().ident)
-                poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-%s' % thread_name)
+            # Retrieve the poster from Plex and cache to file
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_image(img=thumb)
+            if result and result[0]:
+                with open(poster_file, 'wb') as f:
+                    f.write(result[0])
+            else:
+                raise Exception(u'PMS image request failed')
 
-                # Retrieve the poster from Plex and cache to file
-                pms_connect = pmsconnect.PmsConnect()
-                result = pms_connect.get_image(img=thumb)
-                if result and result[0]:
-                    with open(poster_file, 'wb') as f:
-                        f.write(result[0])
-                else:
-                    raise Exception(u'PMS image request failed')
+            # Upload thumb to Imgur and get link
+            poster_url = helpers.uploadToImgur(poster_file, poster_title)
 
-                # Upload thumb to Imgur and get link
-                poster_url = helpers.uploadToImgur(poster_file, poster_title)
+            # Create poster info
+            poster_info = {'poster_title': poster_title, 'poster_url': poster_url}
 
-                # Create poster info
-                poster_info = {'poster_title': poster_title, 'poster_url': poster_url}
+            # Save the poster url in the database
+            data_factory.set_poster_url(rating_key=poster_key, poster_title=poster_title, poster_url=poster_url)
 
-                # Save the poster url in the database
-                data_factory.set_poster_url(rating_key=poster_key, poster_title=poster_title, poster_url=poster_url)
-
-                # Delete the cached poster
-                os.remove(poster_file)
-            except Exception as e:
-                logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(metadata['rating_key']), e))
+            # Delete the cached poster
+            os.remove(poster_file)
+        except Exception as e:
+            logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(metadata['rating_key']), e))
 
     return poster_info

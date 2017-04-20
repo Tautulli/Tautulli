@@ -707,9 +707,17 @@ class ANDROIDAPP(Notifier):
         else:
             device = device[0]
 
-        plaintext_data = {'subject': subject.encode("utf-8"),
+        if kwargs.get('parameters', {}).get('media_type'):
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+            thumb = pretty_metadata.parameters.get('thumb','')
+        else:
+            thumb = ''
+
+        plaintext_data = {'notification_id': notification_id,
+                          'subject': subject.encode("utf-8"),
                           'body': body.encode("utf-8"),
-                          'priority': self.config['priority']}
+                          'priority': self.config['priority'],
+                          'thumb': thumb}
 
         #logger.debug("Plaintext data: {}".format(plaintext_data))
 
