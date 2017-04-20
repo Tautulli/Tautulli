@@ -960,7 +960,7 @@ def dbcheck():
 
     # Upgrade notify_log table from earlier versions
     try:
-        c_db.execute('SELECT send_success FROM notify_log')
+        c_db.execute('SELECT success FROM notify_log')
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table notify_log.")
         c_db.execute(
