@@ -87,9 +87,9 @@ notification_log_table_options = {
             "data": "success",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData == 1) {
-                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Notification Sent"><i class="fa fa-lg fa-check"></i></span>');
+                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Notification Sent"><i class="fa fa-lg fa-fw fa-check"></i></span>');
                 } else {
-                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Notification Failed"><i class="fa fa-lg fa-times"></i></span>');
+                    $(td).html('<span class="success-tooltip" data-toggle="tooltip" title="Notification Failed"><i class="fa fa-lg fa-fw fa-times"></i></span>');
                 }
             },
             "searchable": false,
