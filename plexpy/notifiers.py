@@ -35,6 +35,22 @@ import urllib2
 from urlparse import urlparse
 import uuid
 
+try:
+    from Cryptodome.Protocol.KDF import PBKDF2
+    from Cryptodome.Cipher import AES
+    from Cryptodome.Random import get_random_bytes
+    from Cryptodome.Hash import HMAC, SHA1
+    CRYPTODOME = True
+except ImportError:
+    try:
+        from Crypto.Protocol.KDF import PBKDF2
+        from Crypto.Cipher import AES
+        from Crypto.Random import get_random_bytes
+        from Crypto.Hash import HMAC, SHA1
+        CRYPTODOME = True
+    except ImportError:
+        CRYPTODOME = False
+
 import gntp.notifier
 import facebook
 import twitter
@@ -48,6 +64,7 @@ import mobile_app
 import request
 from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 from plexpy.helpers import checked
+
 
 AGENT_IDS = {'growl': 0,
              'prowl': 1,
@@ -524,7 +541,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
         return False
 
 
-def send_notification(notifier_id=None, subject='', body='', notify_action='', **kwargs):
+def send_notification(notifier_id=None, subject='', body='', notify_action='', notification_id=None, **kwargs):
     notifier_config = get_notifier_config(notifier_id=notifier_id)
     if notifier_config:
         agent = get_agent_class(agent_id=notifier_config['agent_id'],
@@ -532,6 +549,7 @@ def send_notification(notifier_id=None, subject='', body='', notify_action='', *
         return agent.notify(subject=subject,
                             body=body,
                             action=notify_action.split('on_')[-1],
+                            notification_id=notification_id,
                             **kwargs)
     else:
         logger.debug(u"PlexPy Notifiers :: Notification requested but no notifier_id received.")
@@ -671,12 +689,13 @@ class ANDROIDAPP(Notifier):
     """
     PlexPy Android app notifications
     """
-    _DEFAULT_CONFIG = {'device_id': ''
+    _DEFAULT_CONFIG = {'device_id': '',
+                       'priority': 3
                        }
 
     ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
 
-    def notify(self, subject='', body='', action='', **kwargs):
+    def notify(self, subject='', body='', action='', notification_id=None, **kwargs):
         if not subject or not body:
             return
 
@@ -685,25 +704,69 @@ class ANDROIDAPP(Notifier):
             logger.warn(u"PlexPy Notifiers :: Unable to send Android app notification: device not registered.")
             return
 
-        data = {'app_id': self.ONESIGNAL_APP_ID,
-                'include_player_ids': [self.config['device_id']],
-                'headings': {'en': subject.encode("utf-8")},
-                'contents': {'en': body.encode("utf-8")}
-                }
+        plaintext_data = {'notification_id': notification_id,
+                          'subject': subject.encode("utf-8"),
+                          'body': body.encode("utf-8"),
+                          'priority': self.config['priority']}
 
-        http_handler = HTTPSConnection("onesignal.com")
-        http_handler.request("POST",
-                             "/api/v1/notifications",
-                             headers={'Content-type': "application/json"},
-                             body=json.dumps(data))
-        response = http_handler.getresponse()
-        request_status = response.status
+        #logger.debug("Plaintext data: {}".format(plaintext_data))
+
+        if CRYPTODOME:
+            # Key generation
+            salt = get_random_bytes(16)
+            passphrase = plexpy.CONFIG.API_KEY
+            key_length = 32  # AES256
+            iterations = 1000
+            key = PBKDF2(passphrase, salt, dkLen=key_length, count=iterations,
+                         prf=lambda p, s: HMAC.new(p, s, SHA1).digest())
+
+            #logger.debug("Encryption key (base64): {}".format(base64.b64encode(key)))
+
+            # Encrypt using AES GCM
+            nonce = get_random_bytes(16)
+            cipher = AES.new(key, AES.MODE_GCM, nonce)
+            encrypted_data, gcm_tag = cipher.encrypt_and_digest(json.dumps(plaintext_data))
+            encrypted_data += gcm_tag
+
+            #logger.debug("Encrypted data (base64): {}".format(base64.b64encode(encrypted_data)))
+            #logger.debug("GCM tag (base64): {}".format(base64.b64encode(gcm_tag)))
+            #logger.debug("Nonce (base64): {}".format(base64.b64encode(nonce)))
+            #logger.debug("Salt (base64): {}".format(base64.b64encode(salt)))
+
+            payload = {'app_id': self.ONESIGNAL_APP_ID,
+                       'include_player_ids': [self.config['device_id']],
+                       'contents': {'en': 'PlexPy Notification'},
+                       'data': {'encrypted': True,
+                                'cipher_text': base64.b64encode(encrypted_data),
+                                'nonce': base64.b64encode(nonce),
+                                'salt': base64.b64encode(salt)}
+                       }
+        else:
+            logger.warn(u"PlexPy Notifiers :: PyCryptodome library is missing. "
+                        "Android app notifications will be sent unecrypted. "
+                        "Install the library to encrypt the notifications.")
+
+            payload = {'app_id': self.ONESIGNAL_APP_ID,
+                       'include_player_ids': [self.config['device_id']],
+                       'contents': {'en': 'PlexPy Notification'},
+                       'data': {'encrypted': False,
+                                'plain_text': plaintext_data}
+                       }
+
+        #logger.debug("OneSignal payload: {}".format(payload))
+
+        headers = {'Content-Type': 'application/json'}
+
+        r = requests.post("https://onesignal.com/api/v1/notifications", headers=headers, json=payload)
+        request_status = r.status_code
+
+        #logger.debug("OneSignal response: {}".format(r.content))
 
         if request_status == 200:
             logger.info(u"PlexPy Notifiers :: Android app notification sent.")
             return True
         elif request_status >= 400 and request_status < 500:
-            logger.warn(u"PlexPy Notifiers :: Android app notification failed: [%s] %s" % (request_status, response.reason))
+            logger.warn(u"PlexPy Notifiers :: Android app notification failed: [%s] %s" % (request_status, r.reason))
             return False
         else:
             logger.warn(u"PlexPy Notifiers :: Android app notification failed.")
@@ -729,27 +792,62 @@ class ANDROIDAPP(Notifier):
         return devices
 
     def return_config_options(self):
+        config_option = []
+
+        if not CRYPTODOME:
+            config_option.append({
+                'label': 'Warning',
+                'description': '<strong>The PyCryptodome library is missing. ' \
+                    'The content of your notifications will be sent unencrypted!</strong><br>' \
+                    'Please install the library to encrypt the notification contents. ' \
+                    'Instructions can be found in the ' \
+                    '<a href="' + helpers.anon_url('https://github.com/%s/plexpy/wiki/Frequently-Asked-Questions-(FAQ)#notifications-pycryptodome' % plexpy.CONFIG.GIT_USER) + '" target="_blank">FAQ</a>.',
+                'input_type': 'help'
+                })
+        else:
+            config_option.append({
+                'label': 'Note',
+                'description': 'The PyCryptodome library was found. ' \
+                    'The content of your notifications will be sent encrypted!',
+                'input_type': 'help'
+                })
+
+        config_option[-1]['description'] += '<br><br>Notifications are sent using the ' \
+            '<a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank">' \
+            'OneSignal</a> API. Some user data is collected and cannot be encrypted. ' \
+            'Please read the <a href="' + helpers.anon_url('https://onesignal.com/privacy_policy') + '" target="_blank">' \
+            'OneSignal Privacy Policy</a> for more details.'
+
         devices = self.get_devices()
 
         if not devices:
-            devices_config = {'label': 'Device',
-                              'description': 'No devices registered. ' \
-                                  '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
-                                  'style="cursor: pointer;">Get the Android App</a> and register a device.',
-                              'input_type': 'help'
-                              }
+            config_option.append({
+                'label': 'Device',
+                'description': 'No devices registered. ' \
+                    '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
+                    'style="cursor: pointer;">Get the Android App</a> and register a device.',
+                'input_type': 'help'
+                })
         else:
-            devices_config = {'label': 'Device',
-                              'value': self.config['device_id'],
-                              'name': 'androidapp_device_id',
-                              'description': 'Set your Android app device or ' \
-                                  '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
-                                  'style="cursor: pointer;">register a new device</a> with PlexPy.',
-                              'input_type': 'select',
-                              'select_options': devices
-                              }
+            config_option.append({
+                'label': 'Device',
+                'value': self.config['device_id'],
+                'name': 'androidapp_device_id',
+                'description': 'Set your Android app device or ' \
+                    '<a data-tab-destination="tabs-android_app" data-toggle="tab" data-dismiss="modal" ' \
+                    'style="cursor: pointer;">register a new device</a> with PlexPy.',
+                'input_type': 'select',
+                'select_options': devices
+                })
 
-        config_option = [devices_config]
+        config_option.append({
+            'label': 'Priority',
+            'value': self.config['priority'],
+            'name': 'androidapp_priority',
+            'description': 'Set the notification priority.',
+            'input_type': 'select',
+            'select_options': {1: 'Minimum', 2: 'Low', 3: 'Normal', 4: 'High'}
+            })
 
         return config_option
 
@@ -1006,23 +1104,23 @@ class DISCORD(Notifier):
                           'description': 'Your Discord incoming webhook URL.',
                           'input_type': 'text'
                           },
-                          {'label': 'Discord Username',
-                           'value': self.config['username'],
-                           'name': 'discord_username',
-                           'description': 'The Discord username which will be used. Leave blank for webhook integration default.',
-                           'input_type': 'text'
+                         {'label': 'Discord Username',
+                          'value': self.config['username'],
+                          'name': 'discord_username',
+                          'description': 'The Discord username which will be used. Leave blank for webhook integration default.',
+                          'input_type': 'text'
                           },
-                          {'label': 'Discord Avatar',
-                           'value': self.config['avatar_url'],
-                           'description': 'The image url for the avatar which will be used. Leave blank for webhook integration default.',
-                           'name': 'discord_avatar_url',
-                           'input_type': 'text'
+                         {'label': 'Discord Avatar',
+                          'value': self.config['avatar_url'],
+                          'description': 'The image url for the avatar which will be used. Leave blank for webhook integration default.',
+                          'name': 'discord_avatar_url',
+                          'input_type': 'text'
                           },
-                          {'label': 'Discord Color',
-                           'value': self.config['color'],
-                           'description': 'The hex color value (starting with \'#\') for the border along the left side of the message attachment.',
-                           'name': 'discord_color',
-                           'input_type': 'text'
+                         {'label': 'Discord Color',
+                          'value': self.config['color'],
+                          'description': 'The hex color value (starting with \'#\') for the border along the left side of the message attachment.',
+                          'name': 'discord_color',
+                          'input_type': 'text'
                           },
                          {'label': 'TTS',
                           'value': self.config['tts'],
@@ -1843,7 +1941,7 @@ class NMA(Notifier):
                          {'label': 'Priority',
                           'value': self.config['priority'],
                           'name': 'nma_priority',
-                          'description': 'Set the priority.',
+                          'description': 'Set the notification priority.',
                           'input_type': 'select',
                           'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           }
@@ -2104,7 +2202,7 @@ class PROWL(Notifier):
                          {'label': 'Priority',
                           'value': self.config['priority'],
                           'name': 'prowl_priority',
-                          'description': 'Set the priority.',
+                          'description': 'Set the notification priority.',
                           'input_type': 'select',
                           'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           }
@@ -2354,7 +2452,7 @@ class PUSHOVER(Notifier):
                          {'label': 'Priority',
                           'value': self.config['priority'],
                           'name': 'pushover_priority',
-                          'description': 'Set the priority.',
+                          'description': 'Set the notification priority.',
                           'input_type': 'select',
                           'select_options': {-2: -2, -1: -1, 0: 0, 1: 1, 2: 2}
                           },

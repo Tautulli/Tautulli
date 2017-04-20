@@ -1321,7 +1321,8 @@ class DataFactory(object):
                    'notify_log.agent_name',
                    'notify_log.notify_action',
                    'notify_log.subject_text',
-                   'notify_log.body_text'
+                   'notify_log.body_text',
+                   'notify_log.success'
                    ]
         try:
             query = data_tables.ssp_query(table_name='notify_log',
@@ -1360,7 +1361,8 @@ class DataFactory(object):
                    'agent_name': item['agent_name'],
                    'notify_action': item['notify_action'],
                    'subject_text': item['subject_text'],
-                   'body_text': body_text
+                   'body_text': body_text,
+                   'success': item['success']
                    }
 
             rows.append(row)
