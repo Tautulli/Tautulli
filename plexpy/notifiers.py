@@ -535,7 +535,7 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
         return False
 
 
-def send_notification(notifier_id=None, subject='', body='', notify_action='', **kwargs):
+def send_notification(notifier_id=None, subject='', body='', notify_action='', notification_id=None, **kwargs):
     notifier_config = get_notifier_config(notifier_id=notifier_id)
     if notifier_config:
         agent = get_agent_class(agent_id=notifier_config['agent_id'],
@@ -543,6 +543,7 @@ def send_notification(notifier_id=None, subject='', body='', notify_action='', *
         return agent.notify(subject=subject,
                             body=body,
                             action=notify_action.split('on_')[-1],
+                            notification_id=notification_id,
                             **kwargs)
     else:
         logger.debug(u"PlexPy Notifiers :: Notification requested but no notifier_id received.")
@@ -699,11 +700,12 @@ class ANDROIDAPP(Notifier):
 
     ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
 
-    def notify(self, subject='', body='', action='', **kwargs):
+    def notify(self, subject='', body='', action='', notification_id=None, **kwargs):
         if not subject or not body:
             return
 
-        plaintext_data = {'subject': subject.encode("utf-8"),
+        plaintext_data = {'notification_id': notification_id,
+                          'subject': subject.encode("utf-8"),
                           'body': body.encode("utf-8"),
                           'priority': self.config['priority']}
 
