@@ -181,16 +181,21 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
     if not notifier_config:
         return
 
-    # Get the subject and body strings
-    subject_string = notifier_config['notify_text'][notify_action]['subject']
-    body_string = notifier_config['notify_text'][notify_action]['body']
+    if notify_action == 'test':
+        subject = kwargs.pop('subject', 'PlexPy')
+        body = kwargs.pop('body', 'Test Notification')
+        script_args = kwargs.pop('script_args', [])
+    else:
+        # Get the subject and body strings
+        subject_string = notifier_config['notify_text'][notify_action]['subject']
+        body_string = notifier_config['notify_text'][notify_action]['body']
 
-    # Format the subject and body strings
-    subject, body, script_args = build_notify_text(subject=subject_string,
-                                                   body=body_string,
-                                                   notify_action=notify_action,
-                                                   parameters=parameters,
-                                                   agent_id=notifier_config['agent_id'])
+        # Format the subject and body strings
+        subject, body, script_args = build_notify_text(subject=subject_string,
+                                                       body=body_string,
+                                                       notify_action=notify_action,
+                                                       parameters=parameters,
+                                                       agent_id=notifier_config['agent_id'])
 
     # Set the notification state in the db
     notification_id = set_notify_state(session=stream_data or timeline_data,
@@ -207,10 +212,12 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                                           script_args=script_args,
                                           notify_action=notify_action,
                                           notification_id=notification_id,
-                                          parameters=parameters)
+                                          parameters=parameters,
+                                          **kwargs)
 
     if success:
         set_notify_success(notification_id)
+        return True
 
 
 def get_notify_state(session):

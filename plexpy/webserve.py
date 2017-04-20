@@ -3087,10 +3087,10 @@ class WebInterface(object):
             
             if notifier:
                 logger.debug(u"Sending %s%s notification." % (test, notifier['agent_name']))
-                if notifiers.send_notification(notifier_id=notifier_id,
+                if notification_handler.notify(notifier_id=notifier_id,
+                                               notify_action=notify_action,
                                                subject=subject,
                                                body=body,
-                                               notify_action=notify_action,
                                                **kwargs):
                     return "Notification sent."
                 else:
