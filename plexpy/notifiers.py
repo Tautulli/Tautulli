@@ -709,15 +709,15 @@ class ANDROIDAPP(Notifier):
 
         if kwargs.get('parameters', {}).get('media_type'):
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
-            thumb = pretty_metadata.parameters.get('thumb','')
+            poster_thumb = pretty_metadata.parameters.get('poster_thumb','')
         else:
-            thumb = ''
+            poster_thumb = ''
 
         plaintext_data = {'notification_id': notification_id,
                           'subject': subject.encode("utf-8"),
                           'body': body.encode("utf-8"),
                           'priority': self.config['priority'],
-                          'thumb': thumb}
+                          'poster_thumb': poster_thumb}
 
         #logger.debug("Plaintext data: {}".format(plaintext_data))
 

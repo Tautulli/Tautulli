@@ -406,24 +406,24 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         metadata['lastfm_url'] = 'https://www.last.fm/music/' + metadata['lastfm_id']
 
     if metadata['media_type'] in ('movie', 'show', 'artist'):
-        thumb = metadata['thumb']
+        poster_thumb = metadata['thumb']
         poster_key = metadata['rating_key']
         poster_title = metadata['title']
     elif metadata['media_type'] in ('season', 'album'):
-        thumb = metadata['thumb'] or metadata['parent_thumb']
+        poster_thumb = metadata['thumb'] or metadata['parent_thumb']
         poster_key = metadata['rating_key']
         poster_title = '%s - %s' % (metadata['parent_title'],
                                     metadata['title'])
     elif metadata['media_type'] in ('episode', 'track'):
-        thumb = metadata['parent_thumb'] or metadata['grandparent_thumb']
+        poster_thumb = metadata['parent_thumb'] or metadata['grandparent_thumb']
         poster_key = metadata['parent_rating_key']
         poster_title = '%s - %s' % (metadata['grandparent_title'],
                                     metadata['parent_title'])
     else:
-        thumb = ''
+        poster_thumb = ''
 
     if plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS:
-        poster_info = get_poster_info(thumb=thumb, poster_key=poster_key, poster_title=poster_title)
+        poster_info = get_poster_info(poster_thumb=poster_thumb, poster_key=poster_key, poster_title=poster_title)
         metadata.update(poster_info)
 
     if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and metadata['media_type'] in ('show', 'artist'):
@@ -629,7 +629,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'rating_key': metadata['rating_key'],
                         'parent_rating_key': metadata['parent_rating_key'],
                         'grandparent_rating_key': metadata['grandparent_rating_key'],
-                        'thumb': thumb
+                        'thumb': metadata['thumb'],
+                        'parent_thumb': metadata['parent_thumb'],
+                        'grandparent_thumb': metadata['grandparent_thumb'],
+                        'poster_thumb': poster_thumb
                         }
 
     return available_params
@@ -822,27 +825,27 @@ def format_group_index(group_keys):
     return ','.join(num) or '0', ','.join(num00) or '00'
 
 
-def get_poster_info(thumb, poster_key, poster_title):
+def get_poster_info(poster_thumb, poster_key, poster_title):
     # Try to retrieve poster info from the database
     data_factory = datafactory.DataFactory()
     poster_info = data_factory.get_poster_info(rating_key=poster_key)
 
     # If no previous poster info
-    if not poster_info and thumb:
+    if not poster_info and poster_thumb:
         try:
             thread_name = str(threading.current_thread().ident)
             poster_file = os.path.join(plexpy.CONFIG.CACHE_DIR, 'cache-poster-%s' % thread_name)
 
             # Retrieve the poster from Plex and cache to file
             pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_image(img=thumb)
+            result = pms_connect.get_image(img=poster_thumb)
             if result and result[0]:
                 with open(poster_file, 'wb') as f:
                     f.write(result[0])
             else:
                 raise Exception(u'PMS image request failed')
 
-            # Upload thumb to Imgur and get link
+            # Upload poster_thumb to Imgur and get link
             poster_url = helpers.uploadToImgur(poster_file, poster_title)
 
             # Create poster info
