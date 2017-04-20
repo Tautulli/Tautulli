@@ -700,12 +700,14 @@ class ANDROIDAPP(Notifier):
             return
 
         # Check mobile device is still registered
-        if not mobile_app.get_mobile_devices(device_id=self.config['device_id']):
+        device = mobile_app.get_mobile_devices(device_id=self.config['device_id'])
+        if not device:
             logger.warn(u"PlexPy Notifiers :: Unable to send Android app notification: device not registered.")
             return
+        else:
+            device = device[0]
 
-        plaintext_data = {'notification_id': notification_id,
-                          'subject': subject.encode("utf-8"),
+        plaintext_data = {'subject': subject.encode("utf-8"),
                           'body': body.encode("utf-8"),
                           'priority': self.config['priority']}
 
@@ -714,7 +716,7 @@ class ANDROIDAPP(Notifier):
         if CRYPTODOME:
             # Key generation
             salt = get_random_bytes(16)
-            passphrase = plexpy.CONFIG.API_KEY
+            passphrase = device['device_token']
             key_length = 32  # AES256
             iterations = 1000
             key = PBKDF2(passphrase, salt, dkLen=key_length, count=iterations,
@@ -1040,7 +1042,6 @@ class DISCORD(Notifier):
             # Build Discord post attachment
             attachment = {'title': title
                           }
-
 
             if self.config['color']:
                 hex_match = re.match(r'^#([0-9a-fA-F]{3}){1,2}$', self.config['color'])
