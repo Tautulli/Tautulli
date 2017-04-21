@@ -1475,7 +1475,7 @@ class PmsConnect(object):
                 source_subtitle_details = next((p for p in source_media_part_streams if p['id'] == subtitle_id), {})
 
         # Get the quality profile
-        if media_type in ('movie', 'episode', 'clip'):
+        if media_type in ('movie', 'episode', 'clip') and 'stream_video_bitrate' in video_details:
             stream_video_bitrate = helpers.cast_to_int(video_details['stream_video_bitrate'])
             video_bitrate = helpers.cast_to_int(source_video_details['video_bitrate'])
 
