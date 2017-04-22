@@ -46,10 +46,14 @@ def process_queue():
         if params is None:
             break
         elif params:
-            if 'notifier_id' in params:
-                notify(**params)
-            else:
-                add_notifier_each(**params)
+            try:
+                if 'notifier_id' in params:
+                    notify(**params)
+                else:
+                    add_notifier_each(**params)
+            except Exception as e:
+                logger.exception(u"PlexPy NotificationHandler :: Notification thread exception: %s" % e)
+                
         queue.task_done()
 
     logger.info(u"PlexPy NotificationHandler :: Notification thread exiting...")
