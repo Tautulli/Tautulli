@@ -3633,6 +3633,37 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi()
+    def download_config(self, **kwargs):
+        """ Download the PlexPy configuration file. """
+        config_file = config.FILENAME
+
+        try:
+            plexpy.CONFIG.write()
+        except:
+            pass
+
+        return serve_download(plexpy.CONFIG_FILE, name=config_file)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def download_database(self, **kwargs):
+        """ Download the PlexPy database file. """
+        database_file = database.FILENAME
+
+        try:
+            db = database.MonitorDatabase()
+            db.connection.execute('begin immediate')
+            shutil.copyfile(plexpy.DB_FILE, os.path.join(plexpy.CONFIG.CACHE_DIR, database_file))
+            db.connection.rollback()
+        except:
+            pass
+
+        return serve_download(os.path.join(plexpy.CONFIG.CACHE_DIR, database_file), name=database_file)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi()
     def download_log(self, **kwargs):
         """ Download the PlexPy log file. """
         log_file = logger.FILENAME

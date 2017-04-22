@@ -31,15 +31,15 @@ DOCUMENTATION :: END
         % endif
         <tr>
             <td>Configuration File:</td>
-            <td>${plexpy.CONFIG_FILE}</td>
+            <td><a class="no-highlight" href="download_config" data-toggle="tooltip" data-placement="right" title="Download Configuration">${plexpy.CONFIG_FILE}</a></td>
         </tr>
         <tr>
             <td>Database File:</td>
-            <td>${plexpy.DB_FILE}</td>
+            <td><a class="no-highlight" href="download_database" data-toggle="tooltip" data-placement="right" title="Download Database">${plexpy.DB_FILE}</a></td>
         </tr>
         <tr>
             <td>Log File:</td>
-            <td><a class="no-highlight" href="logFile" target="_blank">${os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)}</a></td>
+            <td><a class="no-highlight" href="download_log" data-toggle="tooltip" data-placement="right" title="Download Log">${os.path.join(plexpy.CONFIG.LOG_DIR, logger.FILENAME)}</a></td>
         </tr>
         <tr>
             <td>Backup Directory:</td>
@@ -128,5 +128,11 @@ DOCUMENTATION :: END
                 $('#support-modal').modal('hide');
             });
         });
+
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
+
     });
 </script>

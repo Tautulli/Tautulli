@@ -615,7 +615,8 @@
                                 <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">
-                                Set the complete folder path where your Plex Server logs are, shortcuts are not recognized.
+                                Optional: Set your Plex logs folder to use PlexPy as a log viewer. Plex logs are not needed for PlexPy to function.
+                                A complete folder path is required, shortcuts are not recognized.
                                 <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help.
                             </p>
                         </div>
@@ -960,7 +961,7 @@
                                     <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30">
                                 </div>
                             </div>
-                            <p class="help-block">The path to your git environment variable. Leave blank for default.</p>
+                            <p class="help-block">Optional: The path to your git environment variable. Leave blank for default.</p>
                         </div>
                         % endif
 
