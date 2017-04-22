@@ -1,14 +1,12 @@
 # PlexPy
 
-[![Join the chat at https://gitter.im/plexpy/general](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/plexpy/general?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Discord](https://img.shields.io/badge/Discord-PlexPy-738bd7.svg?style=flat-square)](https://discord.gg/36ggawe)
+[![Gitter](https://img.shields.io/badge/Gitter-PlexPy-ed1965.svg?style=flat-square)](https://gitter.im/plexpy/general)
+[![Plex Forums](https://img.shields.io/badge/Plex%20Forums-PlexPy-E5A00D.svg?style=flat-square)](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program)
 
 A python based web application for monitoring, analytics and notifications for [Plex Media Server](https://plex.tv).
 
 This project is based on code from [Headphones](https://github.com/rembo10/headphones) and [PlexWatchWeb](https://github.com/ecleese/plexWatchWeb).
-
-* [Plex forum thread](https://forums.plex.tv/discussion/169591/plexpy-another-plex-monitoring-program)
-* [Gitter chat](https://gitter.im/plexpy/general)
-* [/r/Plex Discord server](https://discord.gg/011TFFWSuNFI02EKr) | [PlexPy Discord server](https://discord.gg/36ggawe)
 
 ## Features
 
