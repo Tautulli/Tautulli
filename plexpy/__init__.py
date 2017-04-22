@@ -1079,6 +1079,8 @@ def dbcheck():
 def upgrade():
     if CONFIG.UPDATE_NOTIFIERS_DB:
         notifiers.upgrade_config_to_db()
+    if CONFIG.UPDATE_LIBRARIES_DB_NOTIFY:
+        libraries.update_libraries_db_notify()
 
 def shutdown(restart=False, update=False, checkout=False):
     cherrypy.engine.exit()

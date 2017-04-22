@@ -977,3 +977,39 @@ class Libraries(object):
             return 'Deleted duplicate libraries from the database.'
         except Exception as e:
             logger.warn(u"PlexPy Libraries :: Unable to delete duplicate libraries: %s." % e)
+
+
+def update_libraries_db_notify():
+    logger.info(u"PlexPy Libraries :: Upgrading library notification toggles...")
+
+    # Set flag first in case something fails we don't want to keep re-adding the notifiers
+    plexpy.CONFIG.__setattr__('UPDATE_LIBRARIES_DB_NOTIFY', 0)
+    plexpy.CONFIG.write()
+
+    libraries = Libraries()
+    sections = libraries.get_sections()
+
+    for section in sections:
+        section_details = libraries.get_details(section['section_id'])
+        
+        if (section_details['do_notify'] == 1 and 
+                (section_details['section_type'] == 'movie' and not plexpy.CONFIG.MOVIE_NOTIFY_ENABLE) or
+                (section_details['section_type'] == 'show' and not plexpy.CONFIG.TV_NOTIFY_ENABLE) or
+                (section_details['section_type'] == 'artist' and not plexpy.CONFIG.MUSIC_NOTIFY_ENABLE)):
+            do_notify = 0
+        else:
+            do_notify = section_details['do_notify']
+
+        if (section_details['keep_history'] == 1 and 
+                (section_details['section_type'] == 'movie' and not plexpy.CONFIG.MOVIE_LOGGING_ENABLE) or
+                (section_details['section_type'] == 'show' and not plexpy.CONFIG.TV_LOGGING_ENABLE) or
+                (section_details['section_type'] == 'artist' and not plexpy.CONFIG.MUSIC_LOGGING_ENABLE)):
+            keep_history = 0
+        else:
+            keep_history = section_details['keep_history']
+
+        libraries.set_config(section_id=section_details['section_id'],
+                                custom_thumb=section_details['library_thumb'],
+                                do_notify=do_notify,
+                                keep_history=keep_history,
+                                do_notify_created=section_details['do_notify_created'])

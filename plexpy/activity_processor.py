@@ -138,14 +138,7 @@ class ActivityProcessor(object):
                                        state='stopped',
                                        stopped=stopped)
 
-            if plexpy.CONFIG.MOVIE_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
-                    session['media_type'] == 'movie':
-                logging_enabled = True
-            elif plexpy.CONFIG.TV_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
-                    session['media_type'] == 'episode':
-                logging_enabled = True
-            elif plexpy.CONFIG.MUSIC_LOGGING_ENABLE and str(session['rating_key']).isdigit() and \
-                    session['media_type'] == 'track':
+            if str(session['rating_key']).isdigit() and session['media_type'] in ('movie', 'episode', 'track'):
                 logging_enabled = True
             else:
                 logger.debug(u"PlexPy ActivityProcessor :: ratingKey %s not logged. Does not meet logging criteria. "
