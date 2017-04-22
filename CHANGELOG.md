@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.18 (2017-04-22)
+
+* New: Added some new Arnold quotes. (Thanks @senepa)
+* Fix: Text wrapping in datatable footers.
+* Fix: API command get_apikey. (Thanks @Hellowlol)
+
+
 ## v1.4.17 (2017-03-04)
 
 * New: Configurable month range for the Plays by month graph. (Thanks @Pbaboe)
