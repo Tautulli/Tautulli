@@ -272,8 +272,15 @@ function isPrivateIP(ip_address) {
             return true;
         }
         return false;
+    } else if (ip_address.indexOf(":") > -1){
+        var parts = ip_address.split(":");
+        // basic checking for link-local or unique local
+        if (parts[0] === 'fe80' || parts[0] === 'fc00' || parts[0] === 'fd00') {
+          return true;
+        }
+        return false;
     } else {
-        return true;
+      return true;
     }
 }
 
