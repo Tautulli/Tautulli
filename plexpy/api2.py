@@ -109,6 +109,7 @@ class API2:
         self._api_out_type = kwargs.pop('out_type', 'json')
 
         if ((self._api_apikey == plexpy.CONFIG.API_KEY or 
+             self._api_apikey == mobile_app.TEMP_DEVICE_TOKEN or 
              mobile_app.get_mobile_device_by_token(self._api_apikey)) and 
             plexpy.CONFIG.API_ENABLED and self._api_cmd in self._api_valid_methods):
             self._api_authenticated = True
