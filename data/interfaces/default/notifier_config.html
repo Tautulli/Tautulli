@@ -20,6 +20,7 @@
                         <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Script</a></li>
                         % else:
                         <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Notification Triggers</a></li>
+                        <li role="presentation"><a href="#tabs-notify_conditions" aria-controls="tabs-notify_conditions" role="tab" data-toggle="tab">Conditions</a></li>
                         <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Notification Text</a></li>
                         <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Notifications</a></li>
                         % endif
@@ -129,6 +130,17 @@
                                     </div>
                                     % endfor
                                 </div>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="tabs-notify_conditions">
+                            <p class="help-block">Add custom notification conditions</p>
+                            <div id="condition-widget"></div>
+                            <input type="hidden" name="conditions" id="conditions-input-field" />
+
+                            <div class="form-group">
+                                <label for="${action['name']}_body">Condition Logic</label>
+                                <input type="text" class="form-control" name="condition_logic" required />
+                                <p class="help-block">Ex. {1} and ({2} or {3})</p>
                             </div>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="tabs-notify_text">
@@ -256,6 +268,19 @@
 <script>
 
     $('#notifier-config-modal').unbind('hidden.bs.modal');
+    $('#condition-widget').filterer({
+        coefficients: [
+            {"name": "Title", "type": "string", "value": "title"},
+            {"name": "Year", "type": "number", "value": "year"}
+        ],
+        conditions: [
+            {coefficient: "year", operator: "is", value: ""},
+            {coefficient: "title", operator: "begins with", value: ""}
+        ],
+        updateConditions: function(newConditions){
+            $('#conditions-input-field').val(JSON.stringify(newConditions));
+        }
+    })
 
     function reloadModal() {
         $.ajax({
