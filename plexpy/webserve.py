@@ -3033,6 +3033,35 @@ class WebInterface(object):
         return serve_template(templatename="notifier_text_preview.html", text=text, agent=agent_name)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_notifier_parameters(self, **kwargs):
+        """ Get the list of available notification parameters.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {
+                     }
+            ```
+        """
+        parameters = [{'name': param['name'],
+                       'type': param['type'],
+                       'value': param['value']
+                       }
+                      for category in common.NOTIFICATION_PARAMETERS 
+                      for param in category['parameters']]
+
+        return parameters
+
+    @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi("notify")
     def send_notification(self, notifier_id=None, subject='PlexPy', body='Test notification', notify_action='', **kwargs):

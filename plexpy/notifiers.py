@@ -526,6 +526,8 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
               'agent_label': agent['label'],
               'friendly_name': kwargs.get('friendly_name', ''),
               'notifier_config': json.dumps(notifier_config),
+              'custom_conditions': kwargs.get('custom_conditions', ''),
+              'custom_conditions_logic': kwargs.get('custom_conditions_logic', ''),
               }
     values.update(actions)
     values.update(subject_text)
