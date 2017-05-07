@@ -2949,7 +2949,14 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def get_notifier_config_modal(self, notifier_id=None, **kwargs):
         result = notifiers.get_notifier_config(notifier_id=notifier_id)
-        return serve_template(templatename="notifier_config.html", notifier=result)
+
+        parameters = [
+            {'name': param['name'], 'type': param['type'], 'value': param['value']}
+            for category in common.NOTIFICATION_PARAMETERS 
+            for param in category['parameters']
+            ]
+
+        return serve_template(templatename="notifier_config.html", notifier=result, parameters=json.dumps(parameters))
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
