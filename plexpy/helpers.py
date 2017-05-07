@@ -798,3 +798,72 @@ def humanFileSize(bytes, si=False):
         u += 1
 
     return "{0:.1f} {1}".format(bytes, units[u])
+
+def parse_condition_logic_string(s, num_cond=0):
+    """ Parse a logic string into a nested list
+    Based on http://stackoverflow.com/a/23185606
+    """
+    valid_tokens = re.compile(r'(\(|\)|and|or)')
+    conditions_pattern = re.compile(r'{\d+}')
+    
+    tokens = [x.strip() for x in re.split(valid_tokens, s.lower()) if x.strip()]
+
+    stack = [[]]
+
+    cond_next = True
+    bool_next = False
+    open_bracket_next = True
+    close_bracket_next = False
+    
+    for i, x in enumerate(tokens):
+        if open_bracket_next and x == '(':
+            stack[-1].append([])
+            stack.append(stack[-1][-1])
+            cond_next = True
+            bool_next = False
+            open_bracket_next = True
+            close_bracket_next = False
+            
+        elif close_bracket_next and x == ')':
+            stack.pop()
+            if not stack:
+                raise ValueError('opening bracket is missing')
+            cond_next = False
+            bool_next = True
+            open_bracket_next = False
+            close_bracket_next = True
+            
+        elif cond_next and re.match(conditions_pattern, x):
+            try:
+                num = int(x[1:-1])
+            except:
+                raise ValueError('invalid condition logic')
+            if not 0 < num <= num_cond:
+                raise ValueError('invalid condition number in condition logic')
+            stack[-1].append(x)
+            cond_next = False
+            bool_next = True
+            open_bracket_next = False
+            close_bracket_next = True
+            
+        elif bool_next and x in ('and', 'or') and i < len(tokens)-1:
+            stack[-1].append(x)
+            cond_next = True
+            bool_next = False
+            open_bracket_next = True
+            close_bracket_next = False
+            
+        else:
+            raise ValueError('invalid condition logic')
+
+    if len(stack) > 1:
+        raise ValueError('closing bracket is missing')
+
+    return stack.pop()
+
+def nested_list_to_string(l):
+    for i, x in enumerate(l):
+        if isinstance(x, list):
+            l[i] = nested_list_to_string(x)
+    s = '(' + ' '.join(l) + ')'
+    return s

@@ -105,15 +105,19 @@ def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, 
             logger.error(u"PlexPy NotificationHandler :: Failed to build notification parameters.")
             return
 
-        # Add each notifier to the queue
         for notifier in notifiers_enabled:
-            data = {'notifier_id': notifier['id'],
-                    'notify_action': notify_action,
-                    'stream_data': stream_data,
-                    'timeline_data': timeline_data,
-                    'parameters': parameters}
-            data.update(kwargs)
-            plexpy.NOTIFY_QUEUE.put(data)
+            # Check custom user conditions
+            if notify_custom_conditions(notifier_id=notifier['id'], parameters=parameters):
+                # Add each notifier to the queue
+                data = {'notifier_id': notifier['id'],
+                        'notify_action': notify_action,
+                        'stream_data': stream_data,
+                        'timeline_data': timeline_data,
+                        'parameters': parameters}
+                data.update(kwargs)
+                plexpy.NOTIFY_QUEUE.put(data)
+            else:
+                logger.debug(u"PlexPy NotificationHandler :: Custom notification conditions not satisfied, skipping notifier_id %s." % notifier['id'])
 
     # Add on_concurrent and on_newdevice to queue if action is on_play
     if notify_action == 'on_play':
@@ -121,7 +125,7 @@ def add_notifier_each(notify_action=None, stream_data=None, timeline_data=None, 
         plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data, 'notify_action': 'on_newdevice'})
 
 
-def notify_conditions(notifier=None, notify_action=None, stream_data=None, timeline_data=None):
+def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
     # Activity notifications
     if stream_data:
 
@@ -188,7 +192,120 @@ def notify_conditions(notifier=None, notify_action=None, stream_data=None, timel
         return True
 
 
+def notify_custom_conditions(notifier_id=None, parameters=None):
+    notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
+
+    custom_conditions_logic = notifier_config['custom_conditions_logic']
+
+    if custom_conditions_logic:
+        logger.debug(u"PlexPy NotificationHandler :: Checking custom notification conditions for notifier_id %s." % notifier_id)
+
+        custom_conditions = json.loads(notifier_config['custom_conditions'])
+        
+        try:
+            # Parse and validate the custom conditions logic
+            logic_groups = helpers.parse_condition_logic_string(custom_conditions_logic, len(custom_conditions))
+            logic_string = helpers.nested_list_to_string(logic_groups)
+        except ValueError as e:
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom condition logic: %s." % e)
+            return False
+
+        param_types = {param['value']: param['type']
+                       for category in common.NOTIFICATION_PARAMETERS for param in category['parameters']}
+
+        evaluated_conditions = [None]  # Set condition {0} to None
+
+        for condition in custom_conditions:
+            parameter = condition['parameter']
+            operator = condition['operator']
+            values = condition['value']
+
+            # Set blank conditions to None
+            if not values:
+                evaluated_conditions.append(None)
+                continue
+
+            # Make sure the condition values is in a list
+            if not isinstance(values, list):
+                values = [values]
+
+            parameter_type = param_types[parameter]
+            
+            # Cast the condition values to the correct type
+            try:
+                if parameter_type == 'str':
+                    values = [unicode(v).lower() for v in values]
+
+                elif parameter_type == 'int':
+                    values = [int(v) for v in values]
+
+                elif parameter_type == 'float':
+                    values = [float(v) for v in values]
+            
+            except Exception as e:
+                logger.error(u"PlexPy NotificationHandler :: Unable to cast condition '%s' to type '%s'."
+                             % (parameter, parameter_type))
+                return False
+
+            # Cast the parameter value to the correct type
+            try:
+                if parameter_type == 'str':
+                    parameter_value = unicode(parameters[parameter]).lower()
+
+                elif parameter_type == 'int':
+                    parameter_value = int(parameters[parameter])
+
+                elif parameter_type == 'float':
+                    parameter_value = float(parameters[parameter])
+            
+            except Exception as e:
+                logger.error(u"PlexPy NotificationHandler :: Unable to cast parameter '%s' to type '%s'."
+                             % (parameter, parameter_type))
+                return False
+
+            condition_value = values[0]
+
+            # Check each condition
+            if operator == 'contains':
+                evaluated_conditions.append(condition_value in parameter_value)
+
+            elif operator == 'does not contain':
+                evaluated_conditions.append(condition_value not in parameter_value)
+
+            elif operator == 'is':
+                evaluated_conditions.append(parameter_value == condition_value)
+
+            elif operator == 'is not':
+                evaluated_conditions.append(parameter_value != condition_value)
+
+            elif operator == 'begins with':
+                evaluated_conditions.append(parameter_value.startswith(condition_value))
+
+            elif operator == 'ends with':
+                evaluated_conditions.append(parameter_value.endswith(condition_value))
+
+            elif operator == 'greater than':
+                evaluated_conditions.append(parameter_value > condition_value)
+
+            elif operator == 'less than':
+                evaluated_conditions.append(parameter_value < condition_value)
+
+        # Format and evaluate the logic string
+        try:
+            evaluated_logic = bool(eval(logic_string.format(*evaluated_conditions)))
+        except Exception as e:
+            logger.error(u"PlexPy NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
+            return False
+
+        logger.debug(u"PlexPy NotificationHandler :: Custom condition evaluated to '%s'." % str(evaluated_logic))
+        return evaluated_logic
+
+    return True
+
+
 def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, parameters=None, **kwargs):
+    logger.debug(u"PlexPy NotificationHandler :: Preparing notifications for notifier_id %s." % notifier_id)
+
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
 
     if not notifier_config:
