@@ -2956,8 +2956,7 @@ class WebInterface(object):
         if not result['custom_conditions_logic']:
             result['custom_conditions_logic'] = ''
 
-        parameters = [{'name': '', 'type': '', 'value': ''}]
-        parameters += [
+        parameters = [
                 {'name': param['name'], 'type': param['type'], 'value': param['value']}
                 for category in common.NOTIFICATION_PARAMETERS for param in category['parameters']
             ]
