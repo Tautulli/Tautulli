@@ -135,7 +135,7 @@
                                 Note: Conditions are checked after the notification trigger and the notification will only be sent if the condition logic is satisfied.
                             </p>
                             <div id="condition-widget"></div>
-                            <input type="text" name="custom_conditions" id="custom_conditions" value="${notifier['custom_conditions']}" />
+                            <input type="hidden" name="custom_conditions" id="custom_conditions" />
 
                             <div class="form-group">
                                 <label for="custom_condition_logic">Condition Logic</label>
@@ -273,15 +273,12 @@
 
     $('#notifier-config-modal').unbind('hidden.bs.modal');
 
+    // Need this for setting conditions since conditions contain the character "
+    $('#custom_conditions').val('${notifier['custom_conditions'] | n}')
+
     $('#condition-widget').filterer({
-        coefficients: [
-            {"name": "Title", "type": "string", "value": "title"},
-            {"name": "Year", "type": "number", "value": "year"}
-        ],
-        conditions: [
-            {coefficient: "year", operator: "is", value: ""},
-            {coefficient: "title", operator: "begins with", value: ""}
-        ],
+        parameters: ${parameters | n},
+        conditions: ${notifier["custom_conditions"] | n},
         updateConditions: function(newConditions){
             $('#custom_conditions').val(JSON.stringify(newConditions));
         }

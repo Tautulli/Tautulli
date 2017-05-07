@@ -2951,7 +2951,7 @@ class WebInterface(object):
         result = notifiers.get_notifier_config(notifier_id=notifier_id)
 
         if not result['custom_conditions']:
-            result['custom_conditions'] = json.dumps([{'coefficient': '', 'operator': '', 'value': ''}])
+            result['custom_conditions'] = json.dumps([{'parameter': '', 'operator': '', 'value': ''}])
 
         if not result['custom_conditions_logic']:
             result['custom_conditions_logic'] = ''
