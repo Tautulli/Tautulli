@@ -356,7 +356,7 @@ NOTIFICATION_PARAMETERS = [
          ]
      },
     {
-        'category': 'Source Metadata Details',
+        'category': 'Plex Update Available',
         'parameters': [
              {'name': 'Update Version', 'type': 'int', 'value': 'update_version', 'description': 'The available update version for your Plex Server.', 'example': '', 'help_text': ''},
              {'name': 'Update Url', 'type': 'int', 'value': 'update_url', 'description': 'The download URL for the available update.', 'example': '', 'help_text': ''},
@@ -372,7 +372,7 @@ NOTIFICATION_PARAMETERS = [
          ]
      },
     {
-        'category': 'Source Metadata Details',
+        'category': 'PlexPy Update Available',
         'parameters': [
              {'name': 'Plexpy Update Version', 'type': 'int', 'value': 'plexpy_update_version', 'description': 'The available update version for PlexPy.', 'example': '', 'help_text': ''},
              {'name': 'Plexpy Update Tar', 'type': 'int', 'value': 'plexpy_update_tar', 'description': 'The tar download URL for the available update.', 'example': '', 'help_text': ''},
