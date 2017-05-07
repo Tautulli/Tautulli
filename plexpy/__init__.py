@@ -1070,9 +1070,9 @@ def dbcheck():
 
     # Upgrade notifiers table from earlier versions
     try:
-        c_db.execute('SELECT custom_condition FROM notifiers')
+        c_db.execute('SELECT custom_conditions FROM notifiers')
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table custom_condition.")
+        logger.debug(u"Altering database. Updating database table notifiers.")
         c_db.execute(
             'ALTER TABLE notifiers ADD COLUMN custom_conditions TEXT'
         )

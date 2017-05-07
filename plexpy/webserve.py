@@ -2950,10 +2950,16 @@ class WebInterface(object):
     def get_notifier_config_modal(self, notifier_id=None, **kwargs):
         result = notifiers.get_notifier_config(notifier_id=notifier_id)
 
-        parameters = [
-            {'name': param['name'], 'type': param['type'], 'value': param['value']}
-            for category in common.NOTIFICATION_PARAMETERS 
-            for param in category['parameters']
+        if not result['custom_conditions']:
+            result['custom_conditions'] = json.dumps([{'coefficient': '', 'operator': '', 'value': ''}])
+
+        if not result['custom_conditions_logic']:
+            result['custom_conditions_logic'] = ''
+
+        parameters = [{'name': '', 'type': '', 'value': ''}]
+        parameters += [
+                {'name': param['name'], 'type': param['type'], 'value': param['value']}
+                for category in common.NOTIFICATION_PARAMETERS for param in category['parameters']
             ]
 
         return serve_template(templatename="notifier_config.html", notifier=result, parameters=json.dumps(parameters))
