@@ -38,8 +38,23 @@ load_rc_config ${name}
 status_cmd="${name}_status"
 stop_cmd="${name}_stop"
 
-command="${plexpy_dir}/PlexPy.py"
-command_args="--daemon --pidfile ${plexpy_pid} --quiet --nolaunch ${plexpy_flags}"
+# Check for the python version before executing PlexPy
+plexpy_command="${plexpy_dir}/PlexPy.py"
+plexpy_initial_args="--daemon"
+which python > /dev/null 2>&1
+if [ ! $? -eq 0 ]; then
+  which python2 > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    plexpy_command="/usr/sbin/daemon"
+    plexpy_initial_args="`which python2` ${plexpy_dir}/PlexPy.py"
+  else
+    echo "Oops, you must have either python or python2 installed!"
+    exit 1
+  fi
+fi
+
+command="${plexpy_command}"
+command_args="${plexpy_initial_args} --pidfile ${plexpy_pid} --quiet --nolaunch ${plexpy_flags}"
 
 # Ensure user is root when running this script.
 if [ `id -u` != "0" ]; then
