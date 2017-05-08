@@ -207,7 +207,8 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             logic_groups = helpers.parse_condition_logic_string(custom_conditions_logic, len(custom_conditions))
             logic_string = helpers.nested_list_to_string(logic_groups)
         except ValueError as e:
-            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom condition logic: %s." % e)
+            logger.error(u"PlexPy NotificationHandler :: Unable to parse custom condition logic '%s': %s."
+                         % (custom_conditions_logic, e))
             return False
 
         param_types = {param['value']: param['type']
