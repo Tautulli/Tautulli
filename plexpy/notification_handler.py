@@ -226,7 +226,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 continue
 
             # Make sure the condition values is in a list
-            if not isinstance(values, list):
+            if isinstance(values, basestring):
                 values = [values]
 
             parameter_type = param_types[parameter]
@@ -263,32 +263,30 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                              % (parameter, parameter_type))
                 return False
 
-            condition_value = values[0]
-
             # Check each condition
             if operator == 'contains':
-                evaluated_conditions.append(condition_value in parameter_value)
+                evaluated_conditions.append(any(c in parameter_value for c in values))
 
             elif operator == 'does not contain':
-                evaluated_conditions.append(condition_value not in parameter_value)
+                evaluated_conditions.append(any(c not in parameter_value for c in values))
 
             elif operator == 'is':
-                evaluated_conditions.append(parameter_value == condition_value)
+                evaluated_conditions.append(any(parameter_value == c for c in values))
 
             elif operator == 'is not':
-                evaluated_conditions.append(parameter_value != condition_value)
+                evaluated_conditions.append(any(parameter_value != c for c in values))
 
             elif operator == 'begins with':
-                evaluated_conditions.append(parameter_value.startswith(condition_value))
+                evaluated_conditions.append(parameter_value.startswith(tuple(values)))
 
             elif operator == 'ends with':
-                evaluated_conditions.append(parameter_value.endswith(condition_value))
+                evaluated_conditions.append(parameter_value.endswith(tuple(values)))
 
             elif operator == 'greater than':
-                evaluated_conditions.append(parameter_value > condition_value)
+                evaluated_conditions.append(any(parameter_value > c for c in values))
 
             elif operator == 'less than':
-                evaluated_conditions.append(parameter_value < condition_value)
+                evaluated_conditions.append(any(parameter_value < c for c in values))
 
         # Format and evaluate the logic string
         try:
