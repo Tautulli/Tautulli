@@ -1,0 +1,16 @@
+[Unit]
+Description=PlexPy
+After=plexmediaserver.service
+
+[Service]
+ExecStart=/usr/bin/python /opt/plexpy/PlexPy.py
+Type=simple
+User=plex
+Group=plex
+Restart=on-failure
+RestartSec=5
+StartLimitInterval=60s
+StartLimitBurst=3
+
+[Install]
+WantedBy=multi-user.target
