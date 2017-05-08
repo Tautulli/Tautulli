@@ -13,7 +13,7 @@ a:focus {
     text-decoration: none;
     outline: none;
 }
-select {
+select, .react-selectize.bootstrap3.root-node .react-selectize-control {
     margin: 5px 0 5px 0;
     border: 2px solid #444;
     background: #333;
@@ -70,6 +70,25 @@ select.form-control {
     background-color: #555;
     border-radius: 3px;
     transition: background-color .3s;
+}
+.react-selectize.root-node .react-selectize-control {
+    color: #fff !important;
+    border: 0px solid #444 !important;
+    background: #555 !important;
+    padding: 1px 2px;
+}
+.react-selectize.root-node .react-selectize-control .react-selectize-placeholder {
+    color: #fff !important;
+}
+.react-selectize.root-node .react-selectize-control .react-selectize-toggle-button path {
+    fill: #fff !important;
+}
+.react-selectize.root-node .simple-value span {
+    padding-bottom: 2px !important;
+}
+.react-selectize.root-node .react-selectize-control .react-selectize-search-field-and-selected-values .resizable-input{
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
 }
 select.form-control:focus {
     outline: 0;
