@@ -571,9 +571,9 @@ class Libraries(object):
                 for child_metadata in metadata:
                     ## TODO: Check list of media info items, currently only grabs first item
                     media_info = media_part_info = {}
-                    if 'media_info' in child_metadata:
+                    if 'media_info' in child_metadata and len (child_metadata['media_info']) > 0:
                         media_info = child_metadata['media_info'][0]
-                        if 'parts' in media_info:
+                        if 'parts' in media_info and len (media_info['parts']) > 0:
                             media_part_info = media_info['parts'][0]
 
                     file_size += helpers.cast_to_int(media_info.get('file_size', 0))
