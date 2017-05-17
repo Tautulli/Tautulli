@@ -332,13 +332,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
             media_part_info = media_info['parts'][0]
 
     stream_video = stream_audio = stream_subtitle = False
-    for stream in media_part_info['streams']:
-        if not stream_video and stream['type'] == '1':
-            media_part_info.update(stream)
-        if not stream_audio and stream['type'] == '2':
-            media_part_info.update(stream)
-        if not stream_subtitle and stream['type'] == '3':
-            media_part_info.update(stream)
+    if 'streams' in media_part_info:
+        for stream in media_part_info['streams']:
+            if not stream_video and stream['type'] == '1':
+                media_part_info.update(stream)
+            if not stream_audio and stream['type'] == '2':
+                media_part_info.update(stream)
+            if not stream_subtitle and stream['type'] == '3':
+                media_part_info.update(stream)
 
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
