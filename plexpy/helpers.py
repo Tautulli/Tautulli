@@ -204,10 +204,10 @@ def human_duration(s, sig='dhms'):
     hd = ''
 
     if str(s).isdigit() and s > 0:
-        d = int(s / 84600)
-        h = int((s % 84600) / 3600)
-        m = int(((s % 84600) % 3600) / 60)
-        s = int(((s % 84600) % 3600) % 60)
+        d = int(s / 86400)
+        h = int((s % 86400) / 3600)
+        m = int(((s % 86400) % 3600) / 60)
+        s = int(((s % 86400) % 3600) % 60)
 
         hd_list = []
         if sig >= 'd' and d > 0:
