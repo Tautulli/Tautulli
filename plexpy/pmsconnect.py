@@ -1186,8 +1186,8 @@ class PmsConnect(object):
                 transcode_audio_codec = helpers.get_xml_attr(transcode_session, 'audioCodec')
                 video_decision = helpers.get_xml_attr(transcode_session, 'videoDecision')
                 transcode_video_codec = helpers.get_xml_attr(transcode_session, 'videoCodec')
-                transcode_width = helpers.get_xml_attr(transcode_session, 'width')
-                transcode_height = helpers.get_xml_attr(transcode_session, 'height')
+                transcode_width = helpers.get_xml_attr(transcode_session, 'width') or width
+                transcode_height = helpers.get_xml_attr(transcode_session, 'height') or height
                 transcode_container = helpers.get_xml_attr(transcode_session, 'container')
                 transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
             else:
@@ -1443,8 +1443,8 @@ class PmsConnect(object):
                 transcode_speed = helpers.get_xml_attr(transcode_session, 'speed')
                 video_decision = helpers.get_xml_attr(transcode_session, 'videoDecision')
                 transcode_video_codec = helpers.get_xml_attr(transcode_session, 'videoCodec')
-                transcode_width = helpers.get_xml_attr(transcode_session, 'width')
-                transcode_height = helpers.get_xml_attr(transcode_session, 'height')
+                transcode_width = helpers.get_xml_attr(transcode_session, 'width') or width
+                transcode_height = helpers.get_xml_attr(transcode_session, 'height') or height
                 transcode_container = helpers.get_xml_attr(transcode_session, 'container')
                 transcode_protocol = helpers.get_xml_attr(transcode_session, 'protocol')
             else:
