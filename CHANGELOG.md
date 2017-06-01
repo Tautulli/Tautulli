@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.19 (2017-05-31)
+
+* Fix: Video resolution not showing up for transcoded streams on PMS 1.7.x.
+
+
 ## v1.4.18 (2017-04-22)
 
 * New: Added some new Arnold quotes. (Thanks @senepa)
