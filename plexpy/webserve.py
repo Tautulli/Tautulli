@@ -1719,7 +1719,10 @@ class WebInterface(object):
         try:
             socket.inet_aton(ip_address)
         except socket.error:
-            ip_address = None
+            try:
+                socket.inet_pton(socket.AF_INET6, ip_address)
+            except socket.error:
+                ip_address = None
 
         return serve_template(templatename="ip_address_modal.html", title="IP Address Details", data=ip_address)
 
