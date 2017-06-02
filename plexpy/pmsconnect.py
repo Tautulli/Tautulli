@@ -1174,6 +1174,8 @@ class PmsConnect(object):
             height = helpers.get_xml_attr(media_info, 'height')
             duration = helpers.get_xml_attr(media_info, 'duration')
             progress = helpers.get_xml_attr(session, 'viewOffset')
+            session_xml = session.getElementsByTagName('Session')[0]
+            session_id = helpers.get_xml_attr(session_xml, 'id')
 
             if session.getElementsByTagName('TranscodeSession'):
                 transcode_session = session.getElementsByTagName('TranscodeSession')[0]
@@ -1242,6 +1244,7 @@ class PmsConnect(object):
 
             if helpers.get_xml_attr(session, 'type') == 'episode':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                                  'session_id': session_id,
                                   'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
                                   'media_index': helpers.get_xml_attr(session, 'index'),
                                   'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
@@ -1307,6 +1310,7 @@ class PmsConnect(object):
             elif helpers.get_xml_attr(session, 'type') == 'movie':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
                                   'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
+                                  'session_id': session_id,
                                   'media_index': helpers.get_xml_attr(session, 'index'),
                                   'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
                                   'art': helpers.get_xml_attr(session, 'art'),
@@ -1369,6 +1373,7 @@ class PmsConnect(object):
 
             elif helpers.get_xml_attr(session, 'type') == 'clip':
                 session_output = {'session_key': helpers.get_xml_attr(session, 'sessionKey'),
+                                  'session_id': session_id,
                                   'section_id': helpers.get_xml_attr(session, 'librarySectionID'),
                                   'media_index': helpers.get_xml_attr(session, 'index'),
                                   'parent_media_index': helpers.get_xml_attr(session, 'parentIndex'),
