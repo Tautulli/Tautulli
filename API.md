@@ -1796,6 +1796,28 @@ Returns:
     None
 ```
 
+##### Notification Agents IDs
+```
+9    # Boxcar2
+17   # Browser
+10   # Email
+16   # Facebook
+0    # Growl
+12   # IFTTT
+18   # Join
+4    # NotifyMyAndroid
+3    # Plex Home Theater
+1    # Prowl
+5    # Pushalot
+6    # Pushbullet
+7    # Pushover
+15   # Scripts
+14   # Slack
+13   # Telegram
+11   # Twitter
+2    # XBMC
+```
+
 
 ### pms_image_proxy
 Gets an image from the PMS and saves it to the image cache directory.
