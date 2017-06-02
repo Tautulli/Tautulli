@@ -292,6 +292,7 @@ table.dataTable td {
   clear: both;
   float: left;
   padding-top: 0.755em;
+  white-space: normal;
 }
 .dataTables_wrapper .dataTables_paginate {
   float: right;
