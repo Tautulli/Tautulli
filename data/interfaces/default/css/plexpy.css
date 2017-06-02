@@ -404,6 +404,9 @@ textarea.form-control:focus {
     background-color: #fff;
     transition: background-color .3s;
 }
+#history_table_info {
+    white-space: normal;
+}
 .pagination > li > a,
 .pagination > li > span {
     position: relative;
@@ -590,14 +593,14 @@ a .users-poster-face:hover {
 .dashboard-instance.hover .dashboard-activity-poster-info-bar {
     opacity: 1;
 }
-.dashboard-instance.hover .dashboard-activity-progress-bar { 
-	height: 14px; 
+.dashboard-instance.hover .dashboard-activity-progress-bar {
+	height: 14px;
 	transform-origin: top;
     transition: all .2s ease;
 	border-radius: 0px 0px 3px 3px;
 }
-.dashboard-instance.hover .bar { 
-	height: 14px; 
+.dashboard-instance.hover .bar {
+	height: 14px;
     max-width: 100%;
 	transform-origin: top;
     transition: all .2s ease;
@@ -607,8 +610,8 @@ a .users-poster-face:hover {
     background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
     background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
 }
-.dashboard-instance.hover .bufferbar { 
-	height: 14px; 
+.dashboard-instance.hover .bufferbar {
+	height: 14px;
     max-width: 100%;
 	transform-origin: top;
     transition: all .2s ease;
@@ -618,7 +621,7 @@ a .users-poster-face:hover {
     background-image: -moz-linear-gradient(left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
     background-image: linear-gradient(to left,rgba(0,0,0,0.25) 0%,rgba(0,0,0,0) 50px);
 }
-.dashboard-instance.hover .dashboard-activity-metadata-wrapper { 
+.dashboard-instance.hover .dashboard-activity-metadata-wrapper {
 	margin-top: 11px;
 	transform-origin: top;
     transition: all .2s ease;
@@ -2665,8 +2668,8 @@ div.dataTables_info {
     background-clip: padding-box;
 }
 
-@media only screen 
-  and (min-device-width: 300px) 
+@media only screen
+  and (min-device-width: 300px)
   and (max-device-width: 450px) {
     .home-platforms-instance {
         width: calc(100% - 20px);
@@ -2698,7 +2701,7 @@ table.display tr.shown + tr .pagination > .active > a,
 table.display tr.shown + tr .pagination > .active > a:hover {
     color: #fff;
 }
-table.display tr.shown + tr table[id^='history_child'] td:hover a, 
+table.display tr.shown + tr table[id^='history_child'] td:hover a,
 table.display tr.shown + tr table[id^='media_info_child'] > tr > td:hover a,
 table.display tr.shown + tr table[id^='media_info_child'] tr.shown + tr table[id^='media_info_child'] td:hover a {
     color: #cc7b19;
