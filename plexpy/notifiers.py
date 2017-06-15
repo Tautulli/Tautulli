@@ -65,7 +65,8 @@ AGENT_IDS = {"Growl": 0,
              "Facebook": 16,
              "Browser": 17,
              "Join": 18,
-             "Hipchat": 19}
+             "Hipchat": 19,
+             "MQTT": 20}
 
 
 def available_notification_agents():
@@ -448,7 +449,7 @@ def available_notification_agents():
                'on_pmsupdate': plexpy.CONFIG.HIPCHAT_ON_PMSUPDATE,
                'on_concurrent': plexpy.CONFIG.HIPCHAT_ON_CONCURRENT,
                'on_newdevice': plexpy.CONFIG.HIPCHAT_ON_NEWDEVICE
-               }
+               },
               ]
 
     # OSX Notifications should only be visible if it can be used
@@ -473,6 +474,29 @@ def available_notification_agents():
                        'on_pmsupdate': plexpy.CONFIG.OSX_NOTIFY_ON_PMSUPDATE,
                        'on_concurrent': plexpy.CONFIG.OSX_NOTIFY_ON_CONCURRENT,
                        'on_newdevice': plexpy.CONFIG.OSX_NOTIFY_ON_NEWDEVICE
+                       })
+
+    mqtt = MQTT()
+    if mqtt.validate():
+        agents.append({'name': 'MQTT',
+                       'id': AGENT_IDS['MQTT'],
+                       'config_prefix': 'mqtt',
+                       'has_config': True,
+                       'state': checked(plexpy.CONFIG.MQTT_ENABLED),
+                       'on_play': plexpy.CONFIG.MQTT_ON_PLAY,
+                       'on_stop': plexpy.CONFIG.MQTT_ON_STOP,
+                       'on_pause': plexpy.CONFIG.MQTT_ON_PAUSE,
+                       'on_resume': plexpy.CONFIG.MQTT_ON_RESUME,
+                       'on_buffer': plexpy.CONFIG.MQTT_ON_BUFFER,
+                       'on_watched': plexpy.CONFIG.MQTT_ON_WATCHED,
+                       'on_created': plexpy.CONFIG.MQTT_ON_CREATED,
+                       'on_extdown': plexpy.CONFIG.MQTT_ON_EXTDOWN,
+                       'on_intdown': plexpy.CONFIG.MQTT_ON_INTDOWN,
+                       'on_extup': plexpy.CONFIG.MQTT_ON_EXTUP,
+                       'on_intup': plexpy.CONFIG.MQTT_ON_INTUP,
+                       'on_pmsupdate': plexpy.CONFIG.MQTT_ON_PMSUPDATE,
+                       'on_concurrent': plexpy.CONFIG.MQTT_ON_CONCURRENT,
+                       'on_newdevice': plexpy.CONFIG.MQTT_ON_NEWDEVICE
                        })
 
     return agents
@@ -542,6 +566,9 @@ def get_notification_agent_config(agent_id):
         elif agent_id == 19:
             hipchat = HIPCHAT()
             return hipchat.return_config_options()
+        elif agent_id == 20:
+            mqtt = MQTT()
+            return mqtt.return_config_options()
         else:
             return []
     else:
@@ -612,6 +639,9 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
         elif agent_id == 19:
             hipchat = HIPCHAT()
             return hipchat.notify(message=body, subject=subject, **kwargs)
+        elif agent_id == 20:
+            mqtt = MQTT()
+            return mqtt.notify(message=body, subject=subject)
         else:
             logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
@@ -2914,6 +2944,175 @@ class HIPCHAT(object):
                           'name': 'hipchat_incl_subject',
                           'description': 'Includes the subject with the notifications.',
                           'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+
+class MQTT(object):
+
+    def __init__(self):
+        self.data = ''
+        self.loop_flag = 1
+        self.counter = 0
+        self.success = False
+        self.broker = plexpy.CONFIG.MQTT_BROKER
+        self.port = plexpy.CONFIG.MQTT_PORT
+        self.keep_alive = plexpy.CONFIG.MQTT_KEEP_ALIVE
+        self.bind_address = plexpy.CONFIG.MQTT_BIND_ADDRESS
+        self.protocol = plexpy.CONFIG.MQTT_PROTOCOL
+        self.qos = 1
+        self.retain = False
+        self.username = plexpy.CONFIG.MQTT_USERNAME
+        self.password = plexpy.CONFIG.MQTT_PASSWORD
+        self.topic = plexpy.CONFIG.MQTT_TOPIC
+        self.client_id = 'plexpy'
+
+        try:
+            __import__("sys")
+            __import__("time")
+            mqtt = __import__("paho.mqtt.client", globals(), locals(), ['client'], 0)
+            self.mqtt = mqtt.Client(None, True, None, self.protocol)
+            self.mqtt.username_pw_set(self.username, self.password)
+            self.mqtt.on_connect = self.on_connect
+            self.mqtt.on_publish = self.on_publish
+        except:
+            logger.error(u"PlexPy Notifiers :: Cannot load MQTT Notifications agent.")
+            pass
+
+    def on_connect(self, client, userdata, flags, rc):
+        logger.info(u"PlexPy Notifiers :: MQTT notification: connect")
+        if rc == 0:
+            status = 'Connection successful'
+        elif rc == 1:
+            status = 'Connection refused - incorrect protocol version'
+        elif rc == 2:
+            status = 'Connection refused - invalid client identifier'
+        elif rc == 3:
+            status = 'Connection refused - server unavailable'
+        elif rc == 4:
+            status = 'Connection refused - bad username or password'
+        elif rc == 5:
+            status = 'Connection refused - not authorised'
+        else:
+            status = 'Connection refused - unknown error'
+
+        if rc == 0:
+            logger.info(u"PlexPy Notifiers :: MQTT connection: %s.", status)
+            logger.info(u"PlexPy Notifiers :: MQTT notification: Publishing message.")
+            (rc, mid) = self.mqtt.publish(self.topic, json.dumps(self.data), self.qos, self.retain)
+        else:
+            logger.warn(u"PlexPy Notifiers :: MQTT connection: %s.", status)
+            self.mqtt.disconnect()
+            self.mqtt.loop_stop()
+            sys.exit(0)
+
+    def on_publish(self, client, userdata, mid):
+        logger.info(u"PlexPy Notifiers :: MQTT notification: publish")
+        self.mqtt.disconnect()
+        self.mqtt.loop_stop()
+        self.loop_flag = 0
+        if mid == 1:
+            self.success = True
+            logger.info(u"PlexPy Notifiers :: MQTT notification: Publishing succeeded.")
+            if self.qos == 0:
+                logger.info(u"PlexPy Notifiers :: MQTT notification: Note that because QoS is set to %s we can't be sure everything was delivered, only that the message was sent.", self.qos)
+        else:
+            logger.warn(u"PlexPy Notifiers :: MQTT notification: Publishing failed.")
+            sys.exit(0)
+
+    def validate(self):
+        try:
+            __import__("paho.mqtt.client", globals(), locals(), ['client'], 0)
+            return True
+        except:
+            return False
+
+    def conf(self, options):
+        return cherrypy.config['config'].get('MQTT', options)
+
+    def notify(self, message, subject):
+        if not message or not subject:
+            return
+        self.data = {'title': subject.encode("utf-8"),
+                'body': message.encode("utf-8"),
+                'topic': self.topic.encode("utf-8")}
+
+        self.mqtt.connect(self.broker, port=self.port, keepalive=self.keep_alive, bind_address=self.bind_address)
+        self.mqtt.loop_start()
+
+        while self.loop_flag == 1 and self.counter < 1000:
+            logger.info(u"PlexPy Notifiers :: MQTT notification: waiting for on_publish to complete %s", self.counter)
+            time.sleep(.01)
+            self.counter+=1
+
+        return self.success
+
+    def test(self, broker, port, keep_alive, bind_address, protocol, username, password, topic):
+        self.enabled = True
+        self.broker = broker
+        self.port = port
+        self.keep_alive = keep_alive
+        self.bind_address = bind_address
+        self.protocol = protocol
+        self.username = username
+        self.password = password
+        self.topic = topic
+
+        self.notify('Main Screen Activate', 'Test Message')
+
+    def return_config_options(self):
+        config_option = [{'label': 'Broker',
+                          'value': self.broker,
+                          'name': 'mqtt_broker',
+                          'description': 'The hostname or IP address of the remote broker.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Port',
+                          'value': self.port,
+                          'name': 'mqtt_port',
+                          'description': 'The network port of the server host to connect to.',
+                          'input_type': 'number',
+                          },
+                         {'label': 'Keep-alive',
+                          'value': self.keep_alive,
+                          'name': 'mqtt_keep_alive',
+                          'description': 'Maximum period in seconds allowed between communications with the broker.',
+                          'input_type': 'number'
+                          },
+                         {'label': 'Bind Address',
+                          'value': self.bind_address,
+                          'name': 'mqtt_bind_address',
+                          'description': 'The IP address of a local network interface to bind this client to, assuming multiple interfaces exist. Typically left empty.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Protocol',
+                          'value': self.protocol,
+                          'name': 'mqtt_protocol',
+                          'description': 'The version of the MQTT protocol to use.',
+                          'input_type': 'select',
+                          'select_options': {'': '',
+                                             'MQTTv31': '3.1',
+                                             'MQTTv311': '3.1.1'
+                                             }
+                          },
+                         {'label': 'Username',
+                          'value': self.username,
+                          'name': 'mqtt_username',
+                          'description': 'The username to authenticate to the mqtt broker.',
+                          'input_type': 'text',
+                          },
+                         {'label': 'Password',
+                          'value': self.password,
+                          'name': 'mqtt_password',
+                          'description': 'The password to authenticate to the mqtt broker.',
+                          'input_type': 'password',
+                          },
+                         {'label': 'Topic',
+                          'value': self.topic,
+                          'name': 'mqtt_topic',
+                          'description': 'The topic to publish notifications to.',
+                          'input_type': 'text'
                           }
                          ]
 
