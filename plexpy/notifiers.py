@@ -3039,15 +3039,18 @@ class MQTT(object):
 
         self.data = {'title': subject.encode("utf-8"),
                      'body': message.encode("utf-8"),
-                     'topic': self.topic.encode("utf-8"),
-                     'plex_url': pretty_metadata.get_plex_url(),
-                     'poster': {
-                       'url': pretty_metadata.get_poster_url(),
-                       'link': pretty_metadata.get_poster_link(),
-                       'caption': pretty_metadata.get_caption(),
-                       'description': pretty_metadata.get_subtitle(),
-                     }
+                     'topic': self.topic.encode("utf-8")
                     }
+
+        if 'metadata' in kwargs:
+            self.data.append({'plex_url': pretty_metadata.get_plex_url(),
+                              'poster': {
+                               'url': pretty_metadata.get_poster_url(),
+                               'link': pretty_metadata.get_poster_link(),
+                               'caption': pretty_metadata.get_caption(),
+                               'description': pretty_metadata.get_subtitle(),
+                              }
+                             })
 
         self.mqtt.connect(self.broker, port=self.port, keepalive=self.keep_alive, bind_address=self.bind_address)
         self.mqtt.loop_start()
