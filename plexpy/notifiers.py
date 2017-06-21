@@ -21,6 +21,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email.utils
 from httplib import HTTPSConnection
+import paho.mqtt.client as mqtt
 import os
 import re
 import requests
@@ -137,6 +138,10 @@ def available_notification_agents():
                'name': 'nma',
                'id': AGENT_IDS['nma']
                },
+              {'label': 'MQTT',
+               'name': 'mqtt',
+               'id': AGENT_IDS['mqtt']
+               },
               {'label': 'Plex Home Theater',
                'name': 'plex',
                'id': AGENT_IDS['plex']
@@ -184,11 +189,6 @@ def available_notification_agents():
         agents.append({'label': 'OSX Notify',
                        'name': 'osx',
                        'id': AGENT_IDS['osx']
-                       })
-    if MQTT().validate():
-        agents.append({'label': 'MQTT',
-                       'name': 'mqtt',
-                       'id': AGENT_IDS['mqtt']
                        })
 
     return agents
@@ -3199,26 +3199,11 @@ class MQTT(Notifier):
         self.retain = False
         self.client_id = 'plexpy'
         logger.info(u"PlexPy Notifiers :: MQTT init.")
-
-        try:
-            self.mqtt = __import__("paho.mqtt.client", globals(), locals(), ['client'], 0)
-            self.mqtt_client = self.mqtt.Client(None, True, None, config['protocol'])
-            self.mqtt_client.username_pw_set(config['username'], config['password'])
-            self.mqtt_client.on_connect = self.on_connect
-            self.mqtt_client.on_publish = self.on_publish
-        except:
-            logger.error(u"PlexPy Notifiers :: Cannot load MQTT Notifications agent.")
-            pass
-
+        self.mqtt_client = mqtt.Client(protocol=self.config['protocol'])
+        self.mqtt_client.username_pw_set(self.config['username'], self.config['password'])
+        self.mqtt_client.on_connect = self.on_connect
+        self.mqtt_client.on_publish = self.on_publish
         logger.info(u"PlexPy Notifiers :: MQTT initialized.")
-
-
-    def validate(self):
-        try:
-            self.mqtt = __import__("paho.mqtt.client", globals(), locals(), ['client'], 0)
-            return True
-        except:
-            return False
 
     def on_connect(self, client, userdata, flags, rc):
         logger.info(u"PlexPy Notifiers :: MQTT notification: connect")
@@ -3240,7 +3225,7 @@ class MQTT(Notifier):
         if rc == 0:
             logger.info(u"PlexPy Notifiers :: MQTT connection: %s.", status)
             logger.info(u"PlexPy Notifiers :: MQTT notification: Publishing message.")
-            (rc, mid) = self.mqtt_client.publish(self.topic, json.dumps(self.data), self.qos, self.retain)
+            (rc, mid) = self.mqtt_client.publish(self.config['topic'], json.dumps(self.data), self.qos, self.retain)
         else:
             logger.warn(u"PlexPy Notifiers :: MQTT connection: %s.", status)
 
