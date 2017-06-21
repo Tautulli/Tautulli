@@ -3035,14 +3035,13 @@ class MQTT(object):
         if not message or not subject:
             return
 
-        pretty_metadata = PrettyMetadata(kwargs['metadata'])
-
         self.data = {'title': subject.encode("utf-8"),
                      'body': message.encode("utf-8"),
                      'topic': self.topic.encode("utf-8")
                     }
 
         if 'metadata' in kwargs:
+            pretty_metadata = PrettyMetadata(kwargs['metadata'])
             self.data.append({'plex_url': pretty_metadata.get_plex_url(),
                               'poster': {
                                'url': pretty_metadata.get_poster_url(),
