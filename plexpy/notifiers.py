@@ -641,7 +641,7 @@ def send_notification(agent_id, subject, body, notify_action, **kwargs):
             return hipchat.notify(message=body, subject=subject, **kwargs)
         elif agent_id == 20:
             mqtt = MQTT()
-            return mqtt.notify(message=body, subject=subject)
+            return mqtt.notify(message=body, subject=subject, **kwargs)
         else:
             logger.debug(u"PlexPy Notifiers :: Unknown agent id received.")
     else:
