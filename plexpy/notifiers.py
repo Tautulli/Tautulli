@@ -2062,9 +2062,10 @@ class SLACK(object):
             data['attachments'] = [attachment]
 
         slackhost = urlparse(self.slack_hook).hostname
+        slackport = urlparse(self.slack_hook).port
         slackpath = urlparse(self.slack_hook).path
 
-        http_handler = HTTPSConnection(slackhost)
+        http_handler = HTTPSConnection(slackhost, slackport)
         http_handler.request("POST",
                              slackpath,
                              headers={'Content-type': "application/json"},
