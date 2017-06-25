@@ -491,6 +491,8 @@ class Libraries(object):
                 results = sorted(results, key=lambda k: helpers.cast_to_int(k['media_index']), reverse=reverse)
             elif sort_key == 'file_size' or sort_key == 'bitrate':
                 results = sorted(results, key=lambda k: helpers.cast_to_int(k[sort_key]), reverse=reverse)
+            elif sort_key == 'video_resolution':
+                results = sorted(results, key=lambda k: helpers.cast_to_int(k[sort_key].replace('4k', '2160p').rstrip('p')), reverse=reverse)
             else:
                 results = sorted(results, key=lambda k: k[sort_key], reverse=reverse)
 
