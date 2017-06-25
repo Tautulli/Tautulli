@@ -382,7 +382,7 @@ class Libraries(object):
                 pass
 
         # If no cache was imported, get all library children items
-        cached_items = {d['rating_key']: d['file_size'] for d in rows}
+        cached_items = {d['rating_key']: d['file_size'] for d in rows} if not refresh else {}
 
         if refresh or not rows:
             pms_connect = pmsconnect.PmsConnect()
