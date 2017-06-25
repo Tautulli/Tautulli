@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.4.20 (2017-06-24)
+
+* New: Added platform image for the PlexTogether player.
+* Fix: Corrected math used to calculate human duration. (Thanks @senepa)
+* Fix: Sorting of 4k in media info tables.
+* Fix: Update file sizes when refreshing media info tables.
+* Fix: Support a custom port for Mattermost (Slack) notifications.
+
+
 ## v1.4.19 (2017-05-31)
 
 * Fix: Video resolution not showing up for transcoded streams on PMS 1.7.x.
