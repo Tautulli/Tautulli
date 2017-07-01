@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.21 (2017-07-01)
+
+* New: Updated donation methods.
+
+
 ## v1.4.20 (2017-06-24)
 
 * New: Added platform image for the PlexTogether player.
