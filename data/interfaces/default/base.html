@@ -373,10 +373,10 @@ ${next.headerIncludes()}
 <script src="${http_root}js/bootstrap-hover-dropdown.min.js"></script>
 <script src="${http_root}js/pnotify.custom.min.js"></script>
 <script src="${http_root}js/script.js"></script>
+<script src="${http_root}js/jquery.qrcode.min.js"></script>
 % if _session['user_group'] == 'admin' and plexpy.CONFIG.BROWSER_ENABLED:
 <script src="${http_root}js/ajaxNotifications.js"></script>
 % else:
-<script src="${http_root}js/jquery.qrcode.min.js"></script>
 % endif
 <script>
     % if _session['user_group'] == 'admin':
