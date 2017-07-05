@@ -222,7 +222,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             values = condition['value']
 
             # Set blank conditions to None
-            if not values:
+            if not parameter or not operator or not values:
                 evaluated_conditions.append(None)
                 continue
 
