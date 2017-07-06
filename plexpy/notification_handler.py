@@ -211,15 +211,13 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                          % (custom_conditions_logic, e))
             return False
 
-        param_types = {param['value']: param['type']
-                       for category in common.NOTIFICATION_PARAMETERS for param in category['parameters']}
-
         evaluated_conditions = [None]  # Set condition {0} to None
 
         for condition in custom_conditions:
             parameter = condition['parameter']
             operator = condition['operator']
             values = condition['value']
+            parameter_type = condition['type']
 
             # Set blank conditions to None
             if not parameter or not operator or not values:
@@ -230,8 +228,6 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             if isinstance(values, basestring):
                 values = [values]
 
-            parameter_type = param_types[parameter]
-            
             # Cast the condition values to the correct type
             try:
                 if parameter_type == 'str':
@@ -283,11 +279,15 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             elif operator == 'ends with':
                 evaluated_conditions.append(parameter_value.endswith(tuple(values)))
 
-            elif operator == 'greater than':
+            elif operator == 'is greater than':
                 evaluated_conditions.append(any(parameter_value > c for c in values))
 
-            elif operator == 'less than':
+            elif operator == 'is less than':
                 evaluated_conditions.append(any(parameter_value < c for c in values))
+
+            else:
+                logger.warn(u"PlexPy NotificationHandler :: Invalid condition operator '%s'." % operator)
+                evaluated_conditions.append(None)
 
         # Format and evaluate the logic string
         try:
