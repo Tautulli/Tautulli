@@ -21,7 +21,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email.utils
 from httplib import HTTPSConnection
-import paho.mqtt.client as mqtt
+from paho.mqtt.publish import single
 import os
 import re
 import requests
@@ -1917,6 +1917,119 @@ class JOIN(Notifier):
         return config_option
 
 
+class MQTT(Notifier):
+    """
+    MQTT notifications
+    """
+    _DEFAULT_CONFIG = {'broker': '',
+                       'port': 1883,
+                       'protocol': 'MQTTv311',
+                       'username': '',
+                       'password': '',
+                       'client_id': 'plexpy',
+                       'topic': '',
+                       'qos': 1,
+                       'retain': 0,
+                       'keep_alive': 60
+                       }
+
+    def notify(self, subject='', body='', action='', **kwargs):
+        if not subject or not body:
+            return
+
+        if not self.config['topic']:
+            logger.error(u"PlexPy Notifiers :: MQTT topic not specified.")
+            return
+
+        data = {'subject': subject.encode("utf-8"),
+                'body': body.encode("utf-8"),
+                'topic': self.config['topic'].encode("utf-8")}
+
+        auth = {}
+        if self.config['username']:
+            auth['username'] = self.config['username']
+        if self.config['password']:
+            auth['password'] = self.config['password']
+
+        single(self.config['topic'], payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
+               hostname=self.config['broker'], port=self.config['port'], client_id=self.config['client_id'],
+               keepalive=self.config['keep_alive'], auth=auth or None, protocol=self.config['protocol'])
+
+        return True
+
+    def return_config_options(self):
+        config_option = [{'label': 'Broker',
+                          'value': self.config['broker'],
+                          'name': 'mqtt_broker',
+                          'description': 'The hostname or IP address of the MQTT broker.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Port',
+                          'value': self.config['port'],
+                          'name': 'mqtt_port',
+                          'description': 'The network port for connecting to the MQTT broker.',
+                          'input_type': 'number'
+                          },
+                         {'label': 'Protocol',
+                          'value': self.config['protocol'],
+                          'name': 'mqtt_protocol',
+                          'description': 'The MQTT protocol version.',
+                          'input_type': 'select',
+                          'select_options': {'MQTTv31': '3.1',
+                                             'MQTTv311': '3.1.1'
+                                             }
+                          },
+                         {'label': 'Client ID',
+                          'value': self.config['client_id'],
+                          'name': 'mqtt_client_id',
+                          'description': 'The client ID for connecting to the MQTT broker.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Username',
+                          'value': self.config['username'],
+                          'name': 'mqtt_username',
+                          'description': 'The username to authenticate with the MQTT broker.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Password',
+                          'value': self.config['password'],
+                          'name': 'mqtt_password',
+                          'description': 'The password to authenticate with the MQTT broker.',
+                          'input_type': 'password'
+                          },
+                         {'label': 'Topic',
+                          'value': self.config['topic'],
+                          'name': 'mqtt_topic',
+                          'description': 'The topic to publish notifications to.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Quality of Service',
+                          'value': self.config['qos'],
+                          'name': 'mqtt_qos',
+                          'description': 'The quality of service level to use when publishing the notification.',
+                          'input_type': 'select',
+                          'select_options': {0: 0,
+                                             1: 1,
+                                             2: 2
+                                             }
+                          },
+                         {'label': 'Retain Message',
+                          'value': self.config['retain'],
+                          'name': 'mqtt_retain',
+                          'description': 'Set the message to be retained on the MQTT broker.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Keep-Alive',
+                          'value': self.config['keep_alive'],
+                          'name': 'mqtt_keep_alive',
+                          'description': 'Maximum period in seconds before timing out the connection with the broker.',
+                          'input_type': 'number'
+                          }
+                         ]
+
+        return config_option
+
+
 class NMA(Notifier):
     """
     Notify My Android notifications
@@ -3168,155 +3281,6 @@ class XBMC(Notifier):
                           'value': self.config['image'],
                           'name': 'xbmc_image',
                           'description': 'Full path or URL to an image to display with the notification. Leave blank for the default.',
-                          'input_type': 'text'
-                          }
-                         ]
-
-        return config_option
-
-
-class MQTT(Notifier):
-    """
-    MQTT notifications
-    """
-    _DEFAULT_CONFIG = {'broker': '',
-                       'port': '1883',
-                       'keep_alive': '60',
-                       'bind_address': '',
-                       'protocol': 'MQTTv311',
-                       'username': '',
-                       'password': '',
-                       'topic': ''
-                       }
-
-    def __init__(self, config=None):
-        self.set_config(config)
-        self.data = ''
-        self.loop_flag = 1
-        self.counter = 0
-        self.success = False
-        self.qos = 1
-        self.retain = False
-        self.client_id = 'plexpy'
-        logger.info(u"PlexPy Notifiers :: MQTT init.")
-        self.mqtt_client = mqtt.Client(protocol=self.config['protocol'])
-        self.mqtt_client.username_pw_set(self.config['username'], self.config['password'])
-        self.mqtt_client.on_connect = self.on_connect
-        self.mqtt_client.on_publish = self.on_publish
-        logger.info(u"PlexPy Notifiers :: MQTT initialized.")
-
-    def on_connect(self, client, userdata, flags, rc):
-        logger.info(u"PlexPy Notifiers :: MQTT notification: connect")
-        if rc == 0:
-            status = 'Connection successful'
-        elif rc == 1:
-            status = 'Connection refused - incorrect protocol version'
-        elif rc == 2:
-            status = 'Connection refused - invalid client identifier'
-        elif rc == 3:
-            status = 'Connection refused - server unavailable'
-        elif rc == 4:
-            status = 'Connection refused - bad username or password'
-        elif rc == 5:
-            status = 'Connection refused - not authorised'
-        else:
-            status = 'Connection refused - unknown error'
-
-        if rc == 0:
-            logger.info(u"PlexPy Notifiers :: MQTT connection: %s.", status)
-            logger.info(u"PlexPy Notifiers :: MQTT notification: Publishing message.")
-            (rc, mid) = self.mqtt_client.publish(self.config['topic'], json.dumps(self.data), self.qos, self.retain)
-        else:
-            logger.warn(u"PlexPy Notifiers :: MQTT connection: %s.", status)
-
-    def on_publish(self, client, userdata, mid):
-        logger.info(u"PlexPy Notifiers :: MQTT notification: publish")
-        self.mqtt_client.disconnect()
-        self.mqtt_client.loop_stop()
-        self.loop_flag = 0
-        if mid == 1:
-            self.success = True
-            logger.info(u"PlexPy Notifiers :: MQTT notification: Publishing succeeded.")
-            if self.qos == 0:
-                logger.info(u"PlexPy Notifiers :: MQTT notification: Note that because QoS is set to %s we can't be sure everything was delivered, only that the message was sent.", self.qos)
-        else:
-            logger.warn(u"PlexPy Notifiers :: MQTT notification: Publishing failed.")
-
-    def notify(self, subject='', body='', action='', **kwargs):
-        logger.info(u"PlexPy Notifiers :: MQTT notification: notify.")
-        if not subject or not body:
-            return
-        logger.info(u"PlexPy Notifiers :: MQTT notification: subject/body okay.")
-        self.data = {'title': subject.encode("utf-8"),
-                     'body': body.encode("utf-8"),
-                     'topic': self.config['topic'].encode("utf-8")}
-        logger.info(u"PlexPy Notifiers :: MQTT notification: data okay.")
-
-        self.mqtt_client.connect(self.config['broker'], port=self.config['port'], keepalive=self.config['keep_alive'], bind_address=self.config['bind_address'])
-        self.mqtt_client.loop_start()
-        logger.info(u"PlexPy Notifiers :: MQTT notification: connect ran.")
-        logger.info(u"PlexPy Notifiers :: MQTT notification: loop started.")
-
-        while self.loop_flag == 1 and self.counter < 1000:
-            logger.info(u"PlexPy Notifiers :: MQTT notification: waiting for on_publish to complete %s", self.counter)
-            time.sleep(.01)
-            self.counter+=1
-
-        self.mqtt_client.disconnect()
-        self.mqtt_client.loop_stop()
-        return self.success
-
-    def return_config_options(self):
-        config_option = [{'label': 'Broker',
-                          'value': self.config['broker'],
-                          'name': 'mqtt_broker',
-                          'description': 'The hostname or IP address of the remote broker.',
-                          'input_type': 'text'
-                          },
-                         {'label': 'Port',
-                          'value': self.config['port'],
-                          'name': 'mqtt_port',
-                          'description': 'The network port of the server host to connect to.',
-                          'input_type': 'number'
-                          },
-                         {'label': 'Keep-alive',
-                          'value': self.config['keep_alive'],
-                          'name': 'mqtt_keep_alive',
-                          'description': 'Maximum period in seconds allowed between communications with the broker.',
-                          'input_type': 'number'
-                          },
-                         {'label': 'Bind Address',
-                          'value': self.config['bind_address'],
-                          'name': 'mqtt_bind_address',
-                          'description': 'The IP address of a local network interface to bind this client to, assuming multiple interfaces exist. Typically left empty.',
-                          'input_type': 'text'
-                          },
-                         {'label': 'Protocol',
-                          'value': self.config['protocol'],
-                          'name': 'mqtt_protocol',
-                          'description': 'The version of the MQTT protocol to use.',
-                          'input_type': 'select',
-                          'select_options': {'': '',
-                                             'MQTTv31': '3.1',
-                                             'MQTTv311': '3.1.1'
-                                             }
-                          },
-                         {'label': 'Username',
-                          'value': self.config['username'],
-                          'name': 'mqtt_username',
-                          'description': 'The username to authenticate to the mqtt broker.',
-                          'input_type': 'text'
-                          },
-                         {'label': 'Password',
-                          'value': self.config['password'],
-                          'name': 'mqtt_password',
-                          'description': 'The password to authenticate to the mqtt broker.',
-                          'input_type': 'password'
-                          },
-                         {'label': 'Topic',
-                          'value': self.config['topic'],
-                          'name': 'mqtt_topic',
-                          'description': 'The topic to publish notifications to.',
                           'input_type': 'text'
                           }
                          ]
