@@ -205,7 +205,6 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
         try:
             # Parse and validate the custom conditions logic
             logic_groups = helpers.parse_condition_logic_string(custom_conditions_logic, len(custom_conditions))
-            logic_string = helpers.nested_list_to_string(logic_groups)
         except ValueError as e:
             logger.error(u"PlexPy NotificationHandler :: Unable to parse custom condition logic '%s': %s."
                          % (custom_conditions_logic, e))
@@ -291,7 +290,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 
         # Format and evaluate the logic string
         try:
-            evaluated_logic = bool(eval(logic_string.format(*evaluated_conditions)))
+            evaluated_logic = helpers.eval_logic_groups_to_bool(logic_groups, evaluated_conditions)
         except Exception as e:
             logger.error(u"PlexPy NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
             return False

@@ -814,6 +814,7 @@ def parse_condition_logic_string(s, num_cond=0):
     bool_next = False
     open_bracket_next = True
     close_bracket_next = False
+    nest_and = False
     
     for i, x in enumerate(tokens):
         if open_bracket_next and x == '(':
@@ -823,6 +824,7 @@ def parse_condition_logic_string(s, num_cond=0):
             bool_next = False
             open_bracket_next = True
             close_bracket_next = False
+            nest_and = False
             
         elif close_bracket_next and x == ')':
             stack.pop()
@@ -832,6 +834,7 @@ def parse_condition_logic_string(s, num_cond=0):
             bool_next = True
             open_bracket_next = False
             close_bracket_next = True
+            nest_and = False
             
         elif cond_next and re.match(conditions_pattern, x):
             try:
@@ -840,18 +843,33 @@ def parse_condition_logic_string(s, num_cond=0):
                 raise ValueError('invalid condition logic')
             if not 0 < num <= num_cond:
                 raise ValueError('invalid condition number in condition logic')
-            stack[-1].append(x)
+            stack[-1].append(num)
+            if nest_and:
+                stack.pop()
             cond_next = False
             bool_next = True
             open_bracket_next = False
             close_bracket_next = True
+            nest_and = False
             
-        elif bool_next and x in ('and', 'or') and i < len(tokens)-1:
+        elif bool_next and x == 'and' and i < len(tokens)-1:
+            stack[-1].append([])
+            stack.append(stack[-1][-1])
+            stack[-1].append(stack[-2].pop(-2))
             stack[-1].append(x)
             cond_next = True
             bool_next = False
             open_bracket_next = True
             close_bracket_next = False
+            nest_and = True
+            
+        elif bool_next and x == 'or' and i < len(tokens)-1:
+            stack[-1].append(x)
+            cond_next = True
+            bool_next = False
+            open_bracket_next = True
+            close_bracket_next = False
+            nest_and = False
             
         else:
             raise ValueError('invalid condition logic')
@@ -867,3 +885,24 @@ def nested_list_to_string(l):
             l[i] = nested_list_to_string(x)
     s = '(' + ' '.join(l) + ')'
     return s
+
+def eval_logic_groups_to_bool(logic_groups, eval_conds):
+    first_cond = logic_groups[0]
+
+    if isinstance(first_cond, list):
+        result = eval_logic_groups_to_bool(first_cond, eval_conds)
+    else:
+        result = eval_conds[first_cond]
+
+    for op, cond in zip(logic_groups[1::2], logic_groups[2::2]):
+        if isinstance(cond, list):
+            eval_cond = eval_logic_groups_to_bool(cond, eval_conds)
+        else:
+            eval_cond = eval_conds[cond]
+
+        if op == 'and':
+            result = result and eval_cond
+        elif op == 'or':
+            result = result or eval_cond
+
+    return result
