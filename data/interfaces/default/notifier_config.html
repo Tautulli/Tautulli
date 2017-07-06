@@ -143,9 +143,12 @@
                                 <label for="custom_condition_logic">Condition Logic</label>
                                 <input type="text" class="form-control" name="custom_conditions_logic" id="custom_conditions_logic" value="${notifier['custom_conditions_logic']}" required />
                                 <p class="help-block">
-                                    Enter the logic to use when evaluating the conditions.
-                                    Only the keywords <span class="inline-pre">and</span>/<span class="inline-pre">or</span> and brackets <span class="inline-pre">()</span> are supported.
-                                    (e.g. <span class="inline-pre">{1} and ({2} or {3})</span>).</p>
+                                    Enter the logic to use when evaluating the conditions (e.g. <span class="inline-pre">{1} and ({2} or {3})</span>).
+                                </p>
+                                <p class="help-block">
+                                    Note: Only the keywords <span class="inline-pre">and</span>/<span class="inline-pre">or</span> and brackets <span class="inline-pre">()</span> are supported.
+                                    For order of operations, <span class="inline-pre">and</span> is evaluated before <span class="inline-pre">or</span>.
+                                </p>
                             </div>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="tabs-notify_text">
