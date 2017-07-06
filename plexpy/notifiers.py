@@ -87,7 +87,8 @@ AGENT_IDS = {'growl': 0,
              'join': 18,
              'hipchat': 19,
              'discord': 20,
-             'androidapp': 21
+             'androidapp': 21,
+             'groupme': 22
              }
 
 
@@ -115,6 +116,10 @@ def available_notification_agents():
               {'label': 'Facebook',
                'name': 'facebook',
                'id': AGENT_IDS['facebook']
+               },
+              {'label': 'GroupMe',
+               'name': 'groupme',
+               'id': AGENT_IDS['groupme']
                },
               {'label': 'Growl',
                'name': 'growl',
@@ -362,6 +367,8 @@ def get_agent_class(agent_id=None, config=None):
             return DISCORD(config=config)
         elif agent_id == 21:
             return ANDROIDAPP(config=config)
+        elif agent_id == 22:
+            return GROUPME(config=config)
         else:
             return Notifier(config=config)
     else:
@@ -1496,6 +1503,98 @@ class FACEBOOK(Notifier):
                           'name': 'facebook_incl_pmslink',
                           'description': 'Include a link to the media in Plex Web on the info card.<br>'
                                          'If disabled, the link will go to IMDB, TVDB, TMDb, or Last.fm instead, if available.',
+                          'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+
+
+class GROUPME(Notifier):
+    """
+    GroupMe notifications
+    """
+    _DEFAULT_CONFIG = {'access_token': '',
+                       'bot_id': '',
+                       'incl_subject': 1,
+                       'incl_poster': 0
+                       }
+
+    def notify(self, subject='', body='', action='', **kwargs):
+        if not subject or not body:
+            return
+
+        data = {'bot_id': self.config['bot_id']}
+
+        if self.config['incl_subject']:
+            data['text'] = subject.encode('utf-8') + '\r\n' + body.encode('utf-8')
+        else:
+            data['text'] = body.encode('utf-8')
+
+        if self.config['incl_poster'] and kwargs.get('parameters'):
+            parameters = kwargs['parameters']
+            poster_url = parameters.get('poster_url','')
+
+            if poster_url:
+                headers = {'X-Access-Token': self.config['access_token'],
+                           'Content-Type': 'image/jpeg'}
+                poster_data = urllib.urlopen(poster_url).read()
+
+                response = requests.post('https://image.groupme.com/pictures',
+                                         headers=headers,
+                                         data=poster_data)
+                request_status = response.status_code
+                request_content = json.loads(response.text)
+
+                if request_status == 200:
+                    logger.info(u"PlexPy Notifiers :: GroupMe poster sent.")
+                    data['attachments'] = [{'type': 'image',
+                                            'url': request_content['payload']['picture_url']}]
+                elif request_status >= 400 and request_status <= 500:
+                    logger.warn(u"PlexPy Notifiers :: GroupMe poster failed: %s" % request_content.get('errors'))
+                else:
+                    logger.warn(u"PlexPy Notifiers :: GroupMe poster failed.")
+
+        http_handler = HTTPSConnection("api.groupme.com")
+        http_handler.request("POST",
+                             "/v3/bots/post",
+                             body=json.dumps(data))
+        response = http_handler.getresponse()
+        request_status = response.status
+
+        if request_status == 202:
+            logger.info(u"PlexPy Notifiers :: GroupMe notification sent.")
+            return True
+        elif request_status >= 400 and request_status < 500:
+            logger.warn(u"PlexPy Notifiers :: GroupMe notification failed: [%s] %s" % (request_status, response.reason))
+            return False
+        else:
+            logger.warn(u"PlexPy Notifiers :: GroupMe notification failed.")
+            return False
+
+    def return_config_options(self):
+        config_option = [{'label': 'GroupMe Access Token',
+                          'value': self.config['access_token'],
+                          'name': 'groupme_access_token',
+                          'description': 'Your GroupMe access token.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'GroupMe Bot ID',
+                          'value': self.config['bot_id'],
+                          'name': 'groupme_bot_id',
+                          'description': 'Your GroupMe bot ID.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'groupme_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.config['incl_poster'],
+                          'name': 'groupme_incl_poster',
+                          'description': 'Include a poster with the notifications.',
                           'input_type': 'checkbox'
                           }
                          ]
