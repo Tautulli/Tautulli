@@ -814,7 +814,8 @@ def parse_condition_logic_string(s, num_cond=0):
     bool_next = False
     open_bracket_next = True
     close_bracket_next = False
-    nest_and = False
+    nest_and = 0
+    nest_nest_and = 0
     
     for i, x in enumerate(tokens):
         if open_bracket_next and x == '(':
@@ -824,7 +825,8 @@ def parse_condition_logic_string(s, num_cond=0):
             bool_next = False
             open_bracket_next = True
             close_bracket_next = False
-            nest_and = False
+            if nest_and:
+                nest_nest_and += 1
             
         elif close_bracket_next and x == ')':
             stack.pop()
@@ -834,8 +836,11 @@ def parse_condition_logic_string(s, num_cond=0):
             bool_next = True
             open_bracket_next = False
             close_bracket_next = True
-            nest_and = False
-            
+            if nest_and > 0 and nest_nest_and > 0 and nest_and == nest_nest_and:
+                stack.pop()
+                nest_and -= 1
+                nest_nest_and -= 1
+
         elif cond_next and re.match(conditions_pattern, x):
             try:
                 num = int(x[1:-1])
@@ -844,13 +849,13 @@ def parse_condition_logic_string(s, num_cond=0):
             if not 0 < num <= num_cond:
                 raise ValueError('invalid condition number in condition logic')
             stack[-1].append(num)
-            if nest_and:
-                stack.pop()
             cond_next = False
             bool_next = True
             open_bracket_next = False
             close_bracket_next = True
-            nest_and = False
+            if nest_and > nest_nest_and:
+                stack.pop()
+                nest_and -= 1
             
         elif bool_next and x == 'and' and i < len(tokens)-1:
             stack[-1].append([])
@@ -861,7 +866,7 @@ def parse_condition_logic_string(s, num_cond=0):
             bool_next = False
             open_bracket_next = True
             close_bracket_next = False
-            nest_and = True
+            nest_and += 1
             
         elif bool_next and x == 'or' and i < len(tokens)-1:
             stack[-1].append(x)
@@ -869,8 +874,7 @@ def parse_condition_logic_string(s, num_cond=0):
             bool_next = False
             open_bracket_next = True
             close_bracket_next = False
-            nest_and = False
-            
+
         else:
             raise ValueError('invalid condition logic')
 
