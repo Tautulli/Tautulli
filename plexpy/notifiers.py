@@ -686,15 +686,27 @@ class Notifier(object):
     def notify(self, subject='', body='', action='', **kwargs):
         pass
 
-    def notify_success(self, req=None):
-        if req is not None:
-            if req.status_code >= 200 and req.status_code < 300:
-                logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
-                return True
-            else:
-                logger.error(u"PlexPy Notifiers :: {name} notification failed: "
-                             "[{r.status_code}] {r.reason}: {r.text}".format(name=self.NAME, r=req))
-                return False
+    def make_request(self, url, method='POST', **kwargs):
+        response, err_msg, req_msg = request.request_response2(url, method, **kwargs)
+
+        if response and not err_msg:
+            logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
+            return True
+
+        else:
+            verify_msg = ""
+            if response is not None and response.status_code >= 400 and response.status_code < 500:
+                verify_msg = " Verify you notification agent settings are correct."
+
+            logger.error(u"PlexPy Notifiers :: {name} notification failed.{}".format(verify_msg, name=self.NAME))
+
+            if err_msg:
+                logger.error(u"PlexPy Notifiers :: {}".format(err_msg))
+
+            if req_msg:
+                logger.debug(u"PlexPy Notifiers :: Request response: {}".format(req_msg))
+
+            return False
 
     def return_config_options(self):
         config_options = []
@@ -784,11 +796,7 @@ class ANDROIDAPP(Notifier):
 
         headers = {'Content-Type': 'application/json'}
 
-        r = requests.post("https://onesignal.com/api/v1/notifications", headers=headers, json=payload)
-
-        #logger.debug("OneSignal response: {}".format(r.content))
-
-        return self.notify_success(req=r)
+        return self.make_request("https://onesignal.com/api/v1/notifications", headers=headers, json=payload)
 
     def get_devices(self):
         db = database.MonitorDatabase()
@@ -889,9 +897,7 @@ class BOXCAR(Notifier):
                 'notification[sound]': self.config['sound']
                 }
 
-        r = requests.post('https://new.boxcar.io/api/notifications', params=data)
-
-        return self.notify_success(req=r)
+        return self.make_request('https://new.boxcar.io/api/notifications', params=data)
 
     def get_sounds(self):
         sounds = {'': '',
@@ -1087,9 +1093,7 @@ class DISCORD(Notifier):
         headers = {'Content-type': 'application/json'}
         params = {'wait': True}
 
-        r = requests.post(self.config['hook'], params=params, headers=headers, json=data)
-
-        return self.notify_success(req=r)
+        return self.make_request(self.config['hook'], params=params, headers=headers, json=data)
 
     def return_config_options(self):
         config_option = [{'label': 'Discord Webhook URL',
@@ -1530,12 +1534,11 @@ class GROUPME(Notifier):
                     data['attachments'] = [{'type': 'image',
                                             'url': r_content['payload']['picture_url']}]
                 else:
-                    logger.error(u"PlexPy Notifiers :: {name} poster failed: [{r.status_code}] {r.reason}: {r.text}".format(name=self.NAME, r=r))
+                    logger.error(u"PlexPy Notifiers :: {name} poster failed: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                    logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
                     return False
 
-        r = requests.post('https://api.groupme.com/v3/bots/post', json=data)
-
-        return self.notify_success(req=r)
+        return self.make_request('https://api.groupme.com/v3/bots/post', json=data)
 
     def return_config_options(self):
         config_option = [{'label': 'GroupMe Access Token',
@@ -1731,9 +1734,7 @@ class HIPCHAT(Notifier):
 
         headers = {'Content-type': 'application/json'}
 
-        r = requests.post(self.config['api_url'], json=data)
-
-        return self.notify_success(req=r)
+        return self.make_request(self.config['api_url'], json=data)
 
     def return_config_options(self):
         config_option = [{'label': 'Hipchat Custom Integrations Full URL',
@@ -1815,10 +1816,8 @@ class IFTTT(Notifier):
 
         headers = {'Content-type': 'application/json'}
 
-        r = requests.post('https://maker.ifttt.com/trigger/{}/with/key/{}'.format(event, self.config['key']),
-                          headers=headers, json=data)
-
-        return self.notify_success(req=r)
+        return self.make_request('https://maker.ifttt.com/trigger/{}/with/key/{}'.format(event, self.config['key']),
+                                 headers=headers, json=data)
 
     def return_config_options(self):
         config_option = [{'label': 'Ifttt Maker Channel Key',
@@ -1878,8 +1877,8 @@ class JOIN(Notifier):
                 logger.error(u"PlexPy Notifiers :: {name} notification failed: {msg}".format(name=self.NAME, msg=error_msg))
                 return False
         else:
-            logger.error(u"PlexPy Notifiers :: {name} notification failed: "
-                         "[{r.status_code}] {r.reason}: {r.text}".format(name=self.NAME, r=req))
+            logger.error(u"PlexPy Notifiers :: {name} notification failed: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+            logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
             return False
 
     def get_devices(self):
@@ -1900,8 +1899,8 @@ class JOIN(Notifier):
                     logger.info(u"PlexPy Notifiers :: Unable to retrieve {name} devices list: {msg}".format(name=self.NAME, msg=error_msg))
                     return {'': ''}
             else:
-                logger.error(u"PlexPy Notifiers :: Unable to retrieve {name} devices list: "
-                             "[{r.status_code}] {r.reason}: {r.text}".format(name=self.NAME, r=req))
+                logger.error(u"PlexPy Notifiers :: Unable to retrieve {name} devices list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
                 return {'': ''}
 
         else:
@@ -2222,9 +2221,7 @@ class PROWL(Notifier):
         
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
-        r = requests.post('https://api.prowlapp.com/publicapi/add', headers=headers, data=data)
-
-        return self.notify_success(req=r)
+        return self.make_request('https://api.prowlapp.com/publicapi/add', headers=headers, data=data)
 
     def return_config_options(self):
         config_option = [{'label': 'Prowl API Key',
@@ -2263,9 +2260,7 @@ class PUSHALOT(Notifier):
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
-        r = requests.post('https://pushalot.com/api/sendmessage', headers=headers, data=data)
-
-        return self.notify_success(req=r)
+        return self.make_request('https://pushalot.com/api/sendmessage', headers=headers, data=data)
 
     def return_config_options(self):
         config_option = [{'label': 'Pushalot API Key',
@@ -2307,9 +2302,7 @@ class PUSHBULLET(Notifier):
                    'Access-Token': self.config['apikey']
                    }
 
-        r = requests.post('https://api.pushbullet.com/v2/pushes', headers=headers, json=data)
-
-        return self.notify_success(req=r)
+        return self.make_request('https://api.pushbullet.com/v2/pushes', headers=headers, json=data)
 
     def get_devices(self):
         if self.config['apikey']:
@@ -2326,8 +2319,8 @@ class PUSHBULLET(Notifier):
                 devices.update({'': ''})
                 return devices
             else:
-                logger.error(u"PlexPy Notifiers :: Unable to retrieve {name} devices list: "
-                             "[{r.status_code}] {r.reason}: {r.text}".format(name=self.NAME, r=req))
+                logger.error(u"PlexPy Notifiers :: Unable to retrieve {name} devices list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
                 return {'': ''}
 
         else:
@@ -2402,9 +2395,7 @@ class PUSHOVER(Notifier):
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
-        r = requests.post('https://api.pushover.net/1/messages.json', headers=headers, data=data)
-
-        return self.notify_success(req=r)
+        return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data)
 
     def get_sounds(self):
         if self.config['apitoken']:
@@ -2418,8 +2409,8 @@ class PUSHOVER(Notifier):
                 sounds.update({'': ''})
                 return sounds
             else:
-                logger.error(u"PlexPy Notifiers :: Unable to retrieve {name} sounds list: "
-                             "[{r.status_code}] {r.reason}: {r.text}".format(name=self.NAME, r=req))
+                logger.error(u"PlexPy Notifiers :: Unable to retrieve {name} sounds list: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
                 return {'': ''}
 
         else:
@@ -2735,9 +2726,7 @@ class SLACK(Notifier):
 
         headers = {'Content-type': 'application/json'}
 
-        r = requests.post(self.config['hook'], headers=headers, json=data)
-
-        return self.notify_success(req=r)
+        return self.make_request(self.config['hook'], headers=headers, json=data)
 
     def return_config_options(self):
         config_option = [{'label': 'Slack Webhook URL',
@@ -2848,7 +2837,8 @@ class TELEGRAM(Notifier):
                 if r.status_code == 200:
                     logger.info(u"PlexPy Notifiers :: {name} poster sent.".format(name=self.NAME))
                 else:
-                    logger.error(u"PlexPy Notifiers :: {name} poster failed: [{r.status_code}] {r.reason}: {r.text}".format(name=self.NAME, r=r))
+                    logger.error(u"PlexPy Notifiers :: {name} poster failed: [{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                    logger.debug(u"PlexPy Notifiers :: Request response: {}".format(request.server_message(r, True)))
 
         data['text'] = text
 
@@ -2860,9 +2850,7 @@ class TELEGRAM(Notifier):
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
-        r = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(self.config['bot_token']), headers=headers, data=data)
-
-        return self.notify_success(req=r)
+        return self.make_request('https://api.telegram.org/bot{}/sendMessage'.format(self.config['bot_token']), headers=headers, data=data)
 
     def return_config_options(self):
         config_option = [{'label': 'Telegram Bot Token',
