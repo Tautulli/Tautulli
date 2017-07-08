@@ -309,20 +309,8 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def home_stats(self, **kwargs):
-        grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
-        time_range = plexpy.CONFIG.HOME_STATS_LENGTH
-        stats_type = plexpy.CONFIG.HOME_STATS_TYPE
-        stats_count = plexpy.CONFIG.HOME_STATS_COUNT
-        stats_cards = plexpy.CONFIG.HOME_STATS_CARDS
-        notify_watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
-
         data_factory = datafactory.DataFactory()
-        stats_data = data_factory.get_home_stats(grouping=grouping,
-                                                 time_range=time_range,
-                                                 stats_type=stats_type,
-                                                 stats_count=stats_count,
-                                                 stats_cards=stats_cards,
-                                                 notify_watched_percent=notify_watched_percent)
+        stats_data = data_factory.get_home_stats()
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
 
@@ -2600,7 +2588,6 @@ class WebInterface(object):
             "notify_group_recently_added_parent": checked(plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT),
             "notify_concurrent_by_ip": checked(plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP),
             "notify_concurrent_threshold": plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
-            "notify_watched_percent": plexpy.CONFIG.NOTIFY_WATCHED_PERCENT,
             "home_sections": json.dumps(plexpy.CONFIG.HOME_SECTIONS),
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
             "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
@@ -2617,7 +2604,10 @@ class WebInterface(object):
             "plexpy_auto_update": checked(plexpy.CONFIG.PLEXPY_AUTO_UPDATE),
             "git_branch": plexpy.CONFIG.GIT_BRANCH,
             "git_path": plexpy.CONFIG.GIT_PATH,
-            "git_remote": plexpy.CONFIG.GIT_REMOTE
+            "git_remote": plexpy.CONFIG.GIT_REMOTE,
+            "movie_watched_percent": plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
+            "tv_watched_percent": plexpy.CONFIG.TV_WATCHED_PERCENT,
+            "music_watched_percent": plexpy.CONFIG.MUSIC_WATCHED_PERCENT
         }
 
         return serve_template(templatename="settings.html", title="Settings", config=config, kwargs=kwargs)
@@ -4581,16 +4571,11 @@ class WebInterface(object):
                      ]
             ```
         """
-        stats_cards = plexpy.CONFIG.HOME_STATS_CARDS
-        notify_watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
-
         data_factory = datafactory.DataFactory()
         result = data_factory.get_home_stats(grouping=grouping,
                                              time_range=time_range,
                                              stats_type=stats_type,
-                                             stats_count=stats_count,
-                                             stats_cards=stats_cards,
-                                             notify_watched_percent=notify_watched_percent)
+                                             stats_count=stats_count)
 
         if result:
             return result

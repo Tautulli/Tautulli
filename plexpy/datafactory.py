@@ -182,7 +182,11 @@ class DataFactory(object):
 
         filter_duration = 0
         total_duration = self.get_total_duration(custom_where=custom_where)
-        watched_percent = plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
+
+        watched_percent = {'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
+                           'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
+                           'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT
+                           }
 
         rows = []
         for item in history:
@@ -195,9 +199,9 @@ class DataFactory(object):
             else:
                 thumb = item['thumb']
 
-            if item['percent_complete'] >= watched_percent:
+            if item['percent_complete'] >= watched_percent[item['media_type']]:
                 watched_status = 1
-            elif item['percent_complete'] >= watched_percent/2:
+            elif item['percent_complete'] >= watched_percent[item['media_type']]/2:
                 watched_status = 0.5
             else:
                 watched_status = 0
@@ -251,8 +255,18 @@ class DataFactory(object):
 
         return dict
 
-    def get_home_stats(self, grouping=0, time_range='30', stats_type=0, stats_count='5', stats_cards=[], notify_watched_percent='85'):
+    def get_home_stats(self, grouping=0, time_range=0, stats_type=0, stats_count=0, stats_cards=[]):
         monitor_db = database.MonitorDatabase()
+
+        grouping = grouping or plexpy.CONFIG.GROUP_HISTORY_TABLES
+        time_range = time_range or plexpy.CONFIG.HOME_STATS_LENGTH
+        stats_type = stats_type or plexpy.CONFIG.HOME_STATS_TYPE
+        stats_count = stats_count or plexpy.CONFIG.HOME_STATS_COUNT
+        stats_cards = stats_cards or plexpy.CONFIG.HOME_STATS_CARDS
+
+        movie_watched_percent = plexpy.CONFIG.MOVIE_WATCHED_PERCENT
+        tv_watched_percent = plexpy.CONFIG.TV_WATCHED_PERCENT
+        music_watched_percent = plexpy.CONFIG.MUSIC_WATCHED_PERCENT
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
         sort_type = 'total_plays' if stats_type == 0 else 'total_duration'
@@ -664,10 +678,11 @@ class DataFactory(object):
                             '       AND (session_history.media_type = "movie" ' \
                             '           OR session_history_metadata.media_type = "episode") ' \
                             '   GROUP BY %s) AS t ' \
-                            'WHERE percent_complete >= %s ' \
+                            'WHERE t.media_type == "movie" AND percent_complete >= %s ' \
+                            '   OR t.media_type == "episode" AND percent_complete >= %s ' \
                             'GROUP BY t.id ' \
                             'ORDER BY last_watch DESC ' \
-                            'LIMIT %s' % (time_range, group_by, notify_watched_percent, stats_count)
+                            'LIMIT %s' % (time_range, group_by, movie_watched_percent, tv_watched_percent, stats_count)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn(u"PlexPy DataFactory :: Unable to execute database query for get_home_stats: last_watched: %s." % e)

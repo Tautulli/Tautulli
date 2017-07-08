@@ -288,11 +288,13 @@ _CONFIG_DEFINITIONS = {
     'MOVIE_NOTIFY_ON_START': (int, 'Monitoring', 1),
     'MOVIE_NOTIFY_ON_STOP': (int, 'Monitoring', 0),
     'MOVIE_NOTIFY_ON_PAUSE': (int, 'Monitoring', 0),
+    'MOVIE_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'MUSIC_LOGGING_ENABLE': (int, 'Monitoring', 1),
     'MUSIC_NOTIFY_ENABLE': (int, 'Monitoring', 0),
     'MUSIC_NOTIFY_ON_START': (int, 'Monitoring', 1),
     'MUSIC_NOTIFY_ON_STOP': (int, 'Monitoring', 0),
     'MUSIC_NOTIFY_ON_PAUSE': (int, 'Monitoring', 0),
+    'MUSIC_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'MONITOR_PMS_UPDATES': (int, 'Monitoring', 0),
     'MONITOR_REMOTE_ACCESS': (int, 'Monitoring', 0),
     'MONITORING_INTERVAL': (int, 'Monitoring', 60),
@@ -549,6 +551,7 @@ _CONFIG_DEFINITIONS = {
     'TV_NOTIFY_ON_START': (int, 'Monitoring', 1),
     'TV_NOTIFY_ON_STOP': (int, 'Monitoring', 0),
     'TV_NOTIFY_ON_PAUSE': (int, 'Monitoring', 0),
+    'TV_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'TWITTER_ENABLED': (int, 'Twitter', 0),
     'TWITTER_ACCESS_TOKEN': (str, 'Twitter', ''),
     'TWITTER_ACCESS_TOKEN_SECRET': (str, 'Twitter', ''),
@@ -855,3 +858,10 @@ class Config(object):
             self.HTTP_PROXY = 1
 
             self.CONFIG_VERSION = 8
+
+        if self.CONFIG_VERSION == 8:
+            self.MOVIE_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
+            self.TV_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
+            self.MUSIC_WATCHED_PERCENT = self.NOTIFY_WATCHED_PERCENT
+
+            self.CONFIG_VERSION == 9

@@ -159,7 +159,9 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
             progress_percent = helpers.get_percent(stream_data['view_offset'], stream_data['duration'])
             
             if notify_action == 'on_stop':
-                return plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < plexpy.CONFIG.NOTIFY_WATCHED_PERCENT
+                return (plexpy.CONFIG.NOTIFY_CONSECUTIVE or
+                    (stream_data['media_type'] == 'movie' and progress_percent < plexpy.CONFIG.MOVIE_WATCHED_PERCENT)
+                    (stream_data['media_type'] == 'episode' and progress_percent < plexpy.CONFIG.TV_WATCHED_PERCENT))
             
             elif notify_action == 'on_resume':
                 return plexpy.CONFIG.NOTIFY_CONSECUTIVE or progress_percent < 99
