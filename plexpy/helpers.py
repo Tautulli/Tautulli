@@ -798,3 +798,115 @@ def humanFileSize(bytes, si=False):
         u += 1
 
     return "{0:.1f} {1}".format(bytes, units[u])
+
+def parse_condition_logic_string(s, num_cond=0):
+    """ Parse a logic string into a nested list
+    Based on http://stackoverflow.com/a/23185606
+    """
+    valid_tokens = re.compile(r'(\(|\)|and|or)')
+    conditions_pattern = re.compile(r'{\d+}')
+    
+    tokens = [x.strip() for x in re.split(valid_tokens, s.lower()) if x.strip()]
+
+    stack = [[]]
+
+    cond_next = True
+    bool_next = False
+    open_bracket_next = True
+    close_bracket_next = False
+    nest_and = 0
+    nest_nest_and = 0
+    
+    for i, x in enumerate(tokens):
+        if open_bracket_next and x == '(':
+            stack[-1].append([])
+            stack.append(stack[-1][-1])
+            cond_next = True
+            bool_next = False
+            open_bracket_next = True
+            close_bracket_next = False
+            if nest_and:
+                nest_nest_and += 1
+            
+        elif close_bracket_next and x == ')':
+            stack.pop()
+            if not stack:
+                raise ValueError('opening bracket is missing')
+            cond_next = False
+            bool_next = True
+            open_bracket_next = False
+            close_bracket_next = True
+            if nest_and > 0 and nest_nest_and > 0 and nest_and == nest_nest_and:
+                stack.pop()
+                nest_and -= 1
+                nest_nest_and -= 1
+
+        elif cond_next and re.match(conditions_pattern, x):
+            try:
+                num = int(x[1:-1])
+            except:
+                raise ValueError('invalid condition logic')
+            if not 0 < num <= num_cond:
+                raise ValueError('invalid condition number in condition logic')
+            stack[-1].append(num)
+            cond_next = False
+            bool_next = True
+            open_bracket_next = False
+            close_bracket_next = True
+            if nest_and > nest_nest_and:
+                stack.pop()
+                nest_and -= 1
+            
+        elif bool_next and x == 'and' and i < len(tokens)-1:
+            stack[-1].append([])
+            stack.append(stack[-1][-1])
+            stack[-1].append(stack[-2].pop(-2))
+            stack[-1].append(x)
+            cond_next = True
+            bool_next = False
+            open_bracket_next = True
+            close_bracket_next = False
+            nest_and += 1
+            
+        elif bool_next and x == 'or' and i < len(tokens)-1:
+            stack[-1].append(x)
+            cond_next = True
+            bool_next = False
+            open_bracket_next = True
+            close_bracket_next = False
+
+        else:
+            raise ValueError('invalid condition logic')
+
+    if len(stack) > 1:
+        raise ValueError('closing bracket is missing')
+
+    return stack.pop()
+
+def nested_list_to_string(l):
+    for i, x in enumerate(l):
+        if isinstance(x, list):
+            l[i] = nested_list_to_string(x)
+    s = '(' + ' '.join(l) + ')'
+    return s
+
+def eval_logic_groups_to_bool(logic_groups, eval_conds):
+    first_cond = logic_groups[0]
+
+    if isinstance(first_cond, list):
+        result = eval_logic_groups_to_bool(first_cond, eval_conds)
+    else:
+        result = eval_conds[first_cond]
+
+    for op, cond in zip(logic_groups[1::2], logic_groups[2::2]):
+        if isinstance(cond, list):
+            eval_cond = eval_logic_groups_to_bool(cond, eval_conds)
+        else:
+            eval_cond = eval_conds[cond]
+
+        if op == 'and':
+            result = result and eval_cond
+        elif op == 'or':
+            result = result or eval_cond
+
+    return result

@@ -3,6 +3,8 @@
     available_notification_actions = notifiers.available_notification_actions()
 %>
 % if notifier:
+<link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet" />
+<link href="${http_root}css/selectize.min.css" rel="stylesheet" />
 <div class="modal-dialog" role="document">
     <div class="modal-content">
         <div class="modal-header">
@@ -14,15 +16,10 @@
                 <div class="row">
                     <ul class="nav nav-tabs list-unstyled" role="tablist">
                         <li role="presentation" class="active"><a href="#tabs-config" aria-controls="tabs-config" role="tab" data-toggle="tab">Configuration</a></li>
-                        % if notifier['agent_name'] == 'scripts':
-                        <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Script Triggers</a></li>
-                        <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Script Arguments</a></li>
-                        <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Script</a></li>
-                        % else:
-                        <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Notification Triggers</a></li>
-                        <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">Notification Text</a></li>
+                        <li role="presentation"><a href="#tabs-notify_triggers" aria-controls="tabs-notify_triggers" role="tab" data-toggle="tab">Triggers</a></li>
+                        <li role="presentation"><a href="#tabs-notify_conditions" aria-controls="tabs-notify_conditions" role="tab" data-toggle="tab">Conditions</a></li>
+                        <li role="presentation"><a href="#tabs-notify_text" aria-controls="tabs-notify_text" role="tab" data-toggle="tab">${'Arguments' if notifier['agent_name'] == 'scripts' else 'Text'}</a></li>
                         <li role="presentation"><a href="#tabs-test_notifications" aria-controls="tabs-test_notifications" role="tab" data-toggle="tab">Test Notifications</a></li>
-                        % endif
                     </ul>
                 </div>
                 <form action="set_notifier_config" method="post" class="form" id="set_notifier_config" data-parsley-validate>
@@ -129,6 +126,29 @@
                                     </div>
                                     % endfor
                                 </div>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="tabs-notify_conditions">
+                            <p class="help-block">
+                                Add custom notification conditions.
+                                <a href="#notify-text-sub-modal" data-toggle="modal">Click here</a> for a description of all the parameters.
+                            </p>
+                            <p class="help-block">
+                                Note: Conditions are checked after the notification trigger and the notification will only be sent if the condition logic is satisfied.
+                            </p>
+                            <div id="condition-widget"></div>
+                            <input type="hidden" name="custom_conditions" id="custom_conditions" />
+
+                            <div class="form-group">
+                                <label for="custom_condition_logic">Condition Logic</label>
+                                <input type="text" class="form-control" name="custom_conditions_logic" id="custom_conditions_logic" value="${notifier['custom_conditions_logic']}" required />
+                                <p class="help-block">
+                                    Enter the logic to use when evaluating the conditions (e.g. <span class="inline-pre">{1} and ({2} or {3})</span>).
+                                </p>
+                                <p class="help-block">
+                                    Note: Only the keywords <span class="inline-pre">and</span>/<span class="inline-pre">or</span> and brackets <span class="inline-pre">()</span> are supported.
+                                    For order of operations, <span class="inline-pre">and</span> is evaluated before <span class="inline-pre">or</span>.
+                                </p>
                             </div>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="tabs-notify_text">
@@ -253,10 +273,22 @@
     </div>
 </div>
 
+<script src="${http_root}js/filterer.jquery.js"></script>
 <script>
 
     $('#notifier-config-modal').unbind('hidden.bs.modal');
 
+    // Need this for setting conditions since conditions contain the character "
+    $('#custom_conditions').val('${notifier['custom_conditions'] | n}')
+
+    $('#condition-widget').filterer({
+        parameters: ${parameters | n},
+        conditions: ${notifier["custom_conditions"] | n},
+        updateConditions: function(newConditions){
+            $('#custom_conditions').val(JSON.stringify(newConditions));
+        }
+    })
+    
     function reloadModal() {
         $.ajax({
             url: 'get_notifier_config_modal',

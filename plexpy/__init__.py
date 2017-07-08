@@ -517,7 +517,8 @@ def dbcheck():
         'on_resume_body TEXT, on_buffer_body TEXT, on_watched_body TEXT, '
         'on_created_body TEXT, on_extdown_body TEXT, on_intdown_body TEXT, '
         'on_extup_body TEXT, on_intup_body TEXT, on_pmsupdate_body TEXT, '
-        'on_concurrent_body TEXT, on_newdevice_body TEXT, on_plexpyupdate_body TEXT)'
+        'on_concurrent_body TEXT, on_newdevice_body TEXT, on_plexpyupdate_body TEXT, '
+        'custom_conditions TEXT, custom_conditions_logic TEXT)'
     )
 
     # poster_urls table :: This table keeps record of the notification poster urls
@@ -1066,6 +1067,18 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.warn(u"Failed to recreate mobile_devices table.")
         pass
+
+    # Upgrade notifiers table from earlier versions
+    try:
+        c_db.execute('SELECT custom_conditions FROM notifiers')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table notifiers.")
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN custom_conditions TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN custom_conditions_logic TEXT'
+        )
 
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')

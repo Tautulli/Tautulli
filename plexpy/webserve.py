@@ -2949,7 +2949,19 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def get_notifier_config_modal(self, notifier_id=None, **kwargs):
         result = notifiers.get_notifier_config(notifier_id=notifier_id)
-        return serve_template(templatename="notifier_config.html", notifier=result)
+
+        if not result['custom_conditions']:
+            result['custom_conditions'] = json.dumps([{'parameter': '', 'operator': '', 'value': ''}])
+
+        if not result['custom_conditions_logic']:
+            result['custom_conditions_logic'] = ''
+
+        parameters = [
+                {'name': param['name'], 'type': param['type'], 'value': param['value']}
+                for category in common.NOTIFICATION_PARAMETERS for param in category['parameters']
+            ]
+
+        return serve_template(templatename="notifier_config.html", notifier=result, parameters=json.dumps(parameters))
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3031,6 +3043,35 @@ class WebInterface(object):
             text.append({'media_type': media_type, 'subject': test_subject, 'body': test_body})
 
         return serve_template(templatename="notifier_text_preview.html", text=text, agent=agent_name)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_notifier_parameters(self, **kwargs):
+        """ Get the list of available notification parameters.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {
+                     }
+            ```
+        """
+        parameters = [{'name': param['name'],
+                       'type': param['type'],
+                       'value': param['value']
+                       }
+                      for category in common.NOTIFICATION_PARAMETERS 
+                      for param in category['parameters']]
+
+        return parameters
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
