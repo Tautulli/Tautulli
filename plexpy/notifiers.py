@@ -603,14 +603,21 @@ class PrettyMetadata(object):
             provider = 'Last.fm'
         return provider
 
-    def get_provider_link(self):
+    def get_provider_link(self, provider=None):
         provider_link = ''
-        if self.parameters['thetvdb_url']:
+        if provider:
+            if provider == 'plexweb':
+                provider_link = self.get_plex_url()
+            else:
+                provider_link = self.parameters.get(provider + '_url', '')
+        elif self.parameters['thetvdb_url']:
             provider_link = self.parameters['thetvdb_url']
         elif self.parameters['themoviedb_url']:
             provider_link = self.parameters['themoviedb_url']
         elif self.parameters['imdb_url']:
             provider_link = self.parameters['imdb_url']
+        elif self.self.parameters['tvmaze_url']:
+            provider_link = self.parameters['tvmaze_url']
         elif self.parameters['lastfm_url']:
             provider_link = self.parameters['lastfm_url']
         return provider_link
@@ -1307,8 +1314,9 @@ class FACEBOOK(Notifier):
                        'group_id': '',
                        'incl_subject': 1,
                        'incl_card': 0,
-                       'incl_description': 1,
-                       'incl_pmslink': 0
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
                        }
 
     def _get_authorization(self, app_id='', app_secret='', redirect_uri=''):
@@ -1356,12 +1364,12 @@ class FACEBOOK(Notifier):
 
         return plexpy.CONFIG.FACEBOOK_TOKEN
 
-    def _post_facebook(self, message=None, attachment=None):
+    def _post_facebook(self, **data):
         if self.config['group_id']:
             api = facebook.GraphAPI(access_token=self.config['access_token'], version='2.5')
 
             try:
-                api.put_wall_post(profile_id=self.config['group_id'], message=message, attachment=attachment)
+                api.put_object(parent_object=self.config['group_id'], connection_name='feed', **data)
                 logger.info(u"PlexPy Notifiers :: {name} notification sent.".format(name=self.NAME))
                 return True
             except Exception as e:
@@ -1376,41 +1384,29 @@ class FACEBOOK(Notifier):
         if not subject or not body:
             return
 
-        attachment = {}
+        if self.config['incl_subject']:
+            text = subject.encode('utf-8') + '\r\n' + body.encode("utf-8")
+        else:
+            text = body.encode("utf-8")
+
+        data = {'message': text}
 
         if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
-            media_type = pretty_metadata.media_type
-            poster_url = pretty_metadata.get_poster_url()
-            plex_url = pretty_metadata.get_plex_url()
-            provider_link = pretty_metadata.get_provider_link()
-            caption = pretty_metadata.get_caption()
-            title = pretty_metadata.get_title('\xc2\xb7'.decode('utf8'))
-            description = pretty_metadata.get_description()
 
-            # Build Facebook post attachment
-            if self.config['incl_pmslink']:
-                attachment['link'] = plex_url
-                attachment['caption'] = 'View on Plex Web'
-            elif provider_link:
-                attachment['link'] = provider_link
-                attachment['caption'] = caption
+            if pretty_metadata.media_type == 'movie':
+                provider = self.config['movie_provider']
+            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                provider = self.config['tv_provider']
+            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                provider = self.config['music_provider']
             else:
-                attachment['link'] = poster_url
+                provider = None
+            
+            data['link'] = pretty_metadata.get_provider_link(provider)
 
-            attachment['picture'] = poster_url
-            attachment['name'] = title
-
-            if self.config['incl_description'] or media_type in ('artist', 'album', 'track'):
-                attachment['description'] = description
-            else:
-                attachment['description'] = ' '
-
-        if self.config['incl_subject']:
-            return self._post_facebook(subject + '\r\n' + body, attachment=attachment)
-        else:
-            return self._post_facebook(body, attachment=attachment)
+        return self._post_facebook(**data)
 
     def return_config_options(self):
         config_option = [{'label': 'Instructions',
@@ -1476,18 +1472,38 @@ class FACEBOOK(Notifier):
                           'description': 'Include an info card with a poster and metadata with the notifications.',
                           'input_type': 'checkbox'
                           },
-                         {'label': 'Include Plot Summaries',
-                          'value': self.config['incl_description'],
-                          'name': 'facebook_incl_description',
-                          'description': 'Include a plot summary for movies and TV shows on the info card.',
-                          'input_type': 'checkbox'
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'facebook_movie_provider',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': {'': '',
+                                             'trakt': 'Trakt.tv',
+                                             'plexweb': 'Plex Web'
+                                             }
                           },
-                         {'label': 'Include Link to Plex Web',
-                          'value': self.config['incl_pmslink'],
-                          'name': 'facebook_incl_pmslink',
-                          'description': 'Include a link to the media in Plex Web on the info card.<br>'
-                                         'If disabled, the link will go to IMDB, TVDB, TMDb, or Last.fm instead, if available.',
-                          'input_type': 'checkbox'
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'facebook_tv_provider',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': {'': '',
+                                             'thetvdb': 'TheTVDB',
+                                             'tvmaze': 'TVmaze',
+                                             'imdb': 'IMDB',
+                                             'trakt': 'Trakt.tv',
+                                             'plexweb': 'Plex Web'
+                                             }
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'facebook_music_provider',
+                          'description': 'Select the source for music links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': {'': '',
+                                             'lastfm': 'Last.fm',
+                                             'plexweb': 'Plex Web'
+                                             }
                           }
                          ]
 
