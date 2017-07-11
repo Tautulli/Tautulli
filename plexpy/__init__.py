@@ -541,6 +541,15 @@ def dbcheck():
         'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, friendly_name TEXT)'
     )
 
+    # tvmaze_lookup table :: This table keeps record of the notification poster urls
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS tvmaze_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'thetvdb_id INTEGER, imdb_id TEXT, tvmaze_id INTEGER, tvmaze_url TEXT, tvmaze_json TEXT)'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup_thetvdb_id ON tvmaze_lookup (thetvdb_id);'
+    )
+
     # Upgrade sessions table from earlier versions
     try:
         c_db.execute('SELECT started FROM sessions')

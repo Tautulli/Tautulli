@@ -35,6 +35,7 @@ import helpers
 import notifiers
 import plextv
 import pmsconnect
+import request
 import users
 
 
@@ -527,6 +528,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
         metadata['lastfm_id'] = metadata['guid'].split('lastfm://')[1].rsplit('/', 1)[0]
         metadata['lastfm_url'] = 'https://www.last.fm/music/' + metadata['lastfm_id']
 
+    # Get TV Maze info (for tv only)
+    if metadata.get('thetvdb_id'):
+        tvmaze_info = lookup_tvmaze_by_tvdb_id(metadata['thetvdb_id'])
+        metadata.update(tvmaze_info)
+        if 'imdb_id' in tvmaze_info:
+            metadata['imdb_url'] = 'https://www.imdb.com/title/' + metadata['imdb_id']
+
     if metadata['media_type'] in ('movie', 'show', 'artist'):
         poster_thumb = metadata['thumb']
         poster_key = metadata['rating_key']
@@ -713,6 +721,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
                         'thetvdb_url': metadata.get('thetvdb_url',''),
                         'themoviedb_id': metadata.get('themoviedb_id',''),
                         'themoviedb_url': metadata.get('themoviedb_url',''),
+                        'tvmaze_id': metadata.get('tvmaze_id',''),
+                        'tvmaze_url': metadata.get('tvmaze_url',''),
                         'lastfm_url': metadata.get('lastfm_url',''),
                         'trakt_url': metadata.get('trakt_url',''),
                         'container': session.get('container', media_info.get('container','')),
@@ -979,6 +989,46 @@ def get_poster_info(poster_thumb, poster_key, poster_title):
             # Delete the cached poster
             os.remove(poster_file)
         except Exception as e:
-            logger.error(u"PlexPy Notifier :: Unable to retrieve poster for rating_key %s: %s." % (str(metadata['rating_key']), e))
+            logger.error(u"PlexPy NotificationHandler :: Unable to retrieve poster for rating_key %s: %s." % (str(metadata['rating_key']), e))
 
     return poster_info
+
+
+def lookup_tvmaze_by_tvdb_id(thetvdb_id):
+    tvmaze_info = {}
+
+    db = database.MonitorDatabase()
+
+    try:
+        query = 'SELECT imdb_id, tvmaze_id, tvmaze_url FROM tvmaze_lookup ' \
+                'WHERE thetvdb_id = ?'
+        tvmaze_info = db.select_single(query, args=[thetvdb_id])
+    except Exception as e:
+        logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for lookup_tvmaze_by_tvdb_id: %s." % e)
+
+    if not tvmaze_info:
+        response, err_msg, req_msg = request.request_response2('http://api.tvmaze.com/lookup/shows?thetvdb={}'.format(thetvdb_id))
+
+        if response and not err_msg:
+            tvmaze_json = response.json()
+            imdb_id = tvmaze_json.get('externals', {}).get('imdb', '')
+            tvmaze_id = tvmaze_json.get('id', '')
+            tvmaze_url = tvmaze_json.get('url', '')
+            
+            keys = {'thetvdb_id': thetvdb_id}
+            tvmaze_info = {'imdb_id': imdb_id,
+                           'tvmaze_id': tvmaze_id,
+                           'tvmaze_url': tvmaze_url,
+                           'tvmaze_json': json.dumps(tvmaze_json)}
+            db.upsert(table_name='tvmaze_lookup', key_dict=keys, value_dict=tvmaze_info)
+
+            tvmaze_info.pop('tvmaze_json')
+
+        else:
+            if err_msg:
+                logger.error(u"PlexPy NotificationHandler :: {}".format(err_msg))
+
+            if req_msg:
+                logger.debug(u"PlexPy NotificationHandler :: Request response: {}".format(req_msg))
+
+    return tvmaze_info

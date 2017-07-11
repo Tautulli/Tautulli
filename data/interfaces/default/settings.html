@@ -1293,10 +1293,10 @@
                                 <td><strong>{${parameter['value']}}</strong></td>
                                 <td>
                                     ${parameter['description']}
-                                    % if parameter['example']:
+                                    % if parameter.get('example'):
                                     <span class="small-muted">(${parameter['example']})</span>
                                     % endif
-                                    % if parameter['help_text']:
+                                    % if parameter.get('help_text'):
                                     <p class="small-muted">(${parameter['help_text']})</p>
                                     % endif
                                 </td>
