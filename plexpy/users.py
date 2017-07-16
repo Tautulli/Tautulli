@@ -45,6 +45,9 @@ class Users(object):
         if session.get_session_user_id():
             custom_where.append(['users.user_id', session.get_session_user_id()])
 
+        if kwargs.get('user_id'):
+            custom_where.append(['users.user_id', kwargs.get('user_id')])
+
         columns = ['users.user_id',
                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
                     THEN users.username ELSE users.friendly_name END) AS friendly_name',
