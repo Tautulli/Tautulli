@@ -46,7 +46,7 @@ libraries_list_table_options = {
                     if (rowData['library_thumb'].substring(0, 4) == "http") {
                         $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['library_thumb'] + ');"></div></a>');
                     } else {
-                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(pms_image_proxy?img=' + rowData['library_thumb'] + '&width=80&height=80&fallback=cover);"></div></a>');
+                        $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['library_thumb'].replace('/:/resources', '/images/libraries') + ');"></div></a>');
                     }
                 } else {
                     $(td).html('<a href="library?section_id=' + rowData['section_id'] + '"><div class="libraries-poster-face" style="background-image: url(../../images/cover.png);"></div></a>');
