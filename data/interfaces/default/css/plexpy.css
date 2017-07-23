@@ -253,6 +253,12 @@ fieldset[disabled] .btn-dark.active {
   background-color: #333;
   color: #aaa;
 }
+.btn-dark.inactive:hover {
+    color: #d7d7d7;
+    background-color: #3B3B3B;
+    border-color: transparent;
+    cursor: default;
+}
 .btn-dark .badge {
   color: #e5e5e5;
   background-color: #3B3B3B;
@@ -1865,9 +1871,36 @@ a .library-user-instance-box:hover {
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
 }
+#watched-stats-days-selection label {
+    margin-bottom: 0;
+}
+#watched-stats-days {
+    margin: 0;
+    width: 75px;
+    height: 34px;
+}
+#watched-stats-count {
+    margin: 0;
+    width: 75px;
+    height: 34px;
+}
+#recently-added-count {
+    margin: 0;
+    width: 75px;
+    height: 34px;
+}
+.home-padded-header {
+    margin: 25px 0;
+    height: 34px;
+}
+.home-padded-header h3 {
+    margin-top: 9px;
+    width: 175px;
+}
 .home-platforms {
 }
-.home-platforms ul {
+.home-platforms ul,
+.library-platforms ul {
     list-style: none;
     margin: 0;
 }

@@ -255,21 +255,26 @@ class DataFactory(object):
 
         return dict
 
-    def get_home_stats(self, grouping=0, time_range=0, stats_type=0, stats_count=0, stats_cards=[]):
+    def get_home_stats(self, grouping=None, time_range=None, stats_type=None, stats_count=None, stats_cards=None):
         monitor_db = database.MonitorDatabase()
 
-        grouping = grouping or plexpy.CONFIG.GROUP_HISTORY_TABLES
-        time_range = time_range or plexpy.CONFIG.HOME_STATS_LENGTH
-        stats_type = stats_type or plexpy.CONFIG.HOME_STATS_TYPE
-        stats_count = stats_count or plexpy.CONFIG.HOME_STATS_COUNT
-        stats_cards = stats_cards or plexpy.CONFIG.HOME_STATS_CARDS
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+        if time_range is None:
+            time_range = plexpy.CONFIG.HOME_STATS_LENGTH
+        if stats_type is None:
+            stats_type = plexpy.CONFIG.HOME_STATS_TYPE
+        if stats_count is None:
+            stats_count = plexpy.CONFIG.HOME_STATS_COUNT
+        if stats_cards is None:
+            stats_cards = plexpy.CONFIG.HOME_STATS_CARDS
 
         movie_watched_percent = plexpy.CONFIG.MOVIE_WATCHED_PERCENT
         tv_watched_percent = plexpy.CONFIG.TV_WATCHED_PERCENT
         music_watched_percent = plexpy.CONFIG.MUSIC_WATCHED_PERCENT
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
-        sort_type = 'total_plays' if stats_type == 0 else 'total_duration'
+        sort_type = 'total_duration' if helpers.cast_to_int(stats_type) == 1 else 'total_plays'
 
         home_stats = []
 

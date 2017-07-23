@@ -300,32 +300,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="home_stats_length">Time Frame</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="home_stats_length" name="home_stats_length" value="${config['home_stats_length']}" size="3" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#home_stats_length_error" required>
-                                </div>
-                                <div id="home_stats_length_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">Specify the number of days for the watch statistics on the home page. Default is 30 days.</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="home_stats_count">Top Lists</label>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" data-parsley-type="integer" id="home_stats_count" name="home_stats_count" value="${config['home_stats_count']}" size="3" data-parsley-range="[0,10]" data-parsley-trigger="change" data-parsley-errors-container="#home_stats_count_error" required>
-                                </div>
-                                <div id="home_stats_count_error" class="alert alert-danger settings-alert" role="alert"></div>
-                            </div>
-                            <p class="help-block">Specify the number of items to show in the top lists for the watch statistics on the home page. Maximum 10 items, default 5 items, 0 to disable.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="home_stats_type" name="home_stats_type" value="1" ${config['home_stats_type']}> Use Play Duration
-                            </label>
-                            <p class="help-block">Use play duration instead of play count to generate statistics.</p>
-                        </div>
 
                         <div class="padded-header">
                             <h3>Library Statistics</h3>

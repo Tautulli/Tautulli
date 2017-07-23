@@ -173,6 +173,9 @@ class WebInterface(object):
         config = {
             "home_sections": plexpy.CONFIG.HOME_SECTIONS,
             "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
+            "home_stats_type": plexpy.CONFIG.HOME_STATS_TYPE,
+            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
+            "home_stats_recently_added_count": plexpy.CONFIG.HOME_STATS_RECENTLY_ADDED_COUNT,
             "pms_name": plexpy.CONFIG.PMS_NAME,
             "pms_use_bif": plexpy.CONFIG.PMS_USE_BIF,
             "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG
@@ -308,11 +311,31 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def home_stats(self, **kwargs):
+    def home_stats(self, time_range=30, stats_type=0, stats_count=5, **kwargs):
         data_factory = datafactory.DataFactory()
-        stats_data = data_factory.get_home_stats()
+        stats_data = data_factory.get_home_stats(time_range=time_range,
+                                                 stats_type=stats_type,
+                                                 stats_count=stats_count)
 
         return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def set_home_stats_config(self, time_range=None, stats_type=None, stats_count=None, recently_added_count=None, **kwargs):
+        if time_range:
+            plexpy.CONFIG.__setattr__('HOME_STATS_LENGTH', time_range)
+            plexpy.CONFIG.write()
+        if stats_type:
+            plexpy.CONFIG.__setattr__('HOME_STATS_TYPE', stats_type)
+            plexpy.CONFIG.write()
+        if stats_count:
+            plexpy.CONFIG.__setattr__('HOME_STATS_COUNT', stats_count)
+            plexpy.CONFIG.write()
+        if recently_added_count:
+            plexpy.CONFIG.__setattr__('HOME_STATS_RECENTLY_ADDED_COUNT', recently_added_count)
+            plexpy.CONFIG.write()
+
+        return "Updated home stats config values."
 
     @cherrypy.expose
     @requireAuth()
@@ -2589,9 +2612,6 @@ class WebInterface(object):
             "notify_concurrent_by_ip": checked(plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP),
             "notify_concurrent_threshold": plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD,
             "home_sections": json.dumps(plexpy.CONFIG.HOME_SECTIONS),
-            "home_stats_length": plexpy.CONFIG.HOME_STATS_LENGTH,
-            "home_stats_type": checked(plexpy.CONFIG.HOME_STATS_TYPE),
-            "home_stats_count": plexpy.CONFIG.HOME_STATS_COUNT,
             "home_stats_cards": json.dumps(plexpy.CONFIG.HOME_STATS_CARDS),
             "home_library_cards": json.dumps(plexpy.CONFIG.HOME_LIBRARY_CARDS),
             "buffer_threshold": plexpy.CONFIG.BUFFER_THRESHOLD,

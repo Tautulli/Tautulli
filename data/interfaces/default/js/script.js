@@ -496,3 +496,23 @@ function humanFileSize(bytes, si) {
     } while (Math.abs(bytes) >= thresh && u < units.length - 1);
     return bytes.toFixed(1) + '&nbsp;' + units[u];
 }
+
+// Force max/min in number inputs
+function forceMinMax(elem) {
+    var min = parseInt(elem.attr('min'));
+    var max = parseInt(elem.attr('max'));
+    var val = parseInt(elem.val());
+    var default_val = parseInt(elem.data('default'));
+    if (isNaN(val)) {
+        elem.val(default_val);
+    }
+    else if (min != undefined && val < min) {
+        elem.val(min);
+    }
+    else if (max != undefined && val > max) {
+        elem.val(max);
+    }
+    else {
+        elem.val(val);
+    }
+}

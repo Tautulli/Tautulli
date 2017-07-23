@@ -20,9 +20,40 @@
     % elif section == 'watch_stats':
     <div class="row">
         <div class="col-md-12">
-            <div class="padded-header">
-                <h3>Watch Statistics &nbsp;&nbsp;<small>Last ${config['home_stats_length']} days</small></h3>
+            <div class="home-padded-header padded-header">
+                <h3 class="pull-left">Watch Statistics</h3>
+                <div class="btn-group pull-left" data-toggle="buttons" id="watch-stats-toggles" style="margin-right: 3px">
+                    % if config['home_stats_type'] == 0:
+                    <label class="btn btn-dark active">
+                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="0" autocomplete="off" checked> Play Count
+                    </label>
+                    <label class="btn btn-dark">
+                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="1" autocomplete="off"> Play Duration
+                    </label>
+                    % else:
+                    <label class="btn btn-dark">
+                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="0" autocomplete="off"> Play Count
+                    </label>
+                    <label class="btn btn-dark active">
+                        <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="1" autocomplete="off" checked> Play Duration
+                    </label>
+                    % endif
+                </div>
+                <div class="input-group pull-left" style="width: 1px; margin-right: 3px" id="watched-stats-days-selection">
+                    <span class="input-group-addon btn-dark inactive">Last</span>
+                    <input type="number" class="form-control" name="watched-stats-days" id="watched-stats-days" value="${config['home_stats_length']}" min="1" data-default="30" data-toggle="tooltip" title="Min: 1 day" />
+                    <span class="input-group-addon btn-dark inactive">days</span>
+                </div>
+                <div class="input-group pull-left" style="width: 1px; margin-right: 3px" id="watched-stats-count-selection">
+                    <span class="input-group-addon btn-dark inactive">Top</span>
+                    <input type="number" class="form-control" name="watched-stats-count" id="watched-stats-count" value="${config['home_stats_count']}" min="1" max="10" data-default="5" data-toggle="tooltip" title="Min: 1 item<br>Max: 10 items" />
+                    <span class="input-group-addon btn-dark inactive">items</span>
+                </div>
             </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
             <div id="home-stats" class="home-platforms">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
                 <br>
@@ -32,9 +63,14 @@
     % elif section == 'library_stats':
     <div class="row">
         <div class="col-md-12">
-            <div class="padded-header" id="library-statistics-header">
-                <h3>Library Statistics &nbsp;&nbsp;<small>${config['pms_name']}</small></h3>
+            <div class="home-padded-header padded-header" id="library-statistics-header">
+                <h3 class="pull-left">Library Statistics</h3>
+                <span class="btn btn-dark active" style="cursor: default">${config['pms_name']}</span>
             </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
             <div id="library-stats" class="library-platforms">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
                 <br>
@@ -44,8 +80,9 @@
     % elif section == 'recently_added':
     <div class="row">
         <div class="col-md-12">
-            <div class="padded-header">
-                <ul class="nav nav-header nav-dashboard pull-right" style="margin-top: -12px;">
+            <div class="home-padded-header padded-header">
+                <h3 class="pull-left">Recently Added</h3>
+                <ul class="nav nav-header nav-dashboard pull-right" style="margin-top: -3px;">
                     <li>
                         <a href="#" id="recently-added-page-left" class="paginate btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
                     </li>
@@ -53,11 +90,26 @@
                         <a href="#" id="recently-added-page-right" class="paginate btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
                     </li>
                 </ul>
-                <h3>Recently Added &nbsp;&nbsp;<small>
-                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-movie" data-type="movie">Movies</a> &nbsp; 
-                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-season" data-type="season">TV Shows</a> &nbsp; 
-                    <a href="#" class="toggle-recently-added-type btn-gray disabled" id="toggle-recently-added-album" data-type="album">Music</a></small></h3>
+                <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles" style="margin-right: 3px">
+                    <label class="btn btn-dark disabled" id="recently-added-label-movies">
+                        <input type="checkbox" class="recently-added-toggle" name="recently-added-toggle-movies" id="recently-added-toggle-movies" value="movies" data-type="movie" autocomplete="off"> Movies
+                    </label>
+                    <label class="btn btn-dark disabled" id="recently-added-label-tv">
+                        <input type="checkbox" class="recently-added-toggle" name="recently-added-toggle-tv" id="recently-added-toggle-tv" value="tv" data-type="season" autocomplete="off"> TV Shows
+                    </label>
+                    <label class="btn btn-dark disabled" id="recently-added-label-music">
+                        <input type="checkbox" class="recently-added-toggle" name="recently-added-toggle-music" id="recently-added-toggle-music" value="music" data-type="album" autocomplete="off"> Music
+                    </label>
+                </div>
+                <div class="input-group pull-left" style="width: 1px;" id="recently-added-count-selection">
+                    <input type="number" class="form-control" name="recently-added-count" id="recently-added-count" value="${config['home_stats_recently_added_count']}" min="1" max="50" data-default="50" data-toggle="tooltip" title="Min: 1 item<br>Max: 50 items" />
+                    <span class="input-group-addon btn-dark inactive">items</span>
+                </div>
             </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
             <div id="recentlyAdded" style="margin-right: -15px;">
                 <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Looking for new items...</div>
                 <br>
@@ -345,19 +397,48 @@
 % endif
 % if 'watch_stats' in config['home_sections']:
 <script>
-    function getHomeStats(days) {
+    function getHomeStats(time_range, stats_type, stats_count) {
         $.ajax({
             url: 'home_stats',
             type: 'GET',
             cache: false,
             async: true,
-            data: { },
+            data: {
+                time_range: time_range,
+                stats_type: stats_type,
+                stats_count: stats_count
+            },
             complete: function (xhr, status) {
                 $("#home-stats").html(xhr.responseText);
             }
         });
     }
-    getHomeStats();
+
+    var time_range = $('#watched-stats-days').val();
+    var stats_type = $('input[name=watched-stats-type]:checked', '#watch-stats-toggles').val();
+    var stats_count = $('#watched-stats-count').val();
+    getHomeStats(time_range, stats_type, stats_count);
+
+    $('input[name=watched-stats-type]').change(function () {
+        stats_type = $(this).filter(':checked').val();
+        getHomeStats(time_range, stats_type, stats_count);
+        $.post('set_home_stats_config', { stats_type: stats_type });
+    });
+    $('#watched-stats-days').change(function () {
+        forceMinMax($(this));
+        time_range = $(this).val();
+        getHomeStats(time_range, stats_type, stats_count);
+        $.post('set_home_stats_config', { time_range: time_range });
+    });
+    $('#watched-stats-count').change(function () {
+        forceMinMax($(this));
+        stats_count = $(this).val();
+        getHomeStats(time_range, stats_type, stats_count);
+        $.post('set_home_stats_config', { stats_count: stats_count });
+    });
+
+    $('#watched-stats-days').tooltip({ container: 'body', placement: 'top', html: true });
+    $('#watched-stats-count').tooltip({ container: 'body', placement: 'top', html: true });
 </script>
 % endif
 % if 'library_stats' in config['home_sections']:
@@ -379,25 +460,35 @@
 % endif
 % if 'recently_added' in config['home_sections']:
 <script>
-    function recentlyAdded() {
+    function recentlyAdded(recently_added_count) {
         $.ajax({
             url: 'get_recently_added',
             type: "GET",
             async: true,
-            data: { count : 50 },
+            data: { count : recently_added_count },
             complete: function (xhr, status) {
                 $("#recentlyAdded").html(xhr.responseText);
                 highlightAddedScrollerButton();
-                if ($('.dashboard-recent-media-instance li[data-type=movie]').length) { $('#toggle-recently-added-movie').removeClass('disabled'); }
-                if ($('.dashboard-recent-media-instance li[data-type=season]').length) { $('#toggle-recently-added-season').removeClass('disabled'); }
-                if ($('.dashboard-recent-media-instance li[data-type=album]').length) { $('#toggle-recently-added-album').removeClass('disabled'); }
+                if ($('.dashboard-recent-media-instance li[data-type=movie]').length) {
+                    $('#recently-added-label-movies').removeClass('disabled').addClass('active');
+                    $('#recently-added-toggle-movies').prop('checked', true);
+                }
+                if ($('.dashboard-recent-media-instance li[data-type=season]').length) {
+                    $('#recently-added-label-tv').removeClass('disabled').addClass('active');
+                    $('#recently-added-toggle-tv').prop('checked', true);
+                }
+                if ($('.dashboard-recent-media-instance li[data-type=album]').length) {
+                    $('#recently-added-label-music').removeClass('disabled').addClass('active');
+                    $('#recently-added-toggle-music').prop('checked', true);
+                }
 
-                $('.toggle-recently-added-type').not('.disabled').click(function () {
+                $('#recently-added-toggles').on('change', '.recently-added-toggle', function () {
                     var scroller = $("#recently-added-row-scroller");
                     var media_type = $(this).data('type');
-                    var margin_right = $(this).hasClass('text-muted') ? '25px' : 0;
+                    var margin_right = $(this).prop('checked') ? '25px' : 0;
                     var toggle_items = $('.dashboard-recent-media-instance li[data-type=' + media_type + ']');
                     var containerWidth = $("body").find(".container-fluid").width();
+                    console.log(margin_right)
 
                     if (margin_right == 0) {
                         toggle_items.stop().animate({ width: 'toggle', marginRight: margin_right }, 1000, function () {
@@ -436,7 +527,8 @@
             }
         });
     }
-    recentlyAdded();
+    var recently_added_count = $('#recently-added-count').val();
+    recentlyAdded(recently_added_count);
 
     function highlightAddedScrollerButton() {
         var scroller = $("#recently-added-row-scroller");
@@ -476,6 +568,15 @@
             $("#recently-added-page-right").removeClass("disabled");
         }
     });
+
+    $('#recently-added-count').change(function () {
+        forceMinMax($(this));
+        recently_added_count = $(this).val();
+        recentlyAdded(recently_added_count);
+        $.post('set_home_stats_config', { recently_added_count: recently_added_count });
+    });
+
+    $('#recently-added-count').tooltip({ container: 'body', placement: 'top', html: true });
 </script>
 % endif
 % if _session['user_group'] == 'admin' and config['update_show_changelog']:
