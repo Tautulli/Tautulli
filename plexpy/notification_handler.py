@@ -530,20 +530,24 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, *
 
     # Get TheMovieDB info
     if metadata.get('themoviedb_id'):
-        themoveidb_json = get_themoviedb_info(metadata['media_type'], metadata['themoviedb_id'])
+        themoveidb_json = get_themoviedb_info(rating_key=rating_key,
+                                              media_type=metadata['media_type'],
+                                              themoviedb_id=metadata['themoviedb_id'])
 
         if themoveidb_json.get('imdb_id'):
             metadata['imdb_id'] = themoveidb_json['imdb_id']
             metadata['imdb_url'] = 'https://www.imdb.com/title/' + themoveidb_json['imdb_id']
 
     elif metadata.get('thetvdb_id') or metadata.get('imdb_id'):
-        themoviedb_info = lookup_themoviedb_by_id(thetvdb_id=metadata.get('thetvdb_id'),
+        themoviedb_info = lookup_themoviedb_by_id(rating_key=rating_key,
+                                                  thetvdb_id=metadata.get('thetvdb_id'),
                                                   imdb_id=metadata.get('imdb_id'))
         metadata.update(themoviedb_info)
 
     # Get TVmaze info (for tv shows only)
     if metadata['media_type'] in ('show', 'season', 'episode') and (metadata.get('thetvdb_id') or metadata.get('imdb_id')):
-        tvmaze_info = lookup_tvmaze_by_id(thetvdb_id=metadata.get('thetvdb_id'),
+        tvmaze_info = lookup_tvmaze_by_id(rating_key=rating_key,
+                                          thetvdb_id=metadata.get('thetvdb_id'),
                                           imdb_id=metadata.get('imdb_id'))
         metadata.update(tvmaze_info)
 
@@ -1011,15 +1015,15 @@ def get_poster_info(poster_thumb, poster_key, poster_title):
     return poster_info
 
 
-def lookup_tvmaze_by_id(thetvdb_id=None, imdb_id=None):
+def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
     tvmaze_info = {}
 
     db = database.MonitorDatabase()
 
     try:
         query = 'SELECT imdb_id, tvmaze_id, tvmaze_url FROM tvmaze_lookup ' \
-                'WHERE {} = ?'.format('thetvdb_id' if thetvdb_id else 'imdb_id')
-        tvmaze_info = db.select_single(query, args=[thetvdb_id or imdb_id])
+                'WHERE rating_key = ?'
+        tvmaze_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for lookup_tvmaze_by_tvdb_id: %s." % e)
 
@@ -1040,7 +1044,8 @@ def lookup_tvmaze_by_id(thetvdb_id=None, imdb_id=None):
             tvmaze_url = tvmaze_json.get('url', '')
             
             keys = {'tvmaze_id': tvmaze_id}
-            tvmaze_info = {'thetvdb_id': thetvdb_id,
+            tvmaze_info = {'rating_key': rating_key,
+                           'thetvdb_id': thetvdb_id,
                            'imdb_id': imdb_id,
                            'tvmaze_url': tvmaze_url,
                            'tvmaze_json': json.dumps(tvmaze_json)}
@@ -1058,15 +1063,15 @@ def lookup_tvmaze_by_id(thetvdb_id=None, imdb_id=None):
     return tvmaze_info
 
 
-def lookup_themoviedb_by_id(thetvdb_id=None, imdb_id=None):
+def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None):
     themoviedb_info = {}
 
     db = database.MonitorDatabase()
 
     try:
         query = 'SELECT thetvdb_id, imdb_id, themoviedb_id, themoviedb_url FROM themoviedb_lookup ' \
-                'WHERE {} = ?'.format('thetvdb_id' if thetvdb_id else 'imdb_id')
-        themoviedb_info = db.select_single(query, args=[thetvdb_id or imdb_id])
+                'WHERE rating_key = ?'
+        themoviedb_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for lookup_themoviedb_by_imdb_id: %s." % e)
 
@@ -1093,10 +1098,13 @@ def lookup_themoviedb_by_id(thetvdb_id=None, imdb_id=None):
             if themoviedb_id:
                 media_type = 'tv' if thetvdb_id else 'movie'
                 themoviedb_url = 'https://www.themoviedb.org/{}/{}'.format(media_type, themoviedb_id)
-                themoviedb_json = get_themoviedb_info(media_type, themoviedb_id)
+                themoviedb_json = get_themoviedb_info(rating_key=rating_key,
+                                                      media_type=media_type,
+                                                      themoviedb_id=themoviedb_id)
 
                 keys = {'themoviedb_id': themoviedb_id}
-                themoviedb_info = {'thetvdb_id': thetvdb_id,
+                themoviedb_info = {'rating_key': rating_key,
+                                   'thetvdb_id': thetvdb_id,
                                    'imdb_id': imdb_id or themoviedb_json.get('imdb_id'),
                                    'themoviedb_url': themoviedb_url,
                                    'themoviedb_json': json.dumps(themoviedb_json)
@@ -1116,7 +1124,7 @@ def lookup_themoviedb_by_id(thetvdb_id=None, imdb_id=None):
     return themoviedb_info
 
 
-def get_themoviedb_info(media_type, themoviedb_id):
+def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
     if media_type == 'show':
         media_type = 'tv'
 
@@ -1126,8 +1134,8 @@ def get_themoviedb_info(media_type, themoviedb_id):
 
     try:
         query = 'SELECT themoviedb_json FROM themoviedb_lookup ' \
-                'WHERE themoviedb_id = ?'
-        result = db.select_single(query, args=[themoviedb_id])
+                'WHERE rating_key = ?'
+        result = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn(u"PlexPy NotificationHandler :: Unable to execute database query for get_themoviedb_info: %s." % e)
 

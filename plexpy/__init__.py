@@ -544,25 +544,21 @@ def dbcheck():
     # tvmaze_lookup table :: This table keeps record of the TVmaze lookups
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS tvmaze_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'thetvdb_id INTEGER, imdb_id TEXT, tvmaze_id INTEGER, tvmaze_url TEXT, tvmaze_json TEXT)'
+        'rating_key INTEGER, thetvdb_id INTEGER, imdb_id TEXT, '
+        'tvmaze_id INTEGER, tvmaze_url TEXT, tvmaze_json TEXT)'
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup_thetvdb_id ON tvmaze_lookup (thetvdb_id)'
-    )
-    c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup_imdb_id ON tvmaze_lookup (imdb_id)'
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup ON tvmaze_lookup (rating_key)'
     )
 
     # themoviedb_lookup table :: This table keeps record of the TheMovieDB lookups
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS themoviedb_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'thetvdb_id INTEGER, imdb_id TEXT, themoviedb_id INTEGER, themoviedb_url TEXT, themoviedb_json TEXT)'
+        'rating_key INTEGER, thetvdb_id INTEGER, imdb_id TEXT, '
+        'themoviedb_id INTEGER, themoviedb_url TEXT, themoviedb_json TEXT)'
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_themoviedb_lookup_thetvdb_id ON themoviedb_lookup (thetvdb_id)'
-    )
-    c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_themoviedb_lookup_imdb_id ON themoviedb_lookup (imdb_id)'
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_themoviedb_lookup ON themoviedb_lookup (rating_key)'
     )
 
     # Upgrade sessions table from earlier versions
@@ -1102,6 +1098,36 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE notifiers ADD COLUMN custom_conditions_logic TEXT'
+        )
+
+    # Upgrade tvmaze_lookup table from earlier versions
+    try:
+        c_db.execute('SELECT rating_key FROM tvmaze_lookup')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table tvmaze_lookup.")
+        c_db.execute(
+            'ALTER TABLE tvmaze_lookup ADD COLUMN rating_key INTEGER'
+        )
+        c_db.execute(
+            'DROP INDEX idx_tvmaze_lookup_thetvdb_id'
+        )
+        c_db.execute(
+            'DROP INDEX idx_tvmaze_lookup_imdb_id'
+        )
+
+    # Upgrade themoviedb_lookup table from earlier versions
+    try:
+        c_db.execute('SELECT rating_key FROM themoviedb_lookup')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table themoviedb_lookup.")
+        c_db.execute(
+            'ALTER TABLE themoviedb_lookup ADD COLUMN rating_key INTEGER'
+        )
+        c_db.execute(
+            'DROP INDEX idx_themoviedb_lookup_thetvdb_id'
+        )
+        c_db.execute(
+            'DROP INDEX idx_themoviedb_lookup_imdb_id'
         )
 
     # Add "Local" user to database as default unauthenticated user.
