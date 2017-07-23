@@ -578,9 +578,36 @@ def blacklist_logger():
 
 
 class PrettyMetadata(object):
-    def __init__(self, parameters):
-    	self.parameters = parameters
-    	self.media_type = parameters['media_type']
+    def __init__(self, parameters=None):
+        self.parameters = parameters or {}
+        self.media_type = self.parameters.get('media_type')
+
+    @staticmethod
+    def get_movie_providers():
+        return {'': '',
+                'plexweb': 'Plex Web',
+                'imdb': 'IMDB',
+                'themoviedb': 'The Movie Database',
+                'trakt': 'Trakt.tv'
+                }
+
+    @staticmethod
+    def get_tv_providers():
+        return {'': '',
+                'plexweb': 'Plex Web',
+                'imdb': 'IMDB',
+                'themoviedb': 'The Movie Database',
+                'thetvdb': 'TheTVDB',
+                'tvmaze': 'TVmaze',
+                'trakt': 'Trakt.tv'
+                }
+
+    @staticmethod
+    def get_music_providers():
+        return {'': '',
+                'plexweb': 'Plex Web',
+                'lastfm': 'Last.fm'
+                }
 
     def get_poster_url(self):
         poster_url = self.parameters['poster_url']
@@ -591,48 +618,32 @@ class PrettyMetadata(object):
                 poster_url = 'https://raw.githubusercontent.com/%s/plexpy/master/data/interfaces/default/images/poster.png' % plexpy.CONFIG.GIT_USER
         return poster_url
 
-    def get_provider(self):
-        provider = ''
-        if self.parameters['thetvdb_url']:
-            provider = 'TheTVDB'
-        elif self.parameters['themoviedb_url']:
-            provider = 'The Movie Database'
-        elif self.parameters['imdb_url']:
-            provider = 'IMDb'
-        elif self.parameters['lastfm_url']:
-            provider = 'Last.fm'
-        return provider
+    def get_provider_name(self, provider):
+        provider_name = ''
+        if provider == 'plexweb':
+            provider_name = 'Plex Web'
+        elif provider == 'imdb':
+            provider_name = 'IMDb'
+        elif provider == 'thetvdb':
+            provider_name = 'TheTVDB'
+        elif provider == 'themoviedb':
+            provider_name = 'The Movie Database'
+        elif provider == 'tvmaze':
+            provider_name = 'TVmaze'
+        elif provider == 'lastfm':
+            provider_name = 'Last.fm'
+        return provider_name
 
     def get_provider_link(self, provider=None):
-        provider_link = ''
-        if provider:
-            if provider == 'plexweb':
-                provider_link = self.get_plex_url()
-            else:
-                provider_link = self.parameters.get(provider + '_url', '')
-        elif self.parameters['thetvdb_url']:
-            provider_link = self.parameters['thetvdb_url']
-        elif self.parameters['themoviedb_url']:
-            provider_link = self.parameters['themoviedb_url']
-        elif self.parameters['imdb_url']:
-            provider_link = self.parameters['imdb_url']
-        elif self.parameters['tvmaze_url']:
-            provider_link = self.parameters['tvmaze_url']
-        elif self.parameters['lastfm_url']:
-            provider_link = self.parameters['lastfm_url']
+        if provider == 'plexweb':
+            provider_link = self.get_plex_url()
+        else:
+            provider_link = self.parameters.get(provider + '_url', '')
         return provider_link
 
-    def get_caption(self):
-        caption = ''
-        if self.parameters['thetvdb_url']:
-            caption = 'View on TheTVDB'
-        elif self.parameters['themoviedb_url']:
-            caption = 'View on The Movie Database'
-        elif self.parameters['imdb_url']:
-            caption = 'View on IMDB'
-        elif self.parameters['lastfm_url']:
-            caption = 'View on Last.fm'
-        return caption
+    def get_caption(self, provider):
+        provider_name = self.get_provider_name(provider)
+        return 'View on ' + provider_name
 
     def get_title(self, divider='-'):
         if self.media_type == 'movie':
@@ -1032,7 +1043,10 @@ class DISCORD(Notifier):
                        'incl_card': 0,
                        'incl_description': 1,
                        'incl_thumbnail': 0,
-                       'incl_pmslink': 0
+                       'incl_pmslink': 0,
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
@@ -1055,13 +1069,22 @@ class DISCORD(Notifier):
         if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
-            media_type = pretty_metadata.media_type
+
+            if pretty_metadata.media_type == 'movie':
+                provider = self.config['movie_provider']
+            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                provider = self.config['tv_provider']
+            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                provider = self.config['music_provider']
+            else:
+                provider = None
+
             poster_url = pretty_metadata.get_poster_url()
-            plex_url = pretty_metadata.get_plex_url()
-            provider = pretty_metadata.get_provider()
-            provider_link = pretty_metadata.get_provider_link()
+            provider_name = pretty_metadata.get_provider_name(provider)
+            provider_link = pretty_metadata.get_provider_link(provider)
             title = pretty_metadata.get_title('\xc2\xb7'.decode('utf8'))
             description = pretty_metadata.get_description()
+            plex_url = pretty_metadata.get_plex_url()
 
             # Build Discord post attachment
             attachment = {'title': title
@@ -1079,14 +1102,14 @@ class DISCORD(Notifier):
             else:
                 attachment['image'] = {'url': poster_url}
 
-            if self.config['incl_description'] or media_type in ('artist', 'album', 'track'):
+            if self.config['incl_description'] or pretty_metadata.media_type in ('artist', 'album', 'track'):
                 attachment['description'] = description
 
             fields = []
             if provider_link:
                 attachment['url'] = provider_link
                 fields.append({'name': 'View Details',
-                               'value': '[%s](%s)' % (provider, provider_link.encode('utf-8')),
+                               'value': '[%s](%s)' % (provider_name, provider_link.encode('utf-8')),
                                'inline': True})
             if self.config['incl_pmslink']:
                 fields.append({'name': 'View Details',
@@ -1162,6 +1185,27 @@ class DISCORD(Notifier):
                           'name': 'discord_incl_thumbnail',
                           'description': 'Use a thumbnail instead of a full sized poster on the info card.',
                           'input_type': 'checkbox'
+                          },
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'discord_movie_provider',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_movie_providers()
+                          },
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'discord_tv_provider',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_tv_providers()
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'discord_music_provider',
+                          'description': 'Select the source for music links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_music_providers()
                           }
                          ]
 
@@ -1477,36 +1521,21 @@ class FACEBOOK(Notifier):
                           'name': 'facebook_movie_provider',
                           'description': 'Select the source for movie links on the info cards. Leave blank for default.',
                           'input_type': 'select',
-                          'select_options': {'': '',
-                                             'imdb': 'IMDB',
-                                             'themoviedb': 'The Movie Database',
-                                             'trakt': 'Trakt.tv',
-                                             'plexweb': 'Plex Web'
-                                             }
+                          'select_options': PrettyMetadata().get_movie_providers()
                           },
                          {'label': 'TV Show Link Source',
                           'value': self.config['tv_provider'],
                           'name': 'facebook_tv_provider',
                           'description': 'Select the source for tv show links on the info cards. Leave blank for default.',
                           'input_type': 'select',
-                          'select_options': {'': '',
-                                             'thetvdb': 'TheTVDB',
-                                             'tvmaze': 'TVmaze',
-                                             'imdb': 'IMDB',
-                                             'themoviedb': 'The Movie Database',
-                                             'trakt': 'Trakt.tv',
-                                             'plexweb': 'Plex Web'
-                                             }
+                          'select_options': PrettyMetadata().get_tv_providers()
                           },
                          {'label': 'Music Link Source',
                           'value': self.config['music_provider'],
                           'name': 'facebook_music_provider',
                           'description': 'Select the source for music links on the info cards. Leave blank for default.',
                           'input_type': 'select',
-                          'select_options': {'': '',
-                                             'lastfm': 'Last.fm',
-                                             'plexweb': 'Plex Web'
-                                             }
+                          'select_options': PrettyMetadata().get_music_providers()
                           }
                          ]
 
@@ -1688,7 +1717,10 @@ class HIPCHAT(Notifier):
                        'incl_subject': 1,
                        'incl_card': 0,
                        'incl_description': 1,
-                       'incl_pmslink': 0
+                       'incl_pmslink': 0,
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
@@ -1708,10 +1740,19 @@ class HIPCHAT(Notifier):
         if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
-            media_type = pretty_metadata.media_type
+
+            if pretty_metadata.media_type == 'movie':
+                provider = self.config['movie_provider']
+            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                provider = self.config['tv_provider']
+            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                provider = self.config['music_provider']
+            else:
+                provider = None
+
             poster_url = pretty_metadata.get_poster_url()
-            provider = pretty_metadata.get_provider()
-            provider_link = pretty_metadata.get_provider_link()
+            provider_name = pretty_metadata.get_provider_name(provider)
+            provider_link = pretty_metadata.get_provider_link(provider)
             title = pretty_metadata.get_title()
             description = pretty_metadata.get_description()
             plex_url = pretty_metadata.get_plex_url()
@@ -1725,7 +1766,7 @@ class HIPCHAT(Notifier):
                           'thumbnail': {'url': poster_url}
                           }
 
-            if self.config['incl_description'] or media_type in ('artist', 'album', 'track'):
+            if self.config['incl_description'] or pretty_metadata.media_type in ('artist', 'album', 'track'):
                 attachment['description'] = {'format': 'text',
                                              'value': description}
 
@@ -1733,7 +1774,7 @@ class HIPCHAT(Notifier):
             if provider_link:
                 attachment['url'] = provider_link
                 attributes.append({'label': 'View Details',
-                                   'value': {'label': provider,
+                                   'value': {'label': provider_name,
                                              'url': provider_link}})
             if self.config['incl_pmslink']:
                 attributes.append({'label': 'View Details',
@@ -1809,6 +1850,27 @@ class HIPCHAT(Notifier):
                           'name': 'hipchat_incl_pmslink',
                           'description': 'Include a second link to the media in Plex Web on the info card.',
                           'input_type': 'checkbox'
+                          },
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'hipchat_movie_provider',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_movie_providers()
+                          },
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'hipchat_tv_provider',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_tv_providers()
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'hipchat_music_provider',
+                          'description': 'Select the source for music links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_music_providers()
                           }
                          ]
 
@@ -2383,7 +2445,9 @@ class PUSHOVER(Notifier):
                        'priority': 0,
                        'sound': '',
                        'incl_url': 1,
-                       'incl_pmslink': 0
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
@@ -2401,16 +2465,21 @@ class PUSHOVER(Notifier):
         if self.config['incl_url'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
-            plex_url = pretty_metadata.get_plex_url()
-            provider_link = pretty_metadata.get_provider_link()
-            caption = pretty_metadata.get_caption()
 
-            if self.config['incl_pmslink']:
-                data['url'] = plex_url
-                data['url_title'] = 'View on Plex Web'
+            if pretty_metadata.media_type == 'movie':
+                provider = self.config['movie_provider']
+            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                provider = self.config['tv_provider']
+            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                provider = self.config['music_provider']
             else:
-                data['url'] = provider_link
-                data['url_title'] = caption
+                provider = None
+
+            provider_link = pretty_metadata.get_provider_link(provider)
+            caption = pretty_metadata.get_caption(provider)
+
+            data['url'] = provider_link
+            data['url_title'] = caption
 
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
@@ -2472,14 +2541,29 @@ class PUSHOVER(Notifier):
                          {'label': 'Include supplementary URL',
                           'value': self.config['incl_url'],
                           'name': 'pushover_incl_url',
-                          'description': 'Include a supplementary URL to IMDB, TVDB, TMDb, or Last.fm with the notifications.',
+                          'description': 'Include a supplementary URL with the notifications.',
                           'input_type': 'checkbox'
                           },
-                         {'label': 'Supplementary URL to Plex Web',
-                          'value': self.config['incl_pmslink'],
-                          'name': 'pushover_incl_pmslink',
-                          'description': 'Enable to change the supplementary URL to the media in Plex Web.',
-                          'input_type': 'checkbox'
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'pushover_movie_provider',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_movie_providers()
+                          },
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'pushover_tv_provider',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_tv_providers()
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'pushover_music_provider',
+                          'description': 'Select the source for music links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_music_providers()
                           }
                          ]
 
@@ -2678,7 +2762,10 @@ class SLACK(Notifier):
                        'incl_card': 0,
                        'incl_description': 1,
                        'incl_thumbnail': 0,
-                       'incl_pmslink': 0
+                       'incl_pmslink': 0,
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
                        }
 
     def notify(self, subject='', body='', action='', **kwargs):
@@ -2704,13 +2791,22 @@ class SLACK(Notifier):
         if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
-            media_type = pretty_metadata.media_type
+
+            if pretty_metadata.media_type == 'movie':
+                provider = self.config['movie_provider']
+            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                provider = self.config['tv_provider']
+            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                provider = self.config['music_provider']
+            else:
+                provider = None
+
             poster_url = pretty_metadata.get_poster_url()
-            plex_url = pretty_metadata.get_plex_url()
-            provider = pretty_metadata.get_provider()
-            provider_link = pretty_metadata.get_provider_link()
+            provider_name = pretty_metadata.get_provider_name(provider)
+            provider_link = pretty_metadata.get_provider_link(provider)
             title = pretty_metadata.get_title()
             description = pretty_metadata.get_description()
+            plex_url = pretty_metadata.get_plex_url()
 
             # Build Slack post attachment
             attachment = {'fallback': 'Image for %s' % title,
@@ -2725,14 +2821,14 @@ class SLACK(Notifier):
             else:
                 attachment['image_url'] = poster_url
 
-            if self.config['incl_description'] or media_type in ('artist', 'album', 'track'):
+            if self.config['incl_description'] or pretty_metadata.media_type in ('artist', 'album', 'track'):
                 attachment['text'] = description
 
             fields = []
             if provider_link:
                 attachment['title_link'] = provider_link
                 fields.append({'title': 'View Details',
-                               'value': '<%s|%s>' % (provider_link, provider),
+                               'value': '<%s|%s>' % (provider_link, provider_name),
                                'short': True})
             if self.config['incl_pmslink']:
                 fields.append({'title': 'View Details',
@@ -2807,6 +2903,27 @@ class SLACK(Notifier):
                           'name': 'slack_incl_thumbnail',
                           'description': 'Use a thumbnail instead of a full sized poster on the info card.',
                           'input_type': 'checkbox'
+                          },
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'slack_movie_provider',
+                          'description': 'Select the source for movie links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_movie_providers()
+                          },
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'slack_tv_provider',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_tv_providers()
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'slack_music_provider',
+                          'description': 'Select the source for music links on the info cards. Leave blank for default.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_music_providers()
                           }
                          ]
 
